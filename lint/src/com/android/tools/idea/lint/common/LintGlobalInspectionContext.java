@@ -351,7 +351,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
                     myBaseline.getTotalCount());
         }
         new NotificationGroup(
-          "Wrote Baseline", NotificationDisplayType.BALLOON, true, null, null, PluginId.getId("org.jetbrains.android"))
+          "Wrote Baseline", NotificationDisplayType.BALLOON, true, null, null, null, PluginId.getId("org.jetbrains.android"))
           .createNotification(message, NotificationType.INFORMATION)
           .notify(context.getProject());
       }

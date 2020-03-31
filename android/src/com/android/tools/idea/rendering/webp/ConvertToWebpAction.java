@@ -313,7 +313,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
         }
         String message = sb.toString();
         new NotificationGroup(
-          "Convert to WebP", NotificationDisplayType.BALLOON, true, null, null, PluginId.getId("org.jetbrains.android"))
+          "Convert to WebP", NotificationDisplayType.BALLOON, true, null, null, null, PluginId.getId("org.jetbrains.android"))
           .createNotification(message, NotificationType.INFORMATION)
           .notify(myProject);
       }

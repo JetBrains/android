@@ -148,7 +148,7 @@ public class HtmlLinkManager {
    * in those actions that do not trigger any UI updates (like Copy stack trace to clipboard).
    */
   private static final NotificationGroup NOTIFICATIONS_GROUP = new NotificationGroup(
-    "Render error panel notifications", NotificationDisplayType.BALLOON, false, null, null, PluginId.getId("org.jetbrains.android"));
+    "Render error panel notifications", NotificationDisplayType.BALLOON, false, null, null, null, PluginId.getId("org.jetbrains.android"));
 
   public static void showNotification(@NotNull String content) {
     Notification notification = NOTIFICATIONS_GROUP.createNotification(content, NotificationType.INFORMATION);
