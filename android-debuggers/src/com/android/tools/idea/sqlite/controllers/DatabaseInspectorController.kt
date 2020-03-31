@@ -153,6 +153,10 @@ class DatabaseInspectorControllerImpl(
     view.reportError(message, throwable)
   }
 
+  override suspend fun databasePossiblyChanged() = withContext(uiThread) {
+    // TODO(next CL): update tabs and schema
+  }
+
   override fun dispose() = invokeAndWaitIfNeeded {
     view.removeListener(sqliteViewListener)
 
@@ -401,6 +405,14 @@ interface DatabaseInspectorController : Disposable {
 
   suspend fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement)
   suspend fun closeDatabase(database: SqliteDatabase)
+
+  /**
+   * Updates schema of all open databases and notifies each tab that its data might be stale.
+   *
+   * This method is called when a `DatabasePossiblyChanged` event is received from the the on-device inspector
+   * which tells us that the data in a database might have changed (schema, tables or both).
+   */
+  suspend fun databasePossiblyChanged()
 
   /**
    * Shows the error in the view.

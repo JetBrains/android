@@ -31,6 +31,7 @@ class DatabaseInspectorClient constructor(
   messenger: CommandMessenger,
   private val handleError: (errorMessage: String) -> Unit,
   private val openDatabase: (messenger: CommandMessenger, databaseConnectionId: Int, databaseName: String) -> Unit,
+  private val onDatabasePossiblyChanged: () -> Unit,
   private val onDisposeListener: () -> Unit
 ) : AppInspectorClient(messenger) {
   override val eventListener: EventListener = object : EventListener {
@@ -42,6 +43,9 @@ class DatabaseInspectorClient constructor(
           ApplicationManager.getApplication().invokeLater {
             openDatabase(messenger, openedDatabase.databaseId, openedDatabase.name)
           }
+        }
+        event.hasDatabasePossiblyChanged() -> {
+          onDatabasePossiblyChanged()
         }
         event.hasErrorOccurred() -> {
           val errorContent = event.errorOccurred.content
