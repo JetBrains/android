@@ -15,11 +15,6 @@
  */
 package org.jetbrains.android.util;
 
-import static com.android.SdkConstants.ATTR_CONTEXT;
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.intellij.openapi.application.ApplicationManager.getApplication;
-
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.internal.project.ProjectProperties;
@@ -54,10 +49,7 @@ import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.lang.java.JavaParserDefinition;
 import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.lexer.Lexer;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
+import com.intellij.notification.*;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -82,14 +74,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.JavaTokenType;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiModifier;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.tree.java.IKeywordElementType;
@@ -104,28 +89,25 @@ import com.intellij.util.graph.GraphAlgorithms;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
-import java.awt.BorderLayout;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JTextArea;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.android.SdkConstants.ATTR_CONTEXT;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.intellij.openapi.application.ApplicationManager.getApplication;
 
 /**
  * @author yole, coyote
@@ -761,7 +743,8 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   public static void reportImportErrorToEventLog(String message, String modName, Project project, NotificationListener listener) {
-    Notifications.Bus.notify(new Notification(AndroidBundle.message("android.facet.importing.notification.group"),
+    Notifications.Bus.notify(new Notification(NotificationGroup.createIdWithTitle(
+      "Importing Error", AndroidBundle.message("android.facet.importing.notification.group")),
                                               AndroidBundle.message("android.facet.importing.title", modName),
                                               message, NotificationType.ERROR, listener), project);
     LOG.debug(message);

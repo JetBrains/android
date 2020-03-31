@@ -22,6 +22,7 @@ import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.process.ProcessTerminatedListener;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.diagnostic.Logger;
@@ -59,7 +60,7 @@ public class EmulatorProcessHandler extends BaseOSProcessHandler{
       if (ProcessOutputTypes.SYSTEM.equals(outputType) && EmulatorProcessHandler.this.isProcessTerminated()) {
         Integer exitCode = EmulatorProcessHandler.this.getExitCode();
         if (exitCode != null) {
-          Notification notification = new Notification(AndroidBundle.message("android.emulator"),
+          Notification notification = new Notification(NotificationGroup.createIdWithTitle("Emulator", AndroidBundle.message("android.emulator")),
                                                        "",
                                                        content,
                                                        (exitCode == 0) ? NotificationType.INFORMATION : NotificationType.ERROR);
@@ -69,7 +70,7 @@ public class EmulatorProcessHandler extends BaseOSProcessHandler{
       }
       boolean hasError = text != null && StringUtil.toLowerCase(text).contains("error");
       if (hasError || ProcessOutputTypes.STDERR.equals(outputType)) {
-        Notification notification = new Notification(AndroidBundle.message("android.emulator"),
+        Notification notification = new Notification(NotificationGroup.createIdWithTitle("Emulator", AndroidBundle.message("android.emulator")),
                                                      "",
                                                      content,
                                                      NotificationType.ERROR);

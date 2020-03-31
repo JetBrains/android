@@ -18,10 +18,7 @@ package com.android.tools.idea.memorysettings;
 import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationAction;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
+import com.intellij.notification.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -40,7 +37,7 @@ final class AndroidLowMemoryNotifier implements Disposable {
     int currentXmx = MemorySettingsUtil.getCurrentXmx();
     int xmxCap = MemorySettingsUtil.getIdeXmxCapInGB() * 1024;
     if (myNotificationShown.compareAndSet(false, true) && currentXmx < xmxCap) {
-      Notification notification = new Notification(IdeBundle.message("low.memory.notification.title"),
+      Notification notification = new Notification(NotificationGroup.createIdWithTitle("Low Memory", IdeBundle.message("low.memory.notification.title")),
                                                    IdeBundle.message("low.memory.notification.title"),
                                                    IdeBundle.message("low.memory.notification.content"),
                                                    NotificationType.WARNING);
