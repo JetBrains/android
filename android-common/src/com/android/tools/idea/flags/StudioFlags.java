@@ -396,6 +396,13 @@ public final class StudioFlags {
     "Supports Install-without-Install, Speculative Diff and Structural Redefinition",
     true);
 
+  public static final Flag<Boolean> APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP = Flag.create(
+    RUNDEBUG,
+    "applychanges.optimisticresourceswap",
+    "Use the 'Apply Changes 2.0' deployment pipeline for full Apply Changes",
+    "Requires applychanges.optimisticswap to be true.",
+    false);
+
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
     RUNDEBUG,
     "applychanges.structuralredefinition",
