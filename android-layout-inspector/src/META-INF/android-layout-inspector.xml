@@ -24,7 +24,8 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <fileTypeFactory implementation="com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileTypeFactory" />
+    <fileType name="Layout Inspector" extensions="li"
+              implementationClass="com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileType" fieldName="INSTANCE"/>
     <projectService serviceInterface="com.android.tools.idea.editors.layoutInspector.AndroidLayoutInspectorService"
       serviceImplementation="com.android.tools.idea.editors.layoutInspector.impl.AndroidLayoutInspectorServiceImpl" />
     <editorNotificationProvider implementation="com.android.tools.idea.editors.layoutInspector.LayoutInspectorEditor$NewVersionNotificationProvider"/>

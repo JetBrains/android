@@ -63,6 +63,7 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
@@ -705,12 +706,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
           return;
         }
 
-        ReadAction.run(() -> {
-          Project project = getProject();
-          if (project.isDisposed()) {
-            return;
-          }
+        Project project = getProject();
+        if (project.isDisposed()) {
+          return;
+        }
 
+        // createErrorModel needs to run in Smart mode to resolve the classes correctly
+        DumbService.getInstance(project).runReadActionInSmartMode(() -> {
           BuildMode gradleBuildMode = BuildSettings.getInstance(project).getBuildMode();
           RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
                                    ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
