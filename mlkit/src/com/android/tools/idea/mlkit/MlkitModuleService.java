@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
 public class MlkitModuleService {
   private final Module myModule;
   private final ModelFileModificationTracker myModelFileModificationTracker;
-  private final Map<MlModelMetadata, LightModelClass> myLightModelClassMap = new ConcurrentHashMap<>();
+  private final Map<String, LightModelClass> myLightModelClassMap = new ConcurrentHashMap<>();
   private final LightModelClassListProvider myLightModelClassListProvider;
 
   public static MlkitModuleService getInstance(@NotNull Module module) {
@@ -68,8 +68,8 @@ public class MlkitModuleService {
       return null;
     }
 
-    return myLightModelClassMap.computeIfAbsent(modelMetadata, modelMetadata1 -> {
-      LightModelClassConfig classConfig = MlModelClassGenerator.generateLightModelClass(myModule, modelMetadata1);
+    return myLightModelClassMap.computeIfAbsent(modelMetadata.myModelFileUrl, fileUrl -> {
+      LightModelClassConfig classConfig = MlModelClassGenerator.generateLightModelClass(myModule, modelMetadata);
       return classConfig != null ? new LightModelClass(myModule, classConfig) : null;
     });
   }
@@ -99,7 +99,7 @@ public class MlkitModuleService {
               VirtualFile file = event.getFile();
               if (file != null && MlkitUtils.isModelFileInMlModelsFolder(module, file)) {
                 PsiManager.getInstance(module.getProject()).dropResolveCaches();
-                getInstance(module).myLightModelClassMap.clear();
+                getInstance(module).myLightModelClassMap.remove(file.getUrl());
                 myModificationCount++;
                 return;
               }
