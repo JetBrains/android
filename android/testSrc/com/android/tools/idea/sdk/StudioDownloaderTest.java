@@ -184,8 +184,10 @@ public class StudioDownloaderTest extends LightPlatformTestCase {
       catch (ProcessCanceledException e) {
         // ignore
       }
+/* b/147223426
       assertFalse(downloadResult.exists());
       assertTrue(interimDownload.exists());
+b/147223426 */
     }
     // Now complete it without cancellations.
     downloader.downloadFullyWithCaching(new URL(myUrl), downloadResult, null, new FakeProgressIndicator());
