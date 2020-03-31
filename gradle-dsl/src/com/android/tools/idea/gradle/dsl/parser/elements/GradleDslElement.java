@@ -80,6 +80,8 @@ public interface GradleDslElement extends AnchorProvider {
 
   void rename(@NotNull String newName);
 
+  void rename(@NotNull List<String> hierarchicalName);
+
   @Nullable
   GradleDslElement getParent();
 
