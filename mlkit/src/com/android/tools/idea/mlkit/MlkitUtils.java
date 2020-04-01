@@ -85,16 +85,9 @@ public class MlkitUtils {
    * Returns the set of missing dependencies that are required by the auto-generated model classes.
    */
   public static List<GradleCoordinate> getMissingDependencies(@NotNull Module module, @NotNull VirtualFile modelFile) {
-    // TODO(148887002): calculate required deps based on the given model file and figure out how to handle versions.
-    ImmutableList<String> requiredDeps = ImmutableList.of(
-      "org.apache.commons:commons-compress:1.20",
-      "org.tensorflow:tensorflow-lite:2.1.0",
-      "org.tensorflow:tensorflow-lite-support:0.0.0-nightly"
-    );
-
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
     List<GradleCoordinate> pendingDeps = new ArrayList<>();
-    for (String requiredDepString : requiredDeps) {
+    for (String requiredDepString : getRequiredDependencies()) {
       GradleCoordinate requiredDep = GradleCoordinate.parseCoordinateString(requiredDepString);
       GradleCoordinate requiredDepInAnyVersion = new GradleCoordinate(requiredDep.getGroupId(), requiredDep.getArtifactId(), "+");
       if (moduleSystem.getRegisteredDependency(requiredDepInAnyVersion) == null) {
@@ -102,6 +95,15 @@ public class MlkitUtils {
       }
     }
     return pendingDeps;
+  }
+
+  public static ImmutableList<String> getRequiredDependencies() {
+    // TODO(148887002): calculate required deps based on the given model file and figure out how to handle versions.
+    return ImmutableList.of(
+      "org.apache.commons:commons-compress:1.20",
+      "org.tensorflow:tensorflow-lite:2.1.0",
+      "org.tensorflow:tensorflow-lite-support:0.0.0-nightly"
+    );
   }
 
   @Nullable

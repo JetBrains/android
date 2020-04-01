@@ -18,25 +18,31 @@ package com.android.tools.idea.mlkit.importmodel;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvider;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.intellij.ide.ui.laf.darcula.DarculaUIUtil;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.JBColor;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +60,8 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   private JPanel myPanel;
   private TextFieldWithBrowseButton myModelLocation;
   private ComboBox<NamedModuleTemplate> myFlavorBox;
+  private JCheckBox myAutoCheckBox;
+  private JTextArea myInfoTextArea;
 
   public ChooseMlModelStep(@NotNull MlWizardModel model,
                            @NotNull List<NamedModuleTemplate> moduleTemplates,
@@ -70,7 +78,12 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
       myFlavorBox.addItem(namedModuleTemplate);
     }
 
+    myInfoTextArea.setBackground(null);
+    myInfoTextArea.setText(getInformationText());
+    myInfoTextArea.setForeground(JBColor.DARK_GRAY);
+
     myBindings.bindTwoWay(new TextProperty(myModelLocation.getTextField()), model.sourceLocation);
+    myBindings.bindTwoWay(new SelectedProperty(myAutoCheckBox), model.autoUpdateBuildFile);
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     Expression<File> locationFile = model.sourceLocation.transform(File::new);
@@ -81,6 +94,19 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+  }
+
+  @NotNull
+  public String getInformationText() {
+    StringBuilder stringBuilder = new StringBuilder(
+      "buildFeatures {\n" +
+      "  mlModelBinding true\n" +
+      "}\n\n");
+    for (String dep : MlkitUtils.getRequiredDependencies()) {
+      stringBuilder.append(dep + "\n");
+    }
+
+    return stringBuilder.toString();
   }
 
   @NotNull

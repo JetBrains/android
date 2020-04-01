@@ -46,11 +46,12 @@ public class AndroidImportMlModelAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
+    Module module = LangDataKeys.MODULE.getData(e.getDataContext());
     List<NamedModuleTemplate> moduleTemplates = getModuleTemplates(e);
-    if (!moduleTemplates.isEmpty() && e.getProject() != null) {
+    if (!moduleTemplates.isEmpty() && module != null) {
       String title = "Import TensorFlow Lite model";
       ModelWizard wizard = new ModelWizard.Builder()
-        .addStep(new ChooseMlModelStep(new MlWizardModel(e.getProject()), moduleTemplates, e.getProject(), title))
+        .addStep(new ChooseMlModelStep(new MlWizardModel(module), moduleTemplates, e.getProject(), title))
         .build();
       new StudioWizardDialogBuilder(wizard, title).build().show();
     }

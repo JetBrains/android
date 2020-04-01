@@ -15,14 +15,20 @@
  */
 package com.android.tools.idea.mlkit.importmodel
 
+import com.android.tools.idea.mlkit.MlkitUtils
+import com.android.tools.idea.npw.model.render
+import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
+import com.android.tools.idea.templates.getDummyModuleTemplateDataBuilder
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
+import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.Recipe
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -32,12 +38,21 @@ import java.io.IOException
 /**
  * [WizardModel] that contains model location to import.
  */
-class MlWizardModel(private val project: Project) : WizardModel() {
+class MlWizardModel(private val module: Module) : WizardModel() {
+
+  private val mlkitRecipe: Recipe = {
+    for (dependency in MlkitUtils.getRequiredDependencies()) {
+      addDependency(dependency)
+      //TODO(b/152783932): add mlModelBinding build feature once it is ready.
+    }
+  }
 
   @JvmField
   val sourceLocation: StringProperty = StringValueProperty()
   @JvmField
   val mlDirectory: StringProperty = StringValueProperty()
+  @JvmField
+  val autoUpdateBuildFile: BoolValueProperty = BoolValueProperty(true)
 
   override fun handleFinished() {
     val fromFile: VirtualFile? = VfsUtil.findFileByIoFile(File(sourceLocation.get()), false)
@@ -47,8 +62,21 @@ class MlWizardModel(private val project: Project) : WizardModel() {
         val toDir: VirtualFile? = VfsUtil.createDirectoryIfMissing(directoryPath)
         if (fromFile != null && toDir != null) {
           val virtualFile: VirtualFile = VfsUtilCore.copyFile(this, fromFile, toDir)
-          val fileEditorManager: FileEditorManager = FileEditorManager.getInstance(project)
+          val fileEditorManager: FileEditorManager = FileEditorManager.getInstance(module.project)
           fileEditorManager.openFile(virtualFile, true)
+          if (autoUpdateBuildFile.get()) {
+            val context = RenderingContext(
+              module.project,
+              module,
+              "Import TensorFlow Lite Model",
+              getDummyModuleTemplateDataBuilder(module.project).build(),
+              showErrors = true,
+              dryRun = false,
+              moduleRoot = null
+            )
+            // TODO(b/153163381): Add loggingEvent here.
+            mlkitRecipe.render(context, DefaultRecipeExecutor(context), null)
+          }
         }
       }
       catch (e: IOException) {
@@ -56,5 +84,4 @@ class MlWizardModel(private val project: Project) : WizardModel() {
       }
     }
   }
-
 }
