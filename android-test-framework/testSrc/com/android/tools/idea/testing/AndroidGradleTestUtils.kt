@@ -68,7 +68,7 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
-import com.android.tools.idea.gradle.project.sync.idea.switchVariant
+import com.android.tools.idea.gradle.project.sync.idea.setupDataNodesForSelectedVariant
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
@@ -89,6 +89,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
@@ -749,8 +750,8 @@ fun setupTestProjectFromAndroidModel(
     projectDataNode.addChild(moduleDataNode)
   }
 
-  // Switch variant to setup any other data nodes.
-  switchVariant(project, androidModels, projectDataNode)
+  setupDataNodesForSelectedVariant(project, androidModels, projectDataNode)
+  ProjectDataManager.getInstance().importData(projectDataNode, project, true)
 
   IdeSdks.removeJdksOn(project)
   runWriteAction {
