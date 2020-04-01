@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.compose.documentation
 
-import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
+import com.android.tools.idea.compose.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.rendering.NoSecurityManagerRenderService
-import com.android.tools.idea.rendering.RenderService
-import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
@@ -38,28 +35,16 @@ import java.io.File
 
 class ComposeDocumentationProviderTest {
   @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
   @Before
   fun setUp() {
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.override(true)
-
-    RenderService.shutdownRenderExecutor(5)
-    RenderService.initializeRenderExecutor()
-    RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
-    projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/compose-designer/testData").path
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
-    projectRule.requestSyncAndWait()
-    projectRule.invokeTasks("compileDebugSources").buildError?.let {
-      // The project must compile correctly, otherwise the tests should fail.
-      throw it
-    }
   }
 
   @After
   fun tearDown() {
-    RenderService.setForTesting(projectRule.project, null)
     StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.clearOverride()
     StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
   }
