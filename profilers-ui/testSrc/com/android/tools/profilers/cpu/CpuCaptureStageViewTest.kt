@@ -34,6 +34,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
+import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -159,27 +160,27 @@ class CpuCaptureStageViewTest {
   fun showTrackGroupTooltip() {
     // Load Atrace
     val stage = CpuCaptureStage.create(profilersView.studioProfilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH))
+                                       TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH))
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
-    stageView.component.setBounds(0, 0, 500, 500)
-    val ui = FakeUi(stageView.component)
     val trackGroups = stageView.trackGroupList.trackGroups
+    trackGroups.forEach { it.overlay.setBounds(0, 0, 500, 100) }
 
     // Initial state
     assertThat(stageView.trackGroupList.activeTooltip).isNull()
 
     // Frame tooltip
-    val frameTracks = trackGroups[0].trackList
-    val frameTracksOrigin = SwingUtilities.convertPoint(frameTracks, Point(0, 0), stageView.component)
-    ui.mouse.moveTo(frameTracksOrigin.x, frameTracksOrigin.y)
+    val frameTrackUi = FakeUi(trackGroups[0].overlay)
+    frameTrackUi.mouse.moveTo(0, 0)
     assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(CpuFrameTooltip::class.java)
 
     // Thread tooltip
     // TODO: cell renderer has width=0 in this test, causing the in-cell tooltip switching logic to fail.
 
     // CPU core tooltip
-    // TODO: use a trace with CPU cores data
+    val coreTrackUi = FakeUi(trackGroups[1].overlay)
+    coreTrackUi.mouse.moveTo(0, 0)
+    assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(CpuKernelTooltip::class.java)
   }
 
   @Test
