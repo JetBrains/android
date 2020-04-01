@@ -57,7 +57,7 @@ class LayoutBindingPackageFinder(project: Project) : PsiElementFinder() {
   }
 
   init {
-    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker(project)
+    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
     packageCache = CachedValuesManager.getManager(project).createCachedValue {
       val packages = component.getAllBindingEnabledFacets()
         .flatMap { facet ->
