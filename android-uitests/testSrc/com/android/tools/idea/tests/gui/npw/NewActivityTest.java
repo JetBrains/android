@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import static com.android.tools.idea.wizard.template.Language.Kotlin;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.text.StringUtil.getOccurrenceCount;
 import static org.junit.Assert.assertEquals;
@@ -25,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture.ActivityTextField;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.ide.util.PropertiesComponent;
@@ -108,7 +110,7 @@ public class NewActivityTest {
   @Test
   public void createActivityWithKotlin() {
     myConfigActivity.setSourceLanguage("Kotlin");
-    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.Kotlin);
+    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Kotlin);
     assertThat(getSavedKotlinSupport()).isFalse(); // Changing the Render source language should not affect the project default
 
     myDialog.clickFinish();
@@ -132,9 +134,25 @@ public class NewActivityTest {
     invokeNewActivityMenu();
     myConfigActivity.setSourceLanguage("Kotlin");
     myDialog.clickFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     assertThat(guiTest.getProjectFileText("build.gradle")).doesNotContain("$kotlin_version");
     assertThat(guiTest.getProjectFileText("app/build.gradle")).doesNotContain("$kotlin_version");
+
+    // Add a new kotlin module, and check that dependencies use "kotlin_my_version", instead of adding a new variable
+    guiTest.ideFrame().openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .clickNextPhoneAndTabletModule()
+      .enterModuleName("app2")
+      .setSourceLanguage(Kotlin)
+      .wizard()
+      .clickNext() // Default options
+      .clickNext() // Default Activity
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
+
+    String app2BuildFileText = guiTest.getProjectFileText("app2/build.gradle");
+    assertThat(app2BuildFileText).doesNotContain("$kotlin_version");
+    assertThat(app2BuildFileText).contains("$kotlin_my_version");
   }
 
   @Test
