@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.eq
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.idea.layoutinspector.SkiaParserService
@@ -128,9 +130,8 @@ class ComponentTreeLoaderTest {
     val client = mock(DefaultInspectorClient::class.java)
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
-
     val skiaParser = mock(SkiaParserService::class.java)!!
-    `when`(skiaParser.getViewTree(payload)).thenReturn(skiaResponse)
+    `when`(skiaParser.getViewTree(eq(payload), any())).thenReturn(skiaResponse)
 
     val tree = ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
     assertThat(tree.drawId).isEqualTo(1)
@@ -202,13 +203,10 @@ class ComponentTreeLoaderTest {
     `when`(client.getPayload(111)).thenReturn(payload)
 
     val skiaParser = mock(SkiaParserService::class.java)!!
-    `when`(skiaParser.getViewTree(payload)).thenAnswer { throw UnsupportedPictureVersionException(123) }
+    `when`(skiaParser.getViewTree(eq(payload), any())).thenAnswer { throw UnsupportedPictureVersionException(123) }
 
     ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)
-    val screenshotCommand = LayoutInspectorProto.LayoutInspectorCommand.newBuilder()
-      .setType(LayoutInspectorProto.LayoutInspectorCommand.Type.USE_SCREENSHOT_MODE)
-      .setScreenshotMode(true).build()
-    verify(client).execute(screenshotCommand)
+    verify(client).requestScreenshotMode()
     assertThat(banner.text.text).isEqualTo("No renderer supporting SKP version 123 found. Rotation disabled.")
     // Metrics shouldn't be logged until we come back with a screenshot
     verify(client, Times(0)).logInitialRender(ArgumentMatchers.anyBoolean())
@@ -222,13 +220,10 @@ class ComponentTreeLoaderTest {
     `when`(client.getPayload(111)).thenReturn(payload)
 
     val skiaParser = mock(SkiaParserService::class.java)!!
-    `when`(skiaParser.getViewTree(payload)).thenReturn(null)
+    `when`(skiaParser.getViewTree(eq(payload), any())).thenReturn(null)
 
     ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)
-    val screenshotCommand = LayoutInspectorProto.LayoutInspectorCommand.newBuilder()
-      .setType(LayoutInspectorProto.LayoutInspectorCommand.Type.USE_SCREENSHOT_MODE)
-      .setScreenshotMode(true).build()
-    verify(client).execute(screenshotCommand)
+    verify(client).requestScreenshotMode()
     assertThat(banner.text.text).isEqualTo("Invalid picture data received from device. Rotation disabled.")
     // Metrics shouldn't be logged until we come back with a screenshot
     verify(client, Times(0)).logInitialRender(ArgumentMatchers.anyBoolean())

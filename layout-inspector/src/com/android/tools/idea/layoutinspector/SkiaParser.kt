@@ -74,7 +74,7 @@ class UnsupportedPictureVersionException(val version: Int) : Exception()
 
 interface SkiaParserService {
   @Throws(InvalidPictureException::class)
-  fun getViewTree(data: ByteArray): InspectorView?
+  fun getViewTree(data: ByteArray, isInterrupted: () -> Boolean = { false }): InspectorView?
 
   fun shutdownAll()
 }
@@ -89,10 +89,17 @@ object SkiaParser : SkiaParserService {
   private val progressIndicator = StudioLoggerProgressIndicator(SkiaParser::class.java)
 
   @Throws(InvalidPictureException::class)
-  override fun getViewTree(data: ByteArray): InspectorView? {
+  override fun getViewTree(data: ByteArray, isInterrupted: () -> Boolean): InspectorView? {
     val server = runServer(data) ?: throw UnsupportedPictureVersionException(getSkpVersion(data))
     val response = server.getViewTree(data)
-    return response?.root?.let { buildTree(it) }
+    return response?.root?.let {
+      try {
+        buildTree(it, isInterrupted)
+      }
+      catch (interruptedException: InterruptedException) {
+        null
+      }
+    }
   }
 
   override fun shutdownAll() {
@@ -100,7 +107,10 @@ object SkiaParser : SkiaParserService {
     devbuildServerInfo.shutdown()
   }
 
-  private fun buildTree(node: SkiaParser.InspectorView): InspectorView? {
+  private fun buildTree(node: SkiaParser.InspectorView, isInterrupted: () -> Boolean): InspectorView? {
+    if (isInterrupted()) {
+      throw InterruptedException()
+    }
     val width = node.width
     val height = node.height
     var image: Image? = null
@@ -116,7 +126,7 @@ object SkiaParser : SkiaParserService {
       image = BufferedImage(colorModel, raster, false, null)
     }
     val res = InspectorView(node.id, node.type, node.x, node.y, width, height, image)
-    node.childrenList.mapNotNull { buildTree(it) }.forEach { res.addChild(it) }
+    node.childrenList.mapNotNull { buildTree(it, isInterrupted) }.forEach { res.addChild(it) }
     return res
   }
 

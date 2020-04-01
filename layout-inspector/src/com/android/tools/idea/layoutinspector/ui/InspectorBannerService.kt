@@ -18,11 +18,18 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.idea.layoutinspector.model.StatusNotification
 import com.android.tools.idea.layoutinspector.model.StatusNotificationImpl
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import kotlin.properties.Delegates
 
 class InspectorBannerService {
+  val DISMISS_ACTION = object : AnAction("Dismiss") {
+    override fun actionPerformed(e: AnActionEvent) {
+      notification = null
+    }
+  }
+
   val notificationListeners = mutableListOf<(StatusNotification?) -> Unit>()
   var notification: StatusNotification? by Delegates.observable(null as StatusNotification?) { _, old, new ->
     if (new != old) {
@@ -30,7 +37,7 @@ class InspectorBannerService {
     }
   }
 
-  fun setNotification(text: String, actions: List<AnAction> = listOf()) {
+  fun setNotification(text: String, actions: List<AnAction> = listOf(DISMISS_ACTION)) {
     notification = StatusNotificationImpl(text, actions)
   }
 
