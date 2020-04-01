@@ -716,6 +716,7 @@
                                      implementation="org.jetbrains.android.AndroidComponentSafeDeleteProcessor"/>
     <refactoring.safeDeleteProcessor id="android_resource_file" implementation="org.jetbrains.android.AndroidResourceFileSafeDeleteProcessor"/>
 
+    <statusBarWidgetProvider implementation="com.android.tools.idea.widget.AdbConnectionWidgetProvider" />
 
     <usageTargetProvider implementation="org.jetbrains.android.AndroidUsagesTargetProvider"/>
     <renameHandler implementation="org.jetbrains.android.AndroidRenameHandler" order="first" id="androidRenameHandler"/>
