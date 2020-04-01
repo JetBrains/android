@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.isDeviceMatch
 import com.android.tools.idea.layoutinspector.model.ComponentTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
@@ -58,6 +59,7 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.LowMemoryWatcher
 import com.intellij.ui.components.dialog
 import com.intellij.ui.layout.panel
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -130,6 +132,14 @@ class DefaultInspectorClient(
 
   private val SELECTION_LOCK = Any()
 
+  @Suppress("unused") // Need to keep a reference to receive notifications
+  private val lowMemoryWatcher = LowMemoryWatcher.register(
+    {
+      model.root.children.clear()
+      requestScreenshotMode()
+      InspectorBannerService.getInstance(project).setNotification("Low Memory. Rotation disabled.")
+    }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
+
   init {
     registerProcessEnded()
     registerProjectClosed(project)
@@ -173,6 +183,14 @@ class DefaultInspectorClient(
 
   override fun registerProcessChanged(callback: () -> Unit) {
     processChangedListeners.add(callback)
+  }
+
+  fun requestScreenshotMode() {
+    val inspectorCommand = LayoutInspectorCommand.newBuilder()
+      .setType(LayoutInspectorCommand.Type.USE_SCREENSHOT_MODE)
+      .setScreenshotMode(true)
+      .build()
+    execute(inspectorCommand)
   }
 
   private fun registerProcessEnded() {
