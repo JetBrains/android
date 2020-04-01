@@ -26,7 +26,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.ui.awt.RelativePoint
-import icons.AndroidIcons
+import icons.StudioIcons
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.lexer.KtTokens
 
@@ -53,6 +53,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
     val relatedItems: Collection<PsiElement> = if (isDaggerConsumer) getDaggerProvidersFor(parent) else getDaggerConsumersFor(parent)
     val relatedItemsName = if (isDaggerConsumer) "Dagger providers" else "Dagger consumers"
+    val icon = if (isDaggerConsumer) StudioIcons.Misc.DEPENDENCY_PROVIDER else StudioIcons.Misc.DEPENDENCY_CONSUMER
 
     if (relatedItems.isNotEmpty()) {
       val gotoList = relatedItems.map { GotoRelatedItem(it, relatedItemsName) }
@@ -60,8 +61,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       val info = RelatedItemLineMarkerInfo<PsiElement>(
         element,
         element.textRange,
-        // TODO(b/151079470): replace with correct one.
-        AndroidIcons.Android,
+        icon,
         Pass.LINE_MARKERS,
         { relatedItemsName },
         { mouseEvent, _ ->
