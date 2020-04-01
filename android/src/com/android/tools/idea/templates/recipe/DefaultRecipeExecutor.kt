@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -356,13 +357,30 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     srcDirsModel.addListValue().setValue(relativeDir)
   }
 
-  override fun setExtVar(name: String, value: Any) {
+  override fun setExtVar(name: String, value: String) {
     val buildModel = projectGradleBuildModel ?: return
     val property = buildModel.buildscript().ext().findProperty(name)
-    if (property.valueType != GradlePropertyModel.ValueType.NONE) {
+    if (property.valueType != ValueType.NONE) {
       return // we do not override property value if it exists. TODO(qumeric): ask user?
     }
     property.setValue(value)
+  }
+
+  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) : String {
+    val mavenDependency = ArtifactDependencySpec.create(mavenCoordinate)
+    check(mavenDependency != null) { "$mavenCoordinate is not a valid classpath dependency" }
+
+    val buildScriptDependencies = projectGradleBuildModel?.buildscript()?.dependencies() ?: return valueIfNotFound
+    val targetDependencyModel = buildScriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME).firstOrNull {
+      mavenDependency.equalsIgnoreVersion(it.spec)
+    }
+    val unresolvedModel = targetDependencyModel?.version()?.unresolvedModel ?: return valueIfNotFound
+
+    if (unresolvedModel.valueType == ValueType.REFERENCE) {
+      return unresolvedModel.getValue(GradlePropertyModel.STRING_TYPE) ?: valueIfNotFound
+    }
+
+    return valueIfNotFound
   }
 
   /**
@@ -381,7 +399,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       "compose" -> buildModel.android().buildFeatures().compose()
       else -> throw IllegalArgumentException("currently only compose build feature is supported")
     }
-    if (feature.valueType != GradlePropertyModel.ValueType.NONE) {
+    if (feature.valueType != ValueType.NONE) {
       return // we do not override value if it exists. TODO(qumeric): ask user?
     }
     feature.setValue(value)
@@ -400,7 +418,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val buildModel = moduleGradleBuildModel ?: return
 
     fun updateCompatibility(current: LanguageLevelPropertyModel) {
-      if (current.valueType == GradlePropertyModel.ValueType.NONE ||
+      if (current.valueType == ValueType.NONE ||
           current.toLanguageLevel()!!.isLessThan(languageLevel)) {
         current.setLanguageLevel(languageLevel)
       }
