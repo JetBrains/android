@@ -82,10 +82,12 @@ class DomPsiParser extends XmlParser {
     assert myReadLock == null;
     myReadLock = ApplicationManager.getApplication().acquireReadActionLock();
     Document document = parse(context);
-    if (document == null) {
+    if (document == null || document.getDocumentElement() == null) {
       myReadLock.finish();
       myReadLock = null;
     }
+
+    // There are no known usages of this method. It is expected that the client will call dispose to release the lock.
     return document;
   }
 
@@ -146,11 +148,12 @@ class DomPsiParser extends XmlParser {
       assert myReadLock == null;
       myReadLock = ApplicationManager.getApplication().acquireReadActionLock();
       Document document = parseXml(file);
-      if (document == null) {
+      if (document == null || document.getDocumentElement() == null) {
         myReadLock.finish();
         myReadLock = null;
       }
 
+      // Lock will be released in com.android.tools.lint.client.api.LintDriver indirectly through dispose method.
       return document;
     }
     try {
