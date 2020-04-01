@@ -30,6 +30,9 @@ import icons.StudioIcons
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.lexer.KtTokens
 
+internal const val DEPENDENCY_PROVIDERS = "Dependency provider(s)"
+internal const val DEPENDENCY_CONSUMERS = "Dependency consumer(s)"
+
 /**
  * Provides [RelatedItemLineMarkerInfo] for Dagger consumers/providers.
  *
@@ -45,15 +48,15 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     // We provide RelatedItemLineMarkerInfo for PsiIdentifier/KtIdentifier (leaf element), not for PsiField/PsiMethod,
     // that's why we check that `element.parent` isDaggerConsumer, not `element` itself. See [LineMarkerProvider.getLineMarkerInfo]
     val parent = element.parent
-    val isDaggerConsumer = when {
+    val isListOfProviders = when {
       parent.isDaggerConsumer -> true
       parent.isDaggerProvider -> false
       else -> return
     }
 
-    val relatedItems: Collection<PsiElement> = if (isDaggerConsumer) getDaggerProvidersFor(parent) else getDaggerConsumersFor(parent)
-    val relatedItemsName = if (isDaggerConsumer) "Dagger providers" else "Dagger consumers"
-    val icon = if (isDaggerConsumer) StudioIcons.Misc.DEPENDENCY_PROVIDER else StudioIcons.Misc.DEPENDENCY_CONSUMER
+    val relatedItems: Collection<PsiElement> = if (isListOfProviders) getDaggerProvidersFor(parent) else getDaggerConsumersFor(parent)
+    val relatedItemsName = if (isListOfProviders) DEPENDENCY_PROVIDERS else DEPENDENCY_CONSUMERS
+    val icon = if (isListOfProviders) StudioIcons.Misc.DEPENDENCY_PROVIDER else StudioIcons.Misc.DEPENDENCY_CONSUMER
 
     if (relatedItems.isNotEmpty()) {
       val gotoList = relatedItems.map { GotoRelatedItem(it, relatedItemsName) }
@@ -69,7 +72,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
             gotoList.first().navigate()
           }
           else {
-            NavigationUtil.getRelatedItemsPopup(gotoList, "Go to Dagger Related Files").show(RelativePoint(mouseEvent))
+            NavigationUtil.getRelatedItemsPopup(gotoList, "Go to Related Files").show(RelativePoint(mouseEvent))
           }
         },
         GutterIconRenderer.Alignment.RIGHT,
