@@ -72,11 +72,11 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     var icons = myFixture.findAllGutters()
     assertThat(icons).isNotEmpty()
 
-    var gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dagger providers" }!!)
+    var gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency provider(s)" }!!)
     assertThat(gotoRelatedItems).hasSize(1)
     var provider = gotoRelatedItems.first()
 
-    assertThat(provider.group).isEqualTo("Dagger providers")
+    assertThat(provider.group).isEqualTo("Dependency provider(s)")
     assertThat(provider.element).isEqualTo(providerMethod)
 
     // Kotlin consumer
@@ -98,11 +98,11 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     icons = myFixture.findAllGutters()
     assertThat(icons).isNotEmpty()
 
-    gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dagger providers" }!!)
+    gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency provider(s)" }!!)
     assertThat(gotoRelatedItems).hasSize(1)
     provider = gotoRelatedItems.first()
 
-    assertThat(provider.group).isEqualTo("Dagger providers")
+    assertThat(provider.group).isEqualTo("Dependency provider(s)")
     assertThat(provider.element).isEqualTo(providerMethod)
 
     // Icons in provider file.
@@ -110,7 +110,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     icons = myFixture.findAllGutters()
     assertThat(icons).isNotEmpty()
 
-    gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dagger consumers" }!!)
+    gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency consumer(s)" }!!)
     assertThat(gotoRelatedItems).hasSize(2)
     val consumerElements = gotoRelatedItems.map { it.element }
 

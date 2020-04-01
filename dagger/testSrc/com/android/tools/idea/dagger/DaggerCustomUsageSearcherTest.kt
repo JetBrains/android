@@ -59,7 +59,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provided by Dagger (1 usage)
+      |  Dependency provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |    myExample (1 usage)
       |     MyModule (1 usage)
@@ -105,7 +105,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provided by Dagger (1 usage)
+      |  Dependency provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |     (1 usage)
       |     MyClass.kt (1 usage)
@@ -147,7 +147,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provided by Dagger (1 usage)
+      |  Dependency provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |    myExample (1 usage)
       |     MyProvider (1 usage)
@@ -184,7 +184,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provided by Dagger (1 usage)
+      |  Dependency provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |     (1 usage)
       |     MyProvider.kt (1 usage)
@@ -228,7 +228,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provided by Dagger (1 usage)
+      |  Dependency provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |    myExample (1 usage)
       |     MyModule (1 usage)
@@ -274,7 +274,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provided by Dagger (1 usage)
+      |  Dependency provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |     (1 usage)
       |     MyClass.kt (1 usage)
@@ -321,7 +321,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provided by Dagger (1 usage)
+      |  Dependency provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |     (1 usage)
       |     MyClass.kt (1 usage)
@@ -347,7 +347,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     //assertThat(presentation).contains(
     //  """
     //  | Found usages (1 usage)
-    //  |  Provided by Dagger (1 usage)
+    //  |  Dependency provider(s) (1 usage)
     //  |   ${module.name} (1 usage)
     //  |     (1 usage)
     //  |     MyClass.kt (1 usage)
@@ -437,7 +437,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (4 usages)
-      |  Consumed by Dagger (4 usages)
+      |  Dependency consumer(s) (4 usages)
       |   ${module.name} (4 usages)
       |    example (4 usages)
       |     MyClass (1 usage)
@@ -484,7 +484,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
   //    assertThat(presentation).contains(
   //    """
   //        | Found usages (1 usage)
-  //        |  Provided by Dagger (1 usage)
+  //        |  Dependency provider(s) (1 usage)
   //        |   6 (1 usage)
   //        |    myExample (1 usage)
   //        |     MyModule (1 usage)

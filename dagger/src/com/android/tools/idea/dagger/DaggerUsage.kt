@@ -29,8 +29,8 @@ import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.util.Processor
 import org.jetbrains.kotlin.idea.util.module
 
-private val PROVIDED_BY_DAGGER = UsageType("Provided by Dagger")
-private val CONSUMED_BY_DAGGER = UsageType("Consumed by Dagger")
+private val DEPENDENCY_PROVIDERS_USAGE_TYPE = UsageType(DEPENDENCY_PROVIDERS)
+private val DEPENDENCY_CONSUMERS_USAGE_TYPE = UsageType(DEPENDENCY_CONSUMERS)
 
 /**
  * [UsageTypeProvider] that labels Dagger providers and consumers with the right description.
@@ -40,8 +40,8 @@ class DaggerUsageTypeProvider : UsageTypeProvider {
     return when {
       !DAGGER_SUPPORT_ENABLED.get() -> null
       element?.module?.isDaggerPresent() != true -> null
-      element.isDaggerProvider -> PROVIDED_BY_DAGGER
-      element.isDaggerConsumer -> CONSUMED_BY_DAGGER
+      element.isDaggerProvider -> DEPENDENCY_PROVIDERS_USAGE_TYPE
+      element.isDaggerConsumer -> DEPENDENCY_CONSUMERS_USAGE_TYPE
       else -> null
     }
   }
