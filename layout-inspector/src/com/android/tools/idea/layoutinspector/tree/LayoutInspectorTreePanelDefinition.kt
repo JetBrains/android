@@ -23,6 +23,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.intellij.icons.AllIcons
 
 class LayoutInspectorTreePanelDefinition : ToolWindowDefinition<LayoutInspector>(
-  "View Tree", AllIcons.Toolwindows.ToolWindowStructure, "TREE", Side.LEFT, Split.TOP, AutoHide.DOCKED,
+  "Component Tree", AllIcons.Toolwindows.ToolWindowStructure, "TREE", Side.LEFT, Split.TOP, AutoHide.DOCKED,
   { LayoutInspectorTreePanel() }
 )
