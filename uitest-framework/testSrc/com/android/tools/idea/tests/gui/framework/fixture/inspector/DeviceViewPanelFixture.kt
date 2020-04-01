@@ -55,16 +55,16 @@ class DeviceViewPanelFixture(
       Toggle3dAction, robot(), target())
 
   val zoomInButton: ActionButtonFixture
-    get() = ActionButtonFixture.findByActionInstance(
-      ZoomInAction.getInstance(), robot(), target())
+    get() = ActionButtonFixture.findByActionClass(
+      ZoomInAction::class.java, robot(), target())
 
   val zoomOutButton: ActionButtonFixture
-    get() = ActionButtonFixture.findByActionInstance(
-      ZoomOutAction.getInstance(), robot(), target())
+    get() = ActionButtonFixture.findByActionClass(
+      ZoomOutAction::class.java, robot(), target())
 
   val zoomToFitButton: ActionButtonFixture
-    get() = ActionButtonFixture.findByActionInstance(
-      ZoomToFitAction.getInstance(), robot(), target())
+    get() = ActionButtonFixture.findByActionClass(
+      ZoomToFitAction::class.java, robot(), target())
 
   val panButton: ActionButtonFixture
     get() = ActionButtonFixture.findByActionInstance(
