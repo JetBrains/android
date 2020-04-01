@@ -72,7 +72,7 @@ object Toggle3dAction : AnAction(MODE_3D) {
         when {
           model?.overlay != null -> "Rotation not available when overlay is active"
           model?.pictureType == PNG_SKP_TOO_LARGE -> "Device image too large, rotation not available"
-          model?.pictureType == PNG_AS_REQUESTED -> "No compatible renderer found for device image version, rotation not available"
+          model?.pictureType == PNG_AS_REQUESTED -> "No compatible renderer found for device image, rotation not available"
           else -> "Rotation not available for devices below API 29"
         }
     }

@@ -92,7 +92,7 @@ class Toggle3dActionTest {
     inspectorModel.update(root, 3, listOf(3))
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = false
-    verify(presentation).text = "No compatible renderer found for device image version, rotation not available"
+    verify(presentation).text = "No compatible renderer found for device image, rotation not available"
   }
 
   @Test
