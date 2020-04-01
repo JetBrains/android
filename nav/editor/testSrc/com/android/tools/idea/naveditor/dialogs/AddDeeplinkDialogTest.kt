@@ -27,7 +27,7 @@ import org.mockito.Mockito.mock
 
 class AddDeeplinkDialogTest : NavTestCase() {
 
-  fun testValidation() {
+  fun testUriValidation() {
     val model = model("nav.xml") {
       navigation {
         fragment("fragment1")
@@ -44,6 +44,41 @@ class AddDeeplinkDialogTest : NavTestCase() {
       assertNull(dialog.doValidate())
 
       dialog.myUriField.text = "http://example.com/{blah"
+      assertNotNull(dialog.doValidate())
+    }
+  }
+
+  fun testMimeTypeValidation() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+    AddDeeplinkDialog(null, model.find("fragment1")!!).runAndClose { dialog ->
+      dialog.myMimeTypeField.text = "*/*"
+      assertNull(dialog.doValidate())
+
+      dialog.myMimeTypeField.text = "**"
+      assertNotNull(dialog.doValidate())
+
+      dialog.myMimeTypeField.text = "/**"
+      assertNotNull(dialog.doValidate())
+
+      dialog.myMimeTypeField.text = "**/"
+      assertNotNull(dialog.doValidate())
+
+      dialog.myMimeTypeField.text = "*//*"
+      assertNotNull(dialog.doValidate())
+    }
+  }
+
+  fun testEmptyValidation() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+    AddDeeplinkDialog(null, model.find("fragment1")!!).runAndClose { dialog ->
       assertNotNull(dialog.doValidate())
     }
   }

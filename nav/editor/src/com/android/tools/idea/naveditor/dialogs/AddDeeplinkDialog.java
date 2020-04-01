@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.dialogs;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_AUTO_VERIFY;
 import static com.android.SdkConstants.TAG_DEEP_LINK;
 
 import com.android.tools.idea.common.api.InsertType;
@@ -22,6 +24,10 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.ui.EnabledProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.NavEditorEvent;
@@ -57,12 +63,14 @@ public class AddDeeplinkDialog extends DialogWrapper {
   @Nullable private final NlComponent myExistingComponent;
   @NotNull private final NlComponent myParent;
 
+  private final BindingsManager myBindings = new BindingsManager();
+
   public AddDeeplinkDialog(@Nullable NlComponent existing, @NotNull NlComponent parent) {
     super(false);
     myUriField.setPlaceHolderText("Enter URI - https://www.example.com/person/{id}");
     if (existing != null) {
       myUriField.setText(NavComponentHelperKt.getUri(existing));
-      myAutoVerify.setSelected(NavComponentHelperKt.getAutoVerify(existing));
+      myAutoVerify.setSelected(Boolean.parseBoolean(existing.getAttribute(ANDROID_URI, ATTR_AUTO_VERIFY)));
       myMimeTypeField.setText(NavComponentHelperKt.getDeepLinkMimeType(existing));
       myActionField.setText(NavComponentHelperKt.getDeepLinkAction(existing));
     }
@@ -78,7 +86,12 @@ public class AddDeeplinkDialog extends DialogWrapper {
     myExistingComponent = existing;
     myParent = parent;
 
-    if(!StudioFlags.NAV_DEEP_LINK_EXTENDED.get()) {
+    if (StudioFlags.NAV_DEEP_LINK_EXTENDED.get()) {
+      // Only enable the auto verify field if the uri is not empty
+      ObservableBool isNotEmpty = new TextProperty(myUriField).isEmpty().not();
+      myBindings.bind(new EnabledProperty(myAutoVerify), isNotEmpty);
+    }
+    else {
       myMimeTypeField.setVisible(false);
       myActionField.setVisible(false);
       myMimeTypeLabel.setVisible(false);
@@ -89,15 +102,30 @@ public class AddDeeplinkDialog extends DialogWrapper {
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
-    if (myUriField.getText().isEmpty()) {
-      return new ValidationInfo("URI must be set!", myUriField);
+    String uri = myUriField.getText();
+    if (!uri.isEmpty()) {
+      try {
+        // replace placeholders with "dummy"
+        new URI(uri.replaceAll("\\{[^}]*}", "dummy"));
+      }
+      catch (URISyntaxException e) {
+        return new ValidationInfo("Invalid URI!", myUriField);
+      }
     }
-    try {
-      // replace placeholders with "dummy"
-      new URI(myUriField.getText().replaceAll("\\{[^}]*}", "dummy"));
+
+    String mimeType = myMimeTypeField.getText();
+    if (!mimeType.isEmpty()) {
+      int index = mimeType.indexOf('/');
+      if (index < 1 || index == mimeType.length() - 1 || mimeType.lastIndexOf('/') != index) {
+        return new ValidationInfo("Invalid MIME type.");
+      }
     }
-    catch (URISyntaxException e) {
-      return new ValidationInfo("Invalid URI!", myUriField);
+
+    if (uri.isEmpty() && mimeType.isEmpty() && myActionField.getText().isEmpty()) {
+      String text = StudioFlags.NAV_DEEP_LINK_EXTENDED.get()
+                    ? "Uri, MIME type, and action cannot all be empty."
+                    : "URI must be set!";
+      return new ValidationInfo(text, myUriField);
     }
     return null;
   }
@@ -148,7 +176,8 @@ public class AddDeeplinkDialog extends DialogWrapper {
         realComponent = NlComponentHelperKt.createChild(myParent, TAG_DEEP_LINK, false, null, null, null, null, InsertType.CREATE);
         if (realComponent == null) {
           ApplicationManager.getApplication().invokeLater(() ->
-            Messages.showErrorDialog(myParent.getModel().getProject(), "Failed to create Deep Link!", "Error")
+                                                            Messages.showErrorDialog(myParent.getModel().getProject(),
+                                                                                     "Failed to create Deep Link!", "Error")
           );
           return;
         }
@@ -156,7 +185,8 @@ public class AddDeeplinkDialog extends DialogWrapper {
       }
 
       NavComponentHelperKt.setUriAndLog(realComponent, getUri(), NavEditorEvent.Source.PROPERTY_INSPECTOR);
-      NavComponentHelperKt.setAutoVerifyAndLog(realComponent, getAutoVerify(), NavEditorEvent.Source.PROPERTY_INSPECTOR);
+      NavComponentHelperKt
+        .setAutoVerifyAndLog(realComponent, getAutoVerify() && !getUri().isEmpty(), NavEditorEvent.Source.PROPERTY_INSPECTOR);
       NavComponentHelperKt.setDeeplinkMimeTypeAndLog(realComponent, getMimeType(), NavEditorEvent.Source.PROPERTY_INSPECTOR);
       NavComponentHelperKt.setDeeplinkActionAndLog(realComponent, getAction(), NavEditorEvent.Source.PROPERTY_INSPECTOR);
     });
