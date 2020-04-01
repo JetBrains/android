@@ -633,6 +633,14 @@ public class StudioIcons {
       public static final Icon THEME_EDITOR = load("/studio/icons/shell/menu/theme-editor.svg"); // 16x16
     }
 
+    public static class StatusBar {
+      public static final Icon ADB_MANAGED = load("/studio/icons/shell/status-bar/adb-managed.svg"); // 16x16
+      public static final Icon ADB_UNMANAGED = load("/studio/icons/shell/status-bar/adb-unmanaged.svg"); // 16x16
+      public static final Icon LOCK = load("/studio/icons/shell/status-bar/lock.svg"); // 16x16
+      public static final Icon WINDOW_TOGGLE = load("/studio/icons/shell/status-bar/window-toggle.svg"); // 16x16
+      public static final Icon WINDOW_TOGGLED = load("/studio/icons/shell/status-bar/window-toggled.svg"); // 16x16
+    }
+
     public static class Telemetry {
       public static final Icon SENTIMENT_DISSATISFIED = load("/studio/icons/shell/telemetry/sentiment-dissatisfied.svg"); // 24x24
       public static final Icon SENTIMENT_NEGATIVE = load("/studio/icons/shell/telemetry/sentiment-negative.svg"); // 16x16
@@ -662,7 +670,6 @@ public class StudioIcons {
       public static final Icon GRADLE = load("/studio/icons/shell/tool-windows/gradle.svg"); // 13x13
       public static final Icon INSPECTION = load("/studio/icons/shell/tool-windows/inspection.svg"); // 16x16
       public static final Icon LINT = load("/studio/icons/shell/tool-windows/lint.svg"); // 13x13
-      public static final Icon LOCK = load("/studio/icons/shell/tool-windows/lock.svg"); // 16x16
       public static final Icon LOGCAT = load("/studio/icons/shell/tool-windows/logcat.svg"); // 13x13
       public static final Icon MULTI_PREVIEW = load("/studio/icons/shell/tool-windows/multi-preview.svg"); // 13x13
       public static final Icon PALETTE = load("/studio/icons/shell/tool-windows/palette.svg"); // 13x13
@@ -676,8 +683,6 @@ public class StudioIcons {
       public static final Icon TOOL_WINDOW = load("/studio/icons/shell/tool-windows/tool-window.svg"); // 13x13
       public static final Icon VERSION_CONTROL = load("/studio/icons/shell/tool-windows/version-control.svg"); // 13x13
       public static final Icon VISUAL_ASSETS = load("/studio/icons/shell/tool-windows/visual-assets.svg"); // 13x13
-      public static final Icon WINDOW_TOGGLE = load("/studio/icons/shell/tool-windows/window-toggle.svg"); // 16x16
-      public static final Icon WINDOW_TOGGLED = load("/studio/icons/shell/tool-windows/window-toggled.svg"); // 16x16
     }
 
     public static class Toolbar {
