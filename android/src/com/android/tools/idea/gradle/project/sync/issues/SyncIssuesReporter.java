@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class SyncIssuesReporter {
-  @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(6);
+  @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(12);
   @NotNull private final BaseSyncIssuesReporter myDefaultMessageFactory;
 
   @NotNull
@@ -49,7 +49,7 @@ public class SyncIssuesReporter {
     this(new UnresolvedDependenciesReporter(), new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
          new BuildToolsTooLowReporter(), new MissingSdkPackageSyncIssuesReporter(), new MinSdkInManifestIssuesReporter(),
          new TargetSdkInManifestIssuesReporter(), new DeprecatedConfigurationReporter(), new MissingSdkIssueReporter(),
-         new OutOfDateThirdPartyPluginIssueReporter(), new CxxConfigurationIssuesReporter());
+         new OutOfDateThirdPartyPluginIssueReporter(), new CxxConfigurationIssuesReporter(), new AndroidXUsedReporter());
   }
 
   @NonInjectable
