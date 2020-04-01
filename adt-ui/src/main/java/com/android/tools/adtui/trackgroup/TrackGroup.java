@@ -16,6 +16,7 @@
 package com.android.tools.adtui.trackgroup;
 
 import com.android.tools.adtui.DragAndDropList;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.flat.FlatSeparator;
@@ -25,16 +26,20 @@ import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
+import com.android.tools.adtui.util.SwingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.MouseEventHandler;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.AbstractAction;
@@ -63,6 +68,7 @@ public class TrackGroup extends AspectObserver {
   private final JPanel myComponent;
   private final JLabel myTitleLabel;
   private final JLabel myTitleInfoIcon;
+  private final JPanel myOverlay;
   private final DragAndDropList<TrackModel> myTrackList;
   private final CommonDropDownButton myActionsDropdown;
   private final FlatSeparator mySeparator = new FlatSeparator();
@@ -135,9 +141,17 @@ public class TrackGroup extends AspectObserver {
     }
     titlePanel.add(toolbarPanel, BorderLayout.EAST);
 
-    myComponent = new JPanel(new BorderLayout());
-    myComponent.add(titlePanel, BorderLayout.NORTH);
-    myComponent.add(myTrackList, BorderLayout.CENTER);
+    // A panel responsible for forwarding mouse events to the tracks.
+    myOverlay = new JPanel();
+    myOverlay.setOpaque(false);
+    MouseEventHandler mouseEventHandler = new TrackGroupMouseEventHandler();
+    myOverlay.addMouseListener(mouseEventHandler);
+    myOverlay.addMouseMotionListener(mouseEventHandler);
+
+    myComponent = new JPanel(new TabularLayout(Track.COL_SIZES, "Fit,Fit"));
+    myComponent.add(myOverlay, new TabularLayout.Constraint(1, 1));
+    myComponent.add(titlePanel, new TabularLayout.Constraint(0, 0, 1, 2));
+    myComponent.add(myTrackList, new TabularLayout.Constraint(1, 0, 1, 2));
 
     initKeyBindings(myTrackList);
   }
@@ -265,5 +279,46 @@ public class TrackGroup extends AspectObserver {
   @NotNull
   public JComponent getComponent() {
     return myComponent;
+  }
+
+  @NotNull
+  public JPanel getOverlay() {
+    return myOverlay;
+  }
+
+  private class TrackGroupMouseEventHandler extends MouseEventHandler {
+    // Track index for the current mouse event.
+    private int myTrackIndex = -1;
+
+    @Override
+    protected void handle(MouseEvent event) {
+      int oldTrackIndex = myTrackIndex;
+      myTrackIndex = myTrackList.locationToIndex(event.getPoint());
+
+      // Find the origin location of the track (i.e. JList cell).
+      Point trackOrigin = myTrackList.indexToLocation(myTrackIndex);
+      // Manually translate the mouse point relative of the track origin.
+      Point newPoint = event.getPoint();
+      newPoint.translate(0, -trackOrigin.y);
+      // Create a new mouse event with the translated location for the tooltip panel to show up at the correct location.
+      // We may create another event based on this event to reuse the new location.
+      MouseEvent newEvent = SwingUtil.convertMouseEventPoint(event, newPoint);
+      // Forward the mouse event to the current track because the cell renderer doesn't construct a component hierarchy tree for the mouse
+      // event to propagate.
+      JComponent trackContent = getTrackMap().get(getTrackModelAt(myTrackIndex).getId()).getTrackContent();
+      trackContent.dispatchEvent(newEvent);
+
+      // If mouse moved between tracks, dispatch an additional MOUSE_EXITED event to the old track so that it can update its hover state.
+      if (event.getID() == MouseEvent.MOUSE_MOVED) {
+        if (myTrackIndex != oldTrackIndex && oldTrackIndex >= 0) {
+          myTrackList.repaint(myTrackList.getCellBounds(oldTrackIndex, oldTrackIndex));
+          JComponent oldTrackContent = getTrackMap().get(getTrackModelAt(oldTrackIndex).getId()).getTrackContent();
+          oldTrackContent.dispatchEvent(SwingUtil.convertMouseEventID(newEvent, MouseEvent.MOUSE_EXITED));
+        }
+      } else if (event.getID() == MouseEvent.MOUSE_EXITED) {
+        // Reset track index so we know the next time mouse enters.
+        myTrackIndex = -1;
+      }
+    }
   }
 }

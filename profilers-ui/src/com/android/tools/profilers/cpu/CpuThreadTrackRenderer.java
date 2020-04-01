@@ -110,7 +110,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
       });
       panel.addMouseListener(new MouseAdapter() {
         @Override
-        public void mouseClicked(MouseEvent e) {
+        public void mousePressed(MouseEvent e) {
           if (traceEventChart.contains(e.getPoint())) {
             // Translate mouse point to be relative of the tree chart component.
             Point p = e.getPoint();

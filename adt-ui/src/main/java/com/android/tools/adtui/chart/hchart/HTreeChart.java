@@ -426,9 +426,6 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
         if (!hasFocus()) {
           requestFocusInWindow();
         }
-        if (myNodeSelectionEnabled) {
-          setSelectedNode(getNodeAt(e.getPoint()));
-        }
       }
 
       @Override
