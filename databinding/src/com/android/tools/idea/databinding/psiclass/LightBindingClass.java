@@ -70,10 +70,6 @@ import com.intellij.psi.scope.ElementClassHint;
 import com.intellij.psi.scope.NameHint;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.CachedValue;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
@@ -606,9 +602,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   public static class LightDataBindingField extends LightField {
     private final BindingLayout myLayout;
     private final ViewIdData myViewIdData;
-
-    private final CachedValue<XmlTag> tagCache = CachedValuesManager.getManager(getProject())
-      .createCachedValue(() -> CachedValueProvider.Result.create(computeTag(), PsiModificationTracker.MODIFICATION_COUNT));
+    @Nullable private XmlTag myNavigationTag = null;
 
     public LightDataBindingField(@NotNull BindingLayout layout,
                                  @NotNull ViewIdData viewIdData,
@@ -655,7 +649,11 @@ public class LightBindingClass extends AndroidLightClassBase {
     @Override
     @NotNull
     public PsiElement getNavigationElement() {
-      return tagCache.getValue();
+      if (myNavigationTag != null) {
+        return myNavigationTag;
+      }
+      myNavigationTag = computeTag();
+      return (myNavigationTag != null) ? myNavigationTag : super.getNavigationElement();
     }
 
     @Override
