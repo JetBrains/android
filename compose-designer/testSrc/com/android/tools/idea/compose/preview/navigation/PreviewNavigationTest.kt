@@ -15,57 +15,20 @@
  */
 package com.android.tools.idea.compose.preview.navigation
 
-import com.android.ide.common.blame.Message
-import com.android.testutils.TestUtils
+import com.android.tools.idea.compose.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.PreviewElement
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
-import com.android.tools.idea.rendering.NoSecurityManagerRenderService
-import com.android.tools.idea.rendering.RenderService
-import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.openapi.application.ReadAction
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
-import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
 class PreviewNavigationTest {
   @get:Rule
-  val projectRule = AndroidGradleProjectRule()
-
-  @Before
-  fun setUp() {
-    RenderService.shutdownRenderExecutor(5)
-    RenderService.initializeRenderExecutor()
-    RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
-    projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/compose-designer/testData").path
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
-    projectRule.requestSyncAndWait()
-    val gradleInvocationResult = projectRule.invokeTasks("compileDebugSources")
-    if (!gradleInvocationResult.isBuildSuccessful) {
-      fail("""
-        The project must compile correctly for the test to pass.
-
-        Compiler errors:
-        ${gradleInvocationResult.getCompilerMessages(Message.Kind.ERROR).joinToString("\n\n") { it.rawMessage }}
-
-
-        ${gradleInvocationResult.buildError}
-      """.trimIndent())
-    }
-
-    assertTrue("The project must compile correctly for the test to pass", projectRule.invokeTasks("compileDebugSources").isBuildSuccessful)
-  }
-
-  @After
-  fun tearDown() {
-    RenderService.setForTesting(projectRule.project, null)
-  }
+  val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
   /**
    * Checks the rendering of the default `@Preview` in the Compose template.
