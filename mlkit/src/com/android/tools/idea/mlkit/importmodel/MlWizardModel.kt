@@ -43,8 +43,8 @@ class MlWizardModel(private val module: Module) : WizardModel() {
   private val mlkitRecipe: Recipe = {
     for (dependency in MlkitUtils.getRequiredDependencies()) {
       addDependency(dependency)
-      //TODO(b/152783932): add mlModelBinding build feature once it is ready.
     }
+    setBuildFeature("mlModelBinding", true)
   }
 
   @JvmField
