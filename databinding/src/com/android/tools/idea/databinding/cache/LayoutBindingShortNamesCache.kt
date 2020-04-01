@@ -49,7 +49,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
-    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker(project)
+    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
 
     lightBindingCache = cachedValuesManager.createCachedValue {
       val bindingClasses = component.getAllBindingEnabledFacets()
