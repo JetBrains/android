@@ -33,6 +33,7 @@ public final class LaunchOptions {
   public static final class Builder {
     private boolean myDeploy = true;
     private String myPmInstallOptions = null;
+    private boolean myAllUsers = false;
     private List<String> myDisabledDynamicFeatures = new ArrayList<>();
     private boolean myDebug = false;
     private boolean myOpenLogcatAutomatically = false;
@@ -49,6 +50,7 @@ public final class LaunchOptions {
     public LaunchOptions build() {
       return new LaunchOptions(myDeploy,
                                myPmInstallOptions,
+                               myAllUsers,
                                myDisabledDynamicFeatures,
                                myDebug,
                                myOpenLogcatAutomatically,
@@ -68,6 +70,12 @@ public final class LaunchOptions {
     @NotNull
     public Builder setPmInstallOptions(@Nullable String options) {
       myPmInstallOptions = options;
+      return this;
+    }
+
+    @NotNull
+    public Builder setAllUsers(boolean allUsers) {
+      myAllUsers = allUsers;
       return this;
     }
 
@@ -126,6 +134,7 @@ public final class LaunchOptions {
 
   private final boolean myDeploy;
   private final String myPmInstallOptions;
+  private final boolean myAllUsers;
   private List<String> myDisabledDynamicFeatures;
   private final boolean myDebug;
   private final boolean myOpenLogcatAutomatically;
@@ -137,6 +146,7 @@ public final class LaunchOptions {
 
   private LaunchOptions(boolean deploy,
                         @Nullable String pmInstallOptions,
+                        boolean allUsers,
                         @NotNull List<String> disabledDynamicFeatures,
                         boolean debug,
                         boolean openLogcatAutomatically,
@@ -147,6 +157,7 @@ public final class LaunchOptions {
                         boolean deployAsInstant) {
     myDeploy = deploy;
     myPmInstallOptions = pmInstallOptions;
+    myAllUsers = allUsers;
     myDisabledDynamicFeatures = disabledDynamicFeatures;
     myDebug = debug;
     myOpenLogcatAutomatically = openLogcatAutomatically;
@@ -164,6 +175,10 @@ public final class LaunchOptions {
   @Nullable
   public String getPmInstallOptions() {
     return myPmInstallOptions;
+  }
+
+  public boolean getInstallOnAllUsers() {
+    return myAllUsers;
   }
 
   @NotNull
