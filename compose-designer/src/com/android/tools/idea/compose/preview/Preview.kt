@@ -476,8 +476,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering.
    */
-  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>) {
-    if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.size} elements.")
+  private suspend fun doRefreshSync(filePreviewElements: Sequence<PreviewElement>) {
+    if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.count()} elements.")
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
     val psiFile = ReadAction.compute<PsiFile?, Throwable> {
       val element = psiFilePointer.element
@@ -498,7 +498,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     // Now we generate all the models (or reuse) for the PreviewElements.
     val models = filePreviewElements
-      .asSequence()
       .map { Pair(it, it.toPreviewXmlString(matchParent = it.displaySettings.showDecoration, paintBounds = showDebugBoundaries)) }
       .map {
         val (previewElement, fileContents) = it
@@ -513,8 +512,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
 
         val model = if (existingModels.isNotEmpty()) {
-          LOG.debug("Re-using model")
-          configureExistingModel(existingModels.pop(),
+          val reusedModel = existingModels.pop()
+          LOG.debug("Re-using model ${reusedModel.virtualFile.name}")
+          configureExistingModel(reusedModel,
                                  previewElement.displaySettings.name,
                                  ModelDataContext(this, previewElement),
                                  previewElement.displaySettings.showDecoration,
@@ -522,8 +522,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                  surface)
         }
         else {
-          LOG.debug("No models to reuse were found. New model.")
-          val file = ComposeAdapterLightVirtualFile("testFile.xml", fileContents)
+          val now = System.currentTimeMillis()
+          LOG.debug("No models to reuse were found. New model $now.")
+          val file = ComposeAdapterLightVirtualFile("compose-model-$now.xml", fileContents)
           val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
           NlModel.builder(facet, file, configuration)
             .withParentDisposable(this@ComposePreviewRepresentation)
@@ -585,7 +586,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
     }
 
-    previewElements = filePreviewElements
+    previewElements = filePreviewElements.toList()
     hasRenderedAtLeastOnce = true
 
     withContext(uiThread) {
