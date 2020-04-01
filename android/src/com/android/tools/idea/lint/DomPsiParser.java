@@ -81,14 +81,23 @@ class DomPsiParser extends XmlParser {
   public Document parseXml(@NonNull final XmlContext context) {
     assert myReadLock == null;
     myReadLock = ApplicationManager.getApplication().acquireReadActionLock();
-    Document document = parse(context);
-    if (document == null || document.getDocumentElement() == null) {
+    try {
+      Document document = parse(context);
+      if (document == null || document.getDocumentElement() == null) {
+        myReadLock.finish();
+        myReadLock = null;
+      }
+
+      // There are no known usages of this method. It is expected that the client will call dispose to release the lock.
+      return document;
+    }
+    catch (Throwable t) {
+      // Beware of com.intellij.openapi.progress.ProcessCanceledException.
+      // Better solution: fix tools/base's LintDriver.kt: don't use dangerous @Deprecated acquireReadActionLock(), use runReadAction().
       myReadLock.finish();
       myReadLock = null;
+      throw t;
     }
-
-    // There are no known usages of this method. It is expected that the client will call dispose to release the lock.
-    return document;
   }
 
   @Nullable
@@ -147,14 +156,23 @@ class DomPsiParser extends XmlParser {
     if (file != null) {
       assert myReadLock == null;
       myReadLock = ApplicationManager.getApplication().acquireReadActionLock();
-      Document document = parseXml(file);
-      if (document == null || document.getDocumentElement() == null) {
+      try {
+        Document document = parseXml(file);
+        if (document == null || document.getDocumentElement() == null) {
+          myReadLock.finish();
+          myReadLock = null;
+        }
+
+        // Lock will be released in com.android.tools.lint.client.api.LintDriver indirectly through dispose method.
+        return document;
+      }
+      catch (Throwable t) {
+        // Beware of com.intellij.openapi.progress.ProcessCanceledException.
+        // Better solution: fix tools/base's LintDriver.kt: don't use dangerous @Deprecated acquireReadActionLock(), use runReadAction().
         myReadLock.finish();
         myReadLock = null;
+        throw t;
       }
-
-      // Lock will be released in com.android.tools.lint.client.api.LintDriver indirectly through dispose method.
-      return document;
     }
     try {
       return PositionXmlParser.parse(xml.toString());
