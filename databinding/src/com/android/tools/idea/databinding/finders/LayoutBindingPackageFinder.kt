@@ -71,7 +71,7 @@ class LayoutBindingPackageFinder(project: Project) : PsiElementFinder() {
         }
         .associateBy { psiPackage -> psiPackage.qualifiedName }
 
-      CachedValueProvider.Result.create(packages, resourcesModifiedTracker)
+      CachedValueProvider.Result.create(packages, component, resourcesModifiedTracker)
     }
   }
 }
