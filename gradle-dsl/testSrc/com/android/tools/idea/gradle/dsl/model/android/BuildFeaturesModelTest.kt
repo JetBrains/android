@@ -38,6 +38,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", false, buildFeatures.compose())
+    assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
   }
 
   @Test
@@ -47,11 +48,14 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     var buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", false, buildFeatures.compose())
+    assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
     buildFeatures.compose().setValue(true)
+    buildFeatures.mlModelBinding().setValue(true)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_EDIT_ELEMENTS_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", true, buildFeatures.compose())
+    assertEquals("mlModelBinding", true, buildFeatures.mlModelBinding())
   }
 
   @Test
@@ -61,11 +65,14 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     var buildFeatures = buildModel.android().buildFeatures()
     assertMissingProperty("compose", buildFeatures.compose())
+    assertMissingProperty("mlModelBinding", buildFeatures.mlModelBinding())
     buildFeatures.compose().setValue(false)
+    buildFeatures.mlModelBinding().setValue(false)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_ADD_ELEMENTS_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", false, buildFeatures.compose())
+    assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
   }
 
   @Test
@@ -75,11 +82,14 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     var buildFeatures = buildModel.android().buildFeatures()
     assertMissingProperty("compose", buildFeatures.compose())
+    assertMissingProperty("mlModelBinding", buildFeatures.mlModelBinding())
     buildFeatures.compose().setValue(false)
+    buildFeatures.mlModelBinding().setValue(false)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", false, buildFeatures.compose())
+    assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
   }
 
   @Test
@@ -90,11 +100,14 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     var buildFeatures = buildModel.android().buildFeatures()
     checkForValidPsiElement(buildFeatures, BuildFeaturesModelImpl::class.java)
     assertEquals("compose", false, buildFeatures.compose())
+    assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
     buildFeatures.compose().delete()
+    buildFeatures.mlModelBinding().delete()
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, "")
     buildFeatures = buildModel.android().buildFeatures()
     checkForInValidPsiElement(buildFeatures, BuildFeaturesModelImpl::class.java)
     assertMissingProperty("compose", buildFeatures.compose())
+    assertMissingProperty("mlModelBinding", buildFeatures.mlModelBinding())
   }
 }
