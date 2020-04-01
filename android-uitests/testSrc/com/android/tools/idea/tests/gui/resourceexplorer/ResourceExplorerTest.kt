@@ -76,15 +76,10 @@ class ResourceExplorerTest {
   @Test
   fun resourceExplorerUiTest() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("ResourceManagerApp")
-
-    val goToDeclarationKeyInfo = KeyPressInfo.keyCode(KeyEvent.VK_B).apply { modifiers(InputEvent.CTRL_MASK) }
-    ide.editor.open("app/src/main/java/com/example/resourcemanagerapp/MainActivity.kt")
-      .moveBetween("R.layout.activity", "_main")
-      .pressAndReleaseKey(goToDeclarationKeyInfo)
+    val layoutEditor = ide.editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN).layoutEditor
 
     // 1. On a resource file, press "ctrl + shift + t" to open and select the resource in the resource manager.
     val showInResourceManagerKeyInfo = KeyPressInfo.keyCode(KeyEvent.VK_T).apply { modifiers(InputEvent.CTRL_MASK, InputEvent.SHIFT_MASK) }
-    val layoutEditor = ide.editor.getLayoutEditor()
     layoutEditor.waitForRenderToFinish().pressAndReleaseKey(showInResourceManagerKeyInfo).findResourceExplorer()
 
     // 2. Add a Drawable resource through the VectorAsset action.
