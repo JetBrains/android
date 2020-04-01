@@ -29,10 +29,9 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTre
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.LowMemoryWatcher
 import com.intellij.util.ui.UIUtil
 import java.awt.Image
 import java.awt.Rectangle
@@ -49,9 +48,9 @@ private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 object ComponentTreeLoader : TreeLoader {
 
   override fun loadComponentTree(
-    maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
+    data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
   ): Pair<ViewNode, Long>? {
-    return loadComponentTree(maybeEvent, resourceLookup, client, SkiaParser, project)?.let { Pair(it, it.drawId) }
+    return loadComponentTree(data, resourceLookup, client, SkiaParser, project)?.let { Pair(it, it.drawId) }
   }
 
   @VisibleForTesting
@@ -62,8 +61,8 @@ object ComponentTreeLoader : TreeLoader {
     return ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project)
   }
 
-  override fun getAllWindowIds(maybeEvent: Any?, client: InspectorClient): List<Long>? {
-    val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
+  override fun getAllWindowIds(data: Any?, client: InspectorClient): List<Long>? {
+    val event = data as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
     return event.tree.allWindowIdsList
   }
 }
@@ -73,6 +72,14 @@ private class ComponentTreeLoaderImpl(
 ) {
   private val loadStartTime = AtomicLong(-1)
   private val stringTable = StringTableImpl(tree.stringList)
+  // if true, exit immediately and return null
+  private var isInterrupted = false
+
+  @Suppress("unused") // Need to keep a reference to receive notifications
+  private val lowMemoryWatcher = LowMemoryWatcher.register(
+    {
+      isInterrupted = true
+    }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
 
   fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): ViewNode? {
     val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
@@ -111,10 +118,12 @@ private class ComponentTreeLoaderImpl(
                          rootView: ViewNode) {
     val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, skiaParser)
 
+    if (errorMessage != null) {
+      InspectorBannerService.getInstance(project).setNotification(errorMessage)
+    }
     if (rootViewFromSkiaImage == null || rootViewFromSkiaImage.id.isEmpty()) {
-      reportError(errorMessage, project)
       // We were unable to parse the skia image. Turn on screenshot mode on the device.
-      requestScreenshotMode(client)
+      client.requestScreenshotMode()
       // metrics will be logged when we come back with a bitmap
     }
     else {
@@ -132,30 +141,10 @@ private class ComponentTreeLoaderImpl(
     client.logInitialRender(true)
   }
 
-  private fun requestScreenshotMode(client: InspectorClient) {
-    val inspectorCommand = LayoutInspectorProto.LayoutInspectorCommand.newBuilder()
-      .setType(LayoutInspectorProto.LayoutInspectorCommand.Type.USE_SCREENSHOT_MODE)
-      .setScreenshotMode(true)
-      .build()
-    client.execute(inspectorCommand)
-  }
-
-  private fun reportError(errorMessage: String?, project: Project) {
-    if (errorMessage != null) {
-      InspectorBannerService.getInstance(project).setNotification(
-        errorMessage,
-        listOf(object : AnAction("Dismiss") {
-          override fun actionPerformed(e: AnActionEvent) {
-            InspectorBannerService.getInstance(project).notification = null
-          }
-        }))
-    }
-  }
-
   private fun getViewTree(bytes: ByteArray, skiaParser: SkiaParserService): Pair<InspectorView?, String?> {
     var errorMessage: String? = null
     val inspectorView = try {
-      val root = skiaParser.getViewTree(bytes)
+      val root = skiaParser.getViewTree(bytes) { isInterrupted }
       if (root == null) {
         // We were unable to parse the skia image. Allow the user to interact with the component tree.
         errorMessage = "Invalid picture data received from device. Rotation disabled."
@@ -171,10 +160,21 @@ private class ComponentTreeLoaderImpl(
 
   private fun loadRootView(): ViewNode? {
     resourceLookup?.updateConfiguration(tree.resources, stringTable)
-    return if (tree.hasRoot()) loadView(tree.root, null) else null
+    if (tree.hasRoot()) {
+      try {
+        return loadView(tree.root, null)
+      }
+      catch (interrupted: InterruptedException) {
+        return null
+      }
+    }
+    return null
   }
 
   private fun loadView(view: LayoutInspectorProto.View, parent: ViewNode?): ViewNode {
+    if (isInterrupted) {
+      throw InterruptedException()
+    }
     val qualifiedName = "${stringTable[view.packageName]}.${stringTable[view.className]}"
     val viewId = stringTable[view.viewId]
     val textValue = stringTable[view.textValue]
