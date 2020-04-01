@@ -33,7 +33,9 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.HyperlinkAdapter
+import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.PopupHandler
+import com.intellij.ui.SideBorder
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
@@ -114,6 +116,9 @@ class TableViewImpl : TableView {
     centerPanel.background = primaryContentBackground
 
     tableActionsPanel.name = "table-actions-panel"
+    tableActionsPanel.border = IdeBorderFactory.createBorder(SideBorder.BOTTOM)
+
+    southPanel.border = IdeBorderFactory.createBorder(SideBorder.TOP)
 
     readOnlyLabel.isVisible = false
     readOnlyLabel.name = "read-only-label"
