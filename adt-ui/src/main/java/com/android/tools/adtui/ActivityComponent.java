@@ -54,7 +54,6 @@ public class ActivityComponent extends AnimatedComponent {
 
   private static final float DEFAULT_LINE_THICKNESS = .3f;
   private static final float FONT_PADDING = 10;
-  private static final int FONT_SPACING = 10;
 
   @NotNull
   private final LifecycleEventModel myEventModel;
@@ -193,7 +192,10 @@ public class ActivityComponent extends AnimatedComponent {
       }
 
       g2d.setColor(DEFAULT_FONT_COLOR);
-      g2d.drawString(text, startPosition, FONT_SPACING);
+      // The baseline of the leftmost character is at position (x,y) for drawString, so we need at least the distance from font ascender
+      // line to baseline.
+      // See https://docs.oracle.com/javase/tutorial/2d/text/measuringtext.html for definition of font ascent.
+      g2d.drawString(text, startPosition, metrics.getAscent());
     }
     g2d.setColor(g2d.getBackground());
     for (Double normalizedPosition : myFragmentPositions) {
