@@ -74,7 +74,6 @@ class ViewInfoParserTest {
   /**
    * Checks the rendering of the default `@Preview` in the Compose template.
    */
-  @Ignore("b/151091941")
   @Test
   fun testDefaultPreviewRendering() {
     val project = projectRule.project
