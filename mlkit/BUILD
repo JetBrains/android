@@ -58,6 +58,7 @@ iml_module(
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 
