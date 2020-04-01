@@ -17,17 +17,15 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.utils.isDefaultGradleBuildFile
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.FilePosition
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
@@ -90,28 +88,6 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
                             FixAndroidGradlePluginVersionQuickFix(pluginVersion, GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)))
     description.addQuickFix("Open Gradle wrapper file", GetGradleSettingsQuickFix())
     description.addQuickFix("Apply Gradle plugin", ApplyGradlePluginQuickFix(filePosition))
-  }
-
-  /**
-   * This QuickFix upgrades the Gradle model to the version in [SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION] and Gradle
-   * to the version in [SdkConstants.GRADLE_LATEST_VERSION].
-   */
-  class FixAndroidGradlePluginVersionQuickFix(val pluginVersion: GradleVersion, val gradleVersion: GradleVersion) : BuildIssueQuickFix {
-    override val id = "fix.gradle.elements"
-
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      val future = CompletableFuture<Any>()
-
-      invokeLater {
-        val updater = AndroidPluginVersionUpdater.getInstance(project)
-        if (updater.updatePluginVersion(pluginVersion, gradleVersion)) {
-          val request = GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED)
-          GradleSyncInvoker.getInstance().requestProjectSync(project, request)
-        }
-        future.complete(null)
-      }
-      return future
-    }
   }
 
   class GetGradleSettingsQuickFix : BuildIssueQuickFix {
