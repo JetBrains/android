@@ -152,8 +152,9 @@ class ComposeFileEditorProvider @JvmOverloads constructor(
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
     val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
     val previewProvider = object: PreviewElementProvider {
-      override val previewElements: List<PreviewElement>
-        get() = if (DumbService.isDumb(project)) emptyList() else filePreviewElementProvider().findPreviewMethods(project, file)
+      override val previewElements: Sequence<PreviewElement>
+        get() = if (DumbService.isDumb(project)) emptySequence() else
+          filePreviewElementProvider().findPreviewMethods(project, file)
     }
     val previewRepresentation = ComposePreviewRepresentation(psiFile, previewProvider)
     val previewEditor = PreviewEditor(psiFile, previewRepresentation)

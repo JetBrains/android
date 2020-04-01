@@ -41,22 +41,22 @@ class UtilsTest {
   @Test
   fun testValidXmlForPreview() {
     val previewsToCheck = listOf(
-      PreviewElement("composableMethodName",
-                     PreviewDisplaySettings("A name", null, false, false, null),
-                     null, null,
-                     PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
-      PreviewElement("composableMethodName",
-                     PreviewDisplaySettings("A name", "group1", true, true, null),
-                     null, null,
-                     PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
-      PreviewElement("composableMethodName",
-                     PreviewDisplaySettings("A name", "group1", true, true, "#000"),
-                     null, null,
-                     PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
-      PreviewElement("composableMethodName",
-                     PreviewDisplaySettings("A name", "group1", true, false, "#000"),
-                     null, null,
-                     PreviewConfiguration.cleanAndGet(null, null, null, null, null)))
+      SinglePreviewElementInstance("composableMethodName",
+                                   PreviewDisplaySettings("A name", null, false, false, null),
+                                   null, null,
+                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
+      SinglePreviewElementInstance("composableMethodName",
+                                   PreviewDisplaySettings("A name", "group1", true, true, null),
+                                   null, null,
+                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
+      SinglePreviewElementInstance("composableMethodName",
+                                   PreviewDisplaySettings("A name", "group1", true, true, "#000"),
+                                   null, null,
+                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
+      SinglePreviewElementInstance("composableMethodName",
+                                   PreviewDisplaySettings("A name", "group1", true, false, "#000"),
+                                   null, null,
+                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null)))
 
     val factory = DocumentBuilderFactory.newInstance()
     val documentBuilder = factory.newDocumentBuilder()
@@ -66,9 +66,10 @@ class UtilsTest {
       .forEach {
         try {
           documentBuilder.parse(InputSource(StringReader(it)))
-        } catch(t: Throwable) {
+        }
+        catch (t: Throwable) {
           fail(
-"""
+            """
 Failed to parse Preview XML
 
 XML

@@ -18,7 +18,6 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
@@ -54,15 +53,23 @@ class ComposePreviewRepresentationProvider(
    */
   override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
     val previewProvider = object : PreviewElementProvider {
-      override val previewElements: List<PreviewElement>
+      override val previewElements: Sequence<PreviewElement>
         get() = if (DumbService.isDumb(psiFile.project))
-          emptyList()
+          emptySequence()
         else
           try {
             filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile)
+              .flatMap {
+                if (it is ParametrizedPreviewElement) {
+                  it.instances()
+                }
+                else {
+                  sequenceOf(it)
+                }
+              }
           }
           catch (_: IndexNotReadyException) {
-            emptyList<PreviewElement>()
+            emptySequence<PreviewElement>()
           }
     }
     return ComposePreviewRepresentation(psiFile, previewProvider)

@@ -36,6 +36,8 @@ fun CodeInsightTestFixture.stubPreviewAnnotation() {
     """
     package androidx.ui.tooling.preview
 
+    import kotlin.reflect.KClass
+
     annotation class Preview(
       val name: String = "",
       val group: String = "",
@@ -46,6 +48,16 @@ fun CodeInsightTestFixture.stubPreviewAnnotation() {
       val fontScale: Float = 1f,
       val showDecoration: Boolean = false,
       val showBackground: Boolean = false
+    )
+
+    interface PreviewParameterProvider<T> {
+        val values: Sequence<T>
+        val count get() = values.count()
+    }
+
+    annotation class PreviewParameter(
+        val provider: KClass<out PreviewParameterProvider<*>>,
+        val limit: Int = Int.MAX_VALUE
     )
     """.trimIndent()
   )

@@ -21,7 +21,7 @@ import com.android.tools.idea.compose.preview.PREVIEW_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_NAME
 import com.android.tools.idea.compose.preview.PreviewConfiguration
 import com.android.tools.idea.compose.preview.PreviewDisplaySettings
-import com.android.tools.idea.compose.preview.PreviewElement
+import com.android.tools.idea.compose.preview.SinglePreviewElementInstance
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getClassName
@@ -125,7 +125,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
   private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null)
 
   private fun previewFromMethodName(fqName: String) =
-    PreviewElement(
+    SinglePreviewElementInstance(
       composableMethodFqn = fqName,
       displaySettings = PreviewDisplaySettings(
         name = "",

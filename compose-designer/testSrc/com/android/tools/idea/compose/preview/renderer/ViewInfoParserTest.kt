@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.preview.renderer
 
 import com.android.tools.idea.compose.ComposeGradleProjectRule
-import com.android.tools.idea.compose.preview.PreviewElement
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.SinglePreviewElementInstance
 import com.android.tools.idea.compose.preview.navigation.ComposeViewInfo
 import com.android.tools.idea.compose.preview.navigation.parseViewInfo
 import com.android.tools.idea.compose.preview.navigation.remapInline
@@ -40,7 +40,7 @@ class ViewInfoParserTest {
     val project = projectRule.project
 
     renderPreviewElementForResult(projectRule.androidFacet(":app"),
-                                  PreviewElement.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview"))
+                                  SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview"))
       .thenAccept { renderResult ->
         ImageIO.write(renderResult?.renderedImage?.copy ?: return@thenAccept, "png", File("/tmp/out.png"))
 

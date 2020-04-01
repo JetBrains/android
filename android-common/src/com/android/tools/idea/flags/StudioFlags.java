@@ -803,6 +803,11 @@ public final class StudioFlags {
     "render correctly.",
     false);
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_DATA_SOURCES = Flag.create(
+    COMPOSE, "preview.data.sources", "Enable the Compose Data Source handling",
+    "If enable, the preview will support Preview data sources",
+    false);
+
   public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
     COMPOSE, "editor",
     "Compose-specific support in the code editor",

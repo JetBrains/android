@@ -66,6 +66,9 @@ internal const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.Composable"
 /** View included in the runtime library that will wrap the @Composable element so it gets rendered by layoutlib */
 internal const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
 
+/** Annotation FQN for `Preview` annotated parameters */
+internal const val PREVIEW_PARAMETER_FQN = "$PREVIEW_PACKAGE.PreviewParameter"
+
 /** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
 private const val COMPOSABLE_NAME_ATTR = "tools:composableName"
 
@@ -212,7 +215,7 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                     width: Int?,
                     height: Int?,
                     fontScale: Float?): PreviewConfiguration =
-      // We only limit the sizes. We do not limit the API because using an incorrect API level will throw an exception that
+    // We only limit the sizes. We do not limit the API because using an incorrect API level will throw an exception that
       // we will handle and any other error.
       PreviewConfiguration(apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
                            theme = theme,
@@ -242,19 +245,46 @@ data class PreviewDisplaySettings(val name: String,
                                   val backgroundColor: String?)
 
 /**
- * Definition of a preview element
+ * Definition of a preview parameter provider. This is defined by annotating parameters with `PreviewParameter`
  *
- * @param composableMethodFqn Fully Qualified Name of the composable method
- * @param displaySettings settings that affect how the [PreviewElement] is presented in the preview surface
- * @param previewElementDefinitionPsi [SmartPsiElementPointer] to the preview element definition
- * @param previewBodyPsi [SmartPsiElementPointer] to the preview body. This is the code that will be ran during preview
- * @param configuration the preview element configuration that affects how LayoutLib resolves the resources
+ * @param name the name of the parameter using the provider
+ * @param index the parameter position
+ * @param providerClassFqn the class name for the provider
+ * @param limit the limit passed to the annotation
  */
-data class PreviewElement(val composableMethodFqn: String,
-                          val displaySettings: PreviewDisplaySettings,
-                          val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
-                          val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-                          val configuration: PreviewConfiguration) {
+data class PreviewParameter(val name: String,
+                            val index: Int,
+                            val providerClassFqn: String,
+                            val limit: Int)
+
+/**
+ * Definition of a preview element
+ */
+interface PreviewElement {
+  /** Fully Qualified Name of the composable method */
+  val composableMethodFqn: String
+
+  /** Settings that affect how the [PreviewElement] is presented in the preview surface */
+  val displaySettings: PreviewDisplaySettings
+
+  /** [SmartPsiElementPointer] to the preview element definition */
+  val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?
+
+  /** [SmartPsiElementPointer] to the preview body. This is the code that will be ran during preview */
+  val previewBodyPsi: SmartPsiElementPointer<PsiElement>?
+
+  /** Preview element configuration that affects how LayoutLib resolves the resources */
+  val configuration: PreviewConfiguration
+}
+
+/**
+ * Definition of a single preview element instance. This represents a `Preview` with no parameters.
+ */
+data class SinglePreviewElementInstance(override val composableMethodFqn: String,
+                                        override val displaySettings: PreviewDisplaySettings,
+                                        override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
+                                        override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
+                                        override val configuration: PreviewConfiguration) : PreviewElement {
   companion object {
     @JvmStatic
     @TestOnly
@@ -264,16 +294,29 @@ data class PreviewElement(val composableMethodFqn: String,
                    showBackground: Boolean = false,
                    backgroundColor: String? = null,
                    configuration: PreviewConfiguration = nullConfiguration) =
-      PreviewElement(composableMethodFqn,
-                     PreviewDisplaySettings(
-                       displayName,
-                       groupName,
-                       showDecorations,
-                       showBackground,
-                       backgroundColor),
-                     null, null,
-                     configuration)
+      SinglePreviewElementInstance(composableMethodFqn,
+                                   PreviewDisplaySettings(
+                                     displayName,
+                                     groupName,
+                                     showDecorations,
+                                     showBackground,
+                                     backgroundColor),
+                                   null, null,
+                                   configuration)
   }
+}
+
+/**
+ * Definition of a preview element that can spawn multiple [PreviewElement]s based on parameters.
+ */
+data class ParametrizedPreviewElement(private val basePreviewElement: PreviewElement,
+                                      val parameterProviders: Collection<PreviewParameter>) : PreviewElement by basePreviewElement {
+  /**
+   * Returns a [Sequence] of "instantiated" [PreviewElement]s. The will be [PreviewElement] populated with data from the parameter
+   * providers.
+   */
+  // TODO(b/139476601)
+  fun instances(): Sequence<PreviewElement> = TODO("Parametrized Previews are not supported yet")
 }
 
 /**
@@ -292,11 +335,11 @@ interface FilePreviewElementFinder {
    * This method always runs on smart mode.
    */
   @Slow
-  fun findPreviewMethods(project: Project, vFile: VirtualFile): List<PreviewElement> {
+  fun findPreviewMethods(project: Project, vFile: VirtualFile): Sequence<PreviewElement> {
     assert(!DumbService.getInstance(project).isDumb) { "findPreviewMethods can not be called on dumb mode" }
 
-    val psiFile = ReadAction.compute<PsiFile?, Throwable> { PsiManager.getInstance(project).findFile(vFile) } ?: return emptyList()
-    val uFile: UFile = psiFile.toUElement() as? UFile ?: return emptyList()
+    val psiFile = ReadAction.compute<PsiFile?, Throwable> { PsiManager.getInstance(project).findFile(vFile) } ?: return emptySequence()
+    val uFile: UFile = psiFile.toUElement() as? UFile ?: return emptySequence()
 
     return findPreviewMethods(uFile)
   }
@@ -307,7 +350,7 @@ interface FilePreviewElementFinder {
    * This method always runs on smart mode.
    */
   @Slow
-  fun findPreviewMethods(uFile: UFile): List<PreviewElement>
+  fun findPreviewMethods(uFile: UFile): Sequence<PreviewElement>
 }
 
 /**
