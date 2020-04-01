@@ -61,11 +61,19 @@ fun switchVariant(
   project: Project,
   androidModuleModels: List<AndroidModuleModel>,
   projectDataNode: DataNode<ProjectData>
-) : Boolean {
+): Boolean {
   if (androidModuleModels.isEmpty()) return true
+  clearCurrentVariantDataNodes(androidModuleModels, projectDataNode)
+  setupDataNodesForSelectedVariant(project, androidModuleModels, projectDataNode)
+  ProjectDataManager.getInstance().importData(projectDataNode, project, false)
+  return true
+}
 
+private fun clearCurrentVariantDataNodes(
+  androidModuleModels: List<AndroidModuleModel>,
+  projectDataNode: DataNode<ProjectData>
+) {
   val moduleNodes = findAll(projectDataNode, ProjectKeys.MODULE)
-  val moduleIdToDataMap = createModuleIdToModuleDataMap(moduleNodes)
 
   // Clear all project level libraries, these will be reset again during import.
   findAllRecursively(projectDataNode, ProjectKeys.LIBRARY).forEach { node ->
@@ -75,8 +83,6 @@ fun switchVariant(
   // First we need to check if the variant is already present in the AndroidModuleModel.
   // Note: The AndroidModuleModel is the same object that is attached to the DataNode tree.
   androidModuleModels.forEach { androidModuleModel ->
-    val newVariant = androidModuleModel.selectedVariant
-
     val moduleNode = moduleNodes.firstOrNull { node ->
       node.data.internalName == androidModuleModel.moduleName
     } ?: return@forEach
@@ -94,6 +100,25 @@ fun switchVariant(
     findAllRecursively(moduleNode, ProjectKeys.CONTENT_ROOT).forEach { node ->
       node.clear(true)
     }
+  }
+}
+
+/**
+ * Set up data nodes that are normally created by the project resolver when processing [AndroidModuleModel]s.
+ */
+fun setupDataNodesForSelectedVariant(
+  project: Project,
+  androidModuleModels: List<AndroidModuleModel>,
+  projectDataNode: DataNode<ProjectData>
+) {
+  val moduleNodes = findAll(projectDataNode, ProjectKeys.MODULE)
+  val moduleIdToDataMap = createModuleIdToModuleDataMap(moduleNodes)
+  androidModuleModels.forEach { androidModuleModel ->
+    val newVariant = androidModuleModel.selectedVariant
+
+    val moduleNode = moduleNodes.firstOrNull { node ->
+      node.data.internalName == androidModuleModel.moduleName
+    } ?: return@forEach
 
     // Now we need to recreate these nodes using the information from the new variant.
     moduleNode.setupCompilerOutputPaths(newVariant)
@@ -107,12 +132,9 @@ fun switchVariant(
     }, newVariant)
     moduleNode.setupAndroidContentEntries(newVariant)
   }
-
-  ProjectDataManager.getInstance().importData(projectDataNode, project, false)
-  return true
 }
 
-private fun createModuleIdToModuleDataMap(moduleNodes: Collection<DataNode<ModuleData>>) : Map<String, ModuleData> {
+private fun createModuleIdToModuleDataMap(moduleNodes: Collection<DataNode<ModuleData>>): Map<String, ModuleData> {
   return moduleNodes.map { moduleDataNode -> moduleDataNode.data }.associateBy { moduleData ->
     moduleData.id
   }
