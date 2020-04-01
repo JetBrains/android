@@ -85,56 +85,88 @@ private class ComponentTreeLoaderImpl(
       val rootView = loadRootView() ?: return null
       rootView.imageType = tree.payloadType
       val bytes = defaultClient.getPayload(tree.payloadId)
-      var rootViewFromSkiaImage: InspectorView? = null
       if (bytes.isNotEmpty()) {
         try {
-          if (tree.payloadType == PNG_SKP_TOO_LARGE || tree.payloadType == PNG_AS_REQUESTED) {
-            ImageIO.read(ByteArrayInputStream(bytes))?.let {
-              rootView.imageBottom = it
-            }
-          }
-          else if (tree.payloadType == SKP) {
-            try {
-              rootViewFromSkiaImage = skiaParser.getViewTree(bytes)
-              if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id.isEmpty()) {
-                // We were unable to parse the skia image. Allow the user to interact with the component tree.
-                rootViewFromSkiaImage = null
-              }
-              defaultClient.logInitialRender(rootViewFromSkiaImage != null)
-            }
-            catch (ex: UnsupportedPictureVersionException) {
-              // We can't find an appropriate skia parser. Fallback to screenshot mode.
-              // TODO: metrics
-              val inspectorCommand = LayoutInspectorProto.LayoutInspectorCommand.newBuilder()
-                .setType(LayoutInspectorProto.LayoutInspectorCommand.Type.USE_SCREENSHOT_MODE)
-                .setScreenshotMode(true)
-                .build()
-              client.execute(inspectorCommand)
-              InspectorBannerService.getInstance(project).setNotification(
-                "No renderer supporting SKP version ${ex.version} found. Rotation disabled.",
-                listOf(object : AnAction("Dismiss") {
-                  override fun actionPerformed(e: AnActionEvent) {
-                    InspectorBannerService.getInstance(project).notification = null
-                  }
-                })
-              )
-              return null
-            }
+          when (tree.payloadType) {
+            PNG_AS_REQUESTED, PNG_SKP_TOO_LARGE -> processPng(bytes, rootView, defaultClient)
+            SKP -> processSkp(bytes, skiaParser, project, defaultClient, rootView)
+            else -> defaultClient.logInitialRender(false) // Shouldn't happen
           }
         }
         catch (ex: Exception) {
           Logger.getInstance(LayoutInspector::class.java).warn(ex)
         }
       }
-      if (rootViewFromSkiaImage != null) {
-        val imageLoader = ComponentImageLoader(rootView, rootViewFromSkiaImage)
-        imageLoader.loadImages()
-      }
       rootView
     }
     finally {
       loadStartTime.set(0)
     }
+  }
+
+  private fun processSkp(bytes: ByteArray,
+                         skiaParser: SkiaParserService,
+                         project: Project,
+                         client: DefaultInspectorClient,
+                         rootView: ViewNode) {
+    val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, skiaParser)
+
+    if (rootViewFromSkiaImage == null || rootViewFromSkiaImage.id.isEmpty()) {
+      reportError(errorMessage, project)
+      // We were unable to parse the skia image. Turn on screenshot mode on the device.
+      requestScreenshotMode(client)
+      // metrics will be logged when we come back with a bitmap
+    }
+    else {
+      client.logInitialRender(true)
+      ComponentImageLoader(rootView, rootViewFromSkiaImage).loadImages()
+    }
+  }
+
+  private fun processPng(bytes: ByteArray,
+                         rootView: ViewNode,
+                         client: DefaultInspectorClient) {
+    ImageIO.read(ByteArrayInputStream(bytes))?.let {
+      rootView.imageBottom = it
+    }
+    client.logInitialRender(true)
+  }
+
+  private fun requestScreenshotMode(client: InspectorClient) {
+    val inspectorCommand = LayoutInspectorProto.LayoutInspectorCommand.newBuilder()
+      .setType(LayoutInspectorProto.LayoutInspectorCommand.Type.USE_SCREENSHOT_MODE)
+      .setScreenshotMode(true)
+      .build()
+    client.execute(inspectorCommand)
+  }
+
+  private fun reportError(errorMessage: String?, project: Project) {
+    if (errorMessage != null) {
+      InspectorBannerService.getInstance(project).setNotification(
+        errorMessage,
+        listOf(object : AnAction("Dismiss") {
+          override fun actionPerformed(e: AnActionEvent) {
+            InspectorBannerService.getInstance(project).notification = null
+          }
+        }))
+    }
+  }
+
+  private fun getViewTree(bytes: ByteArray, skiaParser: SkiaParserService): Pair<InspectorView?, String?> {
+    var errorMessage: String? = null
+    val inspectorView = try {
+      val root = skiaParser.getViewTree(bytes)
+      if (root == null) {
+        // We were unable to parse the skia image. Allow the user to interact with the component tree.
+        errorMessage = "Invalid picture data received from device. Rotation disabled."
+      }
+      root
+    }
+    catch (ex: UnsupportedPictureVersionException) {
+      errorMessage = "No renderer supporting SKP version ${ex.version} found. Rotation disabled."
+      null
+    }
+    return Pair(inspectorView, errorMessage)
   }
 
   private fun loadRootView(): ViewNode? {
