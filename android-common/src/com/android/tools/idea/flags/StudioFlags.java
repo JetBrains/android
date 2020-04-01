@@ -429,6 +429,13 @@ public final class StudioFlags {
     "To help developers with a remote adb setup",
     false);
 
+  public static final Flag<Boolean> ADB_CONNECTION_STATUS_WIDGET_ENABLED = Flag.create(
+    RUNDEBUG,
+    "adb.connection.status.widget.enabled",
+    "Enable and Show ADB Connection Widget",
+    "Enables and shows the ADB connection status widget in the status bar",
+    true);
+
   /**
    * The strategy that {@link com.android.tools.idea.run.activity.DefaultActivityLocator}
    * uses to obtain a list of activities from a given module's merged manifest.
