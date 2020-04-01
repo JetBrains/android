@@ -42,7 +42,7 @@ public class NlSceneFrameFactory implements SceneFrameFactory {
     int layoutWidth = layoutDimToMode(component.getAuthoritativeNlComponent(), SdkConstants.ATTR_LAYOUT_WIDTH);
     int layoutHeight = layoutDimToMode(component.getAuthoritativeNlComponent(), SdkConstants.ATTR_LAYOUT_HEIGHT);
     SceneComponent.DrawState mode = component.getDrawState();
-    boolean paint = !sceneContext.showOnlySelection() || mode == SceneComponent.DrawState.SELECTED;
+    boolean paint = !sceneContext.showOnlySelection() || mode == SceneComponent.DrawState.SELECTED || mode == SceneComponent.DrawState.DRAG;
     if (paint) {
       // This allow the dragged components could be rendered outside its parent.
       boolean ignoreClipping = component.isDragging() && StudioFlags.NELE_DRAG_PLACEHOLDER.get();
