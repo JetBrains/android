@@ -60,10 +60,7 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
 
   @NotNull
   @Override
-  public String convertReferenceToExternalText(
-    @NotNull GradleDslElement context,
-    @NotNull String referenceText,
-    @NotNull boolean forInjection) {
+  public String convertReferenceToExternalText(@NotNull GradleDslElement context, @NotNull String referenceText, boolean forInjection) {
     return referenceText;
   }
 

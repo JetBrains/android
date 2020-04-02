@@ -17,55 +17,15 @@ package com.android.tools.idea.nav.safeargs.finder
 
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
 import com.android.tools.idea.nav.safeargs.psi.LightArgsClass
-import com.android.tools.idea.util.androidFacet
-import com.intellij.openapi.module.ModuleManager
+import com.android.tools.idea.nav.safeargs.psi.SafeArgsLightBaseClass
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElementFinder
-import com.intellij.psi.PsiPackage
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.PsiSearchScopeUtil
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * A finder that can find instances of [LightArgsClass] by qualified name / package.
  */
-class ArgsClassFinder(private val project: Project) : PsiElementFinder() {
-  companion object {
-    fun findAll(project: Project): List<LightArgsClass> {
-      return ModuleManager.getInstance(project).modules
-        .mapNotNull { module -> module.androidFacet }
-        .flatMap { facet -> findAll(facet) }
-    }
-
-    fun findAll(facet: AndroidFacet): List<LightArgsClass> {
-      return SafeArgsCacheModuleService.getInstance(facet).args
-    }
-  }
-
-  override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
-    return findAll(project)
-      .firstOrNull { argsClass ->
-        argsClass.qualifiedName == qualifiedName
-        && PsiSearchScopeUtil.isInScope(scope, argsClass)
-      }
-  }
-
-  override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> {
-    val psiClass = findClass(qualifiedName, scope) ?: return PsiClass.EMPTY_ARRAY
-    return arrayOf(psiClass)
-  }
-
-  override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
-    if (psiPackage.project != scope.project) {
-      return PsiClass.EMPTY_ARRAY
-    }
-
-    return findAll(psiPackage.project)
-      .filter { argsClass ->
-        psiPackage.qualifiedName == argsClass.qualifiedName.substringBeforeLast('.')
-        && PsiSearchScopeUtil.isInScope(scope, argsClass)
-      }
-      .toTypedArray()
+class ArgsClassFinder(project: Project) : SafeArgsClassFinderBase(project) {
+  override fun findAll(facet: AndroidFacet): List<SafeArgsLightBaseClass> {
+    return SafeArgsCacheModuleService.getInstance(facet).args
   }
 }

@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.intellij.openapi.command.WriteCommandAction;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -100,7 +101,7 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
   public void testResizeSnapToWrapContent() throws Exception {
     SceneComponent component = myScene.getSceneComponent("myButton");
     assertThat(component).isNotNull();
-    Dimension wrapSize = myScene.measureWrapSize(component);
+    Dimension wrapSize = myScene.measureWrapSize(component).get(5, TimeUnit.SECONDS);
     assertThat(wrapSize).isNotNull();
 
     myInteraction.select("myButton", true);
@@ -119,7 +120,7 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
   public void testResizeInsideOutSnapToWrapContent() throws Exception {
     SceneComponent component = myScene.getSceneComponent("myButton");
     assertThat(component).isNotNull();
-    Dimension wrapSize = myScene.measureWrapSize(component);
+    Dimension wrapSize = myScene.measureWrapSize(component).get(5, TimeUnit.SECONDS);
     assertThat(wrapSize).isNotNull();
 
     myInteraction.select("myButton", true);

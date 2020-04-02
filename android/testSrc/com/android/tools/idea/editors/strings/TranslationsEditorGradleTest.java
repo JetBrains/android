@@ -17,10 +17,13 @@ package com.android.tools.idea.editors.strings;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.builder.model.SyncIssue;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,6 +35,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -43,7 +47,10 @@ public final class TranslationsEditorGradleTest {
   public void removeLocale() throws IOException {
     // Arrange.
     myRule.getFixture().setTestDataPath(TestUtils.getWorkspaceFile("tools/adt/idea/android/testData").getPath());
-    myRule.load("stringsEditor/MyApplication");
+    myRule.load("stringsEditor/MyApplication", null, issue -> {
+      // ignore missing manifest errors
+      return issue.getType() == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST;
+    });
 
     String projectBasePath = myRule.getProject().getBasePath();
     Path mainRes = Paths.get(projectBasePath, "app", "src", "main", "res");

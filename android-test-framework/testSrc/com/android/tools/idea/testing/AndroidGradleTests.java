@@ -78,6 +78,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.RegEx;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestBase;
@@ -111,6 +112,12 @@ public class AndroidGradleTests {
       return issues;
     }
   };
+
+  /** Interface to allow tests to accept sync issues as valid when they load a project */
+  public interface SyncIssueFilter {
+    /** returns true if the error should be ignored */
+    boolean ignoreIssue(@NotNull SyncIssueData issue);
+  }
 
   /**
    * @deprecated use {@link AndroidGradleTests#updateToolingVersionsAndPaths(java.io.File) instead.}.
@@ -474,14 +481,17 @@ public class AndroidGradleTests {
   /**
    * Imports {@code project}, syncs the project and checks the result.
    */
-  public static void importProject(@NotNull Project project, GradleSyncInvoker.Request syncRequest) {
+  public static void importProject(
+    @NotNull Project project,
+    @NotNull GradleSyncInvoker.Request syncRequest,
+    @Nullable SyncIssueFilter issueFilter) {
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
       GradleProjectImporter.getInstance().importProjectNoSync(request);
       return syncProject(project, syncRequest);
     });
 
-    AndroidGradleTests.checkSyncStatus(project, syncListener);
+    AndroidGradleTests.checkSyncStatus(project, syncListener, issueFilter);
     AndroidTestBase.refreshProjectFiles();
   }
 
@@ -517,7 +527,9 @@ public class AndroidGradleTests {
     return syncListener;
   }
 
-  public static void checkSyncStatus(@NotNull Project project, @NotNull TestGradleSyncListener syncListener) throws SyncIssuesPresentError {
+  public static void checkSyncStatus(@NotNull Project project,
+                                     @NotNull TestGradleSyncListener syncListener,
+                                     @Nullable SyncIssueFilter issueFilter) throws SyncIssuesPresentError {
     if (syncFailed(syncListener)) {
       String cause =
         !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
@@ -526,7 +538,11 @@ public class AndroidGradleTests {
     // Also fail the test if SyncIssues with type errors are present.
     List<SyncIssueData> errors = Arrays.stream(ModuleManager.getInstance(project).getModules()).flatMap(module -> SyncIssues.forModule(module).stream())
       .filter(syncIssueData -> syncIssueData.getSeverity() == SyncIssue.SEVERITY_ERROR).collect(Collectors.toList());
-    String errorMessage = errors.stream().map(SyncIssueData::toString).collect(Collectors.joining("/n"));
+    Stream<SyncIssueData> errorStream = errors.stream();
+    if (issueFilter != null) {
+      errorStream = errorStream.filter(data -> !issueFilter.ignoreIssue(data));
+    }
+    String errorMessage = errorStream.map(SyncIssueData::toString).collect(Collectors.joining("/n"));
     if (!errorMessage.isEmpty()) {
       throw new SyncIssuesPresentError(errorMessage, errors);
     }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -34,7 +35,7 @@ class CorruptGradleDependencyIssueCheckerTest : AndroidGradleTestCase() {
     // Verify Quickfixes
     val quickFixes = buildIssue.quickFixes
     assertThat(quickFixes).hasSize(1)
-    assertThat(quickFixes[0]).isInstanceOf(ClassLoadingIssueChecker.SyncProjectQuickFix::class.java)
+    assertThat(quickFixes[0]).isInstanceOf(SyncProjectRefreshingDependenciesQuickFix::class.java)
   }
 
 }

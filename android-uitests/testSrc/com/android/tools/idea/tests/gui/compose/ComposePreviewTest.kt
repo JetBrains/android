@@ -197,7 +197,6 @@ class ComposePreviewTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/149464002
   @Throws(Exception::class)
   fun testRemoveExistingPreview() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
@@ -267,7 +266,6 @@ class ComposePreviewTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/148859613
   @Throws(Exception::class)
   fun testInteractiveSwitch() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")

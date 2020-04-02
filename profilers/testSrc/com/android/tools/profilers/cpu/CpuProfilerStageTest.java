@@ -651,7 +651,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     Range tooltipRange = myStage.getTimeline().getTooltipRange();
 
     viewRange.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(11));
-    CpuCapture cpuCapture = new AtraceParser(1)
+    CpuCapture cpuCapture = new AtraceParser(new MainProcessSelector("", 1, null))
       .parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0);
     myStage.setCapture(cpuCapture);
     myStage.enter();

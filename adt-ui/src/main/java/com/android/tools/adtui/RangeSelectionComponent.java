@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A component for performing/rendering selection.
  */
-public final class RangeSelectionComponent extends AnimatedComponent {
+public class RangeSelectionComponent extends AnimatedComponent {
   private static final Color DRAG_BAR_COLOR = new JBColor(new Color(0x260478DA, true), new Color(0x3374B7FF, true));
 
   private static final int DEFAULT_DRAG_BAR_HEIGHT = 26;
@@ -132,7 +132,7 @@ public final class RangeSelectionComponent extends AnimatedComponent {
     myViewRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::opaqueRepaint);
   }
 
-  private void initListeners() {
+  protected void initListeners() {
     this.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
@@ -285,18 +285,17 @@ public final class RangeSelectionComponent extends AnimatedComponent {
     myModel.endUpdate();
   }
 
-  private double xToRange(int x) {
-    Range range = myViewRange;
-    return x / getSize().getWidth() * range.getLength() + range.getMin();
+  protected double xToRange(int x) {
+    return x / getSize().getWidth() * getViewRange().getLength() + getViewRange().getMin();
   }
 
-  private float rangeToX(double value, Dimension dim) {
-    Range range = myViewRange;
+  protected float rangeToX(double value, double width) {
     // Clamp the range to the edge of the screen. This prevents fill artifacts when zoomed in, and improves performance.
     // If we do not clamp the selection to the screen then during painting java attempts to fill a rectangle several
     // thousand pixels off screen in both directions. This results in lots of computation that isn't required as well as,
     // lots of artifacts in the selection itself.
-    return Math.min(Math.max((float)(dim.getWidth() * ((value - range.getMin()) / (range.getMax() - range.getMin()))), 0), dim.width);
+    return (float)Math.min(Math.max((width * (value - getViewRange().getMin()) / (getViewRange().getMax() - getViewRange().getMin())), 0),
+                           width);
   }
 
   /**
@@ -317,9 +316,8 @@ public final class RangeSelectionComponent extends AnimatedComponent {
       return Mode.CREATE;
     }
 
-    Dimension size = getSize();
-    double startXPos = rangeToX(myModel.getSelectionRange().getMin(), size);
-    double endXPos = rangeToX(myModel.getSelectionRange().getMax(), size);
+    double startXPos = rangeToX(myModel.getSelectionRange().getMin(), getWidth());
+    double endXPos = rangeToX(myModel.getSelectionRange().getMax(), getWidth());
     if (startXPos - HANDLE_HITBOX_WIDTH < x && x < startXPos + HANDLE_WIDTH) {
       return Mode.ADJUST_MIN;
     }
@@ -385,6 +383,16 @@ public final class RangeSelectionComponent extends AnimatedComponent {
     return myMode;
   }
 
+  @NotNull
+  public RangeSelectionModel getModel() {
+    return myModel;
+  }
+
+  @NotNull
+  public Range getViewRange() {
+    return myViewRange;
+  }
+
   /**
    * @return true if the blue seek component from {@link RangeTooltipComponent} should be visible.
    * @see {@link RangeTooltipComponent#myShowSeekComponent}
@@ -407,8 +415,8 @@ public final class RangeSelectionComponent extends AnimatedComponent {
     if (selectionRange.isEmpty() || selectionRange.getMin() > myViewRange.getMax() || selectionRange.getMax() < myViewRange.getMin()) {
       return;
     }
-    float startXPos = rangeToX(selectionRange.getMin(), dim);
-    float endXPos = rangeToX(selectionRange.getMax(), dim);
+    float startXPos = rangeToX(selectionRange.getMin(), dim.getWidth());
+    float endXPos = rangeToX(selectionRange.getMax(), dim.getWidth());
     float handleDistance = endXPos - startXPos - HANDLE_WIDTH * 2;
     if (handleDistance < MIN_HANDLE_DISTANCE) {
       // When handles are too close to each other, keep a minimum distance and adjust handle position from the mid-point.

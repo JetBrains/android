@@ -73,10 +73,12 @@ class ViewBindingEnabledTest {
   fun enablingViewBindingEnablesLightBindingClassGeneration() {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     lateinit var buildFile: File
-    projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING) { projectRoot ->
-      buildFile = File(projectRoot, "app/build.gradle")
-      enableViewBinding(buildFile, false)
-    }
+    projectRule.load(
+      projectPath = TestDataPaths.PROJECT_FOR_VIEWBINDING,
+      preLoad = { projectRoot ->
+        buildFile = File(projectRoot, "app/build.gradle")
+        enableViewBinding(buildFile, false)
+      })
 
     // Trigger resource repository initialization
     val facet = projectRule.androidFacet(":app")

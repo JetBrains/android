@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -32,6 +33,6 @@ class CachedDependencyNotFoundIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue).isNotNull()
     assertThat(buildIssue!!.quickFixes.size).isEqualTo(1)
     assertThat(buildIssue.description).contains(expectedNotificationMessage)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(CachedDependencyNotFoundIssueChecker.CachedDependencyQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(ToggleOfflineModeQuickFix::class.java)
   }
 }

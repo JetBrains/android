@@ -62,19 +62,19 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
 
   @Override
   @NotNull
-  public PsiDirectory[] getFolders() {
+  public List<PsiDirectory> getFolders() {
     List<PsiFile> resFiles = getResFiles();
-    PsiDirectory[] folders = new PsiDirectory[resFiles.size()];
-    for (int i = 0; i < resFiles.size(); i++) {
-      folders[i] = resFiles.get(i).getParent();
+    List<PsiDirectory> folders = new ArrayList<>(resFiles.size());
+    for (PsiFile file : resFiles) {
+      folders.add(file.getParent());
     }
     return folders;
   }
 
   @Override
   @NotNull
-  public PsiFile[] getFiles() {
-    return getResFiles().toArray(PsiFile.EMPTY_ARRAY);
+  public List<PsiFile> getFiles() {
+    return getResFiles();
   }
 
   @NotNull

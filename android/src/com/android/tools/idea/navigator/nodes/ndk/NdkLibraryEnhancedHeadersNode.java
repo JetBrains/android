@@ -40,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
@@ -64,7 +63,6 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
                                        @NotNull ViewSettings settings,
                                        @NotNull Collection<String> sourceFileExtensions) {
     super(project, artifacts, settings);
-    assert ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get();
     myBuildFileFolder = buildFileFolder;
     myNativeLibraryName = nativeLibraryName;
     myNativeLibraryType = nativeLibraryType;
@@ -93,16 +91,12 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
       mergeFolders(rootFolders);
     }
 
-    Set<String> fileExtensions = new HashSet<>(sourceFileExtensions.size());
-    fileExtensions.addAll(sourceFileExtensions);
-
     PsiManager psiManager = PsiManager.getInstance(project);
     List<AbstractTreeNode> children = new ArrayList<>();
     for (RootFolder rootFolder : rootFolders.values()) {
       PsiDirectory directory = psiManager.findDirectory(rootFolder.rootFolder);
       if (directory != null) {
-        children.add(new NdkSourceFolderNode(project, directory, settings, fileExtensions, rootFolder.sourceFolders,
-                                             rootFolder.sourceFiles));
+        children.add(new NdkSourceFolderNode(project, directory, settings));
       }
     }
     return children;
@@ -331,7 +325,7 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
 
   @Override
   @NotNull
-  public PsiDirectory[] getFolders() {
+  public List<PsiDirectory> getFolders() {
     PsiManager psiManager = PsiManager.getInstance(getNotNullProject());
     List<PsiDirectory> folders = new ArrayList<>();
 
@@ -343,7 +337,7 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
         }
       }
     }
-    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
+    return folders;
   }
 
   @NotNull

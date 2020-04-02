@@ -17,7 +17,7 @@ package com.android.tools.idea.welcome.install
 
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore
+import com.android.tools.idea.wizard.model.ModelWizardStep
 
 /**
  * A non-leaf tree node. It is not possible to install it.
@@ -34,5 +34,5 @@ class ComponentCategory(
   override fun updateState(handler: AndroidSdkHandler) = components.forEach { it.updateState(handler) }
   override fun toggle(isSelected: Boolean) = components.forEach { it.toggle(isSelected) }
   override fun createSteps() = components.flatMap(ComponentTreeNode::createSteps)
-  override fun componentStateChanged(modified: Set<ScopedStateStore.Key<*>>) = components.any { it.componentStateChanged(modified) }
+  override val steps: Collection<ModelWizardStep<*>> get() = components.flatMap(ComponentTreeNode::steps)
 }

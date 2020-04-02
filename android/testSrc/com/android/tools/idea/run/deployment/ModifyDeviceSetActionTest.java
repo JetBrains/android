@@ -59,6 +59,9 @@ public final class ModifyDeviceSetActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
+    SelectedDevicesService service = Mockito.mock(SelectedDevicesService.class);
+    Mockito.when(service.getSelectedDevices()).thenReturn(Arrays.asList(device1, device2));
+
     RunConfiguration configuration = Mockito.mock(RunConfiguration.class);
 
     RunnerAndConfigurationSettings configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
@@ -75,7 +78,7 @@ public final class ModifyDeviceSetActionTest {
     DeviceAndSnapshotComboBoxAction comboBoxAction = new DeviceAndSnapshotComboBoxAction.Builder()
       .setGetProperties(project -> properties)
       .setClock(Mockito.mock(Clock.class))
-      .setGetSelectedDevices(project -> Arrays.asList(device1, device2))
+      .setSelectedDevicesServiceGetInstance(project -> service)
       .setGetRunManager(project -> runManager)
       .setGetExecutionTargetManager(project -> executionTargetManager)
       .build();

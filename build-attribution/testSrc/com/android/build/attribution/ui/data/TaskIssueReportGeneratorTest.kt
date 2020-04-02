@@ -26,6 +26,8 @@ import com.google.common.truth.Truth
 import com.intellij.util.text.DateFormatUtil
 import org.junit.Test
 
+private const val PLATFORM_INFORMATION_DATA_MOCK = "AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s.r.o, OS Linux(amd64) v4.19.67-2rodete2-amd64, screens 2560x1440, 1440x2560"
+
 class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest() {
 
   val task1androidPlugin =
@@ -74,18 +76,17 @@ class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest()
   private val buildFinishedTimestamp = 1574183533000
   private val buildFinishedTimeString = DateFormatUtil.formatDateTime(buildFinishedTimestamp)
   private val buildReportData = BuildAttributionReportBuilder(mockAnalysisResult, buildFinishedTimestamp).build()
+
   private val reporter = TaskIssueReportGenerator(
     buildReportData,
-    { "AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s.r.o, OS Linux(amd64) v4.19.67-2rodete2-amd64, screens 2560x1440, 1440x2560" },
+    { PLATFORM_INFORMATION_DATA_MOCK },
     { listOf(GradleVersion.parse("4.0.0-dev")) }
   )
 
   @Test
   fun testAlwaysRunSingleTaskReported() {
-    val expectedTitle = "Always-run Tasks No Output Declared: com.android.application compileDebugJavaWithJavac"
-    val expectedKey = "com.android.application_compileDebugJavaWithJavac_AlwaysRunNoOutputIssue"
     val expectedText = """
-At 17:12, Nov 19, 2019, Android Studio detected an issue with Gradle plugin com.android.application
+At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin com.android.application
 
 Always-run Tasks
 Task runs on every build because it declares no outputs.
@@ -93,8 +94,8 @@ Task runs on every build because it declares no outputs.
 Plugin: com.android.application
 Task: compileDebugJavaWithJavac
 Task type: org.gradle.api.tasks.compile.JavaCompile
-Issue detected in 1 module(s), total execution time was 0.400 s (5.0%), by module:
-  Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: true, on critical path: true
+Issues for the same task were detected in 1 module(s), total execution time was 0.400 s (5.0%), by module:
+  Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: true, on critical path: true, issues: Always-run Tasks
 
 ====Build information:====
 Execution date: $buildFinishedTimeString
@@ -104,55 +105,20 @@ Critical path tasks time: 8.000 s (80.0%)
 Critical path tasks size: 3
 AGP versions: 4.0.0-dev
 ====Platform information:====
-AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s.r.o, OS Linux(amd64) v4.19.67-2rodete2-amd64, screens 2560x1440, 1440x2560
+${PLATFORM_INFORMATION_DATA_MOCK}
 """.trimIndent()
 
-    val issue = buildReportData.findIssueFor(task1androidPlugin, TaskIssueType.ALWAYS_RUN_TASKS)
-    Truth.assertThat(reporter.generateReportTitle(issue)).isEqualTo(expectedTitle)
-    Truth.assertThat(reporter.generateIssueKey(issue)).isEqualTo(expectedKey)
-    Truth.assertThat(reporter.generateReportText(issue)).isEqualTo(expectedText)
+    val task = buildReportData.findTaskUiDataFor(task1androidPlugin)
+    Truth.assertThat(reporter.generateReportText(task)).isEqualTo(expectedText)
   }
 
   @Test
-  fun testAlwaysRunUpToDateOverrideIssue() {
-    val expectedTitle = "Always-run Tasks Up-To-Date Override: pluginA taskA"
-    val expectedKey = "pluginA_taskA_AlwaysRunUpToDateOverride"
+  fun testTaskWithTwoIssues() {
     val expectedText = """
-At 17:12, Nov 19, 2019, Android Studio detected an issue with Gradle plugin pluginA
+At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin pluginA
 
 Always-run Tasks
 This task might be setting its up-to-date check to always return false.
-
-Plugin: pluginA
-Task: taskA
-Task type: UNKNOWN
-Issue detected in 1 module(s), total execution time was 0.400 s (5.0%), by module:
-  Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: false, on critical path: false
-
-====Build information:====
-Execution date: $buildFinishedTimeString
-Total build duration: 10.000 s
-Configuration time: 1.000 s (10.0%)
-Critical path tasks time: 8.000 s (80.0%)
-Critical path tasks size: 3
-AGP versions: 4.0.0-dev
-====Platform information:====
-AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s.r.o, OS Linux(amd64) v4.19.67-2rodete2-amd64, screens 2560x1440, 1440x2560
-""".trim()
-
-
-    val issue = buildReportData.findIssueFor(taskAmodule1, TaskIssueType.ALWAYS_RUN_TASKS)
-    Truth.assertThat(reporter.generateReportTitle(issue)).isEqualTo(expectedTitle)
-    Truth.assertThat(reporter.generateIssueKey(issue)).isEqualTo(expectedKey)
-    Truth.assertThat(reporter.generateReportText(issue)).isEqualTo(expectedText)
-  }
-
-  @Test
-  fun testTaskSetupIssue() {
-    val expectedTitle = "Task Setup Issues: pluginA taskA"
-    val expectedKey = "pluginA_taskA_TaskSetupIssue"
-    val expectedText = """
-At 17:12, Nov 19, 2019, Android Studio detected an issue with Gradle plugin pluginA
 
 Task Setup Issues
 Task declares the same output directory as task taskB from pluginB.
@@ -160,8 +126,8 @@ Task declares the same output directory as task taskB from pluginB.
 Plugin: pluginA
 Task: taskA
 Task type: UNKNOWN
-Issue detected in 1 module(s), total execution time was 0.400 s (5.0%), by module:
-  Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: false, on critical path: false
+Issues for the same task were detected in 1 module(s), total execution time was 0.400 s (5.0%), by module:
+  Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: false, on critical path: false, issues: Always-run Tasks, Task Setup Issues
 
 ====Build information:====
 Execution date: $buildFinishedTimeString
@@ -171,14 +137,12 @@ Critical path tasks time: 8.000 s (80.0%)
 Critical path tasks size: 3
 AGP versions: 4.0.0-dev
 ====Platform information:====
-AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s.r.o, OS Linux(amd64) v4.19.67-2rodete2-amd64, screens 2560x1440, 1440x2560
+${PLATFORM_INFORMATION_DATA_MOCK}
 """.trim()
 
 
-    val issue = buildReportData.findIssueFor(taskAmodule1, TaskIssueType.TASK_SETUP_ISSUE)
-    Truth.assertThat(reporter.generateReportTitle(issue)).isEqualTo(expectedTitle)
-    Truth.assertThat(reporter.generateIssueKey(issue)).isEqualTo(expectedKey)
-    Truth.assertThat(reporter.generateReportText(issue)).isEqualTo(expectedText)
+    val task = buildReportData.findTaskUiDataFor(taskAmodule1)
+    Truth.assertThat(reporter.generateReportText(task)).isEqualTo(expectedText)
   }
 
   @Test
@@ -189,17 +153,15 @@ AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s
       { listOf(GradleVersion.parse("4.0.0-dev"), GradleVersion.parse("4.0.0-dev"), GradleVersion.parse("3.0.0-dev")) }
     )
 
-    val issue = buildReportData.findIssueFor(task1androidPlugin, TaskIssueType.ALWAYS_RUN_TASKS)
-    val agpVersionsLine = reporter.generateReportText(issue).lines().find { it.startsWith("AGP versions: ") }
+    val task = buildReportData.findTaskUiDataFor(task1androidPlugin)
+    val agpVersionsLine = reporter.generateReportText(task).lines().find { it.startsWith("AGP versions: ") }
     Truth.assertThat(agpVersionsLine).isEqualTo("AGP versions: 4.0.0-dev, 3.0.0-dev")
   }
 
   @Test
   fun testSameIssueInSeveralModules() {
-    val expectedTitle = "Always-run Tasks No Output Declared: pluginB taskB"
-    val expectedKey = "pluginB_taskB_AlwaysRunNoOutputIssue"
     val expectedText = """
-At 17:12, Nov 19, 2019, Android Studio detected an issue with Gradle plugin pluginB
+At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin pluginB
 
 Always-run Tasks
 Task runs on every build because it declares no outputs.
@@ -207,9 +169,9 @@ Task runs on every build because it declares no outputs.
 Plugin: pluginB
 Task: taskB
 Task type: UNKNOWN
-Issue detected in 2 module(s), total execution time was 0.400 s (5.0%), by module:
-  Execution mode: FULL, time: 0.300 s (3.8%), determines build duration: true, on critical path: true
-  Execution mode: INCREMENTAL, time: 0.100 s (1.3%), determines build duration: false, on critical path: false
+Issues for the same task were detected in 2 module(s), total execution time was 0.400 s (5.0%), by module:
+  Execution mode: FULL, time: 0.300 s (3.8%), determines build duration: true, on critical path: true, issues: Always-run Tasks, Task Setup Issues
+  Execution mode: INCREMENTAL, time: 0.100 s (1.3%), determines build duration: false, on critical path: false, issues: Always-run Tasks
 
 ====Build information:====
 Execution date: $buildFinishedTimeString
@@ -219,18 +181,17 @@ Critical path tasks time: 8.000 s (80.0%)
 Critical path tasks size: 3
 AGP versions: 4.0.0-dev
 ====Platform information:====
-AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s.r.o, OS Linux(amd64) v4.19.67-2rodete2-amd64, screens 2560x1440, 1440x2560
+${PLATFORM_INFORMATION_DATA_MOCK}
 """.trim()
 
-    val issue = buildReportData.findIssueFor(taskBmodule1, TaskIssueType.ALWAYS_RUN_TASKS)
-    Truth.assertThat(reporter.generateReportTitle(issue)).isEqualTo(expectedTitle)
-    Truth.assertThat(reporter.generateIssueKey(issue)).isEqualTo(expectedKey)
-    Truth.assertThat(reporter.generateReportText(issue)).isEqualTo(expectedText)
+    val task = buildReportData.findTaskUiDataFor(taskBmodule2)
+    Truth.assertThat(reporter.generateReportText(task)).isEqualTo(expectedText)
   }
 }
 
-fun BuildAttributionReportUiData.findIssueFor(task: TaskData, type: TaskIssueType): TaskIssueUiData {
+fun BuildAttributionReportUiData.findTaskUiDataFor(task: TaskData): TaskUiData {
   return issues
-    .find { it.type == type }!!
-    .issues.find { it.task.taskPath == task.getTaskPath() && it.task.pluginName == task.originPlugin.displayName }!!
+    .flatMap { it.issues }
+    .map { it.task }
+    .find { it.taskPath == task.getTaskPath() }!!
 }

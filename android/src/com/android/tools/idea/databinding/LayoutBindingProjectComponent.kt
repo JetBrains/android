@@ -33,6 +33,9 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Utilities the apply across a whole project for all binding-enabled layouts (e.g. data
  * binding and view binding)
+ *
+ * This class also serves as a [ModificationTracker] which is incremented whenever data
+ * binding and/or view binding is enabled / disabled for any module in the current project.
  */
 class LayoutBindingProjectComponent(val project: Project) : ModificationTracker {
 

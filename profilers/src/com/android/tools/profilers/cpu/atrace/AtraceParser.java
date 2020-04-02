@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.atrace;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
@@ -25,6 +26,7 @@ import com.android.tools.profilers.cpu.MainProcessSelector;
 import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -99,25 +101,34 @@ public class AtraceParser implements TraceParser {
   @NotNull
   private final MainProcessSelector processSelector;
 
-  /**
-   * This constructor assumes we know what process we want to focus on.
-   */
-  public AtraceParser(String processName) {
-    this(new MainProcessSelector(processName, null, null));
-  }
+  // This should be always ATRACE or PERFETTO and is needed so the CpuCapture returned can contain the correct type.
+  @NotNull
+  private final Cpu.CpuTraceType myCpuTraceType;
 
   /**
-   * This constructor assumes we know what process we want to focus on.
+   * For testing purposes, when we don't care about which process in going to be selected as the main one.
    */
-  public AtraceParser(int processId) {
-    this(new MainProcessSelector(null, processId, null));
+  @VisibleForTesting
+  public AtraceParser() {
+    this(new MainProcessSelector("", 0, null));
   }
 
   /**
    * This constructor assumes we don't know which process we want to focus on and will use the passed {@code processSelector} to find it.
    */
   public AtraceParser(@NotNull MainProcessSelector processSelector) {
+    this(Cpu.CpuTraceType.ATRACE, processSelector);
+  }
+
+  /**
+   * This constructor allow us to override the CpuTraceType, for when we want to parse Perfetto traces using Trebuchet.
+   * It also assumes we don't know which process we want to focus on and will use the passed {@code processSelector} to find it.
+   */
+  public AtraceParser(@NotNull Cpu.CpuTraceType type, @NotNull MainProcessSelector processSelector) {
     this.processSelector = processSelector;
+    Preconditions.checkArgument(type == Cpu.CpuTraceType.ATRACE || type == Cpu.CpuTraceType.PERFETTO,
+                                "type must be ATRACE or PERFETTO.");
+    myCpuTraceType = type;
 
     myCaptureTreeNodes = new HashMap<>();
     myThreadStateData = new HashMap<>();
@@ -126,7 +137,7 @@ public class AtraceParser implements TraceParser {
   }
 
   @Override
-  public CpuCapture parse(File file, long traceId) throws IOException {
+  public CpuCapture parse(@NotNull File file, long traceId) throws IOException {
     parseModelIfNeeded(file);
     double startTimestampUs = convertToUserTimeUs(myModel.getBeginTimestamp());
     double endTimestampUs = convertToUserTimeUs(myModel.getEndTimestamp());
@@ -153,7 +164,7 @@ public class AtraceParser implements TraceParser {
     buildCpuStateData();
 
     AtraceFrameManager frameManager = new AtraceFrameManager(myProcessModel, convertToUserTimeUsFunction());
-    return new AtraceCpuCapture(traceId, myRange, this, frameManager);
+    return new AtraceCpuCapture(traceId, myCpuTraceType, myRange, this, frameManager);
   }
 
   /**
@@ -162,12 +173,15 @@ public class AtraceParser implements TraceParser {
   private void parseModelIfNeeded(@NotNull File file) throws IOException {
     if (myModel == null) {
       TrebuchetBufferProducer producer;
-      if (AtraceProducer.verifyFileHasAtraceHeader(file)) {
+      if (myCpuTraceType == Cpu.CpuTraceType.ATRACE) {
         producer = new AtraceProducer();
       }
-      else {
+      else if (myCpuTraceType == Cpu.CpuTraceType.PERFETTO){
         producer = new PerfettoProducer();
+      } else {
+        throw new IllegalStateException("Trying to parse something that is not ATRACE nor PERFETTO.");
       }
+
       if (!producer.parseFile(file)) {
         throw new IOException("Failed to parse file: " + file.getAbsolutePath());
       }

@@ -35,7 +35,9 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ConcurrentList
 import com.intellij.util.containers.ContainerUtil
+import io.grpc.CompressorRegistry
 import io.grpc.ConnectivityState
+import io.grpc.DecompressorRegistry
 import io.grpc.ManagedChannel
 import io.grpc.MethodDescriptor
 import io.grpc.Status
@@ -65,7 +67,6 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       when (state) {
         ConnectivityState.CONNECTING -> connectionState = ConnectionState.CONNECTING
         ConnectivityState.SHUTDOWN -> connectionState = ConnectionState.DISCONNECTED
-        ConnectivityState.READY -> connectionState = ConnectionState.CONNECTED
         else -> {}
       }
       ch.notifyWhenStateChanged(state, this)
@@ -74,7 +75,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
   var emulatorConfig: EmulatorConfiguration
     get() {
-      return emulatorConfigInternal ?: throw IllegalStateException("Not yet connected to the Emulator")
+      return emulatorConfigInternal ?: throwNotYetConnected()
     }
     private inline set(value) {
       emulatorConfigInternal = value
@@ -92,9 +93,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       }
     }
 
-  var emulatorController: EmulatorControllerGrpc.EmulatorControllerStub
+  private var emulatorController: EmulatorControllerGrpc.EmulatorControllerStub
     get() {
-      return emulatorControllerInternal ?: throw IllegalStateException()
+      return emulatorControllerInternal ?: throwNotYetConnected()
     }
     private inline set(stub) {
       emulatorControllerInternal = stub
@@ -102,14 +103,15 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
   internal var skinDefinition: SkinDefinition?
     get() {
-      if (connectionState == ConnectionState.CONNECTING) {
-        throw IllegalStateException()
-      }
-      return skinDefinitionInternal
+      return skinDefinitionInternal ?: throwNotYetConnected()
     }
     private inline set(value) {
       skinDefinitionInternal = value
     }
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
 
   @AnyThread
   fun addConnectionStateListener(listener: ConnectionStateListener) {
@@ -119,10 +121,6 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   @AnyThread
   fun removeConnectionStateListener(listener: ConnectionStateListener) {
     connectionStateListeners.remove(listener)
-  }
-
-  init {
-    Disposer.register(parentDisposable, this)
   }
 
   /**
@@ -135,7 +133,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     val channel = NettyChannelBuilder
       .forAddress("localhost", emulatorId.grpcPort)
       .usePlaintext() // TODO(sprigogin): Add proper authentication.
-      .maxInboundMessageSize(16 * 1024 * 1024)
+      .maxInboundMessageSize(20 * 1024 * 1024)
+      .compressorRegistry(CompressorRegistry.newEmptyInstance()) // Disable data compression.
+      .decompressorRegistry(DecompressorRegistry.emptyInstance())
       .build()
     emulatorController = EmulatorControllerGrpc.newStub(channel)
     channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
@@ -225,10 +225,15 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
         connectionState = ConnectionState.DISCONNECTED
       }
     }
+
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("getStatus()")
     }
     emulatorController.getStatus(Empty.getDefaultInstance(), responseObserver)
+  }
+
+  private fun throwNotYetConnected(): Nothing {
+    throw IllegalStateException("Not yet connected to the Emulator")
   }
 
   override fun dispose() {

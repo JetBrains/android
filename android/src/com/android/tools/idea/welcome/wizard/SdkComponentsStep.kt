@@ -15,18 +15,30 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.repository.api.RepoManager
+import com.android.repository.api.RepoManager.RepoLoadedCallback
+import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.io.FileOpUtils
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.sdk.StudioDownloader
+import com.android.tools.idea.sdk.StudioSettingsController
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.sdk.progress.StudioProgressRunner
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
 import com.android.tools.idea.welcome.install.ComponentCategory
+import com.android.tools.idea.welcome.install.ComponentInstaller
 import com.android.tools.idea.welcome.install.ComponentTreeNode
+import com.android.tools.idea.wizard.WizardConstants
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.android.tools.idea.wizard.model.WizardModel
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
@@ -66,11 +78,7 @@ import javax.swing.table.TableCellRenderer
 class SdkComponentsStep(
   model: FirstRunModel
 ) : ModelWizardStep<FirstRunModel>(model, "SDK Components Setup") {
-  private val tableModel: ComponentsTableModel = ComponentsTableModel(
-    ComponentCategory("root", "Root category", listOf(
-      ComponentCategory("category 1", "category 1 description", listOf())
-    ))
-  )
+  private val tableModel: ComponentsTableModel = ComponentsTableModel(model.componentTree)
   private var componentsTable = JBTable().apply {
     setModel(tableModel)
     tableHeader = null
@@ -158,7 +166,7 @@ class SdkComponentsStep(
 
   override fun getComponent(): JComponent = root
 
-  // TODO was override,
+  // TODO replace with ValidatorPanel
   fun validate(): Boolean {
     //val path = sdkDownloadPath
 
@@ -224,6 +232,39 @@ class SdkComponentsStep(
     return true
   }
 
+  // This belonged to InstallComponentPath before. TODO: maybe it should actually be in onWizardStarting to avoid reduce freezes?
+  lateinit var componentInstaller: ComponentInstaller
+
+ init {
+   val localHandler = model.localHandler
+    //if (!model.sdkExists) {
+    //  break // TODO(qumeric): is it correct?
+    //}
+    val sdkLocation = model.sdkLocation
+
+    if (!FileUtil.filesEqual(localHandler.location, sdkLocation)) {
+      val progress = StudioLoggerProgressIndicator(javaClass)
+      contentPanel.startLoading()
+      localHandler.getSdkManager(progress)
+        .load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(
+          RepoLoadedCallback {
+            componentInstaller = ComponentInstaller(localHandler)
+            model.componentTree.updateState(localHandler)
+            contentPanel.stopLoading()
+          }), ImmutableList.of(Runnable { loadingError() }),
+              StudioProgressRunner(false, false, "Finding Available SDK Components", null), StudioDownloader(),
+              StudioSettingsController.getInstance(), false)
+    }
+  }
+
+  private fun loadingError() {
+    // TODO
+  }
+
+  override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
+    return model.componentTree.steps
+  }
+
   private inner class SdkComponentRenderer : AbstractCellEditor(), TableCellRenderer, TableCellEditor {
     private val panel = RendererPanel()
     private val checkBox = RendererCheckBox().apply {
@@ -276,7 +317,7 @@ class SdkComponentsStep(
     private fun getCellBorder(table: JTable, isSelectedFocus: Boolean): Border {
       val focusedBorder = UIUtil.getTableFocusCellHighlightBorder()
       return if (isSelectedFocus) {
-         focusedBorder
+        focusedBorder
       }
       else {
         emptyBorder = emptyBorder ?: EmptyBorder(focusedBorder.getBorderInsets(table))

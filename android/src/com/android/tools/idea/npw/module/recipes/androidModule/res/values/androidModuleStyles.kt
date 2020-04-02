@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule.res.values
 
+const val DARK_ACTION_BAR_MATERIAL_COMPONENTS = "Theme.MaterialComponents.DayNight.DarkActionBar"
+const val DARK_ACTION_BAR_APPCOMPAT = "Theme.AppCompat.Light.DarkActionBar"
 
-fun androidModuleStyles(): String = """
+// TODO: Check if App can be replaced with an actual app name
+fun androidModuleStyles(useAndroidX: Boolean): String {
+  val parent = if (useAndroidX) DARK_ACTION_BAR_MATERIAL_COMPONENTS else DARK_ACTION_BAR_APPCOMPAT
+  return """
 <resources>
   <!-- Base application theme. -->
-  <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+  <style name="Theme.App" parent="$parent">
       <!-- Customize your theme here. -->
       <item name="colorPrimary">@color/purple500</item>
       <item name="colorPrimaryDark">@color/purple700</item>
@@ -28,3 +33,4 @@ fun androidModuleStyles(): String = """
 
 </resources>
 """
+}

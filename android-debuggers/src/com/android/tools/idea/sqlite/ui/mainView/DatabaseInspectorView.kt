@@ -61,7 +61,7 @@ interface DatabaseInspectorView {
    * Removes the [SqliteSchema] corresponding to the [SqliteDatabase] passed as argument.
    */
   fun removeDatabaseSchema(database: SqliteDatabase)
-  fun openTab(tableId: TabId, tabName: String, component: JComponent)
+  fun openTab(tabId: TabId, tabName: String, component: JComponent)
   fun focusTab(tabId: TabId)
   fun closeTab(tabId: TabId)
 

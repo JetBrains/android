@@ -110,30 +110,29 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   }
 
   private ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason,
-                                                @NotNull ScopedStateStore stateStore,
                                                 boolean createAvd) {
     List<ComponentTreeNode> components = Lists.newArrayList();
-    components.add(new AndroidSdk(stateStore, myInstallUpdates));
+    components.add(new AndroidSdk(myInstallUpdates));
 
     RepoManager sdkManager = myLocalHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
     sdkManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
                     new StudioProgressRunner(true, false, "Finding Available SDK Components", null),
                     new StudioDownloader(), StudioSettingsController.getInstance(), true);
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
-    ComponentTreeNode platforms = Platform.createSubtree(stateStore, remotePackages, myInstallUpdates);
+    ComponentTreeNode platforms = Platform.Companion.createSubtree(remotePackages, myInstallUpdates);
     if (platforms != null) {
       components.add(platforms);
     }
     InstallationIntention installationIntention = myInstallUpdates ? InstallationIntention.INSTALL_WITH_UPDATES
                                                                    : InstallationIntention.INSTALL_WITHOUT_UPDATES;
     if (reason == FirstRunWizardMode.NEW_INSTALL && Haxm.InstallerInfo.canRun()) {
-      components.add(new Haxm(installationIntention, stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL));
+      components.add(new Haxm(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }
     if (reason == FirstRunWizardMode.NEW_INSTALL && Gvm.InstallerInfo.canRun()) {
-      components.add(new Gvm(installationIntention, stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL));
+      components.add(new Gvm(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }
     if (createAvd) {
-      components.add(new AndroidVirtualDevice(stateStore, remotePackages, myInstallUpdates, myFileOp));
+      components.add(new AndroidVirtualDevice(remotePackages, myInstallUpdates, myFileOp));
     }
     return new ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components);
   }
@@ -187,12 +186,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     assert location != null;
 
     myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, location.getAbsolutePath());
-    File file = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
-    if (file != null) {
-      myState.put(WizardConstants.KEY_JDK_LOCATION, file.getPath());
-    }
+    myState.put(WizardConstants.KEY_JDK_LOCATION, EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath());
 
-    myComponentTree = createComponentTree(myMode, myState, !isChromeOSAndIsNotHWAccelerated() && myMode.shouldCreateAvd());
+    myComponentTree = createComponentTree(myMode, !isChromeOSAndIsNotHWAccelerated() && myMode.shouldCreateAvd());
     myComponentTree.init(myProgressStep);
 
     myComponentsStep = new SdkComponentsStep(

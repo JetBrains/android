@@ -23,18 +23,18 @@ public interface FeatureConfig {
   boolean isCpuApiTracingEnabled();
   boolean isCpuCaptureStageEnabled();
   boolean isCpuNewRecordingWorkflowEnabled();
+  boolean isCustomEventVisualizationEnabled();
   boolean isEnergyProfilerEnabled();
   boolean isJniReferenceTrackingEnabled();
   boolean isLiveAllocationsEnabled();
   boolean isLiveAllocationsSamplingEnabled();
-  boolean isNativeMemorySampleEnabled(); // Added in 4.1.
   boolean isMemorySnapshotEnabled();
-  boolean isPerfettoEnabled();
+  boolean isNativeMemorySampleEnabled(); // Added in 4.1.
   boolean isPerformanceMonitoringEnabled();
-  boolean isCustomEventVisualizationEnabled();
+  boolean isSeparateHeapDumpUiEnabled();
   boolean isStartupCpuProfilingEnabled();
   boolean isUnifiedPipelineEnabled();
-  boolean isSeparateHeapDumpUiEnabled();
+  boolean isUseTraceProcessor();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.
 }

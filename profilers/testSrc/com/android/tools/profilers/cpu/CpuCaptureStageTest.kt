@@ -182,7 +182,6 @@ class CpuCaptureStageTest {
   @Test
   fun captureHintSelectsProperProcessStringName() {
     services.setListBoxOptionsIndex(-1)
-    services.enablePerfetto(true)
     val stage = CpuCaptureStage(profilers, ProfilersTestData.DEFAULT_CONFIG, CpuProfilerTestUtils.getTraceFile("perfetto.trace"),
                                 "surfaceflinger", 0)
     profilers.stage = stage
@@ -194,7 +193,6 @@ class CpuCaptureStageTest {
   @Test
   fun captureHintSelectsProperProcessPID() {
     services.setListBoxOptionsIndex(-1)
-    services.enablePerfetto(true)
     val stage = CpuCaptureStage(profilers, ProfilersTestData.DEFAULT_CONFIG, CpuProfilerTestUtils.getTraceFile("perfetto.trace"), null, 709)
     profilers.stage = stage
     assertThat(stage.capture).isNotNull()
@@ -205,7 +203,6 @@ class CpuCaptureStageTest {
   @Test
   fun nullCaptureHintSelectsCaptureFromDialog() {
     services.setListBoxOptionsIndex(1)
-    services.enablePerfetto(true)
     val stage = CpuCaptureStage(profilers, ProfilersTestData.DEFAULT_CONFIG, CpuProfilerTestUtils.getTraceFile("perfetto.trace"), null, 0)
     profilers.stage = stage
     assertThat(stage.capture).isNotNull()

@@ -16,10 +16,19 @@
 package com.android.tools.adtui.actions
 
 import com.android.tools.adtui.ZOOMABLE_KEY
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-object ZoomToFitAction : SetZoomAction(ZoomType.FIT) {
-  // TODO: register shortcuts
+/**
+ * TODO(b/149212539): make constructor private after resolving failed test cases.
+ */
+class ZoomToFitAction : SetZoomAction(ZoomType.FIT) {
+
+  companion object {
+    @JvmStatic
+    fun getInstance() = ActionManager.getInstance().getAction(AdtuiActions.ZOOM_TO_FIT_ACTION) as ZoomToFitAction
+  }
+
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isEnabled = event.getData(ZOOMABLE_KEY)?.canZoomToFit() ?: false

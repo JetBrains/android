@@ -266,6 +266,7 @@ class DatabaseInspectorControllerImpl(
       project,
       sqliteEvaluatorView,
       viewFactory,
+      { closeTab(tabId) },
       edtExecutor,
       taskExecutor
     )
@@ -289,18 +290,19 @@ class DatabaseInspectorControllerImpl(
     private val scope = AndroidCoroutineScope(this@DatabaseInspectorControllerImpl)
 
     override fun tableNodeActionInvoked(database: SqliteDatabase, table: SqliteTable) {
-      val tableId = TabId.TableTab(database, table.name)
-      if (tableId in resultSetControllers) {
-        view.focusTab(tableId)
+      val tabId = TabId.TableTab(database, table.name)
+      if (tabId in resultSetControllers) {
+        view.focusTab(tabId)
         return
       }
 
       val databaseConnection = database.databaseConnection
 
       val tableView = viewFactory.createTableView()
-      view.openTab(tableId, table.name, tableView.component)
+      view.openTab(tabId, table.name, tableView.component)
 
       val tableController = TableController(
+        closeTabInvoked = { closeTab(tabId) },
         project = project,
         view = tableView,
         tableSupplier = { model.getDatabaseSchema(database)?.tables?.firstOrNull{ it.name == table.name } },
@@ -310,14 +312,15 @@ class DatabaseInspectorControllerImpl(
         taskExecutor = taskExecutor
       )
       Disposer.register(project, tableController)
+      resultSetControllers[tabId] = tableController
 
       tableController.setUp().addCallback(edtExecutor, object : FutureCallback<Unit> {
         override fun onSuccess(result: Unit?) {
-          resultSetControllers[tableId] = tableController
         }
 
         override fun onFailure(t: Throwable) {
           view.reportError("Error reading Sqlite table \"${table.name}\"", t)
+          closeTab(tabId)
         }
       })
     }
@@ -430,6 +433,12 @@ interface DatabaseInspectorController : Disposable {
   }
 
   interface TabController : Disposable {
+    val closeTabInvoked: () -> Unit
+    /**
+     * Triggers a refresh operation in this tab.
+     * If called multiple times in sequence, this method is re-executed only once the future from the first invocation completes.
+     * While the future of the first invocation is not completed, the future from the first invocation is returned to following invocations.
+     */
     fun refreshData(): ListenableFuture<Unit>
   }
 }

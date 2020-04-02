@@ -176,8 +176,8 @@ public class GradleSpecificInitializer implements Runnable {
     System.setProperty("ide.new.welcome.screen.force", "true");
 
     // Update the Welcome Screen actions
-    replaceAction("WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an existing Android Studio project"));
-    replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Start a new Android Studio project"));
+    replaceAction("WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an Existing Project"));
+    replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Create New Project"));
     replaceAction("WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
     replaceAction("TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 

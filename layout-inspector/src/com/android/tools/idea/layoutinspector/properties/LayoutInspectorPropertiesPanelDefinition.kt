@@ -24,7 +24,7 @@ import com.intellij.icons.AllIcons
 
 class LayoutInspectorPropertiesPanelDefinition :
   ToolWindowDefinition<LayoutInspector>(
-    "Properties",
+    "Attributes",
     AllIcons.Toolwindows.ToolWindowStructure,
     "PROPERTIES",
     Side.RIGHT,

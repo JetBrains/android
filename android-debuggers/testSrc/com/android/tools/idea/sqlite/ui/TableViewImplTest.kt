@@ -460,6 +460,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       { sqliteTable },
       realDatabaseConnection!!,
       SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
+      {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
     )
@@ -500,6 +501,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       { sqliteTable },
       realDatabaseConnection!!,
       SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
+      {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
     )
@@ -540,6 +542,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       { sqliteTable },
       realDatabaseConnection!!,
       SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
+      {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
     )
@@ -580,6 +583,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       { sqliteTable },
       realDatabaseConnection!!,
       SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
+      {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
     )
@@ -784,6 +788,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       { SqliteTable("tab", emptyList(), null, false) },
       realDatabaseConnection!!,
       SqliteStatement("SELECT * FROM t1"),
+      {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
     )

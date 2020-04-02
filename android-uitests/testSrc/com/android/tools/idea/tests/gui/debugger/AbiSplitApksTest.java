@@ -131,7 +131,8 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     File projectRoot = ideFrame.getProjectPath();
     File expectedPathOfApk = new File(projectRoot, "app/build/outputs/apk/debug/" + expectedApkName);
 
-    assertThat(expectedPathOfApk).exists();
+    Wait.seconds(30).expecting("Apk file to be generated.")
+      .until(() -> expectedPathOfApk.exists());
 
     ideFrame.closeProjectWithPrompt();
     ProcessRunningDialogFixture.find(ideFrame).clickTerminate();

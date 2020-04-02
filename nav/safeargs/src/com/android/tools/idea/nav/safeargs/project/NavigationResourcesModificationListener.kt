@@ -21,7 +21,7 @@ import com.android.ide.common.util.PathString
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.nav.safeargs.module.NavigationResourcesModificationTracker
+import com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
@@ -45,7 +45,8 @@ import org.jetbrains.annotations.TestOnly
 
 /**
  * A project-wide listener that determines which modules' navigation files are affected by VFS changes or Document
- * changes and tell the corresponding [NavigationResourcesModificationTracker]s to increment counter.
+ * changes and tell the corresponding [ModuleNavigationResourcesModificationTracker]s and
+ * [ProjectNavigationResourceModificationTracker]s to increment counter.
  *
  * [NavigationResourcesModificationListener] registers itself to start actively listening for VFS changes and Document
  * changes after the project opening.
@@ -86,8 +87,8 @@ class NavigationResourcesModificationListener(
   }
 
   override fun fileChanged(path: PathString, facet: AndroidFacet) {
-    NavigationResourcesModificationTracker.getInstance(
-      facet.module).navigationChanged()
+    ModuleNavigationResourcesModificationTracker.getInstance(facet.module).navigationChanged()
+    ProjectNavigationResourceModificationTracker.getInstance(facet.module.project).navigationChanged()
   }
 
   override fun contentsChanged(event: VirtualFileEvent) {

@@ -73,12 +73,50 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     assertTrue(openDatabaseInvoked)
   }
 
-  fun testErrorMessageShowsError() {
+  fun testRecoverableErrorMessageShowsError() {
     // Prepare
     val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredEvent.newBuilder().setContent(
       SqliteInspectorProtocol.ErrorContent.newBuilder()
         .setMessage("errorMessage")
-        .setIsRecoverable(true)
+        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(true).build())
+        .setStackTrace("stackTrace")
+        .build()
+    ).build()
+    val event = SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
+
+    // Act
+    databaseInspectorClient.eventListener.onRawEvent(event.toByteArray())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    assertTrue(handleErrorInvoked)
+  }
+
+  fun testUnrecoverableErrorMessageShowsError() {
+    // Prepare
+    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredEvent.newBuilder().setContent(
+      SqliteInspectorProtocol.ErrorContent.newBuilder()
+        .setMessage("errorMessage")
+        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(false).build())
+        .setStackTrace("stackTrace")
+        .build()
+    ).build()
+    val event = SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
+
+    // Act
+    databaseInspectorClient.eventListener.onRawEvent(event.toByteArray())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    assertTrue(handleErrorInvoked)
+  }
+
+  fun testUnknownRecoverableErrorMessageShowsError() {
+    // Prepare
+    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredEvent.newBuilder().setContent(
+      SqliteInspectorProtocol.ErrorContent.newBuilder()
+        .setMessage("errorMessage")
+        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().build())
         .setStackTrace("stackTrace")
         .build()
     ).build()

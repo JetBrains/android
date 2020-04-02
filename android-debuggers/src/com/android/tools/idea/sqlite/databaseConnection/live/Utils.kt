@@ -25,6 +25,7 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.model.getRowIdName
 import com.google.common.io.BaseEncoding
+import com.intellij.openapi.diagnostic.Logger
 
 /**
  * Builds a [SqliteInspectorProtocol.Command] from a [SqliteStatement] and a database connection id.
@@ -72,6 +73,7 @@ internal fun List<SqliteInspectorProtocol.Table>.toSqliteSchema(): SqliteSchema 
 
 /**
  * This method is used to handle synchronous errors from the on-device inspector.
+ * All errors are logged, except for recoverable errors.
  *
  * An on-device inspector can send an error as a response to a command (synchronous) or as an event (asynchronous).
  * When detected, synchronous errors are thrown as exceptions so that they become part of the usual flow for errors:
@@ -79,17 +81,53 @@ internal fun List<SqliteInspectorProtocol.Table>.toSqliteSchema(): SqliteSchema 
  *
  * Asynchronous errors are delivered to DatabaseInspectorProjectService that takes care of showing them.
  */
-internal fun handleError(errorContent: SqliteInspectorProtocol.ErrorContent): Nothing {
+internal fun handleError(errorContent: SqliteInspectorProtocol.ErrorContent, logger: Logger): Nothing {
+  when(errorContent.recoverability.oneOfCase) {
+    SqliteInspectorProtocol.ErrorRecoverability.OneOfCase.IS_RECOVERABLE -> {
+      // log when isRecoverable is set and is false.
+      if (!errorContent.recoverability.isRecoverable) {
+        logger.warn("Unrecoverable error from on-device inspector: ${errorContent.message}\n${errorContent.stackTrace}")
+      }
+    }
+    SqliteInspectorProtocol.ErrorRecoverability.OneOfCase.ONEOF_NOT_SET -> {
+      // log when isRecoverable is not set ("unknown if recoverable error").
+      logger.warn("Unknown if recoverable error from on-device inspector: ${errorContent.message}\n${errorContent.stackTrace}")
+    }
+    null -> { }
+  }
+
   val message = getErrorMessage(errorContent)
   throw LiveInspectorException(message, errorContent.stackTrace)
 }
 
 internal fun getErrorMessage(errorContent: SqliteInspectorProtocol.ErrorContent): String {
-  return if (!errorContent.isRecoverable) {
-    "An error has occurred which requires you to restart your app. \n${errorContent.message}"
-  }
-  else {
-    errorContent.message
+  /**
+   * Errors can be "recoverable", "unrecoverable" or "unknown if recoverable".
+   * 1. "Recoverable" errors are errors after which execution can continue as normal (eg. typo in query).
+   * 2. "Unrecoverable" errors are errors after which the state of on-device inspector is corrupted and app needs restart.
+   * 3. "Unknown if recoverable" means the on-device inspector doesn't have enough information to decide if the error is recoverable or not.
+   *
+   * `errorContent.recoverability.isRecoverable` is:
+   * 1. true for "recoverable" errors
+   * 2. false for "unrecoverable" errors
+   * 3. not set for "unknown if recoverable" errors
+   */
+  return when(errorContent.recoverability.oneOfCase) {
+    SqliteInspectorProtocol.ErrorRecoverability.OneOfCase.IS_RECOVERABLE -> {
+      if (errorContent.recoverability.isRecoverable) {
+        // recoverable
+        errorContent.message
+      }
+      else {
+        // unrecoverable
+        "An error has occurred which requires you to restart your app: ${errorContent.message}"
+      }
+    }
+    SqliteInspectorProtocol.ErrorRecoverability.OneOfCase.ONEOF_NOT_SET -> {
+      // unknown if recoverable
+      "An error has occurred which might require you to restart your app: ${errorContent.message}"
+    }
+    null -> error("value is null")
   }
 }
 

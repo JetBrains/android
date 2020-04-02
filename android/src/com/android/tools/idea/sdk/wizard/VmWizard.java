@@ -239,8 +239,8 @@ public class VmWizard extends DynamicWizard {
       myState.put(canShow, true);
       InstallationIntention vmInstallationIntention =
         VmWizard.this.myInvokedToUninstall ? InstallationIntention.UNINSTALL : InstallationIntention.INSTALL_WITH_UPDATES;
-      myVm = myType == VmType.HAXM ? new Haxm(vmInstallationIntention, getState(), canShow)
-                                   : new Gvm(vmInstallationIntention, getState(), canShow);
+      myVm = myType == VmType.HAXM ? new Haxm(vmInstallationIntention, canShow)
+                                   : new Gvm(vmInstallationIntention, canShow);
 
       for (DynamicWizardStep step : myVm.createSteps()) {
         addStep(step);

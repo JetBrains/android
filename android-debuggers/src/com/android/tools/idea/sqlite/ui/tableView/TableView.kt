@@ -31,11 +31,6 @@ interface TableView {
   val component: JComponent
 
   /**
-   * Controls the visibility of the actions row above the table.
-   */
-  var isTableActionsRowVisible: Boolean
-
-  /**
    * Removes data for both columns and rows and updates the view.
    */
   fun resetView()

@@ -18,7 +18,7 @@ package com.android.tools.idea.welcome.install
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore
+import com.android.tools.idea.wizard.model.ModelWizardStep
 
 /**
  * Component that may be installed by the first run wizard.
@@ -29,10 +29,12 @@ abstract class ComponentTreeNode(val description: String) {
   abstract val isChecked: Boolean
   abstract val immediateChildren: Collection<ComponentTreeNode>
   abstract val isEnabled: Boolean
+  abstract val steps: Collection<ModelWizardStep<*>>
+
   override fun toString(): String = label
   open fun init(progressStep: ProgressStep) {  }
   abstract fun updateState(handler: AndroidSdkHandler)
+  @Deprecated("this is for an old welcome wizard", ReplaceWith("step"))
   abstract fun createSteps(): Collection<DynamicWizardStep>
-  abstract fun componentStateChanged(modified: Set<ScopedStateStore.Key<*>>): Boolean
   abstract fun toggle(isSelected: Boolean)
 }

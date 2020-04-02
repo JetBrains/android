@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding.project
 
 import com.android.tools.idea.databinding.LayoutBindingProjectComponent
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
@@ -27,7 +28,14 @@ import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
  * If you need to know the modification count for a single module, just use
  * `ResourceRepositoryManager.getModuleResources(facet).modificationCount` directly.
  */
+@Service
 class ProjectLayoutResourcesModificationTracker(project: Project): ModificationTracker {
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project): ProjectLayoutResourcesModificationTracker =
+      project.getService(ProjectLayoutResourcesModificationTracker::class.java)
+  }
+
   private val component: LayoutBindingProjectComponent = project.getComponent(
     LayoutBindingProjectComponent::class.java)
 

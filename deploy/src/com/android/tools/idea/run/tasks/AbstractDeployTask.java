@@ -106,6 +106,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     IdeService ideService = new IdeService(myProject);
     Deployer deployer = new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(),
                                      installer, ideService, metrics, logger, StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get(),
+                                     StudioFlags.APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP.get(),
                                      StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get());
     List<String> idsSkippedInstall = new ArrayList<>();
     for (Map.Entry<String, List<File>> entry : myPackages.entrySet()) {

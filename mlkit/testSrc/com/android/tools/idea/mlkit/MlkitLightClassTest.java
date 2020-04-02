@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.project.DefaultModuleSystem;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
@@ -598,7 +599,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
     myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_plain_model.tflite");
 
     MlkitModuleService mlkitService = MlkitModuleService.getInstance(myModule);
-    List<PsiClass> lightClasses = mlkitService.getLightModelClassList();
+    List<LightModelClass> lightClasses = mlkitService.getLightModelClassList();
     List<String> classNameList = lightClasses.stream().map(psiClass -> psiClass.getName()).collect(Collectors.toList());
     assertThat(classNameList).containsExactly("MyModel", "MyPlainModel");
     assertThat(ModuleUtilCore.findModuleForPsiElement(lightClasses.get(0))).isEqualTo(myModule);

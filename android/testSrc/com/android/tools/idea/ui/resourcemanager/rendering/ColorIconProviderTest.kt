@@ -115,7 +115,7 @@ class ColorIconProviderTest {
   }
 
   private fun createColorIconProvider(): ColorIconProvider {
-    val configuration = ConfigurationManager.getOrCreateInstance(rule.module).getConfiguration(rule.project.projectFile!!)
+    val configuration = ConfigurationManager.getOrCreateInstance(rule.module).getConfiguration(rule.project.baseDir!!)
     return createColorIconProvider(configuration.resourceResolver)
   }
 

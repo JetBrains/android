@@ -948,27 +948,14 @@
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep"/>
 
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GradleBrokenPipeErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.Gradle2RequiredErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.DaemonContextMismatchErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.ErrorOpeningZipFileErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GradleDslMethodNotFoundErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.FailedToParseSdkErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidSdkErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingPlatformErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingBuildToolsErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingCMakeErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.InternetConnectionErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingDependencyErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnexpectedErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnknownHostErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.JavaHeapSpaceErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidPluginErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.Gradle4AndPlugin2Dot2ErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.ObjectStreamErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GenericErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.NdkIntegrationDeprecatedErrorHandler"/>
@@ -990,38 +977,25 @@
     <renderErrorContributor implementation="com.android.tools.idea.rendering.LayoutlibPluginRenderErrorContributor$LayoutlibPluginProvider"/>
   </extensions>
 
-  <!-- Begin new deployment target selection -->
+  <xi:include href="new-deployment-target-selection.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <actions>
-    <action id="DeviceAndSnapshotComboBox" class="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction"
-            text="Select Device">
-      <add-to-group group-id="RunMenu" relative-to-action="editRunConfigurations" anchor="after"/>
-      <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="after"/>
-
-      <keyboard-shortcut first-keystroke="alt shift F11" keymap="$default"/>
+    <!--suppress PluginXmlCapitalization -->
+    <action id="AdbConnectionStatus" class="com.android.tools.idea.run.AdbConnectionStatusAction" text="adb Connection Status">
+      <add-to-group group-id="ToolbarRunGroup" relative-to-action="DeviceAndSnapshotComboBox" anchor="after"/>
     </action>
-  </actions>
 
-  <actions>
     <action id="ToggleEmulatorWindow" class="com.android.tools.idea.emulator.ToggleEmulatorWindowAction"
             text="Toggle Emulator Window">
       <keyboard-shortcut first-keystroke="alt shift e" keymap="$default"/>
     </action>
   </actions>
 
-  <extensions defaultExtensionNs="com.android.run">
-    <deployTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider"/>
-  </extensions>
-
   <extensions defaultExtensionNs="com.intellij">
-    <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>
-    <projectService serviceImplementation="com.android.tools.idea.run.deployment.AsyncDevicesGetter"/>
     <projectService serviceImplementation="com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService"/>
     <projectService serviceInterface="com.android.tools.idea.explorer.DeviceExplorerFileManager"
                     serviceImplementation="com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl" />
   </extensions>
-
-  <!-- End new deployment target selection -->
 
   <extensions defaultExtensionNs="com.android.run">
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
@@ -1044,6 +1018,16 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.ClassLoadingIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.ConnectionPermissionDeniedIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.CorruptGradleDependencyIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.DaemonContextMismatchIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.ErrorOpeningZipFileIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.Gradle2RequiredIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.GradleBrokenPipeIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.GradleDslMethodNotFoundIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.InternetConnectionIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingCMakeIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidPluginIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidSdkIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingNdkIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.SdkPlatformNotFoundIssueChecker"/>

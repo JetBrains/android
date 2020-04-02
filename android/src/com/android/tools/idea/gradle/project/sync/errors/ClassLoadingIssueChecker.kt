@@ -18,12 +18,13 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink
+import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenProjectStructureQuickfix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.project.messages.SyncMessage
-import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.base.Splitter
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.ide.BrowserUtil
@@ -33,9 +34,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.Key
 import com.intellij.pom.Navigatable
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -53,18 +52,11 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val exception = issueData.error
     val message = issueData.error.message ?: ""
-    val quickFixes = mutableListOf<BuildIssueQuickFix>()
 
-    var description = getExceptionMessage(exception, message, issueData.projectPath) ?: return null
+    var description = MessageComposer(getExceptionMessage(exception, message, issueData.projectPath) ?: return null)
 
-    val syncProjectQuickFix = SyncProjectQuickFix()
+    val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
     val stopGradleDaemonQuickFix = StopGradleDaemonQuickFix()
-    quickFixes.add(syncProjectQuickFix)
-    quickFixes.add(stopGradleDaemonQuickFix)
-    var stopGradleDaemonsAction  = when (ApplicationManager.getApplication().isRestartCapable) {
-      true -> "<a href=\"${stopGradleDaemonQuickFix.id}\">Stop Gradle build processes (requires restart)</a>"
-      false -> "<a href=\"${stopGradleDaemonQuickFix.id}\">Open Gradle Daemon documentation</a>"
-    }
 
     val jdk7Hint = buildString {
       val jdk = IdeSdks.getInstance().jdk ?: return@buildString
@@ -78,25 +70,33 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
                        "Please update to a newer version (e.g. 1.7.0_67).")
         else -> append("You are using JDK version '${jdkVersion}'.")
       }
-      val openProjectStructureQuickfix = OpenProjectStructureQuickfix()
-      quickFixes.add(openProjectStructureQuickfix)
-      append("\n<a href=\"${openProjectStructureQuickfix.id}\">Open JDK Settings</a>\n\n")
     }
 
-    val firstLine = Splitter.on("\n").omitEmptyStrings().trimResults().splitToList(message)[0]
-    description += firstLine +
-                   if (jdk7Hint.isNotEmpty()) "\nPossible causes for this unexpected error include:\n ${jdk7Hint}" else "" +
-                   "Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)\n" +
-                   "<a href=\"${syncProjectQuickFix.id}\">Re-download dependencies and sync project (requires network)</a> + \n\n" +
-                   "The state of a Gradle build process (daemon) may be corrupt. Stopping all Gradle daemons may solve this problem.\n" +
-                   "${stopGradleDaemonsAction}\n\nYour project may be using a third-party plugin which is not compatible with the other " +
-                   "plugins in the project or the version of Gradle requested by the project.\n\n" +
-                   "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes."
+    description.addDescription(Splitter.on("\n").omitEmptyStrings().trimResults().splitToList(message)[0])
+    if (jdk7Hint.isNotEmpty()) {
+      description.apply {
+        addDescription("Possible causes for this unexpected error include:")
+        addDescription(jdk7Hint)
+        addQuickFix("Open JDK Settings", OpenProjectStructureQuickfix())
+      }
+    }
+    description.apply {
+      description.addDescription("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
+      description.addQuickFix(syncProjectQuickFix.linkText, syncProjectQuickFix)
+      description.addDescription("The state of a Gradle build process (daemon) may be corrupt. Stopping all Gradle daemons may solve this problem.")
+      when (ApplicationManager.getApplication().isRestartCapable) {
+        true -> addQuickFix("Stop Gradle build processes (requires restart)", stopGradleDaemonQuickFix)
+        false -> addQuickFix("Open Gradle Daemon documentation", stopGradleDaemonQuickFix)
+      }
+      addDescription("Your project may be using a third-party plugin which is not compatible with the other " +
+                     "plugins in the project or the version of Gradle requested by the project.\n\n" +
+                     "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.")
+    }
 
     return object: BuildIssue {
       override val title: String = SyncMessage.DEFAULT_GROUP
-      override val description: String = description
-      override val quickFixes: List<BuildIssueQuickFix> = quickFixes
+      override val description: String = description.buildMessage()
+      override val quickFixes: List<BuildIssueQuickFix> = description.quickFixes
       override fun getNavigatable(project: Project): Navigatable? = null
     }
   }
@@ -135,34 +135,12 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
     return null
   }
 
-  class SyncProjectQuickFix : BuildIssueQuickFix {
-    override val id = "SYNC_PROJECT"
-    val EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY = Key.create<Array<String>>("extra.gradle.command.line.options")
-
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      project.putUserData(
-        SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, arrayOf("--refresh-dependencies"))
-      GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_REFRESH_DEPENDENCIES)
-      return CompletableFuture.completedFuture<Any>(null)
-    }
-  }
-
-  class OpenProjectStructureQuickfix : BuildIssueQuickFix {
-    override val id = "OPEN_JDK_SETTINGS"
-
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      val service = ProjectSettingsService.getInstance(project)
-      if (service is AndroidProjectSettingsService) {
-        service.openSdkSettings()
-      }
-      return CompletableFuture.completedFuture<Any>(null)
-    }
-  }
-
   class StopGradleDaemonQuickFix : BuildIssueQuickFix {
-    override val id = "STOP_GRADLE_DAEMONS"
+    override val id = "stop.gradle.daemons"
 
     override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+      val future = CompletableFuture<Any>()
+
       if (ApplicationManager.getApplication().isRestartCapable) {
         val title = "Stop Gradle Daemons"
         val message = """
@@ -172,14 +150,20 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
           """.trimIndent()
         val answer = Messages.showYesNoDialog(project, message, title,  Messages.getQuestionIcon())
         if (answer == Messages.YES) {
-          GradleUtil.stopAllGradleDaemonsAndRestart()
+          invokeLater {
+            GradleUtil.stopAllGradleDaemonsAndRestart()
+            future.complete(null)
+          }
         }
       }
       else {
-        BrowserUtil.browse("http://www.gradle.org/docs/current/userguide/gradle_daemon.html")
+        invokeLater {
+          BrowserUtil.browse("http://www.gradle.org/docs/current/userguide/gradle_daemon.html")
+          future.complete(null)
+        }
       }
 
-      return CompletableFuture.completedFuture<Any>(null)
+      return future
     }
   }
 

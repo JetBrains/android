@@ -147,13 +147,17 @@ public interface IdeProfilerServices {
 
   /**
    * Returns the profiling configurations saved by the user for a project.
+   * apiLevel is the Android API level for the selected device, so that it return only
+   * the appropriate configurations that are available to run on a particular device.
    */
-  List<ProfilingConfiguration> getUserCpuProfilerConfigs();
+  List<ProfilingConfiguration> getUserCpuProfilerConfigs(int apiLevel);
 
   /**
-   * @return default profiling configurations.
+   * Returns the default profiling configurations.
+   * apiLevel is the Android API level for the selected device, so that it return only
+   * the appropriate configurations that are available to run on a particular device.
    */
-  List<ProfilingConfiguration> getDefaultCpuProfilerConfigs();
+  List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel);
 
   /**
    * Whether a native CPU profiling configuration is preferred over a Java one.

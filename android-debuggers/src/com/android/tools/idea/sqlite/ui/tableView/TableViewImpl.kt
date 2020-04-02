@@ -30,9 +30,12 @@ import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.HyperlinkAdapter
+import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.PopupHandler
+import com.intellij.ui.SideBorder
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
@@ -81,11 +84,11 @@ class TableViewImpl : TableView {
 
   private val readOnlyLabel = JLabel("Results are read-only")
 
-  private val firstRowsPageButton = CommonButton("First", AllIcons.Actions.Play_first)
-  private val lastRowsPageButton = CommonButton("Last", AllIcons.Actions.Play_last)
+  private val firstRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.GO_TO_START)
+  private val lastRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.GO_TO_END)
 
-  private val previousRowsPageButton = CommonButton("Previous", AllIcons.Actions.Play_back)
-  private val nextRowsPageButton = CommonButton("Next", AllIcons.Actions.Play_forward)
+  private val previousRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
+  private val nextRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
 
   private val pageSizeComboBox = ComboBox<Int>().apply { name = "page-size-combo-box" }
 
@@ -95,7 +98,6 @@ class TableViewImpl : TableView {
   private val tableScrollPane = JBScrollPane(table)
   private val loadingMessageEditorPane = JEditorPane("text/html", "")
 
-  private val tableActionsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
   private val centerPanel = JPanel(BorderLayout())
 
   private var isLoading = false
@@ -106,6 +108,7 @@ class TableViewImpl : TableView {
 
   init {
     val southPanel = JPanel(BorderLayout())
+    val tableActionsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
     rootPanel.add(tableActionsPanel, BorderLayout.NORTH)
     rootPanel.add(centerPanel, BorderLayout.CENTER)
     rootPanel.add(southPanel, BorderLayout.SOUTH)
@@ -113,6 +116,9 @@ class TableViewImpl : TableView {
     centerPanel.background = primaryContentBackground
 
     tableActionsPanel.name = "table-actions-panel"
+    tableActionsPanel.border = IdeBorderFactory.createBorder(SideBorder.BOTTOM)
+
+    southPanel.border = IdeBorderFactory.createBorder(SideBorder.TOP)
 
     readOnlyLabel.isVisible = false
     readOnlyLabel.name = "read-only-label"
@@ -121,11 +127,13 @@ class TableViewImpl : TableView {
     val pagingControlsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
     southPanel.add(pagingControlsPanel, BorderLayout.EAST)
 
-    firstRowsPageButton.toolTipText = "First"
+    firstRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_START)
+    firstRowsPageButton.toolTipText = "Go to first page"
     pagingControlsPanel.add(firstRowsPageButton)
     firstRowsPageButton.addActionListener { listeners.forEach { it.loadFirstRowsInvoked() } }
 
-    previousRowsPageButton.toolTipText = "Previous"
+    previousRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
+    previousRowsPageButton.toolTipText = "Go to previous page"
     pagingControlsPanel.add(previousRowsPageButton)
     previousRowsPageButton.addActionListener { listeners.forEach { it.loadPreviousRowsInvoked() } }
 
@@ -139,15 +147,19 @@ class TableViewImpl : TableView {
     pagingControlsPanel.add(pageSizeComboBox)
     pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem as Int)) } }
 
-    nextRowsPageButton.toolTipText = "Next"
+    nextRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
+    nextRowsPageButton.toolTipText = "Go to next page"
     pagingControlsPanel.add(nextRowsPageButton)
     nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() } }
 
-    lastRowsPageButton.toolTipText = "Last"
+    lastRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_END)
+    lastRowsPageButton.toolTipText = "Go to last page"
     pagingControlsPanel.add(lastRowsPageButton)
     lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() } }
 
-    refreshButton.toolTipText = "Sync table"
+    refreshButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Refresh)
+    refreshButton.toolTipText = "Refresh table"
+    refreshButton.isEnabled = false
     tableActionsPanel.add(refreshButton)
     refreshButton.addActionListener { listeners.forEach { it.refreshDataInvoked() } }
 
@@ -188,11 +200,6 @@ class TableViewImpl : TableView {
     setUpLoadingPanel()
     setUpPopUp()
   }
-
-  override var isTableActionsRowVisible: Boolean = true
-    set(value) {
-      tableActionsPanel.isVisible = value; field = value
-    }
 
   override fun showPageSizeValue(maxRowCount: Int) {
     // Avoid setting the item if it's already selected, so we don't trigger the action listener for now reason.
@@ -298,7 +305,8 @@ class TableViewImpl : TableView {
     loadingMessageEditorPane.isEditable = false
     loadingMessageEditorPane.addHyperlinkListener(object : HyperlinkAdapter() {
       override fun hyperlinkActivated(e: HyperlinkEvent) {
-        listeners.forEach { it.cancelRunningStatementInvoked() }
+        // Copy to a list to avoid ConcurrentModificationException, since listeners can remove themselves when handling the event
+        listeners.toList().forEach { it.cancelRunningStatementInvoked() }
       }
     })
   }

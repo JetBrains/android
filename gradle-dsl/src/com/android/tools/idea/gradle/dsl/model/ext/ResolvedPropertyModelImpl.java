@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
@@ -233,6 +234,12 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   @NotNull
   public GradlePropertyModel getUnresolvedModel() {
     return myRealModel;
+  }
+
+  @Override
+  @Nullable
+  public GradleDslElement getRawElement() {
+    return myRealModel.getRawElement();
   }
 
   @NotNull

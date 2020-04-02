@@ -74,7 +74,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
 
   init {
     val project = facet.module.project
-    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker(project)
+    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
     fieldCache = CachedValuesManager.getManager(project).createCachedValue {
       val variableNamesList = mutableListOf(ALL_FIELD)
       run {

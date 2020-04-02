@@ -43,6 +43,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
+import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -81,6 +82,10 @@ public class MEUI {
 
   public static final Color getBorderColor() {
     return JBColor.border();
+  }
+
+  public static final Border getPanelBottomBorder() {
+    return JBUI.Borders.customLine(MEUI.getBorderColor(), 0, 0,1,0);
   }
 
   private static Color makeColor(String name, int rgb, int darkRGB) {

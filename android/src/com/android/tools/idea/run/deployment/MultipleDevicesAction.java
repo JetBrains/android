@@ -26,7 +26,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
-import java.util.Collection;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,21 +41,21 @@ final class MultipleDevicesAction extends AnAction {
   private final Function<Project, RunnerAndConfigurationSettings> myGetSelectedConfiguration;
 
   @NotNull
-  private final Function<Project, Collection<Device>> myGetSelectedDevices;
+  private final Function<Project, SelectedDevicesService> mySelectedDevicesServiceGetInstance;
 
   MultipleDevicesAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
-    this(comboBoxAction, project -> RunManager.getInstance(project).getSelectedConfiguration(), ModifyDeviceSetDialog::getSelectedDevices);
+    this(comboBoxAction, project -> RunManager.getInstance(project).getSelectedConfiguration(), SelectedDevicesService::getInstance);
   }
 
   @VisibleForTesting
   MultipleDevicesAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
                         @NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration,
-                        @NotNull Function<Project, Collection<Device>> getSelectedDevices) {
+                        @NotNull Function<Project, SelectedDevicesService> selectedDevicesServiceGetInstance) {
     super("Multiple Devices");
 
     myComboBoxAction = comboBoxAction;
     myGetSelectedConfiguration = getSelectedConfiguration;
-    myGetSelectedDevices = getSelectedDevices;
+    mySelectedDevicesServiceGetInstance = selectedDevicesServiceGetInstance;
   }
 
   @Override
@@ -81,7 +80,7 @@ final class MultipleDevicesAction extends AnAction {
       return;
     }
 
-    if (myGetSelectedDevices.apply(project).isEmpty()) {
+    if (mySelectedDevicesServiceGetInstance.apply(project).isSelectionEmpty()) {
       presentation.setEnabled(false);
       return;
     }

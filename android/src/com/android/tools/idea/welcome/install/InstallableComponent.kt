@@ -19,11 +19,13 @@ import com.android.repository.api.UpdatablePackage
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.io.FileOp
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.observable.core.BoolProperty
+import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.welcome.isWritable
 import com.android.tools.idea.welcome.wizard.getSizeLabel
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore
+import com.android.tools.idea.wizard.model.ModelWizardStep
 
 private val PROGRESS_LOGGER = StudioLoggerProgressIndicator(InstallableComponent::class.java)
 
@@ -31,19 +33,16 @@ private val PROGRESS_LOGGER = StudioLoggerProgressIndicator(InstallableComponent
  * Base class for leaf components (the ones that are immediately installed).
  */
 abstract class InstallableComponent(
-  @JvmField protected val stateStore: ScopedStateStore,
   private val name: String,
   description: String,
   @JvmField protected val installUpdates: Boolean,
   @JvmField protected val fileOp: FileOp
 ) : ComponentTreeNode(description) {
-  @Suppress("LeakingThis") // getting identity hash code of abstract class should be fine
-  @JvmField
-  protected val key: ScopedStateStore.Key<Boolean> =
-    stateStore.createKey("component.enabled." + System.identityHashCode(this), Boolean::class.java)
+  protected var willBeInstalled: BoolProperty = BoolValueProperty(true)
   private var userSelection: Boolean? = null // null means default component enablement is used
   private var isOptional = true
   private var isInstalled = false
+
   @JvmField
   protected var sdkHandler: AndroidSdkHandler? = null
 
@@ -82,7 +81,9 @@ abstract class InstallableComponent(
   override val isEnabled: Boolean = isOptional
 
   override val childrenToInstall: Collection<InstallableComponent>
-    get() = if (!stateStore.getNotNull(key, true)) setOf() else setOf(this)
+    get() = if (!willBeInstalled.get()) setOf() else setOf(this)
+
+  override val steps: Collection<ModelWizardStep<*>> = setOf()
 
   override fun createSteps(): Collection<DynamicWizardStep> = emptySet()
 
@@ -92,12 +93,13 @@ abstract class InstallableComponent(
     val nothingToInstall = !isWritable(fileOp, handler.location) || packagesToInstall.isEmpty()
     isOptional = !nothingToInstall && isOptionalForSdkLocation()
 
-    val isSelected: Boolean = when {
-      !isOptional -> !nothingToInstall
-      userSelection != null -> userSelection!!
-      else -> isSelectedByDefault()
-    }
-    stateStore.put(key, isSelected)
+    willBeInstalled.set(
+      when {
+        !isOptional -> !nothingToInstall
+        userSelection != null -> userSelection!!
+        else -> isSelectedByDefault()
+      }
+    )
     isInstalled = checkInstalledPackages()
   }
 
@@ -106,13 +108,11 @@ abstract class InstallableComponent(
   override fun toggle(isSelected: Boolean) {
     if (isOptional) {
       userSelection = isSelected
-      stateStore.put(key, isSelected)
+      willBeInstalled.set(isSelected)
     }
   }
 
   override val immediateChildren: Collection<ComponentTreeNode> get() = emptySet()
 
-  override val isChecked: Boolean get() = stateStore.getNotNull(key, true)
-
-  override fun componentStateChanged(modified: Set<ScopedStateStore.Key<*>>): Boolean = modified.contains(key)
+  override val isChecked: Boolean get() = willBeInstalled.get()
 }

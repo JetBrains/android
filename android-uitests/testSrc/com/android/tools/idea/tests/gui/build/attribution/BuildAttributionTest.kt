@@ -94,12 +94,10 @@ class BuildAttributionTest {
     expandSelectedNodeWithKeyStroke()
 
     selectPageByPath(" Tasks determining this build's duration 2 warnings/ :app:dummy1", ":app:dummy1")
-    findHyperlabelByTextContainsAndClick("Always-run Tasks")
-    requireOpenedPagePathAndHeader(" Warnings (2)/ Always-run Tasks 2 warnings/ :app:dummy1", ":app:dummy1")
+    requireWarningPanelsExistOnPage("ALWAYS_RUN_TASKS")
 
     selectPageByPath(" Tasks determining this build's duration 2 warnings/ :app:dummy2", ":app:dummy2")
-    findHyperlabelByTextContainsAndClick("Always-run Tasks")
-    requireOpenedPagePathAndHeader(" Warnings (2)/ Always-run Tasks 2 warnings/ :app:dummy2", ":app:dummy2")
+    requireWarningPanelsExistOnPage("ALWAYS_RUN_TASKS")
   }
 
   private fun BuildAttributionViewFixture.checkIssues() {
@@ -160,10 +158,6 @@ class BuildAttributionTest {
       ":app:dummy1"
     )
 
-    findHyperlabelByTextContainsAndClick("Always-run Tasks")
-    requireOpenedPagePathAndHeader(
-      " Plugins with tasks determining this build's duration 2 warnings/ DummyPlugin 2 warnings/ Warnings (2)/ Always-run Tasks 2 warnings/ :app:dummy1",
-      ":app:dummy1"
-    )
+    requireWarningPanelsExistOnPage("ALWAYS_RUN_TASKS")
   }
 }

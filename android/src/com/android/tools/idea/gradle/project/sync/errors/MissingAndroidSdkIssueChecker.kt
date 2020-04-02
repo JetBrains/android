@@ -1,0 +1,58 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.gradle.project.sync.errors
+
+import com.android.SdkConstants.FN_LOCAL_PROPERTIES
+import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.intellij.build.FilePosition
+import com.intellij.build.issue.BuildIssue
+import com.intellij.build.issue.BuildIssueQuickFix
+import com.intellij.openapi.project.Project
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import java.io.File
+import java.util.regex.Pattern
+
+class MissingAndroidSdkIssueChecker : GradleIssueChecker {
+  private val FIX_SDK_DIR_PROPERTY = "Please fix the 'sdk.dir' property in the local.properties file."
+  private val SDK_DIR_PROPERTY_MISSING = "No sdk.dir property defined in local.properties file."
+  private val SDK_NOT_FOUND_PATTERN = Pattern.compile("The SDK directory '(.*?)' does not exist.")
+
+  override fun check(issueData: GradleIssueData): BuildIssue? {
+    val message = issueData.error.message ?: return null
+    if (issueData.error !is RuntimeException || message.isEmpty() ||
+        message != SDK_DIR_PROPERTY_MISSING && !SDK_NOT_FOUND_PATTERN.matcher(message).matches()) return null
+
+    // Log metrics.
+    updateUsageTracker(issueData.projectPath, GradleSyncFailure.SDK_NOT_FOUND)
+
+    val description = MessageComposer(message)
+    val propertiesFile = File(issueData.projectPath, FN_LOCAL_PROPERTIES)
+    if (!propertiesFile.isFile) return null
+
+    description.addDescription(FIX_SDK_DIR_PROPERTY)
+    description.addQuickFix("Open local.properties File", OpenFileAtLocationQuickFix(FilePosition(propertiesFile, 0, 0)))
+    return object : BuildIssue {
+      override val title = "Gradle Sync issues."
+      override val description = description.buildMessage()
+      override val quickFixes: List<BuildIssueQuickFix> = description.quickFixes
+      override fun getNavigatable(project: Project) = null
+    }
+  }
+}

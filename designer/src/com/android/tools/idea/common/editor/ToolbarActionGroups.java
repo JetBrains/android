@@ -18,7 +18,6 @@ package com.android.tools.idea.common.editor;
 import com.android.tools.adtui.actions.ZoomInAction;
 import com.android.tools.adtui.actions.ZoomLabelAction;
 import com.android.tools.adtui.actions.ZoomOutAction;
-import com.android.tools.adtui.actions.ZoomShortcut;
 import com.android.tools.adtui.actions.ZoomToFitAction;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
@@ -73,10 +72,10 @@ public class ToolbarActionGroups implements Disposable {
   public static List<AnAction> getZoomActions() {
     ArrayList<AnAction> zoomActions = new ArrayList<AnAction>();
     if (!StudioFlags.NELE_DESIGN_SURFACE_ZOOM.get()) {
-      zoomActions.add(ZoomOutAction.INSTANCE);
+      zoomActions.add(ZoomOutAction.getInstance());
       zoomActions.add(ZoomLabelAction.INSTANCE);
-      zoomActions.add(ZoomInAction.INSTANCE);
-      zoomActions.add(ZoomToFitAction.INSTANCE);
+      zoomActions.add(ZoomInAction.getInstance());
+      zoomActions.add(ZoomToFitAction.getInstance());
     }
     return zoomActions;
   }
@@ -94,10 +93,10 @@ public class ToolbarActionGroups implements Disposable {
   public static List<AnAction> getZoomActionsWithShortcuts(@NotNull JComponent shortcutConsumer, @NotNull Disposable parentDisposable) {
     ArrayList<AnAction> zoomActions = new ArrayList<AnAction>();
     if (!StudioFlags.NELE_DESIGN_SURFACE_ZOOM.get()) {
-      zoomActions.add(ZoomShortcut.ZOOM_OUT.registerForAction(ZoomOutAction.INSTANCE, shortcutConsumer, parentDisposable));
+      zoomActions.add(ZoomOutAction.getInstance());
       zoomActions.add(ZoomLabelAction.INSTANCE);
-      zoomActions.add(ZoomShortcut.ZOOM_IN.registerForAction(ZoomInAction.INSTANCE, shortcutConsumer, parentDisposable));
-      zoomActions.add(ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction.INSTANCE, shortcutConsumer, parentDisposable));
+      zoomActions.add(ZoomInAction.getInstance());
+      zoomActions.add(ZoomToFitAction.getInstance());
     }
     return zoomActions;
   }

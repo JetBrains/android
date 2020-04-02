@@ -22,6 +22,7 @@ import com.android.emulator.control.Rotation.SkinRotation
 import com.android.tools.idea.npw.assetstudio.roundToInt
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import java.awt.Dimension
 import kotlin.math.ceil
 
 /**
@@ -59,7 +60,7 @@ internal fun SkinRotation.decrementedBy90Degrees(): SkinRotation =
  *
  * @param scale the scale factor
  */
-internal fun Int.scale(scale: Double): Int =
+internal fun Int.scaled(scale: Double): Int =
   (this * scale).roundToInt()
 
 /**
@@ -67,7 +68,7 @@ internal fun Int.scale(scale: Double): Int =
  *
  * @param scale the scale factor
  */
-internal fun Int.scaleDown(scale: Double): Int =
+internal fun Int.scaledDown(scale: Double): Int =
   (this * scale).toInt()
 
 /**
@@ -75,5 +76,22 @@ internal fun Int.scaleDown(scale: Double): Int =
  *
  * @param scale the scale factor
  */
-internal fun Int.scaleUp(scale: Double): Int =
+internal fun Int.scaledUp(scale: Double): Int =
   ceil(this * scale).roundToInt()
+
+/**
+ * Returns this [Dimension] scaled by the given factor.
+ */
+internal fun Dimension.scaled(scale: Double): Dimension {
+  return if (scale == 1.0) this else Dimension(width.scaled(scale), height.scaled(scale))
+}
+
+/**
+ * Returns this [Dimension] rotated according to [rotation].
+ */
+internal fun Dimension.rotated(rotation: SkinRotation): Dimension {
+  return when (rotation) {
+    SkinRotation.LANDSCAPE, SkinRotation.REVERSE_LANDSCAPE -> Dimension(height, width)
+    else -> this
+  }
+}

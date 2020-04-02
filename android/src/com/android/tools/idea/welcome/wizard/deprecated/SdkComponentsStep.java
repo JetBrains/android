@@ -51,7 +51,6 @@ import java.awt.Container;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.util.HashSet;
 import java.util.Set;
 import javax.accessibility.AccessibleContext;
 import javax.swing.AbstractCellEditor;
@@ -65,7 +64,6 @@ import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -197,17 +195,10 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
   @Override
   public void deriveValues(Set<? extends ScopedStateStore.Key> modified) {
     super.deriveValues(modified);
-    // TODO(qumeric) remove it. This is a hack for Kotlin-Java generics interop.
-    Set<ScopedStateStore.Key<?>> m = new HashSet<>();
-    for (ScopedStateStore.Key v: modified) {
-      m.add(v);
-    }
-    if (modified.contains(mySdkDownloadPathKey) || myRootNode.componentStateChanged(m)) {
-      String path = myState.get(mySdkDownloadPathKey);
-      myAvailableSpace.setText(getDiskSpace(path));
-      long selected = getComponentsSize();
-      myNeededSpace.setText(String.format("Total download size: %s", WelcomeUiUtils.getSizeLabel(selected)));
-    }
+    String path = myState.get(mySdkDownloadPathKey);
+    myAvailableSpace.setText(getDiskSpace(path));
+    long selected = getComponentsSize();
+    myNeededSpace.setText(String.format("Total download size: %s", WelcomeUiUtils.getSizeLabel(selected)));
   }
 
   private long getComponentsSize() {

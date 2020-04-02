@@ -17,7 +17,8 @@
   <extensions defaultExtensionNs="com.intellij">
     <fileBasedIndex implementation="com.android.tools.idea.nav.safeargs.index.NavXmlIndex"/>
     <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService" />
-    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.NavigationResourcesModificationTracker" />
+    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker" />
+    <projectService serviceImplementation="com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker" />
     <resolveScopeEnlarger implementation="com.android.tools.idea.nav.safeargs.finder.SafeArgsScopeEnlarger" />
     <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.DirectionsShortNamesCache"/>
     <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.DirectionsClassFinder"/>
@@ -33,7 +34,7 @@
 
   <project-components>
     <component>
-      <implementation-class>com.android.tools.idea.nav.safeargs.project.SafeArgsProjectComponent</implementation-class>
+      <implementation-class>com.android.tools.idea.nav.safeargs.project.SafeArgsEnabledFacetsProjectComponent</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener$SubscriptionComponent</implementation-class>

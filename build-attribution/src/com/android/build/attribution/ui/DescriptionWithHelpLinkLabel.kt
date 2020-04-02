@@ -19,7 +19,6 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.panels.htmlTextLabel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBPanel
-import com.intellij.util.ui.JBUI
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 
@@ -42,11 +41,14 @@ class DescriptionWithHelpLinkLabel(
       gridx = 0
       weightx = 1.0
       gridy = 0
-      insets = JBUI.insetsLeft(2)
       anchor = GridBagConstraints.FIRST_LINE_START
     }
 
-    val learnMoreLink = HyperlinkLabel("Learn more").apply {
+    val learnMoreLink = object : HyperlinkLabel("Learn more"){
+      override fun getTextOffset(): Int {
+        return 0
+      }
+    }.apply {
       addHyperlinkListener { analytics.helpLinkClicked() }
       setHyperlinkTarget(learnMoreTarget)
     }

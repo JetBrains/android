@@ -51,13 +51,13 @@ private val LOG: Logger
 
 abstract class Vm(
   private val installerInfo: VmInstallerInfo,
-  stateStore: ScopedStateStore,
   @JvmField val installationIntention: InstallationIntention,
   @JvmField val isCustomInstall: ScopedStateStore.Key<Boolean>
-) : InstallableComponent(stateStore, "Performance (${installerInfo.fullName})",
+) : InstallableComponent("Performance (${installerInfo.fullName})",
                          "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
                          "Android app emulation on your development computer. (Recommended)",
-                         installationIntention === InstallationIntention.INSTALL_WITH_UPDATES, FileOpUtils.create()) {
+                         installationIntention === InstallationIntention.INSTALL_WITH_UPDATES,
+                         FileOpUtils.create()) {
 
   var isInstallerSuccessfullyCompleted: Boolean = false
     private set
@@ -73,7 +73,7 @@ abstract class Vm(
     get() = listOf(installerInfo.repoPackagePath)
 
   override fun init(progressStep: ProgressStep) {
-      this.progressStep = progressStep
+    this.progressStep = progressStep
   }
 
   /**
@@ -356,5 +356,4 @@ abstract class VmInstallerInfo(internal val fullName: String) {
       }
     }
   }
-
 }

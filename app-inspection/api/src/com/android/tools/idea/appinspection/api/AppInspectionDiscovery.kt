@@ -113,6 +113,11 @@ class AppInspectionDiscoveryHost(
   }
 
   /**
+   * Removes a [ProcessListener] and so stops it from hearing future process events.
+   */
+  fun removeProcessListener(listener: ProcessListener) = synchronized(processData) { processData.processListeners.remove(listener) }
+
+  /**
    * Attaches to a process on device and creates an [AppInspectionTarget] which will be passed to clients via [TargetListener].
    *
    * This is meant to be called by the frontend when it needs to obtain an [AppInspectionTarget]. For example, when user selects a process
@@ -185,8 +190,7 @@ class AppInspectionDiscoveryHost(
    * guaranteed to be true because transport pipeline only provides debuggable processes, so there is no need to check.
    */
   private fun ProcessDescriptor.isInspectable(): Boolean {
-    // TODO(b/152216552): Support O+ (API 26+) devices. Due to device-side issues, we only support API 29+ devices for now.
-    return stream.device.apiLevel >= AndroidVersion.VersionCodes.Q
+    return stream.device.apiLevel >= AndroidVersion.VersionCodes.O
   }
 
   /**

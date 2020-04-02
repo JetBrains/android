@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.transport
 
+import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.tools.analytics.UsageTracker
@@ -24,10 +25,12 @@ import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.isDeviceMatch
 import com.android.tools.idea.layoutinspector.model.ComponentTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
+import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
@@ -56,8 +59,10 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.LowMemoryWatcher
 import com.intellij.ui.components.dialog
 import com.intellij.ui.layout.panel
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import io.grpc.Status
@@ -67,9 +72,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.awt.Component
 import java.awt.event.ActionEvent
-import java.util.ArrayList
-import java.util.HashMap
-import java.util.LinkedList
 import java.util.concurrent.Future
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -85,7 +87,11 @@ class DefaultInspectorClient(
   private val scheduler: ScheduledExecutorService = JobScheduler.getScheduler() // test only
 ) : InspectorClient, Disposable {
   private val project = model.project
-  private var client = TransportClient(channelNameForTest)
+  private val client = TransportClient(channelNameForTest)
+  private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+
+  @VisibleForTesting
+  val processManager = DefaultProcessManager(AppExecutorUtil.getAppScheduledExecutorService(), streamManager, this)
 
   @VisibleForTesting
   var transportPoller = TransportEventPoller.createPoller(client.transportStub,
@@ -126,6 +132,14 @@ class DefaultInspectorClient(
 
   private val SELECTION_LOCK = Any()
 
+  @Suppress("unused") // Need to keep a reference to receive notifications
+  private val lowMemoryWatcher = LowMemoryWatcher.register(
+    {
+      model.root.children.clear()
+      requestScreenshotMode()
+      InspectorBannerService.getInstance(project).setNotification("Low Memory. Rotation disabled.")
+    }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
+
   init {
     registerProcessEnded()
     registerProjectClosed(project)
@@ -139,6 +153,7 @@ class DefaultInspectorClient(
     disconnectNow()
     listeners.clear()
     TransportEventPoller.stopPoller(transportPoller)
+    TransportStreamManager.unregisterManager(streamManager)
   }
 
   // TODO: detect when a connection is dropped
@@ -170,31 +185,35 @@ class DefaultInspectorClient(
     processChangedListeners.add(callback)
   }
 
+  fun requestScreenshotMode() {
+    val inspectorCommand = LayoutInspectorCommand.newBuilder()
+      .setType(LayoutInspectorCommand.Type.USE_SCREENSHOT_MODE)
+      .setScreenshotMode(true)
+      .build()
+    execute(inspectorCommand)
+  }
+
   private fun registerProcessEnded() {
-    listeners.add(TransportEventListener(
-      eventKind = Common.Event.Kind.PROCESS,
-      executor = MoreExecutors.directExecutor(),
-      streamId = { selectedStream.streamId },
-      groupId = { selectedProcess.pid.toLong() },
-      processId = { selectedProcess.pid }) {
+    processManager.processListeners.add {
       if (selectedStream != Common.Stream.getDefaultInstance() &&
-          selectedProcess != Common.Process.getDefaultInstance() && isConnected && it.isEnded) {
-        disconnectNow()
+          selectedProcess != Common.Process.getDefaultInstance() &&
+          !processManager.isProcessActive(selectedStream, selectedProcess)) {
+        disconnect(sendStopCommand = false)
       }
-      false
-    })
+    }
   }
 
   private fun registerProjectClosed(project: Project) {
     val projectManagerListener = object : ProjectManagerListener {
       override fun projectClosed(project: Project) {
-        disconnectNow()
+        disconnect(sendStopCommand = true)
         ProjectManager.getInstance().removeProjectManagerListener(project, this)
       }
     }
     ProjectManager.getInstance().addProjectManagerListener(project, projectManagerListener)
   }
 
+  @Slow
   override fun execute(command: LayoutInspectorCommand) {
     if (selectedStream == Common.Stream.getDefaultInstance() ||
         selectedProcess == Common.Process.getDefaultInstance() ||
@@ -217,6 +236,7 @@ class DefaultInspectorClient(
     }
   }
 
+  @Slow
   fun getPayload(id: Int): ByteArray {
     val bytesRequest = Transport.BytesRequest.newBuilder()
       .setStreamId(selectedStream.streamId)
@@ -226,57 +246,11 @@ class DefaultInspectorClient(
     return client.transportStub.getBytes(bytesRequest).contents.toByteArray()
   }
 
-  override fun loadProcesses(): Map<Common.Stream, List<Common.Process>> {
-    // Query for current devices and processes
-    val processesMap = HashMap<Common.Stream, List<Common.Process>>()
-    val streams = LinkedList<Common.Stream>()
-    // Get all streams of all types.
-    val request = Transport.GetEventGroupsRequest.newBuilder()
-      .setStreamId(-1)  // DataStoreService.DATASTORE_RESERVED_STREAM_ID
-      .setKind(Common.Event.Kind.STREAM)
-      .build()
-    val response = client.transportStub.getEventGroups(request)
-    for (group in response.groupsList) {
-      val isStreamDead = group.getEvents(group.eventsCount - 1).isEnded
-      if (isStreamDead) {
-        // Ignore dead streams.
-        continue
-      }
-      val connectedEvent = getLastMatchingEvent(group) { e -> e.hasStream() && e.stream.hasStreamConnected() }
-                           ?: // Ignore stream event groups that do not have the connected event.
-                           continue
-      val stream = connectedEvent.stream.streamConnected.stream
-      // We only want streams of type device to get process information.
-      if (stream.type == Common.Stream.Type.DEVICE && stream.device.featureLevel >= 29) {
-        streams.add(stream)
-      }
-    }
+  override fun getStreams(): Sequence<Common.Stream> = processManager.getStreams()
 
-    for (stream in streams) {
-      val processRequest = Transport.GetEventGroupsRequest.newBuilder()
-        .setStreamId(stream.streamId)
-        .setKind(Common.Event.Kind.PROCESS)
-        .build()
-      val processResponse = client.transportStub.getEventGroups(processRequest)
-      val processList = ArrayList<Common.Process>()
-      // A group is a collection of events that happened to a single process.
-      for (groupProcess in processResponse.groupsList) {
-        val isProcessDead = groupProcess.getEvents(groupProcess.eventsCount - 1).isEnded
-        if (isProcessDead) {
-          // Ignore dead processes.
-          continue
-        }
-        val aliveEvent = getLastMatchingEvent(groupProcess) { e -> e.hasProcess() && e.process.hasProcessStarted() }
-                         ?: // Ignore process event groups that do not have the started event.
-                         continue
-        val process = aliveEvent.process.processStarted.process
-        processList.add(process)
-      }
-      processesMap[stream] = processList
-    }
-    return processesMap
-  }
+  override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> = processManager.getProcesses(stream)
 
+  @Slow
   override fun attach(stream: Common.Stream, process: Common.Process) {
     if (attachListener == null) {
       logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST, stream)
@@ -381,14 +355,14 @@ class DefaultInspectorClient(
     }
   }
 
+  @Slow
   private fun attachWithRetry(preferredProcess: LayoutInspectorPreferredProcess, timesAttempted: Int) {
     if (isConnected) {
       return
     }
-    val processesMap = loadProcesses()
-    for ((stream, processes) in processesMap) {
+    for (stream in getStreams()) {
       if (preferredProcess.isDeviceMatch(stream.device)) {
-        for (process in processes) {
+        for (process in getProcesses(stream)) {
           if (process.name == preferredProcess.packageName) {
             try {
               attach(stream, process)
@@ -410,8 +384,14 @@ class DefaultInspectorClient(
   }
 
   override fun disconnect() {
+    disconnect(sendStopCommand = true)
+  }
+
+  private fun disconnect(sendStopCommand: Boolean) {
     ApplicationManager.getApplication().executeOnPooledThread {
-      execute(LayoutInspectorCommand.Type.STOP)
+      if (sendStopCommand) {
+        execute(LayoutInspectorCommand.Type.STOP)
+      }
       disconnectNow()
     }
   }
@@ -500,6 +480,7 @@ class DefaultInspectorClient(
     }
   }
 
+  @Slow
   private fun setDebugViewAttributes(bridge: AndroidDebugBridge, stream: Common.Stream, enable: Boolean): Boolean {
     try {
       val device = findDevice(bridge, stream) ?: return false
@@ -543,12 +524,5 @@ class DefaultInspectorClient(
     }
     // Found a single Android package name:
     return packageName
-  }
-
-  /**
-   * Helper method to return the last even in an EventGroup that matches the input condition.
-   */
-  private fun getLastMatchingEvent(group: Transport.EventGroup, predicate: (Common.Event) -> Boolean): Common.Event? {
-    return group.eventsList.lastOrNull { predicate(it) }
   }
 }

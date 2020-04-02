@@ -18,17 +18,12 @@ package com.android.tools.idea.npw.model
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.Task.Modal
 import com.intellij.openapi.project.Project
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
-import org.jetbrains.android.util.AndroidBundle.message
 
 typealias ProjectRenderRunner = (renderRunnable: (project: Project) -> Unit) -> Unit
 /**
@@ -136,7 +131,10 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
 
         forEach(TemplateRenderer::init)
         if (all(TemplateRenderer::doDryRun)) {
-          forEach(TemplateRenderer::render)
+          // Run all rendering inside a write lock, so multiple modified files (eg manifest) don't get re-indexed
+         TransactionGuard.getInstance().submitTransactionAndWait {
+            forEach(TemplateRenderer::render)
+          }
         }
       }
       log.info("Generate sources completed.")

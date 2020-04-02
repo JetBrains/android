@@ -16,8 +16,10 @@
 package com.android.tools.idea.nav.safeargs.cache
 
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
-import com.android.tools.idea.nav.safeargs.project.SafeArgsProjectComponent
+import com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker
+import com.android.tools.idea.nav.safeargs.project.SafeArgsEnabledFacetsProjectComponent
 import com.android.tools.idea.nav.safeargs.psi.LightArgsBuilderClass
+import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
@@ -33,26 +35,24 @@ import com.intellij.util.Processor
  * A short names cache for finding any [LightArgsBuilderClass] instances by their unqualified name.
  */
 class ArgsBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
-  private val component = project.getComponent(SafeArgsProjectComponent::class.java)
-
-  private val lightClassesCache: CachedValue<Collection<LightArgsBuilderClass>>
+  private val component = project.getComponent(SafeArgsEnabledFacetsProjectComponent::class.java)
+  private val lightClassesCache: CachedValue<List<LightArgsBuilderClass>>
 
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
     lightClassesCache = cachedValuesManager.createCachedValue {
-      val builders = component.modulesUsingSafeArgs.map { facet ->
-        val builderCache = SafeArgsCacheModuleService.getInstance(facet)
-        builderCache.args
-          .map { arg -> arg.builderClass }
-          .toSet()
-      }
-        .flatten() as Collection<LightArgsBuilderClass>
+      val builders = component.modulesUsingSafeArgs
+        .asSequence()
+        .flatMap { facet -> SafeArgsCacheModuleService.getInstance(facet).args.asSequence()}
+        .map { it.builderClass }
+        .toList()
 
-      CachedValueProvider.Result.create(builders, component)
+      CachedValueProvider.Result.create(builders,
+                                        ProjectNavigationResourceModificationTracker.getInstance(project),
+                                        project.safeArgsModeTracker)
     }
   }
-
 
   override fun getAllClassNames(): Array<String> = arrayOf("Builder")
 

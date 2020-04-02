@@ -16,14 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.errors.ClassLoadingIssueChecker.StopGradleDaemonQuickFix
-import com.android.tools.idea.gradle.project.sync.errors.ClassLoadingIssueChecker.SyncProjectQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.projectRoots.JavaSdk
-import com.intellij.openapi.projectRoots.JavaSdkVersion
 import junit.framework.TestCase
 import org.jetbrains.annotations.NotNull
 import org.jetbrains.annotations.Nullable
@@ -60,7 +58,7 @@ class ClassLoadingIssueCheckerTest : AndroidGradleTestCase() {
     // Verify QuickFixes.
     val quickFixes = buildIssue.quickFixes
     assertThat(quickFixes).hasSize(2)
-    assertThat(quickFixes[0]).isInstanceOf(SyncProjectQuickFix::class.java)
+    assertThat(quickFixes[0]).isInstanceOf(SyncProjectRefreshingDependenciesQuickFix::class.java)
     assertThat(quickFixes[1]).isInstanceOf(StopGradleDaemonQuickFix::class.java)
   }
 }

@@ -18,36 +18,50 @@ package com.android.tools.idea.appinspection.ide.model
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.ProcessDescriptor
+import com.intellij.openapi.Disposable
 import com.intellij.util.concurrency.EdtExecutorService
 
 // TODO(b/152215087): This text needs to live in an Android Bundle and be internationalized.
 private const val DEFAULT_SELECTION_TEXT = "No Inspection Target Available"
 
+private const val NO_SELECTION_TEXT = "No Process Selected"
+
 //TODO(b/148546243): separate view and model code into independent modules.
-class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspectionDiscoveryHost, preferredProcessNames: List<String>) :
-  DefaultCommonComboBoxModel<ProcessDescriptor>("") {
+/**
+ * Model of [AppInspectionProcessesComboBox]. This takes an [AppInspectionDiscoveryHost] which is used to launch new inspector connections,
+ * and a lambda that can dynamically determine the preferred processes of this project.
+ */
+class AppInspectionProcessesComboBoxModel(
+  private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
+  getPreferredProcessNames: () -> List<String>
+) : DefaultCommonComboBoxModel<ProcessDescriptor>(""), Disposable {
   override var editable = false
 
-  init {
-    appInspectionDiscoveryHost.addProcessListener(
-      EdtExecutorService.getInstance(),
-      object : AppInspectionDiscoveryHost.ProcessListener {
-        override fun onProcessConnected(descriptor: ProcessDescriptor) {
-          if (preferredProcessNames.contains(descriptor.processName)) {
-            insertElementAt(descriptor, 0)
-          } else {
-            insertElementAt(descriptor, size)
-          }
-          if (selectedItem !is ProcessDescriptor) {
-            selectedItem = descriptor
-          }
-        }
+  private val processListener = object : AppInspectionDiscoveryHost.ProcessListener {
+    override fun onProcessConnected(descriptor: ProcessDescriptor) {
+      val preferredProcessNames = getPreferredProcessNames()
+      if (preferredProcessNames.contains(descriptor.processName)) {
+        insertElementAt(descriptor, 0)
+      } else {
+        insertElementAt(descriptor, size)
+      }
+      if (selectedItem !is ProcessDescriptor && preferredProcessNames.contains(descriptor.processName)) {
+        selectedItem = descriptor
+      }
+    }
 
-        override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
-          removeElement(descriptor)
-        }
-      })
+    override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      removeElement(descriptor)
+    }
   }
 
-  override fun getSelectedItem() = super.getSelectedItem() ?: DEFAULT_SELECTION_TEXT
+  init {
+    appInspectionDiscoveryHost.addProcessListener(EdtExecutorService.getInstance(), processListener)
+  }
+
+  override fun getSelectedItem() = super.getSelectedItem() ?: if (size == 0) DEFAULT_SELECTION_TEXT else NO_SELECTION_TEXT
+
+  override fun dispose() {
+    appInspectionDiscoveryHost.removeProcessListener(processListener)
+  }
 }

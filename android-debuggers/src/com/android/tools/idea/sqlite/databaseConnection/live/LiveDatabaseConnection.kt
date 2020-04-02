@@ -27,6 +27,7 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.Executor
 
@@ -54,7 +55,7 @@ class LiveDatabaseConnection(
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
 
       if (response.hasErrorOccurred()) {
-        handleError(response.errorOccurred.content)
+        handleError(response.errorOccurred.content, logger<LiveDatabaseConnection>())
       }
 
       response.getSchema.tablesList.toSqliteSchema()
@@ -69,7 +70,7 @@ class LiveDatabaseConnection(
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
 
       if (response.hasErrorOccurred()) {
-        handleError(response.errorOccurred.content)
+        handleError(response.errorOccurred.content, logger<LiveDatabaseConnection>())
       }
 
       val resultSet = if (response.query.columnNamesList.isNotEmpty()) {

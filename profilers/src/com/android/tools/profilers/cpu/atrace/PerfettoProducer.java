@@ -298,7 +298,7 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
     else if (event.hasSchedWaking()) {
       PerfettoTrace.SchedWakingFtraceEvent sched = event.getSchedWaking();
       return String
-        .format("sched_wakeing: comm=%s pid=%d prio=%d success=%d target_cpu=%03d", sched.getComm(), sched.getPid(), sched.getPrio(),
+        .format("sched_waking: comm=%s pid=%d prio=%d success=%d target_cpu=%03d", sched.getComm(), sched.getPid(), sched.getPrio(),
                 sched.getSuccess(), sched.getTargetCpu());
     }
     else if (event.hasSchedWakeup()) {

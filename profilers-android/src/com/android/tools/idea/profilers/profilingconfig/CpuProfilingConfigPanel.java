@@ -139,15 +139,15 @@ public class CpuProfilingConfigPanel {
   private JRadioButton mySimpleperfButton;
 
   /**
-   * Radio button representing system trace (atrace) configuration.
+   * Radio button representing system trace (atrace or perfetto) configuration.
    */
-  private JRadioButton myATraceButton;
+  private JRadioButton mySystemTraceButton;
 
   private final ButtonGroup myTechnologiesGroup = new ButtonGroup();
   private final JLabel myArtSampledDescriptionText = new JLabel(ProfilingTechnology.ART_SAMPLED.getLongDescription());
   private final JLabel myArtInstrumentedDescriptionText = new JLabel(ProfilingTechnology.ART_INSTRUMENTED.getLongDescription());
   private final JLabel mySimpleperfDescriptionText = new JLabel(ProfilingTechnology.SIMPLEPERF.getLongDescription());
-  private final JLabel myATraceDescriptionText = new JLabel(ProfilingTechnology.ATRACE.getLongDescription());
+  private final JLabel mySystemTraceDescriptionText = new JLabel(ProfilingTechnology.SYSTEM_TRACE.getLongDescription());
 
   /**
    * Current configuration that should receive the values set on the panel. Null if no configuration is currently selected.
@@ -237,8 +237,8 @@ public class CpuProfilingConfigPanel {
       case SIMPLEPERF:
         mySimpleperfButton.setSelected(true);
         break;
-      case ATRACE:
-        myATraceButton.setSelected(true);
+      case SYSTEM_TRACE:
+        mySystemTraceButton.setSelected(true);
         break;
       case ART_UNSPECIFIED:
         getLogger().warn("Invalid trace technology detected.");
@@ -323,19 +323,19 @@ public class CpuProfilingConfigPanel {
     mySimpleperfButton = new JRadioButton(CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName());
     createRadioButtonUi(mySimpleperfButton, mySimpleperfDescriptionText, ProfilingTechnology.SIMPLEPERF, myTechnologiesGroup);
 
-    myATraceButton = new JRadioButton(CpuProfilerConfig.Technology.ATRACE.getName());
-    createRadioButtonUi(myATraceButton, myATraceDescriptionText, ProfilingTechnology.ATRACE, myTechnologiesGroup);
+    mySystemTraceButton = new JRadioButton(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName());
+    createRadioButtonUi(mySystemTraceButton, mySystemTraceDescriptionText, ProfilingTechnology.SYSTEM_TRACE, myTechnologiesGroup);
   }
 
   private void setEnabledTraceTechnologyPanel(boolean isEnabled) {
     myArtSampledButton.setEnabled(isEnabled);
     myArtInstrumentedButton.setEnabled(isEnabled);
     mySimpleperfButton.setEnabled(isEnabled);
-    myATraceButton.setEnabled(isEnabled);
+    mySystemTraceButton.setEnabled(isEnabled);
     myArtSampledDescriptionText.setEnabled(isEnabled);
     myArtInstrumentedDescriptionText.setEnabled(isEnabled);
     mySimpleperfDescriptionText.setEnabled(isEnabled);
-    myATraceDescriptionText.setEnabled(isEnabled);
+    mySystemTraceDescriptionText.setEnabled(isEnabled);
   }
 
   private void createRadioButtonUi(JRadioButton button, JLabel descriptionLabel, ProfilingTechnology technology, ButtonGroup group) {

@@ -18,18 +18,18 @@ package com.android.tools.idea.welcome.install
 import com.android.sdklib.devices.Storage
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.welcome.wizard.HaxmUninstallInfoStep
+import com.android.tools.idea.observable.core.IntProperty
+import com.android.tools.idea.observable.core.IntValueProperty
 import com.android.tools.idea.welcome.wizard.deprecated.HaxmInstallSettingsStep
-import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
 import com.android.tools.idea.welcome.wizard.deprecated.VmUninstallInfoStep
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Companion.createKey
+import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.util.SystemInfo
 import java.io.File
 import java.io.IOException
-
-private val KEY_EMULATOR_MEMORY_MB = createKey("emulator.memory", ScopedStateStore.Scope.PATH, Int::class.java)
 
 // In UI we cannot use longs, so we need to pick a unit other then byte
 @JvmField
@@ -40,14 +40,12 @@ val UI_UNITS = Storage.Unit.MiB
  */
 class Haxm(
   installationIntention: InstallationIntention,
-  store: ScopedStateStore,
   isCustomInstall: ScopedStateStore.Key<Boolean>
-) : Vm(InstallerInfo, store, installationIntention, isCustomInstall) {
+) : Vm(InstallerInfo, installationIntention, isCustomInstall) {
   override val installUrl = if (SystemInfo.isWindows) HAXM_WINDOWS_INSTALL_URL else HAXM_MAC_INSTALL_URL
   override val filePrefix = "haxm"
 
-  private val recommendedMemoryAllocation: Int
-    get() = getRecommendedHaxmMemory(AvdManagerConnection.getMemorySize())
+  private val emulatorMemoryMb: IntProperty = IntValueProperty(getRecommendedHaxmMemory(AvdManagerConnection.getMemorySize()))
 
   @Throws(WizardException::class)
   override fun getMacBaseCommandLine(source: File): GeneralCommandLine {
@@ -57,17 +55,13 @@ class Haxm(
     return GeneralCommandLine(executable.absolutePath).withWorkDirectory(source)
   }
 
-  override fun init(progressStep: ProgressStep) {
-    super.init(progressStep)
-    if (installationIntention === InstallationIntention.INSTALL_WITH_UPDATES
-        || installationIntention === InstallationIntention.INSTALL_WITHOUT_UPDATES) {
-      stateStore.put(KEY_EMULATOR_MEMORY_MB, recommendedMemoryAllocation)
-    }
-  }
-
   override fun createSteps(): Collection<DynamicWizardStep> =
     setOf(if (installationIntention === InstallationIntention.UNINSTALL) VmUninstallInfoStep(VmType.HAXM)
-          else HaxmInstallSettingsStep(isCustomInstall, key, KEY_EMULATOR_MEMORY_MB))
+          else HaxmInstallSettingsStep(isCustomInstall, willBeInstalled, emulatorMemoryMb))
+
+  override val steps: Collection<ModelWizardStep<*>>
+    get() = setOf(if (installationIntention == InstallationIntention.UNINSTALL) HaxmUninstallInfoStep(VmType.HAXM)
+            else com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep(emulatorMemoryMb))
 
   /**
    * Create a platform-dependant command line for running the silent HAXM installer.
@@ -77,10 +71,8 @@ class Haxm(
    * @throws IOException if there's a problem creating temporary files
    */
   @Throws(WizardException::class, IOException::class)
-  override fun getInstallCommandLine(sdk: File): GeneralCommandLine {
-    val memorySize = stateStore.getNotNull(KEY_EMULATOR_MEMORY_MB, recommendedMemoryAllocation)
-    return addInstallParameters(super.getInstallCommandLine(sdk), memorySize)
-  }
+  override fun getInstallCommandLine(sdk: File): GeneralCommandLine =
+    addInstallParameters(super.getInstallCommandLine(sdk), emulatorMemoryMb.get())
 
   /**
    * Modifies cl with parameters used during installation and returns it.
@@ -97,7 +89,7 @@ class Haxm(
     override val vendor = "intel"
     override val installSolution = SolutionCode.INSTALL_HAXM
     override val reinstallSolution = SolutionCode.REINSTALL_HAXM
-    override val compatibleSystem = SystemInfo.isMac || (SystemInfo.isWindows && CpuVendor.isIntel())
+    override val compatibleSystem = SystemInfo.isMac || (SystemInfo.isWindows && CpuVendor.isIntel)
     override val componentPath = "Hardware_Accelerated_Execution_Manager"
   }
 }

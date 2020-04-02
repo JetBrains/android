@@ -20,15 +20,16 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import java.io.File
 
-class AndroidTempDirTestFixture(
-  private val testName: String,
-  private val makeUnique: Boolean = false
+open class AndroidTempDirTestFixture(
+  private val testName: String
 ) : TempDirTestFixtureImpl() {
   override fun doCreateTempDirectory(): File {
-    val folder = File("${FileUtil.getTempDirectory()}${if (makeUnique) java.time.Clock.systemUTC().millis().toString() else ""}", testName)
+    val folder = File("${getRootTempDirectory()}${File.separatorChar}${java.time.Clock.systemUTC().millis()}", testName)
     FileUtils.mkdirs(folder)
     return folder
   }
+
+  open fun getRootTempDirectory() = FileUtil.getTempDirectory()
 
   val projectDir: File get() = File(tempDirPath)
 }

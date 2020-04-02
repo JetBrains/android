@@ -28,7 +28,6 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -39,7 +38,7 @@ import com.intellij.ui.BrowserHyperlinkListener
 import com.intellij.ui.UIBundle
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.UiDecorator
-import com.intellij.ui.tabs.impl.JBEditorTabs
+import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -63,7 +62,7 @@ class DatabaseInspectorViewImpl(
   private val leftPanelView = LeftPanelView(this)
   private val viewContext = SqliteViewContext(leftPanelView.component)
   private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null, parentDisposable)
-  private val tabs = JBEditorTabs(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), project)
+  private val tabs = JBTabsImpl(project, IdeFocusManager.getInstance(project), project)
 
   override val component: JComponent = workBench
 
@@ -77,8 +76,16 @@ class DatabaseInspectorViewImpl(
     tabs.name = "right-panel-tabs-panel"
     tabs.apply {
       isTabDraggingEnabled = true
-      setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(4, 10)) }
-      addTabMouseListener(TabMouseListener())
+      setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(5, 10, 6, 10)) }
+      addTabMouseListener(object : MouseAdapter() {
+        override fun mousePressed(e: MouseEvent) {
+          if (UIUtil.isCloseClick(e)) {
+            val targetTabInfo = findInfo(e)
+            val tabId = targetTabInfo?.`object` as? TabId ?: return
+            listeners.forEach { it.closeTabActionInvoked(tabId) }
+          }
+        }
+      })
     }
   }
 
@@ -122,11 +129,11 @@ class DatabaseInspectorViewImpl(
     }
   }
 
-  override fun openTab(tableId: TabId, tabName: String, component: JComponent) {
-    val tab = createSqliteExplorerTab(tableId, tabName, component)
+  override fun openTab(tabId: TabId, tabName: String, component: JComponent) {
+    val tab = createTab(tabId, tabName, component)
     tabs.addTab(tab)
     tabs.select(tab, true)
-    openTabs[tableId] = tab
+    openTabs[tabId] = tab
   }
 
   override fun focusTab(tabId: TabId) {
@@ -170,13 +177,14 @@ class DatabaseInspectorViewImpl(
     centerPanel.repaint()
   }
 
-  private fun createSqliteExplorerTab(tableId: TabId, tableName: String, tabContent: JComponent): TabInfo {
+  private fun createTab(tabId: TabId, tableName: String, tabContent: JComponent): TabInfo {
     val tab = TabInfo(tabContent)
+    tab.`object` = tabId
 
     val tabActionGroup = DefaultActionGroup()
     tabActionGroup.add(object : AnAction("Close tabs", "Click to close tab", AllIcons.Actions.Close) {
       override fun actionPerformed(e: AnActionEvent) {
-        listeners.forEach { it.closeTabActionInvoked(tableId) }
+        listeners.forEach { it.closeTabActionInvoked(tabId) }
       }
 
       override fun update(e: AnActionEvent) {
@@ -193,23 +201,13 @@ class DatabaseInspectorViewImpl(
 
   private fun createToolWindowDefinition(): ToolWindowDefinition<SqliteViewContext> {
     return ToolWindowDefinition(
-      "Open Databases",
+      "Databases",
       StudioIcons.DatabaseInspector.TABLE,
-      "OPEN_DATABASES",
+      "DATABASES",
       Side.LEFT,
       Split.TOP,
       AutoHide.DOCKED
     ) { SchemaPanelToolContent() }
-  }
-
-  private inner class TabMouseListener : MouseAdapter() {
-    override fun mouseReleased(e: MouseEvent) {
-      if(e.button == 2) {
-        // TODO (b/135525331)
-        // mouse wheel click
-        //tabs.removeTab()
-      }
-    }
   }
 
   inner class SchemaPanelToolContent : ToolContent<SqliteViewContext> {

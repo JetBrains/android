@@ -269,9 +269,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       }
 
       @Override
-      public boolean isPerfettoEnabled() { return StudioFlags.PROFILER_USE_PERFETTO.get(); }
-
-      @Override
       public boolean isPerformanceMonitoringEnabled() {
         return StudioFlags.PROFILER_PERFORMANCE_MONITORING.get();
       }
@@ -284,6 +281,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       @Override
       public boolean isUnifiedPipelineEnabled() {
         return StudioFlags.PROFILER_UNIFIED_PIPELINE.get();
+      }
+
+      @Override
+      public boolean isUseTraceProcessor() {
+        return StudioFlags.PROFILER_USE_TRACEPROCESSOR.get();
       }
 
       @Override
@@ -368,7 +370,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
-  public List<ProfilingConfiguration> getUserCpuProfilerConfigs() {
+  public List<ProfilingConfiguration> getUserCpuProfilerConfigs(int apiLevel) {
     CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
     CpuProfilingConfigService oldService = CpuProfilingConfigService.getInstance(myProject);
 
@@ -378,15 +380,17 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     // We don't need configurations from |oldService| anymore, so clear it.
     oldService.setConfigurations(Collections.emptyList());
 
-    return ContainerUtil.map(CpuProfilerConfigConverter.toProto(configsState.getUserConfigs()), ProfilingConfiguration::fromProto);
+    return ContainerUtil.map(
+      CpuProfilerConfigConverter.toProto(configsState.getUserConfigs(), apiLevel),
+      ProfilingConfiguration::fromProto);
   }
 
   @Override
-  public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs() {
+  public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel) {
     return ContainerUtil.map(
-      CpuProfilerConfigConverter.toProto(CpuProfilerConfigsState.getDefaultConfigs()),
+      CpuProfilerConfigConverter.toProto(CpuProfilerConfigsState.getDefaultConfigs(), apiLevel),
       ProfilingConfiguration::fromProto
-      );
+    );
   }
 
   @Override

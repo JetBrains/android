@@ -56,7 +56,7 @@ public interface GradleDslNameConverter {
   default String convertReferenceToExternalText(
     @NotNull GradleDslElement context,
     @NotNull String referenceText,
-    @NotNull boolean forInjection
+    boolean forInjection
   ) { return "";}
 
   /**

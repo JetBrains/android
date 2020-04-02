@@ -22,6 +22,7 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.renderers.SchemaTreeCellRenderer
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.SideBorder
@@ -43,7 +44,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private val rootPanel = JPanel(BorderLayout())
   private val tree = Tree()
 
-  private val syncSchemaButton = CommonButton("Sync schema", AllIcons.Actions.Refresh)
+  private val refreshSchemaButton = CommonButton("Refresh schema", AllIcons.Actions.Refresh)
   private val runSqlButton = CommonButton("Run SQL", AllIcons.RunConfigurations.TestState.Run)
 
   val component = rootPanel
@@ -62,14 +63,14 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     val treeModel = tree.model as DefaultTreeModel
 
     val root = if (treeModel.root == null) {
-      val root = DefaultMutableTreeNode("Schemas")
+      val root = DefaultMutableTreeNode("Databases")
       treeModel.setRoot(root)
       root
     } else {
       treeModel.root as DefaultMutableTreeNode
     }
 
-    syncSchemaButton.isEnabled = true
+    refreshSchemaButton.isEnabled = true
     runSqlButton.isEnabled = true
 
     val schemaNode = DefaultMutableTreeNode(database)
@@ -125,7 +126,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     if (openDatabaseCount == 0) {
       tree.model = DefaultTreeModel(null)
 
-      syncSchemaButton.isEnabled = false
+      refreshSchemaButton.isEnabled = false
       runSqlButton.isEnabled = false
     }
 
@@ -135,14 +136,16 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private fun createNorthPanel(): JPanel {
     val northPanel = JPanel(FlowLayout(FlowLayout.LEFT))
 
-    syncSchemaButton.name = "sync-schema-button"
-    syncSchemaButton.isEnabled = false
-    syncSchemaButton.toolTipText = "Sync schema"
-    northPanel.add(syncSchemaButton)
-    syncSchemaButton.addActionListener {
+    refreshSchemaButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Refresh)
+    refreshSchemaButton.name = "refresh-schema-button"
+    refreshSchemaButton.isEnabled = false
+    refreshSchemaButton.toolTipText = "Refresh schema"
+    northPanel.add(refreshSchemaButton)
+    refreshSchemaButton.addActionListener {
       mainView.listeners.forEach { it.refreshAllOpenDatabasesSchemaActionInvoked() }
     }
 
+    runSqlButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.RunConfigurations.TestState.Run)
     runSqlButton.name = "run-sql-button"
     runSqlButton.isEnabled = false
     runSqlButton.toolTipText = "Open SQL evaluator tab"

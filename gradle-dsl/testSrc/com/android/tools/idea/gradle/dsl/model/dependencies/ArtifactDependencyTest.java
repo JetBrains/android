@@ -1646,7 +1646,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradleBuildModel model = getGradleBuildModel();
     DependenciesModel depModel = model.dependencies();
 
-    String compactNotation = isGroovy() ? "junit:junit:${jUnitVersion}" : "junit:junit:${extra[\"jUnitVersion\"]}";
+    String compactNotation = "junit:junit:${jUnitVersion}";
     depModel.addArtifact("implementation", compactNotation);
     ArtifactDependencyModel artModel = depModel.artifacts().get(0);
     verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "junit:junit:2", STRING, REGULAR, 1);

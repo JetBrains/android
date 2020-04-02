@@ -86,7 +86,6 @@ open class CpuProfilerMemoryLoadTestBase {
   protected fun loadCaptureAndReport(name:String, fileName:File?) {
     // Start as clean as we can.
     val before = getMemoryUsed()
-    myIdeServices.enablePerfetto(true)
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), myIdeServices, myTimer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     val stage = CpuProfilerStage(profilers, fileName)
