@@ -209,17 +209,6 @@ open class GradleSyncState @NonInjectable constructor(
    * */
 
   /**
-   * Triggered when the sync task has been created.
-   *
-   * This method should only be called by the sync internals.
-   * Please use [GradleSyncListener] and [subscribe] if you need to hook into sync.
-   */
-  fun syncTaskCreated(request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
-    listener?.syncTaskCreated(project, request)
-    syncPublisher { syncTaskCreated(project, request) }
-  }
-
-  /**
    * Triggered at the start of a sync which has been started by the given [request], the given [listener] will be notified of the
    * sync start along with any listeners registered via [subscribe].
    *
