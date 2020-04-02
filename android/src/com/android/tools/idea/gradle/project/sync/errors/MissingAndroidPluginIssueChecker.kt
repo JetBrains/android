@@ -20,12 +20,12 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles
 import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
 import com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProcessor
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
 import com.android.tools.idea.npw.invokeLater
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
@@ -74,27 +74,6 @@ class MissingAndroidPluginIssueChecker : GradleIssueChecker {
         else Messages.showErrorDialog(project, "Failed to add Google Maven repository.", "Quick Fix")
       }
       return CompletableFuture.completedFuture<Any>(null)
-    }
-  }
-
-  class OpenPluginBuildFileQuickFix : BuildIssueQuickFix {
-    override val id = "open.plugin.build.file"
-
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      val future = CompletableFuture<Any>()
-
-      invokeLater {
-        if (project.isInitialized) {
-          val pluginInfo = findFromBuildFiles(project) ?: return@invokeLater
-          if (pluginInfo.pluginBuildFile != null) {
-            val openFile = OpenFileDescriptor(project, pluginInfo.pluginBuildFile!!, -1, -1, false)
-            if (openFile.canNavigate()) openFile.navigate(true)
-          }
-        }
-        else Messages.showErrorDialog(project, "Failed to find plugin version on Gradle files.", "Quick Fix")
-        future.complete(null)
-      }
-      return future
     }
   }
 }

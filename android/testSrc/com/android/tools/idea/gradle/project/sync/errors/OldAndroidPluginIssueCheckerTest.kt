@@ -15,27 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.TestDataProvider
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
-class MissingAndroidPluginIssueCheckerTest : AndroidGradleTestCase() {
-  private val missingAndroidPluginIssueChecker = MissingAndroidPluginIssueChecker()
+class OldAndroidPluginIssueCheckerTest: AndroidGradleTestCase() {
+  private val oldAndroidPluginIssueChecker = OldAndroidPluginIssueChecker()
 
   fun testCheckIssue() {
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable("Could not find com.android.tools.build:gradle:"), null, null)
-    val buildIssue = missingAndroidPluginIssueChecker.check(issueData)
+    val errMsg = "The android gradle plugin version 2.3.0-alpha1 is too old, please update to the latest version."
+    val issueData = GradleIssueData(projectFolderPath.path, Throwable(errMsg), null, null)
 
+    val buildIssue = oldAndroidPluginIssueChecker.check(issueData)
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains("Add google Maven repository and sync project")
-    assertThat(buildIssue.description).contains("Open File")
-    // Verify quickFixes
+    assertThat(buildIssue!!.description).contains(errMsg)
     assertThat(buildIssue.quickFixes).hasSize(2)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(MissingAndroidPluginIssueChecker.AddGoogleMavenRepositoryQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(FixAndroidGradlePluginVersionQuickFix::class.java)
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenPluginBuildFileQuickFix::class.java)
-
-    buildIssue.quickFixes[0].runQuickFix(project, TestDataProvider(project))
   }
 }

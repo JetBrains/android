@@ -947,14 +947,12 @@
 
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep"/>
 
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingDependencyErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnexpectedErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnknownHostErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.ObjectStreamErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GenericErrorHandler"/>
   </extensions>
 
@@ -1028,6 +1026,7 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingNdkIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingPlatformIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.NdkToolchainMissingABIIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.SdkPlatformNotFoundIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportIssueChecker"/>
