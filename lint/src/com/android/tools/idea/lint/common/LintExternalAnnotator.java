@@ -81,7 +81,7 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
 import org.jetbrains.plugins.groovy.GroovyFileType;
 
 public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, LintEditorResult> {
-
+  static final String LINK_PREFIX = "#lint/"; // Should match the codeInsight.linkHandler prefix specified in lint-plugin.xml.
   static final boolean INCLUDE_IDEA_SUPPRESS_ACTIONS = false;
 
   @Nullable
@@ -336,7 +336,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
     }
 
     String link = " <a "
-                  + "href=\"#lint/" + issue.getId() + "\""
+                  + "href=\"" + LINK_PREFIX + issue.getId() + "\""
                   + (UIUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
                   + ">" + DaemonBundle.message("inspection.extended.description")
                   + "</a> " + getShowMoreShortCut();
