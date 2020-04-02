@@ -108,8 +108,8 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   public void x86AbiSplitApks() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProject("debugger/BasicCmakeAppForUI");
-    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(TIMEOUT_SECONDS));
+    IdeFrameFixture ideFrame =
+      guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/BasicCmakeAppForUI", Wait.seconds(TIMEOUT_SECONDS));
 
     DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.NATIVE);
 

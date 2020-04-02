@@ -46,8 +46,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
   @Before
   public void setUp() throws Exception {
-    guiTest.importProject("debugger/BasicCmakeAppForUI");
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
+    guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/BasicCmakeAppForUI", Wait.seconds(60));
 
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }

@@ -126,8 +126,7 @@ class LocalApkProjTest {
   }
 
   private fun buildApkLocally(apkProjectToImport: String): File {
-    val ideFrame = guiTest.importProject(apkProjectToImport)
-    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(120))
+    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish(apkProjectToImport, Wait.seconds(120))
 
     ideFrame.waitAndInvokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
 

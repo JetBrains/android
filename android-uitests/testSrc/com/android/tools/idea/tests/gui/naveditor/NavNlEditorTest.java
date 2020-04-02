@@ -59,7 +59,7 @@ public class NavNlEditorTest {
   @RunIn(TestGroup.UNRELIABLE) // b/152621347
   @Test
   public void testSelectComponent() throws Exception {
-    IdeFrameFixture frame = guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish();
+    IdeFrameFixture frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation");
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = frame.getEditor();
     editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
@@ -81,8 +81,7 @@ public class NavNlEditorTest {
     StudioFlags.NAV_NEW_COMPONENT_TREE.override(false);
 
     NlEditorFixture layout = guiTest
-      .importProject("Navigation")
-      .waitForGradleProjectSyncToFinish()
+      .importProjectAndWaitForProjectSyncToFinish("Navigation")
       .getEditor()
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor();
@@ -121,8 +120,7 @@ public class NavNlEditorTest {
     StudioFlags.NAV_NEW_COMPONENT_TREE.override(true);
 
     NlEditorFixture navEditor = guiTest
-      .importProject("Navigation")
-      .waitForGradleProjectSyncToFinish()
+      .importProjectAndWaitForProjectSyncToFinish("Navigation")
       .getEditor()
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor();
@@ -156,8 +154,7 @@ public class NavNlEditorTest {
     StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
     try {
       NlEditorFixture layout = guiTest
-        .importProject("Navigation")
-        .waitForGradleProjectSyncToFinish()
+        .importProjectAndWaitForProjectSyncToFinish("Navigation")
         .getEditor()
         .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
         .getLayoutEditor();
@@ -192,12 +189,11 @@ public class NavNlEditorTest {
     StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
     StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
     try {
-      IdeFrameFixture frame = guiTest.importProject("Navigation");
+      IdeFrameFixture frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation");
       // Open file as XML and switch to design tab, wait for successful render
       final String file = "app/src/main/res/navigation/mobile_navigation.xml";
       NlEditorFixture layout = guiTest
         .ideFrame()
-        .waitForGradleProjectSyncToFinish()
         .getEditor()
         .open(file, EditorFixture.Tab.DESIGN)
         .getLayoutEditor();
@@ -244,11 +240,10 @@ public class NavNlEditorTest {
     StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
     try {
       final String file = "app/src/main/res/navigation/mobile_navigation.xml";
-      IdeFrameFixture frame = guiTest.importProject("Navigation");
+      IdeFrameFixture frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation");
       // Open file as XML and switch to design tab, wait for successful render
       NlEditorFixture layout = guiTest
         .ideFrame()
-        .waitForGradleProjectSyncToFinish()
         .getEditor()
         .open(file, EditorFixture.Tab.DESIGN)
         .getLayoutEditor();
@@ -368,8 +363,7 @@ public class NavNlEditorTest {
   @Test
   public void testEmptyDesigner() throws Exception {
     NlEditorFixture layout = guiTest
-      .importProject("Navigation")
-      .waitForGradleProjectSyncToFinish()
+      .importProjectAndWaitForProjectSyncToFinish("Navigation")
       .getEditor()
       .open("app/src/main/res/navigation/empty_navigation.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor();

@@ -77,8 +77,7 @@ public class NativeDebuggerBreakpointsTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.FAST_BAZEL)
   public void breakpointsWithNativeDebugger() throws Exception {
-    guiTest.importProject("debugger/BasicCmakeAppForUI");
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
+    guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/BasicCmakeAppForUI", Wait.seconds(60));
 
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 

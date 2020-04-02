@@ -300,7 +300,7 @@ public class GuiTestRule implements TestRule {
   }
 
   @NotNull
-  public Project openProject(@NotNull String projectDirName) throws Exception {
+  public Project openProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws Exception {
     File projectDir = copyProjectBeforeOpening(projectDirName);
     VirtualFile fileToSelect = VfsUtil.findFileByIoFile(projectDir, true);
     ProjectManager.getInstance().loadAndOpenProject(fileToSelect.getPath());
@@ -325,18 +325,23 @@ public class GuiTestRule implements TestRule {
 
   @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    importProject(projectDirName);
-    return ideFrame().waitForGradleProjectSyncToFinish();
-  }
-
-  @NotNull
-  public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
     File projectDir = setUpProject(projectDirName);
-    return openProject(projectDir);
+    return openProjectAndWaitForProjectSyncToFinish(projectDir);
   }
 
   @NotNull
-  public IdeFrameFixture openProject(@NotNull File projectDir) {
+  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @NotNull Wait waitForSync) throws IOException {
+    File projectDir = setUpProject(projectDirName);
+    return openProjectAndWaitForProjectSyncToFinish(projectDir, waitForSync);
+  }
+
+  @NotNull
+  public IdeFrameFixture openProjectAndWaitForProjectSyncToFinish(@NotNull File projectDir) {
+    return openProjectAndWaitForProjectSyncToFinish(projectDir, Wait.seconds(60));
+  }
+
+  @NotNull
+  public IdeFrameFixture openProjectAndWaitForProjectSyncToFinish(@NotNull File projectDir, @NotNull Wait waitForSync) {
     ApplicationManager.getApplication().invokeAndWait(() -> ProjectUtil.openOrImport(projectDir.getAbsolutePath(), null, true));
 
     Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length != 0);
@@ -344,7 +349,9 @@ public class GuiTestRule implements TestRule {
     // After the project is opened there will be an Index and a Gradle Sync phase, and these can happen in any order.
     // Waiting for indexing to finish, makes sure Sync will start next or all Sync was done already.
     GuiTests.waitForProjectIndexingToFinish(ProjectManager.getInstance().getOpenProjects()[0]);
-    return ideFrame();
+    IdeFrameFixture ideFrame = ideFrame();
+    ideFrame.waitForGradleProjectSyncToFinish(waitForSync);
+    return ideFrame;
   }
 
   /**
