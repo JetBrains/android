@@ -133,7 +133,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "            TensorBuffer stylearray = null;\n" +
       "            StyleTransferModel styleTransferModel = StyleTransferModel.newInstance(this);\n" +
       "            StyleTransferModel.Outputs outputs = styleTransferModel.process(image, stylearray);\n" +
-      "            TensorBuffer styledimage = outputs.getStyledimageAsTensorBuffer();" +
+      "            TensorBuffer styledImage = outputs.getStyledImageAsTensorBuffer();" +
       "        } catch (IOException e) {};\n" +
       "    }\n" +
       "}"
@@ -291,8 +291,8 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "\n" +
       "        val styleTransferModel = StyleTransferModel.newInstance(this)\n" +
       "        val styleTransferOutputs = styleTransferModel.process(tensorImage, tensorBuffer)\n" +
-      "        val styledimage = styleTransferOutputs.styledimageAsTensorBuffer\n" +
-      "        Log.d(\"TAG\", \"Result\" + styledimage)\n" +
+      "        val styledImage = styleTransferOutputs.styledImageAsTensorBuffer\n" +
+      "        Log.d(\"TAG\", \"Result\" + styledImage)\n" +
       "    }\n" +
       "}"
     );
