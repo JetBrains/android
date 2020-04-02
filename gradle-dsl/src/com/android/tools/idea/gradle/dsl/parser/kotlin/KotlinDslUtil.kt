@@ -449,9 +449,9 @@ fun gradleNameFor(expression: KtExpression): String? {
     override fun visitReferenceExpression(expression: KtReferenceExpression) {
       when (expression) {
         is KtSimpleNameExpression -> {
-          when (val text = expression.text) {
+          when (val text = expression.getReferencedName()) {
             "extra" -> { convertIndexToName = true; sb.append("ext") }
-            else -> sb.append(text)
+            else -> sb.append(GradleNameElement.escape(text))
           }
         }
         else -> super.visitReferenceExpression(expression)
