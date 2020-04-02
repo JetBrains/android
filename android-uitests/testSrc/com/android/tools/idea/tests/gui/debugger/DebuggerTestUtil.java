@@ -94,8 +94,7 @@ public class DebuggerTestUtil {
 
   public static void abiSplitApks(@NotNull GuiTestRule guiTest,
                                   @NotNull String abiType) throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProject("BasicCmakeAppForUI");
-    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT));
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI", Wait.seconds(GRADLE_SYNC_TIMEOUT));
 
     DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.NATIVE);
 

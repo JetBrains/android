@@ -63,8 +63,7 @@ class MultiProjectSyncTest {
   }
 
   private fun withProjectOpenAndSynced(projectSubDir: String, action: IdeFrameFixture.() -> Unit) {
-    guiTest.openProject(projectPath.resolve(projectSubDir)).run {
-      waitForGradleProjectSyncToFinish()
+    guiTest.openProjectAndWaitForProjectSyncToFinish(projectPath.resolve(projectSubDir)).run {
       action()
       closeProject()
     }

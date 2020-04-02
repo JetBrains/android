@@ -45,7 +45,7 @@ class DestinationListTest {
    */
   @Test
   fun testExternalUpdate() {
-    guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish()
+    guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation")
     // Open file as XML and switch to design tab, wait for successful render
     val editor = guiTest.ideFrame().editor
     editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
@@ -80,10 +80,9 @@ class DestinationListTest {
   @Test
   @Throws(Exception::class)
   fun testSelectComponent() {
-    val frame = guiTest.importProject("Navigation")
+    val frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation")
     // Open file as XML and switch to design tab, wait for successful render
     val editor = frame
-      .waitForGradleProjectSyncToFinish()
       .editor
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor()

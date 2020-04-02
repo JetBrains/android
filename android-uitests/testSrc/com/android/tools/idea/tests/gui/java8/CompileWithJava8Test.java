@@ -56,9 +56,7 @@ public class CompileWithJava8Test {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   public void compileWithJava8() throws Exception {
-    IdeFrameFixture ideFrameFixture =
-      guiTest.importProject("MinSdk24App");
-    ideFrameFixture.waitForGradleProjectSyncToFinish(Wait.seconds(120));
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("MinSdk24App", Wait.seconds(120));
     GradleInvocationResult result = ideFrameFixture.invokeProjectMake();
     assertThat(result.isBuildSuccessful()).isTrue();
   }

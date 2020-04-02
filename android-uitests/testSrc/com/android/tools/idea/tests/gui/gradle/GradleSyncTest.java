@@ -39,7 +39,6 @@ import static org.junit.Assert.fail;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -428,12 +427,10 @@ public class GradleSyncTest {
     File projectDir = guiTest.setUpProject("SimpleApplication");
 
     // First time, open the project to sync.
-    IdeFrameFixture ideFrame = guiTest.openProject(projectDir);
-    ideFrame.waitForGradleProjectSyncToFinish();
+    IdeFrameFixture ideFrame = guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
     ideFrame.closeProject();
     // Second time, open the project expecting no sync.
-    ideFrame = guiTest.openProject(projectDir);
-    ideFrame.waitForGradleProjectSyncToFinish();
+    ideFrame = guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
 
     ProjectSystemSyncManager.SyncResult lastSyncResult =
       ProjectSystemService.getInstance(ideFrame.getProject()).getProjectSystem().getSyncManager().getLastSyncResult();

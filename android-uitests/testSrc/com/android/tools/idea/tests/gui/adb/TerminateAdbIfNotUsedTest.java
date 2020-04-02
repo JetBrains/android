@@ -70,7 +70,7 @@ public class TerminateAdbIfNotUsedTest {
     // Start a new server process --> Open an Android Project --> Close this project.
     // ADB is expected to be terminated when last Android Project is being disposed.
     buildAdbService();
-    Project project = myGuiTest.openProject(PROJECT_NAME);
+    Project project = myGuiTest.openProjectAndWaitForProjectSyncToFinish(PROJECT_NAME);
     startAdb(project);
     myGuiTest.ideFrame().closeProject();
     Wait.seconds(WAIT_TIME)
