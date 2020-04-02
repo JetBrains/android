@@ -60,7 +60,7 @@ class PreviewElementsTest {
     val documentBuilder = factory.newDocumentBuilder()
 
     previewsToCheck
-      .map { it.toPreviewXmlString() }
+      .map { it.toPreviewXml().buildString() }
       .forEach {
         try {
           documentBuilder.parse(InputSource(StringReader(it)))

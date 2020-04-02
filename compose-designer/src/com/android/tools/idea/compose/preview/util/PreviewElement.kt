@@ -16,6 +16,9 @@
 package com.android.tools.idea.compose.preview.util
 
 import com.android.SdkConstants
+import com.android.SdkConstants.ATTR_BACKGROUND
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.configurations.Configuration
@@ -23,6 +26,9 @@ import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -32,7 +38,9 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.LightVirtualFile
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.allConstructors
@@ -40,6 +48,9 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 import kotlin.math.max
+import kotlin.math.min
+import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.memberProperties
 
 /** Preview element name */
 internal const val PREVIEW_NAME = "Preview"
@@ -58,9 +69,6 @@ internal const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
 /** Annotation FQN for `Preview` annotated parameters */
 internal const val PREVIEW_PARAMETER_FQN = "$PREVIEW_PACKAGE.PreviewParameter"
 
-/** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
-private const val COMPOSABLE_NAME_ATTR = "tools:composableName"
-
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
 
@@ -78,27 +86,6 @@ const val HEIGHT_PARAMETER = "heightDp"
  * Default background to be used by the rendered elements when showBackground is set to true.
  */
 private const val DEFAULT_PREVIEW_BACKGROUND = "?android:attr/windowBackground"
-
-/**
- * Generates the XML string wrapper for one [PreviewElement].
- * @param matchParent when true, the component will take the maximum available space at the parent.
- * @param paintBounds when true, it instructs the `ComposeViewAdapter` to paint the `LayoutNode` into the Canvas. For debugging purposes.
- */
-@VisibleForTesting
-fun PreviewElement.toPreviewXmlString(matchParent: Boolean = false, paintBounds: Boolean = false) =
-  //language=XML
-  """
-    <$COMPOSE_VIEW_ADAPTER
-      xmlns:tools="http://schemas.android.com/tools"
-      xmlns:android="http://schemas.android.com/apk/res/android"
-      android:layout_width="${dimensionToString(configuration.width,
-                                                if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)}"
-      android:layout_height="${dimensionToString(configuration.height,
-                                                 if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)}"
-      ${if (displaySettings.showBackground) "android:background=\"${displaySettings.backgroundColor ?: DEFAULT_PREVIEW_BACKGROUND}\"" else ""}
-      tools:paintBounds="$paintBounds"
-      $COMPOSABLE_NAME_ATTR="$composableMethodFqn" />
-  """.trimIndent()
 
 internal val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
 
@@ -270,13 +257,42 @@ interface PreviewElement {
 }
 
 /**
+ * Definition of a preview element template. This element can dynamically spawn one or more [PreviewElementInstance]s.
+ */
+interface PreviewElementTemplate : PreviewElement {
+  fun instances(): Sequence<PreviewElementInstance>
+}
+
+/**
+ * Definition of a preview element
+ */
+interface PreviewElementInstance : PreviewElement, XmlSerializable {
+  override fun toPreviewXml(xmlBuilder: PreviewXmlBuilder): PreviewXmlBuilder {
+    val matchParent = displaySettings.showDecoration
+    val width = dimensionToString(configuration.width, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
+    val height = dimensionToString(configuration.height, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
+    xmlBuilder
+      .androidAttribute(ATTR_LAYOUT_WIDTH, width)
+      .androidAttribute(ATTR_LAYOUT_HEIGHT, height)
+      // [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call
+      .toolsAttribute("composableName", composableMethodFqn)
+
+    if (displaySettings.showBackground) {
+      xmlBuilder.androidAttribute(ATTR_BACKGROUND, displaySettings.backgroundColor ?: DEFAULT_PREVIEW_BACKGROUND)
+    }
+
+    return xmlBuilder
+  }
+}
+
+/**
  * Definition of a single preview element instance. This represents a `Preview` with no parameters.
  */
 data class SinglePreviewElementInstance(override val composableMethodFqn: String,
                                         override val displaySettings: PreviewDisplaySettings,
                                         override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
                                         override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-                                        override val configuration: PreviewConfiguration) : PreviewElement {
+                                        override val configuration: PreviewConfiguration) : PreviewElementInstance {
   companion object {
     @JvmStatic
     @TestOnly
@@ -298,17 +314,71 @@ data class SinglePreviewElementInstance(override val composableMethodFqn: String
   }
 }
 
+private data class ParametrizedPreviewElementInstance(private val basePreviewElement: PreviewElement,
+                                                      private val parameterName: String,
+                                                      val providerClassFqn: String,
+                                                      val index: Int) : PreviewElementInstance, PreviewElement by basePreviewElement {
+  override val displaySettings: PreviewDisplaySettings = PreviewDisplaySettings(
+    "${basePreviewElement.displaySettings.name} ($parameterName $index)",
+    basePreviewElement.displaySettings.group,
+    basePreviewElement.displaySettings.showDecoration,
+    basePreviewElement.displaySettings.showBackground,
+    basePreviewElement.displaySettings.backgroundColor
+  )
+
+  override fun toPreviewXml(xmlBuilder: PreviewXmlBuilder): PreviewXmlBuilder {
+    super.toPreviewXml(xmlBuilder)
+      // The index within the provider of the element to be rendered
+      .toolsAttribute("parameterProviderIndex", index.toString())
+      // The FQN of the ParameterProvider class
+      .toolsAttribute("parameterProviderClass", providerClassFqn)
+
+    return xmlBuilder
+  }
+}
+
 /**
  * Definition of a preview element that can spawn multiple [PreviewElement]s based on parameters.
  */
-data class ParametrizedPreviewElement(private val basePreviewElement: PreviewElement,
-                                      val parameterProviders: Collection<PreviewParameter>) : PreviewElement by basePreviewElement {
+data class ParametrizedPreviewElementTemplate(private val basePreviewElement: PreviewElement,
+                                              val parameterProviders: Collection<PreviewParameter>) : PreviewElementTemplate, PreviewElement by basePreviewElement {
   /**
    * Returns a [Sequence] of "instantiated" [PreviewElement]s. The will be [PreviewElement] populated with data from the parameter
    * providers.
    */
-  // TODO(b/139476601)
-  fun instances(): Sequence<PreviewElement> = TODO("Parametrized Previews are not supported yet")
+  override fun instances(): Sequence<PreviewElementInstance> {
+    assert(parameterProviders.isNotEmpty()) { "ParametrizedPreviewElement used with no parameters" }
+
+    val module = ReadAction.compute<Module?, Throwable> {
+      basePreviewElement.previewBodyPsi?.element?.module
+    } ?: return sequenceOf()
+    if (parameterProviders.size > 1) {
+      Logger.getInstance(ParametrizedPreviewElementTemplate::class.java).warn(
+        "Currently only one ParameterProvider is supported, rest will be ignored")
+    }
+
+    return parameterProviders.map {
+      try {
+        val parameterProviderClass = ModuleClassLoaderManager.get().get(null, module).loadClass(it.providerClassFqn).kotlin
+        val parameterProviderSizeMethod = parameterProviderClass.memberProperties.single { "count" == it.name }
+        val parameterProvider = parameterProviderClass.createInstance()
+        val providerCount = min((parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0), it.limit)
+
+        return (0 until providerCount).map { index ->
+          ParametrizedPreviewElementInstance(basePreviewElement = basePreviewElement,
+                                             parameterName = it.name,
+                                             index = index,
+                                             providerClassFqn = it.providerClassFqn)
+        }.asSequence()
+      }
+      catch (e: Throwable) {
+        Logger.getInstance(
+          ParametrizedPreviewElementTemplate::class.java).debug { "Failed to instantiate ${it.providerClassFqn} parameter provider" }
+      }
+
+      return sequenceOf()
+    }.first()
+  }
 }
 
 /**
@@ -344,4 +414,3 @@ interface FilePreviewElementFinder {
   @Slow
   fun findPreviewMethods(uFile: UFile): Sequence<PreviewElement>
 }
-

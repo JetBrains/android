@@ -16,10 +16,10 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
-import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.compose.preview.runconfiguration.isNonLibraryAndroidModule
+import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.runConfigurationType

@@ -20,7 +20,7 @@ import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.HEIGHT_PARAMETER
 import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.util.PREVIEW_PARAMETER_FQN
-import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElement
+import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.PreviewElement
@@ -58,7 +58,7 @@ private fun UAnnotation.findAttributeFloatValue(name: String) =
   findAttributeValue(name)?.evaluate() as? Float
 
 private fun UAnnotation.findClassNameValue(name: String) =
-  (findAttributeValue(name) as? KotlinUClassLiteralExpression)?.type?.presentableText
+  (findAttributeValue(name) as? KotlinUClassLiteralExpression)?.type?.canonicalText
 
 /**
  * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
@@ -142,7 +142,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
                                                                 attributesToConfiguration(previewAnnotation))
           if (!parameters.isEmpty()) {
             if (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get()) {
-              previewElements.add(ParametrizedPreviewElement(basePreviewElement, parameters))
+              previewElements.add(ParametrizedPreviewElementTemplate(basePreviewElement, parameters))
             }
           }
           else {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElement
+import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
 import com.android.tools.idea.flags.StudioFlags
@@ -279,6 +279,8 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       "src/Test.kt",
       // language=kotlin
       """
+        package test
+
         import androidx.ui.tooling.preview.Preview
         import androidx.ui.tooling.preview.PreviewParameter
         import androidx.ui.tooling.preview.PreviewParameterProvider
@@ -304,6 +306,12 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
 
         @Composable
         @Preview
+        // Same as SingleParameter but without using "provider" in the annotation
+        fun SingleParameterNoName(@PreviewParameter(TestStringProvider::class) aString: String) {
+        }
+
+        @Composable
+        @Preview
         fun MultiParameter(@PreviewParameter(provider = TestStringProvider::class) aString: String,
                            @PreviewParameter(provider = TestIntProvider::class, limit = 2) aInt: Int) {
         }
@@ -311,21 +319,27 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
 
     val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest).toList()
     elements[0].let {
-      assertFalse(it is ParametrizedPreviewElement)
+      assertFalse(it is ParametrizedPreviewElementTemplate)
       assertEquals("NoParameter", it.displaySettings.name)
     }
-    (elements[1] as ParametrizedPreviewElement).let {
-      assertEquals("SingleParameter", it.displaySettings.name)
-      assertEquals(1, it.parameterProviders.size)
-      it.parameterProviders.single { param -> "aString" == param.name }.let { parameter ->
-        assertEquals(0, parameter.index)
-        assertEquals(Int.MAX_VALUE, parameter.limit)
+    // The next two are the same just using the annotation parameter explicitly in one of them.
+    // The resulting PreviewElement should be the same with different name.
+    listOf("SingleParameter" to elements[1], "SingleParameterNoName" to elements[2])
+      .map { (name, previewElement) -> name to previewElement as ParametrizedPreviewElementTemplate}
+      .forEach { (name, previewElement) ->
+        assertEquals(name, previewElement.displaySettings.name)
+        assertEquals(1, previewElement.parameterProviders.size)
+        previewElement.parameterProviders.single { param -> "aString" == param.name }.let { parameter ->
+          assertEquals("test.TestStringProvider", parameter.providerClassFqn)
+          assertEquals(0, parameter.index)
+          assertEquals(Int.MAX_VALUE, parameter.limit)
+        }
       }
-    }
-    (elements[2] as ParametrizedPreviewElement).let {
+    (elements[3] as ParametrizedPreviewElementTemplate).let {
       assertEquals("MultiParameter", it.displaySettings.name)
       assertEquals(2, it.parameterProviders.size)
       it.parameterProviders.single { param -> "aInt" == param.name }.let { parameter ->
+        assertEquals("test.TestIntProvider", parameter.providerClassFqn)
         assertEquals(1, parameter.index)
         assertEquals(2, parameter.limit)
       }
