@@ -42,4 +42,10 @@
               icon="StudioIcons.Emulator.SCREENSHOT" text="Take Screenshot" description="Take screenshot"/>
     </group>
   </actions>
+  <actions>
+    <group id="EmulatorSecondaryToolbar" resource-bundle="">
+      <action id="android.emulator.close" class="com.android.tools.idea.emulator.EmulatorShutdownAction"
+              icon="StudioIcons.Common.CLOSE" text="Close" description="Shut down the Emulator"/>
+    </group>
+  </actions>
 </idea-plugin>
