@@ -22,6 +22,8 @@ import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.util.NotNullLazyValue
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -54,32 +56,36 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       else -> return
     }
 
-    val relatedItems: Collection<PsiElement> = if (isListOfProviders) getDaggerProvidersFor(parent) else getDaggerConsumersFor(parent)
     val relatedItemsName = if (isListOfProviders) DEPENDENCY_PROVIDERS else DEPENDENCY_CONSUMERS
+
+    val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
+      override fun compute(): List<GotoRelatedItem> {
+        val relatedItems: Collection<PsiElement> = if (isListOfProviders) getDaggerProvidersFor(parent) else getDaggerConsumersFor(parent)
+        return relatedItems.map { GotoRelatedItem(it, relatedItemsName) }
+      }
+    }
+
     val icon = if (isListOfProviders) StudioIcons.Misc.DEPENDENCY_PROVIDER else StudioIcons.Misc.DEPENDENCY_CONSUMER
 
-    if (relatedItems.isNotEmpty()) {
-      val gotoList = relatedItems.map { GotoRelatedItem(it, relatedItemsName) }
-
-      val info = RelatedItemLineMarkerInfo<PsiElement>(
-        element,
-        element.textRange,
-        icon,
-        Pass.LINE_MARKERS,
-        { relatedItemsName },
-        { mouseEvent, _ ->
-          if (gotoList.size == 1) {
-            gotoList.first().navigate()
-          }
-          else {
-            NavigationUtil.getRelatedItemsPopup(gotoList, "Go to Related Files").show(RelativePoint(mouseEvent))
-          }
-        },
-        GutterIconRenderer.Alignment.RIGHT,
-        gotoList
-      )
-      result.add(info)
-    }
+    val info = RelatedItemLineMarkerInfo<PsiElement>(
+      element,
+      element.textRange,
+      icon,
+      Pass.LINE_MARKERS,
+      { relatedItemsName },
+      { mouseEvent, _ ->
+        when (gotoTargets.value.size) {
+          0 -> JBPopupFactory.getInstance()
+            .createMessage("No dependency ${if (isListOfProviders) "providers" else "consumers"}")
+            .show(RelativePoint(mouseEvent))
+          1 -> gotoTargets.value.first().navigate()
+          else -> NavigationUtil.getRelatedItemsPopup(gotoTargets.value, "Go to Related Files").show(RelativePoint(mouseEvent))
+        }
+      },
+      GutterIconRenderer.Alignment.RIGHT,
+      gotoTargets
+    )
+    result.add(info)
   }
 }
 
