@@ -40,8 +40,11 @@ class GradleNameTest : PlatformTestCase() {
     assertThat(gradleNameFromString("abc.def.create(\"foo.\").ghi")).isEqualTo("abc.def.foo\\..ghi")
     assertThat(gradleNameFromString("abc.def.create(\"foo.\").extra[\"bar.\"]")).isEqualTo("abc.def.foo\\..ext.bar\\.")
 
-    // TODO(xof): unquoting tests, e.g. abc.def.create("foo").`ghi` or abc.def.`create`("foo").ghi or abc.`def.`.create("foo").ghi
+    // unquoting tests
     assertThat(gradleNameFromString("abc.def.`create`(\"foo\")")).isEqualTo("abc.def.foo")
+    assertThat(gradleNameFromString("abc.def.create(\"foo\").`ghi.`")).isEqualTo("abc.def.foo.ghi\\.")
+    assertThat(gradleNameFromString("abc.`def.`.create(\"foo\").ghi")).isEqualTo("abc.def\\..foo.ghi")
+    assertThat(gradleNameFromString("abc.def.create(\"foo\").`extra`[\"bar\"]")).isEqualTo("abc.def.foo.ext.bar")
   }
   fun testNullGradleName() {
     assertThat(gradleNameFromString("\"foo\"")).isNull()
