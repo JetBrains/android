@@ -403,7 +403,7 @@ fun gradleNameFor(expression: KtExpression): String? {
       // conversion if `extra' is the last thing we've seen in the arrayExpression.
       val index = expression.indexExpressions[0]
       if (convertIndexToName) {
-        sb.append(".${StringUtil.unquoteString(index.text)}")
+        sb.append(".${GradleNameElement.escape(StringUtil.unquoteString(index.text))}")
         convertIndexToName = false
       }
       else {
