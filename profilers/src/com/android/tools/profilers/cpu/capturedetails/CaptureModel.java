@@ -73,7 +73,7 @@ public class CaptureModel {
   private Filter myFilter = Filter.EMPTY_FILTER;
 
   @NotNull
-  private FilterResult myFilterResult = new FilterResult();
+  private FilterResult myFilterResult = FilterResult.EMPTY_RESULT;
 
   @Nullable
   private CaptureDetails myDetails;
