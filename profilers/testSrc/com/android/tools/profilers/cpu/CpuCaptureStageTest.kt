@@ -133,6 +133,27 @@ class CpuCaptureStageTest {
   }
 
   @Test
+  fun trackGroupModelsAreSetForPerfetto() {
+    val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG, CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
+    profilers.stage = stage
+
+    assertThat(stage.trackGroupModels.size).isEqualTo(3)
+
+    val displayTrackGroup = stage.trackGroupModels[0]
+    assertThat(displayTrackGroup.title).isEqualTo("Display")
+    assertThat(displayTrackGroup.size).isEqualTo(1)
+    assertThat(displayTrackGroup[0].title).isEqualTo("Frames")
+
+    val coresTrackGroup = stage.trackGroupModels[1]
+    assertThat(coresTrackGroup.title).isEqualTo("CPU cores (8)")
+    assertThat(coresTrackGroup.size).isEqualTo(8)
+
+    val threadsTrackGroup = stage.trackGroupModels[2]
+    assertThat(threadsTrackGroup.title).isEqualTo("Threads (17)")
+    assertThat(threadsTrackGroup.size).isEqualTo(17)
+  }
+
+  @Test
   fun timelineSetsCaptureRange() {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG, CpuProfilerTestUtils.getTraceFile("basic.trace"))
     profilers.stage = stage
