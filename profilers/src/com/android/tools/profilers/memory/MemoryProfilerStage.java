@@ -272,7 +272,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
       protected FilterResult applyFilter(@NotNull Filter filter) {
         selectCaptureFilter(filter);
         HeapSet heapSet = getSelectedHeapSet();
-        return heapSet == null ? new FilterResult() : new FilterResult(heapSet.getFilterMatchCount(), 0, true);
+        return heapSet == null ? FilterResult.EMPTY_RESULT : new FilterResult(heapSet.getFilterMatchCount(), 0, true);
       }
     };
 

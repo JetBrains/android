@@ -110,7 +110,7 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
     FilterResult combinedResult = nodes.stream()
       .map(node -> node.applyFilter(filter))
       .reduce(FilterResult::combine)
-      .orElseGet(FilterResult::new);
+      .orElse(FilterResult.EMPTY_RESULT);
     return new CaptureDetailsWithFilterResult(myDetailsType.build(myCaptureConvertedRange, nodes, myCapture), combinedResult);
   }
 
