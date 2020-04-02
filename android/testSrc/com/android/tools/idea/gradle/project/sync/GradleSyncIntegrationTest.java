@@ -309,25 +309,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
   }
 
-  public void testSetupEventInvoked() throws Exception {
-    // Verify GradleSyncState
-    GradleSyncListener listener = mock(GradleSyncListener.class);
-    Project project = getProject();
-    GradleSyncState.subscribe(project, listener);
-    loadSimpleApplication();
-
-    verify(listener, times(1)).setupStarted(project);
-    reset(listener);
-
-    // Verify ProjectSetUpTask
-    listener = mock(GradleSyncListener.class);
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-    GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
-
-    verify(listener, times(1)).setupStarted(project);
-    reset(listener);
-  }
-
   // https://code.google.com/p/android/issues/detail?id=227931
   public void testJarsFolderInExplodedAarIsExcluded() throws Exception {
     loadSimpleApplication();

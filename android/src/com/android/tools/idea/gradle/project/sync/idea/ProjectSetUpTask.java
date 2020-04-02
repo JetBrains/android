@@ -58,9 +58,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   public void onSuccess(@NotNull ExternalSystemTaskId taskId,
                         @Nullable DataNode<ProjectData> projectInfo) {
     assert projectInfo != null;
-    if (mySyncListener != null) {
-      mySyncListener.setupStarted(myProject);
-    }
     GradleSyncState.getInstance(myProject).setupStarted();
     boolean importedProject = GradleProjectInfo.getInstance(myProject).isImportedProject();
     doPopulateProject(projectInfo, taskId);
