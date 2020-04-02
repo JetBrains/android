@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding.gradle
 
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.TestDataPaths
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
@@ -85,7 +85,7 @@ class DataBindingPackageFinderTest {
     UIUtil.dispatchAllInvocationEvents()
 
     val context = fixture.findClass("com.android.example.appwithdatabinding.MainActivity")
-    assertThat(ModuleDataBinding.getInstance(projectRule.androidFacet(":app")).dataBindingMode).isEqualTo(DataBindingMode.ANDROIDX)
+    assertThat(LayoutBindingModuleCache.getInstance(projectRule.androidFacet(":app")).dataBindingMode).isEqualTo(DataBindingMode.ANDROIDX)
     assertThat(fixture.findClass("com.android.example.appwithdatabinding.databinding.ActivityMainBinding", context)).isInstanceOf(
       LightBindingClass::class.java)
     assertThat(fixture.findPackage("com.android.example.appwithdatabinding.databinding")).isNotNull()

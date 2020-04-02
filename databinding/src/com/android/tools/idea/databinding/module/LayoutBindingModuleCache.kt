@@ -36,9 +36,9 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiManager
@@ -50,13 +50,10 @@ import java.util.ArrayList
 private val LIGHT_BINDING_CLASSES_KEY = Key.create<List<LightBindingClass>>("LIGHT_BINDING_CLASSES_KEY")
 
 @ThreadSafe
-class ModuleDataBinding private constructor(private val module: Module) {
+class LayoutBindingModuleCache(private val module: Module) {
   companion object {
     @JvmStatic
-    fun getInstance(facet: AndroidFacet): ModuleDataBinding {
-      // service registered in android plugin
-      return ModuleServiceManager.getService(facet.module, ModuleDataBinding::class.java)!!
-    }
+    fun getInstance(facet: AndroidFacet) = facet.module.getService(LayoutBindingModuleCache::class.java)!!
   }
 
   private val lock = Any()
@@ -195,7 +192,7 @@ class ModuleDataBinding private constructor(private val module: Module) {
       // If we're called at a time before indexes are ready, BindingLayout.tryCreate below would
       // fail with an exception. To prevent this, we abort early with what we have.
       if (DumbService.isDumb(module.project)) {
-        Logger.getInstance(ModuleDataBinding::class.java).info(
+        Logger.getInstance(LayoutBindingModuleCache::class.java).info(
           "Binding classes may be temporarily stale due to indices not being accessible right now.")
         return _bindingLayoutGroups
       }

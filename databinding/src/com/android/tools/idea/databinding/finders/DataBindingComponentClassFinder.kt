@@ -16,8 +16,8 @@
 package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.databinding.LayoutBindingProjectComponent
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.LayoutBindingEnabledFacetsProvider
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -34,15 +34,15 @@ import com.intellij.psi.util.CachedValuesManager
  * See [LightDataBindingComponentClass]
  */
 class DataBindingComponentClassFinder(project: Project) : PsiElementFinder() {
-  private val component = project.getComponent(LayoutBindingProjectComponent::class.java)
+  private val enabledFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
   private val classes: CachedValue<List<PsiClass>>
 
   init {
     classes = CachedValuesManager.getManager(project).createCachedValue(
       {
-        val classes: List<PsiClass> = component.getDataBindingEnabledFacets()
-          .mapNotNull { facet -> ModuleDataBinding.getInstance(facet).lightDataBindingComponentClass }
-        CachedValueProvider.Result.create(classes, component, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(project))
+        val classes: List<PsiClass> = enabledFacetsProvider.getDataBindingEnabledFacets()
+          .mapNotNull { facet -> LayoutBindingModuleCache.getInstance(facet).lightDataBindingComponentClass }
+        CachedValueProvider.Result.create(classes, enabledFacetsProvider, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(project))
       }, false)
   }
 

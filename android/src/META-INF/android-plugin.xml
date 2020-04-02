@@ -86,14 +86,6 @@
       <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
-      <loadForDefaultProject/>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.databinding.LayoutBindingProjectComponent</implementation-class>
-      <loadForDefaultProject/>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener</implementation-class>
     </component>
     <component>
@@ -702,6 +694,7 @@
     <moduleService serviceImplementation="com.android.tools.idea.model.MergedManifestManager" />
     <moduleService serviceImplementation="com.android.tools.idea.model.MergedManifestModificationTracker" />
     <moduleService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.ModuleSyncIssueRegistry" />
+    <moduleService serviceImplementation="com.android.tools.idea.databinding.DataBindingAnnotationsService" />
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
                          key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>
@@ -1033,11 +1026,10 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionIssueChecker"/>
   </extensions>
 
-  <module-components>
-    <component>
-      <implementation-class>com.android.tools.idea.databinding.DataBindingModuleComponent</implementation-class>
-    </component>
-  </module-components>
+  <projectListeners>
+    <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+  </projectListeners>
 
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->
   <xi:include href="/com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>

@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.databinding.finders
 
-import com.android.tools.idea.databinding.LayoutBindingProjectComponent
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.LayoutBindingEnabledFacetsProvider
+import com.android.tools.idea.databinding.LayoutBindingPackageFactory
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.project.ProjectLayoutResourcesModificationTracker
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -42,7 +43,8 @@ import com.intellij.psi.util.CachedValuesManager
  * See also: https://issuetracker.google.com/37120280
  */
 class LayoutBindingPackageFinder(project: Project) : PsiElementFinder() {
-  private val component: LayoutBindingProjectComponent = project.getComponent(LayoutBindingProjectComponent::class.java)
+  private val bindingFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
+  private val packageFactory = LayoutBindingPackageFactory.getInstance(project)
   private val packageCache: CachedValue<Map<String, PsiPackage>>
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
     return null
@@ -59,19 +61,19 @@ class LayoutBindingPackageFinder(project: Project) : PsiElementFinder() {
   init {
     val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
     packageCache = CachedValuesManager.getManager(project).createCachedValue {
-      val packages = component.getAllBindingEnabledFacets()
+      val packages = bindingFacetsProvider.getAllBindingEnabledFacets()
         .flatMap { facet ->
-          val moduleDataBinding = ModuleDataBinding.getInstance(facet)
-          val groups = moduleDataBinding.bindingLayoutGroups
-          val lightClasses = groups.mapNotNull { group -> moduleDataBinding.getLightBindingClasses(group).firstOrNull() }
+          val bindingModuleCache = LayoutBindingModuleCache.getInstance(facet)
+          val groups = bindingModuleCache.bindingLayoutGroups
+          val lightClasses = groups.mapNotNull { group -> bindingModuleCache.getLightBindingClasses(group).firstOrNull() }
           lightClasses.map { lightClass ->
             val packageName = lightClass.qualifiedName.substringBeforeLast('.')
-            component.getOrCreatePsiPackage(packageName)
+            packageFactory.getOrCreatePsiPackage(packageName)
           }
         }
         .associateBy { psiPackage -> psiPackage.qualifiedName }
 
-      CachedValueProvider.Result.create(packages, component, resourcesModifiedTracker)
+      CachedValueProvider.Result.create(packages, bindingFacetsProvider, resourcesModifiedTracker)
     }
   }
 }

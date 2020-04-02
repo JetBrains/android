@@ -17,7 +17,7 @@ package com.android.tools.idea.lang.databinding
 
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.facet.FacetManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -109,7 +109,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
     }
 
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = dataBindingMode
+    LayoutBindingModuleCache.getInstance(androidFacet!!).dataBindingMode = dataBindingMode
   }
 
   @Test

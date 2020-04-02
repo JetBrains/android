@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding.project
 
-import com.android.tools.idea.databinding.LayoutBindingProjectComponent
+import com.android.tools.idea.databinding.LayoutBindingEnabledFacetsProvider
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
@@ -36,11 +36,10 @@ class ProjectLayoutResourcesModificationTracker(project: Project): ModificationT
       project.getService(ProjectLayoutResourcesModificationTracker::class.java)
   }
 
-  private val component: LayoutBindingProjectComponent = project.getComponent(
-    LayoutBindingProjectComponent::class.java)
+  private val enabledFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
 
   override fun getModificationCount(): Long {
-    return component.getAllBindingEnabledFacets()
+    return enabledFacetsProvider.getAllBindingEnabledFacets()
       .sumByLong { facet -> ResourceRepositoryManager.getModuleResources(facet).modificationCount }
   }
 }

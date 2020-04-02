@@ -19,7 +19,7 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
@@ -71,7 +71,7 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
     projectRule.fixture.copyDirectoryToProject(TestDataPaths.PROJECT_FOR_TRACKING, "src")
 
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)!!
-    ModuleDataBinding.getInstance(androidFacet).dataBindingMode = mode
+    LayoutBindingModuleCache.getInstance(androidFacet).dataBindingMode = mode
   }
 
   @Test

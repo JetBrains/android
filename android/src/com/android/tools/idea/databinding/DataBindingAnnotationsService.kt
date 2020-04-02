@@ -33,9 +33,14 @@ import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.toUElementOfType
 
 /**
- * Data binding utilities that apply to each module
+ * A module-level service which provides utility functions for querying / caching data extracted
+ * from data binding annotations.
  */
-class DataBindingModuleComponent(val module: Module) {
+class DataBindingAnnotationsService(val module: Module) {
+  companion object {
+    @JvmStatic
+    fun getInstance(facet: AndroidFacet) = facet.module.getService(DataBindingAnnotationsService::class.java)!!
+  }
 
   // Cache the set of binding adapter attributes for fast lookup during XML markup and autocompletion.
   // This cache is refreshed on every Java change.
