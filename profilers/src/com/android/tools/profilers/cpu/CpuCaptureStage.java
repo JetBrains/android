@@ -331,7 +331,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
       myTrackGroupModels.add(createInteractionTrackGroup(getStudioProfilers(), getTimeline()));
     }
 
-    if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
+    if (capture.getType() == Cpu.CpuTraceType.ATRACE || capture.getType() == Cpu.CpuTraceType.PERFETTO) {
       // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
       myTrackGroupModels.add(createDisplayTrackGroup(capture, getTimeline()));
       // CPU per-core usage and event etc. Systrace only.
