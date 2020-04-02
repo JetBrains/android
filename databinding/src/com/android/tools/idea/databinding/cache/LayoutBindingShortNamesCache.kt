@@ -49,7 +49,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
-    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker(project)
+    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
 
     lightBindingCache = cachedValuesManager.createCachedValue {
       val bindingClasses = component.getAllBindingEnabledFacets()
@@ -60,11 +60,11 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
         }
         .groupBy { lightClass -> lightClass.name }
 
-      CachedValueProvider.Result.create(bindingClasses, resourcesModifiedTracker)
+      CachedValueProvider.Result.create(bindingClasses, component, resourcesModifiedTracker)
     }
 
     allClassNamesCache = cachedValuesManager.createCachedValue {
-      CachedValueProvider.Result.create(ArrayUtil.toStringArray(lightBindingCache.value.keys), resourcesModifiedTracker)
+      CachedValueProvider.Result.create(ArrayUtil.toStringArray(lightBindingCache.value.keys), component, resourcesModifiedTracker)
     }
 
     methodsByNameCache = cachedValuesManager.createCachedValue {
@@ -73,7 +73,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
         .flatMap { psiClass -> psiClass.methods.asIterable() }
         .groupBy { method -> method.name }
 
-      CachedValueProvider.Result.create(allMethods, resourcesModifiedTracker)
+      CachedValueProvider.Result.create(allMethods, component, resourcesModifiedTracker)
     }
 
     fieldsByNameCache = cachedValuesManager.createCachedValue {
@@ -82,17 +82,17 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
         .flatMap { psiClass -> psiClass.fields.asIterable() }
         .groupBy { field -> field.name }
 
-      CachedValueProvider.Result.create(allFields, resourcesModifiedTracker)
+      CachedValueProvider.Result.create(allFields, component, resourcesModifiedTracker)
     }
 
     allMethodNamesCache = cachedValuesManager.createCachedValue {
       val names = methodsByNameCache.value.keys
-      CachedValueProvider.Result.create(names.toTypedArray(), resourcesModifiedTracker)
+      CachedValueProvider.Result.create(names.toTypedArray(), component, resourcesModifiedTracker)
     }
 
     allFieldNamesCache = cachedValuesManager.createCachedValue {
       val names = fieldsByNameCache.value.keys
-      CachedValueProvider.Result.create(names.toTypedArray(), resourcesModifiedTracker)
+      CachedValueProvider.Result.create(names.toTypedArray(), component, resourcesModifiedTracker)
     }
   }
 

@@ -71,7 +71,7 @@ val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(
  *
  * Example: text color of "Leak" button
  */
-val clickableTextColor = JBColor.namedColor("Content.clickable", JBColor(0x268bd2, 0x268bd2))
+val clickableTextColor = JBColor.namedColor("Content.clickable", JBColor(0x397FE4, 0x7CAEFE))
 
 /**
  * Background color for selected content.
@@ -82,18 +82,19 @@ val contentSelectionBackground = JBColor.namedColor("Content.selectionBackground
                                                     JBColor(Color(0x330478DA, true), Color(0x4C2395F5, true)))
 
 /**
+ * Background color for deselected content.
+ *
+ * Example: box selection in profilers.
+ */
+val contentDeselectionBackground = JBColor.namedColor("Content.selectionInactiveBackground",
+                                                      JBColor(Color(0x33121212, true), Color(0x33EDEDED, true)))
+
+/**
  * Background color for an active selection.
  *
  * Example: selected track in a track group.
  */
 val selectionBackground = JBColor.namedColor("List.selectionBackground", JBColor(0x4874D7, 0x1E67CE))
-
-/**
- * Foreground color for an active selection.
- *
- * Example: title label of a selected track in a track group.
- */
-val selectionForeground = JBColor.namedColor("List.selectionForeground", JBColor(0xFFFFFF, 0xFFFFFF))
 
 /**
  * Color of the underline when a intellij style tab is focused.

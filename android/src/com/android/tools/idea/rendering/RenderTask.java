@@ -29,6 +29,7 @@ import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
@@ -38,6 +39,7 @@ import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.ide.common.util.PathString;
 import com.android.resources.LayoutDirection;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
@@ -50,7 +52,6 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
@@ -60,8 +61,8 @@ import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.AssetRepositoryImpl;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -92,6 +93,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -172,6 +174,7 @@ public class RenderTask {
   private final List<CompletableFuture<?>> myRunningFutures = new LinkedList<>();
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
   @Nullable private XmlFile myXmlFile;
+  @NotNull private final Function<Module, MergedManifestSnapshot> myManifestProvider;
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
@@ -191,7 +194,8 @@ public class RenderTask {
              @Nullable ILayoutPullParserFactory parserFactory,
              boolean isSecurityManagerEnabled,
              float quality,
-             @NotNull AllocationStackTrace allocationStackTraceElement) {
+             @NotNull AllocationStackTrace allocationStackTraceElement,
+             @NotNull Function<Module, MergedManifestSnapshot> manifestProvider) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -227,6 +231,7 @@ public class RenderTask {
                                       renderService.getPlatform(facet));
     myDefaultQuality = quality;
     restoreDefaultQuality();
+    myManifestProvider = manifestProvider;
 
     allocationStackTraceElement.bind(this);
   }
@@ -537,6 +542,12 @@ public class RenderTask {
    */
   @Nullable
   private RenderResult createRenderSession(@NotNull IImageFactory factory) {
+    RenderTaskContext context = getContext();
+    Module module = context.getModule();
+    if (module.isDisposed()) {
+      return null;
+    }
+
     PsiFile psiFile = getXmlFile();
     if (psiFile == null) {
       throw new IllegalStateException("createRenderSession shouldn't be called on RenderTask without PsiFile");
@@ -545,7 +556,8 @@ public class RenderTask {
       return null;
     }
 
-    ResourceResolver resolver = ResourceResolver.copy(getContext().getConfiguration().getResourceResolver());
+    Configuration configuration = context.getConfiguration();
+    ResourceResolver resolver = ResourceResolver.copy(configuration.getResourceResolver());
     if (resolver == null) {
       // Abort the rendering if the resources are not found.
       return null;
@@ -560,23 +572,20 @@ public class RenderTask {
 
     if (modelParser instanceof LayoutPsiPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour.
-      boolean useSrcCompat = DependencyManagementUtil.dependsOn(getContext().getModule(), GoogleMavenArtifactId.APP_COMPAT_V7) ||
-                             DependencyManagementUtil.dependsOn(getContext().getModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
+      boolean useSrcCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7) ||
+                             DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
       ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
       myLayoutlibCallback.setAaptDeclaredResources(((LayoutPsiPullParser)modelParser).getAaptDeclaredAttrs());
     }
-
 
     ILayoutPullParser includingParser = getIncludingLayoutParser(resolver, modelParser);
     if (includingParser != null) {
       modelParser = includingParser;
     }
 
-    RenderTaskContext context = getContext();
-    IAndroidTarget target = context.getConfiguration().getTarget();
+    IAndroidTarget target = configuration.getTarget();
     int simulatedPlatform = target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0;
 
-    Module module = context.getModule();
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     SessionParams params =
         new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver,
@@ -600,9 +609,6 @@ public class RenderTask {
     // same session.
     params.setExtendedViewInfoMode(true);
 
-    MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(module);
-
-    Configuration configuration = context.getConfiguration();
     LayoutDirectionQualifier qualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
     if (qualifier != null && qualifier.getValue() == LayoutDirection.RTL && !getLayoutLib().isRtl(myLocale.toLocaleId())) {
       // We don't have a flag to force RTL regardless of locale, so just pick a RTL locale (note that
@@ -612,7 +618,8 @@ public class RenderTask {
       params.setLocale(myLocale.toLocaleId());
     }
     try {
-      params.setRtlSupport(manifestInfo.isRtlSupported());
+      @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+      params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
     } catch (Exception e) {
       // ignore.
     }
@@ -624,12 +631,17 @@ public class RenderTask {
     }
     else {
       try {
-        ResourceValue appLabel = manifestInfo.getApplicationLabel();
-        params.setAppIcon(manifestInfo.getApplicationIcon());
+        @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+        ResourceValue appLabel = manifestInfo != null
+                                 ? manifestInfo.getApplicationLabel()
+                                 : new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, "appName", "");
+        if (manifestInfo != null)  {
+          params.setAppIcon(manifestInfo.getApplicationIcon());
+        }
         String activity = configuration.getActivity();
         if (activity != null) {
           params.setActivityName(activity);
-          ActivityAttributesSnapshot attributes = manifestInfo.getActivityAttributes(activity);
+          ActivityAttributesSnapshot attributes = manifestInfo != null ? manifestInfo.getActivityAttributes(activity) : null;
           if (attributes != null) {
             if (attributes.getLabel() != null) {
               appLabel = attributes.getLabel();
@@ -664,7 +676,7 @@ public class RenderTask {
       myLayoutlibCallback.setLogger(myLogger);
 
       RenderSecurityManager securityManager =
-          isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getContext().getPlatform()) : null;
+          isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, context.getPlatform()) : null;
       if (securityManager != null) {
         securityManager.setActive(true, myCredential);
       }
@@ -1171,24 +1183,25 @@ public class RenderTask {
    *
    * @param tag the child to measure
    * @param filter the filter to apply to the attribute values
-   * @return a view info, if found
+   * @return a {@link CompletableFuture} that will return the {@link ViewInfo} if found.
    */
-  @Nullable
-  public ViewInfo measureChild(@NotNull XmlTag tag, @Nullable AttributeFilter filter) {
+  @NotNull
+  public CompletableFuture<ViewInfo> measureChild(@NotNull XmlTag tag, @Nullable AttributeFilter filter) {
     XmlTag parent = tag.getParentTag();
-    if (parent != null) {
-      // This should be asynchronous too
-      Map<XmlTag, ViewInfo> map = Futures.getUnchecked(measureChildren(parent, filter));
-      if (map != null) {
+    if (parent == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    return measureChildren(parent, filter)
+      .thenApply(map -> {
         for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
           if (entry.getKey() == tag) {
             return entry.getValue();
           }
         }
-      }
-    }
 
-    return null;
+        return null;
+      });
   }
 
   @Nullable
@@ -1216,11 +1229,8 @@ public class RenderTask {
     params.setLocale(myLocale.toLocaleId());
     params.setAssetRepository(myAssetRepository);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT, true);
-    MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(module);
-    try {
-      params.setRtlSupport(manifestInfo.isRtlSupported());
-    } catch (Exception ignore) {
-    }
+    @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+    params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
 
     try {
       myLayoutlibCallback.setLogger(myLogger);

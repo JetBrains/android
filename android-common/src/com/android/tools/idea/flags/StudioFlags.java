@@ -136,13 +136,6 @@ public final class StudioFlags {
     "For Android O or newer, allows users to configure the sampling mode of live allocation tracking",
     true);
 
-
-  public static final Flag<Boolean> PROFILER_USE_PERFETTO = Flag.create(
-    PROFILER, "perfetto", "Allows importing and recording of perfetto traces.",
-    "Toggles if we check for perfetto traces when importing. This also sets a flag on the agent config to toggle perfetto" +
-    "based recording on device.",
-    true);
-
   public static final Flag<Boolean> PROFILER_TRACK_JNI_REFS = Flag.create(
     PROFILER, "jni", "Enable JVMTI-based JNI reference tracking.",
     "For Android O or newer, JNI references are tracked in Memory Profiler and shown in JNI heap.",
@@ -168,6 +161,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_HEAPDUMP_SEPARATE = Flag.create(
     PROFILER, "memory.heapdump.separate", "Show heap dump separately",
     "Show heap dump as a separate view instead of sharing with the memory monitor",
+    false);
+
+  public static final Flag<Boolean> PROFILER_USE_TRACEPROCESSOR = Flag.create(
+    PROFILER, "perfetto.traceprocessor", "Enable TraceProcessorDaemon",
+    "Use TraceProcessor to parse Perfetto captures instead of Trebuchet/Atrace backend.",
     false);
   //endregion
 
@@ -398,18 +396,32 @@ public final class StudioFlags {
     "Supports Install-without-Install, Speculative Diff and Structural Redefinition",
     true);
 
+  public static final Flag<Boolean> APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP = Flag.create(
+    RUNDEBUG,
+    "applychanges.optimisticresourceswap",
+    "Use the 'Apply Changes 2.0' deployment pipeline for full Apply Changes",
+    "Requires applychanges.optimisticswap to be true.",
+    false);
+
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
     RUNDEBUG,
     "applychanges.structuralredefinition",
     "Use ART's new structural redefinition extension for Apply Changes.",
     "Requires applychanges.optimisticswap to be true.",
-    false);
+    true);
 
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
     RUNDEBUG,
     "select.device.snapshot.combo.box.snapshots.enabled",
     "Enable Select Device/Snapshot combo box snapshots",
     "So the new Instant Run can use the combo box",
+    false);
+
+  public static final Flag<Boolean> ADB_CONNECTION_STATUS_ACTION_VISIBLE = Flag.create(
+    RUNDEBUG,
+    "adb.connection.status.action.visible",
+    "Show the adb connection status icon",
+    "To help developers with a remote adb setup",
     false);
 
   /**
@@ -581,10 +593,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> LLDB_ASSEMBLY_DEBUGGING = Flag.create(
     NDK, "debugging.assembly", "Enable assembly debugging",
     "If enabled, frames without sources will show the assembly of the function and allow breakpoints to be set there", false);
-
-  public static final Flag<Boolean> ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT = Flag.create(
-    NDK, "enhancednativeheadersupport", "Enable enhanced native header support",
-    "If enabled, project system view will show a new include node with organized header files", true);
 
   public static final Flag<Boolean> APK_DEBUG_BUILD_ID_CHECK = Flag.create(
     NDK, "apkdebugbuildidcheck", "Enable build ID check in APK debugging",
@@ -783,6 +791,12 @@ public final class StudioFlags {
     COMPOSE, "preview.run.configuration", "Enable running Compose Previews on device/emulator",
     "If enabled, it will be possible to create run configurations that launch a Compose Preview directly to the device/emulator.",
     true);
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_DOUBLE_RENDER = Flag.create(
+    COMPOSE, "preview.double.render", "Enable the Compose double render mode",
+    "If enabled, preview components will be rendered twice so components depending on a recompose (like tableDecoration) " +
+    "render correctly.",
+    false);
 
   public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
     COMPOSE, "editor",

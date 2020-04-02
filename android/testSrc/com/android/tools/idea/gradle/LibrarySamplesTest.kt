@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle
 
+import com.android.builder.model.SyncIssue
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
@@ -48,7 +50,10 @@ class LibrarySamplesTest : AndroidGradleTestCase() {
     File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.REPO_FOR_SAMPLES_ARTIFACT_TEST)))
 
   fun testDownloadingAndAttachingSamples() {
-    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
+    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES) {
+      // ignore missing manifest errors
+      it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
+    }
 
     val libraryFilePaths = LibraryFilePaths.getInstance(myFixture.project)
     // Pass empty path as library path to make sure that sample sources are from maven, not from local directory.
@@ -62,7 +67,10 @@ class LibrarySamplesTest : AndroidGradleTestCase() {
   }
 
   fun testResolveSampleReference() {
-    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
+    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES) {
+      // ignore missing manifest errors
+      it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
+    }
 
     val file = VfsUtil.findFile(Paths.get(project.basePath, "/app/src/main/java/com/example/appforsamplestest/Main.kt"), false)
     assume().that(file).isNotNull()

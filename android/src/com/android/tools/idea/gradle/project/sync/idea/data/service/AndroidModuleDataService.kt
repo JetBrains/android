@@ -15,20 +15,39 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service
 
+import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.ProjectStructure
+import com.android.tools.idea.gradle.project.RunConfigurationChecker
+import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker
+import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetup
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
+import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.recommendPluginUpgrade
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.shouldRecommendPluginUpgrade
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
+import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
+import com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.compiler.options.CompileStepBeforeRun
+import com.intellij.execution.BeforeRunTask
+import com.intellij.execution.BeforeRunTaskProvider
+import com.intellij.execution.RunManagerEx
+import com.intellij.execution.RunnerAndConfigurationSettings
+import com.intellij.execution.configurations.ConfigurationType
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.project.ProjectData
@@ -41,7 +60,11 @@ import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
+import org.jetbrains.jps.model.serialization.PathMacroUtil
 import java.io.File
+import java.util.ArrayList
+import java.util.HashMap
+import java.util.LinkedList
 import java.util.concurrent.TimeUnit
 
 /**
@@ -98,12 +121,29 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
                                projectData: ProjectData?,
                                project: Project,
                                modelsProvider: IdeModelsProvider) {
+    ModuleSetupContext.removeSyncContextDataFrom(project)
+
+    GradleProjectInfo.getInstance(project).isNewProject = false
+    GradleProjectInfo.getInstance(project).isImportedProject = false
+
     if (shouldRecommendPluginUpgrade(project)) recommendPluginUpgrade(project)
 
     MemorySettingsPostSyncChecker
       .checkSettings(project, TimeBasedReminder(project, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)))
 
     ProjectStructureUsageTracker(project).trackProjectStructure()
+
+    SupportedModuleChecker.getInstance().checkForSupportedModules(project);
+
+    findConflicts(project).showSelectionConflicts()
+    ProjectSetup(project).setUpProject(false /* sync successful */)
+
+    modifyJUnitRunConfigurations(project)
+    RunConfigurationChecker.getInstance(project).ensureRunConfigsInvokeBuild()
+
+    ProjectStructure.getInstance(project).analyzeProjectStructure()
+
+    setUpModules(project)
   }
 }
 
@@ -168,4 +208,59 @@ private fun relativePath(basePath: File, file: File?) : String {
     return SEPARATOR + toSystemIndependentName(relativePath)
   }
   return ""
+}
+
+// TODO: Find a better place for this method.
+private fun modifyJUnitRunConfigurations(project: Project) {
+  val junitConfigurationType: ConfigurationType = AndroidJUnitConfigurationType.getInstance()
+  val taskProviders = BeforeRunTaskProvider.EXTENSION_POINT_NAME.getExtensions(project)
+  val runManager = RunManagerEx.getInstanceEx(project)
+  // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
+  // For IDEA, use regular "Make".
+  val makeTaskId = if (IdeInfo.getInstance().isAndroidStudio) MakeBeforeRunTaskProvider.ID else CompileStepBeforeRun.ID
+  val targetProvider: BeforeRunTaskProvider<*>? = taskProviders.first { it.id == makeTaskId }
+
+  if (targetProvider != null) {
+    // Store current before run tasks in each configuration to reset them after modifying the template, since modifying
+    val currentTasks = runManager.getConfigurationsList(junitConfigurationType).associateWith { runManager.getBeforeRunTasks(it) }
+    // Fix the "JUnit Run Configuration" templates.
+    for (configurationFactory in junitConfigurationType.configurationFactories) {
+      val template: RunnerAndConfigurationSettings = runManager.getConfigurationTemplate(configurationFactory)
+      val runConfiguration = template.configuration as AndroidJUnitConfiguration
+      // Set the correct "Make step" in the "JUnit Run Configuration" template.
+      setMakeStepInJUnitConfiguration(project, targetProvider, runConfiguration)
+      runConfiguration.workingDirectory = "$" + PathMacroUtil.MODULE_DIR_MACRO_NAME + "$"
+    }
+    // Fix existing JUnit Configurations.
+    for (runConfiguration in runManager.getConfigurationsList(junitConfigurationType)) {
+      // Keep the previous configurations in existing run configurations
+      runManager.setBeforeRunTasks(runConfiguration, currentTasks[runConfiguration]!!)
+    }
+  }
+}
+
+// TODO: Find a better place for this method.
+private fun setMakeStepInJUnitConfiguration(
+  project: Project,
+  targetProvider: BeforeRunTaskProvider<*>,
+  runConfiguration: RunConfiguration
+) {
+  // Only "make" steps of beforeRunTasks should be overridden (see http://b.android.com/194704 and http://b.android.com/227280)
+  val newBeforeRunTasks: MutableList<BeforeRunTask<*>> = LinkedList()
+  val runManager = RunManagerEx.getInstanceEx(project)
+  for (beforeRunTask in runManager.getBeforeRunTasks(runConfiguration)) {
+    if (beforeRunTask.providerId == CompileStepBeforeRun.ID) {
+      if (runManager.getBeforeRunTasks(runConfiguration, MakeBeforeRunTaskProvider.ID).isEmpty()) {
+        val task = targetProvider.createTask(runConfiguration)
+        if (task != null) {
+          task.isEnabled = true
+          newBeforeRunTasks.add(task)
+        }
+      }
+    }
+    else {
+      newBeforeRunTasks.add(beforeRunTask)
+    }
+  }
+  runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks)
 }

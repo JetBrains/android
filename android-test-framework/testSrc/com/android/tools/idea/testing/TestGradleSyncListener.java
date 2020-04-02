@@ -15,20 +15,12 @@
  */
 package com.android.tools.idea.testing;
 
-import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.utils.TraceUtils.getCurrentStack;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
-import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

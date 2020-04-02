@@ -16,10 +16,12 @@
 package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuThreadInfo
+import com.android.tools.profilers.cpu.MainProcessSelector
 import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -27,7 +29,7 @@ import org.junit.Test
 
 class AtraceParserTest {
 
-  val myParser = AtraceParser(TEST_PID)
+  val myParser = AtraceParser(MainProcessSelector(idHint = TEST_PID))
   lateinit var myCapture: CpuCapture
 
   @Before
@@ -138,7 +140,7 @@ class AtraceParserTest {
     val tailOfListExpected = arrayOf(CpuThreadInfo(1404, "<1404>"),
                                      CpuThreadInfo(2732, "<2732>"),
                                      CpuThreadInfo(2713, "<2713>"))
-    val parser = AtraceParser("")
+    val parser = AtraceParser()
     parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
 
     val processes = parser.getProcessList("")
@@ -159,7 +161,7 @@ class AtraceParserTest {
 
   @Test
   fun hintedProcessName_NoHintAlphabetical() {
-    val parser = AtraceParser(0)
+    val parser = AtraceParser()
     parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
 
     val processes = parser.getProcessList("")
@@ -168,7 +170,7 @@ class AtraceParserTest {
 
   @Test
   fun hintedProcessName_NoMatchingNameStillAlphabetical() {
-    val parser = AtraceParser(0)
+    val parser = AtraceParser()
     parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
 
     val processes = parser.getProcessList("something.crazy.nothing.matches")
@@ -177,7 +179,7 @@ class AtraceParserTest {
 
   @Test
   fun hintedProcessName_SubstringMatches() {
-    val parser = AtraceParser(0)
+    val parser = AtraceParser()
     parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
 
 
@@ -187,7 +189,7 @@ class AtraceParserTest {
 
   @Test
   fun hintedProcessName_ExactString() {
-    val parser = AtraceParser(0)
+    val parser = AtraceParser()
     parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
 
     val processes = parser.getProcessList("atrace")
@@ -196,14 +198,14 @@ class AtraceParserTest {
 
   @Test
   fun settingSelectedProcessReturnsParseWithThatProesssId() {
-    val parser = AtraceParser(0)
+    val parser = AtraceParser()
     val parsedFile = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
     assertThat(parsedFile.mainThreadId).isEqualTo(parser.getProcessList("")[0].id)
   }
 
   @Test
   fun processNameThatWouldBePidUsesThreadNameInstead() {
-    val parser = AtraceParser(0)
+    val parser = AtraceParser()
     parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
 
     val info = parser.getProcessList(".gms.persistent")[0]
@@ -212,7 +214,7 @@ class AtraceParserTest {
 
   @Test
   fun missingDataCaptureReturnsMissingdata() {
-    val parser = AtraceParser(0)
+    val parser = AtraceParser()
     parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0)
 
     assertThat(parser.isMissingData).isTrue()
@@ -220,7 +222,7 @@ class AtraceParserTest {
 
   @Test
   fun perfettoCaptureGetsProcessList() {
-    val parser = AtraceParser(0)
+    val parser = AtraceParser(Cpu.CpuTraceType.PERFETTO, MainProcessSelector())
     parser.parse(CpuProfilerTestUtils.getTraceFile("perfetto.trace"), 0)
 
     assertThat(parser.getProcessList("")).isNotEmpty()

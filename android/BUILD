@@ -167,6 +167,7 @@ iml_module(
         "//tools/idea/plugins/terminal:intellij.terminal[module]",
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+        "//tools/adt/idea/dagger:intellij.android.dagger[module]",
     ],
 )
 
@@ -186,41 +187,42 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.structure",
         },
         "gradle.structure.configurables.variables.VariablesTableTest": {
+            # Takes too long (b/152650494)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.structure.configurables.variables.VariablesTableTest",
         },
         "gradle.structure.model.DependencyManagementTest": {
-            # Path separators (b/151462469)
+            # Path separators in map keys (b/151462469)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.structure.model.DependencyManagementTest",
         },
         "gradle.structure.configurables.dependencies.treeview": {
-            # Path separators
+            # Path separators e.g. (..\lib) (b/152560457)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.structure.configurables.dependencies.treeview",
         },
         "gradle.structure.model.android": {
             "shard_count": 2,
-            # Timeout waiting to lock Artifact transforms cache
+            # Timeout waiting to lock Artifact transforms cache (b/152652501)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.structure.model.android",
         },
         "gradle.project.sync": {
             "shard_count": 5,
             "data": ["//prebuilts/studio/sdk:ndk"],
-            # Mismatches from ProjectDumper (b/150709248), and sync errors with C compiler
+            # Mismatches from ProjectDumper (b/150709248), and sync errors/timeout (b/152778663)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.project.sync",
         },
         "gradle.project.model.NdkModuleModelTest.testVariantAbiNames": {
             "data": ["//prebuilts/studio/sdk:ndk"],
-            # Sync issues
+            # Sync error with cmake (b/152814925)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.project.model.NdkModuleModelTest.testVariantAbiNames",
         },
         "gradle.variant.view.BuildVariantUpdaterIntegTest": {
             "data": ["//prebuilts/studio/sdk:ndk"],
-            # Sync issues
+            # Sync error with cmake (b/152814925)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.variant.view.BuildVariantUpdaterIntegTest",
         },
@@ -448,6 +450,7 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
+        "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
     ],
 )
 

@@ -23,10 +23,12 @@ import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler
 import com.android.fakeadbserver.devicecommandhandlers.ddmsHandlers.FeaturesHandler
+import com.android.testutils.MockitoKt.eq
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.FpsTimer
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
+import com.android.tools.idea.layoutinspector.legacydevice.LegacyTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
@@ -49,6 +51,9 @@ import com.intellij.openapi.project.Project
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 import java.net.Socket
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -56,31 +61,38 @@ import java.util.concurrent.TimeUnit
 val DEFAULT_PROCESS = Common.Process.newBuilder().apply {
   name = "myProcess"
   pid = 12345
-  deviceId = 1234
+  deviceId = 123456
   state = Common.Process.State.ALIVE
 }.build()!!
 
 val DEFAULT_DEVICE = Common.Device.newBuilder().apply {
-  deviceId = 1234
+  deviceId = 123456
   model = "My Model"
   manufacturer = "Google"
-  serial = "1234"
+  serial = "123456"
   featureLevel = 29
   state = Common.Device.State.ONLINE
 }.build()!!
 
 val LEGACY_DEVICE = Common.Device.newBuilder().apply {
-  deviceId = 1234
+  deviceId = 123488
   model = "My Legacy Model"
   manufacturer = "Google"
-  serial = "1234"
-  apiLevel = 27
+  serial = "123488"
+  featureLevel = 27
   state = Common.Device.State.ONLINE
 }.build()!!
 
 val DEFAULT_STREAM = Common.Stream.newBuilder().apply {
   device = DEFAULT_DEVICE
-  streamId = 1111
+  streamId = 123456
+  type = Common.Stream.Type.DEVICE
+}.build()!!
+
+val LEGACY_STREAM = Common.Stream.newBuilder().apply {
+  device = LEGACY_DEVICE
+  streamId = 123488
+  type = Common.Stream.Type.DEVICE
 }.build()!!
 
 /**
@@ -185,7 +197,7 @@ class LayoutInspectorTransportRule(
   /**
    * Create a [LegacyClient] rather than a [DefaultInspectorClient]
    */
-  fun withLegacyClient() = apply { inspectorClientFactory = { LegacyClient(project) } }
+  fun withLegacyClient() = apply { inspectorClientFactory = { LegacyClient(projectRule.fixture.projectDisposable) } }
 
   /**
    * The default attach handler just attaches (or fails if [shouldConnectSuccessfully] is false). Use this if you want to do something else.
@@ -206,19 +218,46 @@ class LayoutInspectorTransportRule(
       }
       else if (inspectorClient is LegacyClient) {
         addProcess(LEGACY_DEVICE, DEFAULT_PROCESS)
-        inspectorClient.loadProcesses()
       }
     }
     if (connected) {
         beforeActions.add {
-          inspectorClient.attach(DEFAULT_STREAM, DEFAULT_PROCESS)
-          if (inspectorClient is DefaultInspectorClient) {
+          if (inspectorClient is LegacyClient) {
+            attachTo(LEGACY_STREAM, DEFAULT_PROCESS)
+          }
+          else {
+            inspectorClient.attach(DEFAULT_STREAM, DEFAULT_PROCESS)
             advanceTime(1100, TimeUnit.MILLISECONDS)
             waitForStart()
             transportService.addEventToStream(DEFAULT_STREAM.streamId, createComponentTreeEvent(initialRoot))
             advanceTime(1100, TimeUnit.MILLISECONDS)
           }
         }
+    }
+  }
+
+  /**
+   * Use this method to attach instead of calling InspectorClient.attach directly.
+   *
+   * This is because the known streams and processes may be generated different by the [LegacyClient]
+   * and the attach will fail unless the known instances are used.
+   */
+  fun attachTo(stream: Common.Stream, process: Common.Process) {
+    if (inspectorClient is LegacyClient) {
+      val client = inspectorClient as LegacyClient
+      val loader = mock(LegacyTreeLoader::class.java)
+      `when`(loader.getAllWindowIds(any(), eq(client))).thenReturn(listOf("window1", "window2"))
+      client.treeLoader = loader
+
+      val serial = stream.device.serial
+      val knownStream = inspectorClient.getStreams()
+                          .firstOrNull { it.device.serial == serial } ?: error("Device not found: $serial")
+      val knownProcess = inspectorClient.getProcesses(knownStream)
+                           .firstOrNull { it.pid == process.pid } ?: error("Process not found: ${process.pid}")
+      inspectorClient.attach(knownStream, knownProcess)
+    }
+    else {
+      inspectorClient.attach(stream, process)
     }
   }
 
@@ -254,14 +293,14 @@ class LayoutInspectorTransportRule(
    */
   fun addProcess(device: Common.Device, process: Common.Process) {
     val deviceState = adbRule.attachDevice(device.deviceId.toString(), device.manufacturer, device.model, device.version,
-                                           device.apiLevel.toString(), DeviceState.HostConnectionType.USB)
+                                           device.featureLevel.toString(), DeviceState.HostConnectionType.USB)
     val uid = System.currentTimeMillis().toInt()
     deviceState.startClient(process.pid, uid, process.name, "${process.name}.com.example.myapplication", true)
-    waitUntilProcessIsAvailable(device, process)
     if (device.featureLevel >= 29) {
       transportService.addDevice(device)
       transportService.addProcess(device, process)
     }
+    waitUntilProcessIsAvailable(device, process)
   }
 
   private fun waitUntilProcessIsAvailable(device: Common.Device, process: Common.Process) {
@@ -275,9 +314,8 @@ class LayoutInspectorTransportRule(
   }
 
   private fun isProcessAvailable(device: Common.Device, process: Common.Process): Boolean {
-    val bridge = AndroidDebugBridge.getBridge()!!
-    val iDevice = bridge.devices.first { it.serialNumber == device.serial } ?: return false
-    return iDevice.clients.any { it.clientData.pid == process.pid && it.clientData.hasFeature(ClientData.FEATURE_VIEW_HIERARCHY) }
+    val stream = inspectorClient.getStreams().find { it.device.serial == device.serial } ?: return false
+    return inspectorClient.getProcesses(stream).find { it.pid == process.pid } != null
   }
 
   override fun apply(base: Statement, description: Description): Statement {
@@ -304,6 +342,7 @@ class LayoutInspectorTransportRule(
       InspectorClient.clientFactory = { _, _ -> inspectorClient }
     }
     inspector = LayoutInspector(inspectorModel, project)
+    inspector.currentClient = inspectorClient
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
     beforeActions.forEach { it() }

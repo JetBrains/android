@@ -16,9 +16,11 @@
 package com.android.tools.idea.tests.gui.framework.fixture.mlmodels;
 
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import javax.swing.JRootPane;
 import javax.swing.JTextField;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +35,13 @@ public class ChooseMlModelStepFixture
   public ChooseMlModelStepFixture enterModelPath(String modelPath) {
     TextFieldWithBrowseButton panel = robot().finder().findByType(target(), TextFieldWithBrowseButton.class);
     new JTextComponentFixture(robot(), robot().finder().findByType(panel, JTextField.class)).setText(modelPath);
+    return this;
+  }
+
+  @NotNull
+  public ChooseMlModelStepFixture enterFlavor(String flavor) {
+    ComboBox favorBox = robot().finder().findByType(target(), ComboBox.class);
+    new JComboBoxFixture(robot(), favorBox).selectItem(flavor);
     return this;
   }
 }

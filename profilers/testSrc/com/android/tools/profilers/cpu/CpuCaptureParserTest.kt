@@ -160,28 +160,48 @@ class CpuCaptureParserTest {
   }
 
   @Test
-  fun traceTypeInferredFromUnspecified() {
+  fun traceTypeInferredFromMissingType_SimplePerf() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("simpleperf.trace")
     val futureCapture = parser.parseForTest(traceFile, idHint = ProfilersTestData.SESSION_DATA.pid)
 
     // Parsing should create a valid CpuCapture object
-    checkValidCapture(futureCapture.get())
+    val capture = futureCapture.get()
+    checkValidCapture(capture)
+    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF)
 
     // getCapture(traceId) should return the same object created by calling parse.
     assertThat(parser.getCapture(ANY_TRACE_ID)).isEqualTo(futureCapture)
   }
 
   @Test
-  fun traceTypeInferredFromMissingType() {
+  fun traceTypeInferredFromMissingType_Atrace() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
 
-    val traceFile = CpuProfilerTestUtils.getTraceFile("simpleperf.trace")
+    val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
     val futureCapture = parser.parseForTest(traceFile, idHint = ProfilersTestData.SESSION_DATA.pid)
 
     // Parsing should create a valid CpuCapture object
-    checkValidCapture(futureCapture.get())
+    val capture = futureCapture.get()
+    checkValidCapture(capture)
+    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.ATRACE)
+
+    // getCapture(traceId) should return the same object created by calling parse.
+    assertThat(parser.getCapture(ANY_TRACE_ID)).isEqualTo(futureCapture)
+  }
+
+  @Test
+  fun traceTypeInferredFromMissingType_Perfetto() {
+    val parser = CpuCaptureParser(FakeIdeProfilerServices())
+
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
+    val futureCapture = parser.parseForTest(traceFile, idHint = ProfilersTestData.SESSION_DATA.pid)
+
+    // Parsing should create a valid CpuCapture object
+    val capture = futureCapture.get()
+    checkValidCapture(capture)
+    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.PERFETTO)
 
     // getCapture(traceId) should return the same object created by calling parse.
     assertThat(parser.getCapture(ANY_TRACE_ID)).isEqualTo(futureCapture)
@@ -253,7 +273,6 @@ class CpuCaptureParserTest {
   @Test
   fun parsingPerfetto_userCancelDialog() {
     val services = FakeIdeProfilerServices()
-    services.enablePerfetto(true)
     services.setListBoxOptionsIndex(-1) // Assume the user canceled the dialog.
     val parser = CpuCaptureParser(services)
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
@@ -275,7 +294,6 @@ class CpuCaptureParserTest {
   @Test
   fun parsingPerfetto_userSelectFirst() {
     val services = FakeIdeProfilerServices()
-    services.enablePerfetto(true)
     services.setListBoxOptionsIndex(0)
 
     val parser = CpuCaptureParser(services)
@@ -297,7 +315,6 @@ class CpuCaptureParserTest {
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
     // Try to parse the file, assume the user canceled the dialog. If the dialog is shown.
     services.setListBoxOptionsIndex(-1)
-    services.enablePerfetto(true)
     val futureCapture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID, nameHint = "surfaceflinger")
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     val capture = futureCapture.get()
@@ -413,6 +430,19 @@ class CpuCaptureParserTest {
     parser.parseForTest(
       CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), traceId = 100, idHint = 33).get()
     assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNull()
+  }
+
+  @Test
+  fun importedTracesAreNotCached() {
+    CpuCaptureParser.clearPreviouslyLoadedCaptures()
+    val parser = CpuCaptureParser(FakeIdeProfilerServices())
+
+    val traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace")
+
+    val firstFuture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID)
+    assertThat(parser.getCapture(CpuCaptureParser.IMPORTED_TRACE_ID)).isNull()
+    val secondFuture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID)
+    assertThat(firstFuture).isNotSameAs(secondFuture)
   }
 
   /**

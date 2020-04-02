@@ -59,8 +59,6 @@ class AppInspectionProcessesComboBoxModelTest {
   @get:Rule
   val timeoutRule = Timeout(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
 
-  private val api29Device = FakeTransportService.FAKE_DEVICE.toBuilder().setApiLevel(29).build()
-
   init {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, ATTACH_HANDLER)
   }
@@ -73,7 +71,7 @@ class AppInspectionProcessesComboBoxModelTest {
     val addedLatch = CountDownLatch(1)
     val removedLatch = CountDownLatch(1)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost, emptyList())
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { emptyList() }
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -87,19 +85,19 @@ class AppInspectionProcessesComboBoxModelTest {
     })
 
     // Attach to a fake process.
-    transportService.addDevice(api29Device)
-    transportService.addProcess(api29Device, FakeTransportService.FAKE_PROCESS)
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     addedLatch.await()
 
     // Verify the added target.
     assertThat(model.size).isEqualTo(1)
     with(model.getElementAt(0)) {
-      assertThat(this.model).isEqualTo(api29Device.model)
+      assertThat(this.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
       assertThat(this.processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
     }
 
     // Remove the fake process.
-    transportService.addProcess(api29Device, FakeTransportService.FAKE_OFFLINE_PROCESS)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_OFFLINE_PROCESS)
     removedLatch.await()
 
     // Verify the empty model list.
@@ -113,7 +111,7 @@ class AppInspectionProcessesComboBoxModelTest {
 
     val addedLatch = CountDownLatch(2)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost, listOf("preferred"))
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { listOf("preferred") }
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -129,11 +127,11 @@ class AppInspectionProcessesComboBoxModelTest {
     val preferredProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setName("preferred").setPid(101).build()
 
     // Launch non-preferred process
-    transportService.addDevice(api29Device)
-    transportService.addProcess(api29Device, nonPreferredProcess)
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, nonPreferredProcess)
 
     // Launch preferred process
-    transportService.addProcess(api29Device, preferredProcess)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, preferredProcess)
 
     addedLatch.await()
 
@@ -154,7 +152,7 @@ class AppInspectionProcessesComboBoxModelTest {
 
     val processReadyLatch = CountDownLatch(2)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost, emptyList())
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { listOf("A", "B") }
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -169,14 +167,84 @@ class AppInspectionProcessesComboBoxModelTest {
     val processB = FakeTransportService.FAKE_PROCESS.toBuilder().setName("B").setPid(101).build()
 
     // Launch process A
-    transportService.addDevice(api29Device)
-    transportService.addProcess(api29Device, processA)
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, processA)
 
     // Launch process B
-    transportService.addProcess(api29Device, processB)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, processB)
     processReadyLatch.await()
 
     // Verify combobox's selection is set to the first process (A)
     assertThat((model.selectedItem as ProcessDescriptor).processName).isEqualTo("A")
+  }
+
+  @Test
+  fun noPreferredProcesses_noSelection() {
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+
+    val processReadyLatch = CountDownLatch(1)
+
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { emptyList() }
+    model.addListDataListener(object : ListDataListener {
+      override fun contentsChanged(e: ListDataEvent?) {}
+
+      override fun intervalRemoved(e: ListDataEvent?) {}
+
+      override fun intervalAdded(e: ListDataEvent?) {
+        processReadyLatch.countDown()
+      }
+    })
+
+    val process = FakeTransportService.FAKE_PROCESS.toBuilder().setName("A").setPid(100).build()
+
+    // Launch process
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, process)
+
+    processReadyLatch.await()
+
+    // Verify combobox's selection is set to No Process Selected.
+    assertThat(model.selectedItem).isEqualTo("No Process Selected")
+  }
+
+  @Test
+  fun noInspectionTargetAvailable() {
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+
+    val processReadyLatch = CountDownLatch(1)
+    val processRemovedLatch = CountDownLatch(1)
+
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { emptyList() }
+    model.addListDataListener(object : ListDataListener {
+      override fun contentsChanged(e: ListDataEvent?) {}
+
+      override fun intervalRemoved(e: ListDataEvent?) {
+        processRemovedLatch.countDown()
+      }
+
+      override fun intervalAdded(e: ListDataEvent?) {
+        processReadyLatch.countDown()
+      }
+    })
+
+    // Verify combobox's selection is set to the correct text.
+    assertThat(model.selectedItem).isEqualTo("No Inspection Target Available")
+
+    val process = FakeTransportService.FAKE_PROCESS.toBuilder().setName("A").setPid(100).build()
+    val deadProcess = process.toBuilder().setState(Common.Process.State.DEAD).build()
+
+    // Launch process
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, process)
+    processReadyLatch.await()
+
+    // Remove the process
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, deadProcess)
+    processRemovedLatch.await()
+
+    // Verify combobox's selection is set to the correct text.
+    assertThat(model.selectedItem).isEqualTo("No Inspection Target Available")
   }
 }

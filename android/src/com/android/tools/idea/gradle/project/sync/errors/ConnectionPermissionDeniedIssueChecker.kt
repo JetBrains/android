@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.ide.BrowserUtil
@@ -40,23 +41,28 @@ class ConnectionPermissionDeniedIssueChecker: GradleIssueChecker {
       updateUsageTracker(issueData.projectPath, CONNECTION_DENIED)
     }
 
-    val openLinkQuickFix = OpenLinkQuickFix("https://developer.android.com/studio/troubleshoot.html#project-sync")
+    val description = MessageComposer(message).apply {
+      addQuickFix("More details (and potential fix)",
+                  OpenLinkQuickFix("https://developer.android.com/studio/troubleshoot.html#project-sync"))
+    }
     return object : BuildIssue {
       override val title: String = "Connection to the Internet denied."
-      override val description: String = buildString {
-        appendln(message)
-        appendln("\n <a href=\"${openLinkQuickFix.id}\">More details (and potential fix)</a>")
-      }
-      override val quickFixes: List<BuildIssueQuickFix> = listOf(openLinkQuickFix)
+      override val description: String = description.buildMessage()
+      override val quickFixes: List<BuildIssueQuickFix> = description.quickFixes
       override fun getNavigatable(project: Project): Navigatable?  = null
     }
   }
 
   class OpenLinkQuickFix(val link: String) : BuildIssueQuickFix {
-    override val id = "OPEN_MORE_DETAILS"
+    override val id = "open.more.details"
     override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      BrowserUtil.browse(link)
-      return CompletableFuture.completedFuture<Any>(null)
+      val future = CompletableFuture<Any>()
+
+      invokeLater {
+        BrowserUtil.browse(link)
+        future.complete(null)
+      }
+      return future
     }
   }
 }

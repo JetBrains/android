@@ -61,7 +61,7 @@ class CpuKernelTooltipViewTest {
     myFakeTransportService.addProcess(device, Common.Process.newBuilder().setDeviceId(1).setPid(1).build())
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), timer)
     myStage = CpuProfilerStage(profilers)
-    myCapture = AtraceParser(1).parse(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE), 0)
+    myCapture = AtraceParser(MainProcessSelector(idHint = 1)).parse(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE), 0)
     myStage.capture = myCapture
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     profilers.stage = myStage

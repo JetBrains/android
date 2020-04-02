@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
+import com.android.builder.model.SyncIssue
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.asParsed
@@ -98,8 +99,6 @@ abstract class GradleSyncProjectComparisonTest(
 
   class SingleVariantGradleSyncProjectComparisonTest :
     GradleSyncProjectComparisonTestCase(singleVariantSync = true) {
-    /** TODO(b/124504437): Enable this test */
-    override fun testNdkProjectSync() = Unit
   }
 
   abstract class GradleSyncProjectComparisonTestCase(singleVariantSync: Boolean = false
@@ -133,7 +132,10 @@ abstract class GradleSyncProjectComparisonTest(
 
     // See https://code.google.com/p/android/issues/detail?id=76444
     fun testWithEmptyGradleSettingsFileInSingleModuleProject() {
-      val text = importSyncAndDumpProject(BASIC) { createEmptyGradleSettingsFile() }
+      val text = importSyncAndDumpProject(
+        projectDir = BASIC,
+        patch = { createEmptyGradleSettingsFile() }
+      )
       assertIsEqualToSnapshot(text)
     }
 
@@ -161,7 +163,10 @@ abstract class GradleSyncProjectComparisonTest(
     fun testExternalSourceSets() {
       val projectRootPath = prepareProjectForImport(NON_STANDARD_SOURCE_SETS)
       val request = GradleSyncInvoker.Request.testRequest(true);
-      AndroidGradleTests.importProject(project, request)
+      AndroidGradleTests.importProject(project, request) {
+        // ignore missing manifest errors
+        it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
+      }
 
       val text = project.saveAndDump(
         mapOf("EXTERNAL_SOURCE_SET" to File(projectRootPath.parentFile, "externalRoot"),
@@ -172,12 +177,12 @@ abstract class GradleSyncProjectComparisonTest(
 
     // See https://code.google.com/p/android/issues/detail?id=74259
     fun testWithCentralBuildDirectoryInRootModuleDeleted() {
-      val text = importSyncAndDumpProject(CENTRAL_BUILD_DIRECTORY) { projectRootPath ->
+      val text = importSyncAndDumpProject(CENTRAL_BUILD_DIRECTORY, { projectRootPath ->
         // The bug appears only when the central build folder does not exist.
         val centralBuildDirPath = File(projectRootPath, join("central", "build"))
         val centralBuildParentDirPath = centralBuildDirPath.parentFile
         FileUtil.delete(centralBuildParentDirPath)
-      }
+      })
       assertIsEqualToSnapshot(text)
     }
 
@@ -316,6 +321,11 @@ abstract class GradleSyncProjectComparisonTest(
       assertIsEqualToSnapshot(text)
     }
 
+    fun testKapt() {
+      val text = importSyncAndDumpProject(TestProjectPaths.KOTLIN_KAPT)
+      assertIsEqualToSnapshot(text)
+    }
+
     fun testSwitchingVariants_simpleApplication() {
       val debugBefore = importSyncAndDumpProject(SIMPLE_APPLICATION)
       BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release", true)
@@ -329,6 +339,7 @@ abstract class GradleSyncProjectComparisonTest(
       )
     }
 
+    // Disabled due to b/151845330
     fun testReimportSimpleApplication() {
       var root: String? = null
       val before = openGradleProject(SIMPLE_APPLICATION, "project") { project ->
@@ -418,7 +429,13 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     fun testApiDependency() {
-      val text = importSyncAndDumpProject(TestProjectPaths.API_DEPENDENCY)
+      val text = importSyncAndDumpProject(
+        projectDir = TestProjectPaths.API_DEPENDENCY,
+        issueFilter = AndroidGradleTests.SyncIssueFilter {
+          // ignore missing manifest errors
+          it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
+        }
+      )
       assertIsEqualToSnapshot(text)
     }
   }
@@ -432,11 +449,15 @@ abstract class GradleSyncProjectComparisonTest(
 
   private lateinit var ideComponents: IdeComponents
 
-  protected fun importSyncAndDumpProject(projectDir: String, patch: ((projectRootPath: File) -> Unit)? = null): String {
+  protected fun importSyncAndDumpProject(
+    projectDir: String,
+    patch: ((projectRootPath: File) -> Unit)? = null,
+    issueFilter: AndroidGradleTests.SyncIssueFilter? = null
+  ): String {
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
     // In order to display all the information we are interested in we need to force creation of missing content roots.
-    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest(true))
+    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest(true), issueFilter)
     return project.saveAndDump()
   }
 

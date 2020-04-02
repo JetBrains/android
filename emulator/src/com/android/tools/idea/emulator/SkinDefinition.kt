@@ -23,6 +23,7 @@ import com.android.emulator.control.Rotation.SkinRotation.REVERSE_PORTRAIT
 import com.android.tools.adtui.ImageUtils.rotateByQuadrantsAndScale
 import com.android.tools.idea.avdmanager.SkinLayoutDefinition
 import com.android.tools.idea.emulator.ScaledSkinLayout.AnchoredImage
+import com.google.common.base.Splitter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.ImageUtil
@@ -68,34 +69,6 @@ internal class SkinDefinition private constructor(
   }
 
   /**
-   * Returns the Emulator display size such that the Emulator skin fits into the [width] by [height] rectangle.
-   *
-   * @param width the width of the available screen area
-   * @param height the height of the available screen area
-   * @param rotation the orientation of the display
-   */
-  fun getScaledDisplaySize(width: Int, height: Int, rotation: SkinRotation): Dimension {
-    val layout: Layout
-    if (rotation.is90Degrees) {
-      if (rotatedLayout == null) {
-        val skinSize = primaryLayout.skinSize
-        val displayRect = primaryLayout.displayRect
-        val scale = min(width.toDouble() / skinSize.height, height.toDouble() / skinSize.width)
-        return Dimension((displayRect.height * scale).toInt(), (displayRect.width * scale).toInt())
-      }
-      layout = rotatedLayout
-    }
-    else {
-      layout = primaryLayout
-    }
-
-    val skinSize = layout.skinSize
-    val displayRect = layout.displayRect
-    val scale = min(width.toDouble() / skinSize.width, height.toDouble() / skinSize.height)
-    return Dimension((displayRect.width * scale).toInt(), (displayRect.height * scale).toInt())
-  }
-
-  /**
    * Creates a [ScaledSkinLayout] for the given display dimensions and rotation.
    *
    * @param displayWidth the width of the rotated display
@@ -115,17 +88,29 @@ internal class SkinDefinition private constructor(
       rotation = displayRotation
     }
 
-    val rotatedSkinSize = rotated(layout.skinSize, rotation)
-    val rotatedDisplayRect = rotated(layout.displayRect, rotation, layout.skinSize)
+    val rotatedSkinSize = layout.skinSize.rotated(rotation)
+    val rotatedDisplayRect = layout.displayRect.rotated(rotation, layout.skinSize)
     val scale = min(displayWidth.toDouble() / rotatedDisplayRect.width, displayHeight.toDouble() / rotatedDisplayRect.height)
-    val skinSize = Dimension(rotatedSkinSize.width.scaleUp(scale), rotatedSkinSize.height.scaleUp(scale))
-    val displayRect = Rectangle(rotatedDisplayRect.x.scale(scale), rotatedDisplayRect.y.scale(scale), displayWidth, displayHeight)
+    val skinSize = Dimension(rotatedSkinSize.width.scaledUp(scale), rotatedSkinSize.height.scaledUp(scale))
+    val displayRect = Rectangle(rotatedDisplayRect.x.scaled(scale), rotatedDisplayRect.y.scaled(scale), displayWidth, displayHeight)
     val part = layout.part
     val background =
         getTransformedPartImage(part.backgroundFile, rotation, scale, layout.partOffset.x, layout.partOffset.y, layout.skinSize)
     val mask = getTransformedPartImage(part.maskFile, rotation, scale, layout.displayRect.x, layout.displayRect.y, layout.skinSize)
 
     return ScaledSkinLayout(skinSize, displayRect, background, mask)
+  }
+
+  /**
+   * Returns the skin dimensions for the given display orientation.
+   */
+  fun getRotatedSkinSize(displayRotation: SkinRotation): Dimension {
+    return if (displayRotation.is90Degrees) {
+      rotatedLayout?.skinSize ?: Dimension(primaryLayout.skinSize.height, primaryLayout.skinSize.width)
+    }
+    else {
+      primaryLayout.skinSize
+    }
   }
 
   private fun getTransformedPartImage(imageUrl: URL?,
@@ -139,12 +124,11 @@ internal class SkinDefinition private constructor(
     }
 
     val image = getImage(imageUrl) ?: return null
-    val rect = Rectangle(layoutPartOffsetX, layoutPartOffsetY, image.width, image.height)
-    val rotatedRect = rotated(rect, rotation, skinSize)
-    val x = rotatedRect.x.scale(scale)
-    val y = rotatedRect.y.scale(scale)
+    val rotatedRect = Rectangle(layoutPartOffsetX, layoutPartOffsetY, image.width, image.height).rotated(rotation, skinSize)
+    val x = rotatedRect.x.scaled(scale)
+    val y = rotatedRect.y.scaled(scale)
     val transformedImage =
-        rotateByQuadrantsAndScale(image, rotation.ordinal, rotatedRect.width.scale(scale), rotatedRect.height.scale(scale))
+        rotateByQuadrantsAndScale(image, rotation.ordinal, rotatedRect.width.scaled(scale), rotatedRect.height.scaled(scale))
     return AnchoredImage(transformedImage, x, y)
   }
 
@@ -154,9 +138,11 @@ internal class SkinDefinition private constructor(
     fun getSkinFolder(avdFolder: Path): Path? {
       val configFile = avdFolder.resolve("config.ini")
       try {
+        val splitter = Splitter.on('=').trimResults()
         for (line in Files.readAllLines(configFile)) {
-          if (line.startsWith("skin.path=")) {
-            return Paths.get(line.substring("skin.path=".length))
+          val keyValue = splitter.splitToList(line)
+          if (keyValue.size == 2 && keyValue[0] == "skin.path") {
+            return Paths.get(keyValue[1])
           }
         }
       }
@@ -228,8 +214,8 @@ internal class SkinDefinition private constructor(
             // never appear in the skin layout files.
             when (rotation) {
               0 -> primaryLayout = Layout(skinSize, Rectangle(displayX, displayY, displayWidth, displayHeight), part, partOffset)
-              3 -> rotatedLayout = Layout(rotated(skinSize, LANDSCAPE),
-                                          rotated(Rectangle(displayX, displayY, displayWidth, displayHeight), LANDSCAPE, skinSize),
+              3 -> rotatedLayout = Layout(skinSize.rotated(LANDSCAPE),
+                                          Rectangle(displayX, displayY, displayWidth, displayHeight).rotated(LANDSCAPE, skinSize),
                                           part, partOffset)
             }
           }
@@ -246,29 +232,18 @@ internal class SkinDefinition private constructor(
     }
 
     /**
-     * Returns the given rectangle rotated with the skin according to [rotation].
+     * Returns the rectangle rotated with the skin according to [rotation].
      *
-     * @param rect the original rectangle
      * @param rotation the requested rotation
      * @param skinSize the original skin size
      */
-    private fun rotated(rect: Rectangle, rotation: SkinRotation, skinSize: Dimension): Rectangle {
+    @JvmStatic
+    private fun Rectangle.rotated(rotation: SkinRotation, skinSize: Dimension): Rectangle {
       return when (rotation) {
-        LANDSCAPE -> Rectangle(rect.y, skinSize.width - rect.width - rect.x, rect.height, rect.width)
-        REVERSE_PORTRAIT -> Rectangle(skinSize.width - rect.width - rect.x, skinSize.height - rect.height - rect.y,
-                                      rect.width, rect.height)
-        REVERSE_LANDSCAPE -> Rectangle(skinSize.height - rect.height - rect.y, rect.x, rect.height, rect.width)
-        else -> rect
-      }
-    }
-
-    /**
-     * Returns the given dimensions rotated according to [rotation].
-     */
-    private fun rotated(dimension: Dimension, rotation: SkinRotation): Dimension {
-      return when (rotation) {
-        LANDSCAPE, REVERSE_LANDSCAPE -> Dimension(dimension.height, dimension.width)
-        else -> dimension
+        LANDSCAPE -> Rectangle(y, skinSize.width - width - x, height, width)
+        REVERSE_PORTRAIT -> Rectangle(skinSize.width - width - x, skinSize.height - height - y, width, height)
+        REVERSE_LANDSCAPE -> Rectangle(skinSize.height - height - y, x, height, width)
+        else -> this
       }
     }
 

@@ -99,6 +99,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "         7.3\" Foldable (1536 \u00d7 2152, 420dpi)\n" +
       "         8.0\" Foldable (2200 \u00d7 2480, 420dpi)\n" +
       "        10.1\" WXGA (Tablet) (1280 \u00d7 800, mdpi)\n" +
+      "        13.5\" Freeform (2560 \u00d7 1440, hdpi)\n" +
       "    Add Device Definition...\n";
     Truth.assertThat(actual).isEqualTo(expected);
   }

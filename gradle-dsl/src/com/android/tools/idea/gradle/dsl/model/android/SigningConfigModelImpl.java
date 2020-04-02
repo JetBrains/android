@@ -16,17 +16,16 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_TRANSFORM;
 
 public class SigningConfigModelImpl extends GradleDslBlockModel implements SigningConfigModel {
   @NonNls public static final String STORE_FILE = "mStoreFile";
@@ -57,6 +56,21 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
       //  be renamed too.
       for (GradleReferenceInjection dependent : myDslElement.getDependents()) {
         dependent.getOriginElement().setValue(new ReferenceTo(this));
+      }
+      renameModelDependents(storePassword());
+      renameModelDependents(storeFile());
+      renameModelDependents(storeType());
+      renameModelDependents(keyAlias());
+      renameModelDependents(keyPassword());
+    }
+  }
+
+  private static void renameModelDependents(GradlePropertyModel model) {
+    GradleDslElement element = model.getRawElement();
+    if (element != null) {
+      for (GradleReferenceInjection dependent : element.getDependents()) {
+        // NB the new ReferenceTo(...) here will bypass the SigningConfig method
+        dependent.getOriginElement().setValue(new ReferenceTo(model));
       }
     }
   }

@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode.getNativeSourceNodes;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
@@ -76,7 +75,7 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
 
   @Override
   @NotNull
-  public PsiDirectory[] getFolders() {
+  public List<PsiDirectory> getFolders() {
     Collection<File> sourceFolderPaths = getNdkModel().getSelectedVariant().getSourceFolders();
     List<PsiDirectory> folders = new ArrayList<>(sourceFolderPaths.size());
 
@@ -94,7 +93,7 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
       }
     }
 
-    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
+    return folders;
   }
 
   @Override
@@ -109,16 +108,12 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
       }
     }
 
-    if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
-      NdkModuleModel moduleModel = getValue();
-      if (moduleModel == null) {
-        return false;
-      }
-
-      return NdkModuleNode.containedInIncludeFolders(moduleModel, file);
-    } else {
+    NdkModuleModel moduleModel = getValue();
+    if (moduleModel == null) {
       return false;
     }
+
+    return NdkModuleNode.containedInIncludeFolders(moduleModel, file);
   }
 
   @Override

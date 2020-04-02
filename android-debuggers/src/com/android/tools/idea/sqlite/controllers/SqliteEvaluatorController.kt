@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
@@ -42,6 +43,7 @@ class SqliteEvaluatorController(
   private val project: Project,
   private val view: SqliteEvaluatorView,
   private val viewFactory: DatabaseInspectorViewsFactory,
+  override val closeTabInvoked: () -> Unit,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
 ) : DatabaseInspectorController.TabController {
@@ -51,7 +53,6 @@ class SqliteEvaluatorController(
 
   fun setUp() {
     view.addListener(sqliteEvaluatorViewListener)
-    view.tableView.isTableActionsRowVisible = false
     view.tableView.setEditable(false)
   }
 
@@ -107,6 +108,7 @@ class SqliteEvaluatorController(
 
         if (rowCount > 0) {
           currentTableController = TableController(
+            closeTabInvoked = closeTabInvoked,
             project = project,
             view = view.tableView,
             tableSupplier = { null },
@@ -122,7 +124,7 @@ class SqliteEvaluatorController(
         listeners.forEach { it.onSqliteStatementExecuted(database) }
       }.catching(edtExecutor, Throwable::class.java) { throwable ->
         view.tableView.reportError("Error executing SQLite statement", throwable)
-      }
+      }.cancelOnDispose(this)
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {

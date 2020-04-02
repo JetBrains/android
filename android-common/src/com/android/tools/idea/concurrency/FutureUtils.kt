@@ -27,12 +27,15 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.ide.IdeEventQueue
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.util.AtomicNotNullLazyValue
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
 import com.intellij.util.Alarm.ThreadToUse
+import com.intellij.util.IncorrectOperationException
 import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.EventQueue.isDispatchThread
 import java.awt.Toolkit
@@ -261,4 +264,39 @@ fun <V, X : Throwable> ListenableFuture<V>.catching(executor: Executor, exceptio
 fun <V> Executor.executeAsync(function: () -> V): ListenableFuture<V> {
   // Should be migrated to Futures.submit(), once guava will be updated to version >= 28.2
   return Futures.immediateFuture(Unit).transform(this) { function() }
+}
+
+/**
+ * Cancels this future, when parent [Disposable] is disposed.
+ *
+ * @return this future to allow chaining
+ */
+fun <V> ListenableFuture<V>.cancelOnDispose(parent: Disposable): ListenableFuture<V> {
+  // best effort but it doesn't guarantee that Disposer.register won't fail
+  if (Disposer.isDisposed(parent) || Disposer.isDisposing(parent)) {
+    cancel(true)
+    return this
+  }
+  val disposable = Disposable {
+    // no-op if future is completed by now.
+    cancel(true)
+  }
+  // on "directExecutor()" usage: disposable that we dispose in this listener is no-op
+  // because it is completed by now, so it is relatively safe.
+  // It isn't completely safe, because to access the tree Disposer grabs internal lock
+  // and it is blocking operation
+  addListener(Runnable {
+    if (!Disposer.isDisposed(disposable) && !Disposer.isDisposing(disposable)) {
+      // we need to remove disposable from the tree since we don't need it anymore
+      // as well as we need to free future, so it can be gc-ed
+      Disposer.dispose(disposable)
+    }
+  }, directExecutor())
+  try {
+    Disposer.register(parent, disposable)
+  } catch (e: IncorrectOperationException) {
+    // parent was disposed in meanwhile, so cancel future
+    cancel(true)
+  }
+  return this
 }

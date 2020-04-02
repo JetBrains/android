@@ -25,6 +25,7 @@ import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.atrace.AtraceProducer;
 import com.android.tools.profilers.cpu.atrace.PerfettoProducer;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
+import com.android.tools.profilers.perfetto.PerfettoParser;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicates;
 import com.intellij.openapi.diagnostic.Logger;
@@ -202,7 +203,10 @@ public class CpuCaptureParser {
           myServices.getPoolExecutor())
         .whenCompleteAsync(new TraceResultHandler(traceFile, traceId, isImportedTrace), myServices.getMainExecutor());
 
-    myCaptures.put(traceId, cpuCapture);
+    // Currently we cannot cache imported traces because all of them shares the same id.
+    if (traceId != IMPORTED_TRACE_ID) {
+      myCaptures.put(traceId, cpuCapture);
+    }
     return cpuCapture;
   }
 
@@ -330,7 +334,7 @@ public class CpuCaptureParser {
 
     private final int processIdHint;
 
-    @Nullable
+    @NotNull
     private final String processNameHint;
 
     @NotNull
@@ -340,11 +344,12 @@ public class CpuCaptureParser {
     private static final Supplier<TraceParser> ART_PARSER_SUPPLIER = () -> new ArtTraceParser();
     private static final Supplier<TraceParser> SIMPLEPERF_PARSER_SUPPLIER = () -> new SimpleperfTraceParser();
     private final Supplier<TraceParser> ATRACE_PARSER_SUPPLIER = () -> new AtraceParser(getMainProcessSelector());
+    private final Supplier<TraceParser> PERFETTO_PARSER_SUPPLIER = () -> new PerfettoParser(getMainProcessSelector(), getProfilerServices());
 
     // Specific file tests used in parseToCapture before attempting to parse the whole trace.
     private static final Predicate<File> NO_OP_FILE_TESTER = Predicates.alwaysTrue();
-    private static final Predicate<File> ATRACE_FILE_TESTER =
-      (t) -> AtraceProducer.verifyFileHasAtraceHeader(t) || PerfettoProducer.verifyFileHasPerfettoTraceHeader(t);
+    private static final Predicate<File> ATRACE_FILE_TESTER = (t) -> AtraceProducer.verifyFileHasAtraceHeader(t);
+    private static final Predicate<File> PERFETTO_FILE_TESTER = (t) -> PerfettoProducer.verifyFileHasPerfettoTraceHeader(t);
 
     private ProcessTraceAction(
       @NotNull File traceFile, long traceId, @Nullable CpuTraceType preferredProfilerType,
@@ -354,7 +359,7 @@ public class CpuCaptureParser {
       this.traceId = traceId;
       this.preferredProfilerType = preferredProfilerType;
       this.processIdHint = processIdHint;
-      this.processNameHint = processNameHint;
+      this.processNameHint = processNameHint != null ? processNameHint : "";
       this.services = services;
     }
 
@@ -393,7 +398,13 @@ public class CpuCaptureParser {
         }
       }
 
-      // TODO(b/147099951): Add Perfetto case.
+      if (unknownType || profilerType == CpuTraceType.PERFETTO) {
+        CpuCapture capture =
+          tryToParseWith(CpuTraceType.PERFETTO, traceFile, traceId, !unknownType, PERFETTO_FILE_TESTER, PERFETTO_PARSER_SUPPLIER);
+        if (capture != null) {
+          return capture;
+        }
+      }
 
       if (unknownType) {
         throw new ParsingFailureException(
@@ -402,8 +413,14 @@ public class CpuCaptureParser {
       return null;
     }
 
+    @NotNull
     private MainProcessSelector getMainProcessSelector() {
       return new MainProcessSelector(processNameHint, processIdHint, services);
+    }
+
+    @NotNull
+    private IdeProfilerServices getProfilerServices() {
+      return services;
     }
 
     private static boolean traceTypeIsUnknown(@Nullable CpuTraceType profilerType) {

@@ -18,9 +18,10 @@ package com.android.tools.idea.sqlite.ui.renderers
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteTable
-import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.ColoredTreeCellRenderer
+import com.intellij.ui.JBColor
+import com.intellij.ui.SimpleTextAttributes
 import icons.StudioIcons
-import java.awt.Component
 import java.util.Locale
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
@@ -29,46 +30,44 @@ import javax.swing.tree.TreeCellRenderer
 /**
  * Implementation of [TreeCellRenderer] for nodes of the [JTree] in the [SqliteSchemaPanel].
  */
-class SchemaTreeCellRenderer : TreeCellRenderer {
-  private val component = SimpleColoredComponent()
+class SchemaTreeCellRenderer : ColoredTreeCellRenderer() {
+  private val colorTextAttributes = SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, JBColor.gray)
 
-  override fun getTreeCellRendererComponent(
-    tree: JTree?,
+  override fun customizeCellRenderer(
+    tree: JTree,
     value: Any?,
     selected: Boolean,
     expanded: Boolean,
     leaf: Boolean,
     row: Int,
     hasFocus: Boolean
-  ): Component {
-    component.clear()
+  ) {
     if (value is DefaultMutableTreeNode) {
       when (val userObject = value.userObject) {
         is SqliteDatabase -> {
-          component.icon = StudioIcons.DatabaseInspector.DATABASE
-          component.append(userObject.name)
+          icon = StudioIcons.DatabaseInspector.DATABASE
+          append(userObject.name)
         }
 
         is SqliteTable -> {
-          component.icon = StudioIcons.DatabaseInspector.TABLE
-          component.append(userObject.name)
+          icon = StudioIcons.DatabaseInspector.TABLE
+          append(userObject.name)
         }
 
         is SqliteColumn -> {
-          if (userObject.inPrimaryKey) component.icon = StudioIcons.DatabaseInspector.PRIMARY_KEY
-          else component.icon = StudioIcons.DatabaseInspector.COLUMN
-          component.append(userObject.name)
-          component.append(" : ")
-          component.append(userObject.affinity.name.toLowerCase(Locale.US))
-          component.append(if (userObject.isNullable) "" else ", not null")
+          if (userObject.inPrimaryKey) icon = StudioIcons.DatabaseInspector.PRIMARY_KEY
+          else icon = StudioIcons.DatabaseInspector.COLUMN
+          append(userObject.name)
+          append("  :  ", colorTextAttributes)
+          append(userObject.affinity.name.toUpperCase(Locale.US), colorTextAttributes)
+          append(if (userObject.isNullable) "" else ", NOT NULL", colorTextAttributes)
         }
 
         // String (e.g. "Tables" node)
         is String -> {
-          component.append(userObject)
+          append(userObject)
         }
       }
     }
-    return component
   }
 }

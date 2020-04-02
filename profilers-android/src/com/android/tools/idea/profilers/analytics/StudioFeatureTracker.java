@@ -868,6 +868,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
         case ATRACE:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.ATRACE);
           break;
+        case PERFETTO:
+          cpuConfigInfo.setType(CpuProfilingConfig.Type.PERFETTO);
+          break;
         case UNSPECIFIED_TYPE:
         case UNRECOGNIZED:
           break;

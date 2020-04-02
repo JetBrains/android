@@ -18,7 +18,6 @@ package com.android.build.attribution.ui.tree
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.colorIcon
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
-import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.issuesCountString
@@ -28,7 +27,6 @@ import com.android.build.attribution.ui.panels.CRITICAL_PATH_LINK
 import com.android.build.attribution.ui.panels.ChartBuildAttributionInfoPanel
 import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.panels.TimeDistributionChart
-import com.android.build.attribution.ui.panels.TreeLinkListener
 import com.android.build.attribution.ui.panels.criticalPathHeader
 import com.android.build.attribution.ui.panels.headerLabel
 import com.android.build.attribution.ui.panels.taskInfoPanel
@@ -41,8 +39,7 @@ import javax.swing.JComponent
 
 class CriticalPathTasksRoot(
   private val data: CriticalPathTasksUiData,
-  parent: ControllersAwareBuildAttributionNode,
-  private val taskIssueLinkListener: TreeLinkListener<TaskIssueUiData>
+  parent: ControllersAwareBuildAttributionNode
 ) : AbstractBuildAttributionNode(parent, "Tasks determining this build's duration") {
   private val chartItems: List<TimeDistributionChart.ChartDataItem<TaskUiData>> = createTaskChartItems(data)
 
@@ -59,9 +56,9 @@ class CriticalPathTasksRoot(
     for (item in chartItems) {
       when (item) {
         is TimeDistributionChart.SingularChartDataItem<TaskUiData> ->
-          nodes.add(TaskNode(item.underlyingData, chartItems, item, this, taskIssueLinkListener))
+          nodes.add(TaskNode(item.underlyingData, chartItems, item, this))
         is TimeDistributionChart.AggregatedChartDataItem<TaskUiData> ->
-          item.underlyingData.forEach { taskData -> nodes.add(TaskNode(taskData, chartItems, item, this, taskIssueLinkListener)) }
+          item.underlyingData.forEach { taskData -> nodes.add(TaskNode(taskData, chartItems, item, this)) }
       }
     }
     return nodes.toTypedArray()
@@ -103,8 +100,7 @@ private class TaskNode(
   private val taskData: TaskUiData,
   private val chartItems: List<TimeDistributionChart.ChartDataItem<TaskUiData>>,
   private val selectedChartItem: TimeDistributionChart.ChartDataItem<TaskUiData>,
-  parent: CriticalPathTasksRoot,
-  private val taskIssueLinkListener: TreeLinkListener<TaskIssueUiData>
+  parent: CriticalPathTasksRoot
 ) : AbstractBuildAttributionNode(parent, taskData.taskPath) {
 
   override val presentationIcon: Icon? = mergedIcon(taskIcon(taskData), colorIcon(selectedChartItem.legendColor.baseColor))
@@ -128,7 +124,7 @@ private class TaskNode(
       override fun createDescription(): JComponent? = null
 
       override fun createRightInfoPanel(): JComponent {
-        return taskInfoPanel(taskData, taskIssueLinkListener)
+        return taskInfoPanel(taskData, analytics, issueReporter)
       }
 
       override fun createHeader(): JComponent {

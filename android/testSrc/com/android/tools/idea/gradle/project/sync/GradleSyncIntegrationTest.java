@@ -431,7 +431,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     Project project = getProject();
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.forceCreateDirs = true;
-    AndroidGradleTests.importProject(project, request);
+    AndroidGradleTests.importProject(project, request, null);
     Module app = TestModuleUtil.findAppModule(getProject());
 
     // Now we have to make sure that if project import was successful, the build folder has included source folders.
@@ -778,7 +778,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     // Verify that FinishBuildEvent was created only once.
     List<BuildEvent> buildEvents = buildEventCaptor.getAllValues().stream().filter(FinishBuildEvent.class::isInstance).collect(toList());
     assertThat(buildEvents).hasSize(1);
-    assertThat(buildEvents.get(0).getMessage()).isEqualTo("successful");
+    assertThat(buildEvents.get(0).getMessage()).isEqualTo("finished");
   }
 
   public void testStartAndFinishBuildEventHasSameBuildId() throws Exception {

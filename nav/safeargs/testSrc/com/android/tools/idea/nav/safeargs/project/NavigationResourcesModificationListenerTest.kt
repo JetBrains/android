@@ -16,9 +16,9 @@
 package com.android.tools.idea.nav.safeargs.project
 
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithSaving
-import com.android.tools.idea.nav.safeargs.module.NavigationResourcesModificationTracker
+import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
+import com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -30,20 +30,21 @@ class NavigationResourcesModificationListenerTest {
   @get:Rule
   val safeArgsRule = SafeArgsRule()
 
-  private lateinit var navResourcesTracker: NavigationResourcesModificationTracker
+  private lateinit var myModuleNavResourcesTracker: ModuleNavigationResourcesModificationTracker
+  private lateinit var myProjectNavResourcesTracker: ProjectNavigationResourceModificationTracker
   private lateinit var project: Project
 
   @Before
   fun setUp() {
     project = safeArgsRule.project
     NavigationResourcesModificationListener.ensureSubscribed(project)
-    navResourcesTracker = NavigationResourcesModificationTracker.getInstance(
-      safeArgsRule.module)
+    myModuleNavResourcesTracker = ModuleNavigationResourcesModificationTracker.getInstance(safeArgsRule.module)
+    myProjectNavResourcesTracker = ProjectNavigationResourceModificationTracker.getInstance(project)
   }
 
   @Test
   fun addFilesToNavigationResourcesFolder() {
-    assertThat(navResourcesTracker.modificationCount).isEqualTo(0L)
+    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(0L)
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -65,7 +66,7 @@ class NavigationResourcesModificationListenerTest {
       """.trimIndent())
 
     // picked up 1 document change and 1 vfs change
-    assertThat(navResourcesTracker.modificationCount).isEqualTo(2L)
+    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(2L)
 
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/other.xml",
@@ -88,12 +89,13 @@ class NavigationResourcesModificationListenerTest {
       """.trimIndent())
 
     // picked up 1 document change and 1 vfs change
-    assertThat(navResourcesTracker.modificationCount).isEqualTo(4L)
+    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(4L)
+    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(4L)
   }
 
   @Test
   fun deleteNavigationResourceFolder() {
-    assertThat(navResourcesTracker.modificationCount).isEqualTo(0L)
+    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(0L)
     val navFile = safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -115,18 +117,20 @@ class NavigationResourcesModificationListenerTest {
       """.trimIndent())
 
     // picked up 1 document change and 1 vfs change
-    assertThat(navResourcesTracker.modificationCount).isEqualTo(2L)
+    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(2L)
+    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(2L)
     WriteCommandAction.runWriteCommandAction(project) {
       navFile.virtualFile.parent.delete(this)
     }
 
     // picked up 1 vfs change
-    assertThat(navResourcesTracker.modificationCount).isEqualTo(3L)
+    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(3L)
+    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(3L)
   }
 
   @Test
   fun modifyNavResourceFile() {
-    assertThat(navResourcesTracker.modificationCount).isEqualTo(0L)
+    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(0L)
     val navFile = safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -147,20 +151,23 @@ class NavigationResourcesModificationListenerTest {
         </navigation>
       """.trimIndent())
     // picked up 1 document change and 1 vfs change
-    assertThat(navResourcesTracker.modificationCount).isEqualTo(2L)
+    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(2L)
+    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(2L)
 
     // modify without saving
     WriteCommandAction.runWriteCommandAction(project) {
       navFile.virtualFile.replaceWithoutSaving("fragment1", "fragment2", project)
     }
     // picked up 1 document change
-    assertThat(navResourcesTracker.modificationCount).isEqualTo(3L)
+    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(3L)
+    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(3L)
 
     // modify and save afterwards
     WriteCommandAction.runWriteCommandAction(project) {
       navFile.virtualFile.replaceWithSaving("fragment2", "fragment3", project)
     }
     // picked up 1 document change and 1 vfs change
-    assertThat(navResourcesTracker.modificationCount).isEqualTo(4L)
+    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(4L)
+    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(4L)
   }
 }

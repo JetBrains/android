@@ -24,7 +24,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValueProvider;
@@ -46,7 +45,8 @@ import org.jetbrains.annotations.Nullable;
 public class MlkitModuleService {
   private final Module myModule;
   private final ModelFileModificationTracker myModelFileModificationTracker;
-  private final Map<MlModelMetadata, LightModelClass> myLightModelClassMap = new ConcurrentHashMap<>();
+  private final Map<String, LightModelClass> myLightModelClassMap = new ConcurrentHashMap<>();
+  private final LightModelClassListProvider myLightModelClassListProvider;
 
   public static MlkitModuleService getInstance(@NotNull Module module) {
     return Objects.requireNonNull(ModuleServiceManager.getService(module, MlkitModuleService.class));
@@ -55,6 +55,7 @@ public class MlkitModuleService {
   public MlkitModuleService(@NotNull Module module) {
     myModule = module;
     myModelFileModificationTracker = new ModelFileModificationTracker(module);
+    myLightModelClassListProvider = new LightModelClassListProvider(module);
   }
 
   public ModelFileModificationTracker getModelFileModificationTracker() {
@@ -67,8 +68,8 @@ public class MlkitModuleService {
       return null;
     }
 
-    return myLightModelClassMap.computeIfAbsent(modelMetadata, modelMetadata1 -> {
-      LightModelClassConfig classConfig = MlModelClassGenerator.generateLightModelClass(myModule, modelMetadata1);
+    return myLightModelClassMap.computeIfAbsent(modelMetadata.myModelFileUrl, fileUrl -> {
+      LightModelClassConfig classConfig = MlModelClassGenerator.generateLightModelClass(myModule, modelMetadata);
       return classConfig != null ? new LightModelClass(myModule, classConfig) : null;
     });
   }
@@ -77,35 +78,12 @@ public class MlkitModuleService {
    * Returns light model classes auto-generated for ML model files in this module's assets folder.
    */
   @NotNull
-  public List<PsiClass> getLightModelClassList() {
+  public List<LightModelClass> getLightModelClassList() {
     if (!MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule)) {
       return Collections.emptyList();
     }
 
-    return CachedValuesManager.getManager(myModule.getProject()).getCachedValue(myModule, () -> {
-      List<MlModelMetadata> modelMetadataList = new ArrayList<>();
-      GlobalSearchScope searchScope = MlModelFilesSearchScope.inModule(myModule);
-      FileBasedIndex index = FileBasedIndex.getInstance();
-      index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
-        index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
-          if (value.isValidModel()) {
-            modelMetadataList.add(value);
-          }
-          return true;
-        }, searchScope);
-
-        return true;
-      }, searchScope, null);
-
-      List<PsiClass> lightModelClassList = new ArrayList<>();
-      for (MlModelMetadata modelMetadata : modelMetadataList) {
-        LightModelClass lightModelClass = getOrCreateLightModelClass(modelMetadata);
-        if (lightModelClass != null) {
-          lightModelClassList.add(lightModelClass);
-        }
-      }
-      return CachedValueProvider.Result.create(lightModelClassList, myModelFileModificationTracker);
-    });
+    return CachedValuesManager.getManager(myModule.getProject()).getCachedValue(myModule, myLightModelClassListProvider);
   }
 
   public static class ModelFileModificationTracker implements ModificationTracker {
@@ -121,7 +99,7 @@ public class MlkitModuleService {
               VirtualFile file = event.getFile();
               if (file != null && MlkitUtils.isModelFileInMlModelsFolder(module, file)) {
                 PsiManager.getInstance(module.getProject()).dropResolveCaches();
-                getInstance(module).myLightModelClassMap.clear();
+                getInstance(module).myLightModelClassMap.remove(file.getUrl());
                 myModificationCount++;
                 return;
               }
@@ -134,6 +112,42 @@ public class MlkitModuleService {
     @Override
     public long getModificationCount() {
       return myModificationCount;
+    }
+  }
+
+  private static class LightModelClassListProvider implements CachedValueProvider<List<LightModelClass>> {
+    private final Module myModule;
+
+    private LightModelClassListProvider(@NotNull Module module) {
+      myModule = module;
+    }
+
+    @Nullable
+    @Override
+    public Result<List<LightModelClass>> compute() {
+      MlkitModuleService service = getInstance(myModule);
+      List<MlModelMetadata> modelMetadataList = new ArrayList<>();
+      GlobalSearchScope searchScope = MlModelFilesSearchScope.inModule(myModule);
+      FileBasedIndex index = FileBasedIndex.getInstance();
+      index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
+        index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
+          if (value.isValidModel()) {
+            modelMetadataList.add(value);
+          }
+          return true;
+        }, searchScope);
+
+        return true;
+      }, searchScope, null);
+
+      List<LightModelClass> lightModelClassList = new ArrayList<>();
+      for (MlModelMetadata modelMetadata : modelMetadataList) {
+        LightModelClass lightModelClass = service.getOrCreateLightModelClass(modelMetadata);
+        if (lightModelClass != null) {
+          lightModelClassList.add(lightModelClass);
+        }
+      }
+      return CachedValueProvider.Result.create(lightModelClassList, service.myModelFileModificationTracker);
     }
   }
 }

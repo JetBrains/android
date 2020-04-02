@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
 import static com.android.tools.idea.navigator.nodes.ndk.includes.utils.PresentationDataWrapperKt.createPresentationDataWrapper;
+import static java.util.Collections.emptyList;
 
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.ClassifiedIncludeValue;
@@ -30,6 +31,7 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
+import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,8 +91,8 @@ public abstract class IncludeViewNode<T extends ClassifiedIncludeValue> extends 
 
   @NotNull
   @Override
-  public PsiDirectory[] getFolders() {
-    return PsiDirectory.EMPTY_ARRAY;
+  public List<PsiDirectory> getFolders() {
+    return emptyList();
   }
 
   @Nullable

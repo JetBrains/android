@@ -47,7 +47,16 @@ public class ImportMlModelTest {
   }
 
   @Test
-  public void testImportMlModel() throws IOException {
+  public void testImportMlModel_flavorMain() throws IOException {
+    testImportMlModel("main");
+  }
+
+  @Test
+  public void testImportMlModel_flavorDebug() throws IOException {
+    testImportMlModel("debug");
+  }
+
+  private void testImportMlModel(String flavor) throws IOException {
     String modelFilePath =
       TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData/models/mobilenet_quant_metadata.tflite").getAbsolutePath();
 
@@ -58,10 +67,11 @@ public class ImportMlModelTest {
       .openFromMenu(ImportMlModelWizardFixture::find, "File", "New", "Other", "TensorFlow Lite Model")
       .getImportModelStep()
       .enterModelPath(modelFilePath)
+      .enterFlavor(flavor)
       .wizard()
       .clickFinish();
 
-    File modelFile = new File(guiTest.ideFrame().getProjectPath(), "/app/src/main/ml/mobilenet_quant_metadata.tflite");
+    File modelFile = new File(guiTest.ideFrame().getProjectPath(), String.format("/app/src/%s/ml/mobilenet_quant_metadata.tflite", flavor));
     assertAbout(FileSubject.file()).that(modelFile).isFile();
   }
 }

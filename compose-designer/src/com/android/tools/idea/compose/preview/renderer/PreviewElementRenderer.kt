@@ -25,7 +25,6 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
-import com.android.tools.idea.rendering.RenderTask
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -55,10 +54,9 @@ fun renderPreviewElementForResult(facet: AndroidFacet,
     .withRenderingMode(SessionParams.RenderingMode.SHRINK)
     .build()
 
-  val renderResultFuture = CompletableFuture.supplyAsync(Supplier<RenderTask> { renderTaskFuture.get() },
-                                                          executor)
-    .thenCompose { it.render() }
-    .thenApply { if (it.renderResult.isSuccess && it.logger.brokenClasses.isEmpty()) it else null }
+  val renderResultFuture = CompletableFuture.supplyAsync(Supplier { renderTaskFuture.get() }, executor)
+    .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
+    .thenApply { if (it != null && it.renderResult.isSuccess && it.logger.brokenClasses.isEmpty()) it else null }
 
   CompletableFuture.allOf(renderTaskFuture, renderResultFuture).handle { _, _ -> renderTaskFuture.get().dispose() }
 

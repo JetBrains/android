@@ -31,6 +31,8 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -140,11 +142,12 @@ class ConstraintSetPanel extends JPanel {
 
   ConstraintSetPanel() {
     super(new BorderLayout());
-    JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JPanel left = new JPanel(new GridBagLayout());
     JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     JPanel top = new JPanel(new BorderLayout());
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
+    top.setBorder(MEUI.getPanelBottomBorder());
     mConstraintSetTable.setShowHorizontalLines(false);
     mConstraintSetTable.setAlignmentY(0.0f);
     mConstraintSetTable.getColumnModel().getColumn(0).setPreferredWidth(MEUI.scale(32));
@@ -192,11 +195,30 @@ class ConstraintSetPanel extends JPanel {
       }
     });
 
+    GridBagConstraints gbc = new GridBagConstraints();
+    JLabel leftLabel = new JLabel("ConstraintSet (", MEIcons.CONSTRAINT_SET, SwingConstants.CENTER);
+    mTitle = new JLabel("", SwingConstants.CENTER);
+    JLabel rightLabel = new JLabel(")", SwingConstants.CENTER);
 
-    JLabel label;
-    left.add(label = new JLabel("ConstraintSet (", MEIcons.CONSTRAINT_SET, SwingConstants.LEFT));
-    left.add(mTitle = new JLabel("", SwingConstants.LEFT));
-    left.add(label = new JLabel(")", SwingConstants.LEFT));
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridy = 0;
+    gbc.gridx = 0;
+    gbc.weightx = 0;
+    gbc.ipadx = 16;
+    left.add(leftLabel, gbc);
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridy = 0;
+    gbc.gridx += 1;
+    gbc.weightx = 0.5;
+    gbc.ipadx = 0;
+    left.add(mTitle, gbc);
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridy = 0;
+    gbc.gridx = 2;
+    gbc.weightx = 1;
+    gbc.ipadx = 16;
+    left.add(rightLabel,gbc);
+
     makeRightMenu(right);
 
     ActionListener copyListener = e -> copy();

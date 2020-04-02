@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.ui.SelectProcessAction
+import com.android.tools.idea.layoutinspector.util.ProcessManagerSync
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_SUCCESS
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Presentation
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import java.util.concurrent.TimeUnit
 
 class MetricsTest {
@@ -35,19 +33,13 @@ class MetricsTest {
   @get:Rule
   val inspectorRule = LayoutInspectorTransportRule().withDefaultDevice(connected = false)
 
-  @Rule
-  @JvmField
+  @get:Rule
   val usageTrackerRule = MetricsTrackerRule()
 
   @Test
   fun testAttachSuccessViaSelectProcess() {
-    val event = mock(AnActionEvent::class.java)
-    val presentation = Presentation()
-    `when`(event.presentation).thenReturn(presentation)
-
     SelectProcessAction.ConnectAction(DEFAULT_PROCESS, DEFAULT_STREAM,
-                                      inspectorRule.inspectorClient).setSelected(event, true)
-
+                                      inspectorRule.inspectorClient).connect().get()
     inspectorRule.advanceTime(110, TimeUnit.MILLISECONDS)
     inspectorRule.waitForStart()
 
@@ -57,7 +49,7 @@ class MetricsTest {
     var studioEvent = usages[0].studioEvent
 
     val deviceInfo = studioEvent.deviceInfo
-    assertEquals(AnonymizerUtil.anonymizeUtf8("1234"), deviceInfo.anonymizedSerialNumber)
+    assertEquals(AnonymizerUtil.anonymizeUtf8("123456"), deviceInfo.anonymizedSerialNumber)
     assertEquals("My Model", deviceInfo.model)
     assertEquals("Google", deviceInfo.manufacturer)
     assertEquals(DeviceInfo.DeviceType.LOCAL_PHYSICAL, deviceInfo.deviceType)
@@ -73,12 +65,8 @@ class MetricsTest {
   @Test
   fun testAttachFailViaSelectProcess() {
     inspectorRule.shouldConnectSuccessfully = false
-    val event = mock(AnActionEvent::class.java)
-    val presentation = Presentation()
-    `when`(event.presentation).thenReturn(presentation)
 
-    SelectProcessAction.ConnectAction(DEFAULT_PROCESS, DEFAULT_STREAM, inspectorRule.inspectorClient).setSelected(event, true)
-
+    SelectProcessAction.ConnectAction(DEFAULT_PROCESS, DEFAULT_STREAM, inspectorRule.inspectorClient).connect().get()
     inspectorRule.advanceTime(1100, TimeUnit.MILLISECONDS)
     inspectorRule.waitForStart()
 
@@ -88,7 +76,7 @@ class MetricsTest {
     val studioEvent = usages[0].studioEvent
 
     val deviceInfo = studioEvent.deviceInfo
-    assertEquals(AnonymizerUtil.anonymizeUtf8("1234"), deviceInfo.anonymizedSerialNumber)
+    assertEquals(AnonymizerUtil.anonymizeUtf8("123456"), deviceInfo.anonymizedSerialNumber)
     assertEquals("My Model", deviceInfo.model)
     assertEquals("Google", deviceInfo.manufacturer)
     assertEquals(DeviceInfo.DeviceType.LOCAL_PHYSICAL, deviceInfo.deviceType)
@@ -102,8 +90,7 @@ class MetricsTest2 {
   @get:Rule
   val inspectorRule = LayoutInspectorTransportRule()
 
-  @Rule
-  @JvmField
+  @get:Rule
   val usageTrackerRule = MetricsTrackerRule()
 
   @Test
@@ -125,8 +112,12 @@ class MetricsTest2 {
     assertEquals(0, usages.size)
 
     // Now start the process
+    val client = inspectorRule.inspectorClient as DefaultInspectorClient
     inspectorRule.addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
+    val waiter = ProcessManagerSync(client.processManager)
+    waiter.waitUntilReady(DEFAULT_DEVICE.serial, DEFAULT_PROCESS.pid)
     inspectorRule.advanceTime(1100, TimeUnit.MILLISECONDS)
+
     usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
     // We should have the attach request and success event now

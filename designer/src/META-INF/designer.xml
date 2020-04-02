@@ -133,6 +133,12 @@
               description="Toggle the visibility of Issue Panel">
         <keyboard-shortcut keymap="$default" first-keystroke="E"/>
       </action>
+
+      <reference ref="Adtui.ZoomInAction"/>
+      <reference ref="Adtui.ZoomOutAction"/>
+      <reference ref="Adtui.ZoomToActualAction"/>
+      <reference ref="Adtui.ZoomToFitAction"/>
+      <reference ref="Adtui.ZoomResetAction"/>
     </group>
 
     <group id="Android.Designer.ToolsActions"/> <!-- Keymap group for Preferences -> Keymap -> Android Design Tools -> [Tool_Name] -->

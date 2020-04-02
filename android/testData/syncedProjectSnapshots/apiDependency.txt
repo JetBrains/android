@@ -1,5 +1,4 @@
 PROJECT             : testApiDependency
-    LanguageLevel       : 8 - Lambdas, type annotations etc.
     PROJECT_JDK         : 1.8
         Version             : java version "<JDK_VERSION>"
     MODULE              : testApiDependency

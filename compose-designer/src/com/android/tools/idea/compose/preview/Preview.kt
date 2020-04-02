@@ -44,6 +44,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
@@ -54,6 +55,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.intellij.application.subscribe
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -79,6 +81,7 @@ import org.jetbrains.kotlin.backend.common.pop
 import java.awt.BorderLayout
 import java.time.Duration
 import java.util.EnumMap
+import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -227,6 +230,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       interactionHandler = SwitchingInteractionHandler(interactionHandlers, InteractionMode.DEFAULT)
       interactionHandler
     }
+    .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setEditable(true)
     .build()
     .apply {
@@ -356,6 +360,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     project.runWhenSmartAndSyncedOnEdt(this, Consumer {
       refresh()
     })
+
+    DumbService.DUMB_MODE.subscribe(this, object : DumbService.DumbModeListener {
+      override fun exitDumbMode() {
+        refresh()
+      }
+    })
   }
 
   override val component = workbench
@@ -447,6 +457,19 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   /**
+   * Utility method that requests a given [LayoutlibSceneManager] to render. It applies logic that specific to compose to render components
+   * that do not simply render in a first pass.
+   */
+  private fun LayoutlibSceneManager.requestComposeRender(): CompletableFuture<Void> = if (StudioFlags.COMPOSE_PREVIEW_DOUBLE_RENDER.get()) {
+    requestRender()
+      .thenCompose { executeCallbacks() }
+      .thenCompose { requestRender() }
+  }
+  else {
+    requestRender()
+  }
+
+  /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering.
    */
@@ -531,7 +554,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // this will trigger a new render which is exactly what we want.
         configureLayoutlibSceneManager(surface.addModelWithoutRender(model) as LayoutlibSceneManager,
                                        showDecorations = previewElement.displaySettings.showDecoration)
-          .requestRender()
+          .requestComposeRender()
           .await()
       }.ifEmpty {
         showModalErrorMessage(message("panel.no.previews.defined"))
@@ -575,6 +598,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   override fun refresh() {
     launch(uiThread) {
+      if (DumbService.isDumb(project)) {
+        LOG.debug("Project is in dumb mode, not able to refresh")
+        return@launch
+      }
+
       isContentBeingRendered = true
       val filePreviewElements = withContext(workerThread) {
         memoizedElementsProvider.refresh()
@@ -597,8 +625,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
               val (previewElement, sceneManager) = it
               // When showing decorations, show the full device size
               configureLayoutlibSceneManager(sceneManager, showDecorations = previewElement.displaySettings.showDecoration)
+                .requestComposeRender()
+                .await()
             }
-          surface.requestRender().await()
         }.join()
       }
       else {

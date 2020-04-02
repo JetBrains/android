@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import static com.android.SdkConstants.ANDROID_HOME_ENV;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
@@ -91,6 +92,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -575,9 +577,12 @@ public class AvdManagerConnection {
 
     commandLine.addParameters("-avd", info.getName());
     if (StudioFlags.EMBEDDED_EMULATOR_ENABLED.get()) {
-      commandLine.addParameters("-grpc", "8554"); // TODO: Remove after ag/1245952 has been submitted.
+      int port = 8554 + grpcPortCounter.getAndIncrement() % 32;
+      commandLine.addParameters("-grpc", Integer.toString(port)); // TODO: Remove after ag/1245952 has been submitted.
     }
   }
+
+  private static final AtomicInteger grpcPortCounter = new AtomicInteger();
 
   /**
    * Indicates if the Emulator's version is at least {@code desired}
@@ -858,6 +863,10 @@ public class AvdManagerConnection {
       hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION,
                              StringUtil.toLowerCase(ScreenOrientation.LANDSCAPE.getShortDisplayValue()));
     }
+    if (device.getId().equals("13.5in Freeform")) {
+      hardwareProperties.put(AVD_INI_DISPLAY_SETTINGS_FILE, "freeform");
+    }
+
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
       if (!success) {

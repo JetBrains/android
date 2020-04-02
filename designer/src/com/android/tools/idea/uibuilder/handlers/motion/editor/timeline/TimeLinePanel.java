@@ -1027,6 +1027,9 @@ public class TimeLinePanel extends JPanel {
         g.fillRect(0, 0, getWidth(), getHeight());
         g.setColor(MEUI.myGridColor);
         TimeLineRow.drawTicks(g, mTimelineStructure, getHeight());
+        // draw line on the divider
+        g.setColor(MEUI.ourBorder);
+        g.fillRect(MEUI.ourLeftColumnWidth, 0, 1, getHeight());
       }
     };
     int mSelectedIndex = 0;

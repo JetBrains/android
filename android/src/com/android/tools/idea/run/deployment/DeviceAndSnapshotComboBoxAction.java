@@ -39,7 +39,6 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
@@ -102,7 +101,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private final Clock myClock;
 
   @NotNull
-  private final Function<Project, List<Device>> myGetSelectedDevices;
+  private final Function<Project, SelectedDevicesService> mySelectedDevicesServiceGetInstance;
 
   @NotNull
   private final Function<Project, RunManager> myGetRunManager;
@@ -131,7 +130,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     private Clock myClock;
 
     @Nullable
-    private Function<Project, List<Device>> myGetSelectedDevices;
+    private Function<Project, SelectedDevicesService> mySelectedDevicesServiceGetInstance;
 
     @Nullable
     private Function<Project, RunManager> myGetRunManager;
@@ -143,7 +142,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       mySelectDeviceSnapshotComboBoxSnapshotsEnabled = () -> false;
       myDevicesGetterGetter = project -> null;
       myGetProperties = project -> null;
-      myGetSelectedDevices = project -> null;
+      mySelectedDevicesServiceGetInstance = project -> null;
       myGetRunManager = project -> null;
       myGetExecutionTargetManager = project -> null;
     }
@@ -173,8 +172,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     @NotNull
-    Builder setGetSelectedDevices(@NotNull Function<Project, List<Device>> getSelectedDevices) {
-      myGetSelectedDevices = getSelectedDevices;
+    Builder setSelectedDevicesServiceGetInstance(@NotNull Function<Project, SelectedDevicesService> selectedDevicesServiceGetInstance) {
+      mySelectedDevicesServiceGetInstance = selectedDevicesServiceGetInstance;
       return this;
     }
 
@@ -200,10 +199,10 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private DeviceAndSnapshotComboBoxAction() {
     this(new Builder()
            .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get())
-           .setDevicesGetterGetter(project -> ServiceManager.getService(project, AsyncDevicesGetter.class))
+           .setDevicesGetterGetter(AsyncDevicesGetter::getInstance)
            .setGetProperties(PropertiesComponent::getInstance)
            .setClock(Clock.systemDefaultZone())
-           .setGetSelectedDevices(ModifyDeviceSetDialog::getSelectedDevices)
+           .setSelectedDevicesServiceGetInstance(SelectedDevicesService::getInstance)
            .setGetRunManager(RunManager::getInstance)
            .setGetExecutionTargetManager(ExecutionTargetManager::getInstance));
   }
@@ -222,8 +221,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     assert builder.myClock != null;
     myClock = builder.myClock;
 
-    assert builder.myGetSelectedDevices != null;
-    myGetSelectedDevices = builder.myGetSelectedDevices;
+    assert builder.mySelectedDevicesServiceGetInstance != null;
+    mySelectedDevicesServiceGetInstance = builder.mySelectedDevicesServiceGetInstance;
 
     assert builder.myGetRunManager != null;
     myGetRunManager = builder.myGetRunManager;
@@ -340,7 +339,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   List<Device> getSelectedDevices(@NotNull Project project) {
     if (isMultipleDevicesSelected(project)) {
-      return myGetSelectedDevices.apply(project);
+      return mySelectedDevicesServiceGetInstance.apply(project).getSelectedDevices();
     }
 
     Device device = getSelectedDevice(project);
@@ -364,7 +363,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     properties.setValue(MULTIPLE_DEVICES_SELECTED, multipleDevicesSelected);
 
-    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(myGetSelectedDevices.apply(project)));
+    SelectedDevicesService service = mySelectedDevicesServiceGetInstance.apply(project);
+    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(service.getSelectedDevices()));
   }
 
   void modifyDeviceSet(@NotNull Project project) {
@@ -372,7 +372,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return;
     }
 
-    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(myGetSelectedDevices.apply(project)));
+    SelectedDevicesService service = mySelectedDevicesServiceGetInstance.apply(project);
+    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(service.getSelectedDevices()));
   }
 
   @NotNull

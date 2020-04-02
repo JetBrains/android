@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.legacydevice
 
+import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
 import com.android.tools.idea.layoutinspector.model.TreeLoader
@@ -25,6 +26,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.collect.Lists
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import com.intellij.openapi.project.Project
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -45,7 +47,9 @@ import javax.imageio.ImageIO
  */
 object LegacyTreeLoader : TreeLoader {
 
-  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): Pair<ViewNode, String>? {
+  override fun loadComponentTree(
+    data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
+  ): Pair<ViewNode, String>? {
     val (windowName, updater, _) = data as? LegacyEvent ?: return null
     return capture(client, windowName, updater)?.let { Pair(it, windowName) }
   }
@@ -59,6 +63,7 @@ object LegacyTreeLoader : TreeLoader {
     return ListViewRootsHandler().getWindows(ddmClient, 5, TimeUnit.SECONDS)
   }
 
+  @Slow
   private fun capture(client: InspectorClient, window: String, propertiesUpdater: LegacyPropertiesProvider.Updater): ViewNode? {
     val legacyClient = client as? LegacyClient ?: return null
     val ddmClient = legacyClient.selectedClient ?: return null
@@ -201,6 +206,7 @@ object LegacyTreeLoader : TreeLoader {
       }
     }
 
+    @Slow
     @Throws(IOException::class)
     fun getWindows(c: Client, timeout: Long, unit: TimeUnit): List<String> {
       c.listViewRoots(this)

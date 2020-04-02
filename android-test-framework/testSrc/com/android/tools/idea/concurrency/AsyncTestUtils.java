@@ -18,6 +18,7 @@ package com.android.tools.idea.concurrency;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -47,6 +48,19 @@ public class AsyncTestUtils {
     }
     catch (Throwable t) {
       throw new RuntimeException("Expected ExecutionException from future, got Throwable instead", t);
+    }
+  }
+
+  public static <V> CancellationException pumpEventsAndWaitForFutureCancellation(ListenableFuture<V> future) {
+    try {
+      FutureUtils.pumpEventsAndWaitForFuture(future, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+      throw new RuntimeException("Expected CancellationException from future, got value instead");
+    }
+    catch (CancellationException e) {
+      return e;
+    }
+    catch (Throwable t) {
+      throw new RuntimeException("Expected CancellationException from future, got Throwable instead", t);
     }
   }
 }

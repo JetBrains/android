@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
-class ClassNames {
+public class ClassNames {
   public static final String CONTEXT = "android.content.Context";
   public static final String IO_EXCEPTION = "java.io.IOException";
   public static final String TENSOR_IMAGE = "org.tensorflow.lite.support.image.TensorImage";

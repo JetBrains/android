@@ -55,6 +55,7 @@ public abstract class NewKeyForm {
 
   public NewKeyForm() {
     myValiditySpinner.setModel(new SpinnerNumberModel(25, 1, 1000, 1));
+    ((JSpinner.DefaultEditor)myValiditySpinner.getEditor()).getTextField().setColumns(2);
   }
 
   private int getValidity() {

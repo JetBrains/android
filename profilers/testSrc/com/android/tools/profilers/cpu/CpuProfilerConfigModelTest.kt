@@ -177,7 +177,7 @@ class CpuProfilerConfigModelTest {
   }
 
   private fun isDefault(configuration: ProfilingConfiguration) = myServices
-    .defaultCpuProfilerConfigs
+    .getDefaultCpuProfilerConfigs(0)
     .any { configuration.name == it.name }
 
   private fun setDevice(featureLevel: Int) {

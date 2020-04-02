@@ -86,7 +86,7 @@ class DefaultPropertiesProviderTest {
     val demo = ResourceReference(ResourceNamespace.fromPackageName("com.example"), ResourceType.LAYOUT, "demo")
     val textAppearance = ResourceReference(ResourceNamespace.fromPackageName("com.example"), ResourceType.STYLE, "MyTextStyle")
     val textAppearanceExtra = ResourceReference(ResourceNamespace.fromPackageName("com.example"), ResourceType.STYLE, "MyTextStyle.Extra")
-    provider.requestProperties(view)
+    provider.requestProperties(view).get()
     inspectorRule.advanceTime(110, TimeUnit.MILLISECONDS)
 
     assertThat(result.provider).isSameAs(provider)

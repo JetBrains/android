@@ -37,7 +37,7 @@ import java.io.File
 
 object EditorUtil {
   @JvmStatic
-  fun reformatAndRearrange(project: Project, files: Iterable<File>) {
+  fun reformatRearrangeAndSave(project: Project, files: Iterable<File>) {
     WriteCommandAction.runWriteCommandAction(project) {
       files.asSequence()
         .filter { it.isFile }
@@ -47,6 +47,9 @@ object EditorUtil {
         .forEach {
           val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(it)!!
           reformatAndRearrange(project, virtualFile, keepDocumentLocked = true)
+          FileDocumentManager.getInstance().run {
+            getDocument(virtualFile)?.let { document -> saveDocument(document) }
+          }
         }
     }
   }

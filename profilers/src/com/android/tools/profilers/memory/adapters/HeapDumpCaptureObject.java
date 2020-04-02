@@ -95,7 +95,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
   private final ProguardMap myProguardMap;
 
   @Nullable
-  private volatile Snapshot mySnapshot;
+  private volatile boolean hasLoaded = false;
 
   private volatile boolean myIsLoadingError = false;
 
@@ -162,11 +162,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public Collection<HeapSet> getHeapSets() {
-    Snapshot snapshot = mySnapshot;
-    if (snapshot == null) {
-      return Collections.emptyList();
-    }
-    return myHeapSets.values();
+    return hasLoaded ? myHeapSets.values() : Collections.emptyList();
   }
 
   @Override
@@ -178,11 +174,9 @@ public class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public Stream<InstanceObject> getInstances() {
-    Snapshot snapshot = mySnapshot;
-    if (snapshot == null) {
-      return Stream.empty();
-    }
-    return getHeapSets().stream().map(ClassifierSet::getInstancesStream).flatMap(Function.identity());
+    return hasLoaded ?
+           getHeapSets().stream().map(ClassifierSet::getInstancesStream).flatMap(Function.identity()) :
+           Stream.empty();
   }
 
   @Override
@@ -224,7 +218,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
                                                 Collections.singletonList(nativeRegistryPostProcessor));
     snapshot.computeDominators();
     myHasNativeAllocations = nativeRegistryPostProcessor.getHasNativeAllocations();
-    mySnapshot = snapshot;
+    hasLoaded = true;
 
     InstanceObject javaLangClassObject = snapshot.getHeaps().stream()
       .flatMap(h -> h.getClasses().stream().filter(obj -> JAVA_LANG_CLASS.equals(obj.getClassName())))
@@ -297,7 +291,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
   @Override
   public boolean isDoneLoading() {
-    return mySnapshot != null || myIsLoadingError;
+    return hasLoaded || myIsLoadingError;
   }
 
   @Override
@@ -330,7 +324,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
   @Nullable
   public InstanceObject findInstanceObject(@NotNull Instance instance) {
-    return mySnapshot == null ? null : myInstanceIndex.get(instance.getId());
+    return hasLoaded ? myInstanceIndex.get(instance.getId()) : null;
   }
 
   @NotNull

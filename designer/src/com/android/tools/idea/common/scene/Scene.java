@@ -21,7 +21,6 @@ import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.sdklib.AndroidVersion;
@@ -53,8 +52,10 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
@@ -72,12 +73,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import org.intellij.lang.annotations.JdkConstants;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * A Scene contains a hierarchy of SceneComponent representing the bounds
@@ -1169,9 +1175,9 @@ public class Scene implements SelectionListener, Disposable {
     return myHitTarget;
   }
 
-  @Nullable
+  @NotNull
   @AndroidDpCoordinate
-  public Dimension measureWrapSize(@NotNull SceneComponent component) {
+  public CompletableFuture<Dimension> measureWrapSize(@NotNull SceneComponent component) {
     return measure(component, (n, namespace, localName) -> {
       // Change attributes to wrap_content
       if (ATTR_LAYOUT_WIDTH.equals(localName) && ANDROID_URI.equals(namespace)) {
@@ -1184,13 +1190,13 @@ public class Scene implements SelectionListener, Disposable {
     });
   }
 
-  @Nullable
+  @NotNull
   @AndroidDpCoordinate
-  private Dimension measure(@NotNull SceneComponent component, @Nullable RenderTask.AttributeFilter filter) {
+  private CompletableFuture<Dimension> measure(@NotNull SceneComponent component, @Nullable RenderTask.AttributeFilter filter) {
     // TODO: Reuse snapshot!
     NlComponent neleComponent = component.getNlComponent();
     if (!neleComponent.getBackend().isValid()) {
-      return null;
+      return CompletableFuture.completedFuture(null);
     }
     NlModel model = neleComponent.getModel();
     XmlFile xmlFile = model.getFile();
@@ -1198,22 +1204,27 @@ public class Scene implements SelectionListener, Disposable {
     RenderService renderService = RenderService.getInstance(module.getProject());
     AndroidFacet facet = model.getFacet();
     RenderLogger logger = renderService.createLogger(facet);
-    final RenderTask task = renderService.taskBuilder(facet, model.getConfiguration())
+
+    return renderService.taskBuilder(facet, model.getConfiguration())
       .withLogger(logger)
       .withPsiFile(xmlFile)
-      .buildSynchronously();
-    if (task == null) {
-      return null;
-    }
+      .build()
+      .thenCompose(task -> {
+        if (task == null) {
+          return CompletableFuture.completedFuture(null);
+        }
 
-    XmlTag tag = neleComponent.getTagDeprecated();
-    ViewInfo viewInfo = task.measureChild(tag, filter);
-    if (viewInfo == null) {
-      return null;
-    }
-    viewInfo = RenderService.getSafeBounds(viewInfo);
-    return new Dimension(Coordinates.pxToDp(getSceneManager(), viewInfo.getRight() - viewInfo.getLeft()),
-                         Coordinates.pxToDp(getSceneManager(), viewInfo.getBottom() - viewInfo.getTop()));
+        XmlTag tag = neleComponent.getTagDeprecated();
+        return task.measureChild(tag, filter);
+      })
+      .thenApply(viewInfo -> {
+        if (viewInfo == null) {
+          return null;
+        }
+        viewInfo = RenderService.getSafeBounds(viewInfo);
+        return new Dimension(Coordinates.pxToDp(getSceneManager(), viewInfo.getRight() - viewInfo.getLeft()),
+                             Coordinates.pxToDp(getSceneManager(), viewInfo.getBottom() - viewInfo.getTop()));
+      });
   }
 
   /**

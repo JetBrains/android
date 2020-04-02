@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk;
 
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
 import static com.intellij.openapi.util.text.StringUtil.trimEnd;
 import static com.intellij.openapi.util.text.StringUtil.trimStart;
@@ -88,11 +87,6 @@ public class NdkModuleNode extends AndroidViewModuleNode {
       String artifactOutputFileName = file.getName();
       nativeLibraries.put(artifactOutputFileName, artifact);
     }
-    if (!ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
-      if (nativeLibraries.keySet().size() == 1) {
-        return NdkLibraryNode.getSourceFolderNodes(project, nativeLibraries.values(), settings, sourceFileExtensions);
-      }
-    }
     List<AbstractTreeNode> children = new ArrayList<>();
     for (String name : nativeLibraries.keySet()) {
       String nativeLibraryType = "";
@@ -107,20 +101,13 @@ public class NdkModuleNode extends AndroidViewModuleNode {
         }
       }
       nativeLibraryName = trimStart(nativeLibraryName, "lib");
-      if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
-        LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-        VirtualFile buildFileFolder = fileSystem.findFileByIoFile(ndkModel.getRootDirPath());
-        NdkLibraryEnhancedHeadersNode node =
-          new NdkLibraryEnhancedHeadersNode(buildFileFolder, project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(name),
-                                            new NativeIncludes(ndkModel::findSettings, nativeLibraries.get(name)), settings,
-                                            sourceFileExtensions);
-        children.add(node);
-      }
-      else {
-        NdkLibraryNode node =
-          new NdkLibraryNode(project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(name), settings, sourceFileExtensions);
-        children.add(node);
-      }
+      LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+      VirtualFile buildFileFolder = fileSystem.findFileByIoFile(ndkModel.getRootDirPath());
+      NdkLibraryEnhancedHeadersNode node =
+        new NdkLibraryEnhancedHeadersNode(buildFileFolder, project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(name),
+                                          new NativeIncludes(ndkModel::findSettings, nativeLibraries.get(name)), settings,
+                                          sourceFileExtensions);
+      children.add(node);
     }
     if (children.size() == 1) {
       return children.get(0).getChildren();

@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
@@ -71,6 +72,12 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
    * The order of the elements will be the same as the order of the composable functions.
    */
   override fun findPreviewMethods(uFile: UFile): List<PreviewElement> = ReadAction.compute<List<PreviewElement>, Throwable> {
+    if (DumbService.isDumb(uFile.sourcePsi.project)) {
+      Logger.getInstance(AnnotationFilePreviewElementFinder::class.java)
+        .debug("findPreviewMethods called in dumb mode. No annotations will be found")
+      return@compute listOf()
+    }
+
     val previewMethodsFqName = mutableSetOf<String>()
     val previewElements = mutableListOf<PreviewElement>()
     uFile.accept(object : UastVisitor {

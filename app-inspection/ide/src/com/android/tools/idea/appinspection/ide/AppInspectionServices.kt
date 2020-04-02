@@ -30,7 +30,6 @@ import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.TimeUnit
 
@@ -38,7 +37,7 @@ import java.util.concurrent.TimeUnit
 /**
  * This service holds a reference to [AppInspectionDiscoveryHost]. It will establish new connections when they are discovered.
  */
-internal class AppInspectionHostService(project: Project) : Disposable {
+internal class AppInspectionHostService : Disposable {
   init {
     // The following line has the side effect of starting the transport service if it has not been already.
     // The consequence of not doing this is gRPC calls are never responded to.
@@ -69,7 +68,8 @@ internal class AppInspectionHostService(project: Project) : Disposable {
 
   companion object {
     private val logger = Logger.getInstance(AppInspectionHostService::class.java)
-    fun getInstance(project: Project) = project.service<AppInspectionHostService>()
+    val instance: AppInspectionHostService
+      get() = service()
   }
 
   override fun dispose() {

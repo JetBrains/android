@@ -34,27 +34,24 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MlWizardModel extends WizardModel {
 
-  /**
-   * The Directory of new ml folder
-   */
-  private final File myMlDirectory;
   private final Project myProject;
 
   public final StringValueProperty sourceLocation = new StringValueProperty();
+  public final StringValueProperty mlDirectory = new StringValueProperty();
 
-  public MlWizardModel(@NotNull File mlDirectory, @NotNull Project project) {
-    myMlDirectory = mlDirectory;
+  public MlWizardModel(@NotNull Project project) {
     myProject = project;
   }
 
   @Override
   protected void handleFinished() {
     VirtualFile fromFile = VfsUtil.findFileByIoFile(new File(sourceLocation.get()), false);
+    String directoryPath = mlDirectory.get();
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
         try {
-          VirtualFile toDir = VfsUtil.createDirectoryIfMissing(myMlDirectory.getAbsolutePath());
+          VirtualFile toDir = VfsUtil.createDirectoryIfMissing(directoryPath);
           if (fromFile != null && toDir != null) {
             VirtualFile virtualFile = VfsUtilCore.copyFile(this, fromFile, toDir);
             FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
@@ -64,7 +61,7 @@ public class MlWizardModel extends WizardModel {
           }
         }
         catch (IOException e) {
-          Logger.getInstance(MlWizardModel.class).error(String.format("Error copying %s to %s", fromFile, myMlDirectory), e);
+          Logger.getInstance(MlWizardModel.class).error(String.format("Error copying %s to %s", fromFile, directoryPath), e);
         }
       }
     });

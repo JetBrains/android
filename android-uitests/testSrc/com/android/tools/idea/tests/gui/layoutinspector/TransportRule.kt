@@ -41,15 +41,15 @@ import java.io.FileInputStream
 val DEFAULT_PROCESS = Common.Process.newBuilder().apply {
   name = "myProcess"
   pid = 12345
-  deviceId = 1234
+  deviceId = 123456
   state = Common.Process.State.ALIVE
 }.build()!!
 
 val DEFAULT_DEVICE = Common.Device.newBuilder().apply {
-  deviceId = 1234
+  deviceId = 123456
   model = "My Model"
   manufacturer = "Google"
-  serial = "1234"
+  serial = "123456"
   apiLevel = 29
   featureLevel = 29
   state = Common.Device.State.ONLINE

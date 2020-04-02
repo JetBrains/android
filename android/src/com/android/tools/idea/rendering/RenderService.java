@@ -25,11 +25,13 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
+import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
@@ -39,6 +41,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
@@ -52,7 +55,11 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
@@ -355,6 +362,21 @@ public class RenderService implements Disposable {
     private boolean enableLayoutValidator = StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR.get();
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
+    @NotNull private Function<Module, MergedManifestSnapshot> myManifestProvider =
+      module -> {
+        try {
+          return MergedManifestManager.getMergedManifest(module).get(1, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException | TimeoutException e) {
+          Logger.getInstance(RenderService.class).warn(e);
+        }
+        catch (ExecutionException e) {
+          Logger.getInstance(RenderService.class).error(e);
+        }
+
+        return null;
+      };
+
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -478,6 +500,15 @@ public class RenderService implements Disposable {
     }
 
     /**
+     * Sets the {@link MergedManifestSnapshot} provider
+     */
+    @NotNull
+    public RenderTaskBuilder setMergedManifestProvider(@NotNull Function<Module, MergedManifestSnapshot> provider) {
+      myManifestProvider = provider;
+      return this;
+    }
+
+    /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
      */
@@ -532,7 +563,7 @@ public class RenderService implements Disposable {
           RenderTask task =
             new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceElement);
+                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceElement, myManifestProvider);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }

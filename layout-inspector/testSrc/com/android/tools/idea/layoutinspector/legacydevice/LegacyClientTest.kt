@@ -55,10 +55,10 @@ class LegacyClientTest {
 
     client.reloadAllWindows()
     verify(loader).loadComponentTree(argThat { event: LegacyEvent -> event.windowId == "window1" },
-                                     any(ResourceLookup::class.java), eq(client))
+                                     any(ResourceLookup::class.java), eq(client), eq(projectRule.project))
     verify(loader).loadComponentTree(argThat { event: LegacyEvent -> event.windowId == "window2" },
-                                     any(ResourceLookup::class.java), eq(client))
+                                     any(ResourceLookup::class.java), eq(client), eq(projectRule.project))
     verify(loader).loadComponentTree(argThat { event: LegacyEvent -> event.windowId == "window3" },
-                                     any(ResourceLookup::class.java), eq(client))
+                                     any(ResourceLookup::class.java), eq(client), eq(projectRule.project))
   }
 }

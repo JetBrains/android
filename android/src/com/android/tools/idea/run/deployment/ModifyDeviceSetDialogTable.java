@@ -39,7 +39,7 @@ final class ModifyDeviceSetDialogTable extends JBTable {
   }
 
   @NotNull
-  Collection<Device> getSelectedDevices() {
+  List<Device> getSelectedDevices() {
     return IntStream.range(0, getRowCount())
       .filter(this::isSelected)
       .mapToObj(this::getDeviceAt)

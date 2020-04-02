@@ -35,7 +35,6 @@ import com.android.tools.idea.testing.IdeComponents
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
-import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.concurrency.EdtExecutorService
@@ -153,15 +152,15 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     verify(mockSchemaProvider, times(2)).getSchema(database)
   }
 
-  fun testTableActionsAreNotVisibleInEvaluatorView() {
+  fun testRefreshButtonIsDisabledByDefault() {
     // Prepare
-    val tableViewTreeWalker = TreeWalker(view.tableView.component)
-    val tableActionsPanel = tableViewTreeWalker.descendants().first { it.name == "table-actions-panel" }
+    val refreshButton =  TreeWalker(view.tableView.component).descendants().first { it.name == "refresh-button" }
 
     val evaluatorController = SqliteEvaluatorController(
       project,
       view,
       MockDatabaseInspectorViewsFactory(),
+      {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
     )
@@ -170,7 +169,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     evaluatorController.setUp()
 
     // Assert
-    LightPlatformTestCase.assertFalse(tableActionsPanel.isVisible)
+    assertFalse(refreshButton.isEnabled)
   }
 
   fun testMultipleStatementAreRun() {
@@ -189,6 +188,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       project,
       view,
       MockDatabaseInspectorViewsFactory(),
+      {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
     )

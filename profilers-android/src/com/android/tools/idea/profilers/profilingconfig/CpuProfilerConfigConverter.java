@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profiler.proto.Cpu;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
 
 public class CpuProfilerConfigConverter {
 
@@ -29,14 +28,14 @@ public class CpuProfilerConfigConverter {
   /**
    * Converts from list of {@link CpuProfilerConfig} to list of {@link Cpu.CpuTraceConfiguration}
    */
-  public static List<Cpu.CpuTraceConfiguration.UserOptions> toProto(List<CpuProfilerConfig> configs) {
-    return ContainerUtil.map(configs, CpuProfilerConfigConverter::toProto);
+  public static List<Cpu.CpuTraceConfiguration.UserOptions> toProto(List<CpuProfilerConfig> configs, int deviceApi) {
+    return ContainerUtil.map(configs, config -> toProto(config, deviceApi));
   }
 
   /**
    * Converts from {@link CpuProfilerConfig} to {@link Cpu.CpuTraceConfiguration.UserOptions}
    */
-  public static Cpu.CpuTraceConfiguration.UserOptions toProto(CpuProfilerConfig config) {
+  public static Cpu.CpuTraceConfiguration.UserOptions toProto(CpuProfilerConfig config, int deviceApi) {
     Cpu.CpuTraceConfiguration.UserOptions.Builder protoBuilder = Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
       .setName(config.getName())
       .setBufferSizeInMb(config.getBufferSizeMb())
@@ -56,9 +55,13 @@ public class CpuProfilerConfigConverter {
         protoBuilder.setTraceType(Cpu.CpuTraceType.SIMPLEPERF);
         protoBuilder.setTraceMode(Cpu.CpuTraceMode.SAMPLED);
         break;
-      case ATRACE:
-        protoBuilder.setTraceType(Cpu.CpuTraceType.ATRACE);
-        protoBuilder.setTraceMode(Cpu.CpuTraceMode.SAMPLED);
+      case SYSTEM_TRACE:
+        if (deviceApi >= AndroidVersion.VersionCodes.P) {
+          protoBuilder.setTraceType(Cpu.CpuTraceType.PERFETTO);
+        } else {
+          protoBuilder.setTraceType(Cpu.CpuTraceType.ATRACE);
+        }
+        protoBuilder.setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED);
         break;
     }
 
@@ -87,8 +90,9 @@ public class CpuProfilerConfigConverter {
       case SIMPLEPERF:
         config.setTechnology(CpuProfilerConfig.Technology.SAMPLED_NATIVE);
         break;
-      case ATRACE:
-        config.setTechnology(CpuProfilerConfig.Technology.ATRACE);
+      case ATRACE: // fall-through
+      case PERFETTO:
+        config.setTechnology(CpuProfilerConfig.Technology.SYSTEM_TRACE);
         break;
       default:
         throw new IllegalArgumentException("Unsupported trace type: " + proto.getTraceType());

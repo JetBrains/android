@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainCon
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
@@ -99,13 +100,21 @@ internal fun KtCallExpression.isBlockElement(parent: GradlePropertiesDslElement)
   return zeroOrOneClosures && (namedDomainBlockReference || knownBlockForParent)
 }
 
+internal fun GradleDslFile.transitivelyApplies(file: GradleDslFile, seen: MutableSet<GradleDslFile> = mutableSetOf()): Boolean {
+  return when {
+    file == this -> true
+    seen.contains(this) -> false
+    else -> { seen.add(this); this.applyDslElement.any { it.transitivelyApplies(file, seen) } }
+  }
+}
+
 fun convertToExternalTextValue(
   context: GradleDslSimpleExpression,
   applyContext: GradleDslFile,
   referenceText : String,
   forInjection: Boolean
 ) : String {
-  val resolvedReference = context.resolveReference(referenceText, false) ?: return referenceText
+  val resolvedReference = context.resolveInternalSyntaxReference(referenceText, false) ?: return referenceText
   // Get the resolvedReference value type that might be used for the final cast.
   // TODO(karimai): what if the type needs to be imported ?
   val className = if (resolvedReference is GradleDslLiteral) resolvedReference.value?.javaClass?.kotlin?.simpleName else null
@@ -124,7 +133,7 @@ fun convertToExternalTextValue(
 
   // Now we Reached the dslFile level.
   // We only need to add a prefix if we are applying the reference from a parent dslFile context.
-  if (currentParent is GradleDslFile && currentParent != context.dslFile) {
+  if (currentParent is GradleDslFile && !context.dslFile.transitivelyApplies(currentParent)) {
     // If we are applying a property from rootProject => we only need rootProjectPrefix.
     if (currentParent.name == ":") {
       externalName.append("rootProject.")
@@ -211,6 +220,12 @@ fun convertToExternalTextValue(
       }
       is GradleDslNamedDomainContainer -> externalName.append("$elementExternalName.")
       is GradleDslNamedDomainElement -> externalName.append("getByName(\"$elementExternalName\").")
+      else -> {
+        // if we have a model property with a transform (so not directly a GradleDslLiteral)
+        if (currentElement.modelEffect?.property != null) {
+          externalName.append("$elementExternalName.")
+        }
+      }
     }
   }
 
@@ -416,7 +431,7 @@ fun gradleNameFor(expression: KtExpression): String? {
           allValid = false
         }
         else {
-          sb.append(name)
+          sb.append(GradleNameElement.escape(name))
         }
       }
     }
@@ -463,14 +478,14 @@ internal fun findInjections(
     // foo, KotlinCompilerVersion, android.compileSdkVersion
     is KtNameReferenceExpression, is KtDotQualifiedExpression -> {
       val text = psiElement.text
-      val element = context.resolveReference(text, true)
+      val element = context.resolveExternalSyntaxReference(text, true)
       return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
     }
     // extra["PROPERTY_NAME"], someMap["MAP_KEY"], someList[0], rootProject.extra["kotlin_version"]
     is KtArrayAccessExpression -> {
       if (psiElement.arrayExpression == null) return noInjections
       val text = psiElement.text
-      val element = context.resolveReference(text, true)
+      val element = context.resolveExternalSyntaxReference(text, true)
       return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
     }
     // "foo bar", "foo $bar", "foo ${extra["PROPERTY_NAME"]}"

@@ -38,8 +38,8 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
-import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.PositionableContentLayoutManager;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -67,6 +67,7 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
@@ -75,7 +76,6 @@ import com.intellij.util.ui.update.Update;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Rectangle;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -164,6 +164,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      * Factory to create an {@link InteractionHandler} for the {@link DesignSurface}.
      */
     private Function<DesignSurface, InteractionHandler> myInteractionHandlerProvider = NlDesignSurface::defaultInteractionHandlerProvider;
+    private Function<DesignSurface, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -309,6 +310,15 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * Sets the {@link DesignSurfaceActionHandler} provider for this surface.
+     */
+    @NotNull
+    public Builder setActionHandler(@NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider) {
+      myActionHandlerProvider = actionHandlerProvider;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
@@ -328,7 +338,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  myNavigationHandler,
                                  myMinScale,
                                  myMaxScale,
-                                 myOnChangeZoom);
+                                 myOnChangeZoom,
+                                 myActionHandlerProvider);
     }
   }
 
@@ -395,9 +406,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @Nullable NavigationHandler navigationHandler,
                           double minScale,
                           double maxScale,
-                          @NotNull ZoomType onChangeZoom) {
+                          @NotNull ZoomType onChangeZoom,
+                          @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider) {
     super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceState, isEditable, onChangeZoom,
-          (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, layoutManager));
+          (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, layoutManager),
+          actionHandlerProvider);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
@@ -446,6 +459,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   public static NlInteractionHandler defaultInteractionHandlerProvider(@NotNull DesignSurface surface) {
     return new NlInteractionHandler(surface);
+  }
+
+  /**
+   * Default {@link NlDesignSurfaceActionHandler} provider.
+   */
+  @NotNull
+  public static NlDesignSurfaceActionHandler defaultActionHandlerProvider(@NotNull DesignSurface surface) {
+    return new NlDesignSurfaceActionHandler(surface);
   }
 
   @NotNull
@@ -742,12 +763,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
           return;
         }
 
-        ReadAction.run(() -> {
-          Project project = getProject();
-          if (project.isDisposed()) {
-            return;
-          }
+        Project project = getProject();
+        if (project.isDisposed()) {
+          return;
+        }
 
+        // createErrorModel needs to run in Smart mode to resolve the classes correctly
+        DumbService.getInstance(project).runReadActionInSmartMode(() -> {
           BuildMode gradleBuildMode = BuildSettings.getInstance(project).getBuildMode();
           RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
                                    ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
@@ -858,12 +880,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   protected void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
     super.notifySelectionListeners(newSelection);
     scrollToCenter(newSelection);
-  }
-
-  @NotNull
-  @Override
-  protected DesignSurfaceActionHandler createActionHandler() {
-    return new NlDesignSurfaceActionHandler(this);
   }
 
   @NotNull

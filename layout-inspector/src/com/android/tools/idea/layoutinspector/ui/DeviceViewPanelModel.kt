@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.idea.layoutinspector.model.DIMMER_QNAME
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.UNKNOWN
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataKey
 import java.awt.Image
@@ -90,8 +96,25 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   val rotatable
     get() = model.hasSubImages && overlay == null
 
-  val isFallbackMode
-    get() = model.root.children.any { it.fallbackMode }
+  val pictureType
+    get() =
+      when {
+        model.root.children.any { it.imageType == PNG_AS_REQUESTED } -> {
+          // If we find that we've requested and received a png, that's what we'll use first
+          PNG_AS_REQUESTED
+        }
+        model.root.children.any { it.imageType == PNG_SKP_TOO_LARGE } -> {
+          // We got a PNG because the SKP we would have gotten was too big.
+          PNG_SKP_TOO_LARGE
+        }
+        model.root.children.all { it.imageType == PNG_SKP_TOO_LARGE || it.qualifiedName == DIMMER_QNAME } -> {
+          // If everything is an SKP (or a dimmer we added) then the type is SKP
+          SKP
+        }
+        else -> {
+          UNKNOWN
+        }
+      }
 
   val isActive
     get() = !model.isEmpty

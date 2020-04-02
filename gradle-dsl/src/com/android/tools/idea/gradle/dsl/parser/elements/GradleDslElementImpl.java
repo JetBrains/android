@@ -143,7 +143,14 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Override
   @NotNull
   public String getFullName() {
-    return myName.fullName();
+    if (myModelEffectDescription == null) {
+      return myName.fullName();
+    }
+    else {
+      List<String> parts = myName.qualifyingParts();
+      parts.add(getName());
+      return GradleNameElement.createNameFromParts(parts);
+    }
   }
 
   @Override

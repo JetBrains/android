@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
@@ -34,14 +36,14 @@ class CorruptGradleDependencyIssueChecker: GradleIssueChecker {
       SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.CORRUPT_GRADLE_DEPENDENCY)
     }
 
-    val syncProjectQuickFix = ClassLoadingIssueChecker.SyncProjectQuickFix()
+    val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
+    val description = MessageComposer(message).apply {
+      addQuickFix(syncProjectQuickFix.linkText, syncProjectQuickFix)
+    }
     return object : BuildIssue {
       override val title: String = "Gradle's dependency cache seems to be corrupt or out of sync."
-      override val description: String = buildString {
-        appendln(message)
-        appendln("\n<a href=\"${syncProjectQuickFix.id}\">Re-download dependencies and sync project (requires network)</a>")
-      }
-      override val quickFixes: List<BuildIssueQuickFix> = listOf(syncProjectQuickFix)
+      override val description: String = description.buildMessage()
+      override val quickFixes: List<BuildIssueQuickFix> = description.quickFixes
       override fun getNavigatable(project: Project): Navigatable? = null
     }
   }

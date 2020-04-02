@@ -65,6 +65,7 @@ iml_module(
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
     ],
 )
 

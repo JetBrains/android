@@ -81,16 +81,20 @@ class AndroidGradleProjectRule : NamedExternalResource() {
    *   is actually loaded.
    */
   @JvmOverloads
-  fun load(projectPath: String, preLoad: ((projectRoot: File) -> Unit)? = null) {
+  fun load(
+    projectPath: String,
+    preLoad: ((projectRoot: File) -> Unit)? = null,
+    issueFilter: AndroidGradleTests.SyncIssueFilter? = null
+  ) {
     if (preLoad != null) {
       val rootFile = delegateTestCase.prepareProjectForImport(projectPath)
 
       preLoad(rootFile)
-      delegateTestCase.importProject()
+      delegateTestCase.importProject(issueFilter)
       delegateTestCase.prepareProjectForTest(project, null)
     }
     else {
-      delegateTestCase.loadProject(projectPath)
+      delegateTestCase.loadProject(projectPath, issueFilter)
     }
   }
 
@@ -104,16 +108,17 @@ class AndroidGradleProjectRule : NamedExternalResource() {
    */
   @JvmOverloads
   fun loadProject(projectPath: String, chosenModuleName: String? = null, gradleVersion: String? = null, agpVersion: String? = null) {
-      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion)
+      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, null)
   }
 
-  fun requestSyncAndWait() {
-    delegateTestCase.requestSyncAndWait()
+  @JvmOverloads
+  fun requestSyncAndWait(issueFilter: AndroidGradleTests.SyncIssueFilter? = null) {
+    delegateTestCase.requestSyncAndWait(issueFilter)
   }
 
   fun requestSyncAndWait(request: GradleSyncInvoker.Request) {
     val syncListener = delegateTestCase.requestSync(request)
-    AndroidGradleTests.checkSyncStatus(project, syncListener)
+    AndroidGradleTests.checkSyncStatus(project, syncListener, null)
   }
 
   fun generateSources() {

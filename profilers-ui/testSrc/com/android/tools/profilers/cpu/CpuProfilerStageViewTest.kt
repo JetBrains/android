@@ -120,7 +120,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
 
     val traceFile = TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)
-    val capture = AtraceParser(1).parse(traceFile, 0)
+    val capture = AtraceParser(MainProcessSelector(idHint = 1)).parse(traceFile, 0)
 
     assertThat(splitter.proportion).isWithin(0.0001f).of(SPLITTER_DEFAULT_RATIO)
     myStage.capture = capture
