@@ -20,7 +20,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.toPreviewXmlString
+import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderResult
@@ -39,11 +39,11 @@ import java.util.function.Supplier
  */
 @VisibleForTesting
 fun renderPreviewElementForResult(facet: AndroidFacet,
-                                  previewElement: PreviewElement,
+                                  previewElement: PreviewElementInstance,
                                   executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<RenderResult?> {
   val project = facet.module.project
 
-  val file = ComposeAdapterLightVirtualFile("singlePreviewElement.xml", previewElement.toPreviewXmlString())
+  val file = ComposeAdapterLightVirtualFile("singlePreviewElement.xml", previewElement.toPreviewXml().buildString())
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, file) ?: return CompletableFuture.completedFuture(null)
   val configuration = Configuration.create(ConfigurationManager.getOrCreateInstance(facet), null, FolderConfiguration.createDefault())
 
@@ -68,7 +68,7 @@ fun renderPreviewElementForResult(facet: AndroidFacet,
  * This method will render the element asynchronously and will return immediately.
  */
 fun renderPreviewElement(facet: AndroidFacet,
-                         previewElement: PreviewElement,
+                         previewElement: PreviewElementInstance,
                          executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<BufferedImage?> {
   return renderPreviewElementForResult(facet, previewElement, executor)
     .thenApply {

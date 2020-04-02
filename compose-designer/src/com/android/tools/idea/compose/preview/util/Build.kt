@@ -51,8 +51,7 @@ private fun requestKotlinBuild(project: Project, modules: Set<Module>) {
 
   createBuildTasks(modules).forEach {
     val path = moduleFinder.getRootProjectPath(it.key)
-    GradleBuildInvoker.getInstance(
-      project).executeTasks(path.toFile(), it.value)
+    GradleBuildInvoker.getInstance(project).executeTasks(path.toFile(), it.value)
   }
 }
 
@@ -60,9 +59,7 @@ private fun requestKotlinBuild(project: Project, modules: Set<Module>) {
  * Triggers the build of the given [modules] by calling the compileSourcesDebug task
  */
 private fun requestCompileJavaBuild(project: Project, modules: Set<Module>) =
-  GradleBuildInvoker.getInstance(
-    project).compileJava(modules.toTypedArray(),
-                         TestCompileType.NONE)
+  GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
 
 internal fun requestBuild(project: Project, module: Module) {
   if (project.isDisposed || module.isDisposed) {

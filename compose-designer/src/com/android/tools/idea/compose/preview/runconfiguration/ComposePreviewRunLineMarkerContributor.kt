@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
-import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.execution.lineMarker.ExecutorAction

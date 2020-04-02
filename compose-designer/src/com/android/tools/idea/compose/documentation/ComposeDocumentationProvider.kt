@@ -17,12 +17,12 @@ package com.android.tools.idea.compose.documentation
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.util.PREVIEW_NAME
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
-import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getClassName
 import com.android.utils.reflection.qualifiedName
