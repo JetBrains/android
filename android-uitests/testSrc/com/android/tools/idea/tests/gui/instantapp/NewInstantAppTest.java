@@ -169,12 +169,15 @@ public class NewInstantAppTest {
     guiTest.ideFrame().getEditor()
            .open("app/src/main/res/layout/activity_fullscreen.xml")
            .open("app/src/main/res/values/attrs.xml") // Make sure "Full Screen" themes, colors and styles are on the base module
-           .moveBetween("ButtonBarContainerTheme", "")
+           .moveBetween("FullscreenAttrs", "")
            .open("app/src/main/res/values/colors.xml")
            .moveBetween("black_overlay", "")
-           .open("app/src/main/res/values/styles.xml")
-           .moveBetween("FullscreenTheme", "")
-           .moveBetween("FullscreenActionBarStyle", "");
+           .open("app/src/main/res/values/themes.xml")
+           .moveBetween("Theme.App.Fullscreen", "")
+           .moveBetween("FullscreenContainer", "")
+           .open("app/src/main/res/values-night/themes.xml")
+           .moveBetween("fullscreenBackgroundColor", "")
+           .moveBetween("fullscreenTextColor", "");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
