@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator;
+package com.android.tools.idea.emulator
 
-import com.intellij.openapi.actionSystem.DataKey;
+import com.android.emulator.control.VmRunState
+import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Constants used by the classes in this package.
+ * Initiates a graceful shutdown of the Emulator.
  */
-class EmulatorConstants {
-  public static final DataKey<EmulatorController> EMULATOR_CONTROLLER_KEY = DataKey.create("emulator");
-  public static final DataKey<EmulatorView> EMULATOR_VIEW_KEY = DataKey.create("emulatorView");
-
-  public static final String EMULATOR_MAIN_TOOLBAR_ID = "EmulatorToolbar";
+class EmulatorShutdownAction : AbstractEmulatorAction() {
+  override fun actionPerformed(event: AnActionEvent) {
+    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
+    val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
+    emulatorController.setVmState(vmRunState)
+  }
 }
