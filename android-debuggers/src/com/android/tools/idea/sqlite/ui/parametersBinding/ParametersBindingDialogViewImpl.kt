@@ -27,6 +27,9 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.fields.ExpandableTextField
+import com.intellij.util.Function
+import com.intellij.util.execution.ParametersListUtil
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Component
@@ -45,6 +48,7 @@ import javax.swing.KeyStroke
  * @see ParametersBindingDialogView
  */
 class ParametersBindingDialogViewImpl(
+  sqliteStatementText: String,
   project: Project,
   canBeParent: Boolean
 ) : DialogWrapper(project, canBeParent), ParametersBindingDialogView {
@@ -55,9 +59,16 @@ class ParametersBindingDialogViewImpl(
 
   private val listeners = mutableListOf<ParametersBindingDialogView.Listener>()
 
+  private val statementLabel = JBLabel("Statement")
+  private val statementTextField = ExpandableTextField(Function { value: String -> listOf(value) }, ParametersListUtil.DEFAULT_LINE_JOINER)
+
   init {
     parameterResolutionPanelsContainer.layout = BoxLayout(parameterResolutionPanelsContainer, BoxLayout.Y_AXIS)
-    component.add(parameterResolutionPanelsContainer, BorderLayout.NORTH)
+    val panel = JPanel()
+    panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
+    panel.add(createStatementPanel(sqliteStatementText))
+    panel.add(parameterResolutionPanelsContainer)
+    component.add(panel, BorderLayout.NORTH)
 
     isModal = false
     title = "Query parameters"
@@ -80,8 +91,10 @@ class ParametersBindingDialogViewImpl(
       parameterResolutionPanelsContainer.add(namedParameterResolutionPanel.component)
     }
 
-    val maxLabelWidth = parameterResolutionPanels.map { it.parameterNameLabel.preferredSize.width }.max() ?: 0
+    val labelSizes = parameterResolutionPanels.map { it.parameterNameLabel.preferredSize.width } + statementLabel.preferredSize.width
+    val maxLabelWidth = labelSizes.max() ?: 0
     val finalMaxLabelWidth = boundMaxLabelWidth(maxLabelWidth)
+    statementLabel.setFixedWidth(finalMaxLabelWidth)
     parameterResolutionPanels.forEach { it.parameterNameLabel.setFixedWidth(finalMaxLabelWidth) }
   }
 
@@ -104,6 +117,18 @@ class ParametersBindingDialogViewImpl(
 
   override fun getPreferredFocusedComponent(): JComponent? {
     return parameterResolutionPanels.firstOrNull()?.preferredFocusedComponent
+  }
+
+  private fun createStatementPanel(sqliteStatementText: String): JPanel {
+    statementTextField.isEditable = false
+    statementTextField.text = sqliteStatementText
+    statementTextField.caretPosition = 0
+
+    val statementPanel = JPanel()
+    statementPanel.layout = BoxLayout(statementPanel, BoxLayout.X_AXIS)
+    statementPanel.add(statementLabel)
+    statementPanel.add(statementTextField)
+    return statementPanel
   }
 
   private fun boundMaxLabelWidth(maxLabelWidth: Int): Int {

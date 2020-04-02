@@ -136,7 +136,7 @@ class SqliteEvaluatorController(
         evaluateSqlStatement(database, SqliteStatement(parsedStatement.statementText))
       }
       else {
-        val view = viewFactory.createParametersBindingView(project)
+        val view = viewFactory.createParametersBindingView(project, psiFile.text)
         ParametersBindingController(view, psiFile) {
           evaluateSqlStatement(database, it)
         }.also {

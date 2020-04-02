@@ -44,7 +44,7 @@ open class MockDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
     tableView: TableView
   ): SqliteEvaluatorView = sqliteEvaluatorView
 
-  override fun createParametersBindingView(project: Project) = parametersBindingDialogView
+  override fun createParametersBindingView(project: Project, sqliteStatementText: String) = parametersBindingDialogView
 
   override fun createDatabaseInspectorView(project: Project) = databaseInspectorView
 }
