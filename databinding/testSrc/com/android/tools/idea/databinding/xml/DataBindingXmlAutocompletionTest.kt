@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding.xml
 
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.testing.AndroidDomRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -56,7 +56,7 @@ class DataBindingXmlAutocompletionTest(private val dataBindingMode: DataBindingM
     myProjectRule.fixture.testDataPath = "${TestDataPaths.TEST_DATA_ROOT}/xml"
 
     val androidFacet = FacetManager.getInstance(myProjectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = dataBindingMode
+    LayoutBindingModuleCache.getInstance(androidFacet!!).dataBindingMode = dataBindingMode
   }
 
   @Test

@@ -19,7 +19,7 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.databinding.DataBindingModuleComponent;
+import com.android.tools.idea.databinding.DataBindingAnnotationsService;
 import com.android.tools.idea.lang.databinding.DataBindingCompletionUtil;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
@@ -80,7 +80,6 @@ import org.jetbrains.android.dom.raw.RawDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
-import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
@@ -416,12 +415,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       return;
     }
 
-    Module module = facet.getModule();
-    DataBindingModuleComponent dataBindingComponent = module.getComponent(DataBindingModuleComponent.class);
-    if (dataBindingComponent == null) {
-      return;
-    }
-
+    DataBindingAnnotationsService bindingAnnotationsService = DataBindingAnnotationsService.getInstance(facet);
     /*
      * Avoid offering completion for already existing attributes. We only want to add those attributes that are only added via
      * @BindingAdapter.
@@ -431,7 +425,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       .map(LookupElement::getLookupString)
       .collect(Collectors.toSet());
 
-    dataBindingComponent.getBindingAdapterAttributes().forEach((dataBindingAttribute) -> {
+    bindingAnnotationsService.getBindingAdapterAttributes().forEach((dataBindingAttribute) -> {
       if (!prefix.isEmpty()) {
         dataBindingAttribute = StringUtil.trimStart(dataBindingAttribute, prefix + ":");
       }

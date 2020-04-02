@@ -18,32 +18,32 @@ package com.android.tools.idea.databinding
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.getViewBindingEnabledTracker
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.google.common.collect.Maps
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
-import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiPackage
-import com.intellij.psi.impl.file.PsiPackageImpl
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Utilities the apply across a whole project for all binding-enabled layouts (e.g. data
- * binding and view binding)
+ * A cache of all facets in the current project that currently have data binding / view binding
+ * enabled on them.
  *
  * This class also serves as a [ModificationTracker] which is incremented whenever data
  * binding and/or view binding is enabled / disabled for any module in the current project.
  */
-class LayoutBindingProjectComponent(val project: Project) : ModificationTracker {
+@Service
+class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTracker {
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project) = project.getService(LayoutBindingEnabledFacetsProvider::class.java)!!
+  }
 
   private val allBindingEnabledModules: CachedValue<List<AndroidFacet>>
   private val dataBindingEnabledModules: CachedValue<List<AndroidFacet>>
   private val viewBindingEnabledModules: CachedValue<List<AndroidFacet>>
-
-  private val layoutBindingPsiPackages = Maps.newConcurrentMap<String, PsiPackage>()
 
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
@@ -78,23 +78,6 @@ class LayoutBindingProjectComponent(val project: Project) : ModificationTracker 
   fun getAllBindingEnabledFacets(): List<AndroidFacet> = allBindingEnabledModules.value
   fun getDataBindingEnabledFacets(): List<AndroidFacet> = dataBindingEnabledModules.value
   fun getViewBindingEnabledFacets(): List<AndroidFacet> = viewBindingEnabledModules.value
-
-  /**
-   * Returns a [PsiPackage] instance for the given package name.
-   *
-   * If it does not exist in the cache, a new one is created.
-   *
-   * @param packageName The qualified package name
-   * @return A [PsiPackage] that represents the given qualified name
-   */
-  @Synchronized
-  fun getOrCreatePsiPackage(packageName: String): PsiPackage {
-    return layoutBindingPsiPackages.computeIfAbsent(packageName) {
-      object : PsiPackageImpl(PsiManager.getInstance(project), packageName) {
-        override fun isValid(): Boolean = true
-      }
-    }
-  }
 
   override fun getModificationCount() = ModuleManager.getInstance(project).modificationCount
 }

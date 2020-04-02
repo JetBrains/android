@@ -17,24 +17,21 @@ package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.intellij.openapi.project.Project
 
-/**
- * Data binding utilities the apply across a whole project
- */
-class DataBindingProjectComponent(val project: Project) {
-  init {
-      val dataBindingTracker = DataBindingTracker.getInstance(project)
+class DataBindingTrackerSyncListener(project: Project) : GradleSyncListener {
+  private val dataBindingTracker = DataBindingTracker.getInstance(project)
 
-      GradleSyncState.subscribe(project, object : GradleSyncListener {
-      override fun syncSucceeded(project: Project) {
-        dataBindingTracker.trackPolledMetaData()
-      }
+  override fun syncSucceeded(project: Project) {
+    dataBindingTracker.trackPolledMetaData()
+  }
 
-      override fun syncFailed(project: Project, errorMessage: String) {
-        dataBindingTracker.trackPolledMetaData()
-      }
-    })
+  override fun syncFailed(project: Project, errorMessage: String) {
+    dataBindingTracker.trackPolledMetaData()
+  }
+
+  override fun syncSkipped(project: Project) {
+    dataBindingTracker.trackPolledMetaData()
   }
 }
+

@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding.dom.layout
 
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.testing.AndroidDomRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -59,7 +59,7 @@ class AndroidDataBindingLayoutDomTest(private val myDataBindingMode: DataBinding
     projectRule.fixture.testDataPath = "${TestDataPaths.TEST_DATA_ROOT}/dom/layout"
 
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = myDataBindingMode
+    LayoutBindingModuleCache.getInstance(androidFacet!!).dataBindingMode = myDataBindingMode
   }
 
   @Test

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.databinding.finders
 
-import com.android.tools.idea.databinding.LayoutBindingProjectComponent
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.LayoutBindingEnabledFacetsProvider
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.project.ProjectLayoutResourcesModificationTracker
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.intellij.openapi.project.Project
@@ -43,27 +43,27 @@ class BindingClassFinder(project: Project) : PsiElementFinder() {
   private val packageBindingsCache: CachedValue<Map<String, List<LightBindingClass>>>
 
   init {
-    val component = project.getComponent(LayoutBindingProjectComponent::class.java)
+    val enabledFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
     val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
     lightBindingsCache = cachedValuesManager.createCachedValue {
-      val lightBindings = component.getAllBindingEnabledFacets()
+      val lightBindings = enabledFacetsProvider.getAllBindingEnabledFacets()
         .flatMap { facet ->
-          val moduleDataBinding = ModuleDataBinding.getInstance(facet)
-          moduleDataBinding.bindingLayoutGroups.flatMap { group -> moduleDataBinding.getLightBindingClasses(group) }
+          val bindingModuleCache = LayoutBindingModuleCache.getInstance(facet)
+          bindingModuleCache.bindingLayoutGroups.flatMap { group -> bindingModuleCache.getLightBindingClasses(group) }
         }
-      CachedValueProvider.Result.create(lightBindings, component, resourcesModifiedTracker)
+      CachedValueProvider.Result.create(lightBindings, enabledFacetsProvider, resourcesModifiedTracker)
     }
 
     fqcnBindingsCache = cachedValuesManager.createCachedValue {
       val fqcnBindings = lightBindingsCache.value.associateBy { bindingClass -> bindingClass.qualifiedName }
-      CachedValueProvider.Result.create(fqcnBindings, component, resourcesModifiedTracker)
+      CachedValueProvider.Result.create(fqcnBindings, enabledFacetsProvider, resourcesModifiedTracker)
     }
 
     packageBindingsCache = cachedValuesManager.createCachedValue {
       val packageBindings = lightBindingsCache.value.groupBy { bindingClass -> bindingClass.qualifiedName.substringBeforeLast('.') }
-      CachedValueProvider.Result.create(packageBindings, component, resourcesModifiedTracker)
+      CachedValueProvider.Result.create(packageBindings, enabledFacetsProvider, resourcesModifiedTracker)
     }
   }
 

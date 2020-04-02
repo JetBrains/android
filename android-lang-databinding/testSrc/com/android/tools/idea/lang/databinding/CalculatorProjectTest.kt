@@ -16,7 +16,7 @@
 package com.android.tools.idea.lang.databinding
 
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.facet.FacetManager
 import com.intellij.testFramework.EdtRule
@@ -57,7 +57,7 @@ class CalculatorProjectTest {
     fixture.testDataPath = "${getTestDataPath()}/projects/calculator"
     fixture.copyDirectoryToProject("", "")
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = DataBindingMode.ANDROIDX
+    LayoutBindingModuleCache.getInstance(androidFacet!!).dataBindingMode = DataBindingMode.ANDROIDX
   }
 
   @Test
