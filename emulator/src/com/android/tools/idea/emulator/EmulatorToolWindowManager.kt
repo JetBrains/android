@@ -55,7 +55,9 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
   private var contentInitialized = false
   private val panels: MutableList<EmulatorToolWindowPanel> = arrayListOf()
-  private var activePanel: EmulatorToolWindowPanel? = null
+  private var selectedPanel: EmulatorToolWindowPanel? = null
+  /** When the tool window is hidden, the ID of the last selected Emulator, otherwise null. */
+  private var lastSelectedEmulatorId: EmulatorId? = null
   private val emulators: MutableSet<EmulatorController> = hashSetOf()
   private val properties = PropertiesComponent.getInstance(project)
   // IDs of recently launched AVDs keyed by themselves.
@@ -157,7 +159,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
       recentLaunches.put(avdId, avdId)
       alarm.addRequest(recentLaunches::cleanUp, LAUNCH_INFO_EXPIRATION.toMillis())
     }
-    else if (activePanel != panel) {
+    else if (selectedPanel != panel) {
       val contentManager = toolWindow.contentManager
       val content = contentManager.getContent(panel.component)
       contentManager.setSelectedContent(content)
@@ -175,8 +177,18 @@ internal class EmulatorToolWindowManager private constructor(private val project
     val emulatorCatalog = RunningEmulatorCatalog.getInstance()
     emulatorCatalog.updateNow()
     emulatorCatalog.addListener(this, EMULATOR_DISCOVERY_INTERVAL_MILLIS)
-    for (emulator in emulatorCatalog.emulators) {
-      addEmulatorPanel(emulator)
+    emulators.addAll(emulatorCatalog.emulators)
+    // Create the panel for the last selected Emulator before other panels so that it becomes selected
+    // unless a recently launched Emulator takes over.
+    val activeEmulator = lastSelectedEmulatorId?.let { emulators.find { it.emulatorId == lastSelectedEmulatorId } }
+    lastSelectedEmulatorId = null // Not maintained when the tool window is visible.
+    if (activeEmulator != null) {
+      addEmulatorPanel(activeEmulator)
+    }
+    for (emulator in emulators) {
+      if (emulator != activeEmulator) {
+        addEmulatorPanel(emulator)
+      }
     }
 
     val contentManager = toolWindow.contentManager
@@ -185,12 +197,17 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   private fun destroyContent(toolWindow: ToolWindow) {
+    lastSelectedEmulatorId = selectedPanel?.id
     contentInitialized = false
-    toolWindow.contentManager.removeContentManagerListener(contentManagerListener)
     RunningEmulatorCatalog.getInstance().removeListener(this)
-    activePanel?.destroyContent()
-    activePanel = null
+    emulators.clear()
+    val contentManager = toolWindow.contentManager
+    contentManager.removeContentManagerListener(contentManagerListener)
+    contentManager.removeAllContents(true)
+    selectedPanel?.destroyContent()
+    selectedPanel = null
     panels.clear()
+    recentLaunches.invalidateAll()
   }
 
   private fun addEmulatorPanel(emulator: EmulatorController) {
@@ -215,7 +232,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
       val contentManager = getContentManager()
       contentManager.addContent(content, index)
 
-      if (activePanel != panel) {
+      if (selectedPanel != panel) {
         // Activate the newly added panel if it corresponds to a recently launched or used Emulator.
         val avdId = panel.id.avdId
         if (recentLaunches.getIfPresent(panel.id.avdId) != null) {
@@ -239,13 +256,13 @@ internal class EmulatorToolWindowManager private constructor(private val project
   private fun viewSelectionChanged(contentManager: ContentManager) {
     val content = contentManager.selectedContent
     val id = content?.getUserData(ID_KEY)
-    if (id != activePanel?.id) {
-      activePanel?.destroyContent()
-      activePanel = null
+    if (id != selectedPanel?.id) {
+      selectedPanel?.destroyContent()
+      selectedPanel = null
 
       if (id != null) {
-        activePanel = findPanelByGrpcPort(id.grpcPort)
-        activePanel?.createContent(frameIsCropped)
+        selectedPanel = findPanelByGrpcPort(id.grpcPort)
+        selectedPanel?.createContent(frameIsCropped)
       }
     }
   }
