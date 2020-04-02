@@ -20,6 +20,7 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
@@ -59,9 +60,14 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
     ActionManagerEx.getInstanceEx().createActionToolbar(
       "sceneView",
       DefaultActionGroup(
-        Separator(),
-        EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext },
-        DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }
+        listOfNotNull(
+          Separator(),
+          if (StudioFlags.COMPOSE_ANIMATED_PREVIEW.get())
+            EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }
+          else
+            null,
+          DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }
+        )
       ),
       true,
       false
