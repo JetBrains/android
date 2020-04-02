@@ -123,12 +123,6 @@ public class GradleSyncStateTest extends PlatformTestCase {
     verify(myGradleSyncListener, never()).syncSucceeded(myProject);
   }
 
-  public void testSetupStarted() {
-    mySyncState.setupStarted();
-
-    verify(myGradleSyncListener, times(1)).setupStarted(myProject);
-  }
-
   public void testGetSyncTimesSuccess() {
     // Random time when this was written
     long base = 1493320159894L;

@@ -269,7 +269,6 @@ open class GradleSyncState @NonInjectable constructor(
 
     LOG.info("Started setup of project '${project.name}'.")
 
-    syncPublisher { setupStarted(project) }
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_SETUP_STARTED)
   }
 

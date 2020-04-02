@@ -35,9 +35,6 @@ public interface GradleSyncListener extends EventListener {
   default void syncStarted(@NotNull Project project) {
   }
 
-  default void setupStarted(@NotNull Project project) {
-  }
-
   /**
    * Invoked when a Gradle project has been synced. It is not guaranteed that the created IDEA project has been compiled.
    *
