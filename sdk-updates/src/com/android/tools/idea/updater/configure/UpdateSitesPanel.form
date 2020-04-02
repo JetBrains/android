@@ -16,7 +16,7 @@
           </grid>
         </constraints>
         <properties>
-          <text value="&lt;html&gt;These are the sites checked for Android SDK Updates &amp; Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages.&lt;/html&gt;"/>
+          <text resource-bundle="messages/AndroidBundle" key="label.these.are.the.sites"/>
         </properties>
       </component>
       <grid id="cef67" binding="mySourcesPanel" custom-create="true" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -41,7 +41,7 @@
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="Loading sources..."/>
+              <text resource-bundle="messages/AndroidBundle" key="label.loading.sources"/>
             </properties>
           </component>
           <component id="35d4e" class="com.intellij.util.ui.AsyncProcessIcon" binding="mySourcesLoadingIcon" custom-create="true">
@@ -57,7 +57,7 @@
           <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Force https://... sources to be fetched using http://..."/>
+          <text resource-bundle="messages/AndroidBundle" key="checkbox.force.https.sources"/>
         </properties>
       </component>
       <component id="e9465" class="javax.swing.JCheckBox" binding="myDisableSdkPatches">
@@ -65,8 +65,8 @@
           <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Disable SDK diff patching"/>
-          <toolTipText value="Disabling SDK diff patching will likely increase SDK packages download volumes, but will speed up package installation once downloaded. This may be useful if you have a fast internet connection with no traffic limitations but local patch installation takes a significant amount of time on your machine. SDK diff patching is enabled by default and is the preferred installation method for higher-end hardware."/>
+          <text resource-bundle="messages/AndroidBundle" key="checkbox.disable.sdk.diff.patching"/>
+          <toolTipText resource-bundle="messages/AndroidBundle" key="tooltip.disabling.sdk.diff.patching"/>
         </properties>
       </component>
       <component id="b0f0e" class="com.intellij.ui.components.JBLabel">
