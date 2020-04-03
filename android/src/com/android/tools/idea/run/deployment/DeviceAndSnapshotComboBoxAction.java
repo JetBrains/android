@@ -380,12 +380,13 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @Override
   public final void update(@NotNull AnActionEvent event) {
+    Presentation presentation = event.getPresentation();
     Project project = event.getProject();
     if (project == null) {
+      presentation.setVisible(false);
       return;
     }
 
-    Presentation presentation = event.getPresentation();
     if (!AndroidUtils.hasAndroidFacets(project)) {
       presentation.setVisible(false);
       return;
