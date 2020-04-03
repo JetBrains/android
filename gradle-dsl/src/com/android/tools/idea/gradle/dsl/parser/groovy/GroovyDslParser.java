@@ -147,7 +147,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
   public PsiElement convertToPsiElement(@NotNull GradleDslSimpleExpression context, @NotNull Object literal) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     try {
-      return GroovyDslUtil.createLiteral(myDslFile, literal);
+      return GroovyDslUtil.createLiteral(context, myDslFile, literal);
     }
     catch (IncorrectOperationException e) {
       myDslFile.getContext().getNotificationForType(myDslFile, INVALID_EXPRESSION).addError(e);

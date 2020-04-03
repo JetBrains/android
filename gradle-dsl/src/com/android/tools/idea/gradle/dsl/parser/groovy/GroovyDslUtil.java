@@ -38,6 +38,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableCollection;
@@ -59,6 +61,7 @@ import com.intellij.psi.impl.source.tree.ChangeUtil;
 import com.intellij.psi.impl.source.tree.TreeElement;
 import com.intellij.util.IncorrectOperationException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -345,13 +348,16 @@ public final class GroovyDslUtil {
   /**
    * Creates a literal from a context and value.
    *
-   * @param context      context used to create GrPsiElementFactory
+   * @param context      the expression context within which this literal will be interpreted
+   * @param applyContext the context used to create a GrPsiElementFactory
    * @param unsavedValue the value for the new expression
    * @return created PsiElement
    * @throws IncorrectOperationException if creation of the expression fails
    */
   @Nullable
-  static PsiElement createLiteral(@NotNull GradleDslElement context, @NotNull Object unsavedValue) throws IncorrectOperationException {
+  static PsiElement createLiteral(@NotNull GradleDslSimpleExpression context,
+                                  @NotNull GradleDslFile applyContext,
+                                  @NotNull Object unsavedValue) throws IncorrectOperationException {
     CharSequence unsavedValueText = null;
     if (unsavedValue instanceof String) {
       String stringValue = (String)unsavedValue;
@@ -368,8 +374,7 @@ public final class GroovyDslUtil {
       unsavedValueText = unsavedValue.toString();
     }
     else if (unsavedValue instanceof ReferenceTo) {
-      // FIXME(xof): need to do work here to rename / quote things
-      unsavedValueText = ((ReferenceTo)unsavedValue).getText();
+      unsavedValueText = convertToExternalTextValue(context, applyContext, ((ReferenceTo)unsavedValue).getText(), false);
     }
     else if (unsavedValue instanceof RawText) {
       unsavedValueText = ((RawText)unsavedValue).getGroovyText();
@@ -379,12 +384,73 @@ public final class GroovyDslUtil {
       return null;
     }
 
-    GroovyPsiElementFactory factory = getPsiElementFactory(context);
+    GroovyPsiElementFactory factory = getPsiElementFactory(applyContext);
     if (factory == null) {
       return null;
     }
 
     return factory.createExpressionFromText(unsavedValueText);
+  }
+
+  public static String convertToExternalTextValue(GradleDslSimpleExpression context,
+                                                  GradleDslFile applyContext,
+                                                  String referenceText,
+                                                  boolean forInjection) {
+    GradleDslElement resolvedReference = context.resolveInternalSyntaxReference(referenceText, false);
+    if (resolvedReference == null) {
+      return referenceText;
+    }
+
+    StringBuilder externalName = new StringBuilder();
+    GradleDslElement currentParent = resolvedReference.getParent();
+
+    HashSet<GradleDslElement> contextParents = new HashSet<>(10);
+    GradleDslElement contextParent = context.getParent();
+    while (contextParent != null && !(contextParent instanceof GradleDslFile)) {
+      contextParents.add(contextParent);
+      contextParent = contextParent.getParent();
+    }
+
+    ArrayList<GradleDslElement> resolutionElements = new ArrayList<>();
+    resolutionElements.add(resolvedReference);
+    while (currentParent != null && currentParent.getParent() != null && !contextParents.contains(currentParent)) {
+      resolutionElements.add(0, currentParent);
+      currentParent = currentParent.getParent();
+    }
+
+    for (GradleDslElement currentElement : resolutionElements) {
+      List<String> elementExternalNameParts =
+        applyContext.getParser().externalNameForParent(currentElement.getName(), currentElement.getParent()).externalNameParts;
+      if (currentElement.getParent() instanceof GradleDslExpressionList && currentElement instanceof GradleDslSimpleExpression) {
+        GradleDslExpressionList parent = (GradleDslExpressionList)currentElement.getParent();
+        int i = parent.getSimpleExpressions().indexOf(currentElement);
+        externalName.append(i + "]");
+      }
+      else if (currentElement instanceof ExtDslElement) {
+        // do nothing
+      }
+      else {
+        externalName.append(quotePartIfNecessary(elementExternalNameParts.get(0)));
+      }
+      if (currentElement != resolvedReference) {
+        if (currentElement instanceof GradleDslExpressionList) {
+          externalName.append("[");
+        }
+        else if (currentElement instanceof ExtDslElement) {
+          // do nothing
+        }
+        else {
+          externalName.append(".");
+        }
+      }
+    }
+
+    if (externalName.length() == 0) {
+      return referenceText;
+    }
+    else {
+      return externalName.toString();
+    }
   }
 
   public static String gradleNameFor(GrExpression expression) {
