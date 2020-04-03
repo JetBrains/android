@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+package com.android.tools.idea.emulator.actions
 
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ParameterValue
 import com.android.emulator.control.PhysicalModelValue
-import com.android.emulator.control.Rotation
 import com.android.emulator.control.Rotation.SkinRotation
 import com.intellij.openapi.actionSystem.AnActionEvent
 import kotlin.math.roundToInt

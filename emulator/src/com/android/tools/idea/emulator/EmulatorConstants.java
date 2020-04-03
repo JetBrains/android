@@ -18,9 +18,9 @@ package com.android.tools.idea.emulator;
 import com.intellij.openapi.actionSystem.DataKey;
 
 /**
- * Constants used by the classes in this package.
+ * Embedded Emulator constants.
  */
-class EmulatorConstants {
+public class EmulatorConstants {
   public static final DataKey<EmulatorController> EMULATOR_CONTROLLER_KEY = DataKey.create("emulator");
   public static final DataKey<EmulatorView> EMULATOR_VIEW_KEY = DataKey.create("emulatorView");
 

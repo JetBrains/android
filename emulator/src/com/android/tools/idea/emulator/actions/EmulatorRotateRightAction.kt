@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+package com.android.tools.idea.emulator.actions
 
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Simulates pressing the Volume Up button on an Android virtual device.
+ * Simulates rotating the device clockwise by 90 degrees.
  */
-class EmulatorVolumeUpAction : AbstractEmulatorAction() {
+class EmulatorRotateRightAction : EmulatorRotateAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
-    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent("AudioVolumeUp"))
+    rotate(event, -90F)
   }
 }

@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+package com.android.tools.idea.emulator.actions
 
+import com.android.tools.idea.emulator.EmulatorController
+import com.android.tools.idea.emulator.createHardwareKeyEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Commands Emulator to take a screenshot.
+ * Simulates pressing the Overview button on an Android virtual device.
  */
-class EmulatorScreenshotAction : AbstractEmulatorAction() {
+class EmulatorOverviewAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
-    TODO("not implemented")
+    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
+    emulatorController.sendKey(createHardwareKeyEvent("AppSwitch"))
   }
 }

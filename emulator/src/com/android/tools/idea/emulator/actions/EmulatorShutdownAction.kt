@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+package com.android.tools.idea.emulator.actions
 
-import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_MAIN_TOOLBAR_ID
-import com.android.tools.idea.flags.StudioFlags
-import com.intellij.ide.ui.customization.CustomizableActionGroupProvider
+import com.android.emulator.control.VmRunState
+import com.android.tools.idea.emulator.EmulatorController
+import com.intellij.openapi.actionSystem.AnActionEvent
 
-class EmulatorCustomizableActionGroupProvider : CustomizableActionGroupProvider() {
-  override fun registerGroups(registrar: CustomizableActionGroupRegistrar) {
-    if (StudioFlags.EMBEDDED_EMULATOR_ENABLED.get()) {
-      registrar.addCustomizableActionGroup(EMULATOR_MAIN_TOOLBAR_ID, "Emulator Toolbar")
-    }
+/**
+ * Initiates a graceful shutdown of the Emulator.
+ */
+class EmulatorShutdownAction : AbstractEmulatorAction() {
+  override fun actionPerformed(event: AnActionEvent) {
+    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
+    val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
+    emulatorController.setVmState(vmRunState)
   }
 }

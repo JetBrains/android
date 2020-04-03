@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+package com.android.tools.idea.emulator.actions
 
+import com.android.tools.idea.emulator.EmulatorController
+import com.android.tools.idea.emulator.createHardwareKeyEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Simulates rotating the device counterclockwise by 90 degrees.
+ * Simulates pressing the Volume Down button on an Android virtual device.
  */
-class EmulatorRotateLeftAction : EmulatorRotateAction() {
+class EmulatorVolumeDownAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
-    rotate(event, 90F)
+    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
+    emulatorController.sendKey(createHardwareKeyEvent("AudioVolumeDown"))
   }
 }

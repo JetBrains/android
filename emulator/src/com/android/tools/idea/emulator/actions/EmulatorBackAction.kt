@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+package com.android.tools.idea.emulator.actions
 
+import com.android.tools.idea.emulator.EmulatorController
+import com.android.tools.idea.emulator.createHardwareKeyEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Simulates pressing the Power button on an Android virtual device.
+ * Simulates pressing the Back button on an Android virtual device.
  */
-class EmulatorHomeAction : AbstractEmulatorAction() {
+class EmulatorBackAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent("Home"))
+    emulatorController.sendKey(createHardwareKeyEvent("GoBack"))
   }
 }
