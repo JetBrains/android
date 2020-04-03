@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -27,8 +28,8 @@ import com.google.common.util.concurrent.ListenableFuture
 
 class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
   val _columns = listOf(
-    SqliteColumn("id", SqliteAffinity.INTEGER, true, false),
-    SqliteColumn(RowIdName.ROWID.stringName, SqliteAffinity.INTEGER, true, false)
+    ResultSetSqliteColumn("id", SqliteAffinity.INTEGER, true, false),
+    ResultSetSqliteColumn(RowIdName.ROWID.stringName, SqliteAffinity.INTEGER, true, false)
   )
   val rows = mutableListOf<SqliteRow>()
 
@@ -46,7 +47,7 @@ class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
     }
   }
 
-  override val columns: ListenableFuture<List<SqliteColumn>> get() = Futures.immediateFuture(_columns)
+  override val columns: ListenableFuture<List<ResultSetSqliteColumn>> get() = Futures.immediateFuture(_columns)
 
   override val totalRowCount: ListenableFuture<Int> get() = Futures.immediateFuture(rows.size)
 

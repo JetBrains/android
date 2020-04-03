@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection
 
-import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -26,7 +26,7 @@ import com.google.common.util.concurrent.ListenableFuture
 class EmptySqliteResultSet : SqliteResultSet {
   override val totalRowCount: ListenableFuture<Int> = Futures.immediateFuture(0)
 
-  override val columns: ListenableFuture<List<SqliteColumn>> = Futures.immediateFuture(emptyList())
+  override val columns: ListenableFuture<List<ResultSetSqliteColumn>> = Futures.immediateFuture(emptyList())
 
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> = Futures.immediateFuture(emptyList())
 
