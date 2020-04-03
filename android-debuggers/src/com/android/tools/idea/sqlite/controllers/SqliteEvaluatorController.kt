@@ -20,11 +20,8 @@ import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
-import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.android.tools.idea.sqlite.sqlLanguage.needsBinding
-import com.android.tools.idea.sqlite.sqlLanguage.replaceNamedParametersWithPositionalParameters
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.Futures
@@ -129,22 +126,7 @@ class SqliteEvaluatorController(
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {
     override fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String) {
-      val psiFile = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatement)
-
-      if (!needsBinding(psiFile)) {
-        val parsedStatement = replaceNamedParametersWithPositionalParameters(psiFile)
-        evaluateSqlStatement(database, SqliteStatement(parsedStatement.statementText))
-      }
-      else {
-        val view = viewFactory.createParametersBindingView(project, psiFile.text)
-        ParametersBindingController(view, psiFile) {
-          evaluateSqlStatement(database, it)
-        }.also {
-          it.setUp()
-          it.show()
-          Disposer.register(project, it)
-        }
-      }
+      evaluateSqlStatement(database, SqliteStatement(sqliteStatement))
     }
   }
 
