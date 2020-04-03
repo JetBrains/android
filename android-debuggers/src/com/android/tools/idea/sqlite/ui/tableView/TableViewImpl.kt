@@ -17,7 +17,7 @@ package com.android.tools.idea.sqlite.ui.tableView
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.notifyError
@@ -78,7 +78,7 @@ class TableViewImpl : TableView {
   private val listeners = mutableListOf<TableView.Listener>()
   private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
 
-  private var columns: List<SqliteColumn>? = null
+  private var columns: List<ResultSetSqliteColumn>? = null
 
   private val rootPanel = JPanel(BorderLayout())
   override val component: JComponent = rootPanel
@@ -261,7 +261,7 @@ class TableViewImpl : TableView {
     centerPanel.repaint()
   }
 
-  override fun showTableColumns(columns: List<SqliteColumn>) {
+  override fun showTableColumns(columns: List<ResultSetSqliteColumn>) {
     if (this.columns == columns) {
       return
     }
@@ -427,7 +427,7 @@ class TableViewImpl : TableView {
     }
   }
 
-  private inner class MyTableModel(val columns: List<SqliteColumn>) : AbstractTableModel() {
+  private inner class MyTableModel(val columns: List<ResultSetSqliteColumn>) : AbstractTableModel() {
 
     private val rows = mutableListOf<MyRow>()
     var isEditable = false

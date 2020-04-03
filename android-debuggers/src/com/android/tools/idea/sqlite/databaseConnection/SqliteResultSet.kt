@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection
 
-import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.transform
@@ -39,7 +39,7 @@ interface SqliteResultSet : Disposable {
     "SELECT * FROM ($it) LIMIT $rowOffset, $rowBatchSize"
   }
 
-  val columns: ListenableFuture<List<SqliteColumn>>
+  val columns: ListenableFuture<List<ResultSetSqliteColumn>>
 
   /**
    * Returns the total amount of rows available to this result set.

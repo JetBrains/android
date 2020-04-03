@@ -143,7 +143,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     sqliteController.setUp()
 
     sqliteResultSet = mock(SqliteResultSet::class.java)
-    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(testSqliteTable.columns))
+    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(emptyList()))
 
     mockDatabaseConnection = mock(DatabaseConnection::class.java)
     `when`(mockDatabaseConnection.close()).thenReturn(Futures.immediateFuture(null))

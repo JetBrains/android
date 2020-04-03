@@ -68,6 +68,18 @@ data class SqliteColumnValue(val columnName: String, val value: SqliteValue)
 data class SqliteColumn(val name: String, val affinity: SqliteAffinity, val isNullable: Boolean, val inPrimaryKey: Boolean)
 
 /**
+ *  A column obtained from a result set.
+ *  We cannot use [SqliteColumn] because the on-device database inspector is not capable of providing the optional properties of this class,
+ *  while JDBC is.
+ */
+data class ResultSetSqliteColumn(
+  val name: String,
+  val affinity: SqliteAffinity? = null,
+  val isNullable: Boolean? = null,
+  val inPrimaryKey: Boolean? = null
+)
+
+/**
  * Representation of a SQLite statement that may contain positional parameters.
  *
  * @param sqliteStatementText The text of the SQLite statement.
