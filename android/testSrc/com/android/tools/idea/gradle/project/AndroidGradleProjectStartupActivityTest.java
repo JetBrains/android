@@ -85,8 +85,6 @@ public class AndroidGradleProjectStartupActivityTest extends PlatformTestCase {
     myStartupActivity.runActivity(project);
 
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN);
-    request.useCachedGradleModels = true;
-
     verify(mySyncInvoker, times(1)).requestProjectSync(project, request);
   }
 

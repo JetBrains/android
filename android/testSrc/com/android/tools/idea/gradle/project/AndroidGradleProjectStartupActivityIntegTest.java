@@ -17,20 +17,26 @@ package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.project.Project;
 
 public class AndroidGradleProjectStartupActivityIntegTest extends AndroidGradleTestCase {
 
   public void testProjectSetupIsRunOnlyOnce() throws Exception {
     prepareProjectForImport(SIMPLE_APPLICATION);
-    Project project = getProject();
     GradleSyncListener listener = mock(GradleSyncListener.class);
     GradleSyncState.subscribe(getProject(), listener);
 
