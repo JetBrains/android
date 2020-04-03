@@ -271,7 +271,7 @@ public class GradleSyncExecutor {
   /**
    * @return true if the expected jars from cached libraries don't exist on disk.
    */
-  private static boolean areCachedFilesMissing(@NotNull Project project) {
+  public static boolean areCachedFilesMissing(@NotNull Project project) {
     final Ref<Boolean> missingFileFound = Ref.create(false);
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
