@@ -358,6 +358,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     // Assert
     verify(databaseConnection).execute(SqliteStatement(action))
     verify(sqliteEvaluatorView.tableView).resetView()
+    verify(sqliteEvaluatorView.tableView).setEmptyText("The statement was run successfully.")
   }
 
   private fun evaluateSqlActionFailure(action: String) {
@@ -374,5 +375,6 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     // Assert
     verify(databaseConnection).execute(SqliteStatement(action))
     verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing SQLite statement"), refEq(throwable))
+    verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement.")
   }
 }

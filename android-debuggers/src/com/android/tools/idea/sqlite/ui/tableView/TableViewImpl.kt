@@ -212,6 +212,7 @@ class TableViewImpl : TableView {
   override fun resetView() {
     columns = null
     table.model = MyTableModel(emptyList())
+    table.emptyText.text = "Table is empty"
   }
 
   override fun startTableLoading() {
@@ -264,6 +265,10 @@ class TableViewImpl : TableView {
 
   override fun updateRows(rowDiffOperations: List<RowDiffOperation>) {
     (table.model as MyTableModel).applyRowsDiff(rowDiffOperations)
+  }
+
+  override fun setEmptyText(text: String) {
+    table.emptyText.text = text
   }
 
   override fun reportError(message: String, t: Throwable?) {

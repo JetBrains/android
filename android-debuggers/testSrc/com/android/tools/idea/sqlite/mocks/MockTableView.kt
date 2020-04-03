@@ -53,5 +53,7 @@ open class MockTableView : TableView {
 
   override fun updateRows(rowDiffOperations: List<RowDiffOperation>) { }
 
+  override fun setEmptyText(text: String) { }
+
   override fun showPageSizeValue(maxRowCount: Int) { }
 }
