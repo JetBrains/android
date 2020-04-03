@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+package com.android.tools.idea.emulator.actions
 
 import com.android.emulator.control.KeyboardEvent
+import com.android.tools.idea.emulator.DummyStreamObserver
+import com.android.tools.idea.emulator.EmulatorController
+import com.android.tools.idea.emulator.createHardwareKeyEvent
+import com.android.tools.idea.emulator.invokeLater
 import com.android.tools.idea.protobuf.Empty
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -57,7 +61,7 @@ class EmulatorPowerAction : AbstractEmulatorAction() {
     }
 
     override fun onError(t: Throwable) {
-      invokeLater{ inProgress = false }
+      invokeLater { inProgress = false }
     }
   }
 

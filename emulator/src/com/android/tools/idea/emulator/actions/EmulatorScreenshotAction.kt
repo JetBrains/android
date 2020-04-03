@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+package com.android.tools.idea.emulator.actions
 
-import com.android.emulator.control.VmRunState
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Initiates a graceful shutdown of the Emulator.
+ * Commands Emulator to take a screenshot.
  */
-class EmulatorShutdownAction : AbstractEmulatorAction() {
+class EmulatorScreenshotAction : AbstractEmulatorAction() {
+
   override fun actionPerformed(event: AnActionEvent) {
-    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
-    emulatorController.setVmState(vmRunState)
+    TODO("not implemented")
   }
 }

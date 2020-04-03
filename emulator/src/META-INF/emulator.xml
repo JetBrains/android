@@ -17,35 +17,39 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.emulator.RunningEmulatorCatalog"/>
 
-    <customizableActionGroupProvider implementation="com.android.tools.idea.emulator.EmulatorCustomizableActionGroupProvider"/>
+    <customizableActionGroupProvider implementation="com.android.tools.idea.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
   </extensions>
 
   <actions>
     <group id="EmulatorToolbar" resource-bundle="">
-      <action id="android.emulator.power" class="com.android.tools.idea.emulator.EmulatorPowerAction"
+      <action id="android.emulator.power" class="com.android.tools.idea.emulator.actions.EmulatorPowerAction"
               icon="StudioIcons.Emulator.POWER" text="Power" description="Press Power button"/>
-      <action id="android.emulator.volume.up" class="com.android.tools.idea.emulator.EmulatorVolumeUpAction"
+      <action id="android.emulator.volume.up" class="com.android.tools.idea.emulator.actions.EmulatorVolumeUpAction"
               icon="StudioIcons.Emulator.VOLUME_UP" text="Volume Up" description="Press Volume Up button"/>
-      <action id="android.emulator.volume.down" class="com.android.tools.idea.emulator.EmulatorVolumeDownAction"
+      <action id="android.emulator.volume.down" class="com.android.tools.idea.emulator.actions.EmulatorVolumeDownAction"
               icon="StudioIcons.Emulator.VOLUME_DOWN" text="Volume Down" description="Press Volume Down button"/>
-      <action id="android.emulator.rotate.left" class="com.android.tools.idea.emulator.EmulatorRotateLeftAction"
+      <action id="android.emulator.rotate.left" class="com.android.tools.idea.emulator.actions.EmulatorRotateLeftAction"
               icon="StudioIcons.Emulator.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
-      <action id="android.emulator.rotate.right" class="com.android.tools.idea.emulator.EmulatorRotateRightAction"
+      <action id="android.emulator.rotate.right" class="com.android.tools.idea.emulator.actions.EmulatorRotateRightAction"
               icon="StudioIcons.Emulator.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
-      <action id="android.emulator.back" class="com.android.tools.idea.emulator.EmulatorBackAction"
+      <action id="android.emulator.back" class="com.android.tools.idea.emulator.actions.EmulatorBackAction"
               icon="StudioIcons.Emulator.BACK" text="Back" description="Press Back button"/>
-      <action id="android.emulator.home" class="com.android.tools.idea.emulator.EmulatorHomeAction"
+      <action id="android.emulator.home" class="com.android.tools.idea.emulator.actions.EmulatorHomeAction"
               icon="StudioIcons.Emulator.HOME" text="Home" description="Press Home button"/>
-      <action id="android.emulator.overview" class="com.android.tools.idea.emulator.EmulatorOverviewAction"
+      <action id="android.emulator.overview" class="com.android.tools.idea.emulator.actions.EmulatorOverviewAction"
               icon="StudioIcons.Emulator.OVERVIEW" text="Overview" description="Press Overview button"/>
-      <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.EmulatorScreenshotAction"
+      <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.actions.EmulatorScreenshotAction"
               icon="StudioIcons.Emulator.SCREENSHOT" text="Take Screenshot" description="Take screenshot"/>
     </group>
-  </actions>
-  <actions>
+
     <group id="EmulatorSecondaryToolbar" resource-bundle="">
-      <action id="android.emulator.close" class="com.android.tools.idea.emulator.EmulatorShutdownAction"
+      <action id="android.emulator.close" class="com.android.tools.idea.emulator.actions.EmulatorShutdownAction"
               icon="StudioIcons.Common.CLOSE" text="Close" description="Shut down the Emulator"/>
     </group>
+
+    <action id="ToggleEmulatorWindow" class="com.android.tools.idea.emulator.actions.ToggleEmulatorWindowAction"
+            text="Toggle Emulator Window">
+      <keyboard-shortcut first-keystroke="alt shift e" keymap="$default"/>
+    </action>
   </actions>
 </idea-plugin>

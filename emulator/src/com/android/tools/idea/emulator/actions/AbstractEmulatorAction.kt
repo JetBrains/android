@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+package com.android.tools.idea.emulator.actions
 
 import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_VIEW_KEY
+import com.android.tools.idea.emulator.EmulatorController
+import com.android.tools.idea.emulator.EmulatorView
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
