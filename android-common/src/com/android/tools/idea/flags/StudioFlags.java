@@ -436,6 +436,13 @@ public final class StudioFlags {
     "Allow pairing new physical device through QR Code pairing via ADB wireless",
     false);
 
+  public static final Flag<Boolean> ADB_SERVER_MANAGEMENT_MODE_SETTINGS_VISIBLE = Flag.create(
+    RUNDEBUG,
+    "adb.server.management.mode.settings.visible",
+    "Show ADB server management mode settings",
+    "To allow toggling between automatic or user managed ADB server mode.",
+    false);
+
   /**
    * The strategy that {@link com.android.tools.idea.run.activity.DefaultActivityLocator}
    * uses to obtain a list of activities from a given module's merged manifest.

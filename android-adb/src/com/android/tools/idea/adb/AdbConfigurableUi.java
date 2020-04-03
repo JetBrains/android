@@ -15,41 +15,98 @@
  */
 package com.android.tools.idea.adb;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.options.ConfigurableUi;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.SystemInfo;
-import javax.swing.JCheckBox;
+import com.intellij.ui.JBIntSpinner;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import org.jetbrains.annotations.NotNull;
 
 public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   private JPanel myPanel;
-  private JCheckBox myUseLibusbCheckbox;
+  private JBLabel myExistingAdbServerPortLabel;
+  private JBCheckBox myUseLibusbBackendCheckbox;
+  private JBIntSpinner myExistingAdbServerPortSpinner;
+  private JRadioButton myAutomaticallyStartAndManageServerRadioButton;
+  private JRadioButton myUseExistingManuallyManagedServerRadioButton;
 
   @Override
   public boolean isModified(@NotNull AdbOptionsService settings) {
-    return myUseLibusbCheckbox.isSelected() != settings.shouldUseLibusb();
+    return myUseLibusbBackendCheckbox.isSelected() != settings.shouldUseLibusb()
+           || myUseExistingManuallyManagedServerRadioButton.isSelected() != settings.shouldUseUserManagedAdb()
+           || getUserManagedAdbPortNumber() != settings.getUserManagedAdbPort();
   }
 
   @Override
   public void reset(@NotNull AdbOptionsService settings) {
-    myUseLibusbCheckbox.setSelected(settings.shouldUseLibusb());
+    myUseLibusbBackendCheckbox.setSelected(settings.shouldUseLibusb());
+    if (settings.shouldUseUserManagedAdb()) {
+      myUseExistingManuallyManagedServerRadioButton.setSelected(true);
+    }
+    else {
+      myAutomaticallyStartAndManageServerRadioButton.setSelected(true);
+    }
+    myExistingAdbServerPortSpinner.setValue(settings.getUserManagedAdbPort());
+    setPortNumberUiEnabled(settings.shouldUseUserManagedAdb());
   }
 
   @Override
   public void apply(@NotNull AdbOptionsService settings) throws ConfigurationException {
-    settings.setUseLibusb(myUseLibusbCheckbox.isSelected());
+    settings.setAdbConfigs(myUseLibusbBackendCheckbox.isSelected(), myUseExistingManuallyManagedServerRadioButton.isSelected(),
+                           getUserManagedAdbPortNumber());
+  }
+
+  public static boolean hasComponents() {
+    return hasUseLibusbBackendCheckbox() || hasAdbServerLifecycleManagementComponents();
   }
 
   @NotNull
   @Override
   public JComponent getComponent() {
+    assert hasComponents();
+
+    if (!hasUseLibusbBackendCheckbox()) {
+      myPanel.remove(myUseLibusbBackendCheckbox);
+    }
+    if (!hasAdbServerLifecycleManagementComponents()) {
+      myPanel.remove(myExistingAdbServerPortSpinner);
+      myPanel.remove(myAutomaticallyStartAndManageServerRadioButton);
+      myPanel.remove(myUseExistingManuallyManagedServerRadioButton);
+    }
     return myPanel;
   }
 
-  public static boolean shouldShow() {
-    // Currently, the libusb backend is only supported on Linux & Mac
+  private void createUIComponents() {
+    myExistingAdbServerPortSpinner = new JBIntSpinner(AdbOptionsService.USER_MANAGED_ADB_PORT_DEFAULT,
+                                                      AdbOptionsService.USER_MANAGED_ADB_PORT_MIN_VALUE,
+                                                      AdbOptionsService.USER_MANAGED_ADB_PORT_MAX_VALUE);
+    myExistingAdbServerPortLabel = new JBLabel();
+    myAutomaticallyStartAndManageServerRadioButton = new JRadioButton();
+    myAutomaticallyStartAndManageServerRadioButton.addActionListener(event -> setPortNumberUiEnabled(false));
+    myUseExistingManuallyManagedServerRadioButton = new JRadioButton();
+    myUseExistingManuallyManagedServerRadioButton.addActionListener(event -> setPortNumberUiEnabled(true));
+  }
+
+  private void setPortNumberUiEnabled(boolean enabled) {
+    myExistingAdbServerPortSpinner.setEnabled(enabled);
+    myExistingAdbServerPortLabel.setEnabled(enabled);
+  }
+
+  private int getUserManagedAdbPortNumber() {
+    return myExistingAdbServerPortSpinner.getNumber();
+  }
+
+  private static boolean hasUseLibusbBackendCheckbox() {
+    // Currently, the libusb backend is only supported on Mac & Linux.
     return SystemInfo.isMac || SystemInfo.isLinux;
+  }
+
+  private static boolean hasAdbServerLifecycleManagementComponents() {
+    return StudioFlags.ADB_SERVER_MANAGEMENT_MODE_SETTINGS_VISIBLE.get();
   }
 }
