@@ -247,7 +247,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
 
     myEventMonitor = new EventMonitor(profilers);
 
-    myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange());
+    myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange(), getTimeline().getViewRange());
     myRangeSelectionModel.addConstraint(myAllocationDurations);
     myRangeSelectionModel.addConstraint(myNativeAllocationDurations);
     myRangeSelectionModel.addConstraint(myHeapDumpDurations);

@@ -260,7 +260,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
 
     myEventMonitor = new EventMonitor(profilers);
 
-    myRangeSelectionModel = buildRangeSelectionModel(selectionRange);
+    myRangeSelectionModel = buildRangeSelectionModel(selectionRange, viewRange);
 
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
 
@@ -287,8 +287,8 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   /**
    * Creates and returns a {@link RangeSelectionModel} given a {@link Range} representing the selection.
    */
-  private RangeSelectionModel buildRangeSelectionModel(Range selectionRange) {
-    RangeSelectionModel rangeSelectionModel = new RangeSelectionModel(selectionRange);
+  private RangeSelectionModel buildRangeSelectionModel(@NotNull Range selectionRange, @NotNull Range viewRange) {
+    RangeSelectionModel rangeSelectionModel = new RangeSelectionModel(selectionRange, viewRange);
     rangeSelectionModel.addConstraint(myTraceDurations);
     if (myIsImportTraceMode) {
       rangeSelectionModel.addListener(new RangeSelectionListener() {

@@ -34,6 +34,12 @@ public class RangeSelectionModel extends AspectModel<RangeSelectionModel.Aspect>
   private final Range mySelectionRange;
 
   /**
+   * The range where selection can be made within.
+   */
+  @NotNull
+  private final Range myViewRange;
+
+  /**
    * The previous selection range, which we need to check against in order to fire selection events
    * indirectly (when someone modifies our underlying range externally instead of through this
    * class's API).
@@ -58,8 +64,9 @@ public class RangeSelectionModel extends AspectModel<RangeSelectionModel.Aspect>
   @Nullable
   private Consumer<RangeSelectionListener> myEventToFire;
 
-  public RangeSelectionModel(@NotNull Range selection) {
-    mySelectionRange = selection;
+  public RangeSelectionModel(@NotNull Range selectionRange, @NotNull Range viewRange) {
+    mySelectionRange = selectionRange;
+    myViewRange = viewRange;
     myPreviousSelectionRange = new Range(mySelectionRange);
     mySelectionEnabled = true;
 
@@ -231,6 +238,11 @@ public class RangeSelectionModel extends AspectModel<RangeSelectionModel.Aspect>
   @NotNull
   public Range getSelectionRange() {
     return mySelectionRange;
+  }
+
+  @NotNull
+  public Range getViewRange() {
+    return myViewRange;
   }
 
   /**
