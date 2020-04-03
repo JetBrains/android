@@ -149,11 +149,9 @@ public class NlEditorTest {
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor()
       .dragComponentToSurface("Text", "TextInputLayout");
-    MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    ideFrame
-      .waitForGradleProjectSyncToFinish()
+    guiTest.ideFrame()
+      .actAndWaitForGradleProjectSyncToFinish(
+        it -> MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk())
       .getEditor()
       .open("app/build.gradle")
       .moveBetween("implementation 'com.android.support:design", "")
@@ -162,7 +160,7 @@ public class NlEditorTest {
       .awaitNotification(
         "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
 
-    ideFrame.requestProjectSyncAndWaitForSyncToFinish();
+    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish();
   }
 
   @Test

@@ -141,11 +141,13 @@ public class AddRemoveCppDependencyTest {
     assertAndroidPanePath(true, guiTest, "app", "java");
 
     ideFixture
-      .openFromMenu(LinkCppProjectFixture::find, "File", "Link C++ Project with Gradle")
-      .selectCMakeBuildSystem()
-      .enterCMakeListsPath(guiTest.getProjectPath("app/src/main/cpp/CMakeLists.txt").getAbsolutePath())
-      .clickOk()
-      .waitForGradleProjectSyncToFinish()
+      .actAndWaitForGradleProjectSyncToFinish(
+        it ->
+          it.openFromMenu(LinkCppProjectFixture::find, "File", "Link C++ Project with Gradle")
+            .selectCMakeBuildSystem()
+            .enterCMakeListsPath(guiTest.getProjectPath("app/src/main/cpp/CMakeLists.txt").getAbsolutePath())
+            .clickOk()
+      )
       .getEditor()
       .select(getExternalNativeBuildRegExp()); // externalNativeBuild section of build.gradle reappears with cmake.path CMakeLists.txt
 

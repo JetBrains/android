@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
+import static com.android.tools.idea.tests.gui.framework.fixture.newpsd.UiTestUtilsKt.waitForIdle;
 import static com.android.tools.idea.ui.GuiTestingService.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.awt.event.InputEvent.CTRL_MASK;
@@ -73,6 +74,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.StripeButton;
 import com.intellij.openapi.wm.impl.ToolWindowsPane;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.ThreeState;
 import java.awt.Component;
 import java.awt.Container;
@@ -85,7 +87,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -416,33 +420,21 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return projectRootDir.findFileByRelativePath(relativePath);
   }
 
-  @NotNull
-  public IdeFrameFixture requestProjectSync() {
+  public void requestProjectSync() {
     myGradleProjectEventListener.reset();
 
     GuiTests.waitForBackgroundTasks(robot(), null);
     invokeMenuPath("File", "Sync Project with Gradle Files");
-
-    return this;
   }
 
   @NotNull
   public IdeFrameFixture requestProjectSyncAndWaitForSyncToFinish() {
-    requestProjectSync();
-    waitForGradleProjectSyncToFinish();
-    return this;
+    return actAndWaitForGradleProjectSyncToFinish(it -> it.requestProjectSync());
   }
 
   @NotNull
   public IdeFrameFixture requestProjectSyncAndWaitForSyncToFinish(@NotNull Wait waitSync) {
-    requestProjectSync();
-    waitForGradleProjectSyncToFinish(waitSync);
-    return this;
-  }
-
-  @NotNull
-  public IdeFrameFixture waitForGradleProjectSyncToFail() {
-    return waitForGradleProjectSyncToFail(Wait.seconds(10));
+    return actAndWaitForGradleProjectSyncToFinish(waitSync, it -> it.requestProjectSync());
   }
 
   @NotNull
@@ -455,17 +447,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       // expected failure.
     }
     GuiTests.waitForBackgroundTasks(robot());
-    return this;
-  }
-
-  @NotNull
-  public IdeFrameFixture waitForGradleProjectSyncToStart() {
-    Project project = getProject();
-    GradleSyncState syncState = GradleSyncState.getInstance(project);
-    if (!syncState.isSyncInProgress()) {
-      Wait.seconds(10).expecting("Syncing project '" + project.getName() + "' to finish")
-        .until(myGradleProjectEventListener::isSyncStarted);
-    }
     return this;
   }
 
@@ -508,7 +489,57 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     }
 
     GuiTests.waitForBackgroundTasks(robot());
-    com.android.tools.idea.tests.gui.framework.fixture.newpsd.UiTestUtilsKt.waitForIdle();
+    waitForIdle();
+  }
+
+  @NotNull
+  public static IdeFrameFixture actAndWaitForGradleProjectSyncToFinish(@NotNull Supplier<IdeFrameFixture> actions) {
+    return actAndWaitForGradleProjectSyncToFinish(null, actions);
+  }
+
+  @NotNull
+  public static IdeFrameFixture actAndWaitForGradleProjectSyncToFinish(@Nullable Wait waitForSync,
+                                                                       @NotNull Supplier<IdeFrameFixture> actions) {
+    return actAndWaitForGradleProjectSyncToFinish(waitForSync != null ? waitForSync : Wait.seconds(60), false, actions, () -> {
+    });
+  }
+
+  @NotNull
+  public IdeFrameFixture actAndWaitForGradleProjectSyncToFinish(@NotNull Consumer<IdeFrameFixture> actions) {
+    return actAndWaitForGradleProjectSyncToFinish(null, actions);
+  }
+
+  @NotNull
+  public IdeFrameFixture actAndWaitForGradleProjectSyncToFinish(@Nullable Wait waitForSync,
+                                                                @NotNull Consumer<IdeFrameFixture> actions) {
+    myGradleProjectEventListener.reset();
+    return actAndWaitForGradleProjectSyncToFinish(waitForSync != null ? waitForSync : Wait.seconds(60),
+                                                  false,
+                                                  () -> this,
+                                                  () -> actions.accept(this));
+  }
+
+  private static IdeFrameFixture actAndWaitForGradleProjectSyncToFinish(@NotNull Wait waitForSync,
+                                                                        boolean expectSyncFailure,
+                                                                        @NotNull Supplier<IdeFrameFixture> ideFrame,
+                                                                        @NotNull Runnable actions) {
+    IdeFrameFixture ideFixture = ideFrame.get();
+
+    actions.run();
+
+    ApplicationManager.getApplication().invokeAndWait(() -> PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue());
+    waitForIdle();
+
+    GuiTests.waitForProjectIndexingToFinish(ideFixture.getProject());
+
+    if (expectSyncFailure) {
+      ideFixture.waitForGradleProjectSyncToFail(waitForSync);
+    }
+    else {
+      ideFixture.waitForGradleProjectSyncToFinish(waitForSync);
+    }
+
+    return ideFixture;
   }
 
   @NotNull

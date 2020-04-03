@@ -37,14 +37,15 @@ public class GradleEditNotifyTest {
     // Regression test for https://code.google.com/p/android/issues/detail?id=75983
 
     guiTest.importSimpleApplication()
-      .getEditor()
-      .open("app/build.gradle").waitUntilErrorAnalysisFinishes()
-      .moveBetween("versionCode ", "")
-      .enterText("1")
-      .awaitNotification(
-        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-      .performAction("Sync Now")
-      .waitForGradleProjectSyncToFinish()
+      .actAndWaitForGradleProjectSyncToFinish(it -> {
+        it.getEditor()
+          .open("app/build.gradle").waitUntilErrorAnalysisFinishes()
+          .moveBetween("versionCode ", "")
+          .enterText("1")
+          .awaitNotification(
+            "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+          .performAction("Sync Now");
+      })
       .getEditor()
       .invokeAction(BACK_SPACE)
       .awaitNotification(

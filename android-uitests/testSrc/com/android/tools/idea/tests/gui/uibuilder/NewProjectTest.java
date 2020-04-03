@@ -100,14 +100,16 @@ public class NewProjectTest {
     // Insert resValue statements which should not add warnings (since they are generated files; see
     // https://code.google.com/p/android/issues/detail?id=76715
     String inspectionResults = guiTest.ideFrame()
-      .getEditor()
-      .open("app/build.gradle", EditorFixture.Tab.EDITOR)
-      .moveBetween("", "applicationId")
-      .enterText("resValue \"string\", \"foo\", \"Typpo Here\"\n")
-      .awaitNotification(
-        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-      .performAction("Sync Now")
-      .waitForGradleProjectSyncToFinish()
+      .actAndWaitForGradleProjectSyncToFinish(
+        it ->
+          it.getEditor()
+            .open("app/build.gradle", EditorFixture.Tab.EDITOR)
+            .moveBetween("", "applicationId")
+            .enterText("resValue \"string\", \"foo\", \"Typpo Here\"\n")
+            .awaitNotification(
+              "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+            .performAction("Sync Now")
+      )
       .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
       .clickOk()
       .getResults();

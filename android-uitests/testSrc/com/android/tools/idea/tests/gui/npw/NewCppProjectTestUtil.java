@@ -110,9 +110,8 @@ public class NewCppProjectTestUtil {
       .selectToolchain(toolChain)
       .wizard()
       // the QA tests don't care that much about timeouts occurring. Be generous with the timeouts
-      .clickFinish(Wait.seconds(60), Wait.seconds(240));
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(240));
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
     guiTest.waitForBackgroundTasks();
 
     // Sanity check we have create the right files

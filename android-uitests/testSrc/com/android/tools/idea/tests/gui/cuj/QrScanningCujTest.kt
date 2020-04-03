@@ -78,7 +78,6 @@ class QrScanningCujTest {
         }
         clickOk()
       }
-      waitForGradleProjectSyncToFinish()
     }
 
     // Create new layout file

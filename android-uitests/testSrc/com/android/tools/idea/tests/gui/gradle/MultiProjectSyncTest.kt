@@ -53,8 +53,7 @@ class MultiProjectSyncTest {
       // Modify the shared module's build file to cause sync on open.
       editor.open("../shared/mysharedlibrary/build.gradle").typeText("\n")
       invokeMenuPath("File", "Save All")
-      invokeMenuPath("File", "Sync Project with Gradle Files")
-      waitForGradleProjectSyncToFinish()
+      actAndWaitForGradleProjectSyncToFinish { invokeMenuPath("File", "Sync Project with Gradle Files") }
       assertThat(moduleNames).containsExactly("My_First_App", "My_First_App.app", "My_First_App.mysharedlibrary")
     }
     withProjectOpenAndSynced("secondapp") {

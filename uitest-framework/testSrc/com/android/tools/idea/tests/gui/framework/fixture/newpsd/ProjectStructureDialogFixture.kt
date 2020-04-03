@@ -41,9 +41,8 @@ class ProjectStructureDialogFixture(
   }
 
   fun clickOk() {
-    clickOkAndWaitDialogDisappear()
     // Changing the project structure can cause a Gradle build and Studio re-indexing.
-    waitForSyncToFinish()
+    waitForSyncToFinish { clickOkAndWaitDialogDisappear() }
   }
 
   fun clickOkExpectConfirmation(): ErrorsReviewConfirmationDialogFixture {
@@ -58,13 +57,12 @@ class ProjectStructureDialogFixture(
   }
 
   fun clickOk(waitForSync: Wait) {
-    clickOkAndWaitDialogDisappear()
     // Changing the project structure can cause a Gradle build and Studio re-indexing.
-    ideFrameFixture.waitForGradleProjectSyncToFinish(waitForSync).also { waitForIdle() }
+    ideFrameFixture.actAndWaitForGradleProjectSyncToFinish(waitForSync) { clickOkAndWaitDialogDisappear() }.also { waitForIdle() }
   }
 
-  fun waitForSyncToFinish() {
-    ideFrameFixture.waitForGradleProjectSyncToFinish().also { waitForIdle() }
+  fun waitForSyncToFinish(actions: () -> Unit) {
+    ideFrameFixture.actAndWaitForGradleProjectSyncToFinish { actions() }.also { waitForIdle() }
   }
 
   fun selectConfigurable(viewName: String): ProjectStructureDialogFixture {
