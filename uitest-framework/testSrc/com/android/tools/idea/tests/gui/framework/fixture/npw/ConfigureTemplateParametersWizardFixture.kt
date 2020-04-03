@@ -36,13 +36,9 @@ class ConfigureTemplateParametersWizardFixture(robot: Robot, dialog: JDialog)
   private fun clickFinish() = super.clickFinish(Wait.seconds(5))
 
   fun clickFinishAndWaitForSyncToFinish(): IdeFrameFixture {
-    clickFinish()
-    ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() }
-    waitForIdle()
-
-    val ideFrameFixture = IdeFrameFixture.find(robot()).also { it.requestFocusIfLost() }
-    GuiTests.waitForProjectIndexingToFinish(ideFrameFixture.project)
-    ideFrameFixture.waitForGradleProjectSyncToFinish()
-    return ideFrameFixture
+    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish {
+      clickFinish()
+      IdeFrameFixture.find(robot()).also { it.requestFocusIfLost() }
+    }
   }
 }

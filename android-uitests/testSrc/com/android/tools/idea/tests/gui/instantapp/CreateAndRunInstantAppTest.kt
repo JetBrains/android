@@ -122,11 +122,11 @@ class CreateAndRunInstantAppTest {
       .selectAndroidPane()
       .clickPath("app")
       .invokeMenuPath("Refactor", "Enable Instant Apps Support...")
-    EnableInstantAppSupportDialogFixture.find(ideFrame)
-      .clickOk()
 
-    // Wait for Gradle sync to finish, then the Run -> Edit Configurations... will be enabled.
-    ideFrame.waitForGradleProjectSyncToFinish()
+    ideFrame.actAndWaitForGradleProjectSyncToFinish {
+      EnableInstantAppSupportDialogFixture.find(ideFrame).clickOk()
+      // Wait for Gradle sync to finish, then the Run -> Edit Configurations... will be enabled.
+    }
 
     // The project is not deployed as an instant app by default anymore. Enable
     // deploying the project as an instant app:

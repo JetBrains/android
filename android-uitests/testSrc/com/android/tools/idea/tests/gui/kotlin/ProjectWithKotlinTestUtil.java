@@ -35,7 +35,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardF
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.ProjectManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -90,13 +89,15 @@ public class ProjectWithKotlinTestUtil {
         ideFrameFixture.getEditor().awaitNotification("Kotlin not configured");
       editorNotificationPanelFixture.performActionWithoutWaitingForDisappearance("Configure");
 
-      // As default, "All modules containing Kotlin files" option is selected for now.
-      ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
-                                  .clickOkAndWaitDialogDisappear();
-      ideFrameFixture.requestProjectSync();
+      ideFrameFixture.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(60), it -> {
+        // As default, "All modules containing Kotlin files" option is selected for now.
+        ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
+          .clickOkAndWaitDialogDisappear();
+        it.requestProjectSync();
+      });
     }
 
-    ideFrameFixture.invokeMenuPath("Build", "Rebuild Project").waitForGradleProjectSyncToFinish(Wait.seconds(60));
+    ideFrameFixture.invokeMenuPath("Build", "Rebuild Project");
 
     emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
 

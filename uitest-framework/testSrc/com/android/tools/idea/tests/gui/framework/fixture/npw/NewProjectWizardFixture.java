@@ -72,27 +72,24 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   }
 
   @NotNull
-  private NewProjectWizardFixture clickFinish() {
-    return clickFinish(Wait.seconds(15), Wait.seconds(120));
-  }
-
-  @NotNull
   public IdeFrameFixture clickFinishAndWaitForSyncToFinish() {
-    clickFinish();
-    IdeFrameFixture ideFrameFixture = IdeFrameFixture.find(robot());
-    ideFrameFixture.requestFocusIfLost();
-    GuiTests.waitForProjectIndexingToFinish(ideFrameFixture.getProject());
-    ideFrameFixture.waitForGradleProjectSyncToFinish();
-    return ideFrameFixture;
+    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(() -> clickFinishAndGetIdeFrame());
   }
 
   @NotNull
   public IdeFrameFixture clickFinishAndWaitForSyncToFinish(@NotNull Wait waitSync) {
+    return IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(waitSync, () -> clickFinishAndGetIdeFrame());
+  }
+
+  private IdeFrameFixture clickFinishAndGetIdeFrame() {
     clickFinish();
     IdeFrameFixture ideFrameFixture = IdeFrameFixture.find(robot());
     ideFrameFixture.requestFocusIfLost();
-    GuiTests.waitForProjectIndexingToFinish(ideFrameFixture.getProject());
-    ideFrameFixture.waitForGradleProjectSyncToFinish(waitSync);
     return ideFrameFixture;
+  }
+
+  @NotNull
+  private NewProjectWizardFixture clickFinish() {
+    return clickFinish(Wait.seconds(15), Wait.seconds(120));
   }
 }

@@ -114,17 +114,11 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
 
   @NotNull
   public IdeFrameFixture clickFinishAndWaitForSyncToFinish() {
-    clickFinish();
-    GuiTests.waitForProjectIndexingToFinish(myIdeFrameFixture.getProject());
-    myIdeFrameFixture.waitForGradleProjectSyncToFinish();
-    return myIdeFrameFixture;
+    return myIdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(it -> clickFinish());
   }
 
   @NotNull
   public IdeFrameFixture clickFinishAndWaitForSyncToFinish(@NotNull Wait waitSync) {
-    clickFinish();
-    GuiTests.waitForProjectIndexingToFinish(myIdeFrameFixture.getProject());
-    myIdeFrameFixture.waitForGradleProjectSyncToFinish(waitSync);
-    return myIdeFrameFixture;
+    return myIdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(waitSync, it -> clickFinish());
   }
 }

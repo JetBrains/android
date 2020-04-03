@@ -347,8 +347,7 @@ class AddDynamicFeatureTest {
   fun checkWarningLabelIsHiddenWhenBaseIsInstant() {
     val ideFrame = guiTest.importSimpleApplication()
     writeDistModuleToBaseManifest(true)
-    ideFrame.invokeMenuPath("File", "Sync Project with Gradle Files")
-    ideFrame.waitForGradleProjectSyncToFinish()
+    ideFrame.actAndWaitForGradleProjectSyncToFinish { it.invokeMenuPath("File", "Sync Project with Gradle Files") }
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     val fixture = NewModuleWizardFixture.find(ideFrame)
       .clickNextToInstantDynamicFeature()
@@ -375,8 +374,7 @@ class AddDynamicFeatureTest {
   fun checkWarningLabelIsVisibleWhenBaseIsNotInstant() {
     val ideFrame = guiTest.importSimpleApplication()
     writeDistModuleToBaseManifest(false)
-    ideFrame.invokeMenuPath("File", "Sync Project with Gradle Files")
-    ideFrame.waitForGradleProjectSyncToFinish()
+    ideFrame.actAndWaitForGradleProjectSyncToFinish { it.invokeMenuPath("File", "Sync Project with Gradle Files") }
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     val fixture = NewModuleWizardFixture.find(ideFrame)
       .clickNextToInstantDynamicFeature()

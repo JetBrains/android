@@ -59,28 +59,29 @@ public class ImportSampleProjectTest {
   @Test
   public void importSampleProject() {
     BrowseSamplesWizardFixture samplesWizard = guiTest.welcomeFrame()
-                                                      .importCodeSample();
-    samplesWizard.selectSample("Ui/Done Bar")
-                 .clickNext()
-                 .clickFinish();
+      .importCodeSample();
+    IdeFrameFixture ideFrameFixture = IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(20), () -> {
+      samplesWizard.selectSample("Ui/Done Bar")
+        .clickNext()
+        .clickFinish();
 
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+      return guiTest.ideFrame();
+    });
 
     ideFrameFixture
-      .waitForGradleProjectSyncToFail(Wait.seconds(20))
       .getEditor()
       .open("Application/build.gradle")
       .select("buildToolsVersion \"(.*)\"")
       .enterText("27.0.3")
       .invokeAction(EditorFixture.EditorAction.SAVE);
 
-    ideFrameFixture.requestProjectSync();
+    ideFrameFixture.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(120), it -> {
+      ideFrameFixture.requestProjectSync();
 
-    GuiTests.findAndClickButton(
-      ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended", 120),
-      "Update");
-
-    ideFrameFixture.waitForGradleProjectSyncToFinish(Wait.seconds(120));
+      GuiTests.findAndClickButton(
+        ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended", 120),
+        "Update");
+    });
 
     assertThat(ideFrameFixture.invokeProjectMake().isBuildSuccessful()).isTrue();
   }
