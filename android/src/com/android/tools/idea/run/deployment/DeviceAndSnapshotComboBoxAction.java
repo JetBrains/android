@@ -311,14 +311,15 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @Override
   public void update(@NotNull AnActionEvent event) {
+    Presentation presentation = event.getPresentation();
     Project project = event.getProject();
 
     if (project == null) {
+      presentation.setVisible(false);
       return;
     }
 
     Optional<List<Device>> devices = getDevices(project);
-    Presentation presentation = event.getPresentation();
 
     if (!devices.isPresent()) {
       presentation.setEnabled(false);
