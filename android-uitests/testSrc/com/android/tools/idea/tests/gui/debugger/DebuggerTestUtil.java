@@ -104,7 +104,7 @@ public class DebuggerTestUtil {
             .enterText("\n\nandroid.splits.abi.enable true")
             .invokeAction(EditorFixture.EditorAction.SAVE);
 
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT));
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT));
 
     openAndToggleBreakPoints(ideFrame,
                              "app/src/main/jni/native-lib.c",

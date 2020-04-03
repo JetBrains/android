@@ -418,21 +418,26 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture requestProjectSync() {
-    return requestProjectSync(null);
-  }
-
-  @NotNull
-  public IdeFrameFixture requestProjectSync(@Nullable Wait wait) {
     myGradleProjectEventListener.reset();
 
-    waitForSyncAction(wait);
+    GuiTests.waitForBackgroundTasks(robot(), null);
     invokeMenuPath("File", "Sync Project with Gradle Files");
 
     return this;
   }
 
-  private void waitForSyncAction(@Nullable Wait wait) {
-    GuiTests.waitForBackgroundTasks(robot(), wait);
+  @NotNull
+  public IdeFrameFixture requestProjectSyncAndWaitForSyncToFinish() {
+    requestProjectSync();
+    waitForGradleProjectSyncToFinish();
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture requestProjectSyncAndWaitForSyncToFinish(@NotNull Wait waitSync) {
+    requestProjectSync();
+    waitForGradleProjectSyncToFinish(waitSync);
+    return this;
   }
 
   @NotNull
@@ -498,7 +503,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         return syncFinished;
       });
 
-    waitForSyncAction(null);
+    GuiTests.waitForBackgroundTasks(robot(), null);
 
     if (myGradleProjectEventListener.hasSyncError()) {
       RuntimeException syncError = myGradleProjectEventListener.getSyncError();

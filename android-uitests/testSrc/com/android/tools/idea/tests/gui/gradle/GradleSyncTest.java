@@ -203,7 +203,7 @@ public class GradleSyncTest {
   public void javaModelSerialization() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
 
-    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish().closeProject();
+    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish().closeProject();
 
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
 
@@ -406,7 +406,7 @@ public class GradleSyncTest {
 
     ApplicationManager.getApplication().invokeAndWait(() -> runWriteCommandAction(project, () -> projectBuildModel.applyChanges()));
 
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish();
 
     Sdk sdk = ModuleRootManager.getInstance(appModule).getSdk();
 

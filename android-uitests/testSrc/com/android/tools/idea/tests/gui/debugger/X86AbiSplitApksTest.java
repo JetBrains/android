@@ -119,7 +119,7 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
       .enterText("\n\nandroid.splits.abi.enable true")
       .invokeAction(EditorFixture.EditorAction.SAVE);
 
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(TIMEOUT_SECONDS));
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(TIMEOUT_SECONDS));
 
     String expectedApkName = "app-x86-debug.apk";
 

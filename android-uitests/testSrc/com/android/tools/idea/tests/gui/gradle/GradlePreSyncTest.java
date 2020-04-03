@@ -188,7 +188,7 @@ public class GradlePreSyncTest {
     ideSettings.PROXY_HOST = "myproxy2.test.com";
 
     // Verifies that the "Do not show this dialog in the future" does not show up. If it does show up the test will timeout and fail.
-    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish();
   }
 
   @Test
