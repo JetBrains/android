@@ -25,8 +25,23 @@ import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 
 public class AdbOptionsService implements Getter<AdbOptionsService> {
+  /**
+   * Default ADB port +1 to avoid conflict.
+   */
+  static final int USER_MANAGED_ADB_PORT_MIN_VALUE = 5038;
+
+  /**
+   * Max ephemeral port number for most modern operating systems.
+   */
+  static final int USER_MANAGED_ADB_PORT_MAX_VALUE = 65535;
+
+  static final int USER_MANAGED_ADB_PORT_DEFAULT = 5038;
+
   private static final String USE_LIBUSB = "adb.use.libusb";
+  private static final String USE_USER_MANAGED_ADB = "AdbOptionsService.use.user.managed.adb";
+  private static final String USER_MANAGED_ADB_PORT = "AdbOptionsService.user.managed.adb.port";
   private static final boolean LIBUSB_DEFAULT = false;
+  private static final boolean USE_USER_MANAGED_ADB_DEFAULT = false;
 
   private final Object LOCK = new Object();
 
@@ -50,8 +65,19 @@ public class AdbOptionsService implements Getter<AdbOptionsService> {
     return PropertiesComponent.getInstance().getBoolean(USE_LIBUSB, LIBUSB_DEFAULT);
   }
 
-  public void setUseLibusb(boolean en) {
-    PropertiesComponent.getInstance().setValue(USE_LIBUSB, en);
+  boolean shouldUseUserManagedAdb() {
+    return PropertiesComponent.getInstance().getBoolean(USE_USER_MANAGED_ADB, USE_USER_MANAGED_ADB_DEFAULT);
+  }
+
+  int getUserManagedAdbPort() {
+    return PropertiesComponent.getInstance().getInt(USER_MANAGED_ADB_PORT, USER_MANAGED_ADB_PORT_DEFAULT);
+  }
+
+  public void setAdbConfigs(boolean useLibusb, boolean useUserManagedAdb, int userManagedAdbPort) {
+    PropertiesComponent props = PropertiesComponent.getInstance();
+    props.setValue(USE_LIBUSB, useLibusb);
+    props.setValue(USE_USER_MANAGED_ADB, useUserManagedAdb);
+    props.setValue(USER_MANAGED_ADB_PORT, userManagedAdbPort, USER_MANAGED_ADB_PORT_DEFAULT);
     updateListeners();
   }
 
