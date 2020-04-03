@@ -55,10 +55,9 @@ public class NewInstantAppTest {
       .enterName(projectName)
       .selectMinimumSdkApi(23)
       .wizard()
-      .clickFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
       .findRunApplicationButton().waitUntilEnabledAndShowing(); // Wait for the toolbar to be ready
 
     guiTest.ideFrame()

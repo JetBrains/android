@@ -83,9 +83,6 @@ class NewTVProjectTest {
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setPairWithCompanionPhoneApp(pairWithPhone)
       .wizard()
-      .clickFinish()
-
-    guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
   }
 }
