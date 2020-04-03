@@ -126,34 +126,6 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     verify(parametersBindingDialogView, times(0)).show()
   }
 
-  fun testEvaluateStatementWithParametersShowsParamsBindingDialog() {
-    // Prepare
-    val parametersBindingDialogView = viewFactory.parametersBindingDialogView
-    `when`(databaseConnection.execute(any(SqliteStatement::class.java)))
-      .thenReturn(Futures.immediateFuture(any(SqliteResultSet::class.java)))
-    sqliteEvaluatorController.setUp()
-
-    // Act
-    sqliteEvaluatorView.listeners.first().evaluateSqlActionInvoked(sqliteDatabase, "SELECT * FROM foo WHERE id = ?")
-
-    // Assert
-    verify(parametersBindingDialogView).show()
-  }
-
-  fun testEvaluateStatementWithParametersShowsParamsBindingDialog2() {
-    // Prepare
-    val parametersBindingDialogView = viewFactory.parametersBindingDialogView
-    `when`(databaseConnection.execute(any(SqliteStatement::class.java)))
-      .thenReturn(Futures.immediateFuture(any(SqliteResultSet::class.java)))
-    sqliteEvaluatorController.setUp()
-
-    // Act
-    sqliteEvaluatorView.listeners.first().evaluateSqlActionInvoked(sqliteDatabase, "select * from Foo where id = :anId")
-
-    // Assert
-    verify(parametersBindingDialogView).show()
-  }
-
   fun testEvaluateSqlActionCreateSuccess() {
     evaluateSqlActionSuccess("CREATE")
   }
