@@ -196,7 +196,7 @@ public class AddKotlinTest {
     guiTest.waitForBackgroundTasks();
     // TODO End hack
 
-    ideFrameFixture.requestProjectSync().waitForGradleProjectSyncToFinish();
+    ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
     assertThat(ideFrameFixture.invokeProjectMake().isBuildSuccessful()).isTrue();
   }

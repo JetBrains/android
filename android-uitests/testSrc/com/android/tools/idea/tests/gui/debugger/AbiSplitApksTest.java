@@ -120,7 +120,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
             .enterText("\n\nandroid.splits.abi.enable true")
             .invokeAction(EditorFixture.EditorAction.SAVE);
 
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
 
     String expectedApkName = "app-x86_64-debug.apk";
     ideFrame.debugApp("app", "Google Nexus 5X");

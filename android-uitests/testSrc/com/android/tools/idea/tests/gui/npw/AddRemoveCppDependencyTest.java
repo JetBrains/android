@@ -134,8 +134,7 @@ public class AddRemoveCppDependencyTest {
       .getEditor()
       .open("app/build.gradle")
       .getIdeFrame()
-      .requestProjectSync()
-      .waitForGradleProjectSyncToFinish();
+      .requestProjectSyncAndWaitForSyncToFinish();
 
     // verify that the project's app/cpp files are gone but app/java remains
     assertAndroidPanePath(false, guiTest, "app", "cpp", "native-lib.cpp");

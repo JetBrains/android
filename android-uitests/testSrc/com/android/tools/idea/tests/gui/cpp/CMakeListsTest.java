@@ -89,7 +89,6 @@ public class CMakeListsTest {
     Wait.seconds(10).expecting(RENAMED_C_FILE_NAME + "file is opened.")
       .until(() -> RENAMED_C_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName()));
 
-    ideFrame.requestProjectSync();
-    ideFrame.waitForGradleProjectSyncToFinish();
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish();
   }
 }

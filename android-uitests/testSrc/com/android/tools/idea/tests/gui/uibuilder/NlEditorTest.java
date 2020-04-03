@@ -162,9 +162,7 @@ public class NlEditorTest {
       .awaitNotification(
         "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
 
-    ideFrame
-      .requestProjectSync()
-      .waitForGradleProjectSyncToFinish();
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish();
   }
 
   @Test
