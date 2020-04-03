@@ -19,11 +19,11 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.structure.actions.AndroidShowStructureSettingsAction;
 import com.android.tools.idea.startup.Actions;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 
-public class PsdActionsInitializer implements Runnable {
+public class PsdActionsInitializer implements ActionConfigurationCustomizer {
   @Override
-  public void run() {
-    ActionManager actionManager = ActionManager.getInstance();
+  public void customize(ActionManager actionManager) {
     if (IdeInfo.getInstance().isAndroidStudio()) {
       Actions.replaceAction(actionManager, "ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
     }

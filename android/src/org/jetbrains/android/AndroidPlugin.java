@@ -17,6 +17,7 @@ import com.intellij.openapi.actionSystem.Anchor;
 import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.fileTypes.FileType;
@@ -31,11 +32,16 @@ public final class AndroidPlugin {
   public AndroidPlugin() {
     VirtualFileSystemOpener.INSTANCE.mount();
     registerWebpSupport();
-    ActionManager actionManager = ActionManager.getInstance();
-    if (!IdeInfo.getInstance().isAndroidStudio()) {
-      initializeForNonStudio(actionManager);
+  }
+
+  static final class ActionCustomizer implements ActionConfigurationCustomizer {
+    @Override
+    public void customize(@NotNull ActionManager actionManager) {
+      if (!IdeInfo.getInstance().isAndroidStudio()) {
+        initializeForNonStudio(actionManager);
+      }
+      setUpActionsUnderFlag(actionManager);
     }
-    setUpActionsUnderFlag(actionManager);
   }
 
   private static void registerWebpSupport() {

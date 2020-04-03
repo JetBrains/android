@@ -54,6 +54,7 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -84,13 +85,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Performs Gradle-specific IDE initialization
  */
-public class GradleSpecificInitializer implements Runnable {
+public class GradleSpecificInitializer implements ActionConfigurationCustomizer {
 
   private static final Logger LOG = Logger.getInstance(GradleSpecificInitializer.class);
 
   @Override
-  public void run() {
-    ActionManager actionManager = ActionManager.getInstance();
+  public void customize(@NotNull ActionManager actionManager) {
     setUpNewProjectActions(actionManager);
     setUpWelcomeScreenActions(actionManager);
     replaceProjectPopupActions(actionManager);
