@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElement
+import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
+import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.TextRange

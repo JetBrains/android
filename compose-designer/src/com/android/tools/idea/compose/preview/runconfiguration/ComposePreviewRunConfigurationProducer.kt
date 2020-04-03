@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
-import com.android.tools.idea.compose.preview.PREVIEW_ANNOTATION_FQN
-import com.android.tools.idea.compose.preview.isValidComposePreview
+import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.util.isValidComposePreview
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getClassName
 import com.intellij.execution.actions.ConfigurationContext

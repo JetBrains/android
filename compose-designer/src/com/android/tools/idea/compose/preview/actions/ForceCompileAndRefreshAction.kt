@@ -19,7 +19,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.requestBuild
+import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction

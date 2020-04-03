@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.renderer
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.idea.compose.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule

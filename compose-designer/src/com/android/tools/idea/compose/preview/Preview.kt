@@ -36,6 +36,10 @@ import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshActi
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.compose.preview.util.COMPOSE_VIEW_ADAPTER
+import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
+import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.toPreviewXmlString
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread

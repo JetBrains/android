@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,41 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.compose.preview.util
 
 import com.android.SdkConstants
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.ProjectStructure
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.allConstructors
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
-import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 import kotlin.math.max
@@ -76,8 +65,11 @@ const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
 
 // Max allowed API
-@VisibleForTesting const val MAX_WIDTH = 2000
-@VisibleForTesting const val MAX_HEIGHT = 2000
+@VisibleForTesting
+const val MAX_WIDTH = 2000
+
+@VisibleForTesting
+const val MAX_HEIGHT = 2000
 
 const val WIDTH_PARAMETER = "widthDp"
 const val HEIGHT_PARAMETER = "heightDp"
@@ -353,67 +345,3 @@ interface FilePreviewElementFinder {
   fun findPreviewMethods(uFile: UFile): Sequence<PreviewElement>
 }
 
-/**
- * Triggers the build of the given [modules] by calling the compile`Variant`Kotlin task
- */
-private fun requestKotlinBuild(project: Project, modules: Set<Module>) {
-  fun createBuildTasks(module: Module): String? {
-    val gradlePath = GradleFacet.getInstance(module)?.configuration?.GRADLE_PROJECT_PATH ?: return null
-    val currentVariant = AndroidModuleModel.get(module)?.selectedVariant?.name?.capitalize() ?: return null
-    // We need to get the compileVariantKotlin task name. There is not direct way to get it from the model so, for now,
-    // we just build it ourselves.
-    // TODO(b/145199867): Replace this with the right API call to obtain compileVariantKotlin after the bug is fixed.
-    return "${gradlePath}${SdkConstants.GRADLE_PATH_SEPARATOR}compile${currentVariant}Kotlin"
-  }
-
-  fun createBuildTasks(modules: Collection<Module>): Map<Module, List<String>> =
-    modules
-      .mapNotNull {
-        Pair(it, listOf(createBuildTasks(it) ?: return@mapNotNull null))
-      }
-      .filter { it.second.isNotEmpty() }
-      .toMap()
-
-  val moduleFinder = ProjectStructure.getInstance(project).moduleFinder
-
-  createBuildTasks(modules).forEach {
-    val path = moduleFinder.getRootProjectPath(it.key)
-    GradleBuildInvoker.getInstance(project).executeTasks(path.toFile(), it.value)
-  }
-}
-
-/**
- * Triggers the build of the given [modules] by calling the compileSourcesDebug task
- */
-private fun requestCompileJavaBuild(project: Project, modules: Set<Module>) =
-  GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
-
-internal fun requestBuild(project: Project, module: Module) {
-  if (project.isDisposed || module.isDisposed) {
-    return
-  }
-
-  val modules = mutableSetOf(module)
-  ModuleUtil.collectModulesDependsOn(module, modules)
-
-  // When COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD is enabled, we just trigger the module:compileDebugKotlin task. This avoids executing
-  // a few extra tasks that are not required for the preview to refresh.
-  if (StudioFlags.COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD.get()) {
-    requestKotlinBuild(project, modules)
-  }
-  else {
-    requestCompileJavaBuild(project, modules)
-  }
-}
-
-fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
-  val bodyPsiElement = this?.sourcePsi ?: return null
-  return SmartPointerManager.createPointer(bodyPsiElement)
-}
-
-/**
- * Extension method that returns if the file is a Kotlin file. This method first checks for the extension to fail fast without having to
- * actually trigger the potentially costly [VirtualFile#fileType] call.
- */
-internal fun VirtualFile.isKotlinFileType(): Boolean =
-  extension == KotlinFileType.INSTANCE.defaultExtension && fileType == KotlinFileType.INSTANCE

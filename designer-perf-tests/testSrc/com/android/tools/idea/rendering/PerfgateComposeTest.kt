@@ -16,8 +16,8 @@
 package com.android.tools.idea.rendering
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.compose.preview.SinglePreviewElementInstance
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
+import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
