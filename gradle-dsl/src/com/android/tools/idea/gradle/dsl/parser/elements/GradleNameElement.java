@@ -308,7 +308,6 @@ public class GradleNameElement {
   }
 
   @NotNull
-  @VisibleForTesting
   public static List<String> split(@NotNull String name) {
     StringBuilder buf = new StringBuilder();
     List<String> result = new ArrayList<>();
