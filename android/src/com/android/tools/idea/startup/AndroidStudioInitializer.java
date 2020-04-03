@@ -45,6 +45,7 @@ import com.intellij.internal.statistic.persistence.UsageStatisticsPersistenceCom
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -74,10 +75,9 @@ import org.jetbrains.annotations.NotNull;
  * {@link GradleSpecificInitializer} instead.
  * </p>
  */
-public class AndroidStudioInitializer implements Runnable {
+public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   @Override
-  public void run() {
-    ActionManager actionManager = ActionManager.getInstance();
+  public void customize(@NotNull ActionManager actionManager) {
     checkInstallation();
     setUpNewFilePopupActions(actionManager);
     setUpMakeActions(actionManager);
