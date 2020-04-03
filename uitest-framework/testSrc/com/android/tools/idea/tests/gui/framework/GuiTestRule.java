@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
+import static com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.io.Files.asCharSource;
 import static com.google.common.truth.Truth.assertAbout;
@@ -300,7 +301,7 @@ public class GuiTestRule implements TestRule {
   }
 
   @NotNull
-  public Project openProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws Exception {
+  public Project openProjectAndWaitForIndexingToFinish(@NotNull String projectDirName) throws Exception {
     File projectDir = copyProjectBeforeOpening(projectDirName);
     VirtualFile fileToSelect = VfsUtil.findFileByIoFile(projectDir, true);
     ProjectManager.getInstance().loadAndOpenProject(fileToSelect.getPath());
@@ -343,15 +344,8 @@ public class GuiTestRule implements TestRule {
   @NotNull
   public IdeFrameFixture openProjectAndWaitForProjectSyncToFinish(@NotNull File projectDir, @NotNull Wait waitForSync) {
     ApplicationManager.getApplication().invokeAndWait(() -> ProjectUtil.openOrImport(projectDir.getAbsolutePath(), null, true));
-
     Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length != 0);
-
-    // After the project is opened there will be an Index and a Gradle Sync phase, and these can happen in any order.
-    // Waiting for indexing to finish, makes sure Sync will start next or all Sync was done already.
-    GuiTests.waitForProjectIndexingToFinish(ProjectManager.getInstance().getOpenProjects()[0]);
-    IdeFrameFixture ideFrame = ideFrame();
-    ideFrame.waitForGradleProjectSyncToFinish(waitForSync);
-    return ideFrame;
+    return actAndWaitForGradleProjectSyncToFinish(waitForSync, () -> ideFrame());
   }
 
   /**
