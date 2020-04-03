@@ -116,8 +116,6 @@ public class CreateCppKotlinProjectTest {
 
     createKotlinProj(true, guiTest);
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
-    // Ensure the IDE can read and parse the build files since we are not checking the build files ourselves.
-    ideFrameFixture.waitForGradleProjectSyncToFinish(Wait.seconds(120));
 
     Pair<File, File> unequalFiles = ProjectComparer.buildDefaultComparer().findUnequalFiles(ideFrameFixture.getProjectPath(), precreatedProj);
     if (unequalFiles != null) {
