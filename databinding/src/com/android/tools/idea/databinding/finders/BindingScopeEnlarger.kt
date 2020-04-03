@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.databinding.finders
 
-import com.android.tools.idea.databinding.LayoutBindingProjectComponent
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.databinding.project.ProjectLayoutResourcesModificationTracker
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
@@ -32,6 +30,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger
 
@@ -54,8 +53,6 @@ class BindingScopeEnlarger : ResolveScopeEnlarger() {
   fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
     val module = facet.module
     val project = module.project
-    val component = project.getComponent(LayoutBindingProjectComponent::class.java)
-    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
 
     return CachedValuesManager.getManager(project).getCachedValue(module) {
       val localScope = facet.getLocalBindingScope()
@@ -65,7 +62,7 @@ class BindingScopeEnlarger : ResolveScopeEnlarger() {
         .map(AndroidFacet::getLocalBindingScope)
         .fold(localScope) { scopeAccum, depScope -> scopeAccum.union(depScope) }
 
-      CachedValueProvider.Result.create(scopeIncludingDeps, component, resourcesModifiedTracker)
+      CachedValueProvider.Result.create(scopeIncludingDeps, PsiModificationTracker.MODIFICATION_COUNT)
     }
   }
 }
@@ -73,8 +70,7 @@ class BindingScopeEnlarger : ResolveScopeEnlarger() {
 private fun AndroidFacet.getLocalBindingScope(): GlobalSearchScope {
   val module = module
   val project = module.project
-  val component = project.getComponent(LayoutBindingProjectComponent::class.java)
-  val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
+
   return CachedValuesManager.getManager(project).getCachedValue(module) {
     val lightClasses = mutableListOf<PsiClass>()
 
@@ -94,7 +90,7 @@ private fun AndroidFacet.getLocalBindingScope(): GlobalSearchScope {
     // that classes they are returning belong to the current scope.
     val virtualFiles = lightClasses.map { it.containingFile!!.viewProvider.virtualFile }
     val localScope = GlobalSearchScope.filesWithoutLibrariesScope(project, virtualFiles)
-    CachedValueProvider.Result.create(localScope, component, resourcesModifiedTracker)
+    CachedValueProvider.Result.create(localScope, PsiModificationTracker.MODIFICATION_COUNT)
   }
 }
 
