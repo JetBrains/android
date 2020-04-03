@@ -168,6 +168,7 @@ public class CreateCppKotlinProjectTest {
             ".cxx", // CMake compiler caches
             "gradle-wrapper.jar",
             "gradlew.bat",
+            "gradle",
             "gradlew",
             "local.properties",
             "build.gradle", // whitespace issues, different configurations due to setup. Checked by syncing
