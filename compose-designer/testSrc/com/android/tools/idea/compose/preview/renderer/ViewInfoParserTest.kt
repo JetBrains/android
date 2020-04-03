@@ -17,10 +17,10 @@ package com.android.tools.idea.compose.preview.renderer
 
 import com.android.tools.idea.compose.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.SinglePreviewElementInstance
 import com.android.tools.idea.compose.preview.navigation.ComposeViewInfo
 import com.android.tools.idea.compose.preview.navigation.parseViewInfo
 import com.android.tools.idea.compose.preview.navigation.remapInline
+import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.intellij.openapi.application.ReadAction
 import org.junit.Assert.assertNotNull
 import org.junit.Rule

@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.Slow
+import com.android.tools.idea.compose.preview.util.PreviewElement
 
 /**
  * Interface to be implemented by classes providing a list of [PreviewElement]

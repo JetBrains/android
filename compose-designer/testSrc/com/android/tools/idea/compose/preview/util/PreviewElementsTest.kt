@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.compose.preview.util
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
@@ -22,7 +22,7 @@ import org.xml.sax.InputSource
 import java.io.StringReader
 import javax.xml.parsers.DocumentBuilderFactory
 
-class UtilsTest {
+class PreviewElementsTest {
   @Test
   fun testPreviewConfigurationCleaner() {
     assertEquals(
@@ -42,12 +42,10 @@ class UtilsTest {
   fun testValidXmlForPreview() {
     val previewsToCheck = listOf(
       SinglePreviewElementInstance("composableMethodName",
-                                   PreviewDisplaySettings("A name", null, false, false, null),
-                                   null, null,
+                                   PreviewDisplaySettings("A name", null, false, false, null), null, null,
                                    PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
       SinglePreviewElementInstance("composableMethodName",
-                                   PreviewDisplaySettings("A name", "group1", true, true, null),
-                                   null, null,
+                                   PreviewDisplaySettings("A name", "group1", true, true, null), null, null,
                                    PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
       SinglePreviewElementInstance("composableMethodName",
                                    PreviewDisplaySettings("A name", "group1", true, true, "#000"),

@@ -16,10 +16,9 @@
 package com.android.tools.idea.compose.preview.navigation
 
 import com.android.tools.idea.compose.ComposeGradleProjectRule
-import com.android.tools.idea.compose.preview.PreviewElement
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.SinglePreviewElementInstance
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
+import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.intellij.openapi.application.ReadAction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.navigation
 
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.idea.compose.preview.COMPOSE_VIEW_ADAPTER
+import com.android.tools.idea.compose.preview.util.COMPOSE_VIEW_ADAPTER
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.isAccessible
 

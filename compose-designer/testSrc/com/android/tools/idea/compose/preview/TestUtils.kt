@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.util.PreviewElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 

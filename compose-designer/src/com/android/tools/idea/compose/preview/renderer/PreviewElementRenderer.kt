@@ -18,9 +18,9 @@ package com.android.tools.idea.compose.preview.renderer
 import com.android.ide.common.rendering.api.SessionParams
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.compose.preview.ComposeAdapterLightVirtualFile
-import com.android.tools.idea.compose.preview.PreviewElement
-import com.android.tools.idea.compose.preview.toPreviewXmlString
+import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
+import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.toPreviewXmlString
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderResult
@@ -39,8 +39,8 @@ import java.util.function.Supplier
  */
 @VisibleForTesting
 fun renderPreviewElementForResult(facet: AndroidFacet,
-                         previewElement: PreviewElement,
-                         executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<RenderResult?> {
+                                  previewElement: PreviewElement,
+                                  executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<RenderResult?> {
   val project = facet.module.project
 
   val file = ComposeAdapterLightVirtualFile("singlePreviewElement.xml", previewElement.toPreviewXmlString())
