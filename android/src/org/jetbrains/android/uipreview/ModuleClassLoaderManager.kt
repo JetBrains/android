@@ -29,48 +29,46 @@ import kotlin.concurrent.write
  * A [ClassLoader] for the [Module] dependencies.
  */
 class ModuleClassLoaderManager {
-  private val cacheLock: ReentrantReadWriteLock = ReentrantReadWriteLock()
   private val cache: MutableMap<Module, ModuleClassLoader> = WeakHashMap();
 
   /**
    * Returns a project class loader to use for rendering. May cache instances across render sessions.
    */
+  @Synchronized
   fun get(parent: ClassLoader?, module: Module): ModuleClassLoader {
-    cacheLock.read {
-      var moduleClassLoader =
-        cache[module]
+    var moduleClassLoader =
+      cache[module]
 
-      if (moduleClassLoader != null) {
-        if (moduleClassLoader.parent != parent) {
-          LOG.debug("Parent has changed, discarding ModuleClassLoader")
-          moduleClassLoader = null
-        }
-        else if (!moduleClassLoader.isUpToDate) {
-          LOG.debug("Files have changed, discarding ModuleClassLoader")
-          moduleClassLoader = null
-        }
-        else {
-          LOG.debug("ModuleClassLoader is up to date")
-        }
+    if (moduleClassLoader != null) {
+      if (moduleClassLoader.parent != parent) {
+        LOG.debug("Parent has changed, discarding ModuleClassLoader")
+        moduleClassLoader = null
       }
-
-      if (moduleClassLoader == null) {
-        LOG.debug { "Loading new class loader for module ${anonymize(module)}" }
-        moduleClassLoader = ModuleClassLoader(parent, module)
-        cacheLock.write {
-          cache[module] = moduleClassLoader
-        }
+      else if (!moduleClassLoader.isUpToDate) {
+        LOG.debug("Files have changed, discarding ModuleClassLoader")
+        moduleClassLoader = null
       }
-
-      return moduleClassLoader
+      else {
+        LOG.debug("ModuleClassLoader is up to date")
+      }
     }
+
+    if (moduleClassLoader == null) {
+      LOG.debug { "Loading new class loader for module ${anonymize(module)}" }
+      moduleClassLoader = ModuleClassLoader(parent, module)
+      cache[module] = moduleClassLoader
+    }
+
+    return moduleClassLoader
   }
 
-  fun clearCache() = cacheLock.write {
+  @Synchronized
+  fun clearCache() {
     cache.clear();
   }
 
-  fun clearCache(module: Module) = cacheLock.write {
+  @Synchronized
+  fun clearCache(module: Module) {
     cache.remove(module)
   }
 
