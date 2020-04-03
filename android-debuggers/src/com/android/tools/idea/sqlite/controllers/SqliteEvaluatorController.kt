@@ -118,10 +118,13 @@ class SqliteEvaluatorController(
           )
           Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
           currentTableController!!.setUp()
+        } else {
+          view.tableView.setEmptyText("The statement was run successfully.")
         }
 
         listeners.forEach { it.onSqliteStatementExecuted(database) }
       }.catching(edtExecutor, Throwable::class.java) { throwable ->
+        view.tableView.setEmptyText("An error occurred while running the statement.")
         view.tableView.reportError("Error executing SQLite statement", throwable)
       }.cancelOnDispose(this)
   }
