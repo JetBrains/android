@@ -19,7 +19,7 @@
     <facet.toolWindow id="Android App Inspection"
                       facetIdList="android,apk"
                       anchor="bottom"
-                      icon="StudioIcons.Shell.ToolWindows.INSPECTION"
+                      icon="AllIcons.Toolwindows.ToolWindowInspection"
                       conditionClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
                       factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"/>
     <applicationService serviceImplementation="com.android.tools.idea.appinspection.ide.AppInspectionHostService"/>
