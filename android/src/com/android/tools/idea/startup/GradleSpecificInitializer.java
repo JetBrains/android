@@ -16,9 +16,6 @@
 package com.android.tools.idea.startup;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.startup.Actions.hideAction;
-import static com.android.tools.idea.startup.Actions.moveAction;
-import static com.android.tools.idea.startup.Actions.replaceAction;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
@@ -94,15 +91,15 @@ public class GradleSpecificInitializer implements Runnable {
 
   @Override
   public void run() {
-    setUpNewProjectActions();
-    setUpWelcomeScreenActions();
-    replaceProjectPopupActions();
-    hideAction("Groovy.CheckResources.Rebuild");
-    hideAction("Groovy.CheckResources.Make");
-    setUpGradleViewToolbarActions();
+    ActionManager actionManager = ActionManager.getInstance();
+    setUpNewProjectActions(actionManager);
+    setUpWelcomeScreenActions(actionManager);
+    replaceProjectPopupActions(actionManager);
+    Actions.hideAction(actionManager, "Groovy.CheckResources.Rebuild");
+    Actions.hideAction(actionManager, "Groovy.CheckResources.Make");
+    setUpGradleViewToolbarActions(actionManager);
     checkInstallPath();
 
-    ActionManager actionManager = ActionManager.getInstance();
     // "Configure Plugins..." Not sure why it's called StartupWizard.
     AnAction pluginAction = actionManager.getAction("StartupWizard");
     // Never applicable in the context of android studio, so just set to invisible.
@@ -145,49 +142,48 @@ public class GradleSpecificInitializer implements Runnable {
     }
   }
 
-  private static void setUpGradleViewToolbarActions() {
-    hideAction("ExternalSystem.RefreshAllProjects");
-    hideAction("ExternalSystem.SelectProjectDataToImport");
+  private static void setUpGradleViewToolbarActions(ActionManager actionManager) {
+    Actions.hideAction(actionManager, "ExternalSystem.RefreshAllProjects");
+    Actions.hideAction(actionManager, "ExternalSystem.SelectProjectDataToImport");
   }
 
-  private static void setUpNewProjectActions() {
+  private static void setUpNewProjectActions(ActionManager actionManager) {
     // Unregister IntelliJ's version of the project actions and manually register our own.
-    replaceAction("OpenFile", new AndroidOpenFileAction());
-    replaceAction("NewProject", new AndroidNewProjectAction());
-    replaceAction("NewModule", new AndroidNewModuleAction());
-    replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
-    replaceAction("CreateLibraryFromFile", new CreateLibraryFromFilesAction());
-    replaceAction("ImportModule", new AndroidImportModuleAction());
+    Actions.replaceAction(actionManager, "OpenFile", new AndroidOpenFileAction());
+    Actions.replaceAction(actionManager, "NewProject", new AndroidNewProjectAction());
+    Actions.replaceAction(actionManager, "NewModule", new AndroidNewModuleAction());
+    Actions.replaceAction(actionManager, "NewModuleInGroup", new AndroidNewModuleInGroupAction());
+    Actions.replaceAction(actionManager, "CreateLibraryFromFile", new CreateLibraryFromFilesAction());
+    Actions.replaceAction(actionManager, "ImportModule", new AndroidImportModuleAction());
 
-    hideAction(IdeActions.ACTION_GENERATE_ANT_BUILD);
-    hideAction("AddFrameworkSupport");
-    hideAction("BuildArtifact");
-    hideAction("RunTargetAction");
+    Actions.hideAction(actionManager, IdeActions.ACTION_GENERATE_ANT_BUILD);
+    Actions.hideAction(actionManager, "AddFrameworkSupport");
+    Actions.hideAction(actionManager, "BuildArtifact");
+    Actions.hideAction(actionManager, "RunTargetAction");
   }
 
-  private static void setUpWelcomeScreenActions() {
+  private static void setUpWelcomeScreenActions(ActionManager actionManager) {
     // Force the new "flat" welcome screen.
     System.setProperty("ide.new.welcome.screen.force", "true");
 
     // Update the Welcome Screen actions
-    replaceAction("WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an Existing Project"));
-    replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Create New Project"));
-    replaceAction("WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
-    replaceAction("TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
+    Actions.replaceAction(actionManager, "WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an Existing Project"));
+    Actions.replaceAction(actionManager, "WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Create New Project"));
+    Actions.replaceAction(actionManager, "WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
+    Actions.replaceAction(actionManager, "TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 
-    moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
+    Actions.moveAction(actionManager, "WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
                "WelcomeScreen.QuickStart", new Constraints(AFTER, "Vcs.VcsClone"));
 
-    ActionManager actionManager = ActionManager.getInstance();
     AnAction getFromVcsAction = actionManager.getAction("Vcs.VcsClone");
     if (getFromVcsAction != null) {
       getFromVcsAction.getTemplatePresentation().setText("Get project from Version Control");
     }
   }
 
-  private static void replaceProjectPopupActions() {
+  private static void replaceProjectPopupActions(ActionManager actionManager) {
     Deque<Pair<DefaultActionGroup, AnAction>> stack = new ArrayDeque<>();
-    stack.add(Pair.of(null, ActionManager.getInstance().getAction("ProjectViewPopupMenu")));
+    stack.add(Pair.of(null, actionManager.getAction("ProjectViewPopupMenu")));
     while (!stack.isEmpty()) {
       Pair<DefaultActionGroup, AnAction> entry = stack.pop();
       DefaultActionGroup parent = entry.getFirst();
@@ -200,14 +196,14 @@ public class GradleSpecificInitializer implements Runnable {
       }
 
       if (action instanceof MoveModuleToGroupTopLevel) {
-        parent.remove(action);
+        parent.remove(action, actionManager);
         parent.add(new AndroidActionGroupRemover((ActionGroup)action, "Move Module to Group"),
-                   new Constraints(AFTER, "OpenModuleSettings"));
+                   new Constraints(AFTER, "OpenModuleSettings"), actionManager);
       }
       else if (action instanceof MarkRootGroup) {
-        parent.remove(action);
+        parent.remove(action, actionManager);
         parent.add(new AndroidActionGroupRemover((ActionGroup)action, "Mark Directory As"),
-                   new Constraints(AFTER, "OpenModuleSettings"));
+                   new Constraints(AFTER, "OpenModuleSettings"), actionManager);
       }
     }
   }
