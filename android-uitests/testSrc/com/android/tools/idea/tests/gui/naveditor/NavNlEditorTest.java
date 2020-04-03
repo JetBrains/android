@@ -171,10 +171,7 @@ public class NavNlEditorTest {
         .chooseFragment("Fullscreen Fragment")
         .clickNextFragment()
         .waitUntilStepErrorMessageIsGone()
-        .clickFinish();
-
-      ApplicationManager.getApplication().invokeAndWait(() -> dispatchAllInvocationEventsInIdeEventQueue());
-      waitForIdle();
+        .clickFinishAndWaitForSyncToFinish();
 
       List<NlComponent> selectedComponents = getPanelSelectedComponents(layout);
       assertEquals(1, selectedComponents.size());
@@ -210,14 +207,11 @@ public class NavNlEditorTest {
         .enterTextFieldValue("Fragment Name", "TestSingleVariantSync")
         .selectComboBoxItem("Source Language", "Java")
         .wizard()
-        .clickFinish();
-
-      ApplicationManager.getApplication().invokeAndWait(() -> UIUtil.dispatchAllInvocationEvents());
+        .clickFinishAndWaitForSyncToFinish();
 
       // The below verifies that there isn't an exception when interacting with the nav editor after a sync.
       // See b/112451835
       frame
-        .waitForGradleProjectSyncToFinish()
         .getEditor()
         // Open the file again in case build.gradle is open after gradle sync
         .open(file, EditorFixture.Tab.DESIGN)
@@ -260,12 +254,9 @@ public class NavNlEditorTest {
         .enterTextFieldValue("Fragment Name", "TestCreateAndCancelFragment")
         .selectComboBoxItem("Source Language", "Java")
         .wizard()
-        .clickFinish();
-
-      ApplicationManager.getApplication().invokeAndWait(() -> UIUtil.dispatchAllInvocationEvents());
+        .clickFinishAndWaitForSyncToFinish();
 
       long matchingComponents = frame
-        .waitForGradleProjectSyncToFinish()
         .getEditor()
         // Open the file again in case build.gradle is open after gradle sync
         .open(file, EditorFixture.Tab.DESIGN)
