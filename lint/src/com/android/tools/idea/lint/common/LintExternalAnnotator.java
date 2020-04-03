@@ -33,7 +33,6 @@ import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Scope;
 import com.google.common.collect.Sets;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
-import com.intellij.codeInsight.daemon.DaemonBundle;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -68,7 +67,6 @@ import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.ui.UIUtil;
 import com.intellij.xml.util.XmlStringUtil;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -335,13 +333,11 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
       severity = HighlightSeverity.WARNING;
     }
 
-    String link = " <a "
-                  + "href=\"" + LINK_PREFIX + issue.getId() + "\""
-                  + (UIUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
-                  + ">" + DaemonBundle.message("inspection.extended.description")
-                  + "</a> " + getShowMoreShortCut();
-    String tooltip = XmlStringUtil.wrapInHtml(RAW.convertTo(message, HTML) + link);
+    // This description link is not displayed. It is parsed by IDEA to
+    // populate the "Show Inspection Description" action.
+    String descriptionLink = "<a href=\"" + LINK_PREFIX + issue.getId() + "\"></a>";
 
+    String tooltip = XmlStringUtil.wrapInHtml(descriptionLink + RAW.convertTo(message, HTML));
     return holder.createAnnotation(severity, range, message, tooltip);
   }
 
