@@ -17,7 +17,17 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.emulator.RunningEmulatorCatalog"/>
 
+    <applicationConfigurable groupId="tools" id="emulator"
+                             provider="com.android.tools.idea.emulator.settings.EmulatorConfigurableProvider"/>
+
     <customizableActionGroupProvider implementation="com.android.tools.idea.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
+
+    <facet.toolWindow id="Emulator"
+                      facetIdList="android,apk"
+                      anchor="right"
+                      icon="StudioIcons.Shell.ToolWindows.EMULATOR"
+                      secondary="true"
+                      factoryClass="com.android.tools.idea.emulator.EmulatorToolWindowFactory"/>
   </extensions>
 
   <actions>
