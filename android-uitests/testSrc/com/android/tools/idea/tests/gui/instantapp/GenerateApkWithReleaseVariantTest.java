@@ -63,8 +63,7 @@ public class GenerateApkWithReleaseVariantTest {
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToAndroidLibrary()
       .wizard()
-      .clickFinish();
-    ideFrame.waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     ideFrame.getEditor()
       .open("app/build.gradle")

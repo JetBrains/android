@@ -84,8 +84,7 @@ public class DependenciesTestUtil {
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextToJavaLibrary()
       .wizard()
-      .clickFinish() // Use default Java Module name.
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
   }
 
   protected static void accessLibraryClassAndVerify(@NotNull IdeFrameFixture ideFrame,
@@ -161,8 +160,7 @@ public class DependenciesTestUtil {
       .clickNextToAndroidLibrary()
       .enterModuleName(moduleName)
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
   }
 
   protected static void createJavaClassInModule(@NotNull IdeFrameFixture ideFrame,

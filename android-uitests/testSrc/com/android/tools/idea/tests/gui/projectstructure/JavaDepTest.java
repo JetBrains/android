@@ -80,8 +80,7 @@ public class JavaDepTest {
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextToJavaLibrary()
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     EditorFixture editor = ideFrame.getEditor()
       .open("/lib/build.gradle")

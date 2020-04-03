@@ -83,8 +83,7 @@ public class AndroidDepTest {
       .clickNextToAndroidLibrary()
       .enterModuleName("library_module")
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     EditorFixture editor = ideFrame.getEditor()
       .open("/library_module/build.gradle")

@@ -68,10 +68,8 @@ public class CreateSettingsActivityTest {
            .clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish()
-           .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Settings Activity")
-           .clickFinish();
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Settings Activity")
+      .clickFinishAndWaitForSyncToFinish();
 
     // Verification.
     EditorFixture editorFixture = guiTest.ideFrame().getEditor();
