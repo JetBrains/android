@@ -16,8 +16,11 @@
 package com.android.tools.idea.javadoc;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.documentation.DocumentationManager;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.lang.documentation.DocumentationProvider;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -27,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
+import static com.android.tools.idea.testing.TestProjectPaths.MULTIPLE_MODULE_DEPEND_ON_AAR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class AndroidJavaDocWithGradleTest extends AndroidGradleTestCase {
@@ -74,5 +78,24 @@ public class AndroidJavaDocWithGradleTest extends AndroidGradleTestCase {
                  "<table style=\"background-color:rgb(0,0,0);width:200px;text-align:center;vertical-align:middle;\" border=\"0\">" +
                  "<tr height=\"100\"><td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:white\">#000000</td></tr>" +
                  "</table></s></td></tr></table></body></html>");
+  }
+
+  public void testResourcesInAar() throws Exception {
+    loadProject(MULTIPLE_MODULE_DEPEND_ON_AAR);
+
+    String activityPath = "app/src/main/java/com/example/google/androidx/MainActivity.kt";
+    VirtualFile virtualFile = ProjectUtil.guessProjectDir(getProject()).findFileByRelativePath(activityPath);
+    myFixture.openFileInEditor(virtualFile);
+
+    // Resource from Aar define in module R class.
+    AndroidTestUtils.moveCaret(myFixture, "R.color.abc_tint_default|");
+    myFixture.type("\n    R.attr.actionBarDivider");
+    checkJavadoc(activityPath,"<html><body><B>actionBarDivider</B><br/>Custom divider drawable to use for elements in the " +
+                              "action bar.<br/><hr/><BR/>@attr/actionBarDivider<BR/><BR/></body></html>");
+
+
+    myFixture.type("\n    androidx.appcompat.R.attr.actionBarDivider");
+    checkJavadoc(activityPath,"<html><body><B>actionBarDivider</B><br/>Custom divider drawable to use for elements in the " +
+                              "action bar.<br/><hr/><BR/>@attr/actionBarDivider<BR/><BR/></body></html>");
   }
 }
