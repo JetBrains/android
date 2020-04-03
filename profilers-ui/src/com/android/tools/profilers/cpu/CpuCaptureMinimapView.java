@@ -32,7 +32,6 @@ import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerLayout;
 import com.intellij.util.ui.JBEmptyBorder;
@@ -107,8 +106,7 @@ public class CpuCaptureMinimapView {
   }
 
   private static RangeSelectionComponent createRangeSelectionComponent(@NotNull RangeSelectionModel model) {
-    // Copy capture range as view range
-    RangeSelectionComponent rangeSelectionComponent = new RangeSelectionComponent(model, new Range(model.getSelectionRange()), true);
+    RangeSelectionComponent rangeSelectionComponent = new RangeSelectionComponent(model, true);
     rangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     rangeSelectionComponent.setDragBarHeight(RANGE_SELECTION_DRAG_BAR_HEIGHT);
     return rangeSelectionComponent;

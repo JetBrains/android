@@ -85,7 +85,7 @@ public class EnergyProfilerStage extends StreamingStage implements CodeNavigator
     myUsageTooltipLegends = new EnergyUsageLegends(myDetailedUsage, getTimeline().getTooltipRange());
     myEventTooltipLegends = new EnergyEventLegends(new DetailedEnergyEventsCount(profilers), getTimeline().getTooltipRange());
 
-    myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange());
+    myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange(), getTimeline().getViewRange());
     myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached());
     profilers.addDependency(myAspectObserver)
       .onChange(ProfilerAspect.AGENT, () -> myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached()));

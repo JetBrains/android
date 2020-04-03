@@ -74,10 +74,10 @@ public class SelectionVisualTest extends VisualTest {
     series2.add(500, new DefaultConfigurableDurationData(50, false, false));
     series2.add(750, new DefaultConfigurableDurationData(50, false, true));
 
-    myRangeSelectionModel = new RangeSelectionModel(mySelectionRange);
+    myRangeSelectionModel = new RangeSelectionModel(mySelectionRange, myViewRange);
     myRangeSelectionModel.addConstraint(constraint1);
     myRangeSelectionModel.addConstraint(constraint2);
-    mySelection = new RangeSelectionComponent(myRangeSelectionModel, myViewRange);
+    mySelection = new RangeSelectionComponent(myRangeSelectionModel);
 
     // Add the scene components to the list
     List<Updatable> componentsList = new ArrayList<>();

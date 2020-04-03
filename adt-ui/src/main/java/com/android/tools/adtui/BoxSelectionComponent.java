@@ -16,7 +16,6 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.StudioColorsKt;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -44,12 +43,11 @@ public class BoxSelectionComponent extends RangeSelectionComponent {
   @NotNull private final JList<?> myList;
 
   /**
-   * @param model     model that handles the range selection.
-   * @param viewRange entire range to select from. For mapping pixel coordinates to a point in range, e.g rangeToX().
-   * @param list      the list that the box selection component sits on top of.
+   * @param model model that handles the range selection.
+   * @param list  the list that the box selection component sits on top of.
    */
-  public BoxSelectionComponent(@NotNull RangeSelectionModel model, @NotNull Range viewRange, @NotNull JList<?> list) {
-    super(model, viewRange);
+  public BoxSelectionComponent(@NotNull RangeSelectionModel model, @NotNull JList<?> list) {
+    super(model);
     myList = list;
   }
 

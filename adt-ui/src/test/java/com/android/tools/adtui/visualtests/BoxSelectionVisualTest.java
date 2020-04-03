@@ -52,11 +52,11 @@ public class BoxSelectionVisualTest extends VisualTest {
   protected List<Updatable> createModelList() {
     myViewRange = new Range(0, 1000);
     mySelectionRange = new Range(100, 900);
-    RangeSelectionModel rangeSelectionModel = new RangeSelectionModel(mySelectionRange);
+    RangeSelectionModel rangeSelectionModel = new RangeSelectionModel(mySelectionRange, myViewRange);
     JList<String> JList = new JBList<>(generateJListData(10));
     JList.setSelectionForeground(Color.BLACK);
     JList.setSelectionBackground(Color.WHITE);
-    mySelection = new BoxSelectionComponent(rangeSelectionModel, myViewRange, JList);
+    mySelection = new BoxSelectionComponent(rangeSelectionModel, JList);
 
     // Add the scene components to the list
     List<Updatable> componentsList = new ArrayList<>();
