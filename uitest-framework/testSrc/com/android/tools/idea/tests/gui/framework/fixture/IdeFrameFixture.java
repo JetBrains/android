@@ -488,10 +488,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   private void waitForGradleProjectSyncToFinish(@NotNull Wait waitForSync, boolean expectSyncFailure) {
     Project project = getProject();
 
-    // ensure GradleInvoker (in-process build) is always enabled.
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-    buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
-
     waitForSync.expecting("syncing project '" + project.getName() + "' to finish")
       .until(() -> {
         GradleSyncState syncState = GradleSyncState.getInstance(project);

@@ -103,7 +103,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
   @Nullable
   private static GradleBuildInvoker findGradleInvoker(ExternalSystemTaskId id, String projectPath) {
     Project project = id.findProject();
-    if (project != null && GradleProjectInfo.getInstance(project).isDirectGradleBuildEnabled()) {
+    if (project != null) {
       // Make sure this is an Android project. IDEA manages non-Android Gradle projects itself.
       // TODO(b/139179869): Replace with the common way to detect Android-Gradle projects.
       ModuleManager moduleManager = ModuleManager.getInstance(project);
