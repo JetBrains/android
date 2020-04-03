@@ -92,7 +92,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextToAndroidLibrary()
       .wizard()
-      .clickFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     MessagesFixture messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
     // Cancel and check that the debugging session is still happening.
@@ -108,7 +108,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextToAndroidLibrary()
       .wizard()
-      .clickFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
     // Click okay and check that the debugger has been killed.

@@ -74,8 +74,7 @@ class AddComposeTest {
       .clickNext()
       .chooseActivity("Empty Compose Activity")
       .clickNext()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
       .projectView
       .selectAndroidPane()
       .clickPath("compose")
@@ -115,8 +114,7 @@ class AddComposeTest {
         .configureActivityStep
         .enterTextFieldValue(NAME, name)
         .wizard()
-        .clickFinish()
-        .waitForGradleProjectSyncToFinish()
+        .clickFinishAndWaitForSyncToFinish()
         .projectView
         .selectAndroidPane()
         .clickPath("app")

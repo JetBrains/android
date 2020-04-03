@@ -55,8 +55,7 @@ public class NewModuleTest {
       .setFileName(jarFile)
       .setSubprojectName("localJarLib")
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
       .getEditor()
       .open("app/build.gradle")
       .moveBetween("dependencies {", "")
@@ -82,8 +81,7 @@ public class NewModuleTest {
       .enterPackageName("my.test")
       .setSourceLanguage("Java")
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
     assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyClass.java")).isFile();
     assertAbout(file()).that(guiTest.getProjectPath("mylib/.gitignore")).isFile();
   }
@@ -97,8 +95,7 @@ public class NewModuleTest {
       .enterPackageName("my.test")
       .setSourceLanguage("Kotlin")
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
     String gradleFileContents = guiTest.getProjectFileText("mylib/build.gradle");
     assertThat(gradleFileContents).contains("id 'kotlin'");
     assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyClass.kt")).isFile();
@@ -111,8 +108,7 @@ public class NewModuleTest {
       .clickNextToAndroidLibrary()
       .enterModuleName("somelibrary")
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     String gradleFileContents = guiTest.getProjectFileText("somelibrary/build.gradle");
     assertThat(gradleFileContents).contains("id 'com.android.library'");
@@ -130,8 +126,7 @@ public class NewModuleTest {
       .wizard()
       .clickNext()
       .clickNext() // Default "Empty Activity"
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     assertThat(guiTest.getProjectFileText("gradle.properties"))
       .contains("android.useAndroidX=true");
@@ -156,8 +151,7 @@ public class NewModuleTest {
       .clickNext()
       .chooseActivity("Basic Activity")
       .clickNext() // Default "Empty Activity"
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     String otherModuleBuildGradleText = guiTest.getProjectFileText("otherModule/build.gradle");
     assertThat(otherModuleBuildGradleText).contains("implementation 'androidx.navigation:navigation-fragment-ktx:");
@@ -180,8 +174,7 @@ public class NewModuleTest {
         .clickNext()
         .chooseActivity(getBlankWearActivityTemplate().getName())
         .clickNext()
-        .clickFinish()
-        .waitForGradleProjectSyncToFinish();
+        .clickFinishAndWaitForSyncToFinish();
 
     String gradleFileContents = guiTest.getProjectFileText(moduleName + "/build.gradle");
     assertThat(gradleFileContents).contains("id 'com.android.application'");

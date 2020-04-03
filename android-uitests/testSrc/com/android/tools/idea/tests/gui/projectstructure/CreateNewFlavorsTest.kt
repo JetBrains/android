@@ -119,8 +119,7 @@ class CreateNewFlavorsTest {
       .selectLauncherActivity()
       .setTargetSourceSet(FLAVOR1)
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish(Wait.seconds(120))
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(120))
   }
 }
 

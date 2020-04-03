@@ -57,8 +57,7 @@ public class CreateNewLibraryModuleWithDefaultsTest {
            .clickNextToAndroidLibrary()
            .enterModuleName("library_module")
            .wizard()
-           .clickFinish()
-           .waitForGradleProjectSyncToFinish(Wait.seconds(30));
+           .clickFinishAndWaitForSyncToFinish(Wait.seconds(30));
     assertAbout(file()).that(guiTest.getProjectPath("library_module")).isDirectory();
   }
 }
