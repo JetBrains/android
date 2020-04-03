@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.gradle.adtimport;
 
-import static com.android.tools.idea.startup.Actions.replaceAction;
-
 import com.android.tools.idea.gradle.adtimport.actions.AndroidImportProjectAction;
+import com.android.tools.idea.startup.Actions;
+import com.intellij.openapi.actionSystem.ActionManager;
 
 public final class AdtImportInitializer implements Runnable {
   @Override
   public void run() {
-    replaceAction("ImportProject", new AndroidImportProjectAction());
-    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import Project (Gradle, Eclipse ADT, etc.)"));
+    ActionManager actionManager = ActionManager.getInstance();
+    Actions.replaceAction(actionManager, "ImportProject", new AndroidImportProjectAction());
+    Actions.replaceAction(actionManager, "WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import Project (Gradle, Eclipse ADT, etc.)"));
   }
 }
