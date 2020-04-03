@@ -101,17 +101,6 @@ public class GradleProjectInfo {
   }
 
   /**
-   * Indicates whether the IDE should build the project by invoking Gradle directly, or through IDEA's JPS. By default Android Studio
-   * invokes Gradle directly.
-   *
-   * @return {@code true} if the IDE should build the project by invoking Gradle directly; {@code false} otherwise.
-   */
-  public boolean isDirectGradleBuildEnabled() {
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(myProject);
-    return buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD;
-  }
-
-  /**
    * Indicates whether Gradle is used to build at least one module in this project.
    * Note: {@link AndroidProjectInfo#requiresAndroidModel())} indicates whether a project requires an {@link AndroidModel}.
    * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model is
