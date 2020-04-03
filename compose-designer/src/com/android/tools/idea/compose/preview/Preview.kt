@@ -41,6 +41,8 @@ import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFil
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.previewElementComparatorByDisplayName
+import com.android.tools.idea.compose.preview.util.previewElementComparatorBySourcePosition
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -499,7 +501,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
 
     // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
-    val existingModels = surface.models.reverse().toMutableList()
+    val existingModels = surface.models.toMutableList()
 
     // Now we generate all the models (or reuse) for the PreviewElements.
     val models = filePreviewElements
@@ -565,13 +567,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         model to previewElement
       }
-      .toMap()
+      .toList()
 
     // Remove and dispose pre-existing models that were not used.
     // This will happen if the user removes one or more previews.
     if (LOG.isDebugEnabled) LOG.debug("Removing ${existingModels.size} model(s)")
     existingModels.forEach { surface.removeModel(it) }
     models
+      .reversed()
       .onEach {
         val (model, previewElement) = it
         // We call addModel even though the model might not be new. If we try to add an existing model,
@@ -606,7 +609,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
     }
 
-    previewElements = filePreviewElements.toList()
+    previewElements = ReadAction.compute<List<PreviewElement>, Throwable> {
+      filePreviewElements
+        .sortedWith(previewElementComparatorBySourcePosition)
+        .toList()
+    }
     hasRenderedAtLeastOnce = true
 
     withContext(uiThread) {

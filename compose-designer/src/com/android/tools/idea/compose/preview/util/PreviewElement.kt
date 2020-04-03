@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.allConstructors
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 import kotlin.math.max
@@ -413,4 +414,29 @@ interface FilePreviewElementFinder {
    */
   @Slow
   fun findPreviewMethods(uFile: UFile): Sequence<PreviewElement>
+}
+
+/**
+ * Returns the source offset within the file of the [PreviewElement].
+ * We try to read the position of the method but fallback to the position of the annotation if the method body is not valid anymore.
+ * If the passed element is null or the position can not be read, this method will return -1.
+ *
+ * This property needs a [ReadAction] to be read.
+ */
+private val PreviewElement?.sourceOffset: Int
+  get() = this?.previewElementDefinitionPsi?.element?.startOffset ?: -1
+
+/**
+ * Sorts the [PreviewElement]s by source code line number, smaller first. This comparator needs
+ * to be used under a [ReadAction].
+ */
+val previewElementComparatorBySourcePosition = Comparator<PreviewElement> { o1, o2 ->
+  o1.sourceOffset - o2.sourceOffset
+}
+
+/**
+ * Sorts the [PreviewElement]s in alphabetical order of their display name.
+ */
+val previewElementComparatorByDisplayName = Comparator<PreviewElement> { o1, o2 ->
+  o1.displaySettings.name.compareTo(o2.displaySettings.name)
 }

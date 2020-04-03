@@ -18,7 +18,10 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
+import com.android.tools.idea.compose.preview.util.previewElementComparatorByDisplayName
+import com.android.tools.idea.compose.preview.util.previewElementComparatorBySourcePosition
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.impl.source.tree.injected.changesHandler.range
@@ -26,6 +29,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 import org.junit.Assert
+import org.junit.Assert.assertArrayEquals
 
 /**
  * Asserts that the given [methodName] body has the actual given [actualBodyRange]
@@ -325,7 +329,7 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
     // The next two are the same just using the annotation parameter explicitly in one of them.
     // The resulting PreviewElement should be the same with different name.
     listOf("SingleParameter" to elements[1], "SingleParameterNoName" to elements[2])
-      .map { (name, previewElement) -> name to previewElement as ParametrizedPreviewElementTemplate}
+      .map { (name, previewElement) -> name to previewElement as ParametrizedPreviewElementTemplate }
       .forEach { (name, previewElement) ->
         assertEquals(name, previewElement.displaySettings.name)
         assertEquals(1, previewElement.parameterProviders.size)
@@ -344,5 +348,56 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
         assertEquals(2, parameter.limit)
       }
     }
+  }
+
+  fun testOrdering() {
+    val composeTest = myFixture.addFileToProject(
+      "src/Test.kt",
+      // language=kotlin
+      """
+        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Composable
+        @Preview
+        fun C() {
+        }
+
+        @Composable
+        @Preview
+        fun A() {
+        }
+
+        @Composable
+        @Preview
+        fun B() {
+        }
+      """.trimIndent()).toUElement() as UFile
+
+    ReadAction.run<Throwable> {
+      AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
+        .toMutableList().apply {
+          // Randomize to make sure the ordering works
+          shuffle()
+        }
+        .sortedWith(previewElementComparatorBySourcePosition)
+        .map { it.composableMethodFqn }
+        .toTypedArray()
+        .let {
+          assertArrayEquals(arrayOf("TestKt.C", "TestKt.A", "TestKt.B"), it)
+        }
+    }
+
+    AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
+      .toMutableList().apply {
+        // Randomize to make sure the ordering works
+        shuffle()
+      }
+      .sortedWith(previewElementComparatorByDisplayName)
+      .map { it.composableMethodFqn }
+      .toTypedArray()
+      .let {
+        assertArrayEquals(arrayOf("TestKt.A", "TestKt.B", "TestKt.C"), it)
+      }
   }
 }
