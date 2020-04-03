@@ -19,6 +19,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickBu
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.project.ProjectManager;
@@ -71,7 +72,27 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   }
 
   @NotNull
-  public NewProjectWizardFixture clickFinish() {
+  private NewProjectWizardFixture clickFinish() {
     return clickFinish(Wait.seconds(15), Wait.seconds(120));
+  }
+
+  @NotNull
+  public IdeFrameFixture clickFinishAndWaitForSyncToFinish() {
+    clickFinish();
+    IdeFrameFixture ideFrameFixture = IdeFrameFixture.find(robot());
+    ideFrameFixture.requestFocusIfLost();
+    GuiTests.waitForProjectIndexingToFinish(ideFrameFixture.getProject());
+    ideFrameFixture.waitForGradleProjectSyncToFinish();
+    return ideFrameFixture;
+  }
+
+  @NotNull
+  public IdeFrameFixture clickFinishAndWaitForSyncToFinish(@NotNull Wait waitSync) {
+    clickFinish();
+    IdeFrameFixture ideFrameFixture = IdeFrameFixture.find(robot());
+    ideFrameFixture.requestFocusIfLost();
+    GuiTests.waitForProjectIndexingToFinish(ideFrameFixture.getProject());
+    ideFrameFixture.waitForGradleProjectSyncToFinish(waitSync);
+    return ideFrameFixture;
   }
 }
