@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.emulator.actions
 
-import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_CONTROLLER_KEY
-import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_VIEW_KEY
+import com.android.tools.idea.emulator.EMULATOR_CONTROLLER_KEY
+import com.android.tools.idea.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.EmulatorView
 import com.intellij.openapi.actionSystem.AnAction

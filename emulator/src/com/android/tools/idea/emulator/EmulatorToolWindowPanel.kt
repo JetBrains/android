@@ -16,9 +16,6 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.adtui.ZOOMABLE_KEY
-import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_CONTROLLER_KEY
-import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_MAIN_TOOLBAR_ID
-import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_VIEW_KEY
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
