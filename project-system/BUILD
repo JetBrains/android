@@ -46,9 +46,7 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
-        "//tools/idea/.idea/libraries:Slf4j",
         "//tools/idea/.idea/libraries:error-prone-annotations",
-        "//tools/idea/.idea/libraries:javax.annotation-api",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
@@ -68,5 +66,7 @@ iml_module(
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
         "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module]",
     ],
 )
