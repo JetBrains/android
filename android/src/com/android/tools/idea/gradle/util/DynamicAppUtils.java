@@ -36,13 +36,13 @@ import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -336,7 +336,7 @@ public class DynamicAppUtils {
    * Returns {@code true} if a module should be built using the "select apks from bundle" task
    */
   public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
-                                                       @NotNull RunConfiguration configuration,
+                                                       @NotNull AndroidRunConfigurationBase configuration,
                                                        @NotNull List<AndroidDevice> targetDevices) {
     if (configuration instanceof AndroidRunConfiguration) {
       AndroidRunConfiguration androidConfiguration = (AndroidRunConfiguration)configuration;
@@ -369,7 +369,7 @@ public class DynamicAppUtils {
    * when deploying an app.
    */
   public static boolean shouldCollectListOfLanguages(@NotNull Module module,
-                                                     @NotNull RunConfiguration configuration,
+                                                     @NotNull AndroidRunConfigurationBase configuration,
                                                      @NotNull List<AndroidDevice> targetDevices) {
     // Don't collect if not using the bundle tool
     if (!useSelectApksFromBundleBuilder(module, configuration, targetDevices)) {
