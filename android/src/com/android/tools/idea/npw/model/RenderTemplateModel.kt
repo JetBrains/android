@@ -202,14 +202,14 @@ class RenderTemplateModel private constructor(
     @JvmStatic
     fun fromFacet(
       facet: AndroidFacet,
-      initialPackageSuggestion: String,
+      initialPackageSuggestion: String?,
       template: NamedModuleTemplate,
       commandName: String,
       projectSyncInvoker: ProjectSyncInvoker,
       shouldOpenFiles: Boolean
     ) = RenderTemplateModel(
       moduleModelData = ExistingNewModuleModelData(
-        ExistingProjectModelData(facet.module.project, projectSyncInvoker).apply { packageName.set(initialPackageSuggestion) },
+        ExistingProjectModelData(facet.module.project, projectSyncInvoker).apply { initialPackageSuggestion?.let { packageName.set(it) }},
         facet, template),
       androidFacet = facet,
       commandName = commandName,
