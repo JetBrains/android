@@ -120,12 +120,10 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
   public void testCreateHtmlBody_modelWithoutMetadata() {
     modelFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_model.tflite");
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
-    // TODO(b/151662366): update verification here once the UI for no metadata case introduced.
     JPanel contentPanel = ((JPanel) ((JScrollPane) editor.getComponent()).getViewport().getView());
-    assertThat(contentPanel.getComponentCount()).isEqualTo(3);
+    assertThat(contentPanel.getComponentCount()).isEqualTo(2);
     verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(0), "Model");
-    verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(1), "Tensors");
-    verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(2), "Sample Code");
+    verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(1), "Sample Code");
   }
 
   private static void verifySectionPanelContainsLabel(@NonNull JPanel sectionPanel, @NonNull String labelText) {
