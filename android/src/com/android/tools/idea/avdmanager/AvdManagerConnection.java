@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ANDROID_HOME_ENV;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 
@@ -582,13 +583,23 @@ public class AvdManagerConnection {
     writeParameterFile(commandLine);
 
     commandLine.addParameters("-avd", info.getName());
-    if (EmulatorSettings.getInstance().getLaunchEmbedded()) {
+    if (shouldBeLaunchedEmbedded(info)) {
       int port = 8554 + grpcPortCounter.getAndIncrement() % 32;
       commandLine.addParameters("-grpc", Integer.toString(port)); // TODO: Remove after ag/1245952 has been submitted.
+      commandLine.addParameters("-no-window", "-gpu", "auto-no-window"); // Launch headless.
     }
   }
 
   private static final AtomicInteger grpcPortCounter = new AtomicInteger();
+
+  private static boolean shouldBeLaunchedEmbedded(@NotNull AvdInfo avd) {
+    // In order for an AVD to be launched in a tool window the corresponding option should be
+    // enabled in Emulator settings and the AVD should not be foldable, TV, or Android Auto.
+    return EmulatorSettings.getInstance().getLaunchEmbedded() &&
+           !avd.getProperties().containsKey("hw.displayRegion.0.1.width") && // Foldable
+           !"android-tv".equals(avd.getProperties().get(AVD_INI_TAG_ID)) &&
+           !"android-automotive".equals(avd.getProperties().get(AVD_INI_TAG_ID));
+  }
 
   /**
    * Indicates if the Emulator's version is at least {@code desired}
