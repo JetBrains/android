@@ -24,6 +24,7 @@ import static com.android.builder.model.AndroidProject.PROPERTY_DEPLOY_AS_INSTAN
 import static com.android.builder.model.AndroidProject.PROPERTY_EXTRACT_INSTANT_APK;
 import static com.android.builder.model.AndroidProject.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.run.GradleApkProvider.POST_BUILD_MODEL;
 import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
@@ -90,7 +91,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -397,7 +397,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       if (configuration instanceof AndroidRunConfigurationBase) {
         Object model = runner.getModel();
         if (model instanceof OutputBuildAction.PostBuildProjectModels) {
-          ((AndroidRunConfigurationBase)configuration).setOutputModel(new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model));
+          ((AndroidRunConfigurationBase)configuration)
+            .putUserData(POST_BUILD_MODEL, new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model));
         }
         else {
           getLog().info("Couldn't get post build models.");
