@@ -566,9 +566,14 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return new DefaultGradleBuilder(gradleTasksProvider.getUnitTestTasks(buildMode), buildMode);
     }
 
-    // Use the "select apks from bundle" task if using a "AndroidBundleRunConfiguration".
+    // Use the "select apks from bundle" task if using a "AndroidRunConfigurationBase".
     // Note: This is very ad-hoc, and it would be nice to have a better abstraction for this special case.
-    if (useSelectApksFromBundleBuilder(modules, configuration, targetDevices)) {
+
+    // NOTE: MakeBeforeRunTask is configured on unit-test and AndroidrunConfigurationBase run configurations only. Therefore,
+    //       since testCompileType != TestCompileType.UNIT_TESTS it is safe to assume that configuration is
+    //       AndroidRunConfigurationBase.
+    if (configuration instanceof AndroidRunConfigurationBase
+        && useSelectApksFromBundleBuilder(modules, (AndroidRunConfigurationBase)configuration, targetDevices)) {
       return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType),
                                       BuildMode.APK_FROM_BUNDLE);
     }
@@ -576,13 +581,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   private static boolean useSelectApksFromBundleBuilder(@NotNull Module[] modules,
-                                                        @NotNull RunConfiguration configuration,
+                                                        @NotNull AndroidRunConfigurationBase configuration,
                                                         @NotNull List<AndroidDevice> targetDevices) {
     return Arrays.stream(modules).anyMatch(module -> DynamicAppUtils.useSelectApksFromBundleBuilder(module, configuration, targetDevices));
   }
 
   private static boolean shouldCollectListOfLanguages(@NotNull Module[] modules,
-                                                      @NotNull RunConfiguration configuration,
+                                                      @NotNull AndroidRunConfigurationBase configuration,
                                                       @NotNull List<AndroidDevice> targetDevices) {
     // We should collect the list of languages only if *all* devices are verify the condition, otherwise we would
     // end up deploying language split APKs to devices that don't support them.
