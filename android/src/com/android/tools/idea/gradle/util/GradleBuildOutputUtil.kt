@@ -23,6 +23,7 @@ import com.android.ide.common.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils.useSelectApksFromBundleBuilder
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.diagnostic.Logger
@@ -68,7 +69,7 @@ fun getOutputListingFile(androidModel: AndroidModuleModel, variantName: String, 
  * If the generated file is a single APK, this method returns the location of the apk.
  * If the generated files are multiple APKs, this method returns the folder that contains the APKs.
  */
-fun getApkForRunConfiguration(module: Module, configuration: RunConfiguration, isTest: Boolean): File? {
+fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigurationBase, isTest: Boolean): File? {
   val androidModel = AndroidModuleModel.get(module)
   androidModel ?: return null
   if (androidModel.features.isBuildOutputFileSupported) {
@@ -124,7 +125,7 @@ fun getOutputFileOrFolderFromListingFile(listingFile: String): File? {
   return null
 }
 
-private fun getOutputType(module: Module, configuration: RunConfiguration): OutputType {
+private fun getOutputType(module: Module, configuration: AndroidRunConfigurationBase): OutputType {
   return if (useSelectApksFromBundleBuilder(module, configuration, listOf())) {
     OutputType.ApkFromBundle
   }
