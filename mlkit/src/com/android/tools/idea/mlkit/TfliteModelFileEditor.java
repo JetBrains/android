@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Floats;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -48,6 +49,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.ui.BrowserHyperlinkListener;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBLabel;
@@ -135,8 +137,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     JPanel contentPanel = createPanelWithYAxisBoxLayout(Borders.empty(20));
     try {
       ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(myFile.contentsToByteArray())));
-      contentPanel.add(createModelSection(modelInfo));
-      contentPanel.add(createTensorsSection(modelInfo));
+      if (modelInfo.isMetadataExisted()) {
+        contentPanel.add(createModelSection(modelInfo));
+        contentPanel.add(createTensorsSection(modelInfo));
+      } else {
+        contentPanel.add(createNoMetadataSection());
+      }
       if (myIsSampleCodeSectionVisible) {
         contentPanel.add(createSampleCodeSection(modelInfo));
       }
@@ -164,6 +170,29 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     Font font = titleLabel.getFont();
     titleLabel.setFont(font.deriveFont(font.getStyle() | Font.BOLD).deriveFont(font.getSize() * 1.2f));
     return titleLabel;
+  }
+
+  @NotNull
+  private static JComponent createNoMetadataSection() {
+    JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
+    sectionPanel.add(createSectionHeader("Model"));
+
+    JPanel sectionContentPanel = createPanelWithYAxisBoxLayout(Borders.empty(50, 100, 50, 0));
+    sectionPanel.add(sectionContentPanel);
+
+    JBLabel infoLabel = new JBLabel("No metadata found in this model");
+    infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    infoLabel.setBorder(Borders.emptyBottom(4));
+    sectionContentPanel.add(infoLabel);
+
+    HyperlinkLabel addMetadataLinkLabel = new HyperlinkLabel("Add metadata to your model");
+    addMetadataLinkLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    addMetadataLinkLabel.setHyperlinkTarget("https://www.tensorflow.org/lite/convert/metadata");
+    addMetadataLinkLabel.setIcon(AllIcons.General.ContextHelp);
+    addMetadataLinkLabel.setMaximumSize(addMetadataLinkLabel.getPreferredSize());
+    sectionContentPanel.add(addMetadataLinkLabel);
+
+    return sectionPanel;
   }
 
   @NotNull
