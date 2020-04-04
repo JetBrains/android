@@ -365,9 +365,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
 
     @JvmStatic
-    private fun isEmbeddedEmulator(commandLine: GeneralCommandLine): Boolean {
-      // TODO: Distinguish between embedded and standalone emulators.
-      return true
-    }
+    private fun isEmbeddedEmulator(commandLine: GeneralCommandLine) =
+      commandLine.parametersList.parameters.contains("-no-window")
   }
 }
