@@ -32,7 +32,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -140,7 +139,6 @@ public class SdksCleanupStepTest extends PlatformTestCase {
     Module appModule = createModule("app");
     // Simulate this is an Android module.
     AndroidFacet androidFacet = createAndAddAndroidFacet(appModule);
-    AndroidModel.set(androidFacet, mock(AndroidModel.class));
 
     cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
 
@@ -165,7 +163,6 @@ public class SdksCleanupStepTest extends PlatformTestCase {
     Module appModule = createModule("app");
     // Simulate this is an Android module.
     AndroidFacet androidFacet = createAndAddAndroidFacet(appModule);
-    AndroidModel.set(androidFacet, mock(AndroidModel.class));
 
     cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
 
@@ -219,7 +216,6 @@ public class SdksCleanupStepTest extends PlatformTestCase {
 
   private static void setUpModuleAsAndroid(@NotNull Module module, @NotNull Sdk sdk) {
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    AndroidModel.set(facet, mock(AndroidModel.class));
 
     ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(module).getModifiableModel();
     modifiableModel.setSdk(sdk);
