@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
+import com.android.emulator.control.VmRunState
 import com.android.tools.idea.concurrency.AndroidIoManager
 import com.google.common.collect.ImmutableSet
 import com.google.common.util.concurrent.ListenableFuture
@@ -207,6 +208,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       val listenersSnapshot: List<Listener>
 
       synchronized(updateLock) {
+        if (isDisposing) return
         lastUpdateStartTime = start
         lastUpdateDuration = System.currentTimeMillis() - start
         emulators = ImmutableSet.copyOf(newEmulators.values)
@@ -322,6 +324,14 @@ class RunningEmulatorCatalog : Disposable.Parent {
 
   override fun beforeTreeDispose() {
     isDisposing = true
+
+    // Shut down all embedded Emulators.
+    synchronized(updateLock) {
+      for (emulator in emulators) {
+        val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
+        emulator.setVmState(vmRunState)
+      }
+    }
   }
 
   override fun dispose() {

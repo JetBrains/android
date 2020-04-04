@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * Initiates a graceful shutdown of the Emulator.
  */
 class EmulatorShutdownAction : AbstractEmulatorAction() {
+
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController: EmulatorController = getEmulatorController(event) ?: return
     val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
