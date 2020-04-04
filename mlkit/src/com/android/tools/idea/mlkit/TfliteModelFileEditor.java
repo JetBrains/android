@@ -22,6 +22,9 @@ import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.ModelParsingException;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Floats;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
@@ -45,14 +48,18 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.ui.BrowserHyperlinkListener;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.PopupHandler;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.table.JBTable;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.JBUI.Borders;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
+import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -60,11 +67,25 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
+import javax.swing.border.Border;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,30 +94,14 @@ import org.jetbrains.annotations.Nullable;
  */
 public class TfliteModelFileEditor extends UserDataHolderBase implements FileEditor {
   private static final String NAME = "TFLite Model File";
-  private static final String MODEL_TABLE_STYLE = "#model {\n" +
-                                                  "  border-collapse: collapse;\n" +
-                                                  "  margin-left: 12px;\n" +
-                                                  "}\n" +
-                                                  "#model td, #model th {\n" +
-                                                  "  border: 0;\n" +
-                                                  "  text-align: left;\n" +
-                                                  "  padding: 8px;\n" +
-                                                  "}\n";
-  private static final String TENSORS_TABLE_STYLE = "#tensors {\n" +
-                                                    "  border-collapse: collapse;\n" +
-                                                    "  border: 1px solid #dddddd;\n" +
-                                                    "  margin-left: 20px;\n" +
-                                                    "}\n" +
-                                                    "#tensors td, #tensors th {\n" +
-                                                    "  text-align: left;\n" +
-                                                    "  padding: 6px;\n" +
-                                                    "}\n";
+  private static final ImmutableList<String> TENSOR_TABLE_HEADER =
+    ImmutableList.of("Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max");
   private static final int MAX_LINE_LENGTH = 100;
 
   private final Module myModule;
   private final VirtualFile myFile;
   private final JBScrollPane myRootPane;
-  private final JEditorPane myHtmlEditorPane;
+
   private boolean myUnderDarcula;
   @VisibleForTesting
   boolean myIsSampleCodeSectionVisible;
@@ -107,17 +112,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     myUnderDarcula = StartupUiUtil.isUnderDarcula();
     myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
 
-    JPanel contentPanel = new JPanel();
-    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-    contentPanel.setBackground(UIUtil.getTextFieldBackground());
-    contentPanel.setBorder(JBUI.Borders.empty(20));
-
-    myHtmlEditorPane = new JEditorPane();
-    contentPanel.add(myHtmlEditorPane);
-    setUpPopupMenu(myHtmlEditorPane);
-    updateHtmlContent();
-
-    myRootPane = new JBScrollPane(contentPanel);
+    myRootPane = new JBScrollPane(createContentPanel());
 
     MessageBusConnection connection = myModule.getMessageBus().connect(myModule);
     connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
@@ -125,7 +120,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       public void after(@NotNull List<? extends VFileEvent> events) {
         for (VFileEvent event : events) {
           if (myFile.equals(event.getFile())) {
-            updateHtmlContent();
+            myRootPane.setViewportView(createContentPanel());
             return;
           }
         }
@@ -135,10 +130,131 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     LoggingUtils.logEvent(EventType.MODEL_VIEWER_OPEN, file);
   }
 
-  private void setUpPopupMenu(@NotNull JEditorPane editorPane) {
+  @NotNull
+  private JComponent createContentPanel() {
+    JPanel contentPanel = createPanelWithYAxisBoxLayout(Borders.empty(20));
+    try {
+      ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(myFile.contentsToByteArray())));
+      contentPanel.add(createModelSection(modelInfo));
+      contentPanel.add(createTensorsSection(modelInfo));
+      if (myIsSampleCodeSectionVisible) {
+        contentPanel.add(createSampleCodeSection(modelInfo));
+      }
+    }
+    catch (FileTooBigException e) {
+      contentPanel.add(createFileTooBigPane());
+    }
+    catch (IOException e) {
+      Logger.getInstance(TfliteModelFileEditor.class).error(e);
+    }
+    catch (ModelParsingException e) {
+      Logger.getInstance(TfliteModelFileEditor.class).warn(e);
+      // TODO(deanzhou): show warning message in panel
+    }
+
+    return contentPanel;
+  }
+
+  @NotNull
+  private static JComponent createSectionHeader(@NotNull String title) {
+    JBLabel titleLabel = new JBLabel(title);
+    titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    titleLabel.setBackground(UIUtil.getTextFieldBackground());
+    titleLabel.setBorder(Borders.empty(10, 0));
+    Font font = titleLabel.getFont();
+    titleLabel.setFont(font.deriveFont(font.getStyle() | Font.BOLD).deriveFont(font.getSize() * 1.2f));
+    return titleLabel;
+  }
+
+  @NotNull
+  private static JComponent createModelSection(@NotNull ModelInfo modelInfo) {
+    JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
+    sectionPanel.add(createSectionHeader("Model"));
+
+    JBTable modelTable = createTable(getModelTableData(modelInfo), Collections.emptyList());
+    JPanel modelTablePanel = createPanelWithYAxisBoxLayout(Borders.emptyLeft(20));
+    modelTablePanel.add(modelTable);
+    sectionPanel.add(modelTablePanel);
+
+    return sectionPanel;
+  }
+
+  @NotNull
+  private static JComponent createTensorsSection(@NotNull ModelInfo modelInfo) {
+    JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
+    sectionPanel.add(createSectionHeader("Tensors"));
+
+    JPanel sectionContentPanel = createPanelWithYAxisBoxLayout(Borders.emptyLeft(20));
+
+    JBLabel inputsLabel = new JBLabel("Inputs");
+    inputsLabel.setBorder(Borders.empty(6, 0));
+    sectionContentPanel.add(inputsLabel);
+
+    JBTable inputTensorTable = createTable(getTensorTableData(modelInfo.getInputs()), TENSOR_TABLE_HEADER);
+    addTableHeader(sectionContentPanel, inputTensorTable);
+    inputTensorTable.setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY));
+    sectionContentPanel.add(inputTensorTable);
+
+    JBLabel outputsLabel = new JBLabel("Outputs");
+    outputsLabel.setBorder(Borders.empty(10, 0, 6, 0));
+    sectionContentPanel.add(outputsLabel);
+
+    JBTable outputTensorTable = createTable(getTensorTableData(modelInfo.getOutputs()), TENSOR_TABLE_HEADER);
+    addTableHeader(sectionContentPanel, outputTensorTable);
+    outputTensorTable.setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY));
+    sectionContentPanel.add(outputTensorTable);
+
+    sectionPanel.add(sectionContentPanel);
+
+    return sectionPanel;
+  }
+
+  private static void addTableHeader(@NotNull JComponent container, @NotNull JBTable table) {
+    JTableHeader tableHeader = table.getTableHeader();
+    tableHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+    tableHeader.setBorder(BorderFactory.createMatteBorder(1, 1, 0, 1, JBColor.LIGHT_GRAY));
+    tableHeader.setDefaultRenderer(new TableHeaderCellRenderer());
+    container.add(tableHeader);
+  }
+
+  @NotNull
+  private JComponent createSampleCodeSection(@NotNull ModelInfo modelInfo) {
+    JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
+
+    JComponent header = createSectionHeader("Sample Code");
+    header.setBorder(Borders.empty(24, 0, 10, 0));
+    sectionPanel.add(header);
+
+    // TODO(b/153084173): reimplement to support Kotlin/Java code snippet switcher.
+    JEditorPane sampleCodeEditor = new JEditorPane();
+    sampleCodeEditor.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
+    sampleCodeEditor.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
+    sampleCodeEditor.setAlignmentX(Component.LEFT_ALIGNMENT);
+    sampleCodeEditor.setBackground(UIUtil.getTextFieldBackground());
+    sampleCodeEditor.setContentType("text/html");
+    sampleCodeEditor.setEditable(false);
+    setUpPopupMenu(sampleCodeEditor);
+    sectionPanel.add(sampleCodeEditor);
+
+    PsiClass modelClass = MlkitModuleService.getInstance(myModule)
+      .getOrCreateLightModelClass(
+        new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
+    sampleCodeEditor.setText(
+      "<html><head><style>\n" +
+      buildSampleCodeStyle() +
+      "</style></head><body>\n" +
+      "<table id=\"sample_code\"><tr><td><pre>\n" +
+      buildSampleCode(modelClass, modelInfo) +
+      "</pre></td></tr></table>\n" +
+      "</body></html>");
+
+    return sectionPanel;
+  }
+
+  private static void setUpPopupMenu(@NotNull JEditorPane editorPane) {
     JBPopupMenu popupMenu = new JBPopupMenu();
     JBMenuItem menuItem = new JBMenuItem("Copy", PlatformIcons.COPY_ICON);
-    menuItem.addActionListener(event -> myHtmlEditorPane.copy());
+    menuItem.addActionListener(event -> editorPane.copy());
     popupMenu.add(menuItem);
 
     editorPane.addMouseListener(new PopupHandler() {
@@ -149,128 +265,81 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     });
   }
 
-  private void updateHtmlContent() {
-    String html =
-      "<html><head><style>\n" +
-      MODEL_TABLE_STYLE +
-      TENSORS_TABLE_STYLE +
-      buildSampleCodeStyle() +
-      "</style></head><body>\n" +
-      createHtmlBody() +
-      "</body></html>";
-    myHtmlEditorPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
-    myHtmlEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-    myHtmlEditorPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    myHtmlEditorPane.setBackground(UIUtil.getTextFieldBackground());
-    myHtmlEditorPane.setContentType("text/html");
-    myHtmlEditorPane.setEditable(false);
-    myHtmlEditorPane.setText(html);
+  @NotNull
+  private static JEditorPane createFileTooBigPane() {
+    JEditorPane editorPane = new JEditorPane();
+    editorPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
+    editorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
+    editorPane.setAlignmentX(Component.LEFT_ALIGNMENT);
+    editorPane.setBackground(UIUtil.getTextFieldBackground());
+    editorPane.setContentType("text/html");
+    editorPane.setEditable(false);
+    editorPane.setText(
+      "<html>Model file is larger than 20 MB, please check " +
+      "<a href=\"https://developer.android.com/studio/write/mlmodelbinding\">our documentation</a> " +
+      "for a workaround.</html>");
+    return editorPane;
   }
 
   @NotNull
-  @VisibleForTesting
-  String createHtmlBody() {
-    StringBuilder htmlBodyBuilder = new StringBuilder();
-    try {
-      ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(myFile.contentsToByteArray())));
-      htmlBodyBuilder.append(getModelSectionBody(modelInfo));
-      htmlBodyBuilder.append(getTensorsSectionBody(modelInfo));
-      if (myIsSampleCodeSectionVisible) {
-        PsiClass modelClass = MlkitModuleService.getInstance(myModule)
-          .getOrCreateLightModelClass(
-            new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
-        htmlBodyBuilder.append(getSampleCodeSectionBody(modelClass, modelInfo));
-      }
-    }
-    catch (FileTooBigException e) {
-      htmlBodyBuilder.append(
-        "Model file is larger than 20MB, please check <a href=\"https://developer.android.com/studio/write/mlmodelbinding\">our " +
-        "documentation</a> for a workaround.");
-    }
-    catch (IOException e) {
-      Logger.getInstance(TfliteModelFileEditor.class).error(e);
-    }
-    catch (ModelParsingException e) {
-      Logger.getInstance(TfliteModelFileEditor.class).warn(e);
-      // TODO(deanzhou): show warning message in panel
+  private static JBTable createTable(@NotNull List<List<String>> rowDataList, @NotNull List<String> headerData) {
+    MetadataTableModel tableModel = new MetadataTableModel(rowDataList, headerData);
+    JBTable table = new JBTable(new MetadataTableModel(rowDataList, headerData));
+    table.setAlignmentX(Component.LEFT_ALIGNMENT);
+    table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+    table.setBackground(UIUtil.getTextFieldBackground());
+    table.setDefaultRenderer(String.class, new MetadataCellRenderer());
+    table.setFocusable(false);
+    table.setRowSelectionAllowed(false);
+    table.setShowGrid(false);
+    table.setShowColumns(true);
+    table.getTableHeader().setReorderingAllowed(false);
+    table.getTableHeader().setResizingAllowed(false);
+
+    // Sets up a appropriate width for each column.
+    TableCellRenderer headerCellRenderer = table.getTableHeader().getDefaultRenderer();
+    for (int c = 0; c < table.getColumnCount(); c++) {
+      TableColumn column = table.getColumnModel().getColumn(c);
+      int headerCellWidth =
+        headerCellRenderer.getTableCellRendererComponent(table, column.getHeaderValue(), false, false, 0, c).getPreferredSize().width;
+      int cellWidth = table.getDefaultRenderer(tableModel.getColumnClass(c))
+        .getTableCellRendererComponent(table, tableModel.getLongestCellValue(c), false, false, 0, c).getPreferredSize().width;
+      column.setPreferredWidth(Math.max(headerCellWidth, cellWidth) + 10);
     }
 
-    return htmlBodyBuilder.toString();
+    return table;
   }
 
   @NotNull
-  private static String createHtmlRow(@NotNull String[] row, boolean useHeaderCells) {
-    StringBuilder htmlRow = new StringBuilder();
-    htmlRow.append("<tr>\n");
-    for (String value : row) {
-      htmlRow.append(useHeaderCells ? "<th valign=\"top\">" + value + "</th>\n" : "<td valign=\"top\">" + value + "</td>\n");
-    }
-    htmlRow.append("</tr>\n");
-
-    return htmlRow.toString();
-  }
-
-  private static String getModelSectionBody(@NotNull ModelInfo modelInfo) {
-    List<String[]> table = new ArrayList<>();
-    table.add(new String[]{"Name", modelInfo.getModelName()});
-    String modelDescription = modelInfo.getModelDescription();
-    table.add(new String[]{"Description", modelDescription != null ? breakLineIfTooLong(modelDescription) : "null"});
-    table.add(new String[]{"Version", modelInfo.getModelVersion()});
-    table.add(new String[]{"Author", modelInfo.getModelAuthor()});
-    String modelLicense = modelInfo.getModelLicense();
-    table.add(new String[]{"License", modelLicense != null ? linkifyUrls(modelLicense) : "null"});
-
-    StringBuilder bodyBuilder = new StringBuilder("<h2>Model</h2>");
-    bodyBuilder.append("<table id=\"model\">\n");
-    for (String[] row : table) {
-      bodyBuilder.append(createHtmlRow(row, false));
-    }
-    bodyBuilder.append("</table>\n");
-
-    return bodyBuilder.toString();
-  }
-
-  private static String getTensorsSectionBody(@NotNull ModelInfo modelInfo) {
-    StringBuilder bodyBuilder = new StringBuilder("<h2>Tensors</h2>\n");
-    List<String[]> inputsTable = new ArrayList<>();
-    inputsTable.add(new String[]{"Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max"});
-    for (TensorInfo tensorInfo : modelInfo.getInputs()) {
-      inputsTable.add(getTensorsRow(tensorInfo));
-    }
-    bodyBuilder.append(getTensorTableBody(inputsTable, "Inputs"));
-
-    List<String[]> outputsTable = new ArrayList<>();
-    outputsTable.add(new String[]{"Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max"});
-    for (TensorInfo tensorInfo : modelInfo.getOutputs()) {
-      outputsTable.add(getTensorsRow(tensorInfo));
-    }
-    bodyBuilder.append(getTensorTableBody(outputsTable, "Outputs"));
-
-    return bodyBuilder.toString();
+  private static List<List<String>> getModelTableData(@NotNull ModelInfo modelInfo) {
+    List<List<String>> tableData = new ArrayList<>();
+    tableData.add(Lists.newArrayList("Name", Strings.nullToEmpty(modelInfo.getModelName())));
+    tableData.add(Lists.newArrayList("Description", Strings.nullToEmpty(modelInfo.getModelDescription())));
+    tableData.add(Lists.newArrayList("Version", Strings.nullToEmpty(modelInfo.getModelVersion())));
+    tableData.add(Lists.newArrayList("Author", Strings.nullToEmpty(modelInfo.getModelAuthor())));
+    // TODO(b/153093288): Linkify urls in the license text correctly.
+    tableData.add(Lists.newArrayList("License", Strings.nullToEmpty(modelInfo.getModelLicense())));
+    return tableData;
   }
 
   @NotNull
-  private static String getTensorTableBody(@NotNull List<String[]> table, @NotNull String title) {
-    StringBuilder bodyBuilder = new StringBuilder("<p style=\"margin-left:20px;margin-bottom:10px;\">" + title + "</p>\n");
-    bodyBuilder.append("<table id=\"tensors\">\n").append(createHtmlRow(table.get(0), false));
-    for (String[] row : table.subList(1, table.size())) {
-      bodyBuilder.append(createHtmlRow(row, false));
+  private static List<List<String>> getTensorTableData(List<TensorInfo> tensorInfoList) {
+    List<List<String>> tableData = new ArrayList<>();
+    for (TensorInfo tensorInfo : tensorInfoList) {
+      MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
+      String meanStdColumn = params != null ? Arrays.toString(params.getMean()) + " / " + Arrays.toString(params.getStd()) : "";
+      String minMaxColumn = isValidMinMaxColumn(params) ? Arrays.toString(params.getMin()) + " / " + Arrays.toString(params.getMax()) : "";
+      tableData.add(
+        Lists.newArrayList(
+          Strings.nullToEmpty(tensorInfo.getName()),
+          tensorInfo.getContentType().toString(),
+          Strings.nullToEmpty(tensorInfo.getDescription()),
+          Arrays.toString(tensorInfo.getShape()),
+          meanStdColumn,
+          minMaxColumn
+        ));
     }
-    bodyBuilder.append("</table>\n");
-
-    return bodyBuilder.toString();
-  }
-
-  @NotNull
-  private static String[] getTensorsRow(@NotNull TensorInfo tensorInfo) {
-    MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
-    String meanStdColumn = params != null ? Arrays.toString(params.getMean()) + " / " + Arrays.toString(params.getStd()) : "";
-    String minMaxColumn = isValidMinMaxColumn(params) ? Arrays.toString(params.getMin()) + " / " + Arrays.toString(params.getMax()) : "";
-
-    String description = tensorInfo.getDescription();
-    return new String[]{tensorInfo.getName(), tensorInfo.getContentType().toString(),
-      description != null ? breakLineIfTooLong(description) : "null",
-      Arrays.toString(tensorInfo.getShape()), meanStdColumn, minMaxColumn};
+    return tableData;
   }
 
   private static boolean isValidMinMaxColumn(@Nullable MetadataExtractor.NormalizationParams params) {
@@ -291,11 +360,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
 
     return false;
-  }
-
-  private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
-    return "<h2 style=\"padding-top:8px;\">Sample Code</h2>\n" +
-           "<table id=\"sample_code\"><tr><td><pre>\n" + buildSampleCode(modelClass, modelInfo) + "</pre></td></tr></table>\n";
   }
 
   @NotNull
@@ -353,7 +417,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       else if (ClassNames.TENSOR_BUFFER.equals(parameter.getType().getCanonicalText())) {
         stringBuilder
           .append(String.format("  TensorBuffer %s = TensorBuffer.createFixedSize(%s, %s);\n", parameter.getName(),
-                                           buildIntArray(tensorInfo.getShape()), buildDataType(tensorInfo.getDataType())))
+                                buildIntArray(tensorInfo.getShape()), buildDataType(tensorInfo.getDataType())))
           .append(String.format("  %s.loadBuffer(byteBuffer);\n", parameter.getName()));
       }
     }
@@ -396,7 +460,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
            "  font-family: 'Source Sans Pro', sans-serif; \n" +
            "  background-color: " + (StartupUiUtil.isUnderDarcula() ? "#2B2B2B" : "#F1F3F4") + ";\n" +
            "  color: " + (StartupUiUtil.isUnderDarcula() ? "#DDDDDD" : "#3A474E") + ";\n" +
-           "  margin-left: 20px;\n" +
+           "  margin-left: 16px;\n" +
            "  padding: 5px;\n" +
            "  margin-top: 10px;\n" +
            "}\n";
@@ -409,7 +473,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       myUnderDarcula = StartupUiUtil.isUnderDarcula();
       myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
       // Refresh UI
-      updateHtmlContent();
+      myRootPane.setViewportView(createContentPanel());
     }
     return myRootPane;
   }
@@ -477,14 +541,24 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private static String breakLineIfTooLong(@NotNull String text) {
+  private static JPanel createPanelWithYAxisBoxLayout(@NotNull Border border) {
+    JPanel sectionPanel = new JPanel();
+    sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
+    sectionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    sectionPanel.setBackground(UIUtil.getTextFieldBackground());
+    sectionPanel.setBorder(border);
+    return sectionPanel;
+  }
+
+  @NotNull
+  private static String breakIntoMultipleLines(@NotNull String text) {
     String[] words = text.split(" ");
     StringBuilder result = new StringBuilder();
     StringBuilder tmp = new StringBuilder();
     for (String word : words) {
       tmp.append(word);
       if (tmp.length() > MAX_LINE_LENGTH) {
-        tmp.append("<br>");
+        tmp.append("\n");
         result.append(tmp);
         tmp = new StringBuilder();
       }
@@ -513,5 +587,95 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       }
     }
     return result.toString().trim();
+  }
+
+  private static class MetadataTableModel extends AbstractTableModel {
+    private final List<List<String>> myRowDataList;
+    private final List<String> myHeaderData;
+
+    private MetadataTableModel(@NotNull List<List<String>> rowDataList, @NotNull List<String> headerData) {
+      myRowDataList = rowDataList;
+      myHeaderData = headerData;
+    }
+
+    @Override
+    public int getRowCount() {
+      return myRowDataList.size();
+    }
+
+    @Override
+    public int getColumnCount() {
+      return myRowDataList.get(0).size();
+    }
+
+    @Override
+    public Object getValueAt(int rowIndex, int columnIndex) {
+      return myRowDataList.get(rowIndex).get(columnIndex);
+    }
+
+    @Override
+    public Class<?> getColumnClass(int columnIndex) {
+      return String.class;
+    }
+
+    @Override
+    public String getColumnName(int column) {
+      return column < myHeaderData.size() ? myHeaderData.get(column) : super.getColumnName(column);
+    }
+
+    @NotNull
+    private String getLongestCellValue(int columnIndex) {
+      Optional<String> optionalValue = myRowDataList.stream()
+        .map(row -> row.get(columnIndex))
+        .max(Comparator.comparing(String::length));
+      return optionalValue.orElse("");
+    }
+
+    private boolean hasHeader() {
+      return !myHeaderData.isEmpty();
+    }
+  }
+
+  private static class MetadataCellRenderer implements TableCellRenderer {
+    private final JTextArea myTextArea;
+
+    private MetadataCellRenderer() {
+      myTextArea = new JTextArea();
+      myTextArea.setEditable(false);
+      myTextArea.setOpaque(false);
+      myTextArea.setFont(StartupUiUtil.getLabelFont());
+    }
+
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      String cellValue = (String)value;
+      if (cellValue.length() > MAX_LINE_LENGTH) {
+        cellValue = breakIntoMultipleLines(cellValue);
+      }
+      myTextArea.setText(cellValue);
+
+      if (((MetadataTableModel)table.getModel()).hasHeader()) {
+        myTextArea.setBorder(Borders.empty(8, 8, 8, 0));
+      }
+      else {
+        myTextArea.setBorder(Borders.empty(4, 0));
+      }
+
+      return myTextArea;
+    }
+  }
+
+  private static class TableHeaderCellRenderer extends DefaultTableCellRenderer {
+
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      Component delegate = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+      if (!(delegate instanceof JLabel)) return delegate;
+
+      JLabel label = (JLabel)delegate;
+      label.setHorizontalAlignment(SwingConstants.LEFT);
+      label.setBorder(Borders.empty(4, 8));
+      return label;
+    }
   }
 }
