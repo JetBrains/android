@@ -28,6 +28,7 @@ import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_P
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static java.util.Collections.emptyList;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -372,10 +373,14 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // Note: this before run task provider may be invoked from a context such as Java unit tests, in which case it doesn't have
     // the android run config context
     DeviceFutures deviceFutures = env.getCopyableUserData(DeviceFutures.KEY);
-    List<AndroidDevice> targetDevices = deviceFutures == null ? Collections.emptyList() : deviceFutures.getDevices();
+    List<AndroidDevice> targetDevices = deviceFutures == null ? emptyList() : deviceFutures.getDevices();
+    // NOTE: DeviceFutures.KEY is configured by AndroidRunConfigurationBase and its descendants only and therefore
+    //       when it is not null it is safe to assume that configuration is an instance of AndroidRunConfigurationBase.
     List<String> cmdLineArgs;
     try {
-      cmdLineArgs = getCommonArguments(modules, configuration, targetDevices);
+      cmdLineArgs = deviceFutures != null
+                    ? getCommonArguments(modules, (AndroidRunConfigurationBase)configuration, targetDevices)
+                    : emptyList();
     }
     catch (Exception e) {
       getLog().warn("Error generating command line arguments for Gradle task", e);
@@ -423,7 +428,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
    */
   @NotNull
   private static List<String> getCommonArguments(@NotNull Module[] modules,
-                                                 @NotNull RunConfiguration configuration,
+                                                 @NotNull AndroidRunConfigurationBase configuration,
                                                  @NotNull List<AndroidDevice> targetDevices) throws IOException {
     List<String> cmdLineArgs = new ArrayList<>();
     cmdLineArgs.addAll(getDeviceSpecificArguments(modules, configuration, targetDevices));
@@ -433,14 +438,14 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @NotNull
   public static List<String> getDeviceSpecificArguments(@NotNull Module[] modules,
-                                                        @NotNull RunConfiguration configuration,
+                                                        @NotNull AndroidRunConfigurationBase configuration,
                                                         @NotNull List<AndroidDevice> devices) throws IOException {
     AndroidDeviceSpec deviceSpec = AndroidDeviceSpec.create(devices,
                                                             shouldCollectListOfLanguages(modules, configuration, devices),
                                                             DEVICE_SPEC_TIMEOUT_SECONDS,
                                                             TimeUnit.SECONDS);
     if (deviceSpec == null) {
-      return Collections.emptyList();
+      return emptyList();
     }
 
     List<String> properties = new ArrayList<>(3);
@@ -503,10 +508,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @NotNull
-  private static List<String> getProfilingOptions(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> devices)
+  private static List<String> getProfilingOptions(@NotNull AndroidRunConfigurationBase configuration, @NotNull List<AndroidDevice> devices)
     throws IOException {
-    if (!(configuration instanceof AndroidRunConfigurationBase) || devices.isEmpty()) {
-      return Collections.emptyList();
+    if (devices.isEmpty()) {
+      return emptyList();
     }
 
     // Find the minimum API version in case both a pre-O and post-O devices are selected.
