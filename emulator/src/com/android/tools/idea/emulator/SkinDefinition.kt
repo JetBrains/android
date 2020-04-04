@@ -20,6 +20,7 @@ import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.Rotation.SkinRotation.LANDSCAPE
 import com.android.emulator.control.Rotation.SkinRotation.REVERSE_LANDSCAPE
 import com.android.emulator.control.Rotation.SkinRotation.REVERSE_PORTRAIT
+import com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH
 import com.android.tools.adtui.ImageUtils.rotateByQuadrantsAndScale
 import com.android.tools.idea.avdmanager.SkinLayoutDefinition
 import com.android.tools.idea.emulator.ScaledSkinLayout.AnchoredImage
@@ -141,7 +142,7 @@ internal class SkinDefinition private constructor(
         val splitter = Splitter.on('=').trimResults()
         for (line in Files.readAllLines(configFile)) {
           val keyValue = splitter.splitToList(line)
-          if (keyValue.size == 2 && keyValue[0] == "skin.path") {
+          if (keyValue.size == 2 && keyValue[0] == AVD_INI_SKIN_PATH) {
             return Paths.get(keyValue[1])
           }
         }
