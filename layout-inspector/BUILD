@@ -145,5 +145,6 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
+        "//tools/idea/platform/testFramework/core:intellij.platform.testFramework.core[module, test]",
     ],
 )

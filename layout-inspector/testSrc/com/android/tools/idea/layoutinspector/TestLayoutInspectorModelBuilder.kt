@@ -105,7 +105,7 @@ class InspectorViewDescriptor(private val drawId: Long,
 }
 
 class InspectorModelDescriptor(val project: Project) {
-  private lateinit var root: InspectorViewDescriptor
+  private var root: InspectorViewDescriptor? = null
 
   fun view(drawId: Long,
            x: Int = 0,
@@ -136,8 +136,8 @@ class InspectorModelDescriptor(val project: Project) {
     view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, imageBottom, null, 0, null, imageType, body)
 
   fun build(): InspectorModel {
-    val windowRoot = root.build()
     val model = InspectorModel(project)
+    val windowRoot = root?.build() ?: return model
     model.update(windowRoot, windowRoot.drawId, listOf(windowRoot.drawId))
     if (ModuleManager.getInstance(project) != null) {
       val strings = TestStringTable()

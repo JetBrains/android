@@ -15,54 +15,116 @@
  */
 package com.android.tools.idea.layoutinspector.common
 
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.impl.ActionMenuItem
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.ui.PopupMenuListenerAdapter
+import com.intellij.util.containers.toArray
+import com.intellij.util.text.nullize
+import icons.StudioIcons
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import javax.swing.JComponent
+import javax.swing.JPopupMenu
+import javax.swing.event.PopupMenuEvent
 
-fun showViewContextMenu(view: ViewNode?, inspectorModel: InspectorModel, source: JComponent, x: Int, y: Int) {
-  if (!inspectorModel.isEmpty) {
-    val root = inspectorModel.root
-    val actionManager = ActionManager.getInstance()
-    val group = object : ActionGroup("", true) {
-      override fun getChildren(e: AnActionEvent?): Array<AnAction> {
-        val showAllAction = object : AnAction("Show All") {
-          override fun actionPerformed(e: AnActionEvent) {
-            root.flatten().forEach { it.visible = true }
-            inspectorModel.notifyModified()
-          }
-
-          override fun update(e: AnActionEvent) {
-            super.update(e)
-            e.presentation.isEnabled = root.flatten().any { !it.visible }
-          }
+fun showViewContextMenu(views: List<ViewNode>, inspectorModel: InspectorModel, source: JComponent, x: Int, y: Int) {
+  if (inspectorModel.isEmpty) {
+    return
+  }
+  val root = inspectorModel.root
+  val actionManager = ActionManager.getInstance()
+  val group = object : ActionGroup("", true) {
+    override fun getChildren(unused: AnActionEvent?): Array<AnAction> {
+      val showAllAction = object : AnAction("Show All") {
+        override fun actionPerformed(unused: AnActionEvent) {
+          root.flatten().forEach { it.visible = true }
+          inspectorModel.notifyModified()
         }
 
-        return if (view == null) arrayOf(showAllAction) else
-          arrayOf(object : AnAction("Hide Subtree") {
-            override fun actionPerformed(e: AnActionEvent) {
-              view.flatten().forEach { it.visible = false }
-              inspectorModel.notifyModified()
-            }
-          }, object : AnAction("Show Only Subtree") {
-            override fun actionPerformed(e: AnActionEvent) {
-              root.flatten().forEach { it.visible = false }
-              view.flatten().forEach { it.visible = true }
-              inspectorModel.notifyModified()
-            }
-          }, object : AnAction("Show Only Parents") {
-            override fun actionPerformed(e: AnActionEvent) {
-              root.flatten().forEach { it.visible = false }
-              generateSequence(view) { it.parent }.forEach { it.visible = true }
-              inspectorModel.notifyModified()
-            }
-          }, showAllAction)
+        override fun update(actionEvent: AnActionEvent) {
+          actionEvent.presentation.isEnabled = root.flatten().any { !it.visible }
+        }
       }
+
+      val result = mutableListOf<AnAction>()
+      if (views.size > 1) {
+        val viewMenu = DropDownAction("Select View", null, null)
+        viewMenu.addAll(views.reversed().map { SelectViewAction(it, inspectorModel) })
+        result.add(viewMenu)
+      }
+      if (views.isNotEmpty()) {
+        val topView = views.last()
+        result.add(object : AnAction("Hide Subtree") {
+          override fun actionPerformed(unused: AnActionEvent) {
+            topView.flatten().forEach { it.visible = false }
+            inspectorModel.notifyModified()
+          }
+        })
+        result.add(object : AnAction("Show Only Subtree") {
+          override fun actionPerformed(unused: AnActionEvent) {
+            root.flatten().forEach { it.visible = false }
+            topView.flatten().forEach { it.visible = true }
+            inspectorModel.notifyModified()
+          }
+        })
+        result.add(object : AnAction("Show Only Parents") {
+          override fun actionPerformed(unused: AnActionEvent) {
+            root.flatten().forEach { it.visible = false }
+            generateSequence(topView) { it.parent }.forEach { it.visible = true }
+            inspectorModel.notifyModified()
+          }
+        })
+      }
+      result.add(showAllAction)
+
+      return result.toArray(arrayOf())
     }
-    val popupMenu = actionManager.createActionPopupMenu("LayoutInspector", group)
-    popupMenu.component.show(source, x, y)
+  }
+  val popupMenu = actionManager.createActionPopupMenu("LayoutInspector", group)
+  val popupComponent = popupMenu.component
+
+  if (views.size > 1) {
+    // Add listeners to highlight the hovered item. Unfortunately the necessary components to which to add listeners aren't available right
+    // away, so we have to have this chain of listeners and invokeLaters.
+    popupComponent.addPopupMenuListener(object : PopupMenuListenerAdapter() {
+      override fun popupMenuWillBecomeVisible(unuxed: PopupMenuEvent?) {
+        ApplicationManager.getApplication().invokeLater {
+          val subMenu = popupComponent.subElements[0].subElements[0] as? JPopupMenu ?: return@invokeLater
+          subMenu.addPopupMenuListener(object : PopupMenuListenerAdapter() {
+            override fun popupMenuWillBecomeVisible(unused: PopupMenuEvent) {
+              subMenu.subElements
+                .filterIsInstance<ActionMenuItem>()
+                .forEach { menuItem ->
+                  menuItem.addChangeListener {
+                    if (menuItem.isArmed) {
+                      inspectorModel.hoveredNode = (menuItem.anAction as SelectViewAction).view
+                    }
+                  }
+                }
+            }
+          })
+        }
+      }
+    })
+  }
+  popupComponent.show(source, x, y)
+}
+
+private fun generateText(viewNode: ViewNode) =
+  viewNode.viewId?.name.nullize() ?: viewNode.textValue.nullize() ?: viewNode.qualifiedName
+
+private class SelectViewAction(
+  val view: ViewNode, val inspectorModel: InspectorModel
+) : AnAction(generateText(view), null,
+             AndroidDomElementDescriptorProvider.getIconForViewTag(view.unqualifiedName) ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW) {
+
+  override fun actionPerformed(unused: AnActionEvent) {
+    inspectorModel.selection = view
   }
 }
