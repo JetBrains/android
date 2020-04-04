@@ -20,6 +20,7 @@ import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.GRADLE_API_CONFIGURATION
 import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.TOOLS_URI
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
@@ -43,12 +44,9 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.gradle.util.GradleUtil.dependsOn
-import com.android.tools.idea.gradle.util.GradleUtil.dependsOnAndroidTest
-import com.android.tools.idea.gradle.util.GradleUtil.dependsOnJavaLibrary
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
+import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
 import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing
@@ -57,7 +55,6 @@ import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
 import com.android.tools.idea.templates.TemplateUtils.writeTextFile
 import com.android.tools.idea.templates.resolveDependency
-import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -113,7 +110,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val buildModel =
       if (moduleDir != null) {
         projectBuildModel?.getModuleBuildModel(moduleDir)
-      } else {
+      }
+      else {
         moduleGradleBuildModel
       } ?: return false
 
@@ -121,12 +119,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       return true
     }
 
-    val facet = context.module?.androidFacet ?: return false
-    val androidModel = AndroidModuleModel.get(facet) ?: return false
-
-    return dependsOn(androidModel, mavenCoordinate) ||
-           dependsOnJavaLibrary(androidModel, mavenCoordinate) ||
-           dependsOnAndroidTest(androidModel, mavenCoordinate)
+    return GradleCoordinate.parseCoordinateString(mavenCoordinate)
+      ?.let { gradleCoordinate -> context.module?.getModuleSystem()?.getRegisteredDependency(gradleCoordinate) } != null
   }
 
   private fun GradleBuildModel.getDependencyConfiguration(mavenCoordinate: String): String? {
