@@ -41,8 +41,7 @@ class BuildOutputParserManager @TestOnly constructor(
                                                       AndroidGradlePluginOutputParser(),
                                                       DataBindingOutputParser(),
                                                       JavacOutputParser(),
-                                                      KotlincOutputParser(),
-                                                      GradleBuildScriptErrorParser()).map { BuildOutputParserWrapper(it) })
+                                                      KotlincOutputParser()).map { BuildOutputParserWrapper(it) })
 
   fun sendBuildFailureMetrics() {
     try {
