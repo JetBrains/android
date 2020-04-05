@@ -19,6 +19,7 @@ package com.android.tools.idea.run;
  * An exception class for errors encountered while determining APK installation info.
  */
 public class ApkProvisionException extends Exception {
+
   public ApkProvisionException(String message) {
     super(message);
   }
