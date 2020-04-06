@@ -15,22 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
+import org.gradle.tooling.UnsupportedVersionException
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
-class GradleBrokenPipeIssueCheckerTest : AndroidGradleTestCase() {
-  private val gradleBrokenPipeIssueChecker = GradleBrokenPipeIssueChecker()
+class UnexpectedIssueCheckerTest: AndroidGradleTestCase() {
+  private val unexpectedIssueChecker = UnexpectedIssueChecker()
 
   fun testCheckIssue() {
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable("Broken pipe"))
-    val buildIssue = gradleBrokenPipeIssueChecker.check(issueData)
+    val error = "This is an unexpected error. Please file a bug containing the idea.log file."
+    val issueData = GradleIssueData(projectFolderPath.path, UnsupportedVersionException(error), null, null)
+    val buildIssue = unexpectedIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains("Broken pipe.\nThe Gradle daemon may be trying to use ipv4 instead of ipv6.")
-    // Verify quickFixes.
-    assertThat(buildIssue.quickFixes).hasSize(1)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
+    assertThat(buildIssue!!.description).contains(error)
+    assertThat(buildIssue.quickFixes).hasSize(2)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(UnexpectedIssueChecker.FileBugQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[1]).isInstanceOf(UnexpectedIssueChecker.ShowLogQuickFix::class.java)
   }
 }
