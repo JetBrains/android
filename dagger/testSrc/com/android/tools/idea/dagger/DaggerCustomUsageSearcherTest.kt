@@ -455,6 +455,51 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
   }
 
+  fun testDaggerComponentMethods() {
+    val classFile = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      import javax.inject.Inject;
+
+      public class MyClass {
+        @Inject public MyClass() {}
+      }
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component()
+      public interface MyComponent {
+        MyClass getMyClass();
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(classFile)
+    val classProvider = myFixture.moveCaret("@Inject public MyCla|ss").parentOfType<PsiMethod>()!!
+
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(classProvider)
+
+    assertThat(presentation).contains(
+      """
+      | Found usages (1 usage)
+      |  Dependency components method(s) (1 usage)
+      |   ${module.name} (1 usage)
+      |    test (1 usage)
+      |     MyComponent (1 usage)
+      |      getMyClass() (1 usage)
+      |       6MyClass getMyClass();
+      """.trimMargin()
+    )
+  }
+
   // TODO(b/150134125): uncomment
   //fun testProvidersKotlin() {
   //  myFixture.addClass(

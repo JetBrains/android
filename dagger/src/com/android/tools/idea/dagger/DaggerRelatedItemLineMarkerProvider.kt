@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 
 internal const val DEPENDENCY_PROVIDERS = "Dependency provider(s)"
 internal const val DEPENDENCY_CONSUMERS = "Dependency consumer(s)"
+internal const val DEPENDENCY_COMPONENT = "Dependency components method(s)"
 
 /**
  * Provides [RelatedItemLineMarkerInfo] for Dagger consumers/providers.
@@ -50,33 +51,38 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     // We provide RelatedItemLineMarkerInfo for PsiIdentifier/KtIdentifier (leaf element), not for PsiField/PsiMethod,
     // that's why we check that `element.parent` isDaggerConsumer, not `element` itself. See [LineMarkerProvider.getLineMarkerInfo]
     val parent = element.parent
-    val isListOfProviders = when {
+    val calculateRelatedItemsForConsumer = when {
       parent.isDaggerConsumer -> true
       parent.isDaggerProvider -> false
       else -> return
     }
 
-    val relatedItemsName = if (isListOfProviders) DEPENDENCY_PROVIDERS else DEPENDENCY_CONSUMERS
-
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
       override fun compute(): List<GotoRelatedItem> {
-        val relatedItems: Collection<PsiElement> = if (isListOfProviders) getDaggerProvidersFor(parent) else getDaggerConsumersFor(parent)
-        return relatedItems.map { GotoRelatedItem(it, relatedItemsName) }
+        val relatedItems: MutableList<GotoRelatedItem> = mutableListOf()
+        if (calculateRelatedItemsForConsumer) {
+          relatedItems.addAll(getDaggerProvidersFor(parent).map { GotoRelatedItem(it, DEPENDENCY_PROVIDERS) })
+        }
+        else {
+          relatedItems.addAll(getDaggerConsumersFor(parent).map { GotoRelatedItem(it, DEPENDENCY_CONSUMERS) })
+          relatedItems.addAll(getDaggerComponentMethodsForProvider(parent).map { GotoRelatedItem(it, DEPENDENCY_COMPONENT) })
+        }
+        return relatedItems
       }
     }
 
-    val icon = if (isListOfProviders) StudioIcons.Misc.DEPENDENCY_PROVIDER else StudioIcons.Misc.DEPENDENCY_CONSUMER
+    val icon = if (calculateRelatedItemsForConsumer) StudioIcons.Misc.DEPENDENCY_PROVIDER else StudioIcons.Misc.DEPENDENCY_CONSUMER
 
     val info = RelatedItemLineMarkerInfo<PsiElement>(
       element,
       element.textRange,
       icon,
       Pass.LINE_MARKERS,
-      { relatedItemsName },
+      { "Dependency Related Files" },
       { mouseEvent, _ ->
         when (gotoTargets.value.size) {
           0 -> JBPopupFactory.getInstance()
-            .createMessage("No dependency ${if (isListOfProviders) "providers" else "consumers"}")
+            .createMessage("No related items for dependency ${if (calculateRelatedItemsForConsumer) "consumer" else "provider"}")
             .show(RelativePoint(mouseEvent))
           1 -> gotoTargets.value.first().navigate()
           else -> NavigationUtil.getRelatedItemsPopup(gotoTargets.value, "Go to Related Files").show(RelativePoint(mouseEvent))

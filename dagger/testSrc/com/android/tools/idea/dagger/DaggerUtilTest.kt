@@ -611,4 +611,70 @@ class DaggerUtilTest : DaggerTestCase() {
     val providersForKotlinConsumer = getProvidersForInjectedField_kotlin("String", kotlinQualifier).map { it.name }
     assertThat(providersForKotlinConsumer).containsExactly("providerWithQualifier", "providerWithQualifier_kotlin")
   }
+
+  fun testDaggerComponentMethodsForProvider() {
+    val classFile = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      import javax.inject.Inject;
+
+      public class MyClass {
+        @Inject public MyClass() {}
+      }
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      import javax.inject.Qualifier;
+
+      @Qualifier
+      public @interface MyQualifier {}
+    """.trimIndent()
+    )
+
+    val moduleFile = myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+        import dagger.Module;
+
+        @Module
+        class MyModule {
+          @Provides @MyQualifier MyClass providerWithQualifier() {}
+        }
+      """.trimIndent()
+    ).containingFile.virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {
+        @MyQualifier MyClass getMyClassWithQualifier();
+        MyClass getMyClass();
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(classFile)
+    val classProvider = myFixture.moveCaret("@Inject public MyCla|ss").parentOfType<PsiMethod>()!!
+
+    var methodsForProvider = getDaggerComponentMethodsForProvider(classProvider).map { it.name }
+    assertThat(methodsForProvider).containsExactly("getMyClass")
+
+    myFixture.configureFromExistingVirtualFile(moduleFile)
+    val providerWithQualifier = myFixture.moveCaret("@Provides @MyQualifier MyClass provider|WithQualifier").parentOfType<PsiMethod>()!!
+
+    methodsForProvider = getDaggerComponentMethodsForProvider(providerWithQualifier).map { it.name }
+    assertThat(methodsForProvider).containsExactly("getMyClassWithQualifier")
+  }
 }

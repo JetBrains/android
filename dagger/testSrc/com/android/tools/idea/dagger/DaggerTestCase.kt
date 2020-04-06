@@ -63,6 +63,14 @@ abstract class DaggerTestCase : JavaCodeInsightFixtureTestCase() {
       public @interface Qualifier {}
       """.trimIndent()
     )
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package dagger;
+
+      public @interface Component {}
+      """.trimIndent()
+    )
   }
 
   override fun tearDown() {
