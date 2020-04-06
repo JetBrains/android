@@ -72,7 +72,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     var icons = myFixture.findAllGutters()
     assertThat(icons).isNotEmpty()
 
-    var gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency provider(s)" }!!)
+    var gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
     assertThat(gotoRelatedItems).hasSize(1)
     var provider = gotoRelatedItems.first()
 
@@ -98,7 +98,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     icons = myFixture.findAllGutters()
     assertThat(icons).isNotEmpty()
 
-    gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency provider(s)" }!!)
+    gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
     assertThat(gotoRelatedItems).hasSize(1)
     provider = gotoRelatedItems.first()
 
@@ -110,10 +110,52 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     icons = myFixture.findAllGutters()
     assertThat(icons).isNotEmpty()
 
-    gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency consumer(s)" }!!)
+    gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
     assertThat(gotoRelatedItems).hasSize(2)
     val consumerElements = gotoRelatedItems.map { it.element }
 
     assertThat(consumerElements).containsAllOf(consumerField, LightClassUtil.getLightClassBackingField(consumerKtField as KtDeclaration))
+  }
+
+  fun testComponentMethodsForProvider() {
+    // Provider
+    val providerFile = myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        package test;
+        import dagger.Provides;
+        import dagger.Module;
+
+        @Module
+        class MyModule {
+          @Provides String provider() {}
+        }
+      """.trimIndent()
+    ).virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {
+        String getString();
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(providerFile)
+
+    val icons = myFixture.findAllGutters()
+    assertThat(icons).isNotEmpty()
+
+    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    assertThat(gotoRelatedItems).hasSize(1)
+    val method = gotoRelatedItems.first()
+    assertThat(method.group).isEqualTo("Dependency components method(s)")
+    assertThat(method.element?.text).isEqualTo("String getString();")
   }
 }

@@ -22,29 +22,37 @@ import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
 import com.intellij.usageView.UsageInfo
+import com.intellij.usages.PsiElementUsageTarget
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageInfo2UsageAdapter
+import com.intellij.usages.UsageTarget
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
+import com.intellij.usages.impl.rules.UsageTypeProviderEx
 import com.intellij.util.Processor
 import org.jetbrains.kotlin.idea.util.module
 
 private val DEPENDENCY_PROVIDERS_USAGE_TYPE = UsageType(DEPENDENCY_PROVIDERS)
 private val DEPENDENCY_CONSUMERS_USAGE_TYPE = UsageType(DEPENDENCY_CONSUMERS)
+private val DEPENDENCY_COMPONENT_USAGE_TYPE = UsageType(DEPENDENCY_COMPONENT)
 
 /**
  * [UsageTypeProvider] that labels Dagger providers and consumers with the right description.
  */
-class DaggerUsageTypeProvider : UsageTypeProvider {
-  override fun getUsageType(element: PsiElement?): UsageType? {
+class DaggerUsageTypeProvider : UsageTypeProviderEx {
+  override fun getUsageType(element: PsiElement?, targets: Array<UsageTarget>): UsageType? {
+    val target = (targets.firstOrNull() as? PsiElementUsageTarget)?.element ?: return null
     return when {
       !DAGGER_SUPPORT_ENABLED.get() -> null
       element?.module?.isDaggerPresent() != true -> null
-      element.isDaggerProvider -> DEPENDENCY_PROVIDERS_USAGE_TYPE
-      element.isDaggerConsumer -> DEPENDENCY_CONSUMERS_USAGE_TYPE
+      target.isDaggerConsumer && element.isDaggerProvider -> DEPENDENCY_PROVIDERS_USAGE_TYPE
+      target.isDaggerProvider && element.isDaggerConsumer -> DEPENDENCY_CONSUMERS_USAGE_TYPE
+      target.isDaggerProvider && element.isDaggerComponentMethod -> DEPENDENCY_COMPONENT_USAGE_TYPE
       else -> null
     }
   }
+
+  override fun getUsageType(element: PsiElement?) = null
 }
 
 /**
@@ -63,8 +71,8 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
       when {
         !DAGGER_SUPPORT_ENABLED.get() -> return@runReadAction
         element.module?.isDaggerPresent() != true -> return@runReadAction
-        element.isDaggerConsumer -> processProviders(element, processor)
-        element.isDaggerProvider -> processConsumers(element, processor)
+        element.isDaggerConsumer -> processCustomUsagesForConsumers(element, processor)
+        element.isDaggerProvider -> processCustomUsagesForProvider(element, processor)
         else -> return@runReadAction
       }
     }
@@ -74,7 +82,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
    * Adds Dagger providers of [element] to [element]'s usages.
    */
   @WorkerThread
-  private fun processProviders(element: PsiElement, processor: Processor<Usage>) {
+  private fun processCustomUsagesForConsumers(element: PsiElement, processor: Processor<Usage>) {
     getDaggerProvidersFor(element).forEach {
       val info = UsageInfo(it)
       processor.process(UsageInfo2UsageAdapter(info))
@@ -82,11 +90,16 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
   }
 
   /**
-   * Adds Dagger consumers of [element] to [element]'s usages.
+   * Adds Dagger consumers of [provider] to [provider]'s usages.
+   * Adds Dagger component's methods associated with [provider].
    */
   @WorkerThread
-  private fun processConsumers(element: PsiElement, processor: Processor<Usage>) {
-    getDaggerConsumersFor(element).forEach {
+  private fun processCustomUsagesForProvider(provider: PsiElement, processor: Processor<Usage>) {
+    getDaggerConsumersFor(provider).forEach {
+      val info = UsageInfo(it)
+      processor.process(UsageInfo2UsageAdapter(info))
+    }
+    getDaggerComponentMethodsForProvider(provider).forEach {
       val info = UsageInfo(it)
       processor.process(UsageInfo2UsageAdapter(info))
     }
