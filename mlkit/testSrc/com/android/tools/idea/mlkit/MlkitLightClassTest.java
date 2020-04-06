@@ -18,6 +18,9 @@ package com.android.tools.idea.mlkit;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.testutils.TestUtils;
+import com.android.testutils.VirtualTimeScheduler;
+import com.android.tools.analytics.TestUsageTracker;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
@@ -28,6 +31,8 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.MlModelBindingEvent;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -615,5 +620,47 @@ public class MlkitLightClassTest extends AndroidTestCase {
     assertThat(myFixture.getJavaFacade().findClass("p1.p2.ml.Broken", GlobalSearchScope.projectScope(getProject())))
       .named("Class for invalid model")
       .isNull();
+  }
+
+  public void testModelApiGenEventIsLogged() throws Exception {
+    TestUsageTracker usageTracker = new TestUsageTracker(new VirtualTimeScheduler());
+    UsageTracker.setWriterForTest(usageTracker);
+
+    VirtualFile mobilenetModelFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/mobilenet_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, mobilenetModelFile.getParent());
+
+    PsiFile activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.java",
+      // language=java
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import java.io.IOException;\n" +
+      "import p1.p2.ml.MobilenetModel;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        try {\n" +
+      "            MobilenetModel mobilenetModel = MobilenetModel.newInstance(this);\n" +
+      "        } catch (IOException e) {};\n" +
+      "    }\n" +
+      "}"
+    );
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    myFixture.checkHighlighting();
+
+    List<MlModelBindingEvent> loggedUsageList =
+      usageTracker.getUsages().stream()
+        .filter(it -> it.getStudioEvent().getKind() == AndroidStudioEvent.EventKind.ML_MODEL_BINDING)
+        .map(usage -> usage.getStudioEvent().getMlModelBindingEvent())
+        .filter(it -> it.getEventType() == MlModelBindingEvent.EventType.MODEL_API_GEN)
+        .collect(Collectors.toList());
+    assertThat(loggedUsageList.size()).isEqualTo(1);
+
+    UsageTracker.cleanAfterTesting();
+    usageTracker.close();
   }
 }

@@ -17,17 +17,18 @@ package com.android.tools.idea.mlkit.lightpsi;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.mlkit.LightModelClassConfig;
+import com.android.tools.idea.mlkit.LoggingUtils;
 import com.android.tools.idea.mlkit.MlkitModuleService;
 import com.android.tools.idea.psi.NullabilityUtils;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
+import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -69,13 +70,15 @@ import org.jetbrains.annotations.Nullable;
  * @see MlkitOutputLightClass
  */
 public class LightModelClass extends AndroidLightClassBase {
+  private final VirtualFile myModelFile;
   private final LightModelClassConfig myClassConfig;
   private final PsiJavaFile myContainingFile;
   private final CachedValue<MyClassMembers> myCachedMembers;
   private PsiMethod[] myConstructors;
 
-  public LightModelClass(@NotNull Module module, @NotNull LightModelClassConfig classConfig) {
+  public LightModelClass(@NotNull Module module, @NotNull VirtualFile modelFile, @NotNull LightModelClassConfig classConfig) {
     super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
+    myModelFile = modelFile;
     myClassConfig = classConfig;
 
     myContainingFile = (PsiJavaFile)PsiFileFactory.getInstance(module.getProject()).createFileFromText(
@@ -105,6 +108,8 @@ public class LightModelClass extends AndroidLightClassBase {
         MyClassMembers data = new MyClassMembers(methods, innerClassMap.values().toArray(PsiClass.EMPTY_ARRAY));
         return CachedValueProvider.Result.create(data, modificationTracker);
       }, false);
+
+    LoggingUtils.logEvent(EventType.MODEL_API_GEN, modelFile);
   }
 
   public static List<String> getInnerClassNames() {
@@ -214,14 +219,8 @@ public class LightModelClass extends AndroidLightClassBase {
   @NotNull
   @Override
   public PsiElement getNavigationElement() {
-    VirtualFile modelVirtualFile = VirtualFileManager.getInstance().findFileByUrl(myClassConfig.myModelMetadata.myModelFileUrl);
-    if (modelVirtualFile != null) {
-      PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(modelVirtualFile);
-      if (psiFile != null) {
-        return psiFile;
-      }
-    }
-    return super.getNavigationElement();
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(myModelFile);
+    return psiFile != null ? psiFile : super.getNavigationElement();
   }
 
   private static class MyClassMembers {

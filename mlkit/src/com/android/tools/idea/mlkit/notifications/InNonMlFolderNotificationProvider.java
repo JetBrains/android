@@ -16,9 +16,11 @@
 package com.android.tools.idea.mlkit.notifications;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.mlkit.LoggingUtils;
 import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.idea.mlkit.TfliteModelFileEditor;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -71,6 +73,7 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
             VirtualFile toDir = mlDirectory != null ? VfsUtil.createDirectoryIfMissing(mlDirectory.getAbsolutePath()) : null;
             if (toDir != null) {
               file.move(this, toDir);
+              LoggingUtils.logEvent(EventType.MODEL_IMPORT_FROM_MOVE_FILE_BUTTON, file);
             }
           }
           catch (IOException e) {
