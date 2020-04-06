@@ -58,6 +58,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
       override val component: JComponent = databaseInspectorProjectService.sqliteInspectorComponent
 
       init {
+        databaseInspectorProjectService.toolWindow = appInspectionCallbacks
         client.startTrackingDatabaseConnections()
         client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
           override fun onDispose() {
