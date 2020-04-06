@@ -21,7 +21,7 @@ import com.intellij.testFramework.TestRunnerUtil
 import com.intellij.testFramework.fixtures.CompletionAutoPopupTester
 import com.intellij.testFramework.runInEdtAndWait
 
-class ProguardR8AutoPopupCompletionTest : ProguardR8TestCase() {
+class ProguardR8TypedHandlerTest : ProguardR8TestCase() {
   private lateinit var tester: CompletionAutoPopupTester
 
   override fun runInDispatchThread(): Boolean = false
@@ -45,5 +45,31 @@ class ProguardR8AutoPopupCompletionTest : ProguardR8TestCase() {
     tester.joinCompletion()
     Truth.assertThat(myFixture.lookupElementStrings).isNotEmpty()
     Truth.assertThat(myFixture.lookupElementStrings).contains("keepattributes")
+  }
+
+  fun testOpenPopupForInnerClassesAfterDollarSymbol() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      public class MyClass {
+        class InnerClass {}
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
+        -keep class test.MyClass$caret {
+        }
+    """.trimIndent()
+    )
+
+    myFixture.type('$')
+    tester.joinAutopopup()
+    tester.joinCompletion()
+    Truth.assertThat(myFixture.lookupElementStrings).isNotEmpty()
+    Truth.assertThat(myFixture.lookupElementStrings).contains("InnerClass")
   }
 }
