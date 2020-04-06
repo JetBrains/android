@@ -46,15 +46,15 @@ internal class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScrol
   }
 
   override fun isModified() =
-    launchInToolWindowCheckBox.isSelected != state.launchEmbedded
+    launchInToolWindowCheckBox.isSelected != state.launchInToolWindow
 
   @Throws(ConfigurationException::class)
   override fun apply() {
-    state.launchEmbedded = launchInToolWindowCheckBox.isSelected
+    state.launchInToolWindow = launchInToolWindowCheckBox.isSelected
   }
 
   override fun reset() {
-    launchInToolWindowCheckBox.isSelected = state.launchEmbedded
+    launchInToolWindowCheckBox.isSelected = state.launchInToolWindow
   }
 
   @Nls
