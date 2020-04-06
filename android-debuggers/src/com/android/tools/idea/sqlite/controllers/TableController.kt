@@ -23,6 +23,7 @@ import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -40,6 +41,7 @@ import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -73,6 +75,8 @@ class TableController(
   private val listener = TableViewListenerImpl()
   private var orderBy: OrderBy? = null
   private var start = 0
+
+  private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
   private var lastExecutedQuery = sqliteStatement
 
@@ -273,6 +277,9 @@ class TableController(
     }
 
     override fun cancelRunningStatementInvoked() {
+      databaseInspectorAnalyticsTracker.trackStatementExecutionCanceled(
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.UNKNOWN_STATEMENT_CONTEXT
+      )
       // Closing a tab triggers its dispose method, which cancels the future, stopping the running query.
       closeTabInvoked()
     }
@@ -313,6 +320,7 @@ class TableController(
     }
 
     override fun refreshDataInvoked() {
+      databaseInspectorAnalyticsTracker.trackTargetRefreshed(AppInspectionEvent.DatabaseInspectorEvent.TargetType.TABLE_TARGET)
       refreshData()
     }
 
@@ -356,6 +364,8 @@ class TableController(
 
       val psiElement = AndroidSqlParserDefinition.parseSqlQuery(project, updateStatement)
       val updateStatementStringRepresentation = inlineParameterValues(psiElement, LinkedList(parametersValues))
+
+      databaseInspectorAnalyticsTracker.trackTableCellEdited()
 
       databaseConnection.execute(SqliteStatement(updateStatement, parametersValues, updateStatementStringRepresentation))
         .addCallback(edtExecutor, object : FutureCallback<SqliteResultSet> {

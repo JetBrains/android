@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.device.fs.DownloadProgress
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
@@ -40,6 +41,7 @@ import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
 import com.android.tools.idea.sqlite.ui.mainView.SchemaDiffOperation
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
@@ -83,6 +85,8 @@ class DatabaseInspectorControllerImpl(
   private val sqliteViewListener = SqliteViewListenerImpl()
 
   private var evaluatorTabCount = 0
+
+  private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
   override val component: JComponent
     get() = view.component
@@ -290,6 +294,10 @@ class DatabaseInspectorControllerImpl(
     private val scope = AndroidCoroutineScope(this@DatabaseInspectorControllerImpl)
 
     override fun tableNodeActionInvoked(database: SqliteDatabase, table: SqliteTable) {
+      databaseInspectorAnalyticsTracker.trackStatementExecuted(
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.SCHEMA_STATEMENT_CONTEXT
+      )
+
       val tabId = TabId.TableTab(database, table.name)
       if (tabId in resultSetControllers) {
         view.focusTab(tabId)
@@ -357,6 +365,7 @@ class DatabaseInspectorControllerImpl(
     }
 
     override fun refreshAllOpenDatabasesSchemaActionInvoked() {
+      databaseInspectorAnalyticsTracker.trackTargetRefreshed(AppInspectionEvent.DatabaseInspectorEvent.TargetType.SCHEMA_TARGET)
       scope.launch(uiThread) {
         model.getOpenDatabases().forEach { updateDatabaseSchema(it) }
       }

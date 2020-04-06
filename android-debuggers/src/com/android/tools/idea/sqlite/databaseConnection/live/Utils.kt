@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.databaseConnection.live
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
@@ -25,7 +26,9 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.model.getRowIdName
 import com.google.common.io.BaseEncoding
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 
 /**
  * Builds a [SqliteInspectorProtocol.Command] from a [SqliteStatement] and a database connection id.
@@ -81,17 +84,23 @@ internal fun List<SqliteInspectorProtocol.Table>.toSqliteSchema(): SqliteSchema 
  *
  * Asynchronous errors are delivered to DatabaseInspectorProjectService that takes care of showing them.
  */
-internal fun handleError(errorContent: SqliteInspectorProtocol.ErrorContent, logger: Logger): Nothing {
+internal fun handleError(project: Project, errorContent: SqliteInspectorProtocol.ErrorContent, logger: Logger): Nothing {
+  val analyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
   when(errorContent.recoverability.oneOfCase) {
     SqliteInspectorProtocol.ErrorRecoverability.OneOfCase.IS_RECOVERABLE -> {
       // log when isRecoverable is set and is false.
       if (!errorContent.recoverability.isRecoverable) {
         logger.warn("Unrecoverable error from on-device inspector: ${errorContent.message}\n${errorContent.stackTrace}")
+        analyticsTracker.trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_FALSE)
+      }
+      else {
+        analyticsTracker.trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_TRUE)
       }
     }
     SqliteInspectorProtocol.ErrorRecoverability.OneOfCase.ONEOF_NOT_SET -> {
       // log when isRecoverable is not set ("unknown if recoverable error").
       logger.warn("Unknown if recoverable error from on-device inspector: ${errorContent.message}\n${errorContent.stackTrace}")
+      analyticsTracker.trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_UNKNOWN)
     }
     null -> { }
   }

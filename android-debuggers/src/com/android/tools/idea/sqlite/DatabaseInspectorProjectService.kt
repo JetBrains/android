@@ -247,7 +247,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     name: String
   ): ListenableFuture<SqliteDatabase> = projectScope.future {
     val database = async {
-      val connection = databaseConnectionFactory.getLiveDatabaseConnection(messenger, id, taskExecutor).await()
+      val connection = databaseConnectionFactory.getLiveDatabaseConnection(project, messenger, id, taskExecutor).await()
       LiveSqliteDatabase(name, connection)
     }
 
