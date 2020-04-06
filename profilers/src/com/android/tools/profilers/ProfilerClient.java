@@ -22,6 +22,7 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -36,10 +37,14 @@ public class ProfilerClient {
   @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
   @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
 
-  public ProfilerClient(String name) {
+  public ProfilerClient(@NotNull String name) {
     // Optimization - In-process direct-executor channel which allows us to communicate between the profiler and transport-database without
     // going through the thread pool. This gives us a speed boost per grpc call plus the full caller's stack in transport-database.
-    ManagedChannel channel = InProcessChannelBuilder.forName(name).usePlaintext().directExecutor().build();
+    this(InProcessChannelBuilder.forName(name).usePlaintext().directExecutor().build());
+  }
+
+  @VisibleForTesting
+  public ProfilerClient(@NotNull ManagedChannel channel) {
     myTransportClient = TransportServiceGrpc.newBlockingStub(channel);
     myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
     myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);

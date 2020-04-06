@@ -38,7 +38,7 @@ class EnergyProfilerTest {
   @Before
   fun setUp() {
     val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
-    myProfiler = EnergyProfiler(StudioProfilers(ProfilerClient(myGrpcChannel.name), services, FakeTimer()))
+    myProfiler = EnergyProfiler(StudioProfilers(ProfilerClient(myGrpcChannel.channel), services, FakeTimer()))
   }
 
   @Test

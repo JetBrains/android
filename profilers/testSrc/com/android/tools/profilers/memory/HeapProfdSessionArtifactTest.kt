@@ -54,7 +54,7 @@ class HeapProfdSessionArtifactTest {
   @Before
   fun setup() {
     profilers = StudioProfilers(
-      ProfilerClient(grpcChannel.name),
+      ProfilerClient(grpcChannel.channel),
       FakeIdeProfilerServices(),
       FakeTimer()
     )

@@ -44,14 +44,13 @@ class CpuCoreTrackRendererTest {
 
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuCoreTrackTestChannel", FakeCpuService(), FakeProfilerService(timer), transportService)
-  private val profilerClient = ProfilerClient(grpcChannel.name)
 
   private lateinit var profilers: StudioProfilers
 
   @Before
   @Throws(Exception::class)
   fun setUp() {
-    profilers = StudioProfilers(profilerClient, services, timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     DataVisualizationColors.initialize(
       FileInputStream(TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/data-colors.json")))
   }

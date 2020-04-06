@@ -29,7 +29,6 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
@@ -59,7 +58,7 @@ class CpuKernelTooltipViewTest {
     val device = Common.Device.newBuilder().setDeviceId(1).build()
     myFakeTransportService.addDevice(device)
     myFakeTransportService.addProcess(device, Common.Process.newBuilder().setDeviceId(1).setPid(1).build())
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), FakeIdeProfilerServices(), timer)
     myStage = CpuProfilerStage(profilers)
     myCapture = AtraceParser(MainProcessSelector(idHint = 1)).parse(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE), 0)
     myStage.capture = myCapture

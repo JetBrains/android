@@ -41,7 +41,6 @@ class CpuCaptureStageTest {
 
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer), transportService)
-  private val profilerClient = ProfilerClient(grpcChannel.name)
 
   private lateinit var profilers: StudioProfilers
 
@@ -49,7 +48,7 @@ class CpuCaptureStageTest {
 
   @Before
   fun setUp() {
-    profilers = StudioProfilers(profilerClient, services, timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
   }

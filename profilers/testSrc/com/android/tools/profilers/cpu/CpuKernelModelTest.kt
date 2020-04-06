@@ -50,7 +50,7 @@ class CpuKernelModelTest {
   @Before
   fun setup() {
     val services = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), services, myTimer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), services, myTimer)
     myStage = CpuProfilerStage(profilers)
     myCpuModel = CpuKernelModel(myRange, myStage)
   }

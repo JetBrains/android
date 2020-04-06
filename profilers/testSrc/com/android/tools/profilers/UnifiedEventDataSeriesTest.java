@@ -46,7 +46,7 @@ public class UnifiedEventDataSeriesTest {
     myService.addEventToStream(STREAM_ID, ProfilersTestData.generateNetworkRxEvent(4, 40).build());
     myService.addEventToStream(STREAM_ID, ProfilersTestData.generateNetworkRxEvent(6, 60).build());
 
-    UnifiedEventDataSeries<Long> series1 = new UnifiedEventDataSeries<>(new ProfilerClient(myGrpcChannel.getName()).getTransportClient(),
+    UnifiedEventDataSeries<Long> series1 = new UnifiedEventDataSeries<>(new ProfilerClient(myGrpcChannel.getChannel()).getTransportClient(),
                                                                         STREAM_ID,
                                                                         0,
                                                                         Common.Event.Kind.NETWORK_SPEED,
@@ -57,7 +57,7 @@ public class UnifiedEventDataSeriesTest {
     Truth.assertThat(ContainerUtil.map(data1, data -> data.x)).containsExactly(1L, 3L, 5L);
     Truth.assertThat(ContainerUtil.map(data1, data -> data.value)).containsExactly(10L, 30L, 50L);
 
-    UnifiedEventDataSeries<Long> series2 = new UnifiedEventDataSeries<>(new ProfilerClient(myGrpcChannel.getName()).getTransportClient(),
+    UnifiedEventDataSeries<Long> series2 = new UnifiedEventDataSeries<>(new ProfilerClient(myGrpcChannel.getChannel()).getTransportClient(),
                                                                         STREAM_ID,
                                                                         0,
                                                                         Common.Event.Kind.NETWORK_SPEED,
@@ -75,7 +75,7 @@ public class UnifiedEventDataSeriesTest {
     myService.addEventToStream(STREAM_ID, ProfilersTestData.generateNetworkRxEvent(2, 20).build());
 
     // Querying a multiple-group data kind without a group id triggers an assert.
-    UnifiedEventDataSeries<Long> series1 = new UnifiedEventDataSeries<>(new ProfilerClient(myGrpcChannel.getName()).getTransportClient(),
+    UnifiedEventDataSeries<Long> series1 = new UnifiedEventDataSeries<>(new ProfilerClient(myGrpcChannel.getChannel()).getTransportClient(),
                                                                         STREAM_ID,
                                                                         0,
                                                                         Common.Event.Kind.NETWORK_SPEED,

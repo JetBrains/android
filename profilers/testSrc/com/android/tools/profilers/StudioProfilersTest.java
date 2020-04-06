@@ -42,6 +42,7 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,16 +60,21 @@ public final class StudioProfilersTest {
   private final FakeProfilerService myProfilerService = new FakeProfilerService(myTimer);
   @Rule public FakeGrpcServer myGrpcServer =
     FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myTransportService, myProfilerService);
-  private final ProfilerClient myProfilerClient = new ProfilerClient(myGrpcServer.getName());
   private final FakeGrpcServer.CpuService myCpuService = myGrpcServer.getCpuService();
   private final FakeIdeProfilerServices myIdeProfilerServices;
-
   private final boolean myNewEventPipeline;
+
+  private ProfilerClient myProfilerClient;
 
   public StudioProfilersTest(boolean useNewEventPipeline) {
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myIdeProfilerServices.enableEventsPipeline(useNewEventPipeline);
     myNewEventPipeline = useNewEventPipeline;
+  }
+
+  @Before
+  public void setUp() {
+    myProfilerClient = new ProfilerClient(myGrpcServer.getChannel());
   }
 
   @Test

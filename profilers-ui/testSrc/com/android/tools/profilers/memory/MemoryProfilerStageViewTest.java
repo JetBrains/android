@@ -55,14 +55,14 @@ import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
-import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
@@ -805,7 +805,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .setStartTime(TimeUnit.MICROSECONDS.toNanos(3))
       .setEndTime(TimeUnit.MICROSECONDS.toNanos(4))
       .build();
-    HeapDumpCaptureObject heapDumpCapture = new HeapDumpCaptureObject(new ProfilerClient(getGrpcChannel().getName()),
+    HeapDumpCaptureObject heapDumpCapture = new HeapDumpCaptureObject(new ProfilerClient(getGrpcChannel().getChannel()),
                                                                       ProfilersTestData.SESSION_DATA,
                                                                       heapDumpInfo,
                                                                       null,

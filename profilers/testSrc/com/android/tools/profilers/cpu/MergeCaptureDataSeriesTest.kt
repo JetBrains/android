@@ -45,7 +45,7 @@ class MergeCaptureDataSeriesTest {
   @Rule
   @JvmField
   var myGrpcChannel = FakeGrpcChannel("CpuProfilerStageTestChannel", myTransportService, myCpuService)
-  private val myProfilerClient = ProfilerClient(myGrpcChannel.name)
+  private val myProfilerClient by lazy { ProfilerClient(myGrpcChannel.channel) }
 
   private lateinit var myMergeCaptureDataSeries: MergeCaptureDataSeries<CpuProfilerStage.ThreadState>
   private lateinit var myStage: CpuProfilerStage

@@ -16,8 +16,11 @@
 package com.android.tools.idea.transport.faketransport;
 
 import io.grpc.BindableService;
+import io.grpc.ManagedChannel;
 import io.grpc.Server;
+import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.junit.rules.ExternalResource;
 
 /**
@@ -29,6 +32,7 @@ public class FakeGrpcChannel extends ExternalResource {
   private final String myName;
   private final BindableService[] myServices;
   private Server myServer;
+  private ManagedChannel myChannel;
 
   public FakeGrpcChannel(String name, BindableService... services) {
     myName = name;
@@ -43,14 +47,26 @@ public class FakeGrpcChannel extends ExternalResource {
     }
     myServer = serverBuilder.build();
     myServer.start();
+
+    myChannel = InProcessChannelBuilder.forName(myName).usePlaintext().directExecutor().build();
   }
 
   @Override
   protected void after() {
     myServer.shutdownNow();
+    myChannel.shutdownNow();
   }
 
   public String getName() {
     return myName;
+  }
+
+  @NotNull
+  public ManagedChannel getChannel() {
+    if (myChannel == null) {
+      throw new IllegalStateException(
+        "FakeGrpcChannel rule has not been initialized yet. getChannel() can't be called during static initialization.");
+    }
+    return myChannel;
   }
 }

@@ -108,7 +108,7 @@ public class LiveAllocationCaptureObjectTest {
   public void before() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myIdeProfilerServices.setNativeFrameSymbolizer(FAKE_SYMBOLIZER);
-    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer));
+    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer));
 
     long dataStartTime = CAPTURE_START_TIME;
     long dataEndTime = TimeUnit.SECONDS.toNanos(8);
@@ -153,7 +153,7 @@ public class LiveAllocationCaptureObjectTest {
     @Parameter(3)
     public Boolean myNewPipeline;
 
-    private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcChannel.getName());
+    private ProfilerClient myProfilerClient;
 
     @Before
     @Override
@@ -161,6 +161,7 @@ public class LiveAllocationCaptureObjectTest {
       super.before();
       myIdeProfilerServices.enableJniReferenceTracking(myJniRefTracking);
       myIdeProfilerServices.enableEventsPipeline(myNewPipeline);
+      myProfilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     }
 
     @Parameters(name = "{index}: HeapId:{0}, HeapName:{1}, JNI tracking: {2}, New Pipeline: {3}")
@@ -666,12 +667,13 @@ public class LiveAllocationCaptureObjectTest {
 
   public static class DefaultHeapTest extends LiveAllocationCaptureObjectTest {
 
-    private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcChannel.getName());
+    private ProfilerClient myProfilerClient;
 
     @Before
     @Override
     public void before() {
       super.before();
+      myProfilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     }
 
 
@@ -750,13 +752,14 @@ public class LiveAllocationCaptureObjectTest {
 
   public static class JniHeapTest extends LiveAllocationCaptureObjectTest {
 
-    private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcChannel.getName());
+    private ProfilerClient myProfilerClient;
 
     @Before
     @Override
     public void before() {
       super.before();
       myIdeProfilerServices.enableJniReferenceTracking(true);
+      myProfilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     }
 
     @Test
