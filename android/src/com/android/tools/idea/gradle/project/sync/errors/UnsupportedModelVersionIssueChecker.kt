@@ -19,36 +19,39 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import java.util.regex.Pattern
 
-class OldAndroidPluginIssueChecker: GradleIssueChecker {
-  private val PATTERN = Pattern.compile(
-    "The android gradle plugin version .+ is too old, please update to the latest version.")
+/**
+ * These String constants are being used in [GradleNotificationExtension] to add
+ * "quick-fix"/"help" hyperlinks to error messages. Given that the contract between the consumer and producer of error messages is pretty
+ * loose, please do not use these constants, to prevent any unexpected side effects during project sync.
+ */
+const val UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX = "The project is using an unsupported version of the Android Gradle plug-in"
+const val READ_MIGRATION_GUIDE_MSG = "Please read the migration guide"
+
+class UnsupportedModelVersionIssueChecker: GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = issueData.error.message ?: return null
-    if (message.isEmpty() || !(message.startsWith("Plugin is too old, please update to a more recent version") ||
-        PATTERN.matcher(message.lines()[0]).matches())) return null
+    if (message.isEmpty() || !message.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) return null
 
     // Log metrics.
     invokeLater {
-      SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.OLD_ANDROID_PLUGIN)
+      SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_MODEL_VERSION)
     }
     val description = MessageComposer(message).apply {
-      addQuickFix("Upgrade plugin to version ${GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())} and sync project",
-                  FixAndroidGradlePluginVersionQuickFix(null, null))
-      addQuickFix("Open build file", OpenPluginBuildFileQuickFix())
+      addQuickFix(
+        "Upgrade plugin to version ${GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())} and sync project",
+        FixAndroidGradlePluginVersionQuickFix(null, null))
     }
     return object : BuildIssue {
       override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
+      override val description = message
       override val quickFixes = description.quickFixes
       override fun getNavigatable(project: Project) = null
     }
