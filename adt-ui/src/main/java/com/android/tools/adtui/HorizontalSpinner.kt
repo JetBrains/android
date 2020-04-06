@@ -44,7 +44,7 @@ private val DEFAULT_BORDER = RoundedLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR, 
 private fun setupArrowUI(button: JButton, newBorder: Border, icon: Icon): JButton =
   button.apply {
     // Use the MetalButtonIU to have a consistent UI across platforms
-    ui = MetalButtonUI()
+    setUI(MetalButtonUI())
     isContentAreaFilled = false
     isFocusPainted = false
     isOpaque = false
