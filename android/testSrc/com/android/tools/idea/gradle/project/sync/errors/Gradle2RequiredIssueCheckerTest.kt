@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
+import com.android.tools.idea.gradle.project.sync.quickFixes.CreateGradleWrapperQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import com.google.common.truth.Truth.assertThat
@@ -34,6 +35,6 @@ class Gradle2RequiredIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue!!.description).contains("Gradle " + SdkConstants.GRADLE_MINIMUM_VERSION + " is required.")
     // Verify quickFix.
     assertThat(buildIssue.quickFixes).hasSize(1)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(Gradle2RequiredIssueChecker.CreateGradleWrapperQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(CreateGradleWrapperQuickFix::class.java)
   }
 }

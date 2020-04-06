@@ -16,21 +16,29 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
+import java.io.File;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import org.jetbrains.plugins.gradle.settings.DistributionType;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 import static com.android.builder.model.SyncIssue.TYPE_GRADLE_TOO_OLD;
-import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionErrorHandler.getQuickFixHyperlinksWithGradleVersion;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 class UnsupportedGradleReporter extends BaseSyncIssuesReporter {
@@ -52,5 +60,32 @@ class UnsupportedGradleReporter extends BaseSyncIssuesReporter {
 
     getSyncMessages(module).report(message);
     SyncIssueUsageReporterUtils.collect(usageReporter, syncIssue.getType(), quickFixes);
+  }
+
+  @NotNull
+  private static List<NotificationHyperlink> getQuickFixHyperlinksWithGradleVersion(@NotNull Project project,
+                                                                                   @Nullable String gradleVersion) {
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+    GradleWrapper gradleWrapper = GradleWrapper.find(project);
+    if (gradleWrapper != null) {
+      // It is very likely that we need to fix the model version as well. Do everything in one shot.
+      NotificationHyperlink hyperlink = createIfProjectUsesGradleWrapper(project, gradleVersion);
+      if (hyperlink != null) {
+        hyperlinks.add(hyperlink);
+      }
+      File propertiesFile = gradleWrapper.getPropertiesFilePath();
+      if (propertiesFile.exists()) {
+        hyperlinks
+          .add(new OpenFileHyperlink(gradleWrapper.getPropertiesFilePath().getAbsolutePath(), "Open Gradle wrapper properties", -1, -1));
+      }
+    }
+    else {
+      GradleProjectSettings gradleProjectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
+      if (gradleProjectSettings != null && gradleProjectSettings.getDistributionType() == DistributionType.LOCAL) {
+        hyperlinks.add(new CreateGradleWrapperHyperlink());
+      }
+    }
+    hyperlinks.add(new OpenGradleSettingsHyperlink());
+    return hyperlinks;
   }
 }

@@ -91,7 +91,7 @@ public abstract class SyncErrorHandler {
   public static Project fetchIdeaProjectForGradleProject(@NotNull String projectPath) {
     for (Project project : ProjectManager.getInstance().getOpenProjects()) {
       for (Module module : ModuleManager.getInstance(project).getModules()) {
-        if (AndroidProjectRootUtil.getModuleDirPath(module) == projectPath)
+        if (Objects.equals(AndroidProjectRootUtil.getModuleDirPath(module), projectPath))
           return project;
       }
     }
