@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
+import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
@@ -426,7 +427,7 @@ public final class GroovyDslUtil {
         int i = parent.getSimpleExpressions().indexOf(currentElement);
         externalName.append(i + "]");
       }
-      else if (currentElement instanceof ExtDslElement) {
+      else if (currentElement instanceof ExtDslElement || currentElement instanceof BuildScriptDslElement) {
         // do nothing
       }
       else {
@@ -436,7 +437,7 @@ public final class GroovyDslUtil {
         if (currentElement instanceof GradleDslExpressionList) {
           externalName.append("[");
         }
-        else if (currentElement instanceof ExtDslElement) {
+        else if (currentElement instanceof ExtDslElement || currentElement instanceof BuildScriptDslElement) {
           // do nothing
         }
         else {

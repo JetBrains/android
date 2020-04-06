@@ -125,6 +125,8 @@ fun convertToExternalTextValue(
 
   // Trace parents to be used for reference resolution.
   val resolutionElements = ArrayList<GradleDslElement>()
+  // TODO(xof): we need the same logic as in the Groovy here, to stop adding parents once the expression context's scope contains them
+  //  (modulo possible confusions between lexical scope and model hierarchy)
   resolutionElements.add(resolvedReference)
   while (currentParent?.parent != null) {
     resolutionElements.add(0, currentParent)
