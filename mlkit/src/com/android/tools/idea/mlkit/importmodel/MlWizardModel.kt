@@ -20,6 +20,8 @@ import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.templates.getDummyModuleTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
@@ -76,6 +78,7 @@ class MlWizardModel(private val module: Module) : WizardModel() {
             )
             // TODO(b/153163381): Add loggingEvent here.
             mlkitRecipe.render(context, DefaultRecipeExecutor(context), null)
+            module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
           }
         }
       }
