@@ -23,6 +23,7 @@ import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFut
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
@@ -44,11 +45,13 @@ import com.android.tools.idea.sqlite.toSqliteValues
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import org.mockito.InOrder
 import org.mockito.Mockito.`when`
@@ -1532,6 +1535,81 @@ class TableControllerTest : PlatformTestCase() {
     // Assert
     pumpEventsAndWaitForFutureCancellation(executionFuture)
  }
+
+  fun testCancelRunningStatementAnalytics() {
+    // Prepare
+    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
+
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      project, 10, tableView, { null }, mockDatabaseConnection, SqliteStatement(""), {}, edtExecutor, edtExecutor
+    )
+    tableController.setUp()
+    Disposer.register(testRootDisposable, tableController)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Act
+    tableView.listeners.first().cancelRunningStatementInvoked()
+
+    // Assert
+    verify(mockTrackerService).trackStatementExecutionCanceled(
+      AppInspectionEvent.DatabaseInspectorEvent.StatementContext.UNKNOWN_STATEMENT_CONTEXT
+    )
+  }
+
+  fun testRefreshDataAnalytics() {
+    // Prepare
+    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
+
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      project, 10, tableView, { null }, mockDatabaseConnection, SqliteStatement(""), {}, edtExecutor, edtExecutor
+    )
+    tableController.setUp()
+    Disposer.register(testRootDisposable, tableController)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Act
+    tableView.listeners.first().refreshDataInvoked()
+
+    // Assert
+    verify(mockTrackerService).trackTargetRefreshed(AppInspectionEvent.DatabaseInspectorEvent.TargetType.TABLE_TARGET)
+  }
+
+  fun testEditCellAnalytics() {
+    // Prepare
+    val customSqliteTable = SqliteTable("tableName", listOf(SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false)), RowIdName.ROWID, false)
+
+    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
+
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(MockSqliteResultSet()))
+    tableController = TableController(
+      project,
+      10,
+      tableView,
+      { customSqliteTable },
+      mockDatabaseConnection,
+      SqliteStatement("SELECT * FROM tableName"),
+      {},
+      edtExecutor,
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    val targetCol = customSqliteTable.columns[0]
+    val newValue = SqliteValue.StringValue("new value")
+
+    // Act
+    tableView.listeners.first().updateCellInvoked(1, targetCol, newValue)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockTrackerService).trackTableCellEdited()
+  }
 
   private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
     // Prepare

@@ -22,6 +22,7 @@ import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnect
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.ide.PooledThreadExecutor
 import java.sql.DriverManager
@@ -42,6 +43,7 @@ interface DatabaseConnectionFactory {
    * @param executor An executor for long-running and/or IO-bound tasks, such as [PooledThreadExecutor].
    */
   fun getLiveDatabaseConnection(
+    project: Project,
     messenger: AppInspectorClient.CommandMessenger,
     id: Int,
     executor: Executor
@@ -71,10 +73,11 @@ class DatabaseConnectionFactoryImpl : DatabaseConnectionFactory {
   }
 
   override fun getLiveDatabaseConnection(
+    project: Project,
     messenger: AppInspectorClient.CommandMessenger,
     id: Int,
     executor: Executor
   ): ListenableFuture<DatabaseConnection> {
-    return Futures.immediateFuture(LiveDatabaseConnection(messenger, id, executor))
+    return Futures.immediateFuture(LiveDatabaseConnection(project, messenger, id, executor))
   }
 }
