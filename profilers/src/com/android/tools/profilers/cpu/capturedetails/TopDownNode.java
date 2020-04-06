@@ -17,10 +17,9 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
-import org.jetbrains.annotations.NotNull;
-
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A top-down CPU usage tree. This is a node on that tree and represents all the calls that share the same callstack upto a point.
@@ -43,7 +42,7 @@ public class TopDownNode extends CpuTreeNode<TopDownNode> {
    * Adds children of {@param node} whose filter type matches to the flag {@param unmatched}.
    */
   private void addChildren(@NotNull CaptureNode node, boolean unmatched) {
-    Map<String, TopDownNode> children = new TreeMap<>();
+    Map<String, TopDownNode> children = new HashMap<>();
     for (CaptureNode child : node.getChildren()) {
       assert child.getData() != null;
 
@@ -68,8 +67,8 @@ public class TopDownNode extends CpuTreeNode<TopDownNode> {
 
     // We use a separate map for unmatched children, because we can not merge unmatched with matched,
     // i.e all merged children should have the same {@link CaptureNode.FilterType};
-    Map<String, TopDownNode> children = new TreeMap<>();
-    Map<String, TopDownNode> unmatchedChildren = new TreeMap<>();
+    Map<String, TopDownNode> children = new HashMap<>();
+    Map<String, TopDownNode> unmatchedChildren = new HashMap<>();
 
     for (TopDownNode child : getChildren()) {
       if (child.isUnmatched()) {
