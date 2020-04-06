@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.convertToExternalTextValue;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getGradleNameForPsiElement;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getPsiElementFactory;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.gradleNameFor;
@@ -29,6 +30,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanti
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
@@ -57,8 +59,10 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
     if (child instanceof LeafPsiElement && child == element.getLastChild() &&
         TokenSets.STRING_LITERAL_SET.contains(((LeafPsiElement) child).getElementType())) {
       String text = element.getText();
+      // TODO(xof): the string unescaping here is even worse than usual
       return GradleNameElement.escape(text.substring(1, text.length() - 1));
     }
+    // TODO(xof): the project-massaging in getGradleNameForPsiElement should be rewritten in gradleNameFor
     return getGradleNameForPsiElement(element);
   }
 
@@ -76,7 +80,12 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
   @NotNull
   @Override
   public String convertReferenceToExternalText(@NotNull GradleDslElement context, @NotNull String referenceText, boolean forInjection) {
-    return referenceText;
+    if (context instanceof GradleDslSimpleExpression) {
+      return convertToExternalTextValue((GradleDslSimpleExpression)context, context.getDslFile(), referenceText, forInjection);
+    }
+    else {
+      return referenceText;
+    }
   }
 
   @NotNull
