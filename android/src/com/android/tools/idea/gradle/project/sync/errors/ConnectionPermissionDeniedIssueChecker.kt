@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.ide.BrowserUtil
@@ -50,19 +51,6 @@ class ConnectionPermissionDeniedIssueChecker: GradleIssueChecker {
       override val description: String = description.buildMessage()
       override val quickFixes: List<BuildIssueQuickFix> = description.quickFixes
       override fun getNavigatable(project: Project): Navigatable?  = null
-    }
-  }
-
-  class OpenLinkQuickFix(val link: String) : BuildIssueQuickFix {
-    override val id = "open.more.details"
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      val future = CompletableFuture<Any>()
-
-      invokeLater {
-        BrowserUtil.browse(link)
-        future.complete(null)
-      }
-      return future
     }
   }
 }

@@ -15,32 +15,40 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.settings.GradleSettings
+import java.net.UnknownHostException
 
-class GradleBrokenPipeIssueChecker : GradleIssueChecker {
+class UnknownHostIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = issueData.error.message ?: return null
-    if (message.isEmpty() || !message.startsWith("Broken pipe")) return null
+    if (message.isEmpty() || issueData.error !is UnknownHostException) return null
 
     // Log metrics.
     invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.BROKEN_PIPE)
+      updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNKNOWN_HOST)
     }
-    val description = MessageComposer("Broken pipe.").apply {
-      addDescription("The Gradle daemon may be trying to use ipv4 instead of ipv6.")
-      addQuickFix("More info (including workarounds)", OpenLinkQuickFix("https://developer.android.com/r/studio-ui/known-issues.html"
-      ))
+
+    val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectPath)
+    val description = MessageComposer("Unknown host '$message'. You may need to adjust the proxy settings in Gradle.").apply {
+      if (ideaProject != null && !GradleSettings.getInstance(ideaProject).isOfflineWork) {
+        addQuickFix("Enable Gradle 'offline mode' and sync project",  ToggleOfflineModeQuickFix(true))
+      }
+      addQuickFix("Learn about configuring HTTP proxies in Gradle",
+                  OpenLinkQuickFix("https://docs.gradle.org/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy"))
     }
-    return return object : BuildIssue {
-      override val title = "Gradle Sync Issues."
+    return object : BuildIssue {
+      override val title = "Gradle Sync issues."
       override val description = description.buildMessage()
       override val quickFixes = description.quickFixes
       override fun getNavigatable(project: Project) = null
