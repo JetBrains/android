@@ -43,6 +43,7 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.output.parser" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="jaxb-api" level="project" />
     <orderEntry type="module-library" scope="TEST">
       <library type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layoutlib-jre11:26.6.0.2" />
