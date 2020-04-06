@@ -18,6 +18,9 @@ package com.android.tools.idea.mlkit;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.testutils.TestUtils;
+import com.android.testutils.VirtualTimeScheduler;
+import com.android.tools.analytics.TestUsageTracker;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.project.DefaultModuleSystem;
@@ -26,8 +29,12 @@ import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.MlModelBindingEvent;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PsiTestUtil;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
@@ -95,5 +102,22 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
 
     // At least contains Model section.
     assertThat(html).contains("<h2>Model</h2>");
+  }
+
+  public void testViewerOpenEventIsLogged() throws Exception {
+    TestUsageTracker usageTracker = new TestUsageTracker(new VirtualTimeScheduler());
+    UsageTracker.setWriterForTest(usageTracker);
+
+    TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
+    List<MlModelBindingEvent> loggedUsageList =
+      usageTracker.getUsages().stream()
+        .filter(it -> it.getStudioEvent().getKind() == EventKind.ML_MODEL_BINDING)
+        .map(usage -> usage.getStudioEvent().getMlModelBindingEvent())
+        .filter(it -> it.getEventType() == MlModelBindingEvent.EventType.MODEL_VIEWER_OPEN)
+        .collect(Collectors.toList());
+    assertThat(loggedUsageList.size()).isEqualTo(1);
+
+    UsageTracker.cleanAfterTesting();
+    usageTracker.close();
   }
 }

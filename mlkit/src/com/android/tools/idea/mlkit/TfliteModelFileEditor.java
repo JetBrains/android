@@ -23,6 +23,7 @@ import com.android.tools.mlkit.ModelParsingException;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Floats;
+import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -130,6 +131,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         }
       }
     });
+
+    LoggingUtils.logEvent(EventType.MODEL_VIEWER_OPEN, file);
   }
 
   private void setUpPopupMenu(@NotNull JEditorPane editorPane) {
@@ -358,7 +361,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return stringBuilder.toString();
   }
 
-  /** Returns string representation of int array (e.g. new int[] {1,2,3}.) */
+  /**
+   * Returns string representation of int array (e.g. new int[] {1,2,3}.)
+   */
   @NotNull
   private static String buildIntArray(@NotNull int[] array) {
     StringBuilder stringBuilder = new StringBuilder("new int[]{");

@@ -16,6 +16,7 @@
 package com.android.tools.idea.mlkit.importmodel
 
 import com.android.tools.idea.mlkit.MlkitUtils
+import com.android.tools.idea.mlkit.logEvent
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.StringProperty
@@ -27,6 +28,7 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.Recipe
+import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -51,8 +53,10 @@ class MlWizardModel(private val module: Module) : WizardModel() {
 
   @JvmField
   val sourceLocation: StringProperty = StringValueProperty()
+
   @JvmField
   val mlDirectory: StringProperty = StringValueProperty()
+
   @JvmField
   val autoUpdateBuildFile: BoolValueProperty = BoolValueProperty(true)
 
@@ -80,6 +84,8 @@ class MlWizardModel(private val module: Module) : WizardModel() {
             mlkitRecipe.render(context, DefaultRecipeExecutor(context), null)
             module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
           }
+
+          logEvent(EventType.MODEL_IMPORT_FROM_WIZARD, fromFile)
         }
       }
       catch (e: IOException) {
