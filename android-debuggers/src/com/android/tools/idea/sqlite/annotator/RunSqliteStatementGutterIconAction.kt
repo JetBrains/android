@@ -55,7 +55,8 @@ import javax.swing.border.EmptyBorder
 class RunSqliteStatementGutterIconAction(
   private val project: Project,
   private val element: PsiElement,
-  private val viewFactory: DatabaseInspectorViewsFactory
+  private val viewFactory: DatabaseInspectorViewsFactory,
+  private val databaseInspectorProjectService: DatabaseInspectorProjectService = DatabaseInspectorProjectService.getInstance(project)
 ) : AnAction() {
   override fun actionPerformed(actionEvent: AnActionEvent) {
     val openDatabases = DatabaseInspectorProjectService.getInstance(project).getOpenDatabases()
@@ -100,11 +101,13 @@ class RunSqliteStatementGutterIconAction(
     if (!needsBinding(sqliteStatementPsi)) {
       val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
       DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(database, SqliteStatement(sqliteStatement))
+      databaseInspectorProjectService.toolWindow?.showToolWindow()
     }
     else {
       val view = viewFactory.createParametersBindingView(project, sqliteStatementPsi.text)
       ParametersBindingController(view, sqliteStatementPsi) {
         DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(database, it)
+        databaseInspectorProjectService.toolWindow?.showToolWindow()
       }.also {
         it.setUp()
         it.show()

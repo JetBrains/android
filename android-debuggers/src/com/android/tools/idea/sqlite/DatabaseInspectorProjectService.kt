@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
@@ -73,6 +74,11 @@ interface DatabaseInspectorProjectService {
       return ServiceManager.getService(project, DatabaseInspectorProjectService::class.java)
     }
   }
+
+  /**
+   * The tool window containing the Database Inspector.
+   */
+  var toolWindow: AppInspectionCallbacks?
 
   /**
    * [JComponent] that contains the view of the Database Inspector.
@@ -208,6 +214,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     ApplicationManager.getApplication().assertIsDispatchThread()
     createController(model)
   }
+
+  override var toolWindow: AppInspectionCallbacks? = null
 
   override val sqliteInspectorComponent
     @UiThread get() = controller.component
