@@ -171,10 +171,12 @@ class SceneViewPeerPanel(val sceneView: SceneView, private val sceneViewToolbar:
     // Once this panel gets more functionality, we will need the use of a layout manager. For now, we just lay out the component manually.
     if (layoutData.modelName == null) {
       modelNameLabel.text = ""
+      modelNameLabel.toolTipText = ""
       sceneViewTopPanel.isVisible = false
     }
     else {
       modelNameLabel.text = layoutData.modelName
+      modelNameLabel.toolTipText = layoutData.modelName
       sceneViewTopPanel.setBounds(0, 0, width + insets.left + insets.right, sceneView.margin.top - 2)
       sceneViewTopPanel.isVisible = true
     }
