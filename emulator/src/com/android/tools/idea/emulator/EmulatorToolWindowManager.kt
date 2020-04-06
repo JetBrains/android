@@ -18,9 +18,9 @@ package com.android.tools.idea.emulator
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.AppDeploymentListener
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.run.AppDeploymentListener
 import com.google.common.cache.CacheBuilder
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.util.PropertiesComponent
@@ -97,16 +97,18 @@ internal class EmulatorToolWindowManager private constructor(private val project
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
       @UiThread
       override fun stateChanged() {
-        // We need to query the tool window again, because it might have been unregistered when closing the project.
-        val toolWindow = getToolWindow()
+        ToolWindowManager.getInstance(project).invokeLater {
+          // We need to query the tool window again, because it might have been unregistered when closing the project.
+          val toolWindow = getToolWindow()
 
-        if (toolWindow.isVisible) {
-          if (!contentInitialized) {
-            createContent(toolWindow)
+          if (toolWindow.isVisible) {
+            if (!contentInitialized) {
+              createContent(toolWindow)
+            }
           }
-        }
-        else if (contentInitialized) {
-          destroyContent(toolWindow)
+          else if (contentInitialized) {
+            destroyContent(toolWindow)
+          }
         }
       }
     })
@@ -178,16 +180,21 @@ internal class EmulatorToolWindowManager private constructor(private val project
     emulatorCatalog.updateNow()
     emulatorCatalog.addListener(this, EMULATOR_DISCOVERY_INTERVAL_MILLIS)
     emulators.addAll(emulatorCatalog.emulators)
-    // Create the panel for the last selected Emulator before other panels so that it becomes selected
-    // unless a recently launched Emulator takes over.
-    val activeEmulator = lastSelectedEmulatorId?.let { emulators.find { it.emulatorId == lastSelectedEmulatorId } }
-    lastSelectedEmulatorId = null // Not maintained when the tool window is visible.
-    if (activeEmulator != null) {
-      addEmulatorPanel(activeEmulator)
+    if (emulators.isEmpty()) {
+      createPlaceholderPanel()
     }
-    for (emulator in emulators) {
-      if (emulator != activeEmulator) {
-        addEmulatorPanel(emulator)
+    else {
+      // Create the panel for the last selected Emulator before other panels so that it becomes selected
+      // unless a recently launched Emulator takes over.
+      val activeEmulator = lastSelectedEmulatorId?.let { emulators.find { it.emulatorId == lastSelectedEmulatorId } }
+      lastSelectedEmulatorId = null // Not maintained when the tool window is visible.
+      if (activeEmulator != null) {
+        addEmulatorPanel(activeEmulator)
+      }
+      for (emulator in emulators) {
+        if (emulator != activeEmulator) {
+          addEmulatorPanel(emulator)
+        }
       }
     }
 
@@ -215,6 +222,10 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   private fun addEmulatorPanel(panel: EmulatorToolWindowPanel) {
+    if (panels.isEmpty()) {
+      getContentManager().removeAllContents(true) // Remove the placeholder panel.
+    }
+
     panel.zoomToolbarIsVisible = zoomToolbarIsVisible
     val contentFactory = ContentFactory.SERVICE.getInstance()
     val content = contentFactory.createContent(panel.component, panel.title, false)
@@ -250,7 +261,20 @@ internal class EmulatorToolWindowManager private constructor(private val project
       val contentManager = getContentManager()
       val content = contentManager.getContent(panel.component)
       contentManager.removeContent(content, true)
+      if (panels.isEmpty()) {
+        createPlaceholderPanel()
+      }
     }
+  }
+
+  private fun createPlaceholderPanel() {
+    val panel = PlaceholderPanel(project)
+    val contentFactory = ContentFactory.SERVICE.getInstance()
+    val content = contentFactory.createContent(panel, panel.title, false)
+    content.tabName = panel.title
+    val contentManager = getContentManager()
+    contentManager.addContent(content)
+    contentManager.setSelectedContent(content)
   }
 
   private fun viewSelectionChanged(contentManager: ContentManager) {

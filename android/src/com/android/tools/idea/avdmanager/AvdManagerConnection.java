@@ -595,8 +595,8 @@ public class AvdManagerConnection {
   private static boolean shouldBeLaunchedEmbedded(@NotNull AvdInfo avd) {
     // In order for an AVD to be launched in a tool window the corresponding option should be
     // enabled in Emulator settings and the AVD should not be foldable, TV, or Android Auto.
-    return EmulatorSettings.getInstance().getLaunchEmbedded() &&
-           avd.getProperty("hw.displayRegion.0.1.width") != null && // Foldable
+    return EmulatorSettings.getInstance().getLaunchInToolWindow() &&
+           avd.getProperty("hw.displayRegion.0.1.width") == null && // Not foldable.
            !"android-tv".equals(avd.getProperty(AVD_INI_TAG_ID)) &&
            !"android-automotive".equals(avd.getProperty(AVD_INI_TAG_ID));
   }
