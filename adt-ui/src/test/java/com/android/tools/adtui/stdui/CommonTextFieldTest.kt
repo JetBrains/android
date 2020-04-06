@@ -54,7 +54,7 @@ class CommonTextFieldTest {
   @Test
   fun testErrorStateIsSetAndResetOnTextField() {
     // Only the Darcula UI supplies a ErrorBorderCapable border.
-    field.ui = DarculaTextFieldUI()
+    field.setUI(DarculaTextFieldUI())
     field.border = DarculaEditorTextFieldBorder()
 
     // Show outline based on the value when not editing:
