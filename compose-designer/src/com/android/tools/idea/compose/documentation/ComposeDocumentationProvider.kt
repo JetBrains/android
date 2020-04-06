@@ -95,7 +95,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
       }
     }
       .thenApply {
-        if (!element.isValid) return@thenApply null
+        if (!ReadAction.compute<Boolean, Throwable> { element.isValid }) return@thenApply null
         val originalDoc = getOriginalDoc(element, originalElement)
         if (it == null) {
           return@thenApply originalDoc
