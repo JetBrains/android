@@ -166,9 +166,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
 
     try {
       val start = System.currentTimeMillis()
-      val files = Files.list(registrationDir).use {
-        it.filter { fileNamePattern.matcher(it.fileName.toString()).matches() }.toList()
-      }
+      val files = readRegistrationDirectory()
       val oldEmulators = emulators.associateBy { it.emulatorId }
       val newEmulators = ConcurrentHashMap<EmulatorId, EmulatorController>()
       if (files.isNotEmpty() && !isDisposing) {
@@ -254,6 +252,16 @@ class RunningEmulatorCatalog : Disposable.Parent {
           scheduleUpdate()
         }
       }
+    }
+  }
+
+  private fun readRegistrationDirectory(): List<Path> {
+    try {
+      return Files.list(registrationDir).use {
+        it.filter { fileNamePattern.matcher(it.fileName.toString()).matches() }.toList()
+      }
+    } catch (e: NoSuchFileException) {
+      return emptyList() // The registration directory hasn't been created yet.
     }
   }
 
