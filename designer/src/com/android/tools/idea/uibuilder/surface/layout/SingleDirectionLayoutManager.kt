@@ -52,7 +52,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
       preferredHeight = content.sumOf { margin.vertical + contentSize.height + verticalViewDelta } - verticalViewDelta
     }
     else {
-      preferredWidth = content.sumOf { contentSize.width + horizontalViewDelta } - horizontalViewDelta
+      preferredWidth = content.sumOf { margin.horizontal + contentSize.width + horizontalViewDelta } - horizontalViewDelta
       preferredHeight = content.maxOf { contentSize.height } ?: 0
     }
 
@@ -72,7 +72,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
       requiredHeight = content.sumOf { margin.vertical + scaledContentSize.height + verticalViewDelta } - verticalViewDelta
     }
     else {
-      requiredWidth = content.sumOf { scaledContentSize.width + horizontalViewDelta } - horizontalViewDelta
+      requiredWidth = content.sumOf { margin.horizontal + scaledContentSize.width + horizontalViewDelta } - horizontalViewDelta
       requiredHeight = content.maxOf { scaledContentSize.height } ?: 0
     }
 
