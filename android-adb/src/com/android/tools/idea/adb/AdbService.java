@@ -280,20 +280,22 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
 
   @Override
   public void optionsChanged() {
-    File adb = myAdb.get();
-    // we use the presence of myAdb as an indication that adb was started earlier
-    if (adb != null) {
-      try {
-        LOG.info("Terminating adb server");
-        terminateDdmlib();
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      File adb = myAdb.get();
+      // we use the presence of myAdb as an indication that adb was started earlier
+      if (adb != null) {
+        try {
+          LOG.info("Terminating adb server");
+          terminateDdmlib();
 
-        LOG.info("Restart adb server");
-        getDebugBridge(adb).get();
+          LOG.info("Restart adb server");
+          getDebugBridge(adb).get();
+        }
+        catch (TimeoutException | InterruptedException | ExecutionException e) {
+          LOG.warn("Error restarting ADB", e);
+        }
       }
-      catch (TimeoutException | InterruptedException | ExecutionException e) {
-        LOG.warn("Error restarting ADB", e);
-      }
-    }
+    });
   }
 
   private static class CreateBridgeTask implements Callable<BridgeConnectionResult> {
