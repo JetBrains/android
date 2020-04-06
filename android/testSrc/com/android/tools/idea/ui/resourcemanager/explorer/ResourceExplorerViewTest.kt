@@ -213,7 +213,7 @@ class ResourceExplorerViewTest {
 
     waitAndAssert<AssetListView>(view) { it != null && it.model.size > 0 && it.model.getElementAt(0).name == "png" }
     val list = UIUtil.findComponentOfType(view, AssetListView::class.java)!!
-    list.ui = HeadlessListUI()
+    list.setUI(HeadlessListUI())
     val pointOfFirstResource = list.indexToLocation(0)
     // Click a resource.
     simulateMouseClick(list, pointOfFirstResource, clickCount= 1)

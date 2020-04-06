@@ -52,7 +52,7 @@ class CommonComboBoxTest {
   @Test
   fun testErrorStateIsSetAndResetOnComboBox() {
     // Only the Darcula UI supplies a ErrorBorderCapable border.
-    comboBox.ui = DarculaComboBoxUI()
+    comboBox.setUI(DarculaComboBoxUI())
 
     // Show outline based on the value when not editing:
     model.value = "Error"
