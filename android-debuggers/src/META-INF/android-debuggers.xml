@@ -26,6 +26,10 @@
     <projectService
         serviceInterface="com.android.tools.idea.sqlite.DatabaseInspectorProjectService"
         serviceImplementation="com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl" />
+
+    <projectService
+        serviceInterface="com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker"
+        serviceImplementation="com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTrackerImpl" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.explorer">
