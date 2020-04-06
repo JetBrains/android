@@ -56,10 +56,5 @@
       <action id="android.emulator.close" class="com.android.tools.idea.emulator.actions.EmulatorShutdownAction"
               icon="StudioIcons.Common.CLOSE" text="Close" description="Shut down the Emulator"/>
     </group>
-
-    <action id="ToggleEmulatorWindow" class="com.android.tools.idea.emulator.actions.ToggleEmulatorWindowAction"
-            text="Toggle Emulator Window">
-      <keyboard-shortcut first-keystroke="alt shift e" keymap="$default"/>
-    </action>
   </actions>
 </idea-plugin>
