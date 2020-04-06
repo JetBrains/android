@@ -310,7 +310,7 @@ public abstract class BaseAction extends AnAction {
     }
 
     for (DebuggerSession session : DebuggerManagerEx.getInstanceEx(project).getSessions()) {
-      String debuggerPort = session.getProcess().getConnection().getAddress().trim();
+      String debuggerPort = session.getProcess().getConnection().getDebuggerAddress().trim();
       Client remoteDebuggedClient = deployable
         .searchClientsForPackage()
         .stream()
