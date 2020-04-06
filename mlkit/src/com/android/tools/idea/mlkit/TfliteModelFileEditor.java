@@ -348,8 +348,10 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
           .append(String.format("  %s.load(bitmap);\n", parameter.getName()));
       }
       else if (ClassNames.TENSOR_BUFFER.equals(parameter.getType().getCanonicalText())) {
-        stringBuilder.append(String.format("  TensorBuffer %s = TensorBuffer.createFixedSize(%s, %s);\n", parameter.getName(),
-                                           buildIntArray(tensorInfo.getShape()), buildDataType(tensorInfo.getDataType())));
+        stringBuilder
+          .append(String.format("  TensorBuffer %s = TensorBuffer.createFixedSize(%s, %s);\n", parameter.getName(),
+                                           buildIntArray(tensorInfo.getShape()), buildDataType(tensorInfo.getDataType())))
+          .append(String.format("  %s.loadBuffer(byteBuffer);\n", parameter.getName()));
       }
     }
 
