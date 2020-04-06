@@ -36,7 +36,7 @@ public abstract class MemoryProfilerTestBase {
   @Before
   public void setupBase() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    myProfilers = new StudioProfilers(new ProfilerClient(getGrpcChannel().getName()), myIdeProfilerServices, myTimer);
+    myProfilers = new StudioProfilers(new ProfilerClient(getGrpcChannel().getChannel()), myIdeProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     onProfilersCreated(myProfilers);
 

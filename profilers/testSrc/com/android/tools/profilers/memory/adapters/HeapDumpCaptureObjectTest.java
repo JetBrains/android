@@ -75,7 +75,7 @@ public class HeapDumpCaptureObjectTest {
 
   @Before
   public void setUp() {
-    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer),
+    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer),
                                       new FakeCaptureObjectLoader());
   }
 
@@ -91,7 +91,7 @@ public class HeapDumpCaptureObjectTest {
     HeapDumpInfo dumpInfo =
       HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA,
+      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
                                 dumpInfo, null, myIdeProfilerServices.getFeatureTracker(), myStage);
 
     // Verify values associated with the HeapDumpInfo object.
@@ -152,7 +152,7 @@ public class HeapDumpCaptureObjectTest {
     HeapDumpInfo dumpInfo =
       HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA, dumpInfo,
+      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA, dumpInfo,
                                 null,
                                 myIdeProfilerServices.getFeatureTracker(), myStage);
 
@@ -186,7 +186,7 @@ public class HeapDumpCaptureObjectTest {
   public void testLoadingFailure() throws Exception {
     HeapDumpInfo dumpInfo = HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(8).build();
     HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA, dumpInfo,
+      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA, dumpInfo,
                                 null,
                                 myIdeProfilerServices.getFeatureTracker(), myStage);
 
@@ -203,7 +203,7 @@ public class HeapDumpCaptureObjectTest {
   public void testHeapDumpActivityLeak() throws Exception {
     HeapDumpInfo dumpInfo = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build();
     HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA,
+      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
                                 dumpInfo, null, myIdeProfilerServices.getFeatureTracker(), myStage);
 
     File hprof = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData/hprofs/displayingbitmaps_leakedActivity.hprof");

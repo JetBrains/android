@@ -37,9 +37,9 @@ class CpuUsageTest {
 
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuUsageTest", FakeCpuService(), FakeProfilerService(timer), transportService)
-  private val profilerClient = ProfilerClient(grpcChannel.name)
+
   private val services = FakeIdeProfilerServices()
-  private val profilers = StudioProfilers(profilerClient, services, timer)
+  private val profilers by lazy { StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer) }
 
   @Before
   fun setup() {

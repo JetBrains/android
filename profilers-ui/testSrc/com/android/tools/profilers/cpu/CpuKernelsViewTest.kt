@@ -60,7 +60,7 @@ class CpuKernelsViewTest {
   @Before
   fun setUp() {
     ideServices = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), ideServices, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideServices, timer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 

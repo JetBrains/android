@@ -36,12 +36,11 @@ class CpuCaptureMinimapModelTest {
 
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuCaptureMinimapModelTest", FakeCpuService(), FakeProfilerService(timer), FakeTransportService(timer))
-  private val profilerClient = ProfilerClient(grpcChannel.name)
 
   private lateinit var profilers: StudioProfilers
   @Before
   fun setUp() {
-    profilers = StudioProfilers(profilerClient, FakeIdeProfilerServices(), timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
   }
 
   @Test

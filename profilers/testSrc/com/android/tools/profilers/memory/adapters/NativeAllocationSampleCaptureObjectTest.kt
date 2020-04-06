@@ -49,7 +49,7 @@ class NativeAllocationSampleCaptureObjectTest {
 
   @Before
   fun setUp() {
-    stage = MemoryProfilerStage(StudioProfilers(ProfilerClient(grpcChannel.name), ideProfilerServices, timer),
+    stage = MemoryProfilerStage(StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer),
                                 FakeCaptureObjectLoader())
   }
 
@@ -59,7 +59,7 @@ class NativeAllocationSampleCaptureObjectTest {
     val startTimeNs: Long = 3
     val endTimeNs: Long = 8
     val info = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build()
-    val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.name), ProfilersTestData.SESSION_DATA, info, stage!!)
+    val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
     // Verify values associated with the MemoryNativeSampleData object.
     assertThat(startTimeNs).isEqualTo(capture.startTimeNs)
     assertThat(endTimeNs).isEqualTo(capture.endTimeNs)
@@ -73,7 +73,7 @@ class NativeAllocationSampleCaptureObjectTest {
     val startTimeNs: Long = 3
     val endTimeNs: Long = 8
     val info = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build()
-    val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.name), ProfilersTestData.SESSION_DATA, info, stage!!)
+    val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
     transportService.addFile(java.lang.Long.toString(startTimeNs), ByteString.copyFrom("TODO".toByteArray()))
     assertThat(capture.load(null, null)).isTrue()
     assertThat(capture.isDoneLoading).isTrue()
@@ -86,7 +86,7 @@ class NativeAllocationSampleCaptureObjectTest {
     val startTimeNs: Long = 3
     val endTimeNs: Long = 8
     val info = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build()
-    val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.name), ProfilersTestData.SESSION_DATA, info, stage!!)
+    val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
     assertThat(capture.load(null, null)).isFalse()
     assertThat(capture.isError).isTrue()
   }

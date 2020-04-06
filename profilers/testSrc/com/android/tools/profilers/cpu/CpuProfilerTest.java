@@ -92,7 +92,7 @@ public final class CpuProfilerTest {
   public void setUp() {
     myIdeServices = new FakeIdeProfilerServices();
     myIdeServices.enableEventsPipeline(myUnifiedPipeline);
-    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeServices, myTimer);
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeServices, myTimer);
   }
 
   @Test

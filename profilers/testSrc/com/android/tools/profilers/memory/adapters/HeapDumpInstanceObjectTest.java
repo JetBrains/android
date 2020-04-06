@@ -15,6 +15,21 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.ARRAY;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.BOOLEAN;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.BYTE;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.CHAR;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.CLASS;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.DOUBLE;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.FLOAT;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.INT;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.LONG;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.NULL;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.SHORT;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.STRING;
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
@@ -29,19 +44,15 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executor;
-
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.*;
-import static org.junit.Assert.assertEquals;
 
 public class HeapDumpInstanceObjectTest {
   private static final String MOCK_CLASS = "MockClass";
@@ -53,7 +64,7 @@ public class HeapDumpInstanceObjectTest {
   @Before
   public void setup() {
     FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
-    ProfilerClient profilerClient = new ProfilerClient(myGrpcChannel.getName());
+    ProfilerClient profilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     StudioProfilers profilers = new StudioProfilers(profilerClient, profilerServices, new FakeTimer());
     MemoryProfilerStage stage = new MemoryProfilerStage(new StudioProfilers(profilerClient, profilerServices, new FakeTimer()),
                                                         new FakeCaptureObjectLoader());

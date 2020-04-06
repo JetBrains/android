@@ -50,13 +50,12 @@ class CpuThreadTrackRendererTest {
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuThreadTrackRendererTest", FakeCpuService(), FakeProfilerService(timer), transportService,
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
-  private val profilerClient = ProfilerClient(grpcChannel.name)
 
   private lateinit var profilers: StudioProfilers
 
   @Before
   fun setUp() {
-    profilers = StudioProfilers(profilerClient, services, timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
   }
 
   @Test

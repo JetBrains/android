@@ -44,7 +44,7 @@ class CpuAnalysisChartTest {
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
     profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
 
   }

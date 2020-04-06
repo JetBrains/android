@@ -150,7 +150,7 @@ class CustomEventMonitorTest {
     val services = FakeIdeProfilerServices().apply {
       enableCustomEventVisualization(true)
     }
-    profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     USER_EVENTS.forEach { event -> transportService.addEventToStream(1, event) }
     monitor = CustomEventMonitor(profilers)
   }

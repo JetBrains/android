@@ -27,6 +27,7 @@ import com.android.tools.profiler.proto.Transport.VersionRequest;
 import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -35,7 +36,12 @@ public final class StudioProfilersCommonTest {
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer, false);
   @Rule public FakeGrpcServer myGrpcServer =
     FakeGrpcServer.createFakeGrpcServer("StudioProfilerCommonTestChannel", myTransportService, new FakeProfilerService(myTimer));
-  private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcServer.getName());
+  private ProfilerClient myProfilerClient;
+
+  @Before
+  public void setUp() {
+    myProfilerClient = new ProfilerClient(myGrpcServer.getChannel());
+  }
 
   @Test
   public void testVersion() {

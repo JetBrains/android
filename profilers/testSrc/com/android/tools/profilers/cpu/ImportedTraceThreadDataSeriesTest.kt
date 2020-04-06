@@ -40,7 +40,7 @@ class ImportedTraceThreadDataSeriesTest {
   fun setUp() {
     val timer = FakeTimer()
     val ideServices = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), ideServices, timer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideServices, timer)
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 

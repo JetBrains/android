@@ -98,9 +98,9 @@ class UserCounterModelTest {
     fakeData.forEach { event -> transportService.addEventToStream(1, event) }
 
     myUserCounterModelGroup1 = UserCounterModel(
-      StudioProfilers(ProfilerClient(grpcChannel.name), services, timer), "group1")
+      StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer), "group1")
     myUserCounterModelGroup2 = UserCounterModel(
-      StudioProfilers(ProfilerClient(grpcChannel.name), services, timer), "group2")
+      StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer), "group2")
 
   }
 

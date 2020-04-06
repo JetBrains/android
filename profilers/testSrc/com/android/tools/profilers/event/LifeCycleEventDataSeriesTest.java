@@ -72,7 +72,7 @@ public class LifeCycleEventDataSeriesTest {
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
     myActivitySeries = new LifecycleEventDataSeries(profilers, false);
     myFragmentSeries = new LifecycleEventDataSeries(profilers, true);
   }

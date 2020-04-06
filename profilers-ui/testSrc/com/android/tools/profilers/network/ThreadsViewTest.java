@@ -37,7 +37,6 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import java.awt.Component;
@@ -48,7 +47,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JTable;
-import javax.swing.SwingUtilities;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -82,7 +80,7 @@ public class ThreadsViewTest {
 
   @Before
   public void setUp() throws InvocationTargetException, InterruptedException {
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
     StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     myStageView = new NetworkProfilerStageView(profilersView, new NetworkProfilerStage(profilers));
     myThreadsView = new ThreadsView(myStageView);

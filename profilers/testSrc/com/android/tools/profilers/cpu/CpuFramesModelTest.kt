@@ -42,7 +42,7 @@ class CpuFramesModelTest {
   fun setup() {
     val timer = FakeTimer()
     val services = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     stage = CpuProfilerStage(profilers)
     model = CpuFramesModel(range, stage)
   }
