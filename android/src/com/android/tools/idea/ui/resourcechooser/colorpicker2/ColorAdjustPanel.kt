@@ -42,7 +42,7 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
       border = JBUI.Borders.empty()
       background = PICKER_BACKGROUND_COLOR
 
-      ui = BasicButtonUI()
+      setUI(BasicButtonUI())
 
       isFocusable = false
       preferredSize = JBUI.size(COLOR_INDICATOR_SIZE)
