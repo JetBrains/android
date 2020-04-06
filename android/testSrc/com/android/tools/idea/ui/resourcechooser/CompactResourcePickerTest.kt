@@ -24,6 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.waitAndAssert
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.SearchTextField
 import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
@@ -93,7 +94,9 @@ class CompactResourcePickerTest {
     val resourcePickerPanel = createAndWaitForResourcePickerPanel { selectedResource = it }
     val searchField = UIUtil.findComponentOfType(resourcePickerPanel, SearchTextField::class.java)!!
 
-    searchField.text = "Foreground"
+    runInEdtAndWait {
+      searchField.text = "Foreground"
+    }
     waitAndAssert<JList<in Any>>(resourcePickerPanel) {
       // Wait till the filter is applied
       it != null && it.model.size == 1
