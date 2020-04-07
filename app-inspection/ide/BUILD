@@ -49,14 +49,17 @@ iml_module(
         "//tools/idea/platform/util:intellij.platform.util[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:transport-proto",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/adt/idea/app-inspection/inspector/ide:intellij.android.app-inspection.inspector.ide[module]",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
     ],
 )
 

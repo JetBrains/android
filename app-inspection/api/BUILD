@@ -47,6 +47,7 @@ iml_module(
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:studio-grpc",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
