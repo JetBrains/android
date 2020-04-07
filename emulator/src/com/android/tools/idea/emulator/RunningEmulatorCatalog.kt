@@ -30,6 +30,7 @@ import com.intellij.util.Alarm
 import gnu.trove.TObjectLongHashMap
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
@@ -256,12 +257,12 @@ class RunningEmulatorCatalog : Disposable.Parent {
   }
 
   private fun readRegistrationDirectory(): List<Path> {
-    try {
-      return Files.list(registrationDir).use {
+    return try {
+      Files.list(registrationDir).use {
         it.filter { fileNamePattern.matcher(it.fileName.toString()).matches() }.toList()
       }
     } catch (e: NoSuchFileException) {
-      return emptyList() // The registration directory hasn't been created yet.
+      emptyList() // The registration directory hasn't been created yet.
     }
   }
 
