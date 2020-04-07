@@ -422,13 +422,6 @@ public final class StudioFlags {
     "So the new Instant Run can use the combo box",
     false);
 
-  public static final Flag<Boolean> ADB_CONNECTION_STATUS_ACTION_VISIBLE = Flag.create(
-    RUNDEBUG,
-    "adb.connection.status.action.visible",
-    "Show the adb connection status icon",
-    "To help developers with a remote adb setup",
-    false);
-
   public static final Flag<Boolean> ADB_CONNECTION_STATUS_WIDGET_ENABLED = Flag.create(
     RUNDEBUG,
     "adb.connection.status.widget.enabled",
