@@ -27,5 +27,14 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
+    <orderEntry type="module-library" scope="TEST">
+      <library name="ui-animation-tooling">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/ui-animation-tooling-internal.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

@@ -78,7 +78,6 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.UserDataHolderBase
@@ -90,6 +89,7 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
+import com.intellij.ui.JBSplitter
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.future.await
@@ -375,7 +375,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Vertical splitter where the top component is the main Compose Preview panel and the bottom component, when visible, is an auxiliary
    * panel associated with the preview. For example, it can be an animation inspector that lists all the animations the preview has.
    */
-  private val mainPanelSplitter = Splitter(true, 0.7f)
+  private val mainPanelSplitter = JBSplitter(true, 0.7f)
 
   /**
    * [WorkBench] used to contain all the preview elements.
@@ -440,7 +440,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
     val psiFile = psiFilePointer.element
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
-
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
         val file = psiFilePointer.element
@@ -465,6 +464,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           workbench.showLoading(message("panel.building"))
           workbench.hideContent()
         }
+        // When building, invalidate the Animation Inspector, since the animations are now obsolete and new ones will be subscribed once
+        // build is complete and refresh is triggered.
+        ComposePreviewAnimationManager.invalidate()
         EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
       }
     }, this)
@@ -474,7 +476,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       psiFile,
       {
         if (isAutoBuildEnabled && !hasSyntaxErrors()) requestBuildForSurface(surface)
-        else ApplicationManager.getApplication().invokeLater { refresh() }
+        else ApplicationManager.getApplication().invokeLater {
+          // When changes are made to the file, the animations become obsolete, so we invalidate the Animation Inspector and only display
+          // the new ones after a successful build.
+          ComposePreviewAnimationManager.invalidate()
+          refresh()
+        }
       },
       this)
 
