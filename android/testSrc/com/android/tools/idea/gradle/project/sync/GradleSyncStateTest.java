@@ -69,7 +69,6 @@ public class GradleSyncStateTest extends PlatformTestCase {
     assertTrue(mySyncState.isSyncInProgress());
 
     verify(myChangeNotification, times(1)).notifyStateChanged();
-    verify(myGradleSyncListener, times(1)).syncStarted(myProject);
   }
 
   public void testSyncSkipped() {

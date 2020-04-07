@@ -97,8 +97,6 @@ public class GradleFiles {
   @NotNull
   private final Set<VirtualFile> myExternalBuildFiles = new HashSet<>();
 
-  @NotNull private final SyncListener mySyncListener = new SyncListener();
-
   @NotNull private final FileEditorManagerListener myFileEditorListener;
 
   public static class UpdateHashesStartupActivity implements StartupActivity {
@@ -129,9 +127,6 @@ public class GradleFiles {
 
     // Add a listener to see when gradle files are being edited.
     myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myFileEditorListener);
-
-
-    GradleSyncState.subscribe(myProject, mySyncListener);
   }
 
   private void maybeAddOrRemovePsiTreeListener(@Nullable VirtualFile file, @NotNull PsiTreeChangeListener fileChangeListener) {
@@ -150,13 +145,6 @@ public class GradleFiles {
     if (isGradleFile(psiFile) || isExternalBuildFile(psiFile)) {
       PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener);
     }
-  }
-
-  @NotNull
-  @VisibleForTesting
-  GradleSyncListener getSyncListener() {
-    //noinspection ReturnOfInnerClass
-    return mySyncListener;
   }
 
   @NotNull
@@ -425,22 +413,11 @@ public class GradleFiles {
     removeChangedFiles();
   }
 
-  /**
-   * Listens for GradleSync events in order to clear the files that have changed and update the
-   * file hashes for each of the gradle build files.
-   */
-  private class SyncListener implements GradleSyncListener {
-    @Override
-    public void syncStarted(@NotNull Project project) {
-      maybeProcessSyncStarted(project);
+  void maybeProcessSyncStarted() {
+    if (!myProject.isInitialized()) {
+      return;
     }
-
-    private void maybeProcessSyncStarted(@NotNull Project project) {
-      if (!project.isInitialized() && project.equals(myProject)) {
-        return;
-      }
-      resetChangedFilesState();
-    }
+    resetChangedFilesState();
   }
 
   /**
