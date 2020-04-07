@@ -74,7 +74,6 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
-import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.future.await
@@ -282,8 +281,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   var onRefresh: (() -> Unit)? = null
 
   private val notificationsPanel = NotificationPanel(
-    ExtensionPointName.create<EditorNotifications.Provider<EditorNotificationPanel>>(
-      "com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
+    ExtensionPointName.create("com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
 
   /**
    * [WorkBench] used to contain all the preview elements.
