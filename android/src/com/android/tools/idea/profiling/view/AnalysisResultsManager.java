@@ -28,6 +28,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.wm.ToolWindowAnchor;
+import java.util.Collections;
+import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import org.jetbrains.android.util.AndroidBundle;
@@ -46,7 +48,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
     super(project);
 
     myContent = new AnalysisResultsContent();
-    Disposer.register(this, () -> myContent.dispose());
+    Disposer.register(this, myContent::dispose);
   }
 
   @Override
@@ -89,10 +91,10 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
 
   @NotNull
   @Override
-  protected AnAction[] createActions() {
-    return new AnAction[]{new ToggleAction(AndroidBundle.message("android.captures.analysis.results.manager.run.name"),
-                                           AndroidBundle.message("android.captures.analysis.results.manager.run.description"),
-                                           AllIcons.Toolwindows.ToolWindowRun) {
+  protected List<AnAction> createActions() {
+    return Collections.singletonList(new ToggleAction(AndroidBundle.message("android.captures.analysis.results.manager.run.name"),
+                                                      AndroidBundle.message("android.captures.analysis.results.manager.run.description"),
+                                                      AllIcons.Toolwindows.ToolWindowRun) {
       @Override
       public boolean isSelected(@NotNull AnActionEvent e) {
         AnalysisResultsContent analysisResultsContent = getContentFromDesigner();
@@ -124,7 +126,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
           presentation.setIcon(AllIcons.Toolwindows.ToolWindowRun);
         }
       }
-    }};
+    });
   }
 
   @NotNull
@@ -187,7 +189,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
   @Nullable
   private AnalysisResultsContent getContentFromDesigner() {
     DesignerEditorPanelFacade activeDesigner = getActiveDesigner();
-    if (activeDesigner != null && activeDesigner instanceof CapturePanel) {
+    if (activeDesigner instanceof CapturePanel) {
       Object property = activeDesigner.getClientProperty(getComponentName());
       if (property instanceof LightToolWindow) {
         LightToolWindow lightToolWindow = (LightToolWindow)property;
