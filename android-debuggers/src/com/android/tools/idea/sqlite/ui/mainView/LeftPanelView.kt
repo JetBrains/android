@@ -146,10 +146,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       mainView.listeners.forEach { it.refreshAllOpenDatabasesSchemaActionInvoked() }
     }
 
-    runSqlButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.RunConfigurations.TestState.Run)
+    runSqlButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.DatabaseInspector.NEW_QUERY)
     runSqlButton.name = "run-sql-button"
     runSqlButton.isEnabled = false
-    runSqlButton.toolTipText = "Open SQL evaluator tab"
+    runSqlButton.toolTipText = "Open New Query tab"
     northPanel.add(runSqlButton)
 
     runSqlButton.addActionListener { mainView.listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
