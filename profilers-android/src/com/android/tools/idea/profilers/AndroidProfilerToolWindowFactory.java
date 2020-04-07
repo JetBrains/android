@@ -21,7 +21,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -90,7 +89,7 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
    */
   @Nullable
   public static AndroidProfilerToolWindow getProfilerToolWindow(@NotNull Project project) {
-    ToolWindow window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(ID);
+    ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
     if (window == null) {
       return null;
     }

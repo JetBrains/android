@@ -26,7 +26,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,7 +60,7 @@ public class AndroidProfilerCaptureEditor implements FileEditor {
   }
 
   private static void importFileIntoAndroidProfiler(@NotNull final Project project, VirtualFile file) {
-    ToolWindow window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
+    ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
     if (window != null) {
       window.setShowStripeButton(true);
       // Makes sure the window is visible because opening a file is an explicit indication that the user wants to view the file,
