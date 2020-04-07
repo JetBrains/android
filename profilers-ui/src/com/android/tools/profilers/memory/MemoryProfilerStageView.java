@@ -92,15 +92,9 @@ import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.font.TextAttribute;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -410,46 +404,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       long startMicros = (long)getStage().getTimeline().getDataRange().getMin();
       long elapsedMicros = TimeUnit.NANOSECONDS.toMicros(capture.getStartTimeNs()) - startMicros;
       String timeString = TimeFormatter.getSimplifiedClockString(elapsedMicros);
-      myToolbar.add(makeNavigationButton(capture.getName() + ": " + timeString, true, () -> {
-      }));
+      JLabel heapDumpLabel = new JLabel(capture.getName() + ": " + timeString);
+      heapDumpLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
+      myToolbar.add(heapDumpLabel);
     }
-  }
-
-  private static JLabel makeNavigationButton(String label, boolean bold, Runnable action) {
-    JLabel btn = new JLabel(label);
-    Map<TextAttribute,Object> normalAttrs = new HashMap<>(btn.getFont().getAttributes());
-    if (bold) {
-      normalAttrs.put(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
-    }
-    Font normalFont = btn.getFont().deriveFont(normalAttrs);
-    Map<TextAttribute,Object> hoverAttrs = new HashMap<>(normalFont.getAttributes());
-    hoverAttrs.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
-    Font hoverFont = normalFont.deriveFont(hoverAttrs);
-    btn.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
-    btn.setFont(normalFont);
-    btn.addMouseListener(new MouseListener() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        action.run();
-      }
-
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        btn.setFont(hoverFont);
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-        btn.setFont(normalFont);
-      }
-
-      @Override
-      public void mousePressed(MouseEvent e) {}
-
-      @Override
-      public void mouseReleased(MouseEvent e) {}
-    });
-    return btn;
   }
 
   @VisibleForTesting
