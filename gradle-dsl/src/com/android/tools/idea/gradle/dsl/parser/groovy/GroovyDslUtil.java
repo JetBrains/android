@@ -470,6 +470,24 @@ public final class GroovyDslUtil {
         if (name != null) {
           result.append(GradleNameElement.escape(name));
         }
+        else {
+          allValid[0] = false;
+        }
+      }
+
+      @Override
+      public void visitIndexProperty(@NotNull GrIndexProperty indexPropertyExpression) {
+        GrExpression invokedExpression = indexPropertyExpression.getInvokedExpression();
+        invokedExpression.accept(this);
+        result.append("[");
+        GrArgumentList argumentList = indexPropertyExpression.getArgumentList();
+        GroovyPsiElement[] arguments = argumentList.getAllArguments();
+        if (arguments.length != 1) {
+          allValid[0] = false;
+          return;
+        }
+        result.append(arguments[0].getText());
+        result.append("]");
       }
 
       @Override

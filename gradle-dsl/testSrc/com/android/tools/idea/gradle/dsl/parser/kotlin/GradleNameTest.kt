@@ -25,6 +25,7 @@ class GradleNameTest : PlatformTestCase() {
     val expression = psiFactory.createExpression(string)
     return gradleNameFor(expression)
   }
+
   fun testGradleName() {
     assertThat(gradleNameFromString("abc")).isEqualTo("abc")
     assertThat(gradleNameFromString("abc.def")).isEqualTo("abc.def")
@@ -45,7 +46,12 @@ class GradleNameTest : PlatformTestCase() {
     assertThat(gradleNameFromString("abc.def.create(\"foo\").`ghi.`")).isEqualTo("abc.def.foo.ghi\\.")
     assertThat(gradleNameFromString("abc.`def.`.create(\"foo\").ghi")).isEqualTo("abc.def\\..foo.ghi")
     assertThat(gradleNameFromString("abc.def.create(\"foo\").`extra`[\"bar\"]")).isEqualTo("abc.def.foo.ext.bar")
+
+    // indexing tests
+    assertThat(gradleNameFromString("abc.def[0]")).isEqualTo("abc.def[0]")
+    assertThat(gradleNameFromString("abc.`def.`[0]")).isEqualTo("abc.def\\.[0]")
   }
+
   fun testNullGradleName() {
     assertThat(gradleNameFromString("\"foo\"")).isNull()
     assertThat(gradleNameFromString("1")).isNull()
@@ -55,5 +61,6 @@ class GradleNameTest : PlatformTestCase() {
     assertThat(gradleNameFromString("foo()")).isNull()
     assertThat(gradleNameFromString("bar(\"foo\", \"baz\")")).isNull()
     assertThat(gradleNameFromString("abc.def.crate(\"foo\")")).isNull()
+    assertThat(gradleNameFromString("abc.def[0,1]")).isNull()
   }
 }

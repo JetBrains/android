@@ -43,6 +43,10 @@ class GradleNameTest : PlatformTestCase() {
     assertThat(gradleNameFromString("abc.def.foo.'ghi.'")).isEqualTo("abc.def.foo.ghi\\.")
     assertThat(gradleNameFromString("abc.'def.'.foo.ghi")).isEqualTo("abc.def\\..foo.ghi")
     assertThat(gradleNameFromString("abc.def.foo.'ext'.bar")).isEqualTo("abc.def.foo.ext.bar")
+
+    // indexing tests
+    assertThat(gradleNameFromString("abc.def[0]")).isEqualTo("abc.def[0]")
+    assertThat(gradleNameFromString("abc.'def.'[0]")).isEqualTo("abc.def\\.[0]")
   }
 
   fun testNullGradleName() {
@@ -54,5 +58,6 @@ class GradleNameTest : PlatformTestCase() {
     assertThat(gradleNameFromString("foo()")).isNull()
     assertThat(gradleNameFromString("bar(\"foo\", \"baz\")")).isNull()
     assertThat(gradleNameFromString("abc.def.create(\"foo\")")).isNull()
+    assertThat(gradleNameFromString("abc.def[0,1]")).isNull()
   }
 }

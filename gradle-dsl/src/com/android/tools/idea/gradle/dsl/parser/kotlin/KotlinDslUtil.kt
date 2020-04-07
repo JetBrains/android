@@ -400,6 +400,10 @@ fun gradleNameFor(expression: KtExpression): String? {
   expression.accept(object: KtTreeVisitorVoid() {
     override fun visitArrayAccessExpression(expression: KtArrayAccessExpression) {
       expression.arrayExpression?.accept(this, null)
+      if (expression.indexExpressions.size != 1) {
+        allValid = false
+        return
+      }
       // translating here between Kts extra property lookup (array access, e.g. extra["foo"])
       // and GradleNameElement's expectation (field dereference, e.g. ext.foo).  Only do this
       // conversion if `extra' is the last thing we've seen in the arrayExpression.
