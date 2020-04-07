@@ -16,6 +16,7 @@
 package com.android.tools.adtui.workbench;
 
 import static com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType.DETACHED;
+import static com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType.FLOATING;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -46,14 +47,16 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
   private AttachedToolWindow<T> myCorrespondingToolWindow;
 
   DetachedToolWindow(@NotNull Project project,
+                     @NotNull String workBenchName,
                      @NotNull ToolWindowDefinition<T> definition) {
-    this(definition, ToolWindowManager.getInstance(project));
+    this(definition, workBenchName, ToolWindowManager.getInstance(project));
   }
 
   private DetachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
-                     @NotNull ToolWindowManager toolWindowManager) {
+                             @NotNull String workBenchName,
+                             @NotNull ToolWindowManager toolWindowManager) {
     myContent = definition.getFactory().apply(this);
-    myToolWindow = createToolWindow(toolWindowManager, definition);
+    myToolWindow = createToolWindow(toolWindowManager, workBenchName, definition);
   }
 
   public void show(@NotNull AttachedToolWindow<T> correspondingWindow) {
@@ -94,8 +97,9 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   private ToolWindowEx createToolWindow(@NotNull ToolWindowManager toolWindowManager,
+                                        @NotNull String workBenchName,
                                         @NotNull ToolWindowDefinition<T> definition) {
-    String id = definition.getTitle();
+    String id = String.format("%s - %s", workBenchName, definition.getTitle());
     ToolWindowEx window = (ToolWindowEx)toolWindowManager.getToolWindow(id);
     if (window == null) {
       ToolWindowAnchor anchor = definition.getSide().isLeft() ? ToolWindowAnchor.LEFT : ToolWindowAnchor.RIGHT;
@@ -170,6 +174,7 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
         updateSettingsInAttachedToolWindow();
         myCorrespondingToolWindow.setLeft(mySide.isLeft());
         myCorrespondingToolWindow.setPropertyAndUpdate(DETACHED, false);
+        myCorrespondingToolWindow.setPropertyAndUpdate(FLOATING, false);
       }
     }
   }

@@ -277,6 +277,9 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     for (PropertyType property : PropertyType.values()) {
       setProperty(property, getLayoutProperty(Layout.DEFAULT, property));
     }
+    updateContent();
+    updateActions();
+    myModel.update(this, PropertyType.DETACHED);
   }
 
   public void setContext(T context) {
