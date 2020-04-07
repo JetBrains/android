@@ -19,11 +19,7 @@ import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.generation.OverrideImplementsAnnotationsHandler
 import com.intellij.codeInsight.intention.AddAnnotationPsiFix
 import com.intellij.openapi.project.Project
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiModifierListOwner
-import com.intellij.psi.PsiNameValuePair
+import com.intellij.psi.*
 
 class AndroidOverrideAnnotationsHandler : OverrideImplementsAnnotationsHandler {
   @Suppress("OverridingDeprecatedMember")
@@ -72,11 +68,11 @@ class AndroidOverrideAnnotationsHandler : OverrideImplementsAnnotationsHandler {
           // Using old android.support annotations instead?
           val prev = new.replace("androidx.", "android.support.")
           if (psiFacade.findClass(prev, target.resolveScope) != null) {
-            AddAnnotationPsiFix.addPhysicalAnnotation(prev, PsiNameValuePair.EMPTY_ARRAY, modifierList)
+            AddAnnotationPsiFix.addPhysicalAnnotationIfAbsent(prev, PsiNameValuePair.EMPTY_ARRAY, modifierList)
           }
         }
         else {
-          AddAnnotationPsiFix.addPhysicalAnnotation(new, PsiNameValuePair.EMPTY_ARRAY, modifierList)
+          AddAnnotationPsiFix.addPhysicalAnnotationIfAbsent(new, PsiNameValuePair.EMPTY_ARRAY, modifierList)
         }
       }
       else {
