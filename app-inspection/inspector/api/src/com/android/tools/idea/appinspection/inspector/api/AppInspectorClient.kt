@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.appinspection.inspector.api
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.WorkerThread
 import com.google.common.util.concurrent.ListenableFuture
+import java.util.concurrent.Executor
+import javax.annotation.concurrent.ThreadSafe
 
 /**
  * Base class for implementing a client of known app-inspector.
  *
- * Implementations can use [messenger] to send commands to an inspector and listens for events from it via [eventListener].
+ * Implementations can use [messenger] to send commands to an inspector and listens for events from it via [rawEventListener].
  */
 abstract class AppInspectorClient(
   val messenger: CommandMessenger
@@ -45,15 +48,20 @@ abstract class AppInspectorClient(
   }
 
   /**
-   * Interface for all types of events from an inspector.
+   * Interface for raw events from an inspector.
    */
-  interface EventListener {
+  interface RawEventListener {
     /**
      * Callback for raw events sent by inspector.
      */
     @WorkerThread
     fun onRawEvent(eventData: ByteArray) {}
+  }
 
+  /**
+   * Interface for service related events from an inspector.
+   */
+  interface ServiceEventListener {
     /**
      * Callback for when inspector crashes.
      *
@@ -76,5 +84,71 @@ abstract class AppInspectorClient(
     fun onDispose() {}
   }
 
-  abstract val eventListener: EventListener
+  /**
+   * Class that allows for the triggering of notifications on all current [ServiceEventListener] associated with this client.
+   *
+   * It is exposed publicly but should only be used by internal AppInspection API.
+   */
+  @ThreadSafe
+  class ServiceEventNotifier {
+    private val lock = Any()
+
+    @GuardedBy("lock")
+    private val listeners = mutableMapOf<ServiceEventListener, Executor>()
+
+    @GuardedBy("lock")
+    private var isCrashed = false
+
+    @GuardedBy("lock")
+    private lateinit var crashMessage: String
+
+    @GuardedBy("lock")
+    private var isDisposed = false
+
+    internal fun addListener(listener: ServiceEventListener, executor: Executor) {
+      synchronized(lock) {
+        // A client is disposed soon after it crashes. There is a very small window in which it is in crashed state but not disposed, so we
+        // still want to add listener if that's the case.
+        if (isCrashed) {
+          executor.execute { listener.onCrashEvent(crashMessage) }
+        }
+        if (isDisposed) {
+          executor.execute { listener.onDispose() }
+        } else {
+          listeners[listener] = executor
+        }
+      }
+    }
+
+    /**
+     * Only to be used by AppInspection internal modules.
+     */
+    fun notifyCrash(message: String) {
+      synchronized(lock) {
+        isCrashed = true
+        crashMessage = message
+        listeners.forEach { (listener, executor) -> executor.execute { listener.onCrashEvent(message) } }
+      }
+    }
+
+    /**
+     * Only to be used by AppInspection internal modules.
+     */
+    fun notifyDispose() {
+      synchronized(lock) {
+        isDisposed = true
+        listeners.forEach { (listener, executor) -> executor.execute { listener.onDispose() } }
+        listeners.clear()
+      }
+    }
+  }
+
+  abstract val rawEventListener: RawEventListener
+
+  val serviceEventNotifier = ServiceEventNotifier()
+
+  /**
+   * Adds a [ServiceEventListener] to listen to dispose and crash events of this client. Callbacks are executed on [executor].
+   */
+  fun addServiceEventListener(listener: ServiceEventListener, executor: Executor) = serviceEventNotifier.addListener(listener, executor)
 }

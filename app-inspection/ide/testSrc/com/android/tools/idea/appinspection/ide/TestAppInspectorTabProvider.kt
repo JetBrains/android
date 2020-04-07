@@ -41,5 +41,5 @@ class StubTestAppInspectorTabProvider : AppInspectorTabProvider {
 }
 
 class StubTestAppInspectorClient(messenger: CommandMessenger) : AppInspectorClient(messenger) {
-  override val eventListener: EventListener = mock(EventListener::class.java)
+  override val rawEventListener: RawEventListener = mock(RawEventListener::class.java)
 }

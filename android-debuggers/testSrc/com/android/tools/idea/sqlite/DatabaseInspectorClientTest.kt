@@ -53,8 +53,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
       mockMessenger,
       handleErrorFunction,
       openDatabaseFunction,
-      hasDatabasePossiblyChangedFunction,
-      { }
+      hasDatabasePossiblyChangedFunction
     )
   }
 
@@ -78,7 +77,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     val event = SqliteInspectorProtocol.Event.newBuilder().setDatabaseOpened(databaseOpenEvent).build()
 
     // Act
-    databaseInspectorClient.eventListener.onRawEvent(event.toByteArray())
+    databaseInspectorClient.rawEventListener.onRawEvent(event.toByteArray())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -97,7 +96,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     val event = SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
     // Act
-    databaseInspectorClient.eventListener.onRawEvent(event.toByteArray())
+    databaseInspectorClient.rawEventListener.onRawEvent(event.toByteArray())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -116,7 +115,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     val event = SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
     // Act
-    databaseInspectorClient.eventListener.onRawEvent(event.toByteArray())
+    databaseInspectorClient.rawEventListener.onRawEvent(event.toByteArray())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -135,7 +134,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     val event = SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
     // Act
-    databaseInspectorClient.eventListener.onRawEvent(event.toByteArray())
+    databaseInspectorClient.rawEventListener.onRawEvent(event.toByteArray())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -148,7 +147,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     val event = SqliteInspectorProtocol.Event.newBuilder().setDatabasePossiblyChanged(databasePossiblyChangedEvent).build()
 
     // Act
-    databaseInspectorClient.eventListener.onRawEvent(event.toByteArray())
+    databaseInspectorClient.rawEventListener.onRawEvent(event.toByteArray())
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert

@@ -172,7 +172,7 @@ private class DefaultAppInspectionTarget(
 
 private fun <T : AppInspectorClient> setupEventListener(creator: (AppInspectorConnection) -> T, connection: AppInspectorConnection): T {
   val client = creator(connection)
-  connection.clientEventListener = client.eventListener
+  connection.setEventListeners(client.rawEventListener, client.serviceEventNotifier)
   return client
 }
 
