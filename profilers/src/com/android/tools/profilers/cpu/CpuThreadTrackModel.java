@@ -144,6 +144,11 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     return myMultiSelectionModel;
   }
 
+  @NotNull
+  public CpuThreadInfo getThreadInfo() {
+    return myThreadInfo;
+  }
+
   private Collection<CaptureNode> getCaptureNode() {
     assert myCapture.containsThread(myThreadInfo.getId());
     return Collections.singleton(myCapture.getCaptureNode(myThreadInfo.getId()));

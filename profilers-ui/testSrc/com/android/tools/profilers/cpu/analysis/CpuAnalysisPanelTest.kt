@@ -79,10 +79,16 @@ class CpuAnalysisPanelTest {
 
   @Test
   fun newAnalysisIsAutoSelected() {
+    // Add test-only binding.
+    class TestCpuAnalysisTabModel(type: Type) : CpuAnalysisTabModel<CpuCapture>(type)
+    class TestCpuAnalysisTab(profilersView: StudioProfilersView, model: TestCpuAnalysisTabModel)
+      : CpuAnalysisTab<TestCpuAnalysisTabModel>(profilersView, model)
+    panel.tabViewsBinder.bind(TestCpuAnalysisTabModel::class.java, ::TestCpuAnalysisTab)
+
     stage.enter()
     val selectedModel = CpuAnalysisModel<CpuCapture>("TEST")
-    selectedModel.addTabModel(CpuAnalysisTabModel(CpuAnalysisTabModel.Type.SUMMARY))
-    selectedModel.addTabModel(CpuAnalysisTabModel(CpuAnalysisTabModel.Type.LOGS))
+    selectedModel.addTabModel(TestCpuAnalysisTabModel(CpuAnalysisTabModel.Type.SUMMARY))
+    selectedModel.addTabModel(TestCpuAnalysisTabModel(CpuAnalysisTabModel.Type.LOGS))
     stage.addCpuAnalysisModel(selectedModel)
     assertThat(panel.tabView.tabCount).isEqualTo(2)
   }
@@ -100,8 +106,8 @@ class CpuAnalysisPanelTest {
   fun tabsAreOnlyPopulatedWhenSelected() {
     stage.enter()
     assertThat(panel.tabView.selectedIndex).isEqualTo(0)
-    assertThat(panel.tabView.getComponentAt(0)).isInstanceOf(CpuAnalysisChart::class.java)
+    assertThat(panel.tabView.getComponentAt(0)).isInstanceOf(CpuAnalysisSummaryTab::class.java)
     panel.tabView.selectedIndex = 1
-    assertThat(panel.tabView.getComponentAt(0)).isNotInstanceOf(CpuAnalysisChart::class.java)
+    assertThat(panel.tabView.getComponentAt(0)).isNotInstanceOf(CpuAnalysisSummaryTab::class.java)
   }
 }
