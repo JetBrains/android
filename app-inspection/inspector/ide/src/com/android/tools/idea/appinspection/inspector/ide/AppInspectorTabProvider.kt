@@ -32,5 +32,9 @@ interface AppInspectorTabProvider {
   val displayName: String
   val inspectorAgentJar: AppInspectorJar
   fun isApplicable(): Boolean = true
-  fun createTab(project: Project, messenger: AppInspectorClient.CommandMessenger): AppInspectorTab
+  fun createTab(
+    project: Project,
+    messenger: AppInspectorClient.CommandMessenger,
+    appInspectionCallbacks: AppInspectionCallbacks
+  ): AppInspectorTab
 }

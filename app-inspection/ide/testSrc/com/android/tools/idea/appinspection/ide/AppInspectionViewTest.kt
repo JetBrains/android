@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionProcessesComboBox
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
@@ -64,6 +65,10 @@ class AppInspectionViewTest {
   private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
+  private val appInspectionCallbacks = object : AppInspectionCallbacks {
+    override fun showToolWindow(callback: () -> Unit) { }
+  }
+
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule).around(EdtRule())!!
 
@@ -78,7 +83,9 @@ class AppInspectionViewTest {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
     val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
-    val inspectionView = AppInspectionView(projectRule.project, discoveryHost) { listOf(FakeTransportService.FAKE_PROCESS_NAME) }
+    val inspectionView = AppInspectionView(projectRule.project, discoveryHost, appInspectionCallbacks) {
+      listOf(FakeTransportService.FAKE_PROCESS_NAME)
+    }
     val newProcessLatch = CountDownLatch(1)
     val tabAddedLatch = CountDownLatch(2)
     discoveryHost.discovery.addTargetListener(appInspectionServiceRule.executorService) {
@@ -99,7 +106,9 @@ class AppInspectionViewTest {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
     val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
-    val inspectionView = AppInspectionView(projectRule.project, discoveryHost) { listOf(FakeTransportService.FAKE_PROCESS_NAME) }
+    val inspectionView = AppInspectionView(projectRule.project, discoveryHost, appInspectionCallbacks) {
+      listOf(FakeTransportService.FAKE_PROCESS_NAME)
+    }
     val tabAddedLatch = CountDownLatch(2)
     inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
       override fun componentAdded(e: ContainerEvent) = tabAddedLatch.countDown()
