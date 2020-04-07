@@ -548,6 +548,7 @@ class DaggerUtilTest : DaggerTestCase() {
         String stringAttr();
         test.MyEnum enumAttr();
         Class[] classArrayAttr();
+        int intAttr();
     }
     """.trimIndent())
 
@@ -557,7 +558,8 @@ class DaggerUtilTest : DaggerTestCase() {
         // java.lang.String
         classAttr = String.class,
         enumAttr = test.MyEnum.ONE,
-        classArrayAttr = {String.class}
+        classArrayAttr = {String.class},
+        intAttr = 1
       )
     """.trimIndent()
 
@@ -567,7 +569,8 @@ class DaggerUtilTest : DaggerTestCase() {
         // kotlin.String
         classAttr = String::class,
         enumAttr = test.MyEnum.ONE,
-        classArrayAttr = [String::class]
+        classArrayAttr = [String::class],
+        intAttr = 1
       )
     """.trimIndent()
 
