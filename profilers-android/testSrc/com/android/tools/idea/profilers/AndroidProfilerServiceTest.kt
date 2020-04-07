@@ -27,7 +27,7 @@ import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.ToolWindowAnchor
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
 import org.mockito.ArgumentMatchers.any
@@ -54,7 +54,7 @@ class AndroidProfilerServiceTest : PlatformTestCase() {
   fun testProfilerServiceStartsCorrectlyAfterToolWindowInit() {
     StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false)
     val mockProxy = mockTransportProxy()
-    val windowManager = ToolWindowManagerEx.getInstanceEx(myProject)
+    val windowManager = ToolWindowManager.getInstance(myProject)
     val toolWindow = windowManager.registerToolWindow(AndroidProfilerToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM)
     val factory = AndroidProfilerToolWindowFactory()
     factory.init(toolWindow)
@@ -68,7 +68,7 @@ class AndroidProfilerServiceTest : PlatformTestCase() {
   fun testProfilerServiceTriggeredOnceForMultipleToolWindows() {
     StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false)
     val mockProxy = mockTransportProxy()
-    val windowManager = ToolWindowManagerEx.getInstanceEx(myProject)
+    val windowManager = ToolWindowManager.getInstance(myProject)
     val toolWindow = windowManager.registerToolWindow(AndroidProfilerToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM)
     val factory = AndroidProfilerToolWindowFactory()
     factory.init(toolWindow)

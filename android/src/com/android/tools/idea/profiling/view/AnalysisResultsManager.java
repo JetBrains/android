@@ -28,6 +28,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.wm.ToolWindowAnchor;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,8 +91,8 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
 
   @NotNull
   @Override
-  protected AnAction[] createActions() {
-    return new AnAction[]{new ToggleAction(AndroidBundle.message("android.captures.analysis.results.manager.run.name"),
+  protected List<AnAction> createActions() {
+    return Collections.singletonList(new ToggleAction(AndroidBundle.message("android.captures.analysis.results.manager.run.name"),
                                            AndroidBundle.message("android.captures.analysis.results.manager.run.description"),
                                            AllIcons.Toolwindows.ToolWindowRun) {
       @Override
@@ -124,7 +126,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
           presentation.setIcon(AllIcons.Toolwindows.ToolWindowRun);
         }
       }
-    }};
+    });
   }
 
   @NotNull
