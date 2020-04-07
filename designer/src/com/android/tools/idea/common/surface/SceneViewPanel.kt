@@ -30,14 +30,12 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Insets
 import java.awt.LayoutManager
 import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-
-private fun Array<Component>.getSceneViewsFromWrappers(): Collection<SceneView> =
-  filterIsInstance<SceneViewPeerPanel>().map { it.sceneView }
 
 /**
  * [LayoutManager] responsible for positioning and measuring all the [PositionableContent] in a [DesignSurface]
@@ -54,15 +52,14 @@ abstract class PositionableContentLayoutManager : LayoutManager {
   abstract fun layoutContent(content: Collection<PositionableContent>)
 
   final override fun layoutContainer(parent: Container) {
-    val sceneViews = parent.components.getSceneViewsFromWrappers()
+    val sceneViewPeerPanels = parent.components.filterIsInstance<SceneViewPeerPanel>()
 
     // We lay out the [SceneView]s first, so we have the actual sizes available for setting the
     // bounds of the Swing components.
-    layoutContent(sceneViews)
+    layoutContent(sceneViewPeerPanels.map { it.positionableAdapter })
 
     // Now position all the wrapper panels to match the position of the SceneViews
-    parent.components
-      .filterIsInstance<SceneViewPeerPanel>()
+    sceneViewPeerPanels
       .forEach {
         val sceneView = it.sceneView
         val peerPreferredSize = it.preferredSize
@@ -87,7 +84,12 @@ class SinglePositionableContentLayoutManager : PositionableContentLayoutManager(
   }
 
   override fun preferredLayoutSize(parent: Container): Dimension =
-    parent.components.getSceneViewsFromWrappers().singleOrNull()?.getScaledContentSize(null) ?: Dimension(0, 0)
+    parent.components
+      .filterIsInstance<SceneViewPeerPanel>()
+      .singleOrNull()
+      ?.positionableAdapter
+      ?.getScaledContentSize(null)
+    ?: Dimension(0, 0)
 }
 
 private data class LayoutData private constructor(
@@ -138,6 +140,15 @@ class SceneViewPeerPanel(val sceneView: SceneView, private val sceneViewToolbar:
    */
   private val modelNameLabel = JLabel().apply {
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
+  }
+
+  val positionableAdapter = object : PositionableContent() {
+    override val x: Int get() = sceneView.x
+    override val y: Int get() = sceneView.y
+    override val margin: Insets = sceneView.margin
+    override fun getContentSize(dimension: Dimension?): Dimension = sceneView.getContentSize(dimension)
+    override fun getScaledContentSize(dimension: Dimension?): Dimension = sceneView.getScaledContentSize(dimension)
+    override fun setLocation(x: Int, y: Int) = sceneView.setLocation(x, y)
   }
 
   /**
@@ -204,55 +215,57 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
   JPanel(layoutManager) {
   override fun paintComponent(graphics: Graphics) {
     super.paintComponent(graphics)
-    val g2d = graphics.create() as Graphics2D
+    val sceneViewPeerPanels = components.filterIsInstance<SceneViewPeerPanel>()
 
+    if (sceneViewPeerPanels.isEmpty()) {
+      return
+    }
+
+    val g2d = graphics.create() as Graphics2D
     try {
       // The visible area in the editor
-      val viewportBounds: Rectangle = graphics.clipBounds
+      val viewportBounds: Rectangle = g2d.clipBounds
 
-      // A Dimension used to avoid reallocating new objects just to obtain the SceneView dimensions
+      // A Dimension used to avoid reallocating new objects just to obtain the PositionableContent dimensions
       val reusableDimension = Dimension()
-      val sceneViewsToPaint: Collection<SceneView> = components.getSceneViewsFromWrappers()
-      val horizontalTopScanLines = sceneViewsToPaint.findAllScanlines { sceneView: PositionableContent -> sceneView.y }
-      val horizontalBottomScanLines = sceneViewsToPaint.findAllScanlines { sceneView: PositionableContent ->
-        sceneView.y + sceneView.getScaledContentSize(reusableDimension).height
-      }
-      val verticalLeftScanLines = sceneViewsToPaint.findAllScanlines { sceneView: PositionableContent -> sceneView.x }
-      val verticalRightScanLines = sceneViewsToPaint.findAllScanlines { sceneView: PositionableContent ->
-        sceneView.x + sceneView.getScaledContentSize(reusableDimension).width
-      }
+      val positionables: Collection<PositionableContent> = sceneViewPeerPanels.map { it.positionableAdapter }
+      val horizontalTopScanLines = positionables.findAllScanlines { it.y }
+      val horizontalBottomScanLines = positionables.findAllScanlines { it.y + it.getScaledContentSize(reusableDimension).height }
+      val verticalLeftScanLines = positionables.findAllScanlines { it.x }
+      val verticalRightScanLines = positionables.findAllScanlines { it.x + it.getScaledContentSize(reusableDimension).width }
       @SwingCoordinate val viewportRight = viewportBounds.x + viewportBounds.width
       @SwingCoordinate val viewportBottom = viewportBounds.y + viewportBounds.height
-      val sceneViewBounds = Rectangle()
-      for (sceneView in sceneViewsToPaint) {
-        val sceneViewDimension = sceneView.getScaledContentSize(reusableDimension)
-        @SwingCoordinate val sceneViewRight = sceneView.x + sceneViewDimension.width
-        @SwingCoordinate val sceneViewBottom = sceneView.y + sceneViewDimension.height
+      val clipBounds = Rectangle()
+      for (sceneViewPeerPanel in sceneViewPeerPanels) {
+        val positionable = sceneViewPeerPanel.positionableAdapter
+        val size = positionable.getScaledContentSize(reusableDimension)
+        @SwingCoordinate val right = positionable.x + size.width
+        @SwingCoordinate val bottom = positionable.y + size.height
         // This finds the maximum allowed area for the screen views to paint into. See more details in the
         // ScanlineUtils.kt documentation.
-        @SwingCoordinate var minX = findSmallerScanline(verticalRightScanLines, sceneView.x, viewportBounds.x)
-        @SwingCoordinate var minY = findSmallerScanline(horizontalBottomScanLines, sceneView.y, viewportBounds.y)
+        @SwingCoordinate var minX = findSmallerScanline(verticalRightScanLines, positionable.x, viewportBounds.x)
+        @SwingCoordinate var minY = findSmallerScanline(horizontalBottomScanLines, positionable.y, viewportBounds.y)
         @SwingCoordinate var maxX = findLargerScanline(verticalLeftScanLines,
-                                                       sceneViewRight,
+                                                       right,
                                                        viewportRight)
         @SwingCoordinate var maxY = findLargerScanline(horizontalTopScanLines,
-                                                       sceneViewBottom,
+                                                       bottom,
                                                        viewportBottom)
 
-        // Now, (minX, minY) (maxX, maxY) describes the box that a SceneView could paint into without painting
-        // on top of another SceneView render. We use this box to paint the components that are outside of the
+        // Now, (minX, minY) (maxX, maxY) describes the box that a PositionableContent could paint into without painting
+        // on top of another PositionableContent render. We use this box to paint the components that are outside of the
         // rendering area.
         // However, now we need to avoid there "out of bounds" components from being on top of each other.
         // To do that, we simply find the middle point, except on the corners of the surface. For example, the
-        // first SceneView on the left, does not have any other SceneView that could paint on its left side so we
+        // first PositionableContent on the left, does not have any other PositionableContent that could paint on its left side so we
         // do not need to find the middle point in those cases.
-        minX = if (minX > viewportBounds.x) (minX + sceneView.x) / 2 else viewportBounds.x
-        maxX = if (maxX < viewportRight) (maxX + sceneViewRight) / 2 else viewportRight
-        minY = if (minY > viewportBounds.y) (minY + sceneView.y) / 2 else viewportBounds.y
-        maxY = if (maxY < viewportBottom) (maxY + sceneViewBottom) / 2 else viewportBottom
-        sceneViewBounds.setBounds(minX, minY, maxX - minX, maxY - minY)
-        g2d.clip = sceneViewBounds
-        sceneView.paint(g2d)
+        minX = if (minX > viewportBounds.x) (minX + positionable.x) / 2 else viewportBounds.x
+        maxX = if (maxX < viewportRight) (maxX + right) / 2 else viewportRight
+        minY = if (minY > viewportBounds.y) (minY + positionable.y) / 2 else viewportBounds.y
+        maxY = if (maxY < viewportBottom) (maxY + bottom) / 2 else viewportBottom
+        clipBounds.setBounds(minX, minY, maxX - minX, maxY - minY)
+        g2d.clip = clipBounds
+        sceneViewPeerPanel.sceneView.paint(g2d)
       }
 
       val interactionLayers = interactionLayersProvider()
