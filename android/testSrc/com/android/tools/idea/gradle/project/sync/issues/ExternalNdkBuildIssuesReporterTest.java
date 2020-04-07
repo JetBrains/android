@@ -55,7 +55,6 @@ public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
   private SyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private BuildOutputParser myOutputParser;
-  private SyncErrorHandlerStub myErrorHandler;
   private ExternalNdkBuildIssuesReporter myReporter;
   private TestSyncIssueUsageReporter myUsageReporter;
 
@@ -65,9 +64,7 @@ public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
     mySyncIssue = mock(SyncIssue.class);
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myOutputParser = mock(BuildOutputParser.class);
-    myErrorHandler = new SyncErrorHandlerStub();
-    SyncErrorHandler[] errorHandlers = {myErrorHandler};
-    myReporter = new ExternalNdkBuildIssuesReporter(myOutputParser, errorHandlers);
+    myReporter = new ExternalNdkBuildIssuesReporter(myOutputParser);
     myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
@@ -110,8 +107,6 @@ public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
     assertEquals(column, position.column);
 
     assertThat(message.getQuickFixes()).isEmpty();
-
-    assertFalse(myErrorHandler.isInvoked());
   }
 
   public void testReportWithError() throws Exception {
@@ -147,21 +142,5 @@ public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
     List<NotificationData> notifications = mySyncMessagesStub.getNotifications();
     assertSize(1, notifications);
     assertNotNull(notifications.get(0));
-
-    assertTrue(myErrorHandler.isInvoked());
-  }
-
-  private static class SyncErrorHandlerStub extends SyncErrorHandler {
-    private boolean myInvoked;
-
-    @Override
-    public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-      myInvoked = true;
-      return true;
-    }
-
-    boolean isInvoked() {
-      return myInvoked;
-    }
   }
 }

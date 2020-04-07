@@ -18,11 +18,12 @@ package com.android.tools.idea.gradle.project.sync.issues;
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler;
+import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.collect.ImmutableList;
@@ -42,7 +43,6 @@ import org.mockito.Mock;
  */
 public class BuildToolsTooLowReporterTest extends PlatformTestCase {
   @Mock private SyncIssue mySyncIssue;
-  @Mock private SdkBuildToolsTooLowErrorHandler myErrorHandler;
   private GradleSyncMessagesStub mySyncMessages;
   private BuildToolsTooLowReporter myIssueReporter;
   private TestSyncIssueUsageReporter myUsageReporter;
@@ -53,7 +53,7 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
 
     initMocks(this);
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
-    myIssueReporter = new BuildToolsTooLowReporter(myErrorHandler);
+    myIssueReporter = new BuildToolsTooLowReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
@@ -74,10 +74,12 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
     List<NotificationHyperlink> quickFixes = new ArrayList<>();
     quickFixes.add(mock(NotificationHyperlink.class));
 
-    when(myErrorHandler.getQuickFixHyperlinks(minVersion, ImmutableList.of(module), ImmutableMap.of()))
+    BuildToolsTooLowReporter spiedReporter = spy(myIssueReporter);
+
+    when(spiedReporter.getQuickFixHyperlinks(minVersion, ImmutableList.of(module), ImmutableMap.of()))
       .thenReturn(quickFixes);
 
-    myIssueReporter.report(mySyncIssue, module, null, myUsageReporter);
+    spiedReporter.report(mySyncIssue, module, null, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessages.getNotifications();
     assertThat(messages).hasSize(1);
