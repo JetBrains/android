@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
@@ -48,6 +49,7 @@ import javax.swing.SwingConstants
 class AppInspectionView(
   private val project: Project,
   private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
+  private val appInspectionCallbacks: AppInspectionCallbacks,
   getPreferredProcesses: () -> List<String>
 ) : Disposable {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
@@ -67,7 +69,7 @@ class AppInspectionView(
 
   init {
     component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
-    
+
     val comboBoxModel = AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost, getPreferredProcesses)
     Disposer.register(this, comboBoxModel)
 
@@ -105,7 +107,7 @@ class AppInspectionView(
           .forEach { provider ->
             target.launchInspector(provider.inspectorId, provider.inspectorAgentJar, project.name) { messenger ->
               val tab = invokeAndWaitIfNeeded {
-                provider.createTab(project, messenger)
+                provider.createTab(project, messenger, appInspectionCallbacks)
                   .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
                   .also { updateUi() }
               }

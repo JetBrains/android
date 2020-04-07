@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.google.common.util.concurrent.MoreExecutors
@@ -36,7 +37,11 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
     return DatabaseInspectorFlagController.isFeatureEnabled
   }
 
-  override fun createTab(project: Project, messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
+  override fun createTab(
+    project: Project,
+    messenger: AppInspectorClient.CommandMessenger,
+    appInspectionCallbacks: AppInspectionCallbacks
+  ): AppInspectorTab {
     return object : AppInspectorTab {
 
       private val databaseInspectorProjectService = DatabaseInspectorProjectService.getInstance(project)

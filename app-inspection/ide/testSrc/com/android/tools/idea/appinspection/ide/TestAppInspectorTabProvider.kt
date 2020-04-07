@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
@@ -32,7 +33,11 @@ class StubTestAppInspectorTabProvider : AppInspectorTabProvider {
   override val displayName = "TEST"
   override val inspectorAgentJar = TEST_JAR
 
-  override fun createTab(project: Project, messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
+  override fun createTab(
+    project: Project,
+    messenger: AppInspectorClient.CommandMessenger,
+    appInspectionCallbacks: AppInspectionCallbacks
+  ): AppInspectorTab {
     return object : AppInspectorTab {
       override val client: AppInspectorClient = StubTestAppInspectorClient(messenger)
       override val component = JPanel()

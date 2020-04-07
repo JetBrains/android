@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.idea.appinspection.ide.AppInspectionHostService
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleManager
@@ -24,7 +25,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import javax.swing.JComponent
 
-class AppInspectionToolWindow(window: ToolWindow, private val project: Project) : Disposable {
+class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {
   /**
    * This dictates the names of the preferred processes. They are drawn from the android applicationIds of the modules in this [project].
    */
@@ -32,7 +33,16 @@ class AppInspectionToolWindow(window: ToolWindow, private val project: Project) 
     .mapNotNull { AndroidModuleInfo.getInstance(it)?.`package` }
     .toList()
 
-  private val appInspectionView = AppInspectionView(project, AppInspectionHostService.instance.discoveryHost, ::getPreferredProcesses)
+  private val appInspectionCallbacks = object : AppInspectionCallbacks {
+    override fun showToolWindow(callback: () -> Unit) = toolWindow.show(Runnable { callback() })
+  }
+
+  private val appInspectionView = AppInspectionView(
+    project,
+    AppInspectionHostService.instance.discoveryHost,
+    appInspectionCallbacks,
+    ::getPreferredProcesses
+  )
   val component: JComponent = appInspectionView.component
 
   init {
