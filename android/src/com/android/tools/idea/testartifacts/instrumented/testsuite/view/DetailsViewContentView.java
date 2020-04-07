@@ -15,6 +15,18 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view;
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.tabs.TabInfo;
+import com.intellij.ui.tabs.impl.SingleHeightTabs;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,9 +37,25 @@ public class DetailsViewContentView {
 
   // Those properties are initialized by IntelliJ form editor before the constructor using reflection.
   private JPanel myRootPanel;
-  private JPanel mySummaryPanel;
-  private JPanel myContentSelectorTabPanel;
   private JPanel myContentPanel;
+  @VisibleForTesting JBLabel myTestResultLabel;
+
+  @VisibleForTesting final ConsoleViewImpl myLogcatView;
+
+  public DetailsViewContentView(@NotNull Disposable parentDisposable,
+                                @NotNull Project project) {
+    SingleHeightTabs tabs =
+      new SingleHeightTabs(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), parentDisposable);
+
+    // Create logcat tab.
+    myLogcatView = new ConsoleViewImpl(project, /*viewer=*/true);
+    Disposer.register(parentDisposable, myLogcatView);
+    TabInfo logcatTab = new TabInfo(myLogcatView.getComponent());
+    logcatTab.setText("Logs");
+    tabs.addTab(logcatTab);
+
+    myContentPanel.add(tabs);
+  }
 
   /**
    * Returns the root panel.
@@ -35,5 +63,14 @@ public class DetailsViewContentView {
   @NotNull
   public JPanel getRootPanel() {
     return myRootPanel;
+  }
+
+  public void setAndroidTestCaseResult(@NotNull AndroidTestCaseResult result) {
+    myTestResultLabel.setText(result.name());
+  }
+
+  public void setLogcat(@NotNull String logcat) {
+    myLogcatView.clear();
+    myLogcatView.print(logcat, ConsoleViewContentType.NORMAL_OUTPUT);
   }
 }

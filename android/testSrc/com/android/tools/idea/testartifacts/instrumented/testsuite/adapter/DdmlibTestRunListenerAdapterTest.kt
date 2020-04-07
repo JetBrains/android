@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.testrunner.IInstrumentationResultParser.StatusKeys.DDMLIB_LOGCAT
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
@@ -155,10 +156,11 @@ class DdmlibTestRunListenerAdapterTest {
       any(AndroidTestSuite::class.java),
       testCase.capture() ?: AndroidTestCase("", ""))  // Workaround for https://github.com/mockito/mockito/issues/1255
 
-    adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1"), mutableMapOf())
+    adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1"), mutableMapOf(DDMLIB_LOGCAT to "test logcat message"))
     adapter.testRunEnded(/*elapsedTime=*/1000, mutableMapOf())
 
     assertThat(testCase.value.result).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(testCase.value.logcat).isEqualTo("test logcat message")
     assertThat(testSuite.value.result).isEqualTo(AndroidTestSuiteResult.PASSED)
   }
 }

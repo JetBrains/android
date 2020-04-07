@@ -34,6 +34,7 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.AppUIUtil;
@@ -78,9 +79,10 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
    * Constructs AndroidTestSuiteView.
    *
    * @param parentDisposable a parent disposable which this view's lifespan is tied with.
+   * @param project a project which this test suite view belongs to, or null.
    */
   @UiThread
-  public AndroidTestSuiteView(@NotNull Disposable parentDisposable) {
+  public AndroidTestSuiteView(@NotNull Disposable parentDisposable, @NotNull Project project) {
     myTable = new AndroidTestResultsTableView(this);
     myTableViewContainer.add(myTable.getComponent());
 
@@ -91,7 +93,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     Disposer.register(this, myComponentsSplitter);
     myComponentsSplitter.setFirstComponent(myRootPanel);
 
-    myDetailsView = new AndroidTestSuiteDetailsView(parentDisposable, this);
+    myDetailsView = new AndroidTestSuiteDetailsView(parentDisposable, this, project);
     myDetailsView.getRootPanel().setVisible(false);
     myComponentsSplitter.setLastComponent(myDetailsView.getRootPanel());
 

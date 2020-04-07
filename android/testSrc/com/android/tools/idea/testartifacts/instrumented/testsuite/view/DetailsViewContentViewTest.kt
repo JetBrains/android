@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
-import com.intellij.mock.MockApplication
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.MockitoAnnotations
 
 /**
  * Unit tests for [DetailsViewContentView].
@@ -32,19 +33,32 @@ import org.mockito.MockitoAnnotations
 @RunWith(JUnit4::class)
 @RunsInEdt
 class DetailsViewContentViewTest {
-  @get:Rule
-  val edtRule = EdtRule()
-  @get:Rule val disposableRule = DisposableRule()
 
-  @Before
-  fun setup() {
-    MockitoAnnotations.initMocks(this)
-    MockApplication.setUp(disposableRule.disposable)
+  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
+
+  @get:Rule val rules: RuleChain = RuleChain
+    .outerRule(projectRule)
+    .around(EdtRule())
+    .around(disposableRule)
+
+  @Test
+  fun setAndroidTestCaseResult() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+    view.setAndroidTestCaseResult(AndroidTestCaseResult.PASSED)
+    assertThat(view.myTestResultLabel.text).isEqualTo("PASSED")
   }
 
-  // TODO: Remove this test case when we have a real implementation of DetailsViewContentView.
   @Test
-  fun constructView() {
-    val view = DetailsViewContentView()
+  fun setLogcat() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+
+    view.setLogcat("test logcat message")
+    view.myLogcatView.waitAllRequests()
+    assertThat(view.myLogcatView.text).isEqualTo("test logcat message")
+
+    view.setLogcat("test logcat message 2")
+    view.myLogcatView.waitAllRequests()
+    assertThat(view.myLogcatView.text).isEqualTo("test logcat message 2")
   }
 }

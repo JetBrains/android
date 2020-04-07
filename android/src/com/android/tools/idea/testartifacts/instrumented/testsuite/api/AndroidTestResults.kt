@@ -32,4 +32,9 @@ interface AndroidTestResults {
    * Returns the test case result of a given device. Null if the test is not executed on a given device.
    */
   fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult?
+
+  /**
+   * Returns the logcat message emitted during the test on a given device.
+   */
+  fun getLogcat(device: AndroidDevice): String
 }
