@@ -53,7 +53,6 @@ import java.awt.event.MouseListener;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private enum PanelSizing {
@@ -104,15 +103,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * Default ratio of splitter. The splitter ratio adjust the first elements size relative to the bottom elements size.
    * A ratio of 1 means only the first element is shown, while a ratio of 0 means only the bottom element is shown.
    */
-  @VisibleForTesting
-  static final float SPLITTER_DEFAULT_RATIO = 0.5f;
+  private static final float SPLITTER_DEFAULT_RATIO = 0.5f;
 
   /**
    * When we are showing the kernel data we want to increase the size of the kernel and threads view. This in turn reduces
    * the size of the view used for the CallChart, FlameChart, ect..
    */
-  @VisibleForTesting
-  static final float KERNEL_VIEW_SPLITTER_RATIO = 0.75f;
+  private static final float KERNEL_VIEW_SPLITTER_RATIO = 0.75f;
 
   private final CpuProfilerStage myStage;
 
