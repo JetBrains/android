@@ -25,7 +25,7 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel.Type
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -237,11 +237,8 @@ class CpuCaptureStageTest {
     profilers.stage = stage
     assertThat(stage.analysisModels.size).isEqualTo(1)
     assertThat(stage.analysisModels[0].javaClass).isEqualTo(CpuFullTraceAnalysisModel::class.java)
-    assertThat(stage.analysisModels[0].tabSize).isEqualTo(3)
-    val tabs = stage.analysisModels[0].tabModels.toList()
-    assertThat(tabs[0].tabType).isEqualTo(CpuAnalysisTabModel.Type.TOP_DOWN)
-    assertThat(tabs[1].tabType).isEqualTo(CpuAnalysisTabModel.Type.FLAME_CHART)
-    assertThat(tabs[2].tabType).isEqualTo(CpuAnalysisTabModel.Type.BOTTOM_UP)
+    val tabTypes = stage.analysisModels[0].tabModels.map { it.tabType }.toList()
+    assertThat(tabTypes).containsExactly(Type.SUMMARY, Type.TOP_DOWN, Type.FLAME_CHART, Type.BOTTOM_UP).inOrder()
   }
 
 }
