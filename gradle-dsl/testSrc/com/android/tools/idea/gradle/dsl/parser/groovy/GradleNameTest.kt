@@ -44,6 +44,13 @@ class GradleNameTest : PlatformTestCase() {
     assertThat(gradleNameFromString("abc.'def.'.foo.ghi")).isEqualTo("abc.def\\..foo.ghi")
     assertThat(gradleNameFromString("abc.def.foo.'ext'.bar")).isEqualTo("abc.def.foo.ext.bar")
 
+    // Groovy has a lot of quoted identifier syntaxes
+    assertThat(gradleNameFromString("abc.\"def\"")).isEqualTo("abc.def")
+    assertThat(gradleNameFromString("abc.\"\"\"def\"\"\"")).isEqualTo("abc.def")
+    assertThat(gradleNameFromString("abc.'''def'''")).isEqualTo("abc.def")
+    assertThat(gradleNameFromString("abc./def/")).isEqualTo("abc.def")
+    assertThat(gradleNameFromString("abc.$/def/$")).isEqualTo("abc.def")
+
     // indexing tests
     assertThat(gradleNameFromString("abc.def[0]")).isEqualTo("abc.def[0]")
     assertThat(gradleNameFromString("abc.'def.'[0]")).isEqualTo("abc.def\\.[0]")
