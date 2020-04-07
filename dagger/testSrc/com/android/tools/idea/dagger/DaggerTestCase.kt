@@ -27,7 +27,9 @@ abstract class DaggerTestCase : JavaCodeInsightFixtureTestCase() {
       """
       package dagger;
 
-      public @interface Module {}
+      public @interface Module {
+        Class<?>[] includes() default {};
+      }
       """.trimIndent()
     )
     myFixture.addClass(
@@ -68,7 +70,19 @@ abstract class DaggerTestCase : JavaCodeInsightFixtureTestCase() {
       """
       package dagger;
 
-      public @interface Component {}
+      public @interface Component {
+         Class<?>[] modules() default {};
+      }
+      """.trimIndent()
+    )
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package dagger;
+
+      public @interface Subcomponent {
+         Class<?>[] modules() default {};
+      }
       """.trimIndent()
     )
   }

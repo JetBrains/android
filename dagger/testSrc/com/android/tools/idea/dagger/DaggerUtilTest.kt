@@ -23,8 +23,10 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
@@ -679,5 +681,87 @@ class DaggerUtilTest : DaggerTestCase() {
 
     methodsForProvider = getDaggerComponentMethodsForProvider(providerWithQualifier).map { it.name }
     assertThat(methodsForProvider).containsExactly("getMyClassWithQualifier")
+  }
+
+  fun testGetComponentsForModule() {
+    val moduleFile = myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+        import dagger.Module;
+
+        @Module
+        class MyModule {}
+      """.trimIndent()
+    ).containingFile.virtualFile
+
+    val kotlinModuleFile = myFixture.configureByText("text/MyModuleKt.kt",
+      //language=kotlin
+                                                     """
+        package test
+        import dagger.Module
+
+        @Module
+        class MyModuleKt
+      """.trimIndent()
+    ).containingFile.virtualFile
+
+    // Java Component
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class, MyModuleKt.class })
+      public interface MyComponent {}
+    """.trimIndent()
+    )
+
+    // Kotlin Component
+    myFixture.addFileToProject("test/MyComponentKt.kt",
+      //language=kotlin
+                               """
+      package test
+      import dagger.Component
+
+      @Component(modules = [MyModule::class, MyModuleKt::class])
+      interface MyComponentKt
+    """.trimIndent()
+    )
+
+    // Kotlin Subcomponent
+    myFixture.addFileToProject("test/MySubcomponentKt.kt",
+      //language=kotlin
+                               """
+      package test
+      import dagger.Subcomponent
+
+      @Subcomponent(modules = [MyModule::class, MyModuleKt::class])
+      interface MySubcomponentKt
+    """.trimIndent()
+    )
+
+    // Java Module
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+        import dagger.Module;
+
+        @Module(includes = { MyModule.class, MyModuleKt.class })
+        class MyModule2 {}
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(moduleFile)
+    var components = getUsagesForDaggerModule(myFixture.moveCaret("class MyMod|ule {}").parentOfType()!!)
+    assertThat(components).hasSize(4)
+    assertThat(components.map { it.name }).containsAllOf("MyComponentKt", "MyComponent", "MySubcomponentKt", "MyModule2")
+
+    myFixture.configureFromExistingVirtualFile(kotlinModuleFile)
+    components = getUsagesForDaggerModule(myFixture.moveCaret("class MyMod|uleKt").parentOfType<KtClass>()!!.toLightClass()!!)
+    assertThat(components).hasSize(4)
+    assertThat(components.map { it.name }).containsAllOf("MyComponentKt", "MyComponent", "MySubcomponentKt", "MyModule2")
   }
 }

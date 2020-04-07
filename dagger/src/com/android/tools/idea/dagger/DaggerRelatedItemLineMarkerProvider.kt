@@ -31,10 +31,13 @@ import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.lexer.KtTokens
+import javax.swing.Icon
 
 internal const val DEPENDENCY_PROVIDERS = "Dependency provider(s)"
 internal const val DEPENDENCY_CONSUMERS = "Dependency consumer(s)"
-internal const val DEPENDENCY_COMPONENT = "Dependency components method(s)"
+internal const val DEPENDENCY_COMPONENT_METHODS = "Dependency components method(s)"
+internal const val DEPENDENCY_COMPONENTS = "Dependency component(s)"
+internal const val DEPENDENCY_MODULES = "Dependency modules(s)"
 
 /**
  * Provides [RelatedItemLineMarkerInfo] for Dagger consumers/providers.
@@ -51,27 +54,12 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     // We provide RelatedItemLineMarkerInfo for PsiIdentifier/KtIdentifier (leaf element), not for PsiField/PsiMethod,
     // that's why we check that `element.parent` isDaggerConsumer, not `element` itself. See [LineMarkerProvider.getLineMarkerInfo]
     val parent = element.parent
-    val calculateRelatedItemsForConsumer = when {
-      parent.isDaggerConsumer -> true
-      parent.isDaggerProvider -> false
+    val (icon, gotoTargets) = when {
+      parent.isDaggerConsumer -> getIconAndGoToItemsForConsumer(parent)
+      parent.isDaggerProvider -> getIconAndGoToItemsForProvider(parent)
+      parent.isDaggerModule -> getIconAndGoToItemsForModule(parent)
       else -> return
     }
-
-    val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
-      override fun compute(): List<GotoRelatedItem> {
-        val relatedItems: MutableList<GotoRelatedItem> = mutableListOf()
-        if (calculateRelatedItemsForConsumer) {
-          relatedItems.addAll(getDaggerProvidersFor(parent).map { GotoRelatedItem(it, DEPENDENCY_PROVIDERS) })
-        }
-        else {
-          relatedItems.addAll(getDaggerConsumersFor(parent).map { GotoRelatedItem(it, DEPENDENCY_CONSUMERS) })
-          relatedItems.addAll(getDaggerComponentMethodsForProvider(parent).map { GotoRelatedItem(it, DEPENDENCY_COMPONENT) })
-        }
-        return relatedItems
-      }
-    }
-
-    val icon = if (calculateRelatedItemsForConsumer) StudioIcons.Misc.DEPENDENCY_PROVIDER else StudioIcons.Misc.DEPENDENCY_CONSUMER
 
     val info = RelatedItemLineMarkerInfo<PsiElement>(
       element,
@@ -82,7 +70,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       { mouseEvent, _ ->
         when (gotoTargets.value.size) {
           0 -> JBPopupFactory.getInstance()
-            .createMessage("No related items for dependency ${if (calculateRelatedItemsForConsumer) "consumer" else "provider"}")
+            .createMessage("No related items")
             .show(RelativePoint(mouseEvent))
           1 -> gotoTargets.value.first().navigate()
           else -> NavigationUtil.getRelatedItemsPopup(gotoTargets.value, "Go to Related Files").show(RelativePoint(mouseEvent))
@@ -92,6 +80,36 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       gotoTargets
     )
     result.add(info)
+  }
+
+  private fun getIconAndGoToItemsForModule(module: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
+    val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
+      override fun compute(): List<GotoRelatedItem> {
+        // [module] is always PsiClass or KtClass, see [isDaggerModule].
+        return getUsagesForDaggerModule(module.toPsiClass()!!).map {
+          val group = if (it.isDaggerComponent) DEPENDENCY_COMPONENTS else DEPENDENCY_MODULES
+          GotoRelatedItem(it, group)
+        }
+      }
+    }
+    return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
+  }
+
+  private fun getIconAndGoToItemsForProvider(provider: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
+    val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
+      override fun compute(): List<GotoRelatedItem> {
+        return getDaggerConsumersFor(provider).map { GotoRelatedItem(it, DEPENDENCY_CONSUMERS) } +
+               getDaggerComponentMethodsForProvider(provider).map { GotoRelatedItem(it, DEPENDENCY_COMPONENT_METHODS) }
+      }
+    }
+    return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
+  }
+
+  private fun getIconAndGoToItemsForConsumer(consumer: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
+    val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
+      override fun compute() = getDaggerProvidersFor(consumer).map { GotoRelatedItem(it, DEPENDENCY_PROVIDERS) }
+    }
+    return Pair(StudioIcons.Misc.DEPENDENCY_PROVIDER, gotoTargets)
   }
 }
 
