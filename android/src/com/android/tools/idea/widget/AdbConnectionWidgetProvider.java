@@ -61,7 +61,7 @@ class AdbConnectionWidgetProvider implements StatusBarWidgetProvider {
       }
 
       @Override
-      public boolean isBridgeUserManagedMode() {
+      public boolean isBridgeInUserManagedMode() {
         return AndroidDebugBridge.isUserManagedAdbMode();
       }
 
