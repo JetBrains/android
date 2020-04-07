@@ -960,13 +960,6 @@
 
   <xi:include href="new-deployment-target-selection.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
-  <actions>
-    <!--suppress PluginXmlCapitalization -->
-    <action id="AdbConnectionStatus" class="com.android.tools.idea.run.AdbConnectionStatusAction" text="adb Connection Status">
-      <add-to-group group-id="ToolbarRunGroup" relative-to-action="DeviceAndSnapshotComboBox" anchor="after"/>
-    </action>
-  </actions>
-
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService"/>
     <projectService serviceInterface="com.android.tools.idea.explorer.DeviceExplorerFileManager"
