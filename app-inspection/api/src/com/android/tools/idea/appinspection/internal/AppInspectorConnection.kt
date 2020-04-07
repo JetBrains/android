@@ -31,20 +31,9 @@ import com.google.common.util.concurrent.SettableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
-private val STUB_CLIENT_EVENT_LISTENER = object : AppInspectorClient.EventListener {
-  override fun onRawEvent(eventData: ByteArray) {
-  }
-
-  override fun onCrashEvent(message: String) {
-  }
-
-  override fun onDispose() {
-  }
-}
-
 /**
  * Two-way connection for the [AppInspectorClient] which implements [AppInspectorClient.CommandMessenger] and dispatches events for the
- * [AppInspectorClient.EventListener].
+ * [AppInspectorClient.RawEventListener].
  */
 internal class AppInspectorConnection(
   private val transport: AppInspectionTransport,
@@ -57,16 +46,8 @@ internal class AppInspectorConnection(
   private var isDisposed = AtomicBoolean(false)
   private val disposeFuture = SettableFuture.create<Unit>()
 
-  /**
-   * The active [AppInspectorClient.EventListener] for this connection.
-   *
-   * Initialized to a stub, with the expectation that a caller will set its own listener later.
-   */
-  var clientEventListener = STUB_CLIENT_EVENT_LISTENER
-    set(value) {
-      field = value
-      transport.registerEventListener(inspectorEventListener)
-    }
+  private lateinit var rawEventListener: AppInspectorClient.RawEventListener
+  private lateinit var serviceEventNotifier: AppInspectorClient.ServiceEventNotifier
 
   private val inspectorEventListener = transport.createStreamEventListener(
     eventKind = APP_INSPECTION_EVENT,
@@ -77,12 +58,12 @@ internal class AppInspectorConnection(
     when {
       appInspectionEvent.hasRawEvent() -> {
         val content = appInspectionEvent.rawEvent.content.toByteArray()
-        clientEventListener.onRawEvent(content)
+        rawEventListener.onRawEvent(content)
       }
       appInspectionEvent.hasCrashEvent() -> {
         // Remove inspector's listener if it crashes
+        serviceEventNotifier.notifyCrash(appInspectionEvent.crashEvent.errorMessage)
         cleanup("Inspector $inspectorId has crashed.")
-        clientEventListener.onCrashEvent(appInspectionEvent.crashEvent.errorMessage)
       }
     }
   }
@@ -106,7 +87,16 @@ internal class AppInspectorConnection(
     it.isEnded
   }
 
-  init {
+  /**
+   * Sets the active [AppInspectorClient.RawEventListener] and [AppInspectorClient.ServiceEventNotifier] for this connection.
+   *
+   * This has the side effect of starting all relevant transport listeners, so it should only be called as the last stage of client setup.
+   */
+  internal fun setEventListeners(clientRawEventListener: AppInspectorClient.RawEventListener,
+                                 clientServiceEventNotifier: AppInspectorClient.ServiceEventNotifier) {
+    rawEventListener = clientRawEventListener
+    serviceEventNotifier = clientServiceEventNotifier
+    transport.registerEventListener(inspectorEventListener)
     transport.registerEventListener(responsesListener)
     transport.registerEventListener(processEndListener)
   }
@@ -201,7 +191,7 @@ internal class AppInspectorConnection(
       } else {
         disposeFuture.set(Unit)
       }
-      clientEventListener.onDispose()
+      serviceEventNotifier.notifyDispose()
     }
   }
 }

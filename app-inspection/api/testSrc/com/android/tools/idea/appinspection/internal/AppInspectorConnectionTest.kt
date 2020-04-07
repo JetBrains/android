@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
 import com.android.tools.app.inspection.AppInspection.CrashEvent
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawAppInspectionEvent
@@ -31,6 +32,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common.Event
 import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import junit.framework.TestCase.fail
 import org.junit.Rule
 import org.junit.Test
@@ -57,7 +59,7 @@ class AppInspectorConnectionTest {
   fun disposeInspectorSucceeds() {
     val connection = appInspectionRule.launchInspectorConnection()
 
-    connection.disposeInspector().get()
+    connection.messenger.disposeInspector().get()
   }
 
   @Test
@@ -66,14 +68,14 @@ class AppInspectorConnectionTest {
       commandHandler = TestInspectorCommandHandler(timer, false, "error")
     )
 
-    connection.disposeInspector().get()
+    connection.messenger.disposeInspector().get()
   }
 
   @Test
   fun sendRawCommandSucceedWithCallback() {
     val connection = appInspectionRule.launchInspectorConnection()
 
-    assertThat(connection.sendRawCommand("TestData".toByteArray()).get()).isEqualTo("TestData".toByteArray())
+    assertThat(connection.messenger.sendRawCommand("TestData".toByteArray()).get()).isEqualTo("TestData".toByteArray())
   }
 
   @Test
@@ -82,14 +84,14 @@ class AppInspectorConnectionTest {
       commandHandler = TestInspectorCommandHandler(timer, false, "error")
     )
 
-    assertThat(connection.sendRawCommand("TestData".toByteArray()).get()).isEqualTo("error".toByteArray())
+    assertThat(connection.messenger.sendRawCommand("TestData".toByteArray()).get()).isEqualTo("error".toByteArray())
   }
 
 
   @Test
   fun receiveGeneralEvent() {
     val latch = CountDownLatch(1)
-    val eventListener = object : AppInspectionServiceRule.TestInspectorEventListener() {
+    val eventListener = object : AppInspectionServiceRule.TestInspectorRawEventListener() {
       override fun onRawEvent(eventData: ByteArray) {
         super.onRawEvent(eventData)
         latch.countDown()
@@ -105,10 +107,10 @@ class AppInspectorConnectionTest {
 
   @Test
   fun rawEventWithCommandIdOnlyTriggersEventListener() {
-    val eventListener = AppInspectionServiceRule.TestInspectorEventListener()
+    val eventListener = AppInspectionServiceRule.TestInspectorRawEventListener()
     val connection = appInspectionRule.launchInspectorConnection(eventListener = eventListener)
 
-    assertThat(connection.sendRawCommand("TestData".toByteArray()).get()).isEqualTo("TestData".toByteArray())
+    assertThat(connection.messenger.sendRawCommand("TestData".toByteArray()).get()).isEqualTo("TestData".toByteArray())
     assertThat(eventListener.rawEvents).isEmpty()
   }
 
@@ -116,11 +118,11 @@ class AppInspectorConnectionTest {
   fun disposeConnectionClosesConnection() {
     val connection = appInspectionRule.launchInspectorConnection(INSPECTOR_ID)
 
-    connection.disposeInspector().get()
+    connection.messenger.disposeInspector().get()
 
     // connection should be closed
     try {
-      connection.sendRawCommand("Test".toByteArray()).get()
+      connection.messenger.sendRawCommand("Test".toByteArray()).get()
       fail()
     } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(IllegalStateException::class.java)
@@ -130,14 +132,18 @@ class AppInspectorConnectionTest {
 
   @Test
   fun receiveCrashEventClosesConnection() {
-    val latch = CountDownLatch(1)
-    val eventListener = object : AppInspectionServiceRule.TestInspectorEventListener() {
+    val clientDisposedLatch = CountDownLatch(2)
+    val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+    client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
       override fun onCrashEvent(message: String) {
-        super.onCrashEvent(message)
-        latch.countDown()
+        assertThat(message).isEqualTo("error")
+        clientDisposedLatch.countDown()
       }
-    }
-    val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID, eventListener = eventListener)
+
+      override fun onDispose() {
+        clientDisposedLatch.countDown()
+      }
+    }, MoreExecutors.directExecutor())
 
     appInspectionRule.addAppInspectionEvent(
       AppInspectionEvent.newBuilder()
@@ -150,13 +156,11 @@ class AppInspectorConnectionTest {
         .build()
     )
 
-    latch.await()
-    assertThat(eventListener.crashEvents).containsExactly("error")
-    assertThat(eventListener.isDisposed).isTrue()
+    clientDisposedLatch.await()
 
     // connection should be closed
     try {
-      connection.disposeInspector().get()
+      client.messenger.disposeInspector().get()
       fail()
     } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
@@ -166,13 +170,13 @@ class AppInspectorConnectionTest {
 
   @Test
   fun disposeUsingClosedConnectionThrowsException() {
-    val latch = CountDownLatch(1)
-    val eventListener = object : AppInspectionServiceRule.TestInspectorEventListener() {
+    val disposedLatch = CountDownLatch(1)
+    val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+    client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
       override fun onDispose() {
-        latch.countDown()
+        disposedLatch.countDown()
       }
-    }
-    val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID, eventListener = eventListener)
+    }, MoreExecutors.directExecutor())
 
     appInspectionRule.addEvent(
       Event.newBuilder()
@@ -182,11 +186,11 @@ class AppInspectorConnectionTest {
         .build()
     )
 
-    latch.await()
+    disposedLatch.await()
 
     // connection should be closed
     try {
-      connection.disposeInspector().get()
+      client.messenger.disposeInspector().get()
       fail()
     } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
@@ -197,13 +201,13 @@ class AppInspectorConnectionTest {
   @Test
   fun sendCommandUsingClosedConnectionThrowsException() {
     val latch = CountDownLatch(1)
-    val eventListener = object : AppInspectionServiceRule.TestInspectorEventListener() {
+
+    val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+    client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
       override fun onDispose() {
-        super.onDispose()
         latch.countDown()
       }
-    }
-    val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID, eventListener = eventListener)
+    }, MoreExecutors.directExecutor())
 
     appInspectionRule.addEvent(
       Event.newBuilder()
@@ -216,7 +220,7 @@ class AppInspectorConnectionTest {
 
     // connection should be closed
     try {
-      connection.sendRawCommand("Data".toByteArray()).get()
+      client.messenger.sendRawCommand("Data".toByteArray()).get()
       fail()
     } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(IllegalStateException::class.java)
@@ -227,24 +231,23 @@ class AppInspectorConnectionTest {
   @Test
   fun crashSetsAllOutstandingFutures() {
     val latch = CountDownLatch(1)
-    val eventListener = object : AppInspectionServiceRule.TestInspectorEventListener() {
-      override fun onCrashEvent(message: String) {
-        super.onCrashEvent(message)
-        latch.countDown()
-      }
-    }
-    val connection = appInspectionRule.launchInspectorConnection(
+    val client = appInspectionRule.launchInspectorConnection(
       inspectorId = INSPECTOR_ID,
       commandHandler = object : CommandHandler(timer) {
         override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
           // do nothing
         }
-      },
-      eventListener = eventListener
+      }
     )
+    client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+      override fun onCrashEvent(message: String) {
+        assertThat(message).isEqualTo("error")
+        latch.countDown()
+      }
+    }, MoreExecutors.directExecutor())
 
-    val disposeFuture = connection.disposeInspector()
-    val commandFuture = connection.sendRawCommand("Blah".toByteArray())
+    val disposeFuture = client.messenger.disposeInspector()
+    val commandFuture = client.messenger.sendRawCommand("Blah".toByteArray())
 
     appInspectionRule.addAppInspectionEvent(
       AppInspectionEvent.newBuilder()
@@ -258,7 +261,6 @@ class AppInspectorConnectionTest {
     )
 
     latch.await()
-    assertThat(eventListener.crashEvents).containsExactly("error")
 
     try {
       disposeFuture.get()
@@ -282,7 +284,7 @@ class AppInspectorConnectionTest {
     val latch = CountDownLatch(1)
     val staleEventData = byteArrayOf(0x12, 0x15)
     val freshEventData = byteArrayOf(0x01, 0x02)
-    val listener = object : AppInspectionServiceRule.TestInspectorEventListener() {
+    val listener = object : AppInspectionServiceRule.TestInspectorRawEventListener() {
       override fun onRawEvent(eventData: ByteArray) {
         super.onRawEvent(eventData)
         latch.countDown()
@@ -311,7 +313,7 @@ class AppInspectorConnectionTest {
     val secondLatch = CountDownLatch(1)
     val firstEventData = byteArrayOf(0x12, 0x15)
     val secondEventData = byteArrayOf(0x01, 0x02)
-    val listener = object : AppInspectionServiceRule.TestInspectorEventListener() {
+    val listener = object : AppInspectionServiceRule.TestInspectorRawEventListener() {
       override fun onRawEvent(eventData: ByteArray) {
         super.onRawEvent(eventData)
         if (firstLatch.count > 0) {
@@ -340,7 +342,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun cancelRawCommandSendsCancellationCommand() {
-    val messenger = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+    val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
 
     val cancelledLatch = CountDownLatch(1)
     var toBeCancelledCommandId: Int? = null
@@ -358,7 +360,7 @@ class AppInspectorConnectionTest {
       }
     })
 
-    messenger.sendRawCommand(ByteString.copyFromUtf8("Blah").toByteArray()).cancel(false)
+    client.messenger.sendRawCommand(ByteString.copyFromUtf8("Blah").toByteArray()).cancel(false)
 
     cancelledLatch.await()
 

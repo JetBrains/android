@@ -113,14 +113,12 @@ class AppInspectionServiceRule(
   fun launchInspectorConnection(
     inspectorId: String = INSPECTOR_ID,
     commandHandler: CommandHandler = TestInspectorCommandHandler(timer),
-    eventListener: AppInspectorClient.EventListener = TestInspectorEventListener()
-  ): AppInspectorClient.CommandMessenger {
+    eventListener: AppInspectorClient.RawEventListener = TestInspectorRawEventListener()
+  ): AppInspectorClient {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    val messenger = launchInspectorForTest(inspectorId, transport, timer.currentTimeNs) {
+    return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs) {
       TestInspectorClient(it, eventListener)
-    }.messenger
-    timer.currentTimeNs += 1
-    return messenger
+    }.also { timer.currentTimeNs += 1 }
   }
 
   fun addEvent(event: Common.Event) {
@@ -166,27 +164,14 @@ class AppInspectionServiceRule(
   /**
    * Keeps track of all events so they can be gotten later and compared.
    */
-  open class TestInspectorEventListener : AppInspectorClient.EventListener {
+  open class TestInspectorRawEventListener : AppInspectorClient.RawEventListener {
     private val events = mutableListOf<ByteArray>()
-    private val crashes = mutableListOf<String>()
-    var isDisposed = false
 
     val rawEvents
       get() = events.toList()
 
-    val crashEvents
-      get() = crashes.toList()
-
     override fun onRawEvent(eventData: ByteArray) {
       events.add(eventData)
-    }
-
-    override fun onCrashEvent(message: String) {
-      crashes.add(message)
-    }
-
-    override fun onDispose() {
-      isDisposed = true
     }
   }
 }

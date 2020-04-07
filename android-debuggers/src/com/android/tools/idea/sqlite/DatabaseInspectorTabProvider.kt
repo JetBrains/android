@@ -19,6 +19,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.project.Project
 import javax.swing.JComponent
 
@@ -44,15 +45,20 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
       }
 
       private val handleError: (String) -> Unit = { databaseInspectorProjectService.handleError(it, null) }
-      private val onDisposeListener: () -> Unit = { databaseInspectorProjectService.closeAllLiveDatabase() }
 
       private val onDatabasePossiblyChanged: () -> Unit = { databaseInspectorProjectService.databasePossiblyChanged() }
 
-      override val client = DatabaseInspectorClient(messenger, handleError, openDatabase, onDatabasePossiblyChanged, onDisposeListener)
+      override val client = DatabaseInspectorClient(messenger, handleError, openDatabase, onDatabasePossiblyChanged)
+
       override val component: JComponent = databaseInspectorProjectService.sqliteInspectorComponent
 
       init {
         client.startTrackingDatabaseConnections()
+        client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+          override fun onDispose() {
+            databaseInspectorProjectService.closeAllLiveDatabase()
+          }
+        }, MoreExecutors.directExecutor())
       }
     }
   }
