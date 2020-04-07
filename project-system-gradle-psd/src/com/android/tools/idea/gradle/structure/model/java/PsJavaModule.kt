@@ -37,7 +37,7 @@ class PsJavaModule(
   var resolvedModel: JavaModuleModel? = null ; private set
   override var rootDir: File? = null ; private set
   override val projectType: PsModuleType = PsModuleType.JAVA
-  override val icon: Icon? = AllIcons.Nodes.PpJdk
+  override val icon: Icon? = AllIcons.Nodes.Module
   private var myDependencyCollection: PsDeclaredJavaDependencyCollection? = null
   private var myResolvedDependencyCollection: PsResolvedJavaDependencyCollection? = null
 
