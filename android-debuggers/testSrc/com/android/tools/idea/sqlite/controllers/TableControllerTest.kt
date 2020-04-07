@@ -1611,6 +1611,28 @@ class TableControllerTest : PlatformTestCase() {
     verify(mockTrackerService).trackTableCellEdited()
   }
 
+  fun testToggleLiveUpdatesAnalytics() {
+    // Prepare
+    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
+
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      project, 10, tableView, { null }, mockDatabaseConnection, SqliteStatement(""), {}, edtExecutor, edtExecutor
+    )
+    tableController.setUp()
+    Disposer.register(testRootDisposable, tableController)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Act
+    tableView.listeners.first().toggleLiveUpdatesInvoked()
+    tableView.listeners.first().toggleLiveUpdatesInvoked()
+
+    // Assert
+    verify(mockTrackerService).trackLiveUpdatedToggled(true)
+    verify(mockTrackerService).trackLiveUpdatedToggled(false)
+  }
+
   fun testNotifyDataMightBeStaleUpdatesTable() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
