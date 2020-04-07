@@ -61,7 +61,7 @@ class DatabaseInspectorViewImpl(
   private val centerPanel = JPanel(BorderLayout())
   private val leftPanelView = LeftPanelView(this)
   private val viewContext = SqliteViewContext(leftPanelView.component)
-  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null, parentDisposable)
+  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Database Inspector", null, parentDisposable)
   private val tabs = JBTabsImpl(project, IdeFocusManager.getInstance(project), project)
 
   override val component: JComponent = workBench
