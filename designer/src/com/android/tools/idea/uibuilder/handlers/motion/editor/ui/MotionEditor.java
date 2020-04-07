@@ -86,6 +86,8 @@ public class MotionEditor extends JPanel {
   JScrollPane mOverviewScrollPane = new MEScrollPane(mOverviewPanel);
   CardLayout mCardLayout = new CardLayout();
   JPanel mCenterPanel = new JPanel(mCardLayout);
+  JButton mCreateGestureToolbarButton;
+  JButton mCreateTransitionToolbarButton;
   private static final String LAYOUT_PANEL = "Layout";
   private static final String TRANSITION_PANEL = "Transition";
   private static final String CONSTRAINTSET_PANEL = "ConstraintSet";
@@ -271,21 +273,21 @@ public class MotionEditor extends JPanel {
 
     JButton create_constraintSet = MEUI.createToolBarButton(MEIcons.CREATE_MENU, "Create ConstraintSet");
     toolbarLeft.add(create_constraintSet);
-    JButton create_transition = MEUI.createToolBarButton(MEIcons.CREATE_TRANSITION, "Create Transition between ConstraintSets");
-    toolbarLeft.add(create_transition);
-    JButton create_touch = MEUI.createToolBarButton(MEIcons.CREATE_ON_STAR, "Create click or swipe handler");
-    toolbarLeft.add(create_touch);
+    mCreateTransitionToolbarButton = MEUI.createToolBarButton(MEIcons.CREATE_TRANSITION, MEIcons.LIST_TRANSITION, "Create Transition between ConstraintSets");
+    toolbarLeft.add(mCreateTransitionToolbarButton);
+    mCreateGestureToolbarButton = MEUI.createToolBarButton(MEIcons.CREATE_ON_STAR, MEIcons.GESTURE, "Create click or swipe handler");
+    toolbarLeft.add(mCreateGestureToolbarButton);
     create_constraintSet.setAction(mCreateConstraintSet.getAction(create_constraintSet, this));
-    create_transition.setAction(mCreateTransition.getAction(create_transition, this));
+    mCreateTransitionToolbarButton.setAction(mCreateTransition.getAction(mCreateTransitionToolbarButton, this));
     create_constraintSet.setHideActionText(true);
-    create_transition.setHideActionText(true);
-    create_touch.setHideActionText(true);
+    mCreateTransitionToolbarButton.setHideActionText(true);
+    mCreateGestureToolbarButton.setHideActionText(true);
 
 
-    myPopupMenu.add(mCreateOnClick.getAction(create_touch, this));
-    myPopupMenu.add(mCreateOnSwipe.getAction(create_touch, this));
+    myPopupMenu.add(mCreateOnClick.getAction(mCreateGestureToolbarButton, this));
+    myPopupMenu.add(mCreateOnSwipe.getAction(mCreateGestureToolbarButton, this));
 
-    create_touch.addActionListener(e -> {
+    mCreateGestureToolbarButton.addActionListener(e -> {
       myPopupMenu.show(create_constraintSet, 0, 0);
     });
 
@@ -404,6 +406,10 @@ public class MotionEditor extends JPanel {
       mConstraintSetPanel.setMTag(asConstraintSet(newSelection), mMeModel);
       mTransitionPanel.setMTag(asTransition(newSelection), mMeModel);
       mSelectedTag = newSelection;
+      MTag[] mtags = model.motionScene.getChildTags("ConstraintSet");
+      mCreateTransitionToolbarButton.setEnabled(mtags.length >= 2);
+      mtags = model.motionScene.getChildTags("Transition");
+      mCreateGestureToolbarButton.setEnabled(mtags.length >= 1);
     }
     finally {
       mUpdatingModel = false;

@@ -73,7 +73,11 @@ public class MEActionButton extends JButton {
 
   @Override
   public void paintComponent(Graphics g) {
-    if (isEnabled() || !UIUtil.isUnderDarcula()) {
+    if (!isEnabled()) {
+      super.paintComponent(g);
+      return;
+    }
+    if (!UIUtil.isUnderDarcula()) {
       paintBackground(g);
     }
     super.paintComponent(g);
