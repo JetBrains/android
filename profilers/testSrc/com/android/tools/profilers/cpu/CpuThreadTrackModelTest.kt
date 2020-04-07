@@ -17,8 +17,12 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.MultiSelectionModel
+import com.android.tools.adtui.model.Range
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel.Type
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import org.mockito.Mockito
 
 class CpuThreadTrackModelTest {
 
@@ -27,5 +31,15 @@ class CpuThreadTrackModelTest {
     val capture = CpuProfilerTestUtils.getValidCapture()
     val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(516, "Foo"), DefaultTimeline(), MultiSelectionModel())
     assertThat(threadTrackModel.threadStateChartModel.series).isEmpty()
+  }
+
+  @Test
+  fun analysisTabs() {
+    val capture = Mockito.mock(CpuCapture::class.java).apply {
+      Mockito.`when`(this.range).thenReturn(Range())
+    }
+    val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(1, "Foo"), DefaultTimeline(), MultiSelectionModel())
+    val analysisTabModels = threadTrackModel.analysisModel.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()
+    assertThat(analysisTabModels).containsExactly(Type.SUMMARY, Type.FLAME_CHART, Type.TOP_DOWN, Type.BOTTOM_UP)
   }
 }
