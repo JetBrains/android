@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.RUNTIME;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
@@ -659,6 +660,30 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     GradlePropertyModel guavaVersionVariable = guavaResolvedVariables.get(0);
     verifyPropertyModel(guavaVersionVariable, STRING_TYPE, "18.0", STRING, REGULAR, 0, "guavaVersion", "ext.guavaVersion");
+  }
+
+  @Test
+  public void testParseCompactNotationWithQuotedIdentifierVariables() throws IOException {
+    writeToBuildFile(TestFile.PARSE_COMPACT_NOTATION_WITH_QUOTED_IDENTIFIER_VARIABLES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(6);
+
+    assertEquals(new ExpectedArtifactDependency(IMPLEMENTATION, "a", "com.google.a", "1.0.0").compactNotation(),
+                 dependencies.get(0).compactNotation());
+    assertEquals(new ExpectedArtifactDependency(IMPLEMENTATION, "b", "com.google.b", "2.0.0").compactNotation(),
+                 dependencies.get(1).compactNotation());
+    assertEquals(new ExpectedArtifactDependency(IMPLEMENTATION, "c", "com.google.c", "3.0.0").compactNotation(),
+                 dependencies.get(2).compactNotation());
+    assertEquals(new ExpectedArtifactDependency(IMPLEMENTATION, "d", "com.google.d", "4.0.0").compactNotation(),
+                 dependencies.get(3).compactNotation());
+    assertEquals(new ExpectedArtifactDependency(IMPLEMENTATION, "e", "com.google.e", "5.0.0").compactNotation(),
+                 dependencies.get(4).compactNotation());
+    assertEquals(new ExpectedArtifactDependency(IMPLEMENTATION, "f", "com.google.f", "6.0.0").compactNotation(),
+                 dependencies.get(5).compactNotation());
   }
 
   @Test
@@ -2016,6 +2041,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     REMOVE_WHEN_MULTIPLE("removeWhenMultiple"),
     CONTAINS("contains"),
     PARSE_COMPACT_NOTATION_WITH_VARIABLES("parseCompactNotationWithVariables"),
+    PARSE_COMPACT_NOTATION_WITH_QUOTED_IDENTIFIER_VARIABLES("parseCompactNotationWithQuotedIdentifierVariables"),
     PARSE_MAP_NOTATION_WITH_VARIABLES("parseMapNotationWithVariables"),
     PARSE_COMPACT_NOTATION_CLOSURE_WITH_VARIABLES("parseCompactNotationClosureWithVariables"),
     PARSE_MAP_NOTATION_CLOSURE_WITH_VARIABLES("parseMapNotationClosureWithVariables"),
