@@ -61,8 +61,7 @@ class PsContextImpl constructor(
   private val gradleSync: GradleResolver = GradleResolver()
   override val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon
 
-  private val gradleSyncEventDispatcher = EventDispatcher.create(
-    GradleSyncListener::class.java)
+  private val gradleSyncEventDispatcher = EventDispatcher.create(PsContext.SyncListener::class.java)
   private var disableSync: Boolean = false
   private var disposed: Boolean = false
 
@@ -131,25 +130,25 @@ class PsContextImpl constructor(
   private fun requestGradleModels() {
     if (disableResolveModels) return
     val project = this.project.ideProject
-    gradleSyncEventDispatcher.multicaster.syncStarted(project)
+    gradleSyncEventDispatcher.multicaster.started()
     future?.cancel(true)
     gradleSync
       .requestProjectResolved(project, this)
       .also { future = it }
       .handleFailureOnEdt { ex ->
         LOG.warn("PSD failed to fetch Gradle models.", ex)
-        gradleSyncEventDispatcher.multicaster.syncFailed(project, ex?.let { e -> ExceptionUtil.getRootCause(e).message }.orEmpty())
+        gradleSyncEventDispatcher.multicaster.ended()
       }
       .continueOnEdt {
         if (disposed) return@continueOnEdt
         LOG.info("PSD fetched (${it.size} Gradle model(s). Refreshing the UI model.")
         this.project.refreshFrom(it)
-        gradleSyncEventDispatcher.multicaster.syncSucceeded(project)
+        gradleSyncEventDispatcher.multicaster.ended()
         this.project.forEachModule(Consumer { analyzerDaemon.queueCheck(it) })
       }
   }
 
-  override fun add(listener: GradleSyncListener, parentDisposable: Disposable) =
+  override fun add(listener: PsContext.SyncListener, parentDisposable: Disposable) =
     gradleSyncEventDispatcher.addListener(listener, parentDisposable)
 
 

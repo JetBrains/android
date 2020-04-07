@@ -26,14 +26,21 @@ import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.options.ConfigurationException
+import java.util.EventListener
 
 interface PsContext : Disposable {
+  interface SyncListener : EventListener {
+    fun started()
+    fun ended()
+  }
+
   val analyzerDaemon: PsAnalyzerDaemon
   val project: PsProject
   val libraryUpdateCheckerDaemon: PsLibraryUpdateCheckerDaemon
   val uiSettings: PsUISettings
   val selectedModule: String?
   val mainConfigurable: ProjectStructureConfigurable
+
   /**
    * Gets an [ArtifactRepositorySearchService] that searches the repositories configured for `module`. The results are cached and
    * in the case of an exactly matching request reused.
@@ -41,7 +48,7 @@ interface PsContext : Disposable {
   fun getArtifactRepositorySearchServiceFor(module: PsModule): ArtifactRepositorySearchService
 
   fun setSelectedModule(moduleName: String, source: Any)
-  fun add(listener: GradleSyncListener, parentDisposable: Disposable)
+  fun add(listener: SyncListener, parentDisposable: Disposable)
   fun applyRunAndReparse(runnable: () -> Boolean)
 
   /**
