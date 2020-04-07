@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ToolWindowType;
@@ -127,12 +128,10 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
   }
 
-  private void setAdditionalActions(@NotNull ToolWindowEx toolWindow) {
+  private void setAdditionalActions(@NotNull ToolWindow toolWindow) {
     List<AnAction> actionList = myContent.getAdditionalActions();
     if (!actionList.isEmpty()) {
-      AnAction[] actions = new AnAction[actionList.size()];
-      actionList.toArray(actions);
-      toolWindow.setTitleActions(actions);
+      toolWindow.setTitleActions(actionList);
     }
   }
 
