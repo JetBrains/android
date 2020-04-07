@@ -339,7 +339,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                 @NotNull AndroidFacet facet,
                                                 @NotNull String contributorsAmStartOptions,
                                                 boolean waitForDebugger,
-                                                @NotNull LaunchStatus launchStatus) {
+                                                @NotNull LaunchStatus launchStatus,
+                                                @NotNull ApkProvider apkProvider) {
     String runner = INSTRUMENTATION_RUNNER_CLASS;
     if (isEmptyOrSpaces(runner)) {
       runner = getDefaultInstrumentationRunner(facet);

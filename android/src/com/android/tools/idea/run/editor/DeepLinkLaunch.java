@@ -17,6 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.tasks.AndroidDeepLinkLaunchTask;
@@ -44,7 +45,8 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
     public LaunchTask getLaunchTask(@NotNull String applicationId,
                                     @NotNull AndroidFacet facet,
                                     @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
-                                    @NotNull ProfilerState profilerState) {
+                                    @NotNull ProfilerState profilerState,
+                                    @NotNull ApkProvider apkProvider) {
       return new AndroidDeepLinkLaunchTask(DEEP_LINK, startActivityFlagsProvider);
     }
 

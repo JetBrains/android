@@ -473,6 +473,13 @@ public final class StudioFlags {
     DefaultActivityLocatorStrategy.INDEX
   );
 
+  public static final Flag<Boolean> DEFAULT_ACTIVITY_LOCATOR_FROM_APKS = Flag.create(
+    RUNDEBUG,
+    "default.activity.locator.sourceoftruth",
+    "Use APKs as source of truth",
+    "Open APK and parse the manifest in order to discover default activity.",
+    true);
+
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
     RUNDEBUG,
     "feature.on.feature",

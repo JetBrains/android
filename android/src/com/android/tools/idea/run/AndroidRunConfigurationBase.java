@@ -420,7 +420,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                          @NotNull AndroidFacet facet,
                                                          @NotNull String contributorsAmStartOptions,
                                                          boolean waitForDebugger,
-                                                         @NotNull LaunchStatus launchStatus);
+                                                         @NotNull LaunchStatus launchStatus,
+                                                         @NotNull ApkProvider apkProvider);
 
   public final DeviceCount getDeviceCount(boolean debug) {
     return DeviceCount.fromBoolean(supportMultipleDevices() && !debug);

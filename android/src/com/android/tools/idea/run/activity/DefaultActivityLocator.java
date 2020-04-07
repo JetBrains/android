@@ -186,8 +186,7 @@ public class DefaultActivityLocator extends ActivityLocator {
    * or <@code null> if none can be found.
    */
   @Nullable
-  @VisibleForTesting
-  public static String computeDefaultActivity(@NotNull List<ActivityWrapper> activities) {
+  public static String computeDefaultActivity(@NotNull List<? extends ActivityWrapper> activities) {
     List<ActivityWrapper> launchableActivities = getLaunchableActivities(activities);
     if (launchableActivities.isEmpty()) {
       return null;
@@ -282,7 +281,7 @@ public class DefaultActivityLocator extends ActivityLocator {
   }
 
   @NotNull
-  private static List<ActivityWrapper> getLaunchableActivities(@NotNull List<ActivityWrapper> allActivities) {
+  private static List<ActivityWrapper> getLaunchableActivities(@NotNull List<? extends ActivityWrapper> allActivities) {
     List<ActivityWrapper> launchableActivities = allActivities
       .stream()
       .filter(activity -> ActivityLocatorUtils.containsLauncherIntent(activity) && activity.isEnabled())
