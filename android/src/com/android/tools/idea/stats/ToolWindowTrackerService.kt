@@ -18,7 +18,6 @@ package com.android.tools.idea.stats
 import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioToolWindowActionStats
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -83,8 +82,11 @@ class ToolWindowTrackerService(private val project: Project) {
 }
 
 internal class MyToolWindowManagerListener(private val project: Project) : ToolWindowManagerListener {
-  override fun toolWindowRegistered(id: String) {
-    ToolWindowTrackerService.getInstance(project).toolWindowRegistered(id)
+  override fun toolWindowsRegistered(ids: MutableList<String>) {
+    val trackerService = ToolWindowTrackerService.getInstance(project)
+    for (id in ids) {
+      trackerService.toolWindowRegistered(id)
+    }
   }
 
   override fun stateChanged(toolWindowManager: ToolWindowManager) {
