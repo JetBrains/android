@@ -45,20 +45,22 @@ class SafeArgsModeModuleComponent(val module: Module) {
     }
 
   init {
-    val connection = module.messageBus.connect(module)
-    connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, object : GradleSyncListener {
-      override fun syncSucceeded(project: Project) {
-        updateSafeArgsMode()
-      }
+    if (StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) {
+      val connection = module.messageBus.connect(module)
+      connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, object : GradleSyncListener {
+        override fun syncSucceeded(project: Project) {
+          updateSafeArgsMode()
+        }
 
-      override fun syncFailed(project: Project, errorMessage: String) {
-        updateSafeArgsMode()
-      }
+        override fun syncFailed(project: Project, errorMessage: String) {
+          updateSafeArgsMode()
+        }
 
-      override fun syncSkipped(project: Project) {
-        updateSafeArgsMode()
-      }
-    })
+        override fun syncSkipped(project: Project) {
+          updateSafeArgsMode()
+        }
+      })
+    }
   }
 
   private fun updateSafeArgsMode() {
