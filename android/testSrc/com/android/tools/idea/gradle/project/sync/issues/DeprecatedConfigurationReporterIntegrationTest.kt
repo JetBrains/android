@@ -16,8 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler
+import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH1_DOT5
@@ -30,13 +29,11 @@ import org.mockito.Mockito.mock
 
 class DeprecatedConfigurationReporterIntegrationTest : AndroidGradleTestCase() {
   private var reporter : BuildToolsTooLowReporter? = null
-  private var handler : SdkBuildToolsTooLowErrorHandler? = null
 
   @Before
   override fun setUp() {
     super.setUp()
-    handler = mock(SdkBuildToolsTooLowErrorHandler::class.java)
-    reporter = BuildToolsTooLowReporter(handler!!)
+    reporter = BuildToolsTooLowReporter()
   }
 
   @Test
@@ -47,7 +44,7 @@ class DeprecatedConfigurationReporterIntegrationTest : AndroidGradleTestCase() {
 
     val issue = mock(SyncIssue::class.java)
 
-    val syncIssues = ImmutableList.of<SyncIssue>(issue)
+    val syncIssues = ImmutableList.of(issue)
     val link = reporter!!.createModuleLink(project, appModule, syncIssues, appFile)
     assertThat(link.lineNumber).isEqualTo(-1)
     assertThat(link.filePath).isEqualTo(appFile.path)
