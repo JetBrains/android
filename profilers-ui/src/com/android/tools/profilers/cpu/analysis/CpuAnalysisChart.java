@@ -45,7 +45,6 @@ import org.jetbrains.annotations.NotNull;
  * Analysis tab that displays charts of type {@link CaptureDetailsView}
  */
 public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
-  private final StudioProfilersView myProfilersView;
   private final JPanel myCaptureDetailsPanel = new JPanel(new BorderLayout());
   private CaptureDetailsView myActiveDetailsView;
 
@@ -58,8 +57,7 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
   @NotNull private final AspectObserver myObserver = new AspectObserver();
 
   public CpuAnalysisChart(@NotNull StudioProfilersView view, @NotNull CpuAnalysisTabModel<?> model) {
-    super((CpuAnalysisChartModel<?>)model);
-    myProfilersView = view;
+    super(view, (CpuAnalysisChartModel<?>)model);
     myBinder = new ViewBinder<>();
     myBinder.bind(CaptureDetails.TopDown.class, TreeDetailsView.TopDownDetailsView::new);
     myBinder.bind(CaptureDetails.BottomUp.class, TreeDetailsView.BottomUpDetailsView::new);
@@ -132,7 +130,7 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
   private void updateDetailsView(@NotNull CaptureDetails captureDetails) {
     myCaptureDetailsPanel.removeAll();
     // Need to hold a hard reference to the capture details view otherwise soft dependencies get cleaned up.
-    myActiveDetailsView = myBinder.build(myProfilersView, captureDetails);
+    myActiveDetailsView = myBinder.build(getProfilersView(), captureDetails);
     // Capture details view
     myCaptureDetailsPanel.add(myActiveDetailsView.getComponent(), BorderLayout.CENTER);
   }

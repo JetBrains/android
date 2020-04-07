@@ -15,11 +15,35 @@
  */
 package com.android.tools.profilers.cpu.analysis;
 
+import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.profilers.StudioProfilersView;
+import com.intellij.ui.components.JBScrollPane;
+import java.awt.BorderLayout;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 import org.jetbrains.annotations.NotNull;
 
-public class CpuAnalysisSummaryTab<T> extends CpuAnalysisTab<CpuAnalysisTabModel<T>> {
-  public CpuAnalysisSummaryTab(@NotNull StudioProfilersView view, @NotNull CpuAnalysisTabModel<T> model) {
-    super(model);
+public class CpuAnalysisSummaryTab extends CpuAnalysisTab<CpuAnalysisSummaryTabModel<?>> {
+  /**
+   * Binds different types of summary tab model to its views, e.g. thread summary, trace event summary.
+   */
+  @NotNull private final ViewBinder<JComponent, CpuAnalysisSummaryTabModel<?>, SummaryDetailsViewBase<?>> myViewBinder;
+
+  public CpuAnalysisSummaryTab(@NotNull StudioProfilersView profilersView, @NotNull CpuAnalysisSummaryTabModel<?> model) {
+    super(profilersView, model);
+    myViewBinder = new ViewBinder<>();
+    myViewBinder.bind(FullTraceAnalysisSummaryTabModel.class, FullTraceSummaryDetailsView::new);
+    myViewBinder.bind(CpuThreadAnalysisSummaryTabModel.class, CpuThreadSummaryDetailsView::new);
+    myViewBinder.bind(CaptureNodeAnalysisSummaryTabModel.class, CaptureNodeSummaryDetailsView::new);
+    initComponents();
+  }
+
+  private void initComponents() {
+    setLayout(new BorderLayout());
+    JScrollPane scrollPane = new JBScrollPane(myViewBinder.build(this, getModel()).getComponent(),
+                                              ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                              ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    add(scrollPane);
   }
 }
