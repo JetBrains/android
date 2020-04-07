@@ -340,6 +340,8 @@ class TableController(
       if (liveUpdatesEnabled) {
         notifyDataMightBeStale()
       }
+
+      databaseInspectorAnalyticsTracker.trackLiveUpdatedToggled(liveUpdatesEnabled)
     }
 
     override fun updateCellInvoked(targetRowIndex: Int, targetColumn: SqliteColumn, newValue: SqliteValue) {
