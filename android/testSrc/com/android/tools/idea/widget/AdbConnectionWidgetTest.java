@@ -20,8 +20,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.intellij.openapi.actionSystem.TimerListener;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.wm.StatusBar;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,100 +32,98 @@ import org.mockito.stubbing.Answer;
 
 @RunWith(JUnit4.class)
 public class AdbConnectionWidgetTest {
-  private final AtomicBoolean myIsConnected = new AtomicBoolean();
-  private final AtomicBoolean myIsUserManaged = new AtomicBoolean();
-  private final StatusBar myStatusBar = Mockito.mock(StatusBar.class);
-  private final AtomicReference<Icon> myLastIcon = new AtomicReference<>();
-  private AdbConnectionWidget myWidget;
-  private TimerListener myTimerListener;
-
-  public void setup(boolean isUserManaged) {
-    myIsUserManaged.set(isUserManaged);
-
-    AdbConnectionWidget.StudioAdapter adapter = new AdbConnectionWidget.StudioAdapter() {
-      @Override
-      public boolean isBridgeConnected() {
-        return myIsConnected.get();
-      }
-
-      @Override
-      public boolean isBridgeUserManagedMode() {
-        return myIsUserManaged.get();
-      }
-
-      @NotNull
-      @Override
-      public ModalityState getModalityState() {
-        return ModalityState.defaultModalityState();
-      }
-
-      @Nullable
-      @Override
-      public StatusBar getVisibleStatusBar() {
-        return myStatusBar;
-      }
-
-      @Override
-      public void addTimerListener(@NotNull TimerListener timerListener) {
-        myTimerListener = timerListener;
-      }
-
-      @Override
-      public void removeTimerListener(@NotNull TimerListener timerListener) {
-        assertThat(timerListener).isSameAs(myTimerListener);
-      }
-    };
-
-    myWidget = new AdbConnectionWidget(adapter);
-
-    Mockito.doAnswer(new Answer<Void>() {
-      @Override
-      @Nullable
-      public Void answer(@NotNull InvocationOnMock invocation) {
-        myLastIcon.set(myWidget.getIcon());
-        return null;
-      }
-    }).when(myStatusBar).updateWidget(AdbConnectionWidget.ID);
-  }
-
   @Test
   public void testStudioManaged() {
-    setup(false);
+    StubStudioAdapter adapter = new StubStudioAdapter(false);
 
     // Ensure we're in the correct initial state.
-    assert !myIsUserManaged.get();
-    assert !myIsConnected.get();
-    assert myTimerListener != null;
-    assertThat(myWidget.getIcon()).isSameAs(AdbConnectionWidget.ConnectionState.STUDIO_MANAGED_DISCONNECTED.myIcon);
+    assert !adapter.myIsUserManaged;
+    assert !adapter.myIsConnected;
+    assert adapter.myTimerListener != null;
+    assertThat(adapter.myLastIcon).isSameAs(AdbConnectionWidget.ConnectionState.STUDIO_MANAGED_DISCONNECTED.myIcon);
 
     // Simulate ADB is connected.
-    myIsConnected.set(true);
-    myTimerListener.run(); // "Advance" the clock.
-    assertThat(myWidget.getIcon()).isSameAs(AdbConnectionWidget.ConnectionState.STUDIO_MANAGED_CONNECTED.myIcon);
+    adapter.myIsConnected = true;
+    adapter.myTimerListener.run(); // "Advance" the clock.
+    assertThat(adapter.myLastIcon).isSameAs(AdbConnectionWidget.ConnectionState.STUDIO_MANAGED_CONNECTED.myIcon);
 
     // Simulate disconnecting ADB.
-    myIsConnected.set(false);
-    myTimerListener.run(); // "Advance" the clock.
-    assertThat(myWidget.getIcon()).isSameAs(AdbConnectionWidget.ConnectionState.STUDIO_MANAGED_DISCONNECTED.myIcon);
+    adapter.myIsConnected = false;
+    adapter.myTimerListener.run(); // "Advance" the clock.
+    assertThat(adapter.myLastIcon).isSameAs(AdbConnectionWidget.ConnectionState.STUDIO_MANAGED_DISCONNECTED.myIcon);
   }
 
   @Test
   public void testUserManaged() {
-    setup(true);
+    StubStudioAdapter adapter = new StubStudioAdapter(true);
 
     // Ensure we're in the correct initial state.
-    assert !myIsConnected.get();
-    assert myTimerListener != null;
-    assertThat(myWidget.getIcon()).isSameAs(AdbConnectionWidget.ConnectionState.USER_MANAGED_DISCONNECTED.myIcon);
+    assert !adapter.myIsConnected;
+    assert adapter.myTimerListener != null;
+    assertThat(adapter.myLastIcon).isSameAs(AdbConnectionWidget.ConnectionState.USER_MANAGED_DISCONNECTED.myIcon);
 
     // Simulate ADB is connected.
-    myIsConnected.set(true);
-    myTimerListener.run(); // "Advance" the clock.
-    assertThat(myWidget.getIcon()).isSameAs(AdbConnectionWidget.ConnectionState.USER_MANAGED_CONNECTED.myIcon);
+    adapter.myIsConnected = true;
+    adapter.myTimerListener.run(); // "Advance" the clock.
+    assertThat(adapter.myLastIcon).isSameAs(AdbConnectionWidget.ConnectionState.USER_MANAGED_CONNECTED.myIcon);
 
     // Simulate disconnecting ADB.
-    myIsConnected.set(false);
-    myTimerListener.run(); // "Advance" the clock.
-    assertThat(myWidget.getIcon()).isSameAs(AdbConnectionWidget.ConnectionState.USER_MANAGED_DISCONNECTED.myIcon);
+    adapter.myIsConnected = false;
+    adapter.myTimerListener.run(); // "Advance" the clock.
+    assertThat(adapter.myLastIcon).isSameAs(AdbConnectionWidget.ConnectionState.USER_MANAGED_DISCONNECTED.myIcon);
+  }
+
+  private static class StubStudioAdapter implements AdbConnectionWidget.StudioAdapter {
+    public boolean myIsConnected;
+    public boolean myIsUserManaged;
+    public final StatusBar myStatusBar = Mockito.mock(StatusBar.class);
+    public Icon myLastIcon;
+    public TimerListener myTimerListener;
+
+    private StubStudioAdapter(boolean isUserManaged) {
+      myIsUserManaged = isUserManaged;
+      AdbConnectionWidget widget = new AdbConnectionWidget(this);
+      Mockito.doAnswer(new Answer<Void>() {
+        @Override
+        @Nullable
+        public Void answer(@NotNull InvocationOnMock invocation) {
+          myLastIcon = widget.getIcon();
+          return null;
+        }
+      }).when(myStatusBar).updateWidget(AdbConnectionWidget.ID);
+      myLastIcon = widget.getIcon();
+    }
+
+    @Override
+    public boolean isBridgeConnected() {
+      return myIsConnected;
+    }
+
+    @Override
+    public boolean isBridgeInUserManagedMode() {
+      return myIsUserManaged;
+    }
+
+    @NotNull
+    @Override
+    public ModalityState getModalityState() {
+      return ModalityState.defaultModalityState();
+    }
+
+    @Nullable
+    @Override
+    public StatusBar getVisibleStatusBar() {
+      return myStatusBar;
+    }
+
+    @Override
+    public void addTimerListener(@NotNull TimerListener timerListener) {
+      myTimerListener = timerListener;
+    }
+
+    @Override
+    public void removeTimerListener(@NotNull TimerListener timerListener) {
+      assertThat(timerListener).isSameAs(myTimerListener);
+    }
   }
 }
