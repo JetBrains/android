@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.ActivityLocator;
 import com.android.tools.idea.run.activity.SpecificActivityLocator;
@@ -45,7 +46,8 @@ public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.
     public LaunchTask getLaunchTask(@NotNull String applicationId,
                                     @NotNull AndroidFacet facet,
                                     @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
-                                    @NotNull ProfilerState profilerState) {
+                                    @NotNull ProfilerState profilerState,
+                                    @NotNull ApkProvider apkProvider) {
       return new SpecificActivityLaunchTask(applicationId, ACTIVITY_CLASS, startActivityFlagsProvider);
     }
 

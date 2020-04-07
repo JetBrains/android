@@ -249,7 +249,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
                                                 @NotNull AndroidFacet facet,
                                                 @NotNull String contributorsAmStartOptions,
                                                 boolean waitForDebugger,
-                                                @NotNull LaunchStatus launchStatus) {
+                                                @NotNull LaunchStatus launchStatus,
+                                                @NotNull ApkProvider apkProvider) {
     LaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
 
@@ -273,7 +274,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     }
 
     try {
-      return state.getLaunchTask(applicationIdProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState());
+      return state.getLaunchTask(applicationIdProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState(), apkProvider);
     }
     catch (ApkProvisionException e) {
       Logger.getInstance(AndroidRunConfiguration.class).error(e);
