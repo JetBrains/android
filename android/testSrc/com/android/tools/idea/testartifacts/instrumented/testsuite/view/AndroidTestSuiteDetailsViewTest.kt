@@ -20,13 +20,14 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
 import com.google.common.truth.Truth.assertThat
-import com.intellij.mock.MockApplication
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
@@ -40,20 +41,24 @@ import org.mockito.MockitoAnnotations
 @RunsInEdt
 class AndroidTestSuiteDetailsViewTest {
 
-  @get:Rule val edtRule = EdtRule()
-  @get:Rule val disposableRule = DisposableRule()
+  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
+
+  @get:Rule val rules: RuleChain = RuleChain
+    .outerRule(projectRule)
+    .around(EdtRule())
+    .around(disposableRule)
 
   @Mock lateinit var mockListener: AndroidTestSuiteDetailsViewListener
 
   @Before
   fun setup() {
     MockitoAnnotations.initMocks(this)
-    MockApplication.setUp(disposableRule.disposable)
   }
 
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponents() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockListener)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockListener, projectRule.project)
 
     view.setAndroidTestResults(createTestResults("testName", AndroidTestCaseResult.PASSED))
 
@@ -62,7 +67,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun clickOnCloseButtonShouldInvokeListener() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockListener)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockListener, projectRule.project)
 
     view.closeButtonForTesting.doClick()
 
@@ -71,8 +76,9 @@ class AndroidTestSuiteDetailsViewTest {
 
   private fun createTestResults(testCaseName: String, testCaseResult: AndroidTestCaseResult?): AndroidTestResults {
     return object: AndroidTestResults {
-      override val testCaseName = testCaseName
-      override fun getTestCaseResult(device: AndroidDevice) = testCaseResult
+      override val testCaseName: String = testCaseName
+      override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = testCaseResult
+      override fun getLogcat(device: AndroidDevice): String = ""
     }
   }
 }

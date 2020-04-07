@@ -19,10 +19,12 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.DetailsViewContentView;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.DetailsViewDeviceSelectorListView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.SideBorder;
@@ -33,6 +35,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Displays detailed results of an instrumentation test case. The test case may be executed by
@@ -69,10 +72,14 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
   private JPanel myContentPanel;
 
   private final DetailsViewDeviceSelectorListView myDeviceSelectorListView;
+  private final DetailsViewContentView myContentView;
+
+  @Nullable private AndroidTestResults myTestResults;
 
   @UiThread
   public AndroidTestSuiteDetailsView(@NotNull Disposable parentDisposable,
-                                     @NotNull AndroidTestSuiteDetailsViewListener listener) {
+                                     @NotNull AndroidTestSuiteDetailsViewListener listener,
+                                     @NotNull Project project) {
     myHeaderPanel.setBorder(new SideBorder(UIUtil.getBoundsColor(), SideBorder.BOTTOM));
 
     myCloseButton.addActionListener(new ActionListener() {
@@ -91,8 +98,8 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
     componentsSplitter.setFirstComponent(myDeviceSelectorListView.getRootPanel());
     componentsSplitter.setFirstSize(DEFAULT_DEVICE_LIST_WIDTH);
 
-    DetailsViewContentView contentView = new DetailsViewContentView();
-    componentsSplitter.setLastComponent(contentView.getRootPanel());
+    myContentView = new DetailsViewContentView(parentDisposable, project);
+    componentsSplitter.setLastComponent(myContentView.getRootPanel());
 
     myContentPanel.add(componentsSplitter);
   }
@@ -118,6 +125,7 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
    */
   @UiThread
   public void setAndroidTestResults(@NotNull AndroidTestResults results) {
+    myTestResults = results;
     setTitle(results.getTestCaseName());
   }
 
@@ -137,7 +145,15 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
   @Override
   @UiThread
   public void onDeviceSelected(@NotNull AndroidDevice selectedDevice) {
-    // TODO: implement this.
+    if (myTestResults == null) {
+      return;
+    }
+    AndroidTestCaseResult resultForSelectedDevice = myTestResults.getTestCaseResult(selectedDevice);
+    if (resultForSelectedDevice == null) {
+      return;
+    }
+    myContentView.setAndroidTestCaseResult(resultForSelectedDevice);
+    myContentView.setLogcat(myTestResults.getLogcat(selectedDevice));
   }
 
   @VisibleForTesting

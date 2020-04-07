@@ -23,13 +23,14 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.process.ProcessHandler
-import com.intellij.mock.MockApplication
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
@@ -43,20 +44,24 @@ import org.mockito.MockitoAnnotations
 @RunsInEdt
 class AndroidTestSuiteViewTest {
 
-  @get:Rule val edtRule = EdtRule()
-  @get:Rule val disposableRule = DisposableRule()
+  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
+
+  @get:Rule val rules: RuleChain = RuleChain
+    .outerRule(projectRule)
+    .around(EdtRule())
+    .around(disposableRule)
 
   @Mock lateinit var processHandler: ProcessHandler
 
   @Before
   fun setup() {
     MockitoAnnotations.initMocks(this)
-    MockApplication.setUp(disposableRule.disposable)
   }
 
   @Test
   fun attachToProcess() {
-    val view = AndroidTestSuiteView(disposableRule.disposable)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project)
 
     view.attachToProcess(processHandler)
 
@@ -65,14 +70,14 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun detailsViewIsNotVisibleInitially() {
-    val view = AndroidTestSuiteView(disposableRule.disposable)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project)
 
     assertThat(view.detailsViewForTesting.rootPanel.isVisible).isFalse()
   }
 
   @Test
   fun openAndCloseDetailsView() {
-    val view = AndroidTestSuiteView(disposableRule.disposable)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project)
 
     val device1 = AndroidDevice("deviceId1", "deviceName1")
     val device2 = AndroidDevice("deviceId2", "deviceName2")

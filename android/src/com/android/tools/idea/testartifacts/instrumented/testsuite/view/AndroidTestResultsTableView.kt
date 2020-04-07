@@ -195,7 +195,12 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
   /**
    * Returns a test case result for a given [device].
    */
-  override fun getTestCaseResult(device: AndroidDevice) = myTestCases[device.id]?.result
+  override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = myTestCases[device.id]?.result
+
+  /**
+   * Returns a logcat message for a given [device].
+   */
+  override fun getLogcat(device: AndroidDevice): String = myTestCases[device.id]?.logcat ?: ""
 
   /**
    * Returns a one liner test result summary string.
