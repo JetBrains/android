@@ -33,9 +33,9 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -171,18 +171,26 @@ public class PostProjectBuildTasksExecutor {
       }
 
       if (isSyncNeeded(buildMode, errorCount)) {
-        GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_BUILD_SYNC_NEEDED_AFTER_BUILD);
         // Start sync once other events have finished (b/76017112).
-        runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSync(myProject, request));
+        requestSyncAfterBuild(TRIGGER_BUILD_SYNC_NEEDED_AFTER_BUILD);
       }
 
       if (isSyncRequestedDuringBuild(myProject)) {
         setSyncRequestedDuringBuild(myProject, null);
         // Sync was invoked while the project was built. Now that the build is finished, request a full sync after previous events have
         // finished (b/76017112).
-        runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_USER_REQUEST_WHILE_BUILDING));
+        requestSyncAfterBuild(TRIGGER_USER_REQUEST_WHILE_BUILDING);
       }
     }
+  }
+
+  private void requestSyncAfterBuild(GradleSyncStats.Trigger trigger) {
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
+    runWhenEventsFinished(() -> {
+      if (!myProject.isDisposedOrDisposeInProgress()) {
+        GradleSyncInvoker.getInstance().requestProjectSync(myProject, request);
+      }
+    });
   }
 
   private boolean isSyncNeeded(@Nullable BuildMode buildMode, int errorCount) {
