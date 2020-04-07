@@ -72,11 +72,11 @@ class AndroidOverrideAnnotationsHandler : OverrideImplementsAnnotationsHandler {
           // Using old android.support annotations instead?
           val prev = new.replace("androidx.", "android.support.")
           if (psiFacade.findClass(prev, target.resolveScope) != null) {
-            AddAnnotationPsiFix.addPhysicalAnnotation(prev, PsiNameValuePair.EMPTY_ARRAY, modifierList)
+            AddAnnotationPsiFix.addPhysicalAnnotationIfAbsent(prev, PsiNameValuePair.EMPTY_ARRAY, modifierList)
           }
         }
         else {
-          AddAnnotationPsiFix.addPhysicalAnnotation(new, PsiNameValuePair.EMPTY_ARRAY, modifierList)
+          AddAnnotationPsiFix.addPhysicalAnnotationIfAbsent(new, PsiNameValuePair.EMPTY_ARRAY, modifierList)
         }
       }
       else {
