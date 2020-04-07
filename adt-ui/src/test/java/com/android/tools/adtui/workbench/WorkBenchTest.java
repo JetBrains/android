@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.EventDispatcher;
@@ -60,7 +61,7 @@ public class WorkBenchTest extends WorkBenchTestCase {
   @Mock
   private WorkBenchManager myWorkBenchManager;
   @Mock
-  private FileEditorManager myFileEditorManager;
+  private FileEditorManagerEx myFileEditorManager;
   @Mock
   private DetachedToolWindowManager myFloatingToolWindowManager;
   @Mock
@@ -103,13 +104,12 @@ public class WorkBenchTest extends WorkBenchTestCase {
     List<ToolWindowDefinition<String>> definitions = ImmutableList.of(PalettePanelToolContent.getDefinition(),
                                                                       PalettePanelToolContent.getOtherDefinition(),
                                                                       PalettePanelToolContent.getThirdDefinition());
+    when(myFileEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor, myFileEditor2});
     myWorkBench.init(myContent, "CONTEXT", definitions, false);
     myToolWindow1 = myModel.getAllTools().get(0);
     myToolWindow2 = myModel.getAllTools().get(1);
     myToolWindow3 = myModel.getAllTools().get(2);
-    when(myFileEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor, myFileEditor2});
     verify(myWorkBenchManager).register(eq(myWorkBench));
-    verify(myFloatingToolWindowManager).register(eq(myFileEditor), eq(myWorkBench));
     reset(myWorkBenchManager, myFloatingToolWindowManager);
   }
 

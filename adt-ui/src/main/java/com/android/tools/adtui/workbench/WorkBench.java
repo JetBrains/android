@@ -93,7 +93,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private final MinimizedPanel<T> myLeftMinimizePanel;
   private final MinimizedPanel<T> myRightMinimizePanel;
   private final ButtonDragListener<T> myButtonDragListener;
-  private final PropertyChangeListener myMyPropertyChangeListener = this::autoHide;
+  private final PropertyChangeListener myMyPropertyChangeListener = this::handlePropertyEvent;
   private FileEditor myFileEditor;
 
   @NotNull private String myContext = "";
@@ -138,7 +138,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myModel.setContext(context);
     addToolsToModel(minimizedWindows);
     myWorkBenchManager.register(this);
-    myDetachedToolWindowManager.register(myFileEditor, this);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
@@ -249,6 +248,26 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       }
     }
     return false;
+  }
+
+  private void handlePropertyEvent(@NotNull PropertyChangeEvent event) {
+    updateDetachedToolWindows(event);
+    autoHide(event);
+  }
+
+  private void updateDetachedToolWindows(@NotNull PropertyChangeEvent event) {
+    Object newValue = event.getNewValue();
+    if (!(newValue instanceof JComponent)) {
+      return;
+    }
+    JComponent newComponent = (JComponent)newValue;
+    JComponent oldComponent = event.getOldValue() instanceof JComponent ? (JComponent)event.getOldValue() : null;
+    // If a component inside this WorkBench got the focus and it didn't already have the focus, we want to show
+    // our detached (floating) tool windows and hide detached tool windows from other workbenches.
+    if (SwingUtilities.isDescendingFrom(newComponent, this) &&
+        (oldComponent == null || !SwingUtilities.isDescendingFrom(oldComponent, this))) {
+      myDetachedToolWindowManager.updateToolWindowsForWorkBench(this);
+    }
   }
 
   private void autoHide(@NotNull PropertyChangeEvent event) {
