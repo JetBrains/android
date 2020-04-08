@@ -406,7 +406,7 @@ public final class StudioFlags {
     "applychanges.optimisticresourceswap",
     "Use the 'Apply Changes 2.0' deployment pipeline for full Apply Changes",
     "Requires applychanges.optimisticswap to be true.",
-    false);
+    true);
 
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
     RUNDEBUG,
