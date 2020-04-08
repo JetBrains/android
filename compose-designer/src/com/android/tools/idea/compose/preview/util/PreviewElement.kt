@@ -360,7 +360,7 @@ data class ParametrizedPreviewElementTemplate(private val basePreviewElement: Pr
 
     return parameterProviders.map {
       try {
-        val parameterProviderClass = ModuleClassLoaderManager.get().get(null, module).loadClass(it.providerClassFqn).kotlin
+        val parameterProviderClass = ModuleClassLoaderManager.get().getShared(null, module).loadClass(it.providerClassFqn).kotlin
         val parameterProviderSizeMethod = parameterProviderClass.memberProperties.single { "count" == it.name }
         val parameterProvider = parameterProviderClass.createInstance()
         val providerCount = min((parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0), it.limit)

@@ -176,6 +176,11 @@ public class LayoutlibSceneManager extends SceneManager {
   private boolean useShrinkRendering = false;
 
   /**
+   * If true, the scene is interactive
+   */
+  private boolean isInteractive = false;
+
+  /**
    * If true, the render will paint the system decorations (status and navigation bards)
    */
   private boolean useShowDecorations;
@@ -1011,6 +1016,16 @@ public class LayoutlibSceneManager extends SceneManager {
       taskBuilder.disableToolsAttributes();
     }
 
+    // If two compose previews share the same ClassLoader they share the same compose framework. This way they share the state. In the
+    // interactive preview we would like to control the state of the framework and preview. Shared state makes control impossible.
+    // Therefore, for interactive (currently only compose) preview we want to create a dedicated ClassLoader so that the preview has its own
+    // compose framework. Having a dedicated ClassLoader also allows for clearing resources right after the preview no longer used. We could
+    // apply this approach to static previews as well but it might have negative impact if there are many of them, so applying to the
+    // interactive previews only.
+    if (isInteractive) {
+      taskBuilder.usePrivateClassLoader();
+    }
+
     return taskBuilder;
   }
 
@@ -1405,10 +1420,11 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Sets animated mode of the scene.
-   * @param animated true if the scene is animated, false otherwise.
+   * Sets interactive mode of the scene.
+   * @param interactive true if the scene is interactive, false otherwise.
    */
-  public void setAnimated(boolean animated) {
-    getSceneViews().forEach(sv -> sv.setAnimated(animated));
+  public void setInteractive(boolean interactive) {
+    isInteractive = interactive;
+    getSceneViews().forEach(sv -> sv.setAnimated(isInteractive));
   }
 }

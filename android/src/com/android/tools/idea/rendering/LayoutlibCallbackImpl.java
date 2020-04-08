@@ -123,9 +123,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.tooling.util.BiFunction;
 import org.kxml2.io.KXmlParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -202,6 +205,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * @param credential the sandbox credential
    * @param actionBarHandler An {@link ActionBarHandler} instance.
    * @param parserFactory an optional factory for creating XML parsers.
+   * @param privateClassLoader if true ViewLoader should create a new privately owned ModuleClassLoader and should not share it, if false
+   *                           use a shared one from the ModuleClassLoaderManager
    */
   public LayoutlibCallbackImpl(@Nullable RenderTask renderTask,
                                @NotNull LayoutLibrary layoutLib,
@@ -211,7 +216,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @NotNull IRenderLogger logger,
                                @Nullable Object credential,
                                @Nullable ActionBarHandler actionBarHandler,
-                               @Nullable ILayoutPullParserFactory parserFactory) {
+                               @Nullable ILayoutPullParserFactory parserFactory,
+                               boolean privateClassLoader) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myIdManager = ResourceIdManager.get(module);
@@ -219,7 +225,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myModule = module;
     myLogger = logger;
     myCredential = credential;
-    myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
+    ModuleClassLoaderManager manager = ModuleClassLoaderManager.get();
+    myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential, privateClassLoader ? manager::getPrivate : manager::getShared);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
     myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
