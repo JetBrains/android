@@ -29,17 +29,15 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescrip
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*
 import com.intellij.openapi.application.runReadAction
-import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 
 interface KotlinDslNameConverter: GradleDslNameConverter {
   @JvmDefault
   override fun psiToName(element: PsiElement): String {
     return when (element) {
-      is KtStringTemplateExpression -> when {
-        element.entries.size == 1 && element.entries[0] is KtLiteralStringTemplateEntry ->
-          GradleNameElement.escape((element.entries[0] as KtLiteralStringTemplateEntry).text)
-        else -> element.text
+      is KtStringTemplateExpression -> when (val contents = element.literalContents()) {
+        null -> element.text
+        else -> GradleNameElement.escape(contents)
       }
       is KtExpression -> gradleNameFor(element) ?: element.text
       else -> element.text

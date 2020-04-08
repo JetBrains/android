@@ -718,6 +718,23 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId())
   }
 
+  @Test
+  fun testParseVariedSyntaxBuildTypeBlocks() {
+    writeToBuildFile(TestFile.PARSE_VARIED_SYNTAX_BUILD_TYPE_BLOCKS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val buildTypes = android.buildTypes()
+    assertSize(6, buildTypes)
+    assertEquals("one", buildTypes[0].name())
+    assertEquals("two", buildTypes[1].name())
+    assertEquals("three", buildTypes[2].name())
+    assertEquals("four", buildTypes[3].name())
+    assertEquals("five", buildTypes[4].name())
+    assertEquals("six", buildTypes[5].name())
+  }
+
   private fun doTestAddAndApplyOneBuildTypeBlock(name : String, expected : TestFileName) {
     writeToBuildFile(TestFile.ADD_AND_APPLY_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
@@ -1506,6 +1523,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK("addAndApplyEmptySourceSetBlock"),
     ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK("addAndApplyDefaultConfigBlock"),
     ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK_EXPECTED("addAndApplyDefaultConfigBlockExpected"),
+    PARSE_VARIED_SYNTAX_BUILD_TYPE_BLOCKS("parseVariedSyntaxBuildTypeBlocks"),
     ADD_AND_APPLY_BUILD_TYPE_BLOCK("addAndApplyBuildTypeBlock"),
     ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyBuildTypeBlockExpected"),
     ADD_AND_APPLY_DEREF_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyDerefBuildTypeBlockExpected"),
