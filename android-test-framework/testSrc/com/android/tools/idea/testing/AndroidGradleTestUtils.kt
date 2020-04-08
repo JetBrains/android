@@ -100,6 +100,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.UsefulTestCase
 import com.intellij.util.text.nullize
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemDependent
@@ -903,7 +904,12 @@ fun Module.fileUnderGradleRoot(path: @SystemIndependent String): VirtualFile? =
 /**
  * See implementing classes for usage examples.
  */
-interface GradleSnapshotComparisonTest : SnapshotComparisonTest {
+interface GradleSnapshotComparisonTest {
+  /**
+   * Assumed to be matched by [UsefulTestCase.getName].
+   */
+  fun getName(): String
+
   /**
    * The base testData directory to be used in tests.
    */
