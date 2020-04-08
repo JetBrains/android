@@ -39,7 +39,6 @@ import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.openapi.options.newEditor.SettingsDialog
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectBundle
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.MasterDetailsComponent
 import com.intellij.openapi.ui.MessageType
@@ -62,9 +61,7 @@ import com.intellij.util.EventDispatcher
 import com.intellij.util.io.storage.HeavyProcessLatch
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND
-import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
-import com.intellij.util.ui.UIUtil.requestFocus
+import com.intellij.util.ui.UIUtil.*
 import com.intellij.util.ui.update.Activatable
 import com.intellij.util.ui.update.UiNotifyConnector
 import org.jetbrains.annotations.Nls
@@ -73,7 +70,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.KeyEvent
-import java.util.EventListener
+import java.util.*
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -386,7 +383,7 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
   }
 
   override fun reset() {
-    val token = HeavyProcessLatch.INSTANCE.processStarted("Resetting Project Structure")
+    val token = HeavyProcessLatch.INSTANCE.processStarted("Resetting Project Structure", HeavyProcessLatch.Type.Reset)
     try {
       val configurables = myConfigurables.keys
 
