@@ -47,13 +47,15 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val composableFqn = modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT)?.composableMethodFqn ?: return
 
-    manager.singlePreviewElementFqnFocus = if (isSelected) {
-      composableFqn
+    // The order matter because we first want to change the composable being previewed and then start interactive loop when enabled
+    // but we want to stop the loop first and then change the composable when disabled
+    if (isSelected) {
+      manager.singlePreviewElementFqnFocus = composableFqn
+      manager.isInteractive = true
+    } else {
+      manager.isInteractive = false
+      manager.singlePreviewElementFqnFocus = null
     }
-    else {
-      null
-    }
-    manager.isInteractive = isSelected
   }
 
   override fun update(e: AnActionEvent) {
