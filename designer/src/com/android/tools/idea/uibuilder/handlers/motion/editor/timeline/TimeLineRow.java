@@ -84,8 +84,9 @@ public class TimeLineRow extends JPanel {
       g.fillRect(0, 0, w, titley);
       if (mSelected) {
         g.setColor(MEUI.ourMySelectedLineColor);
-        g.fillRect(0, titley, w, myRowHeight);
+        g.fillRect(0, titley, MEUI.ourLeftColumnWidth, myRowHeight);
         g.setColor(MEUI.ourSecondaryPanelBackground);
+        g.fillRect(MEUI.ourLeftColumnWidth, titley, w - MEUI.ourLeftColumnWidth, myRowHeight);
         g.fillRect(0, titley + myRowHeight, w, h - (titley + myRowHeight));
       } else {
         g.setColor(MEUI.ourSecondaryPanelBackground);
@@ -96,8 +97,9 @@ public class TimeLineRow extends JPanel {
     } else {
       if (mSelected) {
         g.setColor(MEUI.ourMySelectedLineColor);
-        g.fillRect(0, 0, w, myRowHeight);
+        g.fillRect(0, 0, MEUI.ourLeftColumnWidth, myRowHeight);
         g.setColor(MEUI.ourSecondaryPanelBackground);
+        g.fillRect(MEUI.ourLeftColumnWidth, 0, w - MEUI.ourLeftColumnWidth, myRowHeight);
         g.fillRect(0, myRowHeight, w, h - myRowHeight);
       } else {
         g.setColor(MEUI.ourSecondaryPanelBackground);
