@@ -27,4 +27,12 @@
   <extensionPoint qualifiedName="com.android.tools.idea.explorer.fileHandler"
                   interface="com.android.tools.idea.deviceExplorer.FileHandler"/>
   </extensionPoints>
+
+  <actions>
+    <action id="Android.AdbDevicePairing"
+            class="com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction"
+            icon="StudioIcons.Shell.Toolbar.DEVICE_MANAGER"
+            text="Pair Devices Using Wi-Fi"
+            description="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
+  </actions>
 </idea-plugin>

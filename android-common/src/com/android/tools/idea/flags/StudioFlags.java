@@ -429,6 +429,13 @@ public final class StudioFlags {
     "Enables and shows the ADB connection status widget in the status bar",
     true);
 
+  public static final Flag<Boolean> ADB_WIRELESS_PAIRING_ENABLED = Flag.create(
+    RUNDEBUG,
+    "adb.wireless.enabled",
+    "Enable pairing devices through ADB wireless",
+    "Allow pairing new physical device through QR Code pairing via ADB wireless",
+    false);
+
   /**
    * The strategy that {@link com.android.tools.idea.run.activity.DefaultActivityLocator}
    * uses to obtain a list of activities from a given module's merged manifest.
