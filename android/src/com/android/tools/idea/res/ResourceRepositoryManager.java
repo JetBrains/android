@@ -789,7 +789,7 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @NotNull
   private Map<ExternalLibrary, AarResourceRepository> computeLibraryResourceMap() {
-    Collection<ExternalLibrary> libraries = AndroidProjectModelUtils.findDependenciesWithResources(myFacet.getModule()).values();
+    Collection<ExternalLibrary> libraries = AndroidProjectModelUtils.findDependenciesWithResources(myFacet.getModule(), true).values();
 
     AarResourceRepositoryCache aarResourceRepositoryCache = AarResourceRepositoryCache.getInstance();
     Function<ExternalLibrary, AarResourceRepository> factory = myNamespacing == AaptOptions.Namespacing.DISABLED ?
