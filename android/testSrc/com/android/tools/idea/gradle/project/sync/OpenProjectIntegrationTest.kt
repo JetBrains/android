@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.testing.GradleSnapshotComparisonTest
+import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.openGradleProject
 import com.android.tools.idea.testing.reopenGradleProject
@@ -25,7 +25,7 @@ import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.google.common.truth.Truth.assertThat
 import java.util.function.Consumer
 
-class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleSnapshotComparisonTest {
+class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegrationTest {
   override fun useSingleVariantSyncInfrastructure(): Boolean = true
 
   fun testReopenProject() {
