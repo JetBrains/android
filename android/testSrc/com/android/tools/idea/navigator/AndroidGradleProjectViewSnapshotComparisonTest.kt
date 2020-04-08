@@ -21,6 +21,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.GradleSnapshotComparisonTest
+import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.openGradleProject
@@ -42,7 +43,7 @@ import sun.swing.ImageIconUIResource
 import java.io.File
 import javax.swing.Icon
 
-class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), GradleSnapshotComparisonTest {
+class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), GradleSnapshotComparisonTest, SnapshotComparisonTest {
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/projectViewSnapshots"
 
   data class ProjectViewSettings(val hideEmptyPackages: Boolean = true)

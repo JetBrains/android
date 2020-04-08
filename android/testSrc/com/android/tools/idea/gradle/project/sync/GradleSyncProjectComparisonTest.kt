@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.FileSubject
 import com.android.tools.idea.testing.FileSubject.file
 import com.android.tools.idea.testing.GradleSnapshotComparisonTest
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.APP_WITH_ML_MODELS
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
@@ -89,7 +90,7 @@ bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sh
  */
 abstract class GradleSyncProjectComparisonTest(
   private val singleVariantSync: Boolean = false
-) : GradleSyncIntegrationTestCase(), GradleSnapshotComparisonTest {
+) : GradleSyncIntegrationTestCase(), GradleSnapshotComparisonTest, SnapshotComparisonTest {
   override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
 
   class FullVariantGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTestCase() {
