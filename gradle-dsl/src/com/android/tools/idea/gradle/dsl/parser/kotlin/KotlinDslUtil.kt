@@ -82,6 +82,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtValueArgumentList
+import org.jetbrains.kotlin.psi.psiUtil.getContentRange
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import kotlin.reflect.KClass
@@ -408,12 +409,27 @@ fun gradleNameFor(expression: KtExpression): String? {
       // and GradleNameElement's expectation (field dereference, e.g. ext.foo).  Only do this
       // conversion if `extra' is the last thing we've seen in the arrayExpression.
       val index = expression.indexExpressions[0]
+      val text = when (index) {
+        is KtStringTemplateExpression -> {
+          val escaper = index.createLiteralTextEscaper()
+          val ssb = StringBuilder()
+          if (escaper.decode(index.getContentRange(), ssb)) {
+            ssb.toString()
+          } else {
+            index.text
+          }
+        }
+        else -> index.text
+      }
       if (convertIndexToName) {
-        sb.append(".${GradleNameElement.escape(StringUtil.unquoteString(index.text))}")
+        sb.append(".${GradleNameElement.escape(text)}")
         convertIndexToName = false
       }
       else {
-        sb.append("[${index.text}]")
+        when (index) {
+          is KtStringTemplateExpression -> sb.append("[\"${text}\"]")
+          else -> sb.append("[${text}]")
+        }
       }
     }
 
