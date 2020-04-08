@@ -377,6 +377,12 @@ public class RenderService implements Disposable {
         return null;
       };
 
+    /**
+     * If two RenderTasks share the same ModuleClassLoader they share the same compose framework. This way they share the state. If we would
+     * like to control the state of the framework we want to create a dedicated ClassLoader so that the RenderTask has its own compose
+     * framework. Having a dedicated ClassLoader also allows for clearing resources right after the RenderTask no longer used.
+     */
+    private boolean privateClassLoader = false;
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -388,6 +394,15 @@ public class RenderService implements Disposable {
       myConfiguration = configuration;
       myImagePool = defaultImagePool;
       myCredential = credential;
+    }
+
+    /**
+     * Forces the task to create its own ModuleClassLoader instead of using a shared one from the ModuleClassLoaderManager
+     */
+    @NotNull
+    public RenderTaskBuilder usePrivateClassLoader() {
+      privateClassLoader = true;
+      return this;
     }
 
     @NotNull
@@ -567,7 +582,8 @@ public class RenderService implements Disposable {
           RenderTask task =
             new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceCaptureElement, myManifestProvider);
+                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceCaptureElement, myManifestProvider,
+                           privateClassLoader);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }

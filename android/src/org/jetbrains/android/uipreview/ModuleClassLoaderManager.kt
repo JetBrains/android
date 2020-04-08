@@ -36,7 +36,7 @@ class ModuleClassLoaderManager {
    * Returns a project class loader to use for rendering. May cache instances across render sessions.
    */
   @Synchronized
-  fun get(parent: ClassLoader?, module: Module): ModuleClassLoader {
+  fun getShared(parent: ClassLoader?, module: Module): ModuleClassLoader {
     var moduleClassLoader =
       cache[module]
 
@@ -66,6 +66,12 @@ class ModuleClassLoaderManager {
 
     return moduleClassLoader
   }
+
+  /**
+   * Return a [ModuleClassLoader] for a [Module] to be used for rendering. Similar to [getShared] but guarantees that the returned
+   * [ModuleClassLoader] is not shared and the caller has full ownership of it.
+   */
+  fun getPrivate(parent: ClassLoader?, module: Module) = ModuleClassLoader(parent, module)
 
   @Synchronized
   fun clearCache() {

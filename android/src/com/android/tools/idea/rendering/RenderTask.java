@@ -181,6 +181,7 @@ public class RenderTask {
    *
    * @param quality Factor from 0 to 1 used to downscale the rendered image. A lower value means smaller images used
    *                during rendering at the expense of quality. 1 means that downscaling is disabled.
+   * @param privateClassLoader if true, this task should have its own ModuleClassLoader, if false it can use a shared one for the module
    */
   RenderTask(@NotNull AndroidFacet facet,
              @NotNull RenderService renderService,
@@ -195,7 +196,8 @@ public class RenderTask {
              boolean isSecurityManagerEnabled,
              float quality,
              @NotNull StackTraceCapture stackTraceCaptureElement,
-             @NotNull Function<Module, MergedManifestSnapshot> manifestProvider) {
+             @NotNull Function<Module, MergedManifestSnapshot> manifestProvider,
+             boolean privateClassLoader) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -218,7 +220,8 @@ public class RenderTask {
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     Module module = facet.getModule();
     myLayoutlibCallback =
-        new LayoutlibCallbackImpl(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory);
+        new LayoutlibCallbackImpl(
+          this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory, privateClassLoader);
     if (ResourceIdManager.get(module).finalIdsUsed()) {
       myLayoutlibCallback.loadAndParseRClass();
     }

@@ -85,14 +85,9 @@ interface ComposePreviewManager {
   var groupFilter: PreviewGroup
 
   /**
-   * Name of a single [PreviewElement] to focus on.
+   * Name of a [PreviewElement] to run in interactive mode or null if not in interactive mode.
    */
-  var singlePreviewElementFqnFocus: String?
-
-  /**
-   * Enables (and indicates) the interactive mode of the preview.
-   */
-  var isInteractive: Boolean
+  var interactivePreviewElementFqn: String?
 }
 
 /**
