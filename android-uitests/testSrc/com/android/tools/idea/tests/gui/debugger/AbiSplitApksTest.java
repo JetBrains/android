@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import static com.android.testutils.truth.FileSubject.assertThat;
-
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
@@ -123,7 +121,8 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
 
     String expectedApkName = "app-x86_64-debug.apk";
-    ideFrame.debugApp("app", "Google Nexus 5X");
+    // Request debugging and wait for Gradle build to finish.
+    ideFrame.actAndWaitForBuildToFinish(it -> it.debugApp("app", "Google Nexus 5X"));
 
     // Wait for build to complete
     guiTest.waitForBackgroundTasks();
