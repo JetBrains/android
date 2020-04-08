@@ -437,8 +437,8 @@ public class GradleSyncTest {
     ProjectSystemSyncManager.SyncResult lastSyncResult =
       ProjectSystemService.getInstance(ideFrame.getProject()).getProjectSystem().getSyncManager().getLastSyncResult();
 
-    // A sync should not have been performed
-    assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.UNKNOWN);
+    // A sync should not have been performed but the status should have been updated to SKIPPED.
+    assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED);
 
     // But the models should still be present
     assertThat(AndroidModuleModel.get(ideFrame.getModule("app"))).isNotNull();
