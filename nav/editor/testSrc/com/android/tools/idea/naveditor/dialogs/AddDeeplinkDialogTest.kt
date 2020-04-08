@@ -101,7 +101,14 @@ class AddDeeplinkDialogTest : NavTestCase() {
   }
 
   fun testInitWithDefaults() {
-    AddDeeplinkDialog(null, mock(NlComponent::class.java)).runAndClose { dialog ->
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+
+    val fragment1 = model.find("fragment1")!!
+    AddDeeplinkDialog(null, fragment1).runAndClose { dialog ->
       assertEquals("", dialog.uri)
       assertFalse(dialog.autoVerify)
       assertEquals("", dialog.mimeType)
