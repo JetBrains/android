@@ -19,12 +19,12 @@ import static com.android.tools.idea.testartifacts.instrumented.testsuite.api.An
 
 import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.UiThread;
-import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.intellij.execution.filters.Filter;
@@ -32,6 +32,7 @@ import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.largeFilesEditor.GuiUtils;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.Project;
@@ -39,6 +40,13 @@ import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.paint.LinePainter2D;
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBDimension;
+import com.intellij.util.ui.JBUI;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -65,6 +73,8 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private JBLabel myStatusText;
   private JBLabel myStatusBreakdownText;
   private JPanel myTableViewContainer;
+  private JPanel myStatusPanel;
+  private MyStatusPanelItemSeparator mySeparator;
 
   private final ThreeComponentsSplitter myComponentsSplitter;
   private final AndroidTestResultsTableView myTable;
@@ -76,6 +86,13 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private int skippedTestCases = 0;
 
   /**
+   * This method is invoked before the constructor by IntelliJ form editor runtime.
+   */
+  private void createUIComponents() {
+    mySeparator = new MyStatusPanelItemSeparator();
+  }
+
+  /**
    * Constructs AndroidTestSuiteView.
    *
    * @param parentDisposable a parent disposable which this view's lifespan is tied with.
@@ -83,6 +100,9 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
    */
   @UiThread
   public AndroidTestSuiteView(@NotNull Disposable parentDisposable, @NotNull Project project) {
+    GuiUtils.setStandardLineBorderToPanel(myStatusPanel, 0, 0, 1, 0);
+    GuiUtils.setStandardLineBorderToPanel(myTableViewContainer, 0, 0, 1, 0);
+
     myTable = new AndroidTestResultsTableView(this);
     myTableViewContainer.add(myTable.getComponent());
 
@@ -286,5 +306,29 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @VisibleForTesting
   public AndroidTestSuiteDetailsView getDetailsViewForTesting() {
     return myDetailsView;
+  }
+
+  public final class MyStatusPanelItemSeparator extends JComponent {
+    @Override
+    public Dimension getPreferredSize() {
+      int gap = JBUIScale.scale(2);
+      int center = JBUIScale.scale(3);
+      int width = gap * 2 + center;
+      int height = JBUIScale.scale(24);
+
+      return new JBDimension(width, height, /*preScaled=*/true);
+    }
+
+    @Override
+    protected void paintComponent(final Graphics g) {
+      if (getParent() == null) return;
+
+      int gap = JBUIScale.scale(2);
+      int center = JBUIScale.scale(3);
+
+      g.setColor(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground());
+      int y2 = myStatusPanel.getHeight() - gap * 2;
+      LinePainter2D.paint((Graphics2D)g, center, gap, center, y2);
+    }
   }
 }
