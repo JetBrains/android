@@ -194,7 +194,7 @@ public class RenderTask {
              @Nullable ILayoutPullParserFactory parserFactory,
              boolean isSecurityManagerEnabled,
              float quality,
-             @NotNull AllocationStackTrace allocationStackTraceElement,
+             @NotNull StackTraceCapture stackTraceCaptureElement,
              @NotNull Function<Module, MergedManifestSnapshot> manifestProvider) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
@@ -233,7 +233,7 @@ public class RenderTask {
     restoreDefaultQuality();
     myManifestProvider = manifestProvider;
 
-    allocationStackTraceElement.bind(this);
+    stackTraceCaptureElement.bind(this);
   }
 
   public void setQuality(float quality) {
@@ -356,6 +356,8 @@ public class RenderTask {
       assert false : "RenderTask was already disposed";
       return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
+
+    RenderTaskAllocationTrackerKt.captureDisposeStackTrace().bind(this);
 
     return ourDisposeService.submit(() -> {
       try {
