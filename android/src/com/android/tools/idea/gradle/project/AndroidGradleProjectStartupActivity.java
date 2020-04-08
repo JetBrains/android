@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
@@ -95,20 +96,23 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
       return settings.getExternalProjectStructure();
     });
 
+    GradleSyncStats.Trigger trigger = gradleProjectInfo.isNewProject() ? TRIGGER_PROJECT_NEW : TRIGGER_PROJECT_REOPEN;
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
     DataNodeCaches caches = DataNodeCaches.getInstance(project);
     // If we don't have any cached data then do a full re-sync
     if (projectsData.isEmpty() ||
         projectsData.stream().anyMatch(data -> caches.isCacheMissingModels(data)) ||
         areCachedFilesMissing(project)) {
-      GradleSyncStats.Trigger trigger =
-        gradleProjectInfo.isNewProject() ? TRIGGER_PROJECT_NEW : TRIGGER_PROJECT_REOPEN;
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
       GradleSyncInvoker.getInstance().requestProjectSync(project, request);
-    } else {
+    }
+    else {
       // Otherwise attach the models we found from the cache.
+      GradleSyncState syncState = GradleSyncState.getInstance(project);
+      syncState.syncStarted(request, null);
       projectsData.forEach((data) -> {
         attachModelsToFacets(project, data);
       });
+      syncState.syncSkipped(System.currentTimeMillis(), null);
     }
   }
 
