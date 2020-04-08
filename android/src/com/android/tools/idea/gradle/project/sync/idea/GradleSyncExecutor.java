@@ -152,7 +152,7 @@ public class GradleSyncExecutor {
         }
         else {
           // Linking failed.
-          GradleSyncState.getInstance(myProject).syncSkipped(currentTimeMillis(), listener);
+          GradleSyncState.getInstance(myProject).syncSkipped(listener);
           return;
         }
       }
