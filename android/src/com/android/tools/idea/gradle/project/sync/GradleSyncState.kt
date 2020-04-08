@@ -350,21 +350,14 @@ open class GradleSyncState @NonInjectable constructor(
   /**
    * Triggered when a sync have been skipped, this happens when the project is setup by models from the cache.
    */
-  open fun syncSkipped(lastSyncTimeStamp: Long, listener: GradleSyncListener?) {
+  open fun syncSkipped(listener: GradleSyncListener?) {
     val syncEndTimeStamp = System.currentTimeMillis()
     syncEndedTimeStamp = syncEndTimeStamp
 
-    val message = "Gradle sync finished in ${formatDuration(syncEndTimeStamp - syncStartedTimeStamp)} (from cached state)"
-    addToEventLog(SYNC_NOTIFICATION_GROUP, message, MessageType.INFO, null)
-    LOG.info(message)
-
-    // TODO: Look at removing the lastSyncTimeStamp and using syncEndTimeStamp instead.
-    syncFinished(lastSyncTimeStamp, true)
+    syncFinished(syncEndTimeStamp, true)
 
     listener?.syncSkipped(project)
     syncPublisher { syncSkipped(project) }
-
-    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_SKIPPED)
   }
 
   /*

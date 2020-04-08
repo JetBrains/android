@@ -26,6 +26,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.fin
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
@@ -34,6 +35,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -107,12 +109,14 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
     }
     else {
       // Otherwise attach the models we found from the cache.
+      Logger.getInstance(AndroidGradleProjectStartupActivity.class)
+        .info("Up-to-date models found in the cache. Not invoking Gradle sync.");
       GradleSyncState syncState = GradleSyncState.getInstance(project);
       syncState.syncStarted(request, null);
       projectsData.forEach((data) -> {
         attachModelsToFacets(project, data);
       });
-      syncState.syncSkipped(System.currentTimeMillis(), null);
+      syncState.syncSkipped(null);
     }
   }
 
