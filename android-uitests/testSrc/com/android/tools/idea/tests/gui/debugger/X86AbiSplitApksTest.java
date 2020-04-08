@@ -123,10 +123,9 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
 
     String expectedApkName = "app-x86-debug.apk";
 
-    ideFrame.debugApp("app", "Google Nexus 5X");
-
-    // Wait for build to complete:
-    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TIMEOUT_SECONDS));
+    // Request debugging and wait for build to complete.
+    ideFrame.actAndWaitForBuildToFinish(Wait.seconds(TIMEOUT_SECONDS), it ->
+      it.debugApp("app", "Google Nexus 5X"));
 
     // TODO: Handle the case when app installation failed: "Application Installation Failed" dialog shows up.
     // Currently, cannot reproduce this issue locally to get the screenshot with the "Application Installation Failed" dialog shows up.
