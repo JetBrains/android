@@ -29,7 +29,7 @@ public class GradleProjectEventListener implements GradleBuildListener {
   private BuildMode myBuildMode;
 
   @GuardedBy("myLock")
-  private boolean myBuildFinished;
+  private long myBuildFinished;
 
   private final Object myLock = new Object();
 
@@ -45,8 +45,8 @@ public class GradleProjectEventListener implements GradleBuildListener {
   public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
     if (status == BuildStatus.SUCCESS) {
       synchronized (myLock) {
-        myBuildMode = context != null ? context.getBuildMode() : null;
-        myBuildFinished = true;
+      myBuildFinished = System.currentTimeMillis();
+      myBuildMode = context != null ? context.getBuildMode() : null;
       }
     }
   }
@@ -54,12 +54,18 @@ public class GradleProjectEventListener implements GradleBuildListener {
   public void reset() {
     synchronized (myLock) {
       myBuildMode = null;
-      myBuildFinished = false;
+      myBuildFinished = -1;
     }
   }
   public boolean isBuildFinished(@NotNull BuildMode mode) {
     synchronized (myLock) {
-      return myBuildFinished && myBuildMode == mode;
+      return myBuildFinished > 0 && myBuildMode == mode;
+    }
+  }
+
+  public long getLastBuildTimestamp() {
+    synchronized (myLock) {
+      return myBuildFinished;
     }
   }
 }
