@@ -904,7 +904,7 @@ fun Module.fileUnderGradleRoot(path: @SystemIndependent String): VirtualFile? =
 /**
  * See implementing classes for usage examples.
  */
-interface GradleSnapshotComparisonTest {
+interface GradleIntegrationTest {
   /**
    * Assumed to be matched by [UsefulTestCase.getName].
    */
@@ -929,7 +929,7 @@ interface GradleSnapshotComparisonTest {
 /**
  * Opens a test project created from a [testProjectPath] under the given [name].
  */
-fun GradleSnapshotComparisonTest.openGradleProject(testProjectPath: String, name: String): Project {
+fun GradleIntegrationTest.openGradleProject(testProjectPath: String, name: String): Project {
   if (name == this.getName()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
   val srcPath = File(getBaseTestDataPath(), FileUtil.toSystemDependentName(testProjectPath))
   val projectPath = File(FileUtil.toSystemDependentName(getBaseTestPath() + "/" + name))
@@ -948,7 +948,7 @@ fun GradleSnapshotComparisonTest.openGradleProject(testProjectPath: String, name
  * Opens a test project created from a [testProjectPath] under the given [name], runs a test [action] and then closes and disposes
  * the project.
  */
-fun <T> GradleSnapshotComparisonTest.openGradleProject(testProjectPath: String, name: String, action: (Project) -> T): T {
+fun <T> GradleIntegrationTest.openGradleProject(testProjectPath: String, name: String, action: (Project) -> T): T {
   val project = openGradleProject(testProjectPath, name)
   try {
     return action(project)
@@ -963,7 +963,7 @@ fun <T> GradleSnapshotComparisonTest.openGradleProject(testProjectPath: String, 
  *
  * The project's `.idea` directory is not required to exist, however.
  */
-fun <T> GradleSnapshotComparisonTest.reopenGradleProject(name: String, action: (Project) -> T): T {
+fun <T> GradleIntegrationTest.reopenGradleProject(name: String, action: (Project) -> T): T {
   val projectPath = File(FileUtil.toSystemDependentName(getBaseTestPath() + "/" + name))
   val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
