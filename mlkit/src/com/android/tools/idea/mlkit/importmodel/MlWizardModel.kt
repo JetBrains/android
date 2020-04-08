@@ -33,8 +33,9 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.LargeFileWriteRequestor
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 import java.io.IOException
@@ -42,7 +43,7 @@ import java.io.IOException
 /**
  * [WizardModel] that contains model location to import.
  */
-class MlWizardModel(private val module: Module) : WizardModel() {
+class MlWizardModel(private val module: Module) : WizardModel(), LargeFileWriteRequestor {
 
   private val mlkitRecipe: Recipe = {
     for (dependency in MlkitUtils.getRequiredDependencies()) {
@@ -67,7 +68,7 @@ class MlWizardModel(private val module: Module) : WizardModel() {
       try {
         val toDir: VirtualFile? = VfsUtil.createDirectoryIfMissing(directoryPath)
         if (fromFile != null && toDir != null) {
-          val virtualFile: VirtualFile = VfsUtilCore.copyFile(this, fromFile, toDir)
+          val virtualFile = fromFile.copy(this, toDir, fromFile.name)
           val fileEditorManager: FileEditorManager = FileEditorManager.getInstance(module.project)
           fileEditorManager.openFile(virtualFile, true)
           if (autoUpdateBuildFile.get()) {

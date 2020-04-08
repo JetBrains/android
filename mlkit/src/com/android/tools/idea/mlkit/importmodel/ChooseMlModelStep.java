@@ -30,11 +30,13 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.intellij.ide.ui.laf.darcula.DarculaUIUtil;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.SingleRootFileViewProvider;
 import com.intellij.ui.JBColor;
 import java.io.File;
 import java.util.Collections;
@@ -130,6 +132,13 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     }
     else if (!file.getName().endsWith(".tflite")) {
       return new Validator.Result(Validator.Severity.ERROR, "This file is not a TensorFlow Lite model file.");
+    }
+    else {
+      VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
+      if (virtualFile != null && SingleRootFileViewProvider.isTooLargeForContentLoading(virtualFile)) {
+        return new Validator.Result(Validator.Severity.WARNING,
+                                    "This file is larger than 20 MB so the model binding feature may not work properly.");
+      }
     }
     return Validator.Result.OK;
   }
