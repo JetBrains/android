@@ -198,6 +198,16 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
+   * Retrieves a screenshot of an Emulator display.
+   */
+  fun getScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("getScreenshot(${shortDebugString(imageFormat)})")
+    }
+    emulatorController.getScreenshot(imageFormat, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetScreenshotMethod()))
+  }
+
+  /**
    * Streams a series of screenshots.
    */
   fun streamScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>): Cancelable? {
