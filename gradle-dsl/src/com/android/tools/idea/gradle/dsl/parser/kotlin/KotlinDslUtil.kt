@@ -248,6 +248,15 @@ internal fun PsiElement?.isParentOf(psiElement: PsiElement) : Boolean {
   return true
 }
 
+internal fun KtStringTemplateExpression.literalContents(): String? {
+  val escaper = createLiteralTextEscaper()
+  val ssb = StringBuilder()
+  return when(escaper.decode(getContentRange(), ssb)) {
+    true -> ssb.toString()
+    false -> null
+  }
+}
+
 internal fun KtCallExpression.name() : String? {
   return when (val callee = calleeExpression) {
     null -> null
@@ -255,10 +264,8 @@ internal fun KtCallExpression.name() : String? {
     // This clause arises from inlining KtCallElement.getCallNameExpression(), but we need not handle these (which are
     // superconstructor calls) in the Dsl.  We leave this clause here explicitly in case we later have a need.
     is KtConstructorCalleeExpression -> null
-    is KtStringTemplateExpression -> when {
-      callee.hasInterpolation() -> null // TODO(xof): even more ambition: handle "test$foo" as a configuration name
-      else -> callee.text
-    }
+    // TODO(xof): even more ambition: handle "test$foo" as a configuration name
+    is KtStringTemplateExpression -> callee.literalContents()
     else -> null
   }
 }
@@ -375,12 +382,9 @@ internal fun methodCallBlockName(expression: KtCallExpression): String? {
   //  buildTypes.getByName("$foo") { ... }
   //  buildTypes.getByName(foo) { ... }
   val argument = arguments[0].getArgumentExpression()
-  when (argument) {
-    is KtStringTemplateExpression -> {
-      if (argument.hasInterpolation()) return null
-      return StringUtil.unquoteString(argument.entries[0].text)
-    }
-    else -> return null
+  return when (argument) {
+    is KtStringTemplateExpression -> argument.literalContents()
+    else -> null
   }
 }
 
@@ -410,15 +414,7 @@ fun gradleNameFor(expression: KtExpression): String? {
       // conversion if `extra' is the last thing we've seen in the arrayExpression.
       val index = expression.indexExpressions[0]
       val text = when (index) {
-        is KtStringTemplateExpression -> {
-          val escaper = index.createLiteralTextEscaper()
-          val ssb = StringBuilder()
-          if (escaper.decode(index.getContentRange(), ssb)) {
-            ssb.toString()
-          } else {
-            index.text
-          }
-        }
+        is KtStringTemplateExpression -> index.literalContents() ?: index.text.also { allValid = false }
         else -> index.text
       }
       if (convertIndexToName) {
