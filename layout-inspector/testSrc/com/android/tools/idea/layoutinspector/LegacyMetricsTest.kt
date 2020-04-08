@@ -106,7 +106,7 @@ class LegacyMetricsTest {
   }
 
   private fun findFirstConnectAction(selectProcessAction: SelectProcessAction, withProcessName: String): SelectProcessAction.ConnectAction {
-    selectProcessAction.updateDropDownActions(DataContext.EMPTY_CONTEXT)
+    selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
     return selectProcessAction.getChildren(null)
              .asSequence()
              .filterIsInstance<SelectProcessAction.DeviceAction>()
