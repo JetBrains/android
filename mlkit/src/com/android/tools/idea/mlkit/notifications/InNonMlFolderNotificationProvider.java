@@ -19,7 +19,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.LoggingUtils;
 import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.idea.mlkit.TfliteModelFileEditor;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -28,12 +28,15 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
-import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,17 +71,30 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
       panel.createActionLabel("Move file", () -> ApplicationManager.getApplication().runWriteAction(new Runnable() {
         @Override
         public void run() {
-          File mlDirectory = MlkitUtils.getModuleMlDirectory(ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(null));
-          try {
-            VirtualFile toDir = mlDirectory != null ? VfsUtil.createDirectoryIfMissing(mlDirectory.getAbsolutePath()) : null;
-            if (toDir != null) {
-              file.move(this, toDir);
+          AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+          if (androidFacet == null) {
+            Logger.getInstance(InNonMlFolderNotificationProvider.class).error("Can't find the Android Facet.");
+            return;
+          }
+
+          SourceProviders sourceProviders = SourceProviders.getInstance(androidFacet);
+          Optional<VirtualFile> targetMlDir = sourceProviders.getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream()
+            .flatMap(sourceProvider -> sourceProvider.getMlModelsDirectories().stream())
+            .filter(mlDir -> VfsUtilCore.isAncestor(mlDir.getParent(), file, true))
+            .findFirst();
+          if (targetMlDir.isPresent()) {
+            try {
+              file.move(this, targetMlDir.get());
               LoggingUtils.logEvent(EventType.MODEL_IMPORT_FROM_MOVE_FILE_BUTTON, file);
             }
+            catch (IOException e) {
+              Logger.getInstance(InNonMlFolderNotificationProvider.class)
+                .error(String.format("Error moving %s to %s.", file, targetMlDir.get()), e);
+            }
           }
-          catch (IOException e) {
-            Logger.getInstance(InNonMlFolderNotificationProvider.class)
-              .error(String.format("Error moving %s to %s", file, mlDirectory), e);
+          else {
+            // TODO(b/153573353): handle the case where the ml folders are custom configured.
+            Logger.getInstance(InNonMlFolderNotificationProvider.class).error("Can't determine the target ml folder.");
           }
         }
       }));
