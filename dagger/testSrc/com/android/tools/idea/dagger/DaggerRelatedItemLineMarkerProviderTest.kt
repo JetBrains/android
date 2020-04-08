@@ -213,4 +213,43 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
     assertThat(result).containsAllOf("Dependency component(s): MyComponent", "Dependency modules(s): MyModule2")
   }
+
+  fun testDependantComponentsForComponent() {
+    // Java Component
+    val componentFile = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component
+      public interface MyComponent {}
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    // Kotlin Component
+    myFixture.addFileToProject(
+      "test/MyDependantComponent.kt",
+      //language=kotlin
+      """
+      package test
+      import dagger.Component
+
+      @Component(dependencies = [MyComponent::class])
+      interface MyDependantComponent
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(componentFile)
+    myFixture.moveCaret("public interface MyComp|onent {}")
+
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isNotEmpty()
+
+    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    assertThat(gotoRelatedItems).hasSize(1)
+    val method = gotoRelatedItems.first()
+    assertThat(method.group).isEqualTo("Dependency component(s)")
+    assertThat((method.element as PsiClass).name).isEqualTo("MyDependantComponent")
+  }
 }

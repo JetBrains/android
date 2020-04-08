@@ -25,6 +25,7 @@ import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiArrayInitializerMemberValue
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassObjectAccessExpression
@@ -130,7 +131,7 @@ fun getDaggerConsumersFor(element: PsiElement): Collection<PsiVariable> {
 }
 
 /**
- * Returns all @Inject-annotated constructors for given [type] within [scope].
+ * Returns all @Inject-annotated constructors for a given [type].
  */
 private fun getDaggerInjectedConstructorsForType(type: PsiType): Collection<PsiMethod> {
   val clazz = (type as? PsiClassType)?.resolve() ?: return emptyList()
@@ -276,8 +277,23 @@ fun getDaggerComponentMethodsForProvider(provider: PsiElement): Collection<PsiMe
   }
 }
 
+/**
+ * Returns true if an attribute with an [attrName] contains class with fully qualified name equals [fqcn].
+ *
+ * Assumes that the attribute has type Class<?>[]`.
+ */
+private fun PsiAnnotation.isClassPresentedInAttribute(attrName: String, fqcn: String): Boolean {
+  val attr = findAttributeValue(attrName) as? PsiArrayInitializerMemberValue ?: return false
+  val classes = attr.initializers
+  return classes.any {
+    val clazz = ((it as? PsiClassObjectAccessExpression)?.operand?.type as? PsiClassType)?.resolve()
+    clazz?.qualifiedName == fqcn
+  }
+}
+
 private const val INCLUDES_ATTR_NAME = "includes"
 private const val MODULES_ATTR_NAME = "modules"
+private const val DEPENDENCIES_ATTR_NAME = "dependencies"
 
 /**
  * Returns Dagger-components and Dagger-modules that in a attribute “modules” and "includes" respectively have a [module] class.
@@ -291,17 +307,21 @@ fun getUsagesForDaggerModule(module: PsiClass): Collection<PsiClass> {
   val subComponentQuery = getClassesWithAnnotation(module.project, DAGGER_SUBCOMPONENT_ANNOTATION, module.useScope)
   val moduleQuery = getClassesWithAnnotation(module.project, DAGGER_MODULE_ANNOTATION, module.useScope)
   val predicate: (PsiClass, String, String) -> Boolean = predicate@{ component, annotationName, attrName ->
-    val annotation = component.getAnnotation(annotationName) ?: return@predicate false
-    val attr = annotation.findAttributeValue(attrName) as? PsiArrayInitializerMemberValue ?: return@predicate false
-    val modules = attr.initializers
-    modules.any {
-      val clazz = ((it as? PsiClassObjectAccessExpression)?.operand?.type as? PsiClassType)?.resolve()
-      clazz?.qualifiedName == module.qualifiedName
-    }
+    component.getAnnotation(annotationName)?.isClassPresentedInAttribute(attrName, module.qualifiedName!!) == true
   }
   return componentQuery.filter { predicate(it, DAGGER_COMPONENT_ANNOTATION, MODULES_ATTR_NAME) } +
          subComponentQuery.filter { predicate(it, DAGGER_SUBCOMPONENT_ANNOTATION, MODULES_ATTR_NAME) } +
          moduleQuery.filter { predicate(it, DAGGER_MODULE_ANNOTATION, INCLUDES_ATTR_NAME) }
+}
+
+/**
+ * Return classes annotated [DAGGER_COMPONENT_ANNOTATION] that in a attribute [DEPENDENCIES_ATTR_NAME] have a [component] class.
+ */
+fun getDependantComponentsForComponent(component: PsiClass): Collection<PsiClass> {
+  val components = getClassesWithAnnotation(component.project, DAGGER_COMPONENT_ANNOTATION, component.useScope)
+  return components.filter {
+    it.getAnnotation(DAGGER_COMPONENT_ANNOTATION)?.isClassPresentedInAttribute(DEPENDENCIES_ATTR_NAME, component.qualifiedName!!) == true
+  }
 }
 
 /**

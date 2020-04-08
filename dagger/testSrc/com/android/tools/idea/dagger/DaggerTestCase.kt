@@ -72,6 +72,7 @@ abstract class DaggerTestCase : JavaCodeInsightFixtureTestCase() {
 
       public @interface Component {
          Class<?>[] modules() default {};
+         Class<?>[] dependencies() default {};
       }
       """.trimIndent()
     )
