@@ -20,8 +20,8 @@ import com.android.tools.idea.uibuilder.editor.BasicDesignSurfaceActionGroups
 import com.intellij.openapi.Disposable
 import javax.swing.JComponent
 
-class EmulatorZoomToolbar private constructor(
-  private val component: JComponent,
+internal class EmulatorZoomToolbar private constructor(
+  component: JComponent,
   parentDisposable: Disposable
 ) : EditorActionsFloatingToolbar(component, parentDisposable) {
 

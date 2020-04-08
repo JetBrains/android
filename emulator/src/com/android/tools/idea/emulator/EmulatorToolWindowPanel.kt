@@ -147,10 +147,10 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
     try {
       val disposable = Disposer.newDisposable()
       val toolbar = EmulatorZoomToolbar.createToolbar(this, disposable)
+      contentDisposable = disposable
       toolbar.isVisible = zoomToolbarIsVisible
       floatingToolbar = toolbar
       zoomControlsLayerPane.add(toolbar, BorderLayout.EAST)
-      contentDisposable = disposable
       emulatorView = EmulatorView(emulator, cropSkin)
       scrollPane.setViewportView(emulatorView)
       mainToolbar.setTargetComponent(emulatorView)
