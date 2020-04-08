@@ -35,6 +35,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
+import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
@@ -176,10 +177,12 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
   fun testDatabasePossiblyChangedNotifiesController() {
     // Act
-    databaseInspectorProjectService.databasePossiblyChanged()
+    runDispatching {
+      databaseInspectorProjectService.databasePossiblyChanged()
+    }
 
     // Assert
-    runDispatching {
+    runBlocking {
       verify(mockSqliteController).databasePossiblyChanged()
     }
   }
