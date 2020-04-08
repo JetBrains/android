@@ -52,6 +52,7 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
       target.isDaggerProvider && element.isDaggerComponentMethod -> DEPENDENCY_COMPONENT_METHOD_USAGE_TYPE
       target.isDaggerModule && element.isDaggerComponent -> DEPENDENCY_COMPONENT_USAGE_TYPE
       target.isDaggerModule && element.isDaggerModule -> DEPENDENCY_MODULE_USAGE_TYPE
+      target.isDaggerComponent && element.isDaggerComponent -> DEPENDENCY_COMPONENT_USAGE_TYPE
       else -> null
     }
   }
@@ -78,9 +79,18 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
         element.isDaggerConsumer -> processCustomUsagesForConsumers(element, processor)
         element.isDaggerProvider -> processCustomUsagesForProvider(element, processor)
         element.isDaggerModule -> processCustomUsagesForModule(element, processor)
+        element.isDaggerComponent -> processCustomUsagesForComponent(element, processor)
         else -> return@runReadAction
       }
     }
+  }
+
+  /**
+   *  Adds Components that use a [component] in "dependencies" attr.
+   */
+  private fun processCustomUsagesForComponent(component: PsiElement, processor: Processor<Usage>) {
+    // component is always PsiClass or KtClass, see [isDaggerComponent].
+    getDependantComponentsForComponent(component.toPsiClass()!!).forEach { processor.process(UsageInfo2UsageAdapter(UsageInfo(it))) }
   }
 
   /**

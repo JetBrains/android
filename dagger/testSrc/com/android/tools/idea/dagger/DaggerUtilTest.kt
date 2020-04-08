@@ -764,4 +764,55 @@ class DaggerUtilTest : DaggerTestCase() {
     assertThat(components).hasSize(4)
     assertThat(components.map { it.name }).containsAllOf("MyComponentKt", "MyComponent", "MySubcomponentKt", "MyModule2")
   }
+
+  fun testGetDependantComponentsForComponent() {
+    // Java Component
+    val componentFile = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component
+      public interface MyComponent {}
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    // Kotlin Component
+    val kotlinComponentFile = myFixture.addFileToProject(
+      "test/MyComponentKt.kt",
+      //language=kotlin
+      """
+      package test
+      import dagger.Component
+
+      @Component
+      interface MyComponentKt
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    // Kotlin Dependant Component
+    myFixture.addFileToProject(
+      "test/MyDependantComponent.kt",
+      //language=kotlin
+      """
+      package test
+      import dagger.Component
+
+      @Component(dependencies = [MyComponent::class, MyComponentKt::class])
+      interface MyDependantComponent
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(componentFile)
+    var components = getDependantComponentsForComponent(myFixture.moveCaret("interface MyCompon|ent {}").parentOfType()!!)
+    assertThat(components).hasSize(1)
+    assertThat(components.map { it.name }).contains("MyDependantComponent")
+
+    myFixture.configureFromExistingVirtualFile(kotlinComponentFile)
+    components = getDependantComponentsForComponent(
+      myFixture.moveCaret("interface MyCompon|entKt").parentOfType<KtClass>()!!.toLightClass()!!)
+    assertThat(components).hasSize(1)
+    assertThat(components.map { it.name }).contains("MyDependantComponent")
+  }
 }

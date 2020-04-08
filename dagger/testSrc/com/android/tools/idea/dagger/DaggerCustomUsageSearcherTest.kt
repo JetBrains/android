@@ -571,6 +571,47 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
   }
 
+  fun testDependantComponentsForComponent() {
+    // Java Component
+    val componentFile = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component
+      public interface MyComponent {}
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    // Kotlin Component
+    myFixture.addFileToProject(
+      "test/MyDependantComponent.kt",
+      //language=kotlin
+      """
+      package test
+      import dagger.Component
+
+      @Component(dependencies = [MyComponent::class])
+      interface MyDependantComponent
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(componentFile)
+    val component = myFixture.moveCaret("MyCompon|ent {}").parentOfType<PsiClass>()!!
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
+
+    assertThat(presentation).contains(
+      """
+      |  Dependency component(s) (1 usage)
+      |   ${myFixture.module.name} (1 usage)
+      |    test (1 usage)
+      |     MyDependantComponent.kt (1 usage)
+      |      5interface MyDependantComponent
+      """.trimMargin()
+    )
+  }
+
   // TODO(b/150134125): uncomment
   //fun testProvidersKotlin() {
   //  myFixture.addClass(
