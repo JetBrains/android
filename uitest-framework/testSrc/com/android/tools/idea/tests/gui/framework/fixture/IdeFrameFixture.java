@@ -364,6 +364,31 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public IdeFrameFixture actAndWaitForBuildToFinish(@NotNull Consumer<IdeFrameFixture> actions) {
+    return actAndWaitForBuildToFinish(null, actions);
+  }
+
+  @NotNull
+  public IdeFrameFixture actAndWaitForBuildToFinish(@Nullable Wait wait, @NotNull Consumer<IdeFrameFixture> actions) {
+    long beforeStartedTimeStamp = System.currentTimeMillis();
+    Project project = getProject();
+    actions.accept(this);
+
+    waitForIdle();
+    GuiTests.waitForProjectIndexingToFinish(getProject());
+    GuiTests.waitForBackgroundTasks(robot());
+
+    (wait != null ? wait : Wait.seconds(60))
+      .expecting("build '" + project.getName() + "' to finish")
+      .until(() -> myGradleProjectEventListener.getLastBuildTimestamp() > beforeStartedTimeStamp);
+
+    waitForIdle();
+    GuiTests.waitForProjectIndexingToFinish(getProject());
+    GuiTests.waitForBackgroundTasks(robot());
+    return this;
+  }
+
+  @NotNull
   public IdeFrameFixture waitForBuildToFinish(@NotNull BuildMode buildMode) {
     return waitForBuildToFinish(buildMode, null);
   }
