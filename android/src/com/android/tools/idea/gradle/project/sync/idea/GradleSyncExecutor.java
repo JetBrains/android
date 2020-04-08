@@ -20,7 +20,6 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
-import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.createProjectSetupFromCacheTaskWithStartMessage;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
@@ -30,13 +29,11 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.fin
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static java.lang.System.currentTimeMillis;
 import static java.util.Arrays.asList;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
@@ -46,10 +43,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
-import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -67,7 +62,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.util.SystemProperties;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -82,9 +76,6 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class GradleSyncExecutor {
-  private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
-    SystemProperties.getBooleanProperty("studio.sync.with.cached.model.only", false);
-
   @NotNull private final Project myProject;
 
   @NotNull public static final Key<GradleSyncListener> LISTENER_KEY = new Key<>("GradleSyncListener");
@@ -96,31 +87,6 @@ public class GradleSyncExecutor {
 
   @WorkerThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
-    if (SYNC_WITH_CACHED_MODEL_ONLY || request.useCachedGradleModels) {
-      ProjectBuildFileChecksums buildFileChecksums = ProjectBuildFileChecksums.findFor((myProject));
-      if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {
-        DataNodeCaches dataNodeCaches = DataNodeCaches.getInstance(myProject);
-        DataNode<ProjectData> cache = dataNodeCaches.getCachedProjectData();
-        if (cache != null && !dataNodeCaches.isCacheMissingModels(cache) && !areCachedFilesMissing(myProject)) {
-          PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-          setupRequest.usingCachedGradleModels = true;
-          setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
-
-          // Create a new taskId when using cache
-          ExternalSystemTaskId taskId = createProjectSetupFromCacheTaskWithStartMessage(myProject);
-
-          ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener);
-          if (ApplicationManager.getApplication().isUnitTestMode()) {
-            setUpTask.onSuccess(taskId, cache);
-          }
-          else {
-            ApplicationManager.getApplication().executeOnPooledThread(() -> setUpTask.onSuccess(taskId, cache));
-          }
-          return;
-        }
-      }
-    }
-
     // Setup the settings for setup.
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.usingCachedGradleModels = false;
