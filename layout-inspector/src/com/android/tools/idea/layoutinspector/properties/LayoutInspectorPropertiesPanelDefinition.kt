@@ -30,5 +30,8 @@ class LayoutInspectorPropertiesPanelDefinition :
     Side.RIGHT,
     Split.TOP,
     AutoHide.DOCKED,
+    DEFAULT_SIDE_WIDTH,
+    DEFAULT_BUTTON_SIZE,
+    ALLOW_SPLIT_MODE,
     { LayoutInspectorProperties(it) }
   )
