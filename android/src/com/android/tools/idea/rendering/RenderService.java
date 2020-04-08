@@ -518,7 +518,7 @@ public class RenderService implements Disposable {
         withLogger(myService.createLogger(myFacet));
       }
 
-      AllocationStackTrace stackTraceElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
+      StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
 
       return CompletableFuture.supplyAsync(() -> {
         AndroidPlatform platform = getPlatform(myFacet, myLogger);
@@ -533,6 +533,10 @@ public class RenderService implements Disposable {
         }
 
         Module module = myFacet.getModule();
+        if (module.isDisposed()) {
+          Logger.getInstance(RenderService.class).warn("Module was already disposed");
+          return null;
+        }
         LayoutLibrary layoutLib;
         try {
           layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(module.getProject());
@@ -563,7 +567,7 @@ public class RenderService implements Disposable {
           RenderTask task =
             new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceElement, myManifestProvider);
+                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceCaptureElement, myManifestProvider);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }

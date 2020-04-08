@@ -22,45 +22,80 @@ import java.util.WeakHashMap
 // We only track allocations in testing mode
 private val shouldTrackAllocations = GuiTestingService.getInstance()?.isGuiTestingMode == true ||
                                      ApplicationManager.getApplication()?.isUnitTestMode == true
-private val allocations = WeakHashMap<RenderTask, AllocationStackTrace>()
+private val allocations = WeakHashMap<RenderTask, StackTraceCapture>()
+private val scheduledDispose = WeakHashMap<RenderTask, StackTraceCapture>()
 
 /**
  * Data class that represents a [RenderTask] allocation point.
  */
-data class AllocationStackTrace(internal val stackTrace: List<StackTraceElement>) {
-  fun bind(renderTask: RenderTask) {
+abstract class StackTraceCapture {
+  abstract val stackTrace: List<StackTraceElement>
+  abstract fun bind(renderTask: RenderTask)
+}
+
+data class AllocationStackTrace(override val stackTrace: List<StackTraceElement>): StackTraceCapture() {
+  override fun bind(renderTask: RenderTask) {
     if (!shouldTrackAllocations) return
     allocations[renderTask] = this
+  }
+}
+
+data class DisposeStackTrace(override val stackTrace: List<StackTraceElement>): StackTraceCapture() {
+  override fun bind(renderTask: RenderTask) {
+    if (!shouldTrackAllocations) return
+    // Remove the task from allocations and move to scheduledDispose
+    scheduledDispose[renderTask] = this
+    allocations[renderTask] = null
   }
 }
 
 /**
  * Singleton empty stack trace used when allocation tracking is disabled to avoid unnecessary allocations.
  */
-private val NULL_STACK_TRACE = AllocationStackTrace(listOf())
+private val NULL_STACK_TRACE = object: StackTraceCapture() {
+  override val stackTrace: List<StackTraceElement> = listOf()
+
+  override fun bind(renderTask: RenderTask) {
+  }
+}
 
 /**
  * Resets the existing tracked allocation
  */
 fun clearTrackedAllocations() {
-  if (shouldTrackAllocations) allocations.clear()
+  if (shouldTrackAllocations) {
+    allocations.clear()
+    scheduledDispose.clear()
+  }
 }
 
-fun notDisposedRenderTasks(): Sequence<List<StackTraceElement>> {
+fun notDisposedRenderTasks(): Sequence<Pair<RenderTask, StackTraceCapture>> {
   if (!shouldTrackAllocations) emptySequence<StackTraceElement>()
 
-  return allocations.asSequence()
+  return (allocations + scheduledDispose).asSequence()
     .filter { (task, _) ->
       task != null && !task.isDisposed
-    }.map { (_, trace) ->
-      trace.stackTrace
+    }.map { (task, trace) ->
+      task to trace
     }
 }
 
 /**
  * Captures a [RenderTask] allocation point to be used later in the constructor.
  */
-fun captureAllocationStackTrace(): AllocationStackTrace =
+fun captureDisposeStackTrace(): StackTraceCapture =
+  if (shouldTrackAllocations) {
+    // Capture the current stack trace dropping the dispose point stack frame, one for captureDisposeStackTrace and one for getTrace
+    DisposeStackTrace(Thread.currentThread().stackTrace.asList().drop(2))
+  }
+  else {
+    NULL_STACK_TRACE
+  }
+
+/**
+ * Captures a [RenderTask] allocation point to be used later in the constructor.
+ */
+fun captureAllocationStackTrace(): StackTraceCapture =
   if (shouldTrackAllocations) {
     // Capture the current stack trace dropping the allocation point stack frame, one for captureAllocationStackTrace and one for getTrace
     AllocationStackTrace(Thread.currentThread().stackTrace.asList().drop(2))

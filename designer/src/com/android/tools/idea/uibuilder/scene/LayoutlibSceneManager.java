@@ -882,7 +882,9 @@ public class LayoutlibSceneManager extends SceneManager {
               Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
             }
 
-            if (result == null || !result.getRenderResult().isSuccess()) {
+            // If the result is not valid, we do not need the task. Also if the project was already disposed
+            // while we were creating the task, avoid adding it.
+            if (getModel().getModule().isDisposed() || result == null || !result.getRenderResult().isSuccess()) {
               newTask.dispose();
             }
             else {
