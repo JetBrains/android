@@ -35,6 +35,7 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.largeFilesEditor.GuiUtils;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.progress.util.ColorProgressBar;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
@@ -49,7 +50,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +69,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
 
   // Those properties are initialized by IntelliJ form editor before the constructor using reflection.
   private JPanel myRootPanel;
-  private JProgressBar myProgressBar;
+  private ColorProgressBar myProgressBar;
   private JBLabel myStatusText;
   private JBLabel myStatusBreakdownText;
   private JPanel myTableViewContainer;
@@ -127,10 +127,16 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     int completedTestCases = passedTestCases + failedTestCases + skippedTestCases;
     if (scheduledTestCases == 0) {
       myProgressBar.setIndeterminate(true);
+      myProgressBar.setColor(ColorProgressBar.BLUE);
     } else {
       float progress = (float) completedTestCases / scheduledTestCases;
-      myProgressBar.setValue(Math.round((myProgressBar.getMaximum() - myProgressBar.getMinimum()) * progress));
+      myProgressBar.setFraction(progress);
       myProgressBar.setIndeterminate(false);
+      if (failedTestCases > 0) {
+        myProgressBar.setColor(ColorProgressBar.RED);
+      } else if (completedTestCases == scheduledTestCases) {
+        myProgressBar.setColor(ColorProgressBar.GREEN);
+      }
     }
 
     myStatusText.setText(AndroidBundle.message("android.testartifacts.instrumented.testsuite.status.summary", completedTestCases));

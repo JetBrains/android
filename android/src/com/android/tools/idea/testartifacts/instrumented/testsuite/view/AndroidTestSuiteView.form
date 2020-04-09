@@ -26,9 +26,12 @@
               <text value="Status"/>
             </properties>
           </component>
-          <component id="dc013" class="javax.swing.JProgressBar" binding="myProgressBar">
+          <component id="41ad0" class="com.intellij.openapi.progress.util.ColorProgressBar" binding="myProgressBar">
             <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                <minimum-size width="250" height="-1"/>
+                <preferred-size width="250" height="-1"/>
+              </grid>
             </constraints>
             <properties>
               <indeterminate value="true"/>
