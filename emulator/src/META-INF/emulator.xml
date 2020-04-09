@@ -49,7 +49,9 @@
       <action id="android.emulator.overview" class="com.android.tools.idea.emulator.actions.EmulatorOverviewAction"
               icon="StudioIcons.Emulator.OVERVIEW" text="Overview" description="Press Overview button"/>
       <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.actions.EmulatorScreenshotAction"
-              icon="StudioIcons.Emulator.SCREENSHOT" text="Take Screenshot" description="Take screenshot"/>
+              icon="StudioIcons.Emulator.SCREENSHOT" text="Take Screenshot" description="Take a screenshot"/>
+      <action id="android.emulator.snapshot" class="com.android.tools.idea.emulator.actions.EmulatorCreateSnapshotAction"
+              icon="AllIcons.Actions.Menu_saveall" text="Create Snapshot" description="Create a snapshot of the Emulator state"/>
     </group>
 
     <group id="EmulatorSecondaryToolbar" resource-bundle="">
