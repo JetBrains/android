@@ -81,6 +81,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -88,6 +89,8 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.GradleApplicationIdProvider;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.utils.BuildScriptUtil;
 import com.android.utils.FileUtils;
@@ -1070,5 +1073,26 @@ public final class GradleUtil {
       }
     }
     return null;
+  }
+
+  /**
+   * DO NOT USE! Usages of this method will be replaced with a call to AndroidModuleSystem to obtain the appropriate ApplicationIdProvider.
+   */
+  @Nullable
+  public static String getPackageNameIfGradleProject(@NotNull AndroidFacet facet) {
+    String packageName = null;
+    // TODO(b/153664425): Instead of testing for the project system here replace usages of this method with a call
+    //                    to AndroidModuleSystem.getApplicationProvider().
+    if (GradleProjectInfo.getInstance(facet.getModule().getProject()).isBuildWithGradle()) {
+      try {
+        GradleApplicationIdProvider appIdProvider = new GradleApplicationIdProvider(facet);
+        packageName = appIdProvider.getPackageName();
+      } catch (ApkProvisionException e) {
+        // Ignore package name read error and continue. The client will fall back to use the process name instead of the package name,
+        // which works for most cases (except global processes via android:process override).
+        packageName = null;
+      }
+    }
+    return packageName;
   }
 }
