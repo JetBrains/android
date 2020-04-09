@@ -76,7 +76,7 @@ public class MlkitUtils {
    * Returns the set of missing dependencies that are required by the auto-generated model classes.
    */
   @NotNull
-  public static List<GradleCoordinate> getMissingDependencies(@NotNull Module module, @NotNull VirtualFile modelFile) {
+  public static List<GradleCoordinate> getMissingDependencies(@NotNull Module module) {
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
     List<GradleCoordinate> pendingDeps = new ArrayList<>();
     for (String requiredDepString : getRequiredDependencies()) {
@@ -90,7 +90,7 @@ public class MlkitUtils {
   }
 
   @NotNull
-  public static ImmutableList<String> getRequiredDependencies() {
+  private static ImmutableList<String> getRequiredDependencies() {
     // TODO(148887002): calculate required deps based on the given model file and figure out how to handle versions.
     return ImmutableList.of(
       "org.apache.commons:commons-compress:1.20",

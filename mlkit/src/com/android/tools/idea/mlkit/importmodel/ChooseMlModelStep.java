@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.mlkit.importmodel;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -31,6 +32,7 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -81,8 +83,11 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     }
 
     myInfoTextArea.setBackground(null);
-    myInfoTextArea.setText(getInformationText());
     myInfoTextArea.setForeground(JBColor.DARK_GRAY);
+
+    String text = getInformationText();
+    myInfoTextArea.setText(text);
+    myAutoCheckBox.setVisible(!text.isEmpty());
 
     myBindings.bindTwoWay(new TextProperty(myModelLocation.getTextField()), model.sourceLocation);
     myBindings.bindTwoWay(new SelectedProperty(myAutoCheckBox), model.autoUpdateBuildFile);
@@ -100,11 +105,16 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
 
   @NotNull
   public String getInformationText() {
-    StringBuilder stringBuilder = new StringBuilder(
-      "buildFeatures {\n" +
-      "  mlModelBinding true\n" +
-      "}\n\n");
-    for (String dep : MlkitUtils.getRequiredDependencies()) {
+    StringBuilder stringBuilder = new StringBuilder();
+    Module module = getModel().getModule();
+
+    if (!MlkitUtils.isMlModelBindingBuildFeatureEnabled(module)) {
+      stringBuilder.append("buildFeatures {\n" +
+                           "  mlModelBinding true\n" +
+                           "}\n\n");
+    }
+
+    for (GradleCoordinate dep : MlkitUtils.getMissingDependencies(module)) {
       stringBuilder.append(dep + "\n");
     }
 

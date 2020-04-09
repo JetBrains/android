@@ -43,11 +43,11 @@ import java.io.IOException
 /**
  * [WizardModel] that contains model location to import.
  */
-class MlWizardModel(private val module: Module) : WizardModel(), LargeFileWriteRequestor {
+class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor {
 
   private val mlkitRecipe: Recipe = {
-    for (dependency in MlkitUtils.getRequiredDependencies()) {
-      addDependency(dependency)
+    for (dependency in MlkitUtils.getMissingDependencies(module)) {
+      addDependency(dependency.toString())
     }
     setBuildFeature("mlModelBinding", true)
   }
