@@ -59,6 +59,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       parent.isDaggerProvider -> getIconAndGoToItemsForProvider(parent)
       parent.isDaggerModule -> getIconAndGoToItemsForModule(parent)
       parent.isDaggerComponent -> getIconAndGoToItemsForComponent(parent)
+      parent.isDaggerSubcomponent -> getIconAndGoToItemsForSubcomponent(parent)
       else -> return
     }
 
@@ -81,6 +82,16 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       gotoTargets
     )
     result.add(info)
+  }
+
+  private fun getIconAndGoToItemsForSubcomponent(subcomponent: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
+    val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
+      // subcomponent is always PsiClass or KtClass, see [isDaggerSubcomponent].
+      override fun compute() = getDaggerParentComponentsForSubcomponent(subcomponent.toPsiClass()!!).map {
+        GotoRelatedItem(it, DEPENDENCY_COMPONENTS)
+      }
+    }
+    return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
   }
 
   private fun getIconAndGoToItemsForComponent(component: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {

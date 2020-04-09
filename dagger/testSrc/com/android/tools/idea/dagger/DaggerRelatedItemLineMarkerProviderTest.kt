@@ -252,4 +252,87 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(method.group).isEqualTo("Dependency component(s)")
     assertThat((method.element as PsiClass).name).isEqualTo("MyDependantComponent")
   }
+
+  fun testParentsForSubcomponent() {
+    // Java Subomponent
+    val subcomponentFile = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Subcomponent;
+
+      @Subcomponent
+      public interface MySubcomponent {
+        @Subcomponent.Builder
+          interface Builder {}
+      }
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+
+        import dagger.Module;
+
+        @Module(subcomponents = { MySubcomponent.class })
+        class MyModule { }
+      """.trimIndent()
+    )
+
+    // Java Component
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {}
+    """.trimIndent()
+    )
+
+    // Java Component
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component
+      public interface MyComponentWithBuilder {
+        MySubcomponent.Builder componentBuilder();
+      }
+    """.trimIndent()
+    )
+
+    // Kotlin Component
+    myFixture.addFileToProject(
+      "test/MyComponentKt.kt",
+      //language=kotlin
+      """
+      package test
+      import dagger.Component
+
+      @Component
+      interface MyComponentKt {
+         fun getSubcomponent():MySubcomponent
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(subcomponentFile)
+    val component = myFixture.moveCaret("MySubcompon|ent").parentOfType<PsiClass>()!!
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isNotEmpty()
+
+    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    assertThat(gotoRelatedItems).hasSize(3)
+    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
+    assertThat(result).containsAllOf("Dependency component(s): MyComponent",
+                                     "Dependency component(s): MyComponentWithBuilder",
+                                     "Dependency component(s): MyComponentKt")
+  }
+
 }
