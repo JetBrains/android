@@ -20,17 +20,20 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.MockitoAnnotations
 
 /**
@@ -40,7 +43,12 @@ import org.mockito.MockitoAnnotations
 @RunsInEdt
 class AndroidTestResultsTableViewTest {
 
-  @get:Rule val edtRule = EdtRule()
+  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
+  @get:Rule val rules: RuleChain = RuleChain
+    .outerRule(projectRule)
+    .around(EdtRule())
+    .around(disposableRule)
 
   @Mock lateinit var mockListener: AndroidTestResultsTableListener
 
@@ -151,10 +159,14 @@ class AndroidTestResultsTableViewTest {
       results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
     })
 
-    // Select the test case 2 again should not trigger the callback.
+    // Select the test case 2 again should trigger the callback.
+    // (Because a user may click the same row again after he/she closes the second page.)
     table.getTableViewForTesting().addSelection(table.getTableViewForTesting().getRow(1))
-
-    verifyNoMoreInteractions(mockListener)
+    verify(mockListener, times(2)).onAndroidTestResultsRowSelected(argThat { results ->
+      results.testCaseName == "testname2" &&
+      results.getTestCaseResult(device1) == AndroidTestCaseResult.FAILED &&
+      results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
+    })
   }
 
   // Workaround for Kotlin nullability check.
