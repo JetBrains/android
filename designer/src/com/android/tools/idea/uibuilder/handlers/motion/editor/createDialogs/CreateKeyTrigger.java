@@ -197,7 +197,7 @@ public class CreateKeyTrigger extends BaseCreateKey {
     keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.KeyTrigger.ON_CROSS, mOnCross.getText());
 
     MTag ret = toCommit.commit("Create KeyTrigger");
-    Track.createKeyTrigger();
+    Track.createKeyTrigger(mMotionEditor.myTrack);
     mMotionEditor.dataChanged();
     super.create();
     return ret;

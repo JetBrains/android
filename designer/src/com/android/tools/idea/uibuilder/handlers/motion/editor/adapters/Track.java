@@ -24,113 +24,252 @@ import com.google.wireless.android.sdk.stats.MotionLayoutEditorEvent.MotionLayou
 public class Track {
 
   // TODO: Make sure to clean this so we don't leak surface.
-  private static DesignSurface ourSurface;
+  private DesignSurface ourSurface;
 
   // TODO: We need to know when editor is open / closed so I can track that too.
 
-  public static void init(DesignSurface surface) {
+  public void init(DesignSurface surface) {
     ourSurface = surface;
   }
 
-  private static void track(MotionLayoutEditorEventType motionType) {
+  private void track(MotionLayoutEditorEventType motionType) {
     InternalMotionTrackerFactory.Companion.getInstance(ourSurface).track(motionType);
   }
 
-  public static void createConstraintSet() {
+  private void createConstraintSet() {
     track(MotionLayoutEditorEventType.CREATE_CONSTRAINT);
   }
 
-  public static void motionEditorEdit() {
+  private void motionEditorEdit() {
     track(MotionLayoutEditorEventType.UNKNOWN_EVENT_TYPE); // TODO: Better type
   }
 
-  public static void createTransition() {
+  private void createTransition() {
     track(MotionLayoutEditorEventType.CREATE_TRANSITION);
   }
 
-  public static void createOnClick() {
+  private void createOnClick() {
     track(MotionLayoutEditorEventType.CREATE_ONCLICK);
   }
 
-  public static void createOnSwipe() {
+  private void createOnSwipe() {
     track(MotionLayoutEditorEventType.CREATE_ONCLICK);
   }
 
-  public static void createKeyCycle() {
+  private void createKeyCycle() {
     track(MotionLayoutEditorEventType.CREATE_KEY_CYCLE);
   }
 
-  public static void createKeyTimeCycle() {
+  private void createKeyTimeCycle() {
     track(MotionLayoutEditorEventType.CREATE_KEY_TIME_CYCLE);
   }
 
-  public static void createKeyTrigger() {
+  private void createKeyTrigger() {
     track(MotionLayoutEditorEventType.CREATE_KEY_TRIGGER);
   }
 
-  public static void createKeyPosition() {
+  private void createKeyPosition() {
     track(MotionLayoutEditorEventType.CREATE_KEY_POSITION);
   }
 
-  public static void createKeyAttribute() {
+  private void createKeyAttribute() {
     track(MotionLayoutEditorEventType.CREATE_KEY_ATTRIBUTES);
   }
 
-  public static void playAnimation() {
+  private void playAnimation() {
     track(MotionLayoutEditorEventType.MOTION_PLAY);
   }
 
-  public static void animationSpeed() {
+  private void animationSpeed() {
     track(MotionLayoutEditorEventType.MOTION_SPEED);
-
   }
 
-  public static void animationEnd() {
+  private void animationEnd() {
     track(MotionLayoutEditorEventType.MOTION_PAUSE);
   }
 
-  public static void animationStart() {
+  private void animationStart() {
     track(MotionLayoutEditorEventType.MOTION_PAUSE);
   }
 
-  public static void animationDirectionToggle() {
+  private void animationDirectionToggle() {
     track(MotionLayoutEditorEventType.MOTION_DIRETION_TOGGLE);
   }
 
-  public static void createConstraint() {
+  private void createConstraint() {
     track(MotionLayoutEditorEventType.CONVERT_TO_CONSTRAINT);
   }
 
-  public static void clearConstraint() {
+  private void clearConstraint() {
     track(MotionLayoutEditorEventType.CLEAR_CONSTRAINT);
   }
 
-  public static void selectConstraint() {
+  private void selectConstraint() {
     track(MotionLayoutEditorEventType.CONSTRAINT_TABLE_SELECT);
   }
 
-  public static void changeLayout() {
+  private void changeLayout() {
     track(MotionLayoutEditorEventType.TOGGLE_LAYOUT);
   }
 
-  public static void showConstraintSetTable() {
+  private void showConstraintSetTable() {
     track(MotionLayoutEditorEventType.SHOW_CONSTRAINTSET);
   }
 
-  public static void transitionSelection() {
+  private void transitionSelection() {
     track(MotionLayoutEditorEventType.SHOW_TIMELINE);
   }
 
-  public static void showLayoutTable() {
+  private void showLayoutTable() {
     track(MotionLayoutEditorEventType.SHOW_LAYOUT);
   }
-  public static void layoutTableSelect() {
+  private void layoutTableSelect() {
     track(MotionLayoutEditorEventType.LAYOUT_TABLE_SELECT);
   }
-  public static void timelineTableSelect() {
+  private void timelineTableSelect() {
     track(MotionLayoutEditorEventType.TIMELINE_TABLE_SELECT);
   }
+
+  public static void createConstraintSet(Track track) {
+    if (track != null) {
+        track.createConstraintSet();
+    }
+  }
+
+  public static void motionEditorEdit(Track track) {
+    if (track != null) {
+      track.motionEditorEdit();
+    }
+  }
+
+  public static void createTransition(Track track) {
+    if (track != null) {
+      track.createTransition();
+    }
+  }
+
+  public static void createOnClick(Track track) {
+    if (track != null) {
+      track.createOnClick();
+    }
+  }
+
+  public static void createOnSwipe(Track track) {
+    if (track != null) {
+      track.createOnSwipe();
+    }
+  }
+
+  public static void createKeyCycle(Track track) {
+    if (track != null) {
+      track.createKeyCycle();
+    }
+  }
+
+  public static void createKeyTimeCycle(Track track) {
+    if (track != null) {
+      track.createKeyTimeCycle();
+    }
+  }
+
+  public static void createKeyTrigger(Track track) {
+    if (track != null) {
+      track.createKeyTrigger();
+    }
+  }
+
+  public static void createKeyPosition(Track track) {
+    if (track != null) {
+      track.createKeyPosition();
+    }
+  }
+
+  public static void createKeyAttribute(Track track) {
+    if (track != null) {
+      track.createKeyAttribute();
+    }
+  }
+
+  public static void playAnimation(Track track) {
+    if (track != null) {
+      track.playAnimation();
+    }
+  }
+
+  public static void animationSpeed(Track track) {
+    if (track != null) {
+      track.animationSpeed();
+    }
+  }
+
+  public static void animationEnd(Track track) {
+    if (track != null) {
+      track.animationEnd();
+    }
+  }
+
+  public static void animationStart(Track track) {
+    if (track != null) {
+      track.animationStart();
+    }
+  }
+
+  public static void animationDirectionToggle(Track track) {
+    if (track != null) {
+      track.animationDirectionToggle();
+    }
+  }
+
+  public static void createConstraint(Track track) {
+    if (track != null) {
+      track.createConstraint();
+    }
+  }
+
+  public static void clearConstraint(Track track) {
+    if (track != null) {
+      track.clearConstraint();
+    }
+  }
+
+  public static void selectConstraint(Track track) {
+    if (track != null) {
+      track.selectConstraint();
+    }
+  }
+
+  public static void changeLayout(Track track) {
+    if (track != null) {
+      track.changeLayout();
+    }
+  }
+
+  public static void showConstraintSetTable(Track track) {
+    if (track != null) {
+      track.showConstraintSetTable();
+    }
+  }
+
+  public static void transitionSelection(Track track) {
+    if (track != null) {
+      track.transitionSelection();
+    }
+  }
+
+  public static void showLayoutTable(Track track) {
+    if (track != null) {
+      track.showLayoutTable();
+    }
+  }
+
+  public static void layoutTableSelect(Track track) {
+    if (track != null) {
+      track.layoutTableSelect();
+    }
+  }
+  public static void timelineTableSelect(Track track) {
+    if (track != null) {
+      track.timelineTableSelect();
+    }
+  }
 }
-
-
-

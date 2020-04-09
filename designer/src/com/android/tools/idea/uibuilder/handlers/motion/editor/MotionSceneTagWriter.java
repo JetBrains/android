@@ -77,7 +77,8 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
     a.mAttribute = attribute;
     a.mNamespace = type;
     a.mValue = value;
-    Track.motionEditorEdit();
+    Track track = getRoot(this).myTrack;
+    Track.motionEditorEdit(track);
     mAttrList.put(a.mAttribute, a);
     mNewAttrList.put(a.mAttribute, a);
   }
