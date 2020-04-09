@@ -100,7 +100,7 @@ class ConstraintSetPanel extends JPanel {
   AbstractAction createConstraint = new AbstractAction("Create Constraint") {
     @Override
     public void actionPerformed(ActionEvent e) {
-      Track.createConstraint();
+      Track.createConstraint(mMeModel.myTrack);
       ConstraintSetPanelCommands.createConstraint(mSelectedTag, mConstraintSet);
       buildTable();
     }
@@ -117,7 +117,7 @@ class ConstraintSetPanel extends JPanel {
   AbstractAction clearConstraint = new AbstractAction("Clear Constraint") {
     @Override
     public void actionPerformed(ActionEvent e) {
-      Track.clearConstraint();
+      Track.clearConstraint(mMeModel.myTrack);
       ConstraintSetPanelCommands.clearConstraint(mSelectedTag, mConstraintSet);
       buildTable();
     }

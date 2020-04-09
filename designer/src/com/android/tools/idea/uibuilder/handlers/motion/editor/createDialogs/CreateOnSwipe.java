@@ -196,7 +196,7 @@ public class CreateOnSwipe extends BaseCreatePanel {
     }
 
     MTag ret = writer.commit("Create OnSwipe");
-    Track.createOnSwipe();
+    Track.createOnSwipe(mMotionEditor.myTrack);
     mMotionEditor.setMTag(model);
     super.create();
     return ret;
