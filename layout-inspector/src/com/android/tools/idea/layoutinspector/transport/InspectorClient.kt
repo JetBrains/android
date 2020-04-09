@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.transport
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
+import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.TreeLoader
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -120,14 +121,14 @@ interface InspectorClient {
      * Prove a way for tests to generate a mock client.
      */
     @VisibleForTesting
-    var clientFactory: (model: InspectorModel, parentDisposable: Disposable) -> InspectorClient = { model, parentDisposable ->
-      DefaultInspectorClient(model, parentDisposable)
+    var clientFactory: (model: InspectorModel, parentDisposable: Disposable) -> List<InspectorClient> = { model, parentDisposable ->
+      listOf(DefaultInspectorClient(model, parentDisposable), LegacyClient(parentDisposable))
     }
 
     /**
      * Use this method to create a new client.
      */
-    fun createInstance(model: InspectorModel, parentDisposable: Disposable): InspectorClient = clientFactory(model, parentDisposable)
+    fun createInstances(model: InspectorModel, parentDisposable: Disposable): List<InspectorClient> = clientFactory(model, parentDisposable)
   }
 }
 

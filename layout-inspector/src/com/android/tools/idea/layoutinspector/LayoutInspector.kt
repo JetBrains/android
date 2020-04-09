@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.transport.DisconnectedClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
@@ -44,14 +43,10 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
 
   private val latestLoadTime = AtomicLong(-1)
 
-  val allClients: List<InspectorClient>
+  val allClients: List<InspectorClient> = InspectorClient.createInstances(layoutInspectorModel, this)
 
   init {
-    val defaultClient = InspectorClient.createInstance(layoutInspectorModel, this)
-    registerClientListeners(defaultClient)
-    val legacyClient = LegacyClient(this)
-    registerClientListeners(legacyClient)
-    allClients = listOf(defaultClient, legacyClient)
+    allClients.forEach { registerClientListeners(it) }
     Disposer.register(parentDisposable, this)
   }
 
