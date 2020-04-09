@@ -237,6 +237,11 @@ public final class StudioFlags {
     "Show the popup picker for resource picking or attribute customization in layout editor.",
     true);
 
+  public static final Flag<Boolean> NELE_DRAWABLE_POPUP_PICKER = Flag.create(
+    NELE, "show.drawable.popup.picker", "Enable drawable popup picker in Xml Editor.",
+    "Show the resource popup picker for picking drawable resources from the Editor's gutter icon.",
+    true);
+
   public static final Flag<Boolean> NELE_LOG_ANDROID_FRAMEWORK = Flag.create(
     NELE, "log.android.framework", "Log messages coming from Layoutlib Native.",
     "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
