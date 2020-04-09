@@ -16,8 +16,8 @@
 package com.android.tools.idea.databinding.cache
 
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.databinding.LayoutBindingProjectComponent
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.LayoutBindingEnabledFacetsProvider
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -39,19 +39,19 @@ private val BR_CLASS_NAME_LIST = arrayOf(DataBindingUtil.BR)
  * See [LightBrClass]
  */
 class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
-  private val component = project.getComponent(LayoutBindingProjectComponent::class.java)
+  private val bindingFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
   private val allFieldNamesCache: CachedValue<Array<String>>
 
   init {
-    allFieldNamesCache = CachedValuesManager.getManager(component.project).createCachedValue(
+    allFieldNamesCache = CachedValuesManager.getManager(bindingFacetsProvider.project).createCachedValue(
       {
-        val facets = component.getDataBindingEnabledFacets()
+        val facets = bindingFacetsProvider.getDataBindingEnabledFacets()
         val allFields = facets
-          .mapNotNull { facet -> ModuleDataBinding.getInstance(facet).lightBrClass }
+          .mapNotNull { facet -> LayoutBindingModuleCache.getInstance(facet).lightBrClass }
           .flatMap { brClass -> brClass.allFieldNames.asIterable() }
           .toTypedArray()
 
-        CachedValueProvider.Result.create(allFields, component)
+        CachedValueProvider.Result.create(allFields, bindingFacetsProvider)
       }, false)
   }
 
@@ -60,9 +60,9 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
       return PsiClass.EMPTY_ARRAY
     }
 
-    return component.getDataBindingEnabledFacets()
+    return bindingFacetsProvider.getDataBindingEnabledFacets()
       .filter { facet -> scope.isSearchInModuleContent(facet.module) }
-      .mapNotNull { facet -> ModuleDataBinding.getInstance(facet).lightBrClass }
+      .mapNotNull { facet -> LayoutBindingModuleCache.getInstance(facet).lightBrClass }
       .toTypedArray()
   }
 
@@ -111,6 +111,6 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
   }
 
   private fun isMyScope(scope: GlobalSearchScope): Boolean {
-    return (component.project == scope.project)
+    return (bindingFacetsProvider.project == scope.project)
   }
 }

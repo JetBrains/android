@@ -21,9 +21,9 @@ import static org.junit.Assert.assertThat;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
@@ -38,14 +38,14 @@ public class CpuMonitorTest {
 
   @Test
   public void testName() {
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), new FakeTimer());
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), new FakeTimer());
     CpuMonitor monitor = new CpuMonitor(profilers);
     assertEquals("CPU", monitor.getName());
   }
 
   @Test
   public void testExpand() {
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
     CpuMonitor monitor = new CpuMonitor(profilers);
     assertEquals(profilers.getStage().getClass(), NullMonitorStage.class);
     // One second must be enough for new devices (and processes) to be picked up

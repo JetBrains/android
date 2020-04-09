@@ -22,10 +22,12 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.model
  * @param id a test case identifier. This can be arbitrary string as long as it is unique to other test cases.
  * @param name a display name of this test case
  * @param result a result of this test case. Null when the test case execution hasn't finished yet.
+ * @param logcat a logcat message emitted during this test case.
  */
 data class AndroidTestCase(val id: String,
                            val name: String,
-                           var result: AndroidTestCaseResult? = null)
+                           var result: AndroidTestCaseResult? = null,
+                           var logcat: String = "")
 
 /**
  * A result of a test case execution.

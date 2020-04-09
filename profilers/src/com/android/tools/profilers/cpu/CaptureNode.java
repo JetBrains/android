@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.filter.FilterAccumulator;
 import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
@@ -189,29 +190,26 @@ public class CaptureNode implements HNode<CaptureNode> {
    */
   @NotNull
   public FilterResult applyFilter(@NotNull Filter filter) {
-    return applyFilter(filter, false);
+    FilterAccumulator accumulator = new FilterAccumulator(!filter.isEmpty());
+    computeFilter(filter, false, accumulator);
+    return accumulator.toFilterResult();
   }
 
 
   /**
    * Recursively applies filter to this node and its children.
    */
-  @NotNull
-  private FilterResult applyFilter(@NotNull Filter filter, boolean matches) {
-    int matchCount = 0;
-    int totalCount = 0;
+  private void computeFilter(@NotNull Filter filter, boolean matches, @NotNull FilterAccumulator accumulator) {
     boolean nodeExactMatch = filter.matches(getData().getFullName());
     matches = matches || nodeExactMatch;
     if (nodeExactMatch) {
-      ++matchCount;
+      accumulator.increaseMatchCount();
     }
-    ++totalCount;
+    accumulator.increaseTotalCount();
 
     boolean allChildrenUnmatch = true;
     for (CaptureNode child : getChildren()) {
-      FilterResult result = child.applyFilter(filter, matches);
-      matchCount += result.getMatchCount();
-      totalCount += result.getTotalCount();
+      child.computeFilter(filter, matches, accumulator);
       if (!child.isUnmatched()) {
         allChildrenUnmatch = false;
       }
@@ -226,7 +224,6 @@ public class CaptureNode implements HNode<CaptureNode> {
     else {
       setFilterType(FilterType.MATCH);
     }
-    return new FilterResult(matchCount, totalCount, !filter.isEmpty());
   }
 
   @NotNull

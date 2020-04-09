@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.util.COMPOSABLE_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.util.HEIGHT_PARAMETER
+import com.android.tools.idea.compose.preview.util.MAX_HEIGHT
+import com.android.tools.idea.compose.preview.util.MAX_WIDTH
+import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.util.PREVIEW_PARAMETER_FQN
+import com.android.tools.idea.compose.preview.util.WIDTH_PARAMETER
+import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
@@ -29,6 +37,7 @@ import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 
@@ -91,6 +100,15 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
 }
 
 /**
+ * Returns whether the [KtParameter] can be used in the preview. This will return true if the parameter
+ * has a default value or a value provider.
+ */
+private fun KtParameter.isAcceptableForPreview(): Boolean =
+  hasDefaultValue() ||
+  // When data sources are enabled, we also accept parameters with the @PreviewParameter annotation
+  (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get() && annotationEntries.any { it.fqNameMatches(PREVIEW_PARAMETER_FQN) })
+
+/**
  * Inspection that checks that any function annotated with `@Preview` does not have parameters.
  */
 class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotationInspection() {
@@ -99,9 +117,13 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry) {
-    if (function.valueParameters.any { !it.hasDefaultValue() }) {
+    if (function.valueParameters.any { !it.isAcceptableForPreview() }) {
+      val description = if (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get())
+        message("inspection.no.parameters.or.provider.description")
+      else
+        message("inspection.no.parameters.description")
       holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
-                             message("inspection.no.parameters.description"),
+                             description,
                              ProblemHighlightType.ERROR)
     }
   }

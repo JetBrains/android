@@ -2,6 +2,7 @@
 
 package org.jetbrains.android.exportSignedPackage;
 
+import static com.android.tools.idea.io.IdeFileUtils.getDesktopDirectoryVirtualFile;
 import static com.intellij.credentialStore.CredentialAttributesKt.CredentialAttributes;
 import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
 import static icons.StudioIcons.Common.WARNING_INLINE;
@@ -11,28 +12,22 @@ import com.android.tools.idea.instantapp.InstantApps;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.credentialStore.CredentialAttributesKt;
 import com.intellij.credentialStore.Credentials;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.util.ExecUtil;
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-import com.intellij.openapi.fileChooser.actions.GotoDesktopDirAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.SystemProperties;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -50,7 +45,6 @@ import java.util.stream.Collectors;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -167,7 +161,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     });
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
     myExportKeyPathField.addBrowseFolderListener("Select Encrypted Key Destination Folder", null, myWizard.getProject(), descriptor);
-    VirtualFile desktopDir = getDesktopDirectory();
+    VirtualFile desktopDir = getDesktopDirectoryVirtualFile();
     if (desktopDir != null) {
       myExportKeyPathField.setText(desktopDir.getPath());
     }
@@ -490,22 +484,5 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   @VisibleForTesting
   JBCheckBox getExportKeysCheckBox() {
     return myExportKeysCheckBox;
-  }
-
-  /**
-   * Copied from {@link GotoDesktopDirAction}
-   */
-  @Nullable
-  private static VirtualFile getDesktopDirectory() {
-    File desktop = new File(SystemProperties.getUserHome(), "Desktop");
-
-    if (!desktop.isDirectory() && SystemInfo.hasXdgOpen()) {
-      String path = ExecUtil.execAndReadLine(new GeneralCommandLine("xdg-user-dir", "DESKTOP"));
-      if (path != null) {
-        desktop = new File(path);
-      }
-    }
-
-    return desktop.isDirectory() ? LocalFileSystem.getInstance().refreshAndFindFileByIoFile(desktop) : null;
   }
 }

@@ -85,7 +85,7 @@ class CustomEventTrackModelTest {
       enableCustomEventVisualization(true)
     }
 
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     userCounterModel = UserCounterModel(profilers, "group1")
     customEventTrackModel = CustomEventTrackModel(userCounterModel, profilers.timeline.dataRange)
   }

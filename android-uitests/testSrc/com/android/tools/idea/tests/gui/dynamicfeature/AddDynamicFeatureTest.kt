@@ -270,8 +270,7 @@ class AddDynamicFeatureTest {
     createDynamicModule(ideFrame, Java)
       .invokeMenuPath("File", "New", "Activity", "Login Activity")
     NewActivityWizardFixture.find(ideFrame)
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
 
     guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
       assertThat(this).contains("title_activity_login")
@@ -314,8 +313,7 @@ class AddDynamicFeatureTest {
     createDynamicModule(ideFrame, Java)
       .invokeMenuPath("File", "New", "Google", "Google Maps Activity")
     NewActivityWizardFixture.find(ideFrame)
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
 
     guiTest.getProjectFileText("MyDynamicFeature/build.gradle").run {
       assertThat(this).doesNotContain("play-services-maps")
@@ -349,8 +347,7 @@ class AddDynamicFeatureTest {
   fun checkWarningLabelIsHiddenWhenBaseIsInstant() {
     val ideFrame = guiTest.importSimpleApplication()
     writeDistModuleToBaseManifest(true)
-    ideFrame.invokeMenuPath("File", "Sync Project with Gradle Files")
-    ideFrame.waitForGradleProjectSyncToFinish()
+    ideFrame.actAndWaitForGradleProjectSyncToFinish { it.invokeMenuPath("File", "Sync Project with Gradle Files") }
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     val fixture = NewModuleWizardFixture.find(ideFrame)
       .clickNextToInstantDynamicFeature()
@@ -377,8 +374,7 @@ class AddDynamicFeatureTest {
   fun checkWarningLabelIsVisibleWhenBaseIsNotInstant() {
     val ideFrame = guiTest.importSimpleApplication()
     writeDistModuleToBaseManifest(false)
-    ideFrame.invokeMenuPath("File", "Sync Project with Gradle Files")
-    ideFrame.waitForGradleProjectSyncToFinish()
+    ideFrame.actAndWaitForGradleProjectSyncToFinish { it.invokeMenuPath("File", "Sync Project with Gradle Files") }
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     val fixture = NewModuleWizardFixture.find(ideFrame)
       .clickNextToInstantDynamicFeature()
@@ -431,8 +427,7 @@ class AddDynamicFeatureTest {
       .setDownloadInstallKind(downloadInstallKind)
       .setFeatures()
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
       .projectView
       .selectAndroidPane()
       .clickPath("MyDynamicFeature")
@@ -450,7 +445,7 @@ class AddDynamicFeatureTest {
       .clickNextToInstantDynamicFeature()
       .checkFusingCheckbox()
       .wizard()
-      .clickFinish()
+      .clickFinishAndWaitForSyncToFinish()
 
     return ideFrame
   }

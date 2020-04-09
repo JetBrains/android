@@ -48,6 +48,7 @@ public class MEIcons {
   public static final Icon EDIT_MENU = StudioIcons.Common.EDIT; // TODO fix
   public static final Icon EDIT_MENU_DISABLED = StudioIcons.Avd.EDIT; // TODO fix
   public static final Icon CREATE_KEYFRAME = StudioIcons.LayoutEditor.Motion.ADD_KEYFRAME;
+  public static final Icon GESTURE = StudioIcons.LayoutEditor.Motion.GESTURE;
 
   public static final Icon CREATE_TRANSITION = StudioIcons.LayoutEditor.Motion.ADD_TRANSITION; // TODO fix
   public static final Icon CREATE_CONSTRAINTSET = StudioIcons.LayoutEditor.Motion.ADD_CONSTRAINT_SET; // TODO fix  ;

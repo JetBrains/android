@@ -53,8 +53,7 @@ public class CreateDefaultActivityTest {
 
   @Before
   public void setUp() throws IOException {
-    guiTest.importProject("SimpleApplication");
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(120));
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120));
     guiTest.ideFrame().getProjectView().selectProjectPane();
     myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(PROVIDED_ACTIVITY);
@@ -90,9 +89,8 @@ public class CreateDefaultActivityTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createDefaultActivity() {
-    myDialog.clickFinish();
+    myDialog.clickFinishAndWaitForSyncToFinish();
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     guiTest.ideFrame().getProjectView().assertFilesExist(
       "app/src/main/java/google/simpleapplication/MainActivity.java",
       "app/src/main/res/layout/activity_main.xml"

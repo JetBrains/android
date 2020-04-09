@@ -162,10 +162,7 @@ class NewKtsProjectTest {
       .setUseKtsBuildFiles(true)
       .wizard()
       .clickNext() // Skip extra Step to configure Activity
-      .clickFinish()
-
-    guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
 
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
   }
@@ -191,10 +188,7 @@ class NewKtsProjectTest {
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setUseKtsBuildFiles(true)
       .wizard()
-      .clickFinish()
-
-    guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
 
     return this
   }

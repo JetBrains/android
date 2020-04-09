@@ -35,17 +35,18 @@ public class GradleRenameModuleTest {
 
   @Test
   public void testRenameModule() throws IOException {
-    guiTest.importSimpleApplication()
-      .getProjectView()
-      .selectProjectPane()
-      .clickPath("SimpleApplication", "app")
-      .openFromMenu(SelectRefactoringDialogFixture::find, "Refactor", "Rename...")
-      .selectRenameModule()
-      .clickOk()
-      .enterText("app2")
-      .clickOk()
-      .waitForGradleProjectSyncToStart()
-      .waitForGradleProjectSyncToFinish();
+    guiTest
+      .importSimpleApplication()
+      .actAndWaitForGradleProjectSyncToFinish(it -> {
+        it.getProjectView()
+          .selectProjectPane()
+          .clickPath("SimpleApplication", "app")
+          .openFromMenu(SelectRefactoringDialogFixture::find, "Refactor", "Rename...")
+          .selectRenameModule()
+          .clickOk()
+          .enterText("app2")
+          .clickOk();
+      });
     assertThat(guiTest.ideFrame().hasModule("app2")).named("app2 module exists").isTrue();
     assertThat(guiTest.ideFrame().hasModule("app")).named("app module exists").isFalse();
   }

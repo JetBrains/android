@@ -61,17 +61,13 @@ public class CreateSettingsActivityTest {
   public void activityTemplate() {
     // Create a new project with Settings Activity.
     guiTest.welcomeFrame().createNewProject()
-           .getChooseAndroidProjectStep()
-           .chooseActivity("Empty Activity")
-           .wizard()
-           .clickNext()
-           .clickFinish();
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish()
-           .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Settings Activity")
-           .clickFinish();
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+      .getChooseAndroidProjectStep()
+      .chooseActivity("Empty Activity")
+      .wizard()
+      .clickNext()
+      .clickFinishAndWaitForSyncToFinish()
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Settings Activity")
+      .clickFinishAndWaitForSyncToFinish();
 
     // Verification.
     EditorFixture editorFixture = guiTest.ideFrame().getEditor();

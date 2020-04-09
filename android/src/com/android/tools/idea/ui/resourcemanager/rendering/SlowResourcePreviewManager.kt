@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.rendering
 
+import com.android.annotations.concurrency.Slow
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.intellij.openapi.components.service
@@ -43,9 +44,13 @@ interface SlowResourcePreviewProvider {
   val previewPlaceholder: BufferedImage
 
   /**
-   * Returns a [CompletableFuture] that may return a [BufferedImage] for the given [asset].
+   * Returns a [BufferedImage], the preview for the given [asset].
+   *
+   * May throw an Exception if there's an error while rendering or return a null [BufferedImage] if there's nothing to preview (if it fails
+   * to resolve a theme attribute).
    */
-  fun getSlowPreview(width: Int, height: Int, asset: Asset): CompletableFuture<out BufferedImage?>
+  @Slow
+  fun getSlowPreview(width: Int, height: Int, asset: Asset): BufferedImage?
 }
 
 /**
@@ -145,14 +150,15 @@ class SlowResourcePreviewManager(
         CompletableFuture.supplyAsync(Supplier {
           // Check for visibility again right before rendering.
           if (isStillVisible()) {
-            resourcePreviewProvider.getSlowPreview(targetSize.width, targetSize.height, asset)
-              .thenApply { image -> image ?: throw Exception("Failed to resolve resource") }
-              .thenApply { image -> scaleToFitIfNeeded(image, targetSize) }
-              .exceptionally { throwable ->
-                // TODO: Selectively log exceptions. Some of this errors are expected and not worth investigating. Would be better if could
-                //  tell those apart so that we can properly Log them as warnings/errors.
-                LOG.warn("Error while rendering $asset", throwable); ERROR_IMAGE
-              }.get()
+            try {
+              val previewImage = resourcePreviewProvider.getSlowPreview(targetSize.width, targetSize.height, asset)
+                                 ?: throw Exception("Failed to resolve resource")
+              return@Supplier scaleToFitIfNeeded(previewImage, targetSize)
+            }
+            catch (throwable: Exception) {
+              LOG.warn("Error while rendering $asset", throwable)
+              return@Supplier ERROR_IMAGE
+            }
           }
           else {
             null

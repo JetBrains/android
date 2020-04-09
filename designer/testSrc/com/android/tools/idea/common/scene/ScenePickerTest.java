@@ -213,39 +213,6 @@ public class ScenePickerTest extends TestCase {
     }
   }
 
-  public void testPoint() {
-    ScenePicker scenePicker = new ScenePicker();
-    scenePicker.reset();
-    scenePicker.addPoint(new Integer(1), 10, 10, 10);
-    boolean[] found = new boolean[1];
-    scenePicker.setSelectListener((obj, dist) -> {
-      assertEquals(1, Math.toIntExact((Integer)obj));
-      assertEquals(expectedDistance, dist, error);
-      found[0] = true;
-    });
-    expectedDistance = 0;
-    error = 1;
-    found[0] = false;
-    scenePicker.find(10, 10);
-    assertTrue(found[0]);
-
-
-    found[0] = false;
-    expectedDistance = 4;
-    scenePicker.find(10, 14);
-    assertTrue(found[0]);
-
-    for (int y = 0; y < 20; y++) {
-      for (int x = 0; x < 20; x++) {
-
-        expectedDistance = Math.hypot(x - 10, y - 10);
-        found[0] = false;
-        scenePicker.find(x, y);
-        assertEquals(x + "," + y, found[0], expectedDistance < 10);
-      }
-    }
-  }
-
   public void testCircle() {
     boolean[] found = new boolean[1];
 
@@ -285,7 +252,7 @@ public class ScenePickerTest extends TestCase {
     error = 2;
 
     for (int i = 0; i < 1000; i++) {
-      scenePicker.addPoint(new Integer(1), 3, 2 * (i % 100), 2 * (i / 100));
+      scenePicker.addCircle(new Integer(1), 3, 2 * (i % 100), 2 * (i / 100), 0);
     }
 
     boolean[] found = new boolean[1];

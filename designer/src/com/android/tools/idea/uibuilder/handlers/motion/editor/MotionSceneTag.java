@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotati
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -331,6 +332,8 @@ public class MotionSceneTag implements MTag {
     VirtualFile mVirtualFile;
     XmlFile mXmlFile;
     NlModel mModel;
+    Track myTrack = null;
+
     public Root(XmlTag tag, Project project,
                 VirtualFile virtualFile,
                 XmlFile file,NlModel model) {
@@ -342,6 +345,24 @@ public class MotionSceneTag implements MTag {
     }
   }
 
+  /**
+   * Parse a tree and have a track;
+   * @param motionLayout
+   * @param project
+   * @param virtualFile
+   * @param file
+   * @param track
+   * @return
+   */
+  public static MotionSceneTag.Root parse(NlComponent motionLayout,
+                                          Project project,
+                                          VirtualFile virtualFile,
+                                          XmlFile file,
+                                          Track track) {
+    MotionSceneTag.Root root =  parse(motionLayout,project,virtualFile,file);
+    root.myTrack = track;
+    return root;
+  }
 
   public static MotionSceneTag.Root parse(NlComponent motionLayout,
                                      Project project,

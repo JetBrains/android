@@ -21,12 +21,22 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.scene.ACTION_COLOR
+import com.android.tools.idea.naveditor.scene.FRAME_COLOR
+import com.android.tools.idea.naveditor.scene.SELECTED_COLOR
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawAction
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawFragment
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawHeader
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
+import com.android.tools.idea.naveditor.scene.verifyScene
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.`when`
+import java.awt.Color
 import java.awt.event.MouseEvent.BUTTON1
+import java.awt.geom.Rectangle2D
 
 /**
  * Tests for [ActionTarget]
@@ -84,30 +94,25 @@ class ActionTargetTest : NavTestCase() {
     scene.getSceneComponent("fragment2")!!.setPosition(20, 20)
     scene.sceneManager.layout(false)
 
-    val list = DisplayList()
     val navView = NavView(model.surface as NavDesignSurface, scene.sceneManager)
     val context = SceneContext.get(navView)
     scene.layout(0, context)
-    scene.buildDisplayList(list, 0, context)
 
-    val displayListTemplate = "Clip,0,0,967,928\n" +
-                              "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,0.5,%1\$s,false\n" +
-                              "\n" +
-                              "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
-                              "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
-                              "\n" +
-                              "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
-                              "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
-                              "\n" +
-                              "UNClip\n"
+    val verifier = { color: Color ->
+      verifyScene(model.surface) { inOrder, g ->
+        verifyDrawAction(inOrder, g, color)
 
-    assertEquals(displayListTemplate.format("b2a7a7a7"), list.generateSortedDisplayList())
+        verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
+        verifyDrawFragment(inOrder, g, Rectangle2D.Float(490f, 400f, 76.5f, 128f), 0.5)
+
+        verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 11f), 0.5, "fragment2")
+        verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
+      }
+    }
+    verifier(ACTION_COLOR)
 
     model.surface.selectionModel.setSelection(listOf(model.find("action1")))
-    list.clear()
-    scene.buildDisplayList(list, 0, context)
-
-    assertEquals(displayListTemplate.format("ff1886f7"), list.generateSortedDisplayList())
+    verifier(SELECTED_COLOR)
   }
 
   fun testDirection() {

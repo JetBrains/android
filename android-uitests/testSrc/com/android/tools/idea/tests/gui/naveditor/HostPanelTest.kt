@@ -37,7 +37,7 @@ class HostPanelTest {
   @RunIn(TestGroup.UNRELIABLE) // b/152646640
   @Test
   fun testUpdateHostPanel() {
-    val frame = guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish()
+    val frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation")
 
     // Open file as XML and switch to design tab, wait for successful render
     val hostPanel = frame

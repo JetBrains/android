@@ -29,7 +29,7 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
-    <codeInsight.linkHandler prefix="#lint/" handlerClass="com.android.tools.idea.lint.LintInspectionDescriptionLinkHandler"/>
+    <codeInsight.linkHandler prefix="#lint/" handlerClass="com.android.tools.idea.lint.common.LintInspectionDescriptionLinkHandler"/>
     <codeInspection.InspectionExtension implementation="com.android.tools.idea.lint.common.LintInspectionExtensionsFactory"/>
 
     <externalAnnotator language="JAVA" implementationClass="com.android.tools.idea.lint.common.LintExternalAnnotator"/>

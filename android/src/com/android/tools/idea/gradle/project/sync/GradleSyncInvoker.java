@@ -140,8 +140,6 @@ public class GradleSyncInvoker {
       }
     };
 
-    GradleSyncState.getInstance(project).syncTaskCreated(request, listener);
-
     Application application = ApplicationManager.getApplication();
     if (application.isUnitTestMode()) {
       application.invokeAndWait(syncTask);
@@ -258,7 +256,6 @@ public class GradleSyncInvoker {
     public final GradleSyncStats.Trigger trigger;
 
     public boolean runInBackground = true;
-    public boolean useCachedGradleModels;
     public boolean forceFullVariantsSync;
     public boolean skipPreSyncChecks;
     @TestOnly
@@ -301,7 +298,6 @@ public class GradleSyncInvoker {
       Request request = (Request)o;
       return trigger == request.trigger &&
              runInBackground == request.runInBackground &&
-             useCachedGradleModels == request.useCachedGradleModels &&
              forceFullVariantsSync == request.forceFullVariantsSync &&
              skipPreSyncChecks == request.skipPreSyncChecks &&
              forceCreateDirs == request.forceCreateDirs &&
@@ -311,7 +307,7 @@ public class GradleSyncInvoker {
     @Override
     public int hashCode() {
       return Objects
-        .hash(trigger, runInBackground, useCachedGradleModels,
+        .hash(trigger, runInBackground,
               forceFullVariantsSync, skipPreSyncChecks, forceCreateDirs, variantOnlySyncOptions);
     }
 
@@ -320,7 +316,6 @@ public class GradleSyncInvoker {
       return "RequestSettings{" +
              "trigger=" + trigger +
              ", runInBackground=" + runInBackground +
-             ", useCachedGradleModels=" + useCachedGradleModels +
              ", forceFullVariantsSync=" + forceFullVariantsSync +
              ", skipPreSyncChecks=" + skipPreSyncChecks +
              ", forceCreateDirs=" + forceCreateDirs +

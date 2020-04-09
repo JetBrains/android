@@ -123,7 +123,7 @@ class EnergyDetailsViewTest {
   @Before
   fun before() {
     val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     transportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
 

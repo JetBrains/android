@@ -82,9 +82,6 @@ class NewWearProjectTest {
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setPairWithPhoneApp(pairWithPhone)
       .wizard()
-      .clickFinish()
-
-    guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
   }
 }

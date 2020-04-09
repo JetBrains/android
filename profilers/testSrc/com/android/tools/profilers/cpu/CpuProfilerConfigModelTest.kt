@@ -49,7 +49,7 @@ class CpuProfilerConfigModelTest {
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), myServices, myTimer)
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myServices, myTimer)
     myProfilerStage = CpuProfilerStage(myProfilers!!)
     model = CpuProfilerConfigModel(myProfilers!!, myProfilerStage!!)
   }

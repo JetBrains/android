@@ -16,8 +16,8 @@
 package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.databinding.LayoutBindingProjectComponent
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.LayoutBindingEnabledFacetsProvider
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -35,18 +35,18 @@ import com.intellij.psi.util.CachedValuesManager
  * See [LightBrClass]
  */
 class BrClassFinder(project: Project) : PsiElementFinder() {
-  private val component = project.getComponent(LayoutBindingProjectComponent::class.java)
+  private val bindingFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
   private val classByPackageCache: CachedValue<Map<String, PsiClass>>
 
   init {
-    classByPackageCache = CachedValuesManager.getManager(component.project).createCachedValue(
+    classByPackageCache = CachedValuesManager.getManager(bindingFacetsProvider.project).createCachedValue(
       {
-        val classes = component.getDataBindingEnabledFacets()
+        val classes = bindingFacetsProvider.getDataBindingEnabledFacets()
           .asSequence()
-          .mapNotNull { facet -> ModuleDataBinding.getInstance(facet).lightBrClass }
+          .mapNotNull { facet -> LayoutBindingModuleCache.getInstance(facet).lightBrClass }
           .associateBy { it.qualifiedName }
 
-        CachedValueProvider.Result.create<Map<String, PsiClass>>(classes, component)
+        CachedValueProvider.Result.create<Map<String, PsiClass>>(classes, bindingFacetsProvider)
       }, false)
   }
 

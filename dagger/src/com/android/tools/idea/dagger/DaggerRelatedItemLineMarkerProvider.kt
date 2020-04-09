@@ -22,13 +22,19 @@ import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.util.NotNullLazyValue
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.ui.awt.RelativePoint
-import icons.AndroidIcons
+import icons.StudioIcons
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.lexer.KtTokens
+
+internal const val DEPENDENCY_PROVIDERS = "Dependency provider(s)"
+internal const val DEPENDENCY_CONSUMERS = "Dependency consumer(s)"
+internal const val DEPENDENCY_COMPONENT = "Dependency components method(s)"
 
 /**
  * Provides [RelatedItemLineMarkerInfo] for Dagger consumers/providers.
@@ -45,38 +51,47 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     // We provide RelatedItemLineMarkerInfo for PsiIdentifier/KtIdentifier (leaf element), not for PsiField/PsiMethod,
     // that's why we check that `element.parent` isDaggerConsumer, not `element` itself. See [LineMarkerProvider.getLineMarkerInfo]
     val parent = element.parent
-    val isDaggerConsumer = when {
+    val calculateRelatedItemsForConsumer = when {
       parent.isDaggerConsumer -> true
       parent.isDaggerProvider -> false
       else -> return
     }
 
-    val relatedItems: Collection<PsiElement> = if (isDaggerConsumer) getDaggerProvidersFor(parent) else getDaggerConsumersFor(parent)
-    val relatedItemsName = if (isDaggerConsumer) "Dagger providers" else "Dagger consumers"
-
-    if (relatedItems.isNotEmpty()) {
-      val gotoList = relatedItems.map { GotoRelatedItem(it, relatedItemsName) }
-
-      val info = RelatedItemLineMarkerInfo<PsiElement>(
-        element,
-        element.textRange,
-        // TODO(b/151079470): replace with correct one.
-        AndroidIcons.Android,
-        Pass.LINE_MARKERS,
-        { relatedItemsName },
-        { mouseEvent, _ ->
-          if (gotoList.size == 1) {
-            gotoList.first().navigate()
-          }
-          else {
-            NavigationUtil.getRelatedItemsPopup(gotoList, "Go to Dagger Related Files").show(RelativePoint(mouseEvent))
-          }
-        },
-        GutterIconRenderer.Alignment.RIGHT,
-        gotoList
-      )
-      result.add(info)
+    val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
+      override fun compute(): List<GotoRelatedItem> {
+        val relatedItems: MutableList<GotoRelatedItem> = mutableListOf()
+        if (calculateRelatedItemsForConsumer) {
+          relatedItems.addAll(getDaggerProvidersFor(parent).map { GotoRelatedItem(it, DEPENDENCY_PROVIDERS) })
+        }
+        else {
+          relatedItems.addAll(getDaggerConsumersFor(parent).map { GotoRelatedItem(it, DEPENDENCY_CONSUMERS) })
+          relatedItems.addAll(getDaggerComponentMethodsForProvider(parent).map { GotoRelatedItem(it, DEPENDENCY_COMPONENT) })
+        }
+        return relatedItems
+      }
     }
+
+    val icon = if (calculateRelatedItemsForConsumer) StudioIcons.Misc.DEPENDENCY_PROVIDER else StudioIcons.Misc.DEPENDENCY_CONSUMER
+
+    val info = RelatedItemLineMarkerInfo<PsiElement>(
+      element,
+      element.textRange,
+      icon,
+      Pass.LINE_MARKERS,
+      { "Dependency Related Files" },
+      { mouseEvent, _ ->
+        when (gotoTargets.value.size) {
+          0 -> JBPopupFactory.getInstance()
+            .createMessage("No related items for dependency ${if (calculateRelatedItemsForConsumer) "consumer" else "provider"}")
+            .show(RelativePoint(mouseEvent))
+          1 -> gotoTargets.value.first().navigate()
+          else -> NavigationUtil.getRelatedItemsPopup(gotoTargets.value, "Go to Related Files").show(RelativePoint(mouseEvent))
+        }
+      },
+      GutterIconRenderer.Alignment.RIGHT,
+      gotoTargets
+    )
+    result.add(info)
   }
 }
 

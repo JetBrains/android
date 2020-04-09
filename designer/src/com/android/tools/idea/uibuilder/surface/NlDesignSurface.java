@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
@@ -392,6 +393,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private boolean myIsAnimationScrubbing = false;
 
   private final Dimension myScrollableViewMinSize = new Dimension();
+  @Nullable private NlLayoutValidator myValidator;
 
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
@@ -425,6 +427,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
     myMinScale = minScale;
     myMaxScale = maxScale;
+
+  if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get())
+    myValidator = new NlLayoutValidator(myIssueModel, this);
   }
 
   /**
@@ -761,6 +766,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         RenderResult result = sceneManager != null ? sceneManager.getRenderResult() : null;
         if (result == null) {
           return;
+        }
+        if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get() && !getModels().isEmpty()) {
+          myValidator.validateAndUpdateLint(result, getModels().get(0));
         }
 
         Project project = getProject();

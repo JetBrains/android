@@ -1173,7 +1173,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       propertyModel.setValue(ReferenceTo(otherModel))
       // TODO(b/148938992): in KotlinScript when we set the value, the explicit cast is included in the reference, whereas when we parse
       //  (see below) the cast is excluded.  Possibly this is all at the wrong level of abstraction anyway :-(
-      verifyPropertyModel(propertyModel, STRING_TYPE, if (isGroovy) "ext.prop1" else "extra[\"prop1\"] as String", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, if (isGroovy) "prop1" else "extra[\"prop1\"] as String", REFERENCE, REGULAR, 1)
     }
 
     applyChangesAndReparse(buildModel)
@@ -1182,7 +1182,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     // Check the value
     run {
       val propertyModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, if (isGroovy) "ext.prop1" else "extra[\"prop1\"]", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, if (isGroovy) "prop1" else "extra[\"prop1\"]", REFERENCE, REGULAR, 1)
     }
   }
 
@@ -2785,7 +2785,12 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var1")
 
       // Rename the properties.
-      propertyModel.rename(if (isGroovy) "prop2" else "ext.prop2")
+      if (isGroovy) {
+        propertyModel.rename("prop2")
+      }
+      else {
+        propertyModel.rename(listOf("ext", "prop2"))
+      }
       varModel.rename("var2")
 
       verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{var1} hello", STRING, REGULAR, 1, "prop2", "ext.prop2")

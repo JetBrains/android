@@ -24,6 +24,7 @@ import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
+import com.intellij.codeInsight.hint.TooltipLinkHandlerEP;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.UsefulTestCase;
@@ -35,7 +36,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.mockito.Mockito;
 
 public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
-  protected JavaCodeInsightTestFixture myFixture;
+  private JavaCodeInsightTestFixture myFixture;
 
   @Override
   protected void setUp() throws Exception {
@@ -62,9 +63,8 @@ public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
 
   public void testBuiltinIssue() {
     Editor editor = mock(Editor.class);
-    LintInspectionDescriptionLinkHandler handler = new LintInspectionDescriptionLinkHandler();
 
-    assertThat(handler.getDescription("_unknown_", editor)).isNull();
+    assertThat(TooltipLinkHandlerEP.getDescription("_unknown_", editor)).isNull();
 
     String issueExplanation = "You should set an icon for the application as whole because there is no default. " +
                               "This attribute must be set as a reference to a drawable resource containing the image " +
@@ -72,14 +72,14 @@ public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
                               "<br><br>Issue id: MissingApplicationIcon<br><br>More info:<br><a href=\"" +
                               "https://developer.android.com/studio/publish/preparing#publishing-configure" +
                               "\">https://developer.android.com/studio/publish/preparing#publishing-configure</a><br>";
-    assertThat(handler.getDescription("MissingApplicationIcon", editor)).isEqualTo(issueExplanation);
+    String description = TooltipLinkHandlerEP.getDescription(LintExternalAnnotator.LINK_PREFIX + "MissingApplicationIcon", editor);
+    assertThat(description).isEqualTo(issueExplanation);
   }
 
   public void testThirdPartyIssue() {
     Project project = myFixture.getProject();
     Editor editor = mock(Editor.class);
     Mockito.when(editor.getProject()).thenReturn(project);
-    LintInspectionDescriptionLinkHandler handler = new LintInspectionDescriptionLinkHandler();
 
     String explanation = "The full explanation for the third party issue.";
     Issue testIssue = Issue.create(
@@ -88,6 +88,7 @@ public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
       Category.CORRECTNESS, 6, Severity.WARNING, new Implementation(ApiDetector.class, Scope.JAVA_FILE_SCOPE));
     AndroidLintInspectionBase.getInspectionShortNameByIssue(project, testIssue);
 
-    assertThat(handler.getDescription("TestThirdPartyIssue", editor)).isEqualTo(explanation + "<br><br>Issue id: TestThirdPartyIssue");
+    String description = TooltipLinkHandlerEP.getDescription(LintExternalAnnotator.LINK_PREFIX + "TestThirdPartyIssue", editor);
+    assertThat(description).isEqualTo(explanation + "<br><br>Issue id: TestThirdPartyIssue");
   }
 }

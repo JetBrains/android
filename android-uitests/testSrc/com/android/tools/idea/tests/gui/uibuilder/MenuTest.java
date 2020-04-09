@@ -85,9 +85,10 @@ public final class MenuTest {
       .waitForRenderToFinish()
       .findView("item", 0);
     dragAndDrop("Cast Button", settingsItem.getSceneComponent().getLeftCenterPoint());
-
-    MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency").clickOk();
-    myGuiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    myGuiTest.ideFrame().actAndWaitForGradleProjectSyncToFinish(
+      it ->
+        MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency")
+          .clickOk());
 
     myEditor.open(MENU_MAIN_XML_RELATIVE_PATH, Tab.EDITOR);
 

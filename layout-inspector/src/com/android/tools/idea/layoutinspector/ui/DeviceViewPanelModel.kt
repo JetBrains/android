@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.idea.layoutinspector.model.DIMMER_QNAME
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP
@@ -119,11 +118,12 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   val isActive
     get() = !model.isEmpty
 
-  fun findTopRect(x: Double, y: Double): ViewNode? {
-    return hitRects.findLast {
-      it.bounds.contains(x, y)
-    }?.node
-  }
+  fun findViewsAt(x: Double, y: Double): List<ViewNode> =
+    hitRects
+      .filter { it.bounds.contains(x, y) }
+      .map { it.node }
+
+  fun findTopViewAt(x: Double, y: Double): ViewNode? = findViewsAt(x, y).lastOrNull()
 
   fun rotate(xRotation: Double, yRotation: Double) {
     xOff = (xOff + xRotation).coerceIn(-1.0, 1.0)

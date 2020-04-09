@@ -100,7 +100,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myTransportService, new FakeProfilerService(myTimer),
                         myMemoryService, new FakeEventService(), FakeNetworkService.newBuilder().build());
-  private ProfilerClient myProfilerClient = new ProfilerClient(myGrpcChannel.getName());
 
   private CpuProfilerStage myStage;
 
@@ -117,7 +116,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public void setUp() {
     myCpuService.clearTraceInfo();
 
-    StudioProfilers profilers = new StudioProfilers(myProfilerClient, myServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myServices, myTimer);
     // One second must be enough for new devices (and processes) to be picked up
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -889,7 +888,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myStage.exit();
 
     // Enter CpuProfilerStage again.
-    StudioProfilers profilers = new StudioProfilers(myProfilerClient, myServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myServices, myTimer);
     CpuProfilerStage newStage = new CpuProfilerStage(profilers);
     newStage.getStudioProfilers().setStage(newStage);
     // Trigger an update to kick off the InProgressTraceHandler which syncs the capture state and configuration.
@@ -909,7 +908,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myStage.exit();
 
     // Enter CpuProfilerStage again.
-    StudioProfilers profilers = new StudioProfilers(myProfilerClient, myServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myServices, myTimer);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     CpuProfilerStage newStage = new CpuProfilerStage(profilers);
     newStage.getStudioProfilers().setStage(newStage);

@@ -38,10 +38,9 @@ class NavComponentTreeTest {
 
   @Test
   fun testSelectComponent() {
-    val frame = guiTest.importProject("Navigation")
+    val frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation")
     // Open file as XML and switch to design tab, wait for successful render
     val navEditor = frame
-      .waitForGradleProjectSyncToFinish()
       .editor
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor()

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.dialogs
 
+import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -26,7 +27,7 @@ import org.mockito.Mockito.mock
 
 class AddDeeplinkDialogTest : NavTestCase() {
 
-  fun testValidation() {
+  fun testUriValidation() {
     val model = model("nav.xml") {
       navigation {
         fragment("fragment1")
@@ -47,11 +48,46 @@ class AddDeeplinkDialogTest : NavTestCase() {
     }
   }
 
+  fun testMimeTypeValidation() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+    AddDeeplinkDialog(null, model.find("fragment1")!!).runAndClose { dialog ->
+      dialog.myMimeTypeField.text = "*/*"
+      assertNull(dialog.doValidate())
+
+      dialog.myMimeTypeField.text = "**"
+      assertNotNull(dialog.doValidate())
+
+      dialog.myMimeTypeField.text = "/**"
+      assertNotNull(dialog.doValidate())
+
+      dialog.myMimeTypeField.text = "**/"
+      assertNotNull(dialog.doValidate())
+
+      dialog.myMimeTypeField.text = "*//*"
+      assertNotNull(dialog.doValidate())
+    }
+  }
+
+  fun testEmptyValidation() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+    AddDeeplinkDialog(null, model.find("fragment1")!!).runAndClose { dialog ->
+      assertNotNull(dialog.doValidate())
+    }
+  }
+
   fun testInitWithExisting() {
     val model = model("nav.xml") {
       navigation {
         fragment("fragment1") {
-          deeplink("deepLink","http://example.com", autoVerify = true)
+          deeplink("deepLink","http://example.com", autoVerify = true, mimeType = "pdf", action = "send")
         }
       }
     }
@@ -59,6 +95,8 @@ class AddDeeplinkDialogTest : NavTestCase() {
     AddDeeplinkDialog(fragment1.getChild(0), fragment1).runAndClose { dialog ->
       assertEquals("http://example.com", dialog.uri)
       assertTrue(dialog.autoVerify)
+      assertEquals("pdf", dialog.mimeType)
+      assertEquals("send", dialog.action)
     }
   }
 
@@ -66,6 +104,8 @@ class AddDeeplinkDialogTest : NavTestCase() {
     AddDeeplinkDialog(null, mock(NlComponent::class.java)).runAndClose { dialog ->
       assertEquals("", dialog.uri)
       assertFalse(dialog.autoVerify)
+      assertEquals("", dialog.mimeType)
+      assertEquals("", dialog.action)
     }
   }
 

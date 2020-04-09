@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import static com.android.tools.idea.wizard.template.Language.Kotlin;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.text.StringUtil.getOccurrenceCount;
 import static org.junit.Assert.assertEquals;
@@ -25,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture.ActivityTextField;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.ide.util.PropertiesComponent;
@@ -74,7 +76,7 @@ public class NewActivityTest {
   @Test
   public void createLauncherActivity() {
     myConfigActivity.selectLauncherActivity();
-    myDialog.clickFinish();
+    myDialog.clickFinishAndWaitForSyncToFinish();
 
     String text = guiTest.getProjectFileText(PROVIDED_MANIFEST);
     assertEquals(2, getOccurrenceCount(text, "android.intent.category.LAUNCHER"));
@@ -82,9 +84,7 @@ public class NewActivityTest {
 
   @Test
   public void createDefaultActivity() {
-    myDialog.clickFinish();
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(15));
+    myDialog.clickFinishAndWaitForSyncToFinish(Wait.seconds(15));
 
     guiTest.ideFrame().getProjectView().assertFilesExist(
       "app/src/main/java/google/simpleapplication/MainActivity.java",
@@ -99,7 +99,7 @@ public class NewActivityTest {
   @Test
   public void createActivityWithNonDefaultPackage() {
     myConfigActivity.enterTextFieldValue(ActivityTextField.PACKAGE_NAME, "google.test2");
-    myDialog.clickFinish();
+    myDialog.clickFinishAndWaitForSyncToFinish();
 
     String text = guiTest.getProjectFileText("app/src/main/java/google/test2/MainActivity.java");
     assertThat(text).startsWith("package google.test2;");
@@ -108,11 +108,10 @@ public class NewActivityTest {
   @Test
   public void createActivityWithKotlin() {
     myConfigActivity.setSourceLanguage("Kotlin");
-    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.Kotlin);
+    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Kotlin);
     assertThat(getSavedKotlinSupport()).isFalse(); // Changing the Render source language should not affect the project default
 
-    myDialog.clickFinish();
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    myDialog.clickFinishAndWaitForSyncToFinish();
 
     myEditor
       .open("app/build.gradle")
@@ -131,10 +130,24 @@ public class NewActivityTest {
     // Add second Kotlin Activity and check it shouldn't add dependencies again (renamed $kotlin_version -> $kotlin_my_version)
     invokeNewActivityMenu();
     myConfigActivity.setSourceLanguage("Kotlin");
-    myDialog.clickFinish();
+    myDialog.clickFinishAndWaitForSyncToFinish();
 
     assertThat(guiTest.getProjectFileText("build.gradle")).doesNotContain("$kotlin_version");
     assertThat(guiTest.getProjectFileText("app/build.gradle")).doesNotContain("$kotlin_version");
+
+    // Add a new kotlin module, and check that dependencies use "kotlin_my_version", instead of adding a new variable
+    guiTest.ideFrame().openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .clickNextPhoneAndTabletModule()
+      .enterModuleName("app2")
+      .setSourceLanguage(Kotlin)
+      .wizard()
+      .clickNext() // Default options
+      .clickNext() // Default Activity
+      .clickFinishAndWaitForSyncToFinish();
+
+    String app2BuildFileText = guiTest.getProjectFileText("app2/build.gradle");
+    assertThat(app2BuildFileText).doesNotContain("$kotlin_version");
+    assertThat(app2BuildFileText).contains("$kotlin_my_version");
   }
 
   @Test
@@ -143,9 +156,7 @@ public class NewActivityTest {
     myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest");
     assertTextFieldValues("MainActivityTest", "activity_main_test");
 
-    myDialog.clickFinish();
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    myDialog.clickFinishAndWaitForSyncToFinish();
 
     guiTest.ideFrame().getProjectView().assertFilesExist(
       "app/src/main/java/google/simpleapplication/MainActivityTest.java",
@@ -186,9 +197,7 @@ public class NewActivityTest {
   @Test
   public void projectViewPaneNotChanged() {
     // Verify that after creating a new activity, the current pane on projectView does not change, assumes initial pane is ProjectView
-    myDialog.clickFinish();
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    myDialog.clickFinishAndWaitForSyncToFinish();
 
     myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(PROVIDED_ACTIVITY);
@@ -232,8 +241,7 @@ public class NewActivityTest {
     myDialog = NewActivityWizardFixture.find(guiTest.ideFrame());
     myConfigActivity = myDialog.getConfigureActivityStep();
     if (finish) {
-      myDialog.clickFinish();
-      guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+      myDialog.clickFinishAndWaitForSyncToFinish();
       myEditor = guiTest.ideFrame().getEditor();
       myEditor.open(PROVIDED_ACTIVITY);
 

@@ -65,7 +65,7 @@ public class MissingDependenciesNotificationProvider extends EditorNotifications
     if (MlkitUtils.isModelFileInMlModelsFolder(module, file)
         && !MlkitUtils.getMissingDependencies(module, file).isEmpty()) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
-      panel.setText("Tensorflow Lite model binding dependencies not found.");
+      panel.setText("TensorFlow Lite model binding dependencies not found.");
       panel.createActionLabel("Add Now", () -> {
         List<GradleCoordinate> depsToAdd = MlkitUtils.getMissingDependencies(module, file);
         // TODO(b/149224613): switch to use DependencyManagementUtil#addDependencies.

@@ -149,7 +149,7 @@ interface SourceProviders {
         override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
+          get() = ImmutableList.of(sourceSet)
         @Suppress("OverridingDeprecatedMember")
         override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()

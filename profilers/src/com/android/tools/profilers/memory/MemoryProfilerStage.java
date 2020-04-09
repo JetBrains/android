@@ -247,7 +247,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
 
     myEventMonitor = new EventMonitor(profilers);
 
-    myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange());
+    myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange(), getTimeline().getViewRange());
     myRangeSelectionModel.addConstraint(myAllocationDurations);
     myRangeSelectionModel.addConstraint(myNativeAllocationDurations);
     myRangeSelectionModel.addConstraint(myHeapDumpDurations);
@@ -272,7 +272,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
       protected FilterResult applyFilter(@NotNull Filter filter) {
         selectCaptureFilter(filter);
         HeapSet heapSet = getSelectedHeapSet();
-        return heapSet == null ? new FilterResult() : new FilterResult(heapSet.getFilterMatchCount(), 0, true);
+        return heapSet == null ? FilterResult.EMPTY_RESULT : new FilterResult(heapSet.getFilterMatchCount(), 0, true);
       }
     };
 

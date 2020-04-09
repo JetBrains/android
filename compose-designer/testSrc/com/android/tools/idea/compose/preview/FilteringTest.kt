@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThat
@@ -24,24 +25,24 @@ class FilteringTest {
   @Test
   fun testGroupFiltering() {
     val groupPreviewProvider = GroupNameFilteredPreviewProvider(StaticPreviewProvider(listOf(
-      PreviewElement.forTesting("com.sample.preview.TestClass.PreviewMethod1", "PreviewMethod1", "GroupA"),
-      PreviewElement.forTesting("com.sample.preview.TestClass.PreviewMethod2", "PreviewMethod2", "GroupA"),
-      PreviewElement.forTesting("com.sample.preview.TestClass.PreviewMethod3", "PreviewMethod3", "GroupB"),
-      PreviewElement.forTesting("com.sample.preview.TestClass.PreviewMethod4", "PreviewMethod4")
+      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "PreviewMethod1", "GroupA"),
+      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod2", "PreviewMethod2", "GroupA"),
+      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod3", "PreviewMethod3", "GroupB"),
+      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod4", "PreviewMethod4")
     )))
 
     // No filtering at all
-    assertEquals(4, groupPreviewProvider.previewElements.size)
-    assertThat(groupPreviewProvider.availableGroups, `is`(setOf<String>("GroupA", "GroupB")))
+    assertEquals(4, groupPreviewProvider.previewElements.count())
+    assertThat(groupPreviewProvider.availableGroups, `is`(setOf("GroupA", "GroupB")))
 
     // An invalid group should return all the items
     groupPreviewProvider.groupName = "InvalidGroup"
-    assertThat(groupPreviewProvider.previewElements.map { it.displaySettings.name },
-               `is`(listOf<String>("PreviewMethod1", "PreviewMethod2", "PreviewMethod3", "PreviewMethod4")))
+    assertThat(groupPreviewProvider.previewElements.map { it.displaySettings.name }.toList(),
+               `is`(listOf("PreviewMethod1", "PreviewMethod2", "PreviewMethod3", "PreviewMethod4")))
 
     groupPreviewProvider.groupName = "GroupA"
-    assertThat(groupPreviewProvider.previewElements.map { it.displaySettings.name },
-               `is`(listOf<String>("PreviewMethod1", "PreviewMethod2")))
+    assertThat(groupPreviewProvider.previewElements.map { it.displaySettings.name }.toList(),
+               `is`(listOf("PreviewMethod1", "PreviewMethod2")))
 
     groupPreviewProvider.groupName = "GroupB"
     assertEquals("PreviewMethod3", groupPreviewProvider.previewElements.map { it.displaySettings.name }.single())
@@ -52,18 +53,18 @@ class FilteringTest {
   @Test
   fun testSingleElementFiltering() {
     val singleElementProvider = SinglePreviewElementFilteredPreviewProvider(StaticPreviewProvider(listOf(
-      PreviewElement.forTesting("com.sample.preview.TestClass.PreviewMethod1", "PreviewMethod1", "GroupA"),
-      PreviewElement.forTesting("com.sample.preview.TestClass.PreviewMethod2", "PreviewMethod2", "GroupA"),
-      PreviewElement.forTesting("com.sample.preview.TestClass.PreviewMethod3", "PreviewMethod3", "GroupB"),
-      PreviewElement.forTesting("com.sample.preview.TestClass.PreviewMethod4", "PreviewMethod4")
+      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "PreviewMethod1", "GroupA"),
+      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod2", "PreviewMethod2", "GroupA"),
+      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod3", "PreviewMethod3", "GroupB"),
+      SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod4", "PreviewMethod4")
     )))
 
     // No filtering at all
-    assertEquals(4, singleElementProvider.previewElements.size)
+    assertEquals(4, singleElementProvider.previewElements.count())
 
     // An invalid group should return all the items
     singleElementProvider.composableMethodFqn = "com.notvalid.NotValid"
-    assertEquals(4, singleElementProvider.previewElements.size)
+    assertEquals(4, singleElementProvider.previewElements.count())
 
     singleElementProvider.composableMethodFqn = "com.sample.preview.TestClass.PreviewMethod3"
     assertEquals("PreviewMethod3", singleElementProvider.previewElements.single().displaySettings.name)

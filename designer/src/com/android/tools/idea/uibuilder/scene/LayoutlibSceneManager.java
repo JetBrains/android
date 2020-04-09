@@ -83,6 +83,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.TimerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -123,7 +124,7 @@ public class LayoutlibSceneManager extends SceneManager {
   private final SelectionChangeListener mySelectionChangeListener = new SelectionChangeListener();
   private final ModelChangeListener myModelChangeListener = new ModelChangeListener();
   private final ConfigurationListener myConfigurationChangeListener = new ConfigurationChangeListener();
-  private boolean myAreListenersRegistered;
+  private final boolean myAreListenersRegistered;
   private final Object myProgressLock = new Object();
   @GuardedBy("myProgressLock")
   private AndroidPreviewProgressIndicator myCurrentIndicator;
@@ -170,7 +171,7 @@ public class LayoutlibSceneManager extends SceneManager {
   private boolean useTransparentRendering = false;
 
   /**
-   * If true, the renders will use {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode.SHRINK}
+   * If true, the renders will use {@link SessionParams.RenderingMode.SHRINK}
    */
   private boolean useShrinkRendering = false;
 
@@ -327,7 +328,11 @@ public class LayoutlibSceneManager extends SceneManager {
       myRenderTask = null;
     }
     if (renderTask != null) {
-      renderTask.dispose();
+      try {
+        renderTask.dispose();
+      } catch (Throwable t) {
+        Logger.getInstance(LayoutlibSceneManager.class).warn(t);
+      }
     }
     myRenderResultLock.writeLock().lock();
     try {
@@ -884,7 +889,11 @@ public class LayoutlibSceneManager extends SceneManager {
               // Update myRenderTask with the new task
               synchronized (myRenderingTaskLock) {
                 if (myRenderTask != null && !myRenderTask.isDisposed()) {
-                  myRenderTask.dispose();
+                  try {
+                    myRenderTask.dispose();
+                  } catch (Throwable t) {
+                    Logger.getInstance(LayoutlibSceneManager.class).warn(t);
+                  }
                 }
                 myRenderTask = newTask;
               }
@@ -918,8 +927,11 @@ public class LayoutlibSceneManager extends SceneManager {
         else {
           synchronized (myRenderingTaskLock) {
             if (myRenderTask != null && !myRenderTask.isDisposed()) {
-              myRenderTask.dispose();
-            }
+              try {
+                myRenderTask.dispose();
+              } catch (Throwable t) {
+                Logger.getInstance(LayoutlibSceneManager.class).warn(t);
+              }            }
           }
           RenderResult result = RenderResult.createRenderTaskErrorResult(getModel().getFile(), logger);
           myRenderResultLock.writeLock().lock();
@@ -1054,7 +1066,7 @@ public class LayoutlibSceneManager extends SceneManager {
           try {
             long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
             NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
-                                                                        myRenderResult.getRenderedImage().getWidth() * myRenderResult.getRenderedImage().getHeight() * 4);
+                                                                        myRenderResult.getRenderedImage().getWidth() * myRenderResult.getRenderedImage().getHeight() * 4L);
           }
           finally {
             myRenderResultLock.readLock().unlock();
@@ -1154,7 +1166,7 @@ public class LayoutlibSceneManager extends SceneManager {
     public void start() {
       super.start();
       UIUtil.invokeLaterIfNeeded(() -> {
-        final Timer timer = UIUtil.createNamedTimer("Android rendering progress timer", 0, event -> {
+        final Timer timer = TimerUtil.createNamedTimer("Android rendering progress timer", 0, event -> {
           synchronized (myLock) {
             if (isRunning()) {
               getDesignSurface().registerIndicator(this);
@@ -1182,7 +1194,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     private final ViewInfo myViewInfo;
 
-    public ViewInfoTagSnapshotNode(ViewInfo info) {
+    private ViewInfoTagSnapshotNode(ViewInfo info) {
       myViewInfo = info;
     }
 
@@ -1318,10 +1330,12 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   @NotNull
   public CompletableFuture<Boolean> executeCallbacks() {
-    if (myRenderTask == null) {
-      return CompletableFuture.completedFuture(false);
+    synchronized (myRenderingTaskLock) {
+      if (myRenderTask == null) {
+        return CompletableFuture.completedFuture(false);
+      }
+      return myRenderTask.executeCallbacks();
     }
-    return myRenderTask.executeCallbacks();
   }
 
   /**
@@ -1334,10 +1348,12 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   public CompletableFuture<Void> triggerTouchEvent(
     @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y) {
-    if (myRenderTask == null) {
-      return CompletableFuture.completedFuture(null);
+    synchronized (myRenderingTaskLock) {
+      if (myRenderTask == null) {
+        return CompletableFuture.completedFuture(null);
+      }
+      return myRenderTask.triggerTouchEvent(type, x, y);
     }
-    return myRenderTask.triggerTouchEvent(type, x, y);
   }
 
   /**

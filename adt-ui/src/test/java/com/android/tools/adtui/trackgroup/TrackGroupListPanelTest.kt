@@ -135,13 +135,12 @@ class TrackGroupListPanelTest {
     trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "Foo").setDefaultTooltipModel(TestTooltip()))
     trackGroupListPanel.tooltipBinder.bind(TestTooltip::class.java, ::TestTooltipView)
     trackGroupListPanel.loadTrackGroups(listOf(trackGroupModel))
-    trackGroupListPanel.component.setBounds(0, 0, 500, 500)
-    val ui = FakeUi(trackGroupListPanel.component)
-    val trackList = trackGroupListPanel.trackGroups[0].trackList
-    val trackListOrigin = SwingUtilities.convertPoint(trackList, Point(0, 0), trackGroupListPanel.component)
 
     assertThat(trackGroupListPanel.activeTooltip).isNull()
-    ui.mouse.moveTo(trackListOrigin.x, trackListOrigin.y)
+    val trackGroupOverlay = trackGroupListPanel.trackGroups[0].overlay
+    trackGroupOverlay.setBounds(0, 0, 500, 100)
+    val ui = FakeUi(trackGroupOverlay)
+    ui.mouse.moveTo(1, 1)
     assertThat(trackGroupListPanel.activeTooltip).isInstanceOf(TestTooltip::class.java)
   }
 

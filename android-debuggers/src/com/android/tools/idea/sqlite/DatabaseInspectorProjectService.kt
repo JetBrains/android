@@ -138,6 +138,13 @@ interface DatabaseInspectorProjectService {
    */
   @AnyThread
   fun handleError(message: String, throwable: Throwable?)
+
+  /**
+   * Called when a `DatabasePossiblyChanged` event is received from the on-device inspector.
+   * Which tells us that the data in a database might have changed (schema, tables or both).
+   */
+  @AnyThread
+  fun databasePossiblyChanged()
 }
 
 class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
@@ -247,7 +254,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     name: String
   ): ListenableFuture<SqliteDatabase> = projectScope.future {
     val database = async {
-      val connection = databaseConnectionFactory.getLiveDatabaseConnection(messenger, id, taskExecutor).await()
+      val connection = databaseConnectionFactory.getLiveDatabaseConnection(project, messenger, id, taskExecutor).await()
       LiveSqliteDatabase(name, connection)
     }
 
@@ -295,6 +302,11 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     invokeAndWaitIfNeeded {
       controller.showError(message, throwable)
     }
+  }
+
+  @AnyThread
+  override fun databasePossiblyChanged() {
+    projectScope.launch(uiThread) { controller.databasePossiblyChanged() }
   }
 
   private class ModelImpl : DatabaseInspectorController.Model {

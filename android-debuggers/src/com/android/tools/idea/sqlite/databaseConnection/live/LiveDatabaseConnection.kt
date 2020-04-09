@@ -28,6 +28,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.Executor
 
@@ -35,6 +36,7 @@ import java.util.concurrent.Executor
  * Implementation of [DatabaseConnection] based on the AppInspection pipeline.
  */
 class LiveDatabaseConnection(
+  private val project: Project,
   private val messenger: AppInspectorClient.CommandMessenger,
   private val id: Int,
   private val taskExecutor: Executor
@@ -55,7 +57,7 @@ class LiveDatabaseConnection(
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
 
       if (response.hasErrorOccurred()) {
-        handleError(response.errorOccurred.content, logger<LiveDatabaseConnection>())
+        handleError(project, response.errorOccurred.content, logger<LiveDatabaseConnection>())
       }
 
       response.getSchema.tablesList.toSqliteSchema()
@@ -70,11 +72,11 @@ class LiveDatabaseConnection(
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
 
       if (response.hasErrorOccurred()) {
-        handleError(response.errorOccurred.content, logger<LiveDatabaseConnection>())
+        handleError(project, response.errorOccurred.content, logger<LiveDatabaseConnection>())
       }
 
       val resultSet = if (response.query.columnNamesList.isNotEmpty()) {
-        LiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
+        LiveSqliteResultSet(project, sqliteStatement, messenger, id, taskExecutor)
       }
       else {
         EmptySqliteResultSet()

@@ -73,6 +73,7 @@ public class MotionEditor extends JPanel {
   public final static boolean DEBUG = false;
   private final JPanel mMainPanel;
   private CardLayout mErrorSwitchCard;
+  public Track myTrack = new Track();
   ErrorPanel myErrorPanel = new ErrorPanel();
   MeModel mMeModel;
   MotionEditorSelector mMotionEditorSelector = new MotionEditorSelector();
@@ -86,6 +87,8 @@ public class MotionEditor extends JPanel {
   JScrollPane mOverviewScrollPane = new MEScrollPane(mOverviewPanel);
   CardLayout mCardLayout = new CardLayout();
   JPanel mCenterPanel = new JPanel(mCardLayout);
+  JButton mCreateGestureToolbarButton;
+  JButton mCreateTransitionToolbarButton;
   private static final String LAYOUT_PANEL = "Layout";
   private static final String TRANSITION_PANEL = "Transition";
   private static final String CONSTRAINTSET_PANEL = "ConstraintSet";
@@ -271,21 +274,21 @@ public class MotionEditor extends JPanel {
 
     JButton create_constraintSet = MEUI.createToolBarButton(MEIcons.CREATE_MENU, "Create ConstraintSet");
     toolbarLeft.add(create_constraintSet);
-    JButton create_transition = MEUI.createToolBarButton(MEIcons.CREATE_TRANSITION, "Create Transition between ConstraintSets");
-    toolbarLeft.add(create_transition);
-    JButton create_touch = MEUI.createToolBarButton(MEIcons.CREATE_ON_STAR, "Create click or swipe handler");
-    toolbarLeft.add(create_touch);
+    mCreateTransitionToolbarButton = MEUI.createToolBarButton(MEIcons.CREATE_TRANSITION, MEIcons.LIST_TRANSITION, "Create Transition between ConstraintSets");
+    toolbarLeft.add(mCreateTransitionToolbarButton);
+    mCreateGestureToolbarButton = MEUI.createToolBarButton(MEIcons.CREATE_ON_STAR, MEIcons.GESTURE, "Create click or swipe handler");
+    toolbarLeft.add(mCreateGestureToolbarButton);
     create_constraintSet.setAction(mCreateConstraintSet.getAction(create_constraintSet, this));
-    create_transition.setAction(mCreateTransition.getAction(create_transition, this));
+    mCreateTransitionToolbarButton.setAction(mCreateTransition.getAction(mCreateTransitionToolbarButton, this));
     create_constraintSet.setHideActionText(true);
-    create_transition.setHideActionText(true);
-    create_touch.setHideActionText(true);
+    mCreateTransitionToolbarButton.setHideActionText(true);
+    mCreateGestureToolbarButton.setHideActionText(true);
 
 
-    myPopupMenu.add(mCreateOnClick.getAction(create_touch, this));
-    myPopupMenu.add(mCreateOnSwipe.getAction(create_touch, this));
+    myPopupMenu.add(mCreateOnClick.getAction(mCreateGestureToolbarButton, this));
+    myPopupMenu.add(mCreateOnSwipe.getAction(mCreateGestureToolbarButton, this));
 
-    create_touch.addActionListener(e -> {
+    mCreateGestureToolbarButton.addActionListener(e -> {
       myPopupMenu.show(create_constraintSet, 0, 0);
     });
 
@@ -350,7 +353,7 @@ public class MotionEditor extends JPanel {
                       @Nullable String motionSceneFileName, String setupError) {
     if (setupError == null && myErrorPanel.validateMotionScene(motionScene)) {
       mErrorSwitchCard.show(this, MAIN_PANEL);
-      setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName));
+      setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName, myTrack));
     }
     else {
       if (setupError != null) {
@@ -404,6 +407,10 @@ public class MotionEditor extends JPanel {
       mConstraintSetPanel.setMTag(asConstraintSet(newSelection), mMeModel);
       mTransitionPanel.setMTag(asTransition(newSelection), mMeModel);
       mSelectedTag = newSelection;
+      MTag[] mtags = model.motionScene.getChildTags("ConstraintSet");
+      mCreateTransitionToolbarButton.setEnabled(mtags.length >= 2);
+      mtags = model.motionScene.getChildTags("Transition");
+      mCreateGestureToolbarButton.setEnabled(mtags.length >= 1);
     }
     finally {
       mUpdatingModel = false;
@@ -421,7 +428,7 @@ public class MotionEditor extends JPanel {
     else {
       mLayoutMode = LayoutMode.values()[(mLayoutMode.ordinal() + 1) % LayoutMode.values().length];
     }
-    Track.changeLayout();
+    Track.changeLayout(myTrack);
     switch (mLayoutMode) {
       case VERTICAL_LAYOUT:
         mCombinedListPanel.setSplitView(true);
@@ -477,7 +484,7 @@ public class MotionEditor extends JPanel {
     mOverviewPanel.setConstraintSetIndex(index);
     mTransitionPanel.stopAnimation();
     if (index >= 0) {
-      Track.showConstraintSetTable();
+      Track.showConstraintSetTable(myTrack);
       MTag[] c_sets = mCombinedListPanel.mMotionScene.getChildTags("ConstraintSet");
       if (0 < index) {
         mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = CONSTRAINTSET_PANEL);
@@ -488,7 +495,7 @@ public class MotionEditor extends JPanel {
         mConstraintSetPanel.setMTag(selectedConstraintSet, mMeModel);
       }
       else {
-        Track.showLayoutTable();
+        Track.showLayoutTable(myTrack);
         mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = LAYOUT_PANEL);
           notifyListeners(MotionEditorSelector.Type.LAYOUT,
                           (mCombinedListPanel.mMotionLayout == null) ? new MTag[0] :
@@ -502,7 +509,7 @@ public class MotionEditor extends JPanel {
 
 
   void transitionSelection() {
-    Track.transitionSelection();
+    Track.transitionSelection(myTrack);
     int index = mCombinedListPanel.getSelectedTransition();
     mOverviewPanel.setTransitionSetIndex(index);
     mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = TRANSITION_PANEL);

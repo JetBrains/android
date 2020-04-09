@@ -31,7 +31,7 @@ public class ManifestModificationTrackerTest {
 
   @Test
   public void testModificationTracker_incrementAfterStartup() throws Exception {
-    guiTest.openProject("simple");
+    guiTest.openProjectAndWaitForIndexingToFinish("simple");
     Module module = guiTest.ideFrame().getModule("simple");
     MergedManifestModificationTracker tracker = MergedManifestModificationTracker.getInstance(module);
 

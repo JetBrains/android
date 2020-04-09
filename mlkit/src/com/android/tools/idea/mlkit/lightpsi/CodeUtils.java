@@ -28,18 +28,15 @@ public class CodeUtils {
    */
   @NotNull
   public static String getTypeQualifiedName(@NotNull TensorInfo tensorInfo) {
-    if (tensorInfo.getSource() == TensorInfo.Source.INPUT) {
-      if (tensorInfo.getContentType() == TensorInfo.ContentType.IMAGE) {
-        return ClassNames.TENSOR_IMAGE;
-      }
-      else {
-        return ClassNames.TENSOR_BUFFER;
-      }
+    if (tensorInfo.getContentType() == TensorInfo.ContentType.IMAGE &&
+        tensorInfo.getImageProperties().colorSpaceType == TensorInfo.ImageProperties.ColorSpaceType.RGB) {
+      // Only RGB image is supported right now.
+      return ClassNames.TENSOR_IMAGE;
+    }
+    else if (tensorInfo.getFileType() == TensorInfo.FileType.TENSOR_AXIS_LABELS) {
+      return ClassNames.TENSOR_LABEL;
     }
     else {
-      if (tensorInfo.getFileType() == TensorInfo.FileType.TENSOR_AXIS_LABELS) {
-        return ClassNames.TENSOR_LABEL;
-      }
       return ClassNames.TENSOR_BUFFER;
     }
   }

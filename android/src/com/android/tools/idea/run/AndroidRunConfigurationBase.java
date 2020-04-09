@@ -89,11 +89,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private final DeployTargetContext myDeployTargetContext = new DeployTargetContext();
   private final AndroidDebuggerContext myAndroidDebuggerContext = new AndroidDebuggerContext(AndroidJavaDebugger.ID);
 
-  @NotNull
-  @Transient
-  // This is needed instead of having the output model directly because the apk providers can be created before getting the model.
-  protected transient final DefaultPostBuildModelProvider myOutputProvider = new DefaultPostBuildModelProvider();
-
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
 
@@ -410,7 +405,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   public ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
     if (AndroidModel.get(facet) != null && AndroidModel.get(facet) instanceof AndroidModuleModel) {
-      return new GradleApplicationIdProvider(facet, myOutputProvider);
+      return new GradleApplicationIdProvider(facet, () -> getUserData(GradleApkProvider.POST_BUILD_MODEL));
     }
     return new NonGradleApplicationIdProvider(facet);
   }
@@ -443,7 +438,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         return GradleApkProvider.OutputKind.Default;
       }
     };
-    return new GradleApkProvider(facet, applicationIdProvider, myOutputProvider, test, outputKindProvider);
+    return new GradleApkProvider(
+      facet, applicationIdProvider, () -> getUserData(GradleApkProvider.POST_BUILD_MODEL), test, outputKindProvider);
   }
 
   @NotNull
@@ -458,10 +454,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   public void updateExtraRunStats(RunStats runStats) {
 
-  }
-
-  public void setOutputModel(@NotNull PostBuildModel outputModel) {
-    myOutputProvider.setOutputModel(outputModel);
   }
 
   @Override
@@ -522,21 +514,5 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
    */
   public boolean isProfilable() {
     return true;
-  }
-
-  private static class DefaultPostBuildModelProvider implements PostBuildModelProvider {
-    @Nullable
-    @Transient
-    private transient PostBuildModel myBuildOutputs = null;
-
-    public void setOutputModel(@NotNull PostBuildModel postBuildModel) {
-      myBuildOutputs = postBuildModel;
-    }
-
-    @Nullable
-    @Override
-    public PostBuildModel getPostBuildModel() {
-      return myBuildOutputs;
-    }
   }
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.project.ProjectLayoutResourcesModificationTracker
 import com.android.tools.idea.databinding.util.BrUtil
 import com.android.tools.idea.databinding.util.DataBindingUtil
@@ -78,7 +78,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
     fieldCache = CachedValuesManager.getManager(project).createCachedValue {
       val variableNamesList = mutableListOf(ALL_FIELD)
       run {
-        val groups = ModuleDataBinding.getInstance(facet).bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return@run
+        val groups = LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return@run
 
         val variableNamesSet = groups
           .flatMap { group -> group.layouts }
@@ -116,7 +116,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
    */
   private fun collectVariableNamesFromUserBindables(): Set<String>? {
     val facade = JavaPsiFacade.getInstance(facet.module.project)
-    val mode = ModuleDataBinding.getInstance(facet).dataBindingMode
+    val mode = LayoutBindingModuleCache.getInstance(facet).dataBindingMode
     val moduleScope = facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
     val bindableAnnotation = facade.findClass(mode.bindable, moduleScope) ?: return null
 

@@ -64,9 +64,6 @@ public class NewAutomotiveProjectTest {
       .setSourceLanguage(language)
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .wizard()
-      .clickFinish();
-
-    guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
   }
 }

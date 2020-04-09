@@ -22,6 +22,7 @@ import com.android.tools.idea.nav.safeargs.psi.LightArgsClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
@@ -87,6 +88,49 @@ class DumbModeTest {
   private fun getNumberOfArgs(args: List<LightArgsClass>): Int {
     return args.sumBy {
       it.fragment.arguments.size
+    }
+  }
+
+  @Test
+  fun scopeDoesNotCacheStaleValuesInDumbMode() {
+    val dumbService = DumbServiceImpl.getInstance(safeArgsRule.project)
+    assertThat(dumbService.isDumb).isFalse()
+
+    // In dumb mode, add a resource and then request the current scope. In the past, this would cause
+    // the scope enlarger to internally cache stale values (because the service that the enlarger
+    // queries into aborts early in dumb mode).
+    dumbService.isDumb = true
+    safeArgsRule.fixture.addFileToProject(
+      "res/navigation/nav_main.xml",
+      //language=XML
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+            app:startDestination="@id/main_fragment" >
+
+          <fragment
+              android:id="@+id/main_fragment"
+              android:name="test.safeargs.MainFragment"
+              android:label="MainFragment">
+          </fragment>
+        </navigation>
+      """.trimIndent())
+    val fragmentClass = safeArgsRule.fixture.addClass("public class MainFragment {}")
+
+    val dumbScope = fragmentClass.resolveScope
+
+    // Exit dumb mode and request our final enlarged scope. It should pick up the changes that
+    // occurred while we were previously in dumb mode.
+    dumbService.isDumb = false
+    val enlargedScope = fragmentClass.resolveScope
+
+    val moduleCache = SafeArgsCacheModuleService.getInstance(safeArgsRule.androidFacet)
+    assertThat(moduleCache.directions.map { it.name }).containsExactly("MainDirections", "MainFragmentDirections")
+
+    moduleCache.directions.forEach { directionsClass ->
+      assertThat(PsiSearchScopeUtil.isInScope(dumbScope, directionsClass)).isFalse()
+      assertThat(PsiSearchScopeUtil.isInScope(enlargedScope, directionsClass)).isTrue()
     }
   }
 }

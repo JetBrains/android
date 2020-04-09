@@ -93,7 +93,7 @@ public class NetworkProfilerStageTest {
 
   @Before
   public void setUp() {
-    myStudioProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
+    myStudioProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
     myStudioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myStage = new NetworkProfilerStage(myStudioProfilers);
     myStage.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(5));

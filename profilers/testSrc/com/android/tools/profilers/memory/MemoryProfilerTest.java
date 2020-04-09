@@ -90,7 +90,7 @@ public final class MemoryProfilerTest {
   public void setUp() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myIdeProfilerServices.enableEventsPipeline(myUnifiedPipeline);
-    myStudioProfiler = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer);
+    myStudioProfiler = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
   }
 
   @Test

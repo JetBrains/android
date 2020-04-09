@@ -63,6 +63,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Key;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -87,6 +88,8 @@ public class GradleApkProvider implements ApkProvider {
   @NotNull private final BestOutputFinder myBestOutputFinder;
   private final boolean myTest;
   private Computable<OutputKind> myOutputKindProvider;
+
+  public static final Key<PostBuildModel> POST_BUILD_MODEL = Key.create("com.android.tools.idea.post_build_model");
 
   /**
    * Specify where to look for build output APKs

@@ -318,6 +318,8 @@ public interface GradlePropertyModel {
    */
   void rename(@NotNull String name);
 
+  void rename(@NotNull List<String> hierarchicalName);
+
   /**
    * @return whether or not this property has been modified since it was obtained from the file.
    */

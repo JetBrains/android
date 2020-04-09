@@ -18,7 +18,6 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
-import com.android.tools.idea.gradle.project.sync.errors.NdkIntegrationDeprecatedErrorHandler
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.BuildProjectHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.ConfirmSHA256FromGradleWrapperHyperlink
@@ -137,8 +136,6 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is SearchInBuildFilesHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.SEARCH_IN_BUILD_FILES_HYPERLINK
       is SelectJdkFromFileSystemHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.SELECT_JDK_FROM_FILE_SYSTEM_HYPERLINK
       is SetSdkDirHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.SET_SDK_DIR_HYPERLINK
-      is NdkIntegrationDeprecatedErrorHandler.SetUseDeprecatedNdkHyperlink ->
-        AndroidStudioEvent.GradleSyncQuickFix.SET_USE_DEPRECATED_NDK_HYPERLINK
       is ShowDependencyInProjectStructureHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK
       is ShowLogHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.SHOW_LOG_HYPERLINK
       is ShowSyncIssuesDetailsHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.SHOW_SYNC_ISSUES_DETAILS_HYPERLINK

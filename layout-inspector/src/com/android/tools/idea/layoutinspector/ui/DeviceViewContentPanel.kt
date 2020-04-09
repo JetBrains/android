@@ -105,7 +105,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
         repaint()
       }
 
-      private fun nodeAtPoint(e: MouseEvent) = model.findTopRect((e.x - size.width / 2.0) / viewSettings.scaleFraction,
+      private fun nodeAtPoint(e: MouseEvent) = model.findTopViewAt((e.x - size.width / 2.0) / viewSettings.scaleFraction,
                                                                  (e.y - size.height / 2.0) / viewSettings.scaleFraction)
 
       override fun mouseClicked(e: MouseEvent) {
@@ -115,7 +115,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
       override fun mouseMoved(e: MouseEvent) {
         if (e.isConsumed) return
-        inspectorModel.hoveredNode = findClickedComponent(e.x, e.y)
+        inspectorModel.hoveredNode = findComponentsAt(e.x, e.y).lastOrNull()
       }
     }
     addMouseListener(listener)
@@ -123,7 +123,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
     addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
-        showViewContextMenu(findClickedComponent(x, y), inspectorModel, this@DeviceViewContentPanel, x, y)
+        showViewContextMenu(findComponentsAt(x, y), inspectorModel, this@DeviceViewContentPanel, x, y)
       }
     })
 
@@ -134,7 +134,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     }
   }
 
-  private fun findClickedComponent(x: Int, y: Int) = model.findTopRect((x - size.width / 2.0) / viewSettings.scaleFraction,
+  private fun findComponentsAt(x: Int, y: Int) = model.findViewsAt((x - size.width / 2.0) / viewSettings.scaleFraction,
                                                                       (y - size.height / 2.0) / viewSettings.scaleFraction)
 
   override fun paint(g: Graphics?) {

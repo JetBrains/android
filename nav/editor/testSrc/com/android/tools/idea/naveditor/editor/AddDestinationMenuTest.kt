@@ -336,6 +336,39 @@ class AddDestinationMenuTest : NavTestCase() {
     }
   }
 
+  fun testCreateSettingsFragment() {
+    model.pendingIds.addAll(model.flattenComponents().map { it.id }.collect(Collectors.toList()))
+    val event = mock(AnActionEvent::class.java)
+    `when`(event.project).thenReturn(project)
+    val action = object : AnAction() {
+      override fun actionPerformed(e: AnActionEvent) {
+        TestCase.assertEquals(event, e)
+        val createdFiles = DataManagerImpl().getDataContext(panel).getData(CREATED_FILES)!!
+        val root = myModule.rootManager.contentRoots[0].path
+        myFixture.addFileToProject("src/mytest/navtest/SettingsFragment.kt",
+                                   """
+package mytest.navtest
+import androidx.preference.PreferenceFragmentCompat
+class SettingsFragment : PreferenceFragmentCompat()
+                                   """.trimIndent())
+        createdFiles.add(File(root, "src/mytest/navtest/SettingsFragment.kt"))
+      }
+    }
+    TestNavUsageTracker.create(model).use { tracker ->
+      menu.createNewDestination(event, action)
+
+      val added = model.find("settingsFragment")!!
+      assertEquals("fragment", added.tagName)
+      assertEquals("mytest.navtest.SettingsFragment", added.className)
+      verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(CREATE_FRAGMENT).build())
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(ADD_DESTINATION)
+                                 .setDestinationInfo(NavDestinationInfo.newBuilder()
+                                                       .setHasClass(true)
+                                                       .setType(FRAGMENT)).build())
+    }
+  }
+
   fun testCreatePlaceholder() {
     var gallery = menu.destinationsList
     val cell0Bounds = gallery.getCellBounds(1, 1)

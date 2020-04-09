@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.TestDataPaths;
-import com.android.tools.idea.databinding.module.ModuleDataBinding;
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
@@ -61,7 +61,7 @@ public class DataBindingScopeTest {
 
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     assertFalse(syncState.isSyncNeeded().toBoolean());
-    assertSame(DataBindingMode.SUPPORT, ModuleDataBinding.getInstance(facet).getDataBindingMode());
+    assertSame(DataBindingMode.SUPPORT, LayoutBindingModuleCache.getInstance(facet).getDataBindingMode());
 
     // app depends on lib depends on lib2
     assertTrue(TestModuleUtil.hasModule(project, "app"));

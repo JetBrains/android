@@ -103,7 +103,7 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), myIdeProfilerServices, myTimer)
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeProfilerServices, myTimer)
     mySessionsManager = myProfilers.sessionsManager
     mySessionsView = SessionsView(myProfilers, FakeIdeProfilerComponents())
   }

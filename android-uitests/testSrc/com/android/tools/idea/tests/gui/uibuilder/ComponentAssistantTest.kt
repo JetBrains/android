@@ -45,10 +45,10 @@ class ComponentAssistantTest {
       .getLayoutEditor()
 
     layout.dragComponentToSurface("Containers", "RecyclerView")
-    MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk()
-    val editor = guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
-      .editor
+    guiTest.ideFrame().actAndWaitForGradleProjectSyncToFinish {
+      MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk()
+    }
+    val editor = guiTest.ideFrame().editor
 
     layout.waitForRenderToFinish()
       .findView("android.support.v7.widget.RecyclerView", 0)

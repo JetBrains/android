@@ -63,8 +63,7 @@ public class SessionRestartTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.FAST_BAZEL)
   public void testSessionRestart() throws Exception {
-    guiTest.importProject("debugger/BasicCmakeAppForUI");
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
+    guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/BasicCmakeAppForUI", Wait.seconds(60));
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
     DebuggerTestUtil.setDebuggerType(projectFrame, DebuggerTestUtil.AUTO);
     openAndToggleBreakPoints(projectFrame, C_FILE_NAME, C_BP_LINE);

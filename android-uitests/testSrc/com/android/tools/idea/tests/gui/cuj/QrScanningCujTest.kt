@@ -78,7 +78,6 @@ class QrScanningCujTest {
         }
         clickOk()
       }
-      waitForGradleProjectSyncToFinish()
     }
 
     // Create new layout file
@@ -167,8 +166,7 @@ class QrScanningCujTest {
       .moveBetween("dependencies {\n", "")
       .typeText("    implementation 'com.google.android.gms:play-services-vision:+'\n")
       .ideFrame
-      .requestProjectSync()
-      .waitForGradleProjectSyncToFinish()
+      .requestProjectSyncAndWaitForSyncToFinish()
       .closeBuildPanel()
 
     // Create a new layout file from the File > New > Android Resource File menu

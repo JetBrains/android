@@ -25,8 +25,11 @@ import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.scene.BUFFERED_IMAGE
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
+import com.android.tools.idea.naveditor.scene.draw.PreviewType
+import com.android.tools.idea.naveditor.scene.draw.makeGraphicsMock
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawActivity
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawFragment
@@ -35,17 +38,14 @@ import com.android.tools.idea.naveditor.scene.draw.verifyDrawHorizontalAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.psi.xml.XmlFile
-import org.mockito.ArgumentMatchers
 import org.mockito.InOrder
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.FontMetrics
 import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
-import java.awt.image.BufferedImage
 
 private val SELECTED_COLOR = Color(0x1886f7)
 private val TEXT_COLOR = Color(0xa7a7a7)
@@ -111,7 +111,7 @@ class DecoratorTest : NavTestCase() {
         fragment(FRAGMENT_ID, layout = "mylayout")
       }
     }
-    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, isPlaceholder = false)
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, previewType = PreviewType.UNAVAILABLE)
   }
 
   fun testFragmentWithName() {
@@ -120,7 +120,7 @@ class DecoratorTest : NavTestCase() {
         fragment(FRAGMENT_ID, name = "foo.Bar")
       }
     }
-    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, isPlaceholder = false)
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, previewType = PreviewType.UNAVAILABLE)
   }
 
   fun testFragmentWithLayoutAndName() {
@@ -129,11 +129,11 @@ class DecoratorTest : NavTestCase() {
         fragment(FRAGMENT_ID, layout = "mylayout", name = "foo.Bar")
       }
     }
-    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, isPlaceholder = false)
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, previewType = PreviewType.UNAVAILABLE)
   }
 
   private fun testFragmentDecorator(model: NlModel, drawState: SceneComponent.DrawState, isStart: Boolean = false,
-                                    hasDeepLink: Boolean = false, isPlaceholder: Boolean = true) {
+                                    hasDeepLink: Boolean = false, previewType: PreviewType = PreviewType.PLACEHOLDER) {
     surface.model = model
     val sceneView = surface.focusedSceneView!!
 
@@ -147,11 +147,9 @@ class DecoratorTest : NavTestCase() {
       else -> null
     }
 
-    val image = if (isPlaceholder) null else RefinableImage()
-
     verifyDecorator(FragmentDecorator, sceneComponent, sceneView.context) { inOrder, g ->
       verifyDrawHeader(inOrder, g, headerRect, surface.scale, FRAGMENT_ID, isStart, hasDeepLink)
-      verifyDrawFragment(inOrder, g, drawRect, surface.scale, color, image)
+      verifyDrawFragment(inOrder, g, drawRect, surface.scale, color, previewType)
     }
   }
 
@@ -167,9 +165,7 @@ class DecoratorTest : NavTestCase() {
     surface.model = model
     val sceneView = surface.focusedSceneView!!
 
-    @Suppress("UndesirableClassUsage")
-    val image = BufferedImage(5, 5, BufferedImage.TYPE_INT_ARGB)
-    val refinableImage = RefinableImage(image)
+    val refinableImage = RefinableImage(BUFFERED_IMAGE)
 
     val origThumbnailManager = ThumbnailManager.getInstance(myFacet)
     val thumbnailManager = Mockito.mock(ThumbnailManager::class.java)
@@ -186,7 +182,7 @@ class DecoratorTest : NavTestCase() {
       ThumbnailManager.setInstance(myFacet, thumbnailManager)
       verifyDecorator(FragmentDecorator, sceneComponent, sceneView.context) { inOrder, g ->
         verifyDrawHeader(inOrder, g, headerRect, surface.scale, FRAGMENT_ID, false, false)
-        verifyDrawFragment(inOrder, g, drawRect, surface.scale, null, refinableImage)
+        verifyDrawFragment(inOrder, g, drawRect, surface.scale, null, PreviewType.IMAGE)
       }
     }
     finally {
@@ -231,7 +227,7 @@ class DecoratorTest : NavTestCase() {
         }
       }
     }
-    testActivityDecorator(model, SceneComponent.DrawState.NORMAL, hasDeepLink =  true)
+    testActivityDecorator(model, SceneComponent.DrawState.NORMAL, hasDeepLink = true)
   }
 
   private fun testActivityDecorator(model: NlModel, drawState: SceneComponent.DrawState,
@@ -255,7 +251,7 @@ class DecoratorTest : NavTestCase() {
 
     verifyDecorator(ActivityDecorator, sceneComponent, sceneView.context) { inOrder, g ->
       verifyDrawHeader(inOrder, g, headerRect, surface.scale, ACTIVITY_ID, isStart, hasDeepLink)
-      verifyDrawActivity(inOrder, g, drawRect, imageRect, surface.scale, frameColor(drawState), frameThickness(drawState), TEXT_COLOR, null)
+      verifyDrawActivity(inOrder, g, drawRect, imageRect, surface.scale, frameColor(drawState), frameThickness(drawState), TEXT_COLOR)
     }
   }
 
@@ -375,7 +371,7 @@ class DecoratorTest : NavTestCase() {
 
     verifyDecorator(ActionDecorator, sceneComponent, sceneView.context) { inOrder, g ->
       verifyDrawHorizontalAction(inOrder, g, sceneComponent.inlineDrawRect(sceneView).value, sceneView.scale,
-                                 actionColor(SceneComponent.DrawState.NORMAL), false)
+                                 actionColor(SceneComponent.DrawState.NORMAL))
     }
   }
 
@@ -402,12 +398,8 @@ class DecoratorTest : NavTestCase() {
     val child = Mockito.mock(Graphics2D::class.java)
     `when`(root.create()).thenReturn(child)
 
-    val graphics = Mockito.mock(Graphics2D::class.java)
+    val graphics = makeGraphicsMock()
     `when`(child.create()).thenReturn(graphics)
-
-    val metrics = Mockito.mock(FontMetrics::class.java)
-    `when`(graphics.fontMetrics).thenReturn(metrics)
-    `when`(graphics.getFontMetrics(ArgumentMatchers.any())).thenReturn(metrics)
 
     val inOrder = Mockito.inOrder(graphics)
 

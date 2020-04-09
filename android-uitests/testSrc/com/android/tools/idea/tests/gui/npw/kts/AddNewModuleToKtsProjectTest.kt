@@ -65,8 +65,7 @@ class AddNewModuleToKtsProjectTest {
       .wizard()
       .clickNext()
       .chooseActivity("No Activity")
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
 
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
     assertAbout(file()).that(settingsGroovyFilePath).doesNotExist()

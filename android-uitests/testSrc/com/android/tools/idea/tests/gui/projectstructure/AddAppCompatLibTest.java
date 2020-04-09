@@ -66,8 +66,7 @@ public class AddAppCompatLibTest {
   @RunIn(TestGroup.FAT_BAZEL)
   @Test
   public void addAppCompatLib() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProject("NoAppCompatLibApp");
-    ideFrame.waitForGradleProjectSyncToFinish();
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("NoAppCompatLibApp");
 
     DependenciesTestUtil.addLibraryDependency(ideFrame, "com.android.support:appcompat-v7", "app", "implementation");
 

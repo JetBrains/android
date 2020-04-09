@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
+import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
+import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
+import com.android.tools.idea.compose.preview.util.previewElementComparatorByDisplayName
+import com.android.tools.idea.compose.preview.util.previewElementComparatorBySourcePosition
+import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.impl.source.tree.injected.changesHandler.range
@@ -22,6 +29,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 import org.junit.Assert
+import org.junit.Assert.assertArrayEquals
 
 /**
  * Asserts that the given [methodName] body has the actual given [actualBodyRange]
@@ -40,6 +48,16 @@ private fun <T> computeOnBackground(computable: () -> T): T =
   AppExecutorUtil.getAppExecutorService().submit(computable).get()
 
 class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
+  override fun setUp() {
+    super.setUp()
+    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.override(true)
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.clearOverride()
+  }
+
   fun testFindPreviewAnnotations() {
     val composeTest = myFixture.addFileToProject(
       "src/Test.kt",
@@ -89,7 +107,7 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
     assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.sourcePsi.virtualFile))
     assertTrue(computeOnBackground { AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.sourcePsi.virtualFile) })
 
-    val elements = computeOnBackground { AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest) }
+    val elements = computeOnBackground { AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest).toList() }
     assertEquals(5, elements.size)
     elements[1].let {
       assertEquals("preview2", it.displaySettings.name)
@@ -158,9 +176,8 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
     assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.sourcePsi.virtualFile))
 
     val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
-    elements.single().let {
-      assertEquals("TestKt.Preview1",
-                   it.composableMethodFqn)
+    elements.single().run {
+      assertEquals("TestKt.Preview1", composableMethodFqn)
     }
   }
 
@@ -183,10 +200,9 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
         }
       """.trimIndent()).toUElement() as UFile
 
-    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
-    assertEquals(1, elements.size)
+    val element = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest).single()
     // Check that we keep the first element
-    assertEquals("Preview1", elements[0].displaySettings.name)
+    assertEquals("Preview1", element.displaySettings.name)
   }
 
   fun testFindPreviewPackage() {
@@ -226,7 +242,7 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
         }
       """.trimIndent())
 
-    assertEquals(0, AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest.toUElement() as UFile).size)
+    assertEquals(0, AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest.toUElement() as UFile).count())
   }
 
   /**
@@ -255,10 +271,133 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
     DumbServiceImpl.getInstance(myFixture.project).isDumb = true
     try {
       val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
-      assertEquals(0, elements.size)
+      assertEquals(0, elements.count())
     }
     finally {
       DumbServiceImpl.getInstance(myFixture.project).isDumb = false
     }
+  }
+
+  fun testPreviewParameters() {
+    val composeTest = myFixture.addFileToProject(
+      "src/Test.kt",
+      // language=kotlin
+      """
+        package test
+
+        import androidx.ui.tooling.preview.Preview
+        import androidx.ui.tooling.preview.PreviewParameter
+        import androidx.ui.tooling.preview.PreviewParameterProvider
+        import androidx.compose.Composable
+
+        @Composable
+        @Preview
+        fun NoParameter() {
+        }
+
+        class TestStringProvider: PreviewParameterProvider<String> {
+            override val values: Sequence<String> = sequenceOf("A", "B", "C")
+        }
+
+        class TestIntProvider: PreviewParameterProvider<Int> {
+            override val values: Sequence<String> = sequenceOf(1, 2)
+        }
+
+        @Composable
+        @Preview
+        fun SingleParameter(@PreviewParameter(provider = TestStringProvider::class) aString: String) {
+        }
+
+        @Composable
+        @Preview
+        // Same as SingleParameter but without using "provider" in the annotation
+        fun SingleParameterNoName(@PreviewParameter(TestStringProvider::class) aString: String) {
+        }
+
+        @Composable
+        @Preview
+        fun MultiParameter(@PreviewParameter(provider = TestStringProvider::class) aString: String,
+                           @PreviewParameter(provider = TestIntProvider::class, limit = 2) aInt: Int) {
+        }
+      """.trimIndent()).toUElement() as UFile
+
+    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest).toList()
+    elements[0].let {
+      assertFalse(it is ParametrizedPreviewElementTemplate)
+      assertEquals("NoParameter", it.displaySettings.name)
+    }
+    // The next two are the same just using the annotation parameter explicitly in one of them.
+    // The resulting PreviewElement should be the same with different name.
+    listOf("SingleParameter" to elements[1], "SingleParameterNoName" to elements[2])
+      .map { (name, previewElement) -> name to previewElement as ParametrizedPreviewElementTemplate }
+      .forEach { (name, previewElement) ->
+        assertEquals(name, previewElement.displaySettings.name)
+        assertEquals(1, previewElement.parameterProviders.size)
+        previewElement.parameterProviders.single { param -> "aString" == param.name }.let { parameter ->
+          assertEquals("test.TestStringProvider", parameter.providerClassFqn)
+          assertEquals(0, parameter.index)
+          assertEquals(Int.MAX_VALUE, parameter.limit)
+        }
+      }
+    (elements[3] as ParametrizedPreviewElementTemplate).let {
+      assertEquals("MultiParameter", it.displaySettings.name)
+      assertEquals(2, it.parameterProviders.size)
+      it.parameterProviders.single { param -> "aInt" == param.name }.let { parameter ->
+        assertEquals("test.TestIntProvider", parameter.providerClassFqn)
+        assertEquals(1, parameter.index)
+        assertEquals(2, parameter.limit)
+      }
+    }
+  }
+
+  fun testOrdering() {
+    val composeTest = myFixture.addFileToProject(
+      "src/Test.kt",
+      // language=kotlin
+      """
+        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Composable
+        @Preview
+        fun C() {
+        }
+
+        @Composable
+        @Preview
+        fun A() {
+        }
+
+        @Composable
+        @Preview
+        fun B() {
+        }
+      """.trimIndent()).toUElement() as UFile
+
+    ReadAction.run<Throwable> {
+      AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
+        .toMutableList().apply {
+          // Randomize to make sure the ordering works
+          shuffle()
+        }
+        .sortedWith(previewElementComparatorBySourcePosition)
+        .map { it.composableMethodFqn }
+        .toTypedArray()
+        .let {
+          assertArrayEquals(arrayOf("TestKt.C", "TestKt.A", "TestKt.B"), it)
+        }
+    }
+
+    AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
+      .toMutableList().apply {
+        // Randomize to make sure the ordering works
+        shuffle()
+      }
+      .sortedWith(previewElementComparatorByDisplayName)
+      .map { it.composableMethodFqn }
+      .toTypedArray()
+      .let {
+        assertArrayEquals(arrayOf("TestKt.A", "TestKt.B", "TestKt.C"), it)
+      }
   }
 }

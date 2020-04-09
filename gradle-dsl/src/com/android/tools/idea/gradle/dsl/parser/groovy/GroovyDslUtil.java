@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
+import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
@@ -38,6 +39,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableCollection;
@@ -48,6 +51,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNamedElement;
@@ -58,6 +62,7 @@ import com.intellij.psi.impl.source.tree.ChangeUtil;
 import com.intellij.psi.impl.source.tree.TreeElement;
 import com.intellij.util.IncorrectOperationException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -67,6 +72,7 @@ import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
+import org.jetbrains.plugins.groovy.lang.psi.GrNamedElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
@@ -343,13 +349,16 @@ public final class GroovyDslUtil {
   /**
    * Creates a literal from a context and value.
    *
-   * @param context      context used to create GrPsiElementFactory
+   * @param context      the expression context within which this literal will be interpreted
+   * @param applyContext the context used to create a GrPsiElementFactory
    * @param unsavedValue the value for the new expression
    * @return created PsiElement
    * @throws IncorrectOperationException if creation of the expression fails
    */
   @Nullable
-  static PsiElement createLiteral(@NotNull GradleDslElement context, @NotNull Object unsavedValue) throws IncorrectOperationException {
+  static PsiElement createLiteral(@NotNull GradleDslSimpleExpression context,
+                                  @NotNull GradleDslFile applyContext,
+                                  @NotNull Object unsavedValue) throws IncorrectOperationException {
     CharSequence unsavedValueText = null;
     if (unsavedValue instanceof String) {
       String stringValue = (String)unsavedValue;
@@ -366,7 +375,7 @@ public final class GroovyDslUtil {
       unsavedValueText = unsavedValue.toString();
     }
     else if (unsavedValue instanceof ReferenceTo) {
-      unsavedValueText = ((ReferenceTo)unsavedValue).getText();
+      unsavedValueText = convertToExternalTextValue(context, applyContext, ((ReferenceTo)unsavedValue).getText(), false);
     }
     else if (unsavedValue instanceof RawText) {
       unsavedValueText = ((RawText)unsavedValue).getGroovyText();
@@ -376,12 +385,100 @@ public final class GroovyDslUtil {
       return null;
     }
 
-    GroovyPsiElementFactory factory = getPsiElementFactory(context);
+    GroovyPsiElementFactory factory = getPsiElementFactory(applyContext);
     if (factory == null) {
       return null;
     }
 
     return factory.createExpressionFromText(unsavedValueText);
+  }
+
+  public static String convertToExternalTextValue(GradleDslSimpleExpression context,
+                                                  GradleDslFile applyContext,
+                                                  String referenceText,
+                                                  boolean forInjection) {
+    GradleDslElement resolvedReference = context.resolveInternalSyntaxReference(referenceText, false);
+    if (resolvedReference == null) {
+      return referenceText;
+    }
+
+    StringBuilder externalName = new StringBuilder();
+    GradleDslElement currentParent = resolvedReference.getParent();
+
+    HashSet<GradleDslElement> contextParents = new HashSet<>(10);
+    GradleDslElement contextParent = context.getParent();
+    while (contextParent != null && !(contextParent instanceof GradleDslFile)) {
+      contextParents.add(contextParent);
+      contextParent = contextParent.getParent();
+    }
+
+    ArrayList<GradleDslElement> resolutionElements = new ArrayList<>();
+    resolutionElements.add(resolvedReference);
+    while (currentParent != null && currentParent.getParent() != null && !contextParents.contains(currentParent)) {
+      resolutionElements.add(0, currentParent);
+      currentParent = currentParent.getParent();
+    }
+
+    for (GradleDslElement currentElement : resolutionElements) {
+      List<String> elementExternalNameParts =
+        applyContext.getParser().externalNameForParent(currentElement.getName(), currentElement.getParent()).externalNameParts;
+      if (currentElement.getParent() instanceof GradleDslExpressionList && currentElement instanceof GradleDslSimpleExpression) {
+        GradleDslExpressionList parent = (GradleDslExpressionList)currentElement.getParent();
+        int i = parent.getSimpleExpressions().indexOf(currentElement);
+        externalName.append(i + "]");
+      }
+      else if (currentElement instanceof ExtDslElement || currentElement instanceof BuildScriptDslElement) {
+        // do nothing
+      }
+      else {
+        externalName.append(quotePartIfNecessary(elementExternalNameParts.get(0)));
+      }
+      if (currentElement != resolvedReference) {
+        if (currentElement instanceof GradleDslExpressionList) {
+          externalName.append("[");
+        }
+        else if (currentElement instanceof ExtDslElement || currentElement instanceof BuildScriptDslElement) {
+          // do nothing
+        }
+        else {
+          externalName.append(".");
+        }
+      }
+    }
+
+    if (externalName.length() == 0) {
+      return referenceText;
+    }
+    else {
+      return externalName.toString();
+    }
+  }
+
+  public static String gradleNameFor(GrExpression expression) {
+    final boolean[] allValid = {true};
+    StringBuilder result = new StringBuilder();
+
+    expression.accept(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
+      @Override
+      public void visitReferenceExpression(@NotNull GrReferenceExpression referenceExpression) {
+        GrExpression qualifierExpression = referenceExpression.getQualifierExpression();
+        if (qualifierExpression != null) {
+          qualifierExpression.accept(this);
+          result.append(".");
+        }
+        String name = referenceExpression.getReferenceName();
+        if (name != null) {
+          result.append(GradleNameElement.escape(name));
+        }
+      }
+
+      @Override
+      public void visitElement(@NotNull GroovyPsiElement element) {
+        allValid[0] = false;
+      }
+    }));
+
+    return allValid[0] ? result.toString() : null;
   }
 
   /**
@@ -805,11 +902,7 @@ public final class GroovyDslUtil {
   }
 
   @NotNull
-  static String quotePartsIfNecessary(ExternalNameInfo info) {
-    List<String> parts = info.externalNameParts;
-    if (info.verbatim) {
-      return String.join(".", parts);
-    }
+  public static String quotePartsIfNecessary(@NotNull List<String> parts) {
     StringBuilder sb = new StringBuilder();
     boolean firstPart = true;
     for (String part: parts) {
@@ -822,6 +915,15 @@ public final class GroovyDslUtil {
       sb.append(quotePartIfNecessary(part));
     }
     return sb.toString();
+  }
+
+  @NotNull
+  static String quotePartsIfNecessary(@NotNull ExternalNameInfo info) {
+    List<String> parts = info.externalNameParts;
+    if (info.verbatim) {
+      return String.join(".", parts);
+    }
+    return quotePartsIfNecessary(parts);
   }
 
   @Nullable
@@ -862,7 +964,7 @@ public final class GroovyDslUtil {
         }
       }
     }
-    String newName = localName;
+    String newName = GradleNameElement.unescape(localName);
 
     PsiElement newElement;
     if (oldName instanceof PsiNamedElement) {

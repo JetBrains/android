@@ -196,7 +196,7 @@ public final class GradleUtil {
     if (androidModel != null) {
       return getAndroidModuleIcon(androidModel);
     }
-    return AndroidProjectInfo.getInstance(module.getProject()).requiresAndroidModel() ? AllIcons.Nodes.PpJdk : ANDROID_MODULE;
+    return AndroidProjectInfo.getInstance(module.getProject()).requiresAndroidModel() ? AllIcons.Nodes.Module : ANDROID_MODULE;
   }
 
   @NotNull

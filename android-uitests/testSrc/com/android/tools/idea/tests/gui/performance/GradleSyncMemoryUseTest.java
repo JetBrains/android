@@ -47,20 +47,27 @@ public class GradleSyncMemoryUseTest {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     guiTest.runWithBleak(() -> {
       String currentVersion = String.valueOf(GradleImport.CURRENT_COMPILE_VERSION);
-      String previousVersion = String.valueOf(GradleImport.CURRENT_COMPILE_VERSION-1);
-      ideFrameFixture.getEditor()
-        .open("app/build.gradle")
-        .select("compileSdkVersion (" + currentVersion + ")")
-        .enterText(previousVersion)
-        .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-        .performAction("Sync Now")
-        .waitForGradleProjectSyncToFinish()
-        .getEditor()
-        .select("compileSdkVersion (" + previousVersion + ")")
-        .enterText(currentVersion)
-        .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-        .performAction("Sync Now")
-        .waitForGradleProjectSyncToFinish();
+      String previousVersion = String.valueOf(GradleImport.CURRENT_COMPILE_VERSION - 1);
+      ideFrameFixture
+        .actAndWaitForGradleProjectSyncToFinish(
+          it ->
+            it.getEditor()
+              .open("app/build.gradle")
+              .select("compileSdkVersion (" + currentVersion + ")")
+              .enterText(previousVersion)
+              .awaitNotification(
+                "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+              .performAction("Sync Now")
+        )
+        .actAndWaitForGradleProjectSyncToFinish(
+          it ->
+            it.getEditor()
+              .select("compileSdkVersion (" + previousVersion + ")")
+              .enterText(currentVersion)
+              .awaitNotification(
+                "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+              .performAction("Sync Now")
+        );
     });
   }
 
@@ -70,19 +77,26 @@ public class GradleSyncMemoryUseTest {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     guiTest.runWithBleak(() -> {
       String currentVersion = String.valueOf(GradleImport.CURRENT_COMPILE_VERSION);
-      ideFrameFixture.getEditor()
-        .open("app/build.gradle")
-        .select("compileSdkVersion (" + currentVersion + ")")
-        .enterText("-100")
-        .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-        .performAction("Sync Now")
-        .waitForGradleProjectSyncToFail()
-        .getEditor()
-        .select("compileSdkVersion (-100)")
-        .enterText(currentVersion)
-        .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-        .performAction("Sync Now")
-        .waitForGradleProjectSyncToFinish();
+      ideFrameFixture
+        .actAndWaitForGradleProjectSyncToFinish(
+          it ->
+            it.getEditor()
+              .open("app/build.gradle")
+              .select("compileSdkVersion (" + currentVersion + ")")
+              .enterText("-100")
+              .awaitNotification(
+                "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+              .performAction("Sync Now")
+        )
+        .actAndWaitForGradleProjectSyncToFinish(
+          it ->
+            it.getEditor()
+              .select("compileSdkVersion (-100)")
+              .enterText(currentVersion)
+              .awaitNotification(
+                "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+              .performAction("Sync Now")
+        );
     });
   }
 
@@ -91,19 +105,26 @@ public class GradleSyncMemoryUseTest {
   public void changeDependency() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     guiTest.runWithBleak(() -> {
-      ideFrameFixture.getEditor()
-        .open("app/build.gradle")
-        .select("implementation ('com.google.guava.guava:18.0')")
-        .enterText("'com.android.support:design:28.0.0'")
-        .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-        .performAction("Sync Now")
-        .waitForGradleProjectSyncToFinish()
-        .getEditor()
-        .select("implementation ('com.android.support:design:28.0.0')")
-        .enterText("'com.google.guava:guava:18.0'")
-        .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-        .performAction("Sync Now")
-        .waitForGradleProjectSyncToFinish();
+      ideFrameFixture
+        .actAndWaitForGradleProjectSyncToFinish(
+          it ->
+            it.getEditor()
+              .open("app/build.gradle")
+              .select("implementation ('com.google.guava.guava:18.0')")
+              .enterText("'com.android.support:design:28.0.0'")
+              .awaitNotification(
+                "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+              .performAction("Sync Now")
+        )
+        .actAndWaitForGradleProjectSyncToFinish(
+          it ->
+            it.getEditor()
+              .select("implementation ('com.android.support:design:28.0.0')")
+              .enterText("'com.google.guava:guava:18.0'")
+              .awaitNotification(
+                "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+              .performAction("Sync Now")
+        );
     });
   }
 
@@ -112,19 +133,26 @@ public class GradleSyncMemoryUseTest {
   public void changeDependencyFailed() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     guiTest.runWithBleak(() -> {
-      ideFrameFixture.getEditor()
-        .open("app/build.gradle")
-        .select("implementation ('com.google.guava.guava:18.0')")
-        .enterText("'com.android.support:design123'")
-        .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-        .performAction("Sync Now")
-        .waitForGradleProjectSyncToFail()
-        .getEditor()
-        .select("implementation ('com.android.support:design123')")
-        .enterText("'com.google.guava:guava:18.0'")
-        .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-        .performAction("Sync Now")
-        .waitForGradleProjectSyncToFinish();
+      ideFrameFixture
+        .actAndWaitForGradleProjectSyncToFinish(
+          it ->
+            it.getEditor()
+              .open("app/build.gradle")
+              .select("implementation ('com.google.guava.guava:18.0')")
+              .enterText("'com.android.support:design123'")
+              .awaitNotification(
+                "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+              .performAction("Sync Now")
+        )
+        .actAndWaitForGradleProjectSyncToFinish(
+          it ->
+            it.getEditor()
+              .select("implementation ('com.android.support:design123')")
+              .enterText("'com.google.guava:guava:18.0'")
+              .awaitNotification(
+                "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+              .performAction("Sync Now")
+        );
     });
   }
 

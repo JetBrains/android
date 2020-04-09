@@ -45,9 +45,17 @@ public class NewActivityWizardFixture extends AbstractWizardFixture<NewActivityW
     return new ConfigureBasicActivityStepFixture<>(this, rootPane);
   }
 
-  @NotNull
-  public IdeFrameFixture clickFinish() {
+  private void clickFinish() {
     super.clickFinish(Wait.seconds(30));
-    return myIdeFrameFixture;
+  }
+
+  @NotNull
+  public IdeFrameFixture clickFinishAndWaitForSyncToFinish() {
+    return myIdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(it -> clickFinish());
+  }
+
+  @NotNull
+  public IdeFrameFixture clickFinishAndWaitForSyncToFinish(@NotNull Wait waitSync) {
+    return myIdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(waitSync, it -> clickFinish());
   }
 }

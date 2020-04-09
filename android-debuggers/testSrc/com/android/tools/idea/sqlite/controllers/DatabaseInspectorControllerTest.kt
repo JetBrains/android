@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFut
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
@@ -47,11 +48,13 @@ import com.android.tools.idea.sqlite.ui.mainView.AddTable
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteColumn
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
+import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -106,6 +109,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   private lateinit var mockDatabaseInspectorModel: MockDatabaseInspectorModel
 
+  private lateinit var mockTrackerService: DatabaseInspectorAnalyticsTracker
+
   override fun setUp() {
     super.setUp()
 
@@ -124,6 +129,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     taskExecutor = SameThreadExecutor.INSTANCE
 
     mockDatabaseInspectorModel = spy(MockDatabaseInspectorModel())
+
+    mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
 
     sqliteController = DatabaseInspectorControllerImpl(
       project,
@@ -910,5 +918,79 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Assert
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     assertThat(executionFuture.isCancelled).isTrue()
+  }
+
+  fun testOpenTableAnalytics() {
+    // Prepare
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+
+    // Act
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.SCHEMA_STATEMENT_CONTEXT)
+  }
+
+  fun testRefreshSchemaAnalytics() {
+    // Act
+    mockSqliteView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockTrackerService).trackTargetRefreshed(AppInspectionEvent.DatabaseInspectorEvent.TargetType.SCHEMA_TARGET)
+  }
+
+  fun testDatabasePossiblyChangedUpdatesAllSchemasAndTabs() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema(emptyList())))
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
+    }
+
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema(listOf(testSqliteTable))))
+
+    // open tabel tab
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      // open evaluator tab
+      sqliteController.runSqlStatement(sqliteDatabase1, SqliteStatement("fake stmt"))
+    }
+
+    // enable live updates in table tab
+    mockViewFactory.tableView.listeners[0].toggleLiveUpdatesInvoked()
+    // enable live updates in evaluator tab
+    mockViewFactory.tableView.listeners[1].toggleLiveUpdatesInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Act
+    runDispatching {
+      sqliteController.databasePossiblyChanged()
+    }
+
+    // Assert
+    // update schemas
+    verify(mockDatabaseInspectorModel).add(sqliteDatabase1, SqliteSchema(listOf(testSqliteTable)))
+    verify(mockDatabaseInspectorModel).add(sqliteDatabase2, SqliteSchema(listOf(testSqliteTable)))
+    verify(mockSqliteView).updateDatabaseSchema(sqliteDatabase1, listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())))
+    verify(mockSqliteView).updateDatabaseSchema(sqliteDatabase2, listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())))
+
+    // update tabs
+    // each invocation is repeated twice because there are two tabs open
+    // 1st invocation by setUp, 2nd by toggleLiveUpdatesInvoked, 3rd by dataPossiblyChanged
+    verify(mockViewFactory.tableView, times(6)).showTableColumns(mockResultSet._columns)
+    // invocation by setUp
+    verify(mockViewFactory.tableView, times(2)).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    // 1st invocation by toggleLiveUpdatesInvoked, 2nd by dataPossiblyChanged
+    verify(mockViewFactory.tableView, times(4)).updateRows(emptyList())
+    // invocation by setUp
+    verify(mockViewFactory.tableView, times(2)).startTableLoading()
   }
 }

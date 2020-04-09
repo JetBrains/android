@@ -17,7 +17,11 @@ package com.android.tools.idea.mlkit;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.annotations.NonNull;
 import com.android.testutils.TestUtils;
+import com.android.testutils.VirtualTimeScheduler;
+import com.android.tools.analytics.TestUsageTracker;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.project.DefaultModuleSystem;
@@ -26,8 +30,15 @@ import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.MlModelBindingEvent;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PsiTestUtil;
+import com.intellij.ui.components.JBLabel;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
@@ -80,20 +91,42 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
     assertThat(editor.myIsSampleCodeSectionVisible).isFalse();
   }
 
-  public void testCreateHtmlBody_normalModel_normalHtml() {
-    TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
-    String html = editor.createHtmlBody();
+  public void testViewerOpenEventIsLogged() throws Exception {
+    TestUsageTracker usageTracker = new TestUsageTracker(new VirtualTimeScheduler());
+    UsageTracker.setWriterForTest(usageTracker);
 
-    // At least contains Model section.
-    assertThat(html).contains("<td valign=\"top\">Name</td>\n<td valign=\"top\">mobilenet_v1_1.0_224_quant</td>\n");
+    TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
+    List<MlModelBindingEvent> loggedUsageList =
+      usageTracker.getUsages().stream()
+        .filter(it -> it.getStudioEvent().getKind() == EventKind.ML_MODEL_BINDING)
+        .map(usage -> usage.getStudioEvent().getMlModelBindingEvent())
+        .filter(it -> it.getEventType() == MlModelBindingEvent.EventType.MODEL_VIEWER_OPEN)
+        .collect(Collectors.toList());
+    assertThat(loggedUsageList.size()).isEqualTo(1);
+
+    UsageTracker.cleanAfterTesting();
+    usageTracker.close();
+  }
+
+  public void testCreateHtmlBody_normalModel() {
+    TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
+    JPanel contentPanel = ((JPanel) ((JScrollPane) editor.getComponent()).getViewport().getView());
+    assertThat(contentPanel.getComponentCount()).isEqualTo(3);
+    verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(0), "Model");
+    verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(1), "Tensors");
+    verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(2), "Sample Code");
   }
 
   public void testCreateHtmlBody_modelWithoutMetadata() {
     modelFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_model.tflite");
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
-    String html = editor.createHtmlBody();
+    JPanel contentPanel = ((JPanel) ((JScrollPane) editor.getComponent()).getViewport().getView());
+    assertThat(contentPanel.getComponentCount()).isEqualTo(2);
+    verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(0), "Model");
+    verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(1), "Sample Code");
+  }
 
-    // At least contains Model section.
-    assertThat(html).contains("<h2>Model</h2>");
+  private static void verifySectionPanelContainsLabel(@NonNull JPanel sectionPanel, @NonNull String labelText) {
+    assertThat(((JBLabel) sectionPanel.getComponent(0)).getText()).isEqualTo(labelText);
   }
 }

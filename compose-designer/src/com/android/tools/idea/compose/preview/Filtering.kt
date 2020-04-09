@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.google.common.annotations.VisibleForTesting
 
 /**
@@ -37,16 +38,8 @@ class GroupNameFilteredPreviewProvider(private val delegate: PreviewElementProvi
   val availableGroups: Set<String>
     get() = delegate.previewElements.mapNotNull { it.displaySettings.group }.filter { it.isNotBlank() }.toSet()
 
-  override val previewElements: List<PreviewElement>
-    get() {
-      val filteredList = filteredPreviewElementProvider.previewElements
-      return if (filteredList.isEmpty()) {
-        delegate.previewElements
-      }
-      else {
-        filteredList
-      }
-    }
+  override val previewElements: Sequence<PreviewElement>
+    get() = filteredPreviewElementProvider.previewElements.ifEmpty { delegate.previewElements }
 }
 
 /**
@@ -66,14 +59,7 @@ class SinglePreviewElementFilteredPreviewProvider(private val delegate: PreviewE
     composableMethodFqn == null || composableMethodFqn == it.composableMethodFqn
   }
 
-  override val previewElements: List<PreviewElement>
-    get() {
-      val filteredList = filteredPreviewElementProvider.previewElements
-      return if (filteredList.isEmpty()) {
-        delegate.previewElements
-      }
-      else {
-        filteredList
-      }
-    }
+  override val previewElements: Sequence<PreviewElement>
+    get() = filteredPreviewElementProvider.previewElements.ifEmpty { delegate.previewElements }
+
 }

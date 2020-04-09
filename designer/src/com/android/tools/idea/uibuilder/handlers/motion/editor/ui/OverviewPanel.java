@@ -572,6 +572,7 @@ class OverviewPanel extends JPanel {
       picker.addLine(mTransitions[i], 3, x1, y, x2, y, 2);
       String str = mTransitions[i].getAttributeValue("id");
       if (str != null) {
+        g.setFont(ourBaseFont);
         str = Utils.stripID(str);
         FontMetrics fm = g.getFontMetrics();
         Rectangle2D bounds = fm.getStringBounds(str, g);

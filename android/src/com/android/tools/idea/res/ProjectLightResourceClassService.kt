@@ -249,11 +249,12 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
             ideaLibrary,
             packageName,
             AarResourceRepositoryCache.instance.getProtoRepository(aarLibrary),
-            ResourceNamespace.fromPackageName(packageName)
+            ResourceNamespace.fromPackageName(packageName),
+            aarLibrary.address
           )
         },
         nonNamespaced = aarLibrary.symbolFile?.toFile()?.takeIf { it.exists() }?.let { symbolFile ->
-          TransitiveAarRClass(psiManager, ideaLibrary, packageName, symbolFile)
+          TransitiveAarRClass(psiManager, ideaLibrary, packageName, symbolFile, aarLibrary.address)
         },
         testNamespaced = null,
         testNonNamespaced = null

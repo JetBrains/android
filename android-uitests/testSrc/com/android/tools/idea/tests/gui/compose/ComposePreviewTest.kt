@@ -302,13 +302,11 @@ class ComposePreviewTest {
   @RunIn(TestGroup.UNRELIABLE) // b/150391302
   @Throws(Exception::class)
   fun testDeployPreview() {
-    val fixture = guiTest.importProject("SimpleComposeApplication")
+    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
 
     // Enable the fake ADB server and attach a fake device to which the preview will be deployed.
     AndroidDebugBridge.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
     adbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29", DeviceState.HostConnectionType.USB)
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish()
 
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt").waitForRenderToFinish()
     commandHandler.composablePackageName = "google.simpleapplication"

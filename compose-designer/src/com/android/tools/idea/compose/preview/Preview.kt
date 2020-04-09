@@ -36,6 +36,13 @@ import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshActi
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.compose.preview.util.COMPOSE_VIEW_ADAPTER
+import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
+import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
+import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.previewElementComparatorByDisplayName
+import com.android.tools.idea.compose.preview.util.previewElementComparatorBySourcePosition
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -50,10 +57,14 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
+import com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X
+import com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y
+import com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.application.subscribe
 import com.intellij.openapi.actionSystem.DataContext
@@ -70,7 +81,6 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
-import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.future.await
@@ -222,6 +232,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     .showModelNames()
     .setNavigationHandler(navigationHandler)
     .setDefaultSurfaceState(DesignSurface.State.SPLIT)
+    .setLayoutManager(GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X, DEFAULT_SCREEN_OFFSET_Y, SCREEN_DELTA, SCREEN_DELTA))
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
     .setInteractionHandlerProvider { surface ->
       val interactionHandlers = EnumMap<InteractionMode, InteractionHandler>(InteractionMode::class.java)
@@ -277,8 +288,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   var onRefresh: (() -> Unit)? = null
 
   private val notificationsPanel = NotificationPanel(
-    ExtensionPointName.create<EditorNotifications.Provider<EditorNotificationPanel>>(
-      "com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
+    ExtensionPointName.create("com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
 
   /**
    * [WorkBench] used to contain all the preview elements.
@@ -473,8 +483,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering.
    */
-  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>) {
-    if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.size} elements.")
+  private suspend fun doRefreshSync(filePreviewElements: Sequence<PreviewElement>) {
+    if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.count()} elements.")
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
     val psiFile = ReadAction.compute<PsiFile?, Throwable> {
       val element = psiFilePointer.element
@@ -491,12 +501,26 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
 
     // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
-    val existingModels = surface.models.reverse().toMutableList()
+    val existingModels = surface.models.toMutableList()
 
     // Now we generate all the models (or reuse) for the PreviewElements.
     val models = filePreviewElements
-      .asSequence()
-      .map { Pair(it, it.toPreviewXmlString(matchParent = it.displaySettings.showDecoration, paintBounds = showDebugBoundaries)) }
+      .flatMap {
+        if (it is ParametrizedPreviewElementTemplate) {
+          it.instances()
+        }
+        else {
+          sequenceOf(it)
+        }
+      }
+      .filterIsInstance<PreviewElementInstance>()
+      .map {
+        val xmlOutput = it.toPreviewXml()
+          // Whether to paint the debug boundaries or not
+          .toolsAttribute("paintBounds", showDebugBoundaries.toString())
+          .buildString()
+        Pair(it, xmlOutput)
+      }
       .map {
         val (previewElement, fileContents) = it
 
@@ -510,8 +534,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
 
         val model = if (existingModels.isNotEmpty()) {
-          LOG.debug("Re-using model")
-          configureExistingModel(existingModels.pop(),
+          val reusedModel = existingModels.pop()
+          LOG.debug("Re-using model ${reusedModel.virtualFile.name}")
+          configureExistingModel(reusedModel,
                                  previewElement.displaySettings.name,
                                  ModelDataContext(this, previewElement),
                                  previewElement.displaySettings.showDecoration,
@@ -519,8 +544,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                  surface)
         }
         else {
-          LOG.debug("No models to reuse were found. New model.")
-          val file = ComposeAdapterLightVirtualFile("testFile.xml", fileContents)
+          val now = System.currentTimeMillis()
+          LOG.debug("No models to reuse were found. New model $now.")
+          val file = ComposeAdapterLightVirtualFile("compose-model-$now.xml", fileContents)
           val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
           NlModel.builder(facet, file, configuration)
             .withParentDisposable(this@ComposePreviewRepresentation)
@@ -541,13 +567,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         model to previewElement
       }
-      .toMap()
+      .toList()
 
     // Remove and dispose pre-existing models that were not used.
     // This will happen if the user removes one or more previews.
     if (LOG.isDebugEnabled) LOG.debug("Removing ${existingModels.size} model(s)")
     existingModels.forEach { surface.removeModel(it) }
     models
+      .reversed()
       .onEach {
         val (model, previewElement) = it
         // We call addModel even though the model might not be new. If we try to add an existing model,
@@ -582,7 +609,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
     }
 
-    previewElements = filePreviewElements
+    previewElements = ReadAction.compute<List<PreviewElement>, Throwable> {
+      filePreviewElements
+        .sortedWith(previewElementComparatorBySourcePosition)
+        .toList()
+    }
     hasRenderedAtLeastOnce = true
 
     withContext(uiThread) {

@@ -156,6 +156,11 @@ public class Track {
     return myComponent;
   }
 
+  @NotNull
+  public JComponent getTrackContent() {
+    return myTrackContent;
+  }
+
   @VisibleForTesting
   @NotNull
   JLabel getTitleLabel() {

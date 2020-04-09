@@ -37,6 +37,7 @@ import org.junit.rules.Timeout
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
+private const val TEST_PROJECT_NAME = "TestProject"
 
 class AppInspectionTargetTest {
   private val timer = FakeTimer()
@@ -56,7 +57,7 @@ class AppInspectionTargetTest {
     val clientFuture = Futures.transformAsync(
       appInspectionRule.launchTarget(),
       AsyncFunction<AppInspectionTarget, TestInspectorClient> { target ->
-        target!!.launchInspector(INSPECTOR_ID, TEST_JAR) { commandMessenger ->
+        target!!.launchInspector(INSPECTOR_ID, TEST_JAR, TEST_PROJECT_NAME) { commandMessenger ->
           assertThat(appInspectionRule.jarCopier.copiedJar).isEqualTo(TEST_JAR)
           TestInspectorClient(commandMessenger)
         }
@@ -82,7 +83,7 @@ class AppInspectionTargetTest {
 
     // Launch an inspector connection that will never be established (if the test passes).
     val unsuccessfulConnection =
-      target.launchInspector("never_connects", TEST_JAR) { commandMessenger ->
+      target.launchInspector("never_connects", TEST_JAR, TEST_PROJECT_NAME) { commandMessenger ->
         TestInspectorClient(commandMessenger)
       }
 
@@ -92,7 +93,7 @@ class AppInspectionTargetTest {
       appInspectionRule.addAppInspectionResponse(createSuccessfulServiceResponse(12345))
 
       // Launch an inspector connection that will be successfully established.
-      val successfulConnection = target.launchInspector("connects_successfully", TEST_JAR) { commandMessenger ->
+      val successfulConnection = target.launchInspector("connects_successfully", TEST_JAR, TEST_PROJECT_NAME) { commandMessenger ->
         TestInspectorClient(commandMessenger)
       }
 

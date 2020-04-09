@@ -127,7 +127,7 @@ class AndroidTestResultsTableViewTest {
 
     table.addDevice(device1)
     table.addDevice(device2)
-    table.addTestCase(device1, AndroidTestCase("testid1", "testname1", AndroidTestCaseResult.PASSED))
+    table.addTestCase(device1, AndroidTestCase("testid1", "testname1", AndroidTestCaseResult.PASSED, "test logcat message"))
     table.addTestCase(device1, AndroidTestCase("testid2", "testname2", AndroidTestCaseResult.FAILED))
     table.addTestCase(device2, AndroidTestCase("testid1", "testname1", AndroidTestCaseResult.SKIPPED))
     table.addTestCase(device2, AndroidTestCase("testid2", "testname2", AndroidTestCaseResult.SKIPPED))
@@ -138,6 +138,7 @@ class AndroidTestResultsTableViewTest {
     verify(mockListener).onAndroidTestResultsRowSelected(argThat { results ->
       results.testCaseName == "testname1" &&
       results.getTestCaseResult(device1) == AndroidTestCaseResult.PASSED &&
+      results.getLogcat(device1) == "test logcat message" &&
       results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
     })
 
@@ -161,8 +162,9 @@ class AndroidTestResultsTableViewTest {
   private fun argThat(matcher: (AndroidTestResults) -> Boolean): AndroidTestResults {
     ArgumentMatchers.argThat(matcher)
     return object:AndroidTestResults {
-      override val testCaseName = ""
-      override fun getTestCaseResult(device: AndroidDevice) = null
+      override val testCaseName: String = ""
+      override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
+      override fun getLogcat(device: AndroidDevice): String = ""
     }
   }
 }

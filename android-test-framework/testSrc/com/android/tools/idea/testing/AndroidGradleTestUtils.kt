@@ -100,6 +100,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.UsefulTestCase
 import com.intellij.util.text.nullize
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemDependent
@@ -757,7 +758,6 @@ fun setupTestProjectFromAndroidModel(
   runWriteAction {
     task.populateProject(
       projectDataNode,
-      ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, project),
       PostSyncProjectSetup.Request(),
       null
     )
@@ -904,7 +904,12 @@ fun Module.fileUnderGradleRoot(path: @SystemIndependent String): VirtualFile? =
 /**
  * See implementing classes for usage examples.
  */
-interface GradleSnapshotComparisonTest : SnapshotComparisonTest {
+interface GradleIntegrationTest {
+  /**
+   * Assumed to be matched by [UsefulTestCase.getName].
+   */
+  fun getName(): String
+
   /**
    * The base testData directory to be used in tests.
    */
@@ -924,7 +929,7 @@ interface GradleSnapshotComparisonTest : SnapshotComparisonTest {
 /**
  * Opens a test project created from a [testProjectPath] under the given [name].
  */
-fun GradleSnapshotComparisonTest.openGradleProject(testProjectPath: String, name: String): Project {
+fun GradleIntegrationTest.openGradleProject(testProjectPath: String, name: String): Project {
   if (name == this.getName()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
   val srcPath = File(getBaseTestDataPath(), FileUtil.toSystemDependentName(testProjectPath))
   val projectPath = File(FileUtil.toSystemDependentName(getBaseTestPath() + "/" + name))
@@ -943,7 +948,7 @@ fun GradleSnapshotComparisonTest.openGradleProject(testProjectPath: String, name
  * Opens a test project created from a [testProjectPath] under the given [name], runs a test [action] and then closes and disposes
  * the project.
  */
-fun <T> GradleSnapshotComparisonTest.openGradleProject(testProjectPath: String, name: String, action: (Project) -> T): T {
+fun <T> GradleIntegrationTest.openGradleProject(testProjectPath: String, name: String, action: (Project) -> T): T {
   val project = openGradleProject(testProjectPath, name)
   try {
     return action(project)
@@ -958,7 +963,7 @@ fun <T> GradleSnapshotComparisonTest.openGradleProject(testProjectPath: String, 
  *
  * The project's `.idea` directory is not required to exist, however.
  */
-fun <T> GradleSnapshotComparisonTest.reopenGradleProject(name: String, action: (Project) -> T): T {
+fun <T> GradleIntegrationTest.reopenGradleProject(name: String, action: (Project) -> T): T {
   val projectPath = File(FileUtil.toSystemDependentName(getBaseTestPath() + "/" + name))
   val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()

@@ -41,7 +41,6 @@ class CpuCaptureStageTest {
 
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer), transportService)
-  private val profilerClient = ProfilerClient(grpcChannel.name)
 
   private lateinit var profilers: StudioProfilers
 
@@ -49,7 +48,7 @@ class CpuCaptureStageTest {
 
   @Before
   fun setUp() {
-    profilers = StudioProfilers(profilerClient, services, timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
   }
@@ -108,6 +107,7 @@ class CpuCaptureStageTest {
     val threadsTrackGroup = stage.trackGroupModels[0]
     assertThat(threadsTrackGroup.title).isEqualTo("Threads (1)")
     assertThat(threadsTrackGroup.size).isEqualTo(1)
+    assertThat(threadsTrackGroup.rangeSelectionModel).isNotNull()
   }
 
   @Test
@@ -130,6 +130,27 @@ class CpuCaptureStageTest {
     val threadsTrackGroup = stage.trackGroupModels[2]
     assertThat(threadsTrackGroup.title).isEqualTo("Threads (40)")
     assertThat(threadsTrackGroup.size).isEqualTo(40)
+  }
+
+  @Test
+  fun trackGroupModelsAreSetForPerfetto() {
+    val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG, CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
+    profilers.stage = stage
+
+    assertThat(stage.trackGroupModels.size).isEqualTo(3)
+
+    val displayTrackGroup = stage.trackGroupModels[0]
+    assertThat(displayTrackGroup.title).isEqualTo("Display")
+    assertThat(displayTrackGroup.size).isEqualTo(1)
+    assertThat(displayTrackGroup[0].title).isEqualTo("Frames")
+
+    val coresTrackGroup = stage.trackGroupModels[1]
+    assertThat(coresTrackGroup.title).isEqualTo("CPU cores (8)")
+    assertThat(coresTrackGroup.size).isEqualTo(8)
+
+    val threadsTrackGroup = stage.trackGroupModels[2]
+    assertThat(threadsTrackGroup.title).isEqualTo("Threads (17)")
+    assertThat(threadsTrackGroup.size).isEqualTo(17)
   }
 
   @Test

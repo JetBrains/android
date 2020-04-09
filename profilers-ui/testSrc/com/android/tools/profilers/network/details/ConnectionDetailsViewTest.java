@@ -105,7 +105,7 @@ public class ConnectionDetailsViewTest {
   @Before
   public void before() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
     NetworkProfilerStage stage = new NetworkProfilerStage(profilers);
     StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     profilers.setStage(stage);

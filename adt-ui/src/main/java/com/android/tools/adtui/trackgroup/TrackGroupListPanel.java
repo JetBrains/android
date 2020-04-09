@@ -19,18 +19,13 @@ import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.common.StudioColorsKt;
-import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.adtui.model.trackgroup.SelectableTrackModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
-import com.android.tools.adtui.model.trackgroup.TrackModel;
-import com.android.tools.adtui.util.SwingUtil;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.util.ui.MouseEventHandler;
 import java.awt.FlowLayout;
-import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -38,7 +33,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.swing.JComponent;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -90,18 +84,8 @@ public class TrackGroupListPanel implements TrackGroupMover {
   public void loadTrackGroups(@NotNull List<TrackGroupModel> trackGroupModels, boolean enableTrackGroupMoving) {
     myTrackGroups.clear();
     trackGroupModels.forEach(
-      model -> {
-        TrackGroup trackGroup = new TrackGroup(model, myTrackRendererFactory).setMover(enableTrackGroupMoving ? this : null);
-        myTrackGroups.add(trackGroup);
-
-        // Register tooltip mouse adapter
-        MouseAdapter adapter = new TrackGroupMouseEventHandler(trackGroup);
-        trackGroup.getTrackList().addMouseListener(adapter);
-        trackGroup.getTrackList().addMouseMotionListener(adapter);
-        DelegateMouseEventHandler.delegateTo(getComponent())
-          .installListenerOn(trackGroup.getTrackList())
-          .installMotionListenerOn(trackGroup.getTrackList());
-      });
+      model -> myTrackGroups.add(new TrackGroup(model, myTrackRendererFactory).setMover(enableTrackGroupMoving ? this : null)));
+    registerTooltipListeners();
     initTrackGroups();
   }
 
@@ -141,13 +125,8 @@ public class TrackGroupListPanel implements TrackGroupMover {
    * Sets the range tooltip component that will overlay on top of all track groups. Setting it to null will clear it.
    */
   public void setRangeTooltipComponent(@Nullable RangeTooltipComponent rangeTooltipComponent) {
-    if (myRangeTooltipComponent == rangeTooltipComponent) {
-      return;
-    }
     myRangeTooltipComponent = rangeTooltipComponent;
-    if (rangeTooltipComponent != null) {
-      rangeTooltipComponent.registerListenersOn(getComponent());
-    }
+    registerTooltipListeners();
   }
 
   /**
@@ -234,6 +213,17 @@ public class TrackGroupListPanel implements TrackGroupMover {
     myTooltipPanel.repaint();
   }
 
+  private void registerTooltipListeners() {
+    for (TrackGroup trackGroup : myTrackGroups) {
+      MouseAdapter adapter = new TooltipMouseAdapter(trackGroup);
+      trackGroup.getOverlay().addMouseListener(adapter);
+      trackGroup.getOverlay().addMouseMotionListener(adapter);
+      if (myRangeTooltipComponent != null) {
+        myRangeTooltipComponent.registerListenersOn(trackGroup.getOverlay());
+      }
+    }
+  }
+
   private static class TrackGroupSelectionListener<T extends SelectableTrackModel> implements ListSelectionListener {
     private final TrackGroup myTrackGroup;
     private final MultiSelectionModel<T> myMultiSelectionModel;
@@ -280,55 +270,31 @@ public class TrackGroupListPanel implements TrackGroupMover {
     }
   }
 
-  private class TrackGroupMouseEventHandler extends MouseEventHandler {
+  private class TooltipMouseAdapter extends MouseAdapter {
     @NotNull private final TrackGroup myTrackGroup;
 
-    // Track index for the current mouse event.
-    private int myTrackIndex = -1;
-
-    private TrackGroupMouseEventHandler(@NotNull TrackGroup trackGroup) {
+    private TooltipMouseAdapter(@NotNull TrackGroup trackGroup) {
       myTrackGroup = trackGroup;
     }
 
     @Override
-    protected void handle(MouseEvent event) {
-      JList<?> trackList = myTrackGroup.getTrackList();
-      int oldTrackIndex = myTrackIndex;
-      myTrackIndex = trackList.locationToIndex(event.getPoint());
-      TrackModel<?, ?> trackModel = myTrackGroup.getTrackModelAt(myTrackIndex);
-      JComponent trackComponent = getTrackComponent(trackModel);
-
-      // Find the origin location of the track (i.e. JList cell).
-      Point trackOrigin = trackList.indexToLocation(myTrackIndex);
-      // Manually translate the mouse point relative of the track origin.
-      Point newPoint = event.getPoint();
-      newPoint.translate(-trackOrigin.x, -trackOrigin.y);
-      // Create a new mouse event with the translated location for the tooltip panel to show up at the correct location.
-      // We may create another event based on this event to reuse the new location.
-      MouseEvent newEvent = SwingUtil.convertMouseEventPoint(event, newPoint);
-      // Forward the mouse event to the current track because the cell renderer doesn't construct a component hierarchy tree for the mouse
-      // event to propagate.
-      trackComponent.dispatchEvent(newEvent);
-
-      if (event.getID() == MouseEvent.MOUSE_MOVED) {
-        // If mouse moved between tracks, dispatch an additional MOUSE_EXITED event to the old track so that it can update its hover state.
-        if (myTrackIndex != oldTrackIndex && oldTrackIndex >= 0) {
-          trackList.repaint(trackList.getCellBounds(oldTrackIndex, oldTrackIndex));
-          JComponent oldTrackComponent = getTrackComponent(myTrackGroup.getTrackModelAt(oldTrackIndex));
-          oldTrackComponent.dispatchEvent(SwingUtil.convertMouseEventID(newEvent, MouseEvent.MOUSE_EXITED));
-        }
-      }
-      else if (event.getID() == MouseEvent.MOUSE_EXITED) {
-        // Reset track index so we know the next time mouse enters. Also ensure tooltip disappears when mouse exits.
-        myTrackIndex = -1;
-      }
-
-      setTooltip(myTrackIndex == -1 ? null : trackModel.getActiveTooltipModel());
+    public void mouseMoved(MouseEvent event) {
+      updateTooltipOnMove(event);
     }
 
-    private JComponent getTrackComponent(TrackModel<?, ?> trackModel) {
-      assert myTrackGroup.getTrackMap().containsKey(trackModel.getId());
-      return myTrackGroup.getTrackMap().get(trackModel.getId()).getComponent();
+    @Override
+    public void mouseEntered(MouseEvent event) {
+      updateTooltipOnMove(event);
+    }
+
+    @Override
+    public void mouseExited(MouseEvent event) {
+      setTooltip(null);
+    }
+
+    private void updateTooltipOnMove(MouseEvent event) {
+      int trackIndex = myTrackGroup.getTrackList().locationToIndex(event.getPoint());
+      setTooltip(trackIndex == -1 ? null : myTrackGroup.getTrackModelAt(trackIndex).getActiveTooltipModel());
     }
   }
 }

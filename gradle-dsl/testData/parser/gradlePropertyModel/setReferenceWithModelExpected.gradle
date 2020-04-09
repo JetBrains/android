@@ -1,4 +1,4 @@
 ext {
   prop1 = '“Come and see!” I looked'
-  prop2 = ext.prop1
+  prop2 = prop1
 }

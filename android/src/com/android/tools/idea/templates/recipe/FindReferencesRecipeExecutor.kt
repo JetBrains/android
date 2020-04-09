@@ -73,8 +73,10 @@ internal class FindReferencesRecipeExecutor(private val context: RenderingContex
   override fun addSourceSet(type: SourceSetType, name: String, dir: File) {
   }
 
-  override fun setExtVar(name: String, value: Any) {
+  override fun setExtVar(name: String, value: String) {
   }
+
+  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) = valueIfNotFound
 
   override fun addIncludeToSettings(moduleName: String) {}
 

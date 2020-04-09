@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
+import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -59,7 +60,7 @@ class GradleDslMethodNotFoundIssueCheckerTest : AndroidGradleTestCase() {
                                                   "method (e.g. 'testCompile' was added in 1.1.0).")
     // Verify quickFixes.
     assertThat(buildIssue.quickFixes).hasSize(3)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(GradleDslMethodNotFoundIssueChecker.FixAndroidGradlePluginVersionQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(FixAndroidGradlePluginVersionQuickFix::class.java)
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(GradleDslMethodNotFoundIssueChecker.GetGradleSettingsQuickFix::class.java)
     assertThat(buildIssue.quickFixes[2]).isInstanceOf(GradleDslMethodNotFoundIssueChecker.ApplyGradlePluginQuickFix::class.java)
   }

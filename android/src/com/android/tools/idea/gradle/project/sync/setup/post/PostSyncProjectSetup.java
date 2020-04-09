@@ -18,47 +18,24 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_CACHED_SETUP_FAILED;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static java.lang.System.currentTimeMillis;
 
-import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
-import com.android.tools.idea.gradle.project.build.events.AndroidSyncFailure;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.model.AndroidModel;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.SyncViewManager;
-import com.intellij.build.events.Failure;
-import com.intellij.build.events.impl.FailureResultImpl;
-import com.intellij.build.events.impl.FinishBuildEventImpl;
 import com.intellij.build.events.impl.StartBuildEventImpl;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
-import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.project.Project;
-import com.intellij.serviceContainer.NonInjectable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class PostSyncProjectSetup {
   @NotNull private final Project myProject;
-  @NotNull private final GradleProjectInfo myGradleProjectInfo;
-  @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final GradleSyncState mySyncState;
 
   @NotNull
@@ -68,62 +45,16 @@ public class PostSyncProjectSetup {
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public PostSyncProjectSetup(@NotNull Project project,
-                              @NotNull GradleProjectInfo gradleProjectInfo,
-                              @NotNull GradleSyncInvoker syncInvoker,
-                              @NotNull GradleSyncState syncState,
-                              @NotNull GradleSyncMessages syncMessages) {
-    this(project, gradleProjectInfo, syncInvoker, syncState);
-  }
-
-  @NonInjectable
-  @VisibleForTesting
-  PostSyncProjectSetup(@NotNull Project project,
-                       @NotNull GradleProjectInfo gradleProjectInfo,
-                       @NotNull GradleSyncInvoker syncInvoker,
-                       @NotNull GradleSyncState syncState) {
+                              @NotNull GradleSyncState syncState) {
     myProject = project;
-    myGradleProjectInfo = gradleProjectInfo;
-    mySyncInvoker = syncInvoker;
     mySyncState = syncState;
-  }
-
-  public static void finishFailedSync(@Nullable ExternalSystemTaskId taskId, @NotNull Project project, @Nullable String exceptionMessage) {
-    if (taskId != null) {
-      GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
-      List<Failure> failures = new ArrayList<>(messages.showEvents(taskId));
-      // In order to ensure that exception messages are correctly displayed we need to use them to create a failure and pass it to the
-      // FinishBuildEventImpl. If we already have failure messages we don't want to pollute the output so we don't process the message
-      // in these cases.
-      if (exceptionMessage != null && failures.isEmpty()) {
-        NotificationData notificationData =
-          new NotificationData(exceptionMessage, exceptionMessage, NotificationCategory.ERROR, NotificationSource.PROJECT_SYNC);
-        failures.add(AndroidSyncFailure.create(notificationData));
-      }
-      FailureResultImpl failureResult = new FailureResultImpl(failures);
-      FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), "failed", failureResult);
-      ServiceManager.getService(project, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
-    }
-  }
-
-  public void onCachedModelsSetupFailure(@Nullable ExternalSystemTaskId taskId, @NotNull Request request) {
-    finishFailedSync(taskId, myProject, null);
-    // Sync with cached model failed (e.g. when Studio has a newer embedded builder-model interfaces and the cache is using an older
-    // version of such interfaces.
-    long syncTimestamp = request.lastSyncTimestamp;
-    if (syncTimestamp < 0) {
-      syncTimestamp = currentTimeMillis();
-    }
-    mySyncState.syncSkipped(syncTimestamp, null);
-    // TODO add a new trigger for this?
-    mySyncInvoker.requestProjectSync(myProject, TRIGGER_PROJECT_CACHED_SETUP_FAILED);
   }
 
   public void notifySyncFinished(@NotNull Request request) {
     // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
     // previous sync, and not the one from the sync that just ended.
     if (request.usingCachedGradleModels) {
-      long timestamp = currentTimeMillis();
-      mySyncState.syncSkipped(timestamp, null);
+      mySyncState.syncSkipped(null);
       GradleBuildState.getInstance(myProject).buildFinished(SKIPPED);
     }
     else {

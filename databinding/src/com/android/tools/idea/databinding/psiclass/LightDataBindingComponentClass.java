@@ -18,7 +18,7 @@ package com.android.tools.idea.databinding.psiclass;
 import com.android.SdkConstants;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.databinding.DataBindingMode;
-import com.android.tools.idea.databinding.module.ModuleDataBinding;
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.collect.ImmutableSet;
@@ -79,7 +79,7 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
 
   public LightDataBindingComponentClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC));
-    myMode = ModuleDataBinding.getInstance(facet).getDataBindingMode();
+    myMode = LayoutBindingModuleCache.getInstance(facet).getDataBindingMode();
     myFacet = facet;
 
     Project project = facet.getModule().getProject();

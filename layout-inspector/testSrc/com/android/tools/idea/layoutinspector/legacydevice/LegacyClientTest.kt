@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.poller.TransportEventPoller
+import com.google.common.truth.Truth.assertThat
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Rule
 import org.junit.Test
@@ -60,5 +61,20 @@ class LegacyClientTest {
                                      any(ResourceLookup::class.java), eq(client), eq(projectRule.project))
     verify(loader).loadComponentTree(argThat { event: LegacyEvent -> event.windowId == "window3" },
                                      any(ResourceLookup::class.java), eq(client), eq(projectRule.project))
+  }
+
+  @Test
+  fun testReloadAllWindowsWithNone() {
+    val inspector = LayoutInspector(InspectorModel(projectRule.project), projectRule.fixture.projectDisposable)
+    val client = inspector.allClients.firstIsInstance<LegacyClient>()
+
+    // we don't need the default poller--stop it so it doesn't leak
+    TransportEventPoller.stopPoller(inspector.allClients.firstIsInstance<DefaultInspectorClient>().transportPoller)
+
+    val loader = mock(LegacyTreeLoader::class.java)
+    `when`(loader.getAllWindowIds(ArgumentMatchers.any(), eq(client))).thenReturn(emptyList())
+    client.treeLoader = loader
+
+    assertThat(client.reloadAllWindows()).isFalse()
   }
 }

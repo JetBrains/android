@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.mlkit.importmodel;
 
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -33,6 +35,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,17 +43,21 @@ import org.jetbrains.annotations.Nullable;
  * Action to import machine learning model to Android project
  */
 public class AndroidImportMlModelAction extends AnAction {
+  private static final String ML_MODEL_BINDING_MIN_AGP_VERSION = "4.1.0-alpha04";
+  private static final String TITLE = "TensorFlow Lite Model";
+
   public AndroidImportMlModelAction() {
-    super("TensorFlow Lite Model", null, StudioIcons.Shell.Filetree.ANDROID_FILE);
+    super(TITLE, null, StudioIcons.Shell.Filetree.ANDROID_FILE);
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
+    Module module = LangDataKeys.MODULE.getData(e.getDataContext());
     List<NamedModuleTemplate> moduleTemplates = getModuleTemplates(e);
-    if (!moduleTemplates.isEmpty() && e.getProject() != null) {
+    if (!moduleTemplates.isEmpty() && module != null) {
       String title = "Import TensorFlow Lite model";
       ModelWizard wizard = new ModelWizard.Builder()
-        .addStep(new ChooseMlModelStep(new MlWizardModel(e.getProject()), moduleTemplates, e.getProject(), title))
+        .addStep(new ChooseMlModelStep(new MlWizardModel(module), moduleTemplates, e.getProject(), title))
         .build();
       new StudioWizardDialogBuilder(wizard, title).build().show();
     }
@@ -69,6 +76,19 @@ public class AndroidImportMlModelAction extends AnAction {
 
     if (module == null) {
       presentation.setEnabled(false);
+      return;
+    }
+
+    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromModel(project);
+    if (androidPluginInfo == null) {
+      presentation.setEnabled(false);
+      return;
+    }
+
+    GradleVersion agpVersion = androidPluginInfo.getPluginVersion();
+    if (agpVersion == null || agpVersion.compareTo(ML_MODEL_BINDING_MIN_AGP_VERSION) < 0) {
+      presentation.setEnabled(false);
+      presentation.setText(AndroidBundle.message("android.wizard.action.requires.new.agp", TITLE, ML_MODEL_BINDING_MIN_AGP_VERSION));
       return;
     }
 

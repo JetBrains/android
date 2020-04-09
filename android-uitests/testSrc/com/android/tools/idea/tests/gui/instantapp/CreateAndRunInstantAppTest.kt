@@ -108,7 +108,7 @@ class CreateAndRunInstantAppTest {
     val runConfigName = "My_Application.app"
     val avdName = avdTestRule.myAvd?.name ?: throw IllegalStateException("AVD does not have a name")
 
-    guiTest
+    val ideFrame = guiTest
       .welcomeFrame()
       .createNewProject()
       .clickNext()
@@ -116,21 +116,17 @@ class CreateAndRunInstantAppTest {
       .enterPackageName(projectApplicationId)
       .selectMinimumSdkApi(23)
       .wizard()
-      .clickFinish()
-
-    val ideFrame = guiTest.ideFrame()
-    // TODO remove the following workaround wait for http://b/72666461
-    ideFrame.waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
 
     ideFrame.projectView
       .selectAndroidPane()
       .clickPath("app")
       .invokeMenuPath("Refactor", "Enable Instant Apps Support...")
-    EnableInstantAppSupportDialogFixture.find(ideFrame)
-      .clickOk()
 
-    // Wait for Gradle sync to finish, then the Run -> Edit Configurations... will be enabled.
-    ideFrame.waitForGradleProjectSyncToFinish()
+    ideFrame.actAndWaitForGradleProjectSyncToFinish {
+      EnableInstantAppSupportDialogFixture.find(ideFrame).clickOk()
+      // Wait for Gradle sync to finish, then the Run -> Edit Configurations... will be enabled.
+    }
 
     // The project is not deployed as an instant app by default anymore. Enable
     // deploying the project as an instant app:

@@ -51,7 +51,7 @@ class EventMonitorTest {
   @Before
   fun setUp() {
     val services = FakeIdeProfilerServices()
-    profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     monitor = EventMonitor(profilers)
   }
 

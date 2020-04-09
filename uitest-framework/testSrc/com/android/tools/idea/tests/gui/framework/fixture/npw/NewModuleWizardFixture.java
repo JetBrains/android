@@ -108,11 +108,17 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
       () -> robot().finder().findAll(target(), JLabelMatcher.withText(nextStepTitle).andShowing()).size() == 1);
   }
 
-  @NotNull
-  public IdeFrameFixture clickFinish() {
+  private void clickFinish() {
     super.clickFinish(Wait.seconds(10));
-    GuiTests.waitForProjectIndexingToFinish(myIdeFrameFixture.getProject());
+  }
 
-    return myIdeFrameFixture;
+  @NotNull
+  public IdeFrameFixture clickFinishAndWaitForSyncToFinish() {
+    return myIdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(it -> clickFinish());
+  }
+
+  @NotNull
+  public IdeFrameFixture clickFinishAndWaitForSyncToFinish(@NotNull Wait waitSync) {
+    return myIdeFrameFixture.actAndWaitForGradleProjectSyncToFinish(waitSync, it -> clickFinish());
   }
 }

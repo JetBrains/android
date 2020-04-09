@@ -27,6 +27,7 @@ import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.Project
 import java.util.concurrent.Executor
 
 /**
@@ -37,6 +38,7 @@ import java.util.concurrent.Executor
  * @param taskExecutor Used to execute IO operation on a background thread.
  */
 class LiveSqliteResultSet(
+  private val project: Project,
   private val sqliteStatement: SqliteStatement,
   private val messenger: AppInspectorClient.CommandMessenger,
   private val connectionId: Int,
@@ -51,7 +53,7 @@ class LiveSqliteResultSet(
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
 
       if (response.hasErrorOccurred()) {
-        handleError(response.errorOccurred.content, logger<LiveSqliteResultSet>())
+        handleError(project, response.errorOccurred.content, logger<LiveSqliteResultSet>())
       }
 
       return@transform response.query.columnNamesList.map { columnName ->
@@ -71,7 +73,7 @@ class LiveSqliteResultSet(
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
 
       if (response.hasErrorOccurred()) {
-        handleError(response.errorOccurred.content, logger<LiveSqliteResultSet>())
+        handleError(project, response.errorOccurred.content, logger<LiveSqliteResultSet>())
       }
 
       response.query.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.intValue ?: 0
@@ -88,7 +90,7 @@ class LiveSqliteResultSet(
       val response = SqliteInspectorProtocol.Response.parseFrom(byteArray)
 
       if (response.hasErrorOccurred()) {
-        handleError(response.errorOccurred.content, logger<LiveSqliteResultSet>())
+        handleError(project, response.errorOccurred.content, logger<LiveSqliteResultSet>())
       }
 
       val columnNames = response.query.columnNamesList

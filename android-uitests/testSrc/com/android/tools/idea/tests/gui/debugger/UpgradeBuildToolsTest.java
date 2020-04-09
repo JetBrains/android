@@ -255,7 +255,7 @@ public class UpgradeBuildToolsTest extends DebuggerTestBase {
   }
 
   private void fixBuildToolsError(@NotNull IdeFrameFixture ideFrameFixture) throws Exception {
-    ideFrameFixture.requestProjectSync().waitForGradleProjectSyncToFail();
+    ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
     BuildToolWindowFixture buildToolWindow = ideFrameFixture.getBuildToolWindow();
     ConsoleViewImpl consoleView = buildToolWindow.getGradleSyncConsoleView();
@@ -267,7 +267,7 @@ public class UpgradeBuildToolsTest extends DebuggerTestBase {
     Wait.seconds(120).expecting("Android source to be installed").until(finish::isEnabled);
     finish.click();
 
-    ideFrameFixture.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(30));
+    ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(30));
   }
 
   @NotNull

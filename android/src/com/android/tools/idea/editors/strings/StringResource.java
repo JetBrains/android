@@ -23,8 +23,10 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.DynamicValueResourceItem;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.PsiResourceItem;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
@@ -32,7 +34,6 @@ import com.intellij.psi.xml.XmlTag;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +66,10 @@ public final class StringResource {
     Map<Locale, ResourceItemEntry> localeToTranslationMap = new HashMap<>();
 
     for (ResourceItem item : data.getRepository().getItems(key)) {
-      assert item instanceof PsiResourceItem || item instanceof DynamicValueResourceItem : item.getClass();
+      if (!(item instanceof PsiResourceItem || item instanceof DynamicValueResourceItem)) {
+        Logger.getInstance(StringResource.class).warn(item + " has an unexpected class " + item.getClass().getName());
+      }
+
       XmlTag tag = IdeResourcesUtil.getItemTag(project, item);
 
       if (tag != null && "false".equals(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))) {

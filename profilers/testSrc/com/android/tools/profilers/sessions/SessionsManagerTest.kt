@@ -92,7 +92,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     }
     myObserver = SessionsAspectObserver()
     myProfilers = StudioProfilers(
-      ProfilerClient(myGrpcChannel.name),
+      ProfilerClient(myGrpcChannel.channel),
       ideProfilerServices,
       myTimer
     )
@@ -363,7 +363,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     assumeTrue(useUnifiedEvents)
     ideProfilerServices.enableNativeMemorySampling(true)
     val profiler = StudioProfilers(
-      ProfilerClient(myGrpcChannel.name),
+      ProfilerClient(myGrpcChannel.channel),
       ideProfilerServices,
       myTimer
     )

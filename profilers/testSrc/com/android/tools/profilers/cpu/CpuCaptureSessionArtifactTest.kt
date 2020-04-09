@@ -60,7 +60,7 @@ class CpuCaptureSessionArtifactTest {
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), myTimer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), FakeIdeProfilerServices(), myTimer)
     mySessionsManager = profilers.sessionsManager
     mySessionsManager.createImportedSessionLegacy("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0)
     mySessionsManager.update()

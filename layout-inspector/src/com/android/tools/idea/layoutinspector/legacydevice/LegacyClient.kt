@@ -30,15 +30,13 @@ import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.containers.ContainerUtil
-import io.grpc.Status
-import io.grpc.StatusRuntimeException
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
 private const val MAX_RETRY_COUNT = 60
 
 /**
- * [InspectorClient] that supports pre-api 28 devices.
+ * [InspectorClient] that supports pre-api 29 devices.
  * Since it doesn't use [com.android.tools.idea.transport.TransportService], some relevant event listeners are manually fired.
  */
 class LegacyClient(parentDisposable: Disposable) : InspectorClient {
@@ -130,15 +128,8 @@ class LegacyClient(parentDisposable: Disposable) : InspectorClient {
       if (preferredProcess.isDeviceMatch(stream.device)) {
         for (process in getProcesses(stream)) {
           if (process.name == preferredProcess.packageName) {
-            try {
-              doAttach(stream, process)
+            if (doAttach(stream, process)) {
               return
-            }
-            catch (ex: StatusRuntimeException) {
-              // If the process is not found it may still be loading. Retry!
-              if (ex.status.code != Status.Code.NOT_FOUND) {
-                throw ex
-              }
             }
           }
         }
@@ -152,33 +143,49 @@ class LegacyClient(parentDisposable: Disposable) : InspectorClient {
 
   override fun attach(stream: Common.Stream, process: Common.Process) {
     loggedInitialAttach = false
-    doAttach(stream, process)
+    if (!doAttach(stream, process)) {
+      // TODO: create a different event for when there are no windows
+      logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
+    }
   }
 
-  private fun doAttach(stream: Common.Stream, process: Common.Process) {
+  /**
+   * Attach to the specified [process].
+   *
+   * Return <code>true</code> if windows were found otherwise false.
+   */
+  private fun doAttach(stream: Common.Stream, process: Common.Process): Boolean {
     if (!loggedInitialAttach) {
       logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, stream)
       loggedInitialAttach = true
     }
-    selectedClient = processManager.findClientFor(stream, process) ?: return
+    selectedClient = processManager.findClientFor(stream, process) ?: return false
     selectedProcess = process
     selectedStream = stream
 
-    reloadAllWindows()
+    if (!reloadAllWindows()) {
+      return false
+    }
     logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
+    return true
   }
 
-  fun reloadAllWindows() {
-    val windowIds = treeLoader.getAllWindowIds(null, this) ?: return
+  /**
+   * Load all windows.
+   *
+   * Return <code>true</code> if windows were found otherwise false.
+   */
+  fun reloadAllWindows(): Boolean {
+    val windowIds = treeLoader.getAllWindowIds(null, this) ?: return false
     if (windowIds.isEmpty()) {
-      // isn't loaded enough yet, retry
-      throw StatusRuntimeException(Status.NOT_FOUND)
+      return false
     }
     val propertiesUpdater = LegacyPropertiesProvider.Updater()
     for (windowId in windowIds) {
       eventListeners[Common.Event.EventGroupIds.COMPONENT_TREE]?.forEach { it(LegacyEvent(windowId, propertiesUpdater, windowIds)) }
     }
     propertiesUpdater.apply(provider)
+    return true
   }
 
   override fun disconnect() {

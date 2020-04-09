@@ -62,33 +62,34 @@ class EditableConfigurationsTest {
   fun testEditableJarDependencyConfiguration() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
     ide.openPsd().run {
-      selectDependenciesConfigurable().run {
-        findModuleSelector().selectModule("mylibrary")
-        findDependenciesPanel().run {
-          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "compile"))
+      ide.actAndWaitForGradleProjectSyncToFinish {
+        selectDependenciesConfigurable().run {
+          findModuleSelector().selectModule("mylibrary")
+          findDependenciesPanel().run {
+            assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "compile"))
 
-          findDependenciesTable().cell("libs").click()
+            findDependenciesTable().cell("libs").click()
 
-          assertThat(findDependenciesTable().contents().map { it.toList() })
-            .contains(listOf("com.android.support:appcompat-v7:26.0.1", "compile"))
-          findConfigurationCombo().run {
-            assertThat(selectedItem()).isEqualTo("compile")
-            replaceText("implementation")
-            pressAndReleaseKeys(VK_TAB)
-            assertThat(selectedItem()).isEqualTo("implementation")
-          }
-          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "implementation"))
+            assertThat(findDependenciesTable().contents().map { it.toList() })
+              .contains(listOf("com.android.support:appcompat-v7:26.0.1", "compile"))
+            findConfigurationCombo().run {
+              assertThat(selectedItem()).isEqualTo("compile")
+              replaceText("implementation")
+              pressAndReleaseKeys(VK_TAB)
+              assertThat(selectedItem()).isEqualTo("implementation")
+            }
+            assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("libs", "implementation"))
 
-          findDependenciesTable().cell("libs").click()
-          findConfigurationCombo().run {
-            assertThat(selectedItem()).isEqualTo("implementation")
-            replaceText("releaseImplementation")
-            pressAndReleaseKeys(VK_ENTER) // activates the dialog
+            findDependenciesTable().cell("libs").click()
+            findConfigurationCombo().run {
+              assertThat(selectedItem()).isEqualTo("implementation")
+              replaceText("releaseImplementation")
+              pressAndReleaseKeys(VK_ENTER) // activates the dialog
+            }
           }
         }
+        waitForDialogToClose()
       }
-      waitForDialogToClose()
-      waitForSyncToFinish()
     }
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -150,29 +151,30 @@ class EditableConfigurationsTest {
   fun testEditableModuleDependencyConfiguration() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
     ide.openPsd().run {
-      selectDependenciesConfigurable().run {
-        findModuleSelector().selectModule("app")
-        findDependenciesPanel().run {
-          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "compile"))
-          findDependenciesTable().cell("mylibrary").click()
-          findConfigurationCombo().run {
-            assertThat(selectedItem()).isEqualTo("compile")
-            replaceText("implementation")
-            pressAndReleaseKeys(VK_TAB)
-            assertThat(selectedItem()).isEqualTo("implementation")
-          }
-          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "implementation"))
+      ide.actAndWaitForGradleProjectSyncToFinish {
+        selectDependenciesConfigurable().run {
+          findModuleSelector().selectModule("app")
+          findDependenciesPanel().run {
+            assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "compile"))
+            findDependenciesTable().cell("mylibrary").click()
+            findConfigurationCombo().run {
+              assertThat(selectedItem()).isEqualTo("compile")
+              replaceText("implementation")
+              pressAndReleaseKeys(VK_TAB)
+              assertThat(selectedItem()).isEqualTo("implementation")
+            }
+            assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "implementation"))
 
-          findDependenciesTable().cell("mylibrary").click()
-          findConfigurationCombo().run {
-            assertThat(selectedItem()).isEqualTo("implementation")
-            replaceText("testImplementation")
-            pressAndReleaseKeys(VK_ENTER) // activates dialog
+            findDependenciesTable().cell("mylibrary").click()
+            findConfigurationCombo().run {
+              assertThat(selectedItem()).isEqualTo("implementation")
+              replaceText("testImplementation")
+              pressAndReleaseKeys(VK_ENTER) // activates dialog
+            }
           }
         }
+        waitForDialogToClose()
       }
-      waitForDialogToClose()
-      waitForSyncToFinish()
     }
     ide.openPsd().run {
       selectDependenciesConfigurable().run {
@@ -232,33 +234,34 @@ class EditableConfigurationsTest {
   fun testEditableLibraryDependencyConfiguration() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
     ide.openPsd().run {
-      selectDependenciesConfigurable().run {
-        findModuleSelector().selectModule("mylibrary")
-        findDependenciesPanel().run {
-          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "testCompile"))
+      ide.actAndWaitForGradleProjectSyncToFinish {
+        selectDependenciesConfigurable().run {
+          findModuleSelector().selectModule("mylibrary")
+          findDependenciesPanel().run {
+            assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "testCompile"))
 
-          findDependenciesTable().cell("junit:junit:4.11").click()
-          assertThat(findDependenciesTable().contents().map { it.toList() })
-            .contains(listOf("com.android.support:appcompat-v7:26.0.1", "compile"))
+            findDependenciesTable().cell("junit:junit:4.11").click()
+            assertThat(findDependenciesTable().contents().map { it.toList() })
+              .contains(listOf("com.android.support:appcompat-v7:26.0.1", "compile"))
 
-          findConfigurationCombo().run {
-            assertThat(selectedItem()).isEqualTo("testCompile")
-            replaceText("testImplementation")
-            pressAndReleaseKeys(VK_TAB)
-            assertThat(selectedItem()).isEqualTo("testImplementation")
-          }
-          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "testImplementation"))
+            findConfigurationCombo().run {
+              assertThat(selectedItem()).isEqualTo("testCompile")
+              replaceText("testImplementation")
+              pressAndReleaseKeys(VK_TAB)
+              assertThat(selectedItem()).isEqualTo("testImplementation")
+            }
+            assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "testImplementation"))
 
-          findDependenciesTable().cell("junit:junit:4.11").click()
-          findConfigurationCombo().run {
-            assertThat(selectedItem()).isEqualTo("testImplementation")
-            replaceText("implementation")
-            pressAndReleaseKeys(VK_ENTER) // activates the dialog
+            findDependenciesTable().cell("junit:junit:4.11").click()
+            findConfigurationCombo().run {
+              assertThat(selectedItem()).isEqualTo("testImplementation")
+              replaceText("implementation")
+              pressAndReleaseKeys(VK_ENTER) // activates the dialog
+            }
           }
         }
+        waitForDialogToClose()
       }
-      waitForDialogToClose()
-      waitForSyncToFinish()
     }
     ide.openPsd().run {
       selectDependenciesConfigurable().run {

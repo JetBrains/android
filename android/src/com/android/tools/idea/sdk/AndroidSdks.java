@@ -105,37 +105,6 @@ public class AndroidSdks {
   }
 
   @Nullable
-  public File findPathOfSdkWithoutAddonsFolder(@NotNull Project project) {
-    if (myIdeInfo.isAndroidStudio()) {
-      File sdkPath = IdeSdks.getInstance().getAndroidSdkPath();
-      if (sdkPath != null && isMissingAddonsFolder(sdkPath)) {
-        return sdkPath;
-      }
-    }
-    else {
-      ModuleManager moduleManager = ModuleManager.getInstance(project);
-      for (Module module : moduleManager.getModules()) {
-        Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
-        if (moduleSdk != null && isAndroidSdk(moduleSdk)) {
-          String homePath = moduleSdk.getHomePath();
-          if (homePath != null) {
-            File sdkHomePath = toSystemDependentPath(homePath);
-            if (isMissingAddonsFolder(sdkHomePath)) {
-              return sdkHomePath;
-            }
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  private static boolean isMissingAddonsFolder(@NotNull File sdkHomePath) {
-    File addonsFolder = new File(sdkHomePath, FD_ADDONS);
-    return !addonsFolder.isDirectory() || notNullize(addonsFolder.listFiles()).length == 0;
-  }
-
-  @Nullable
   public Sdk findSuitableAndroidSdk(@NotNull String targetHash) {
     for (Sdk sdk : getAllAndroidSdks()) {
       AndroidSdkAdditionalData originalData = getAndroidSdkAdditionalData(sdk);

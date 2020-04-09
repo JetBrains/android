@@ -190,7 +190,7 @@ public class GradleNameElement {
     return myOriginalName;
   }
 
-  public void rename(@NotNull String newName) {
+  private void internalRename(@NotNull String newName) {
     if (!isFake()) {
       myLocalName = newName;
     }
@@ -198,6 +198,14 @@ public class GradleNameElement {
       myFakeName = newName;
     }
     myName = null;
+  }
+
+  public void rename(@NotNull String newName) {
+    internalRename(escape(newName));
+  }
+
+  public void rename(@NotNull List<String> hierarchicalName) {
+    internalRename(join(hierarchicalName));
   }
 
   public boolean isEmpty() {
@@ -276,6 +284,23 @@ public class GradleNameElement {
   }
 
   @NotNull
+  public static String unescape(@NotNull String part) {
+    StringBuilder buf = new StringBuilder();
+    for (int i = 0; i < part.length(); i++) {
+      char c = part.charAt(i);
+      if (c == '\\') {
+        assert i < part.length() - 1;
+        buf.append(part.charAt(++i));
+      }
+      else {
+        buf.append(c);
+      }
+    }
+    String result = buf.toString();
+    return result;
+  }
+
+  @NotNull
   @VisibleForTesting
   public static String join (@NotNull List<String> parts) {
     String result = parts.stream().map(GradleNameElement::escape).collect(Collectors.joining("."));
@@ -283,7 +308,6 @@ public class GradleNameElement {
   }
 
   @NotNull
-  @VisibleForTesting
   public static List<String> split(@NotNull String name) {
     StringBuilder buf = new StringBuilder();
     List<String> result = new ArrayList<>();

@@ -23,9 +23,12 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
-import com.android.tools.idea.compose.preview.actions.AnimatedPreviewEnabler
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.ToggleAutoBuildAction
+import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
+import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
+import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -76,7 +79,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       GroupSwitchAction(),
       if (StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD.get()) ToggleAutoBuildAction() else null,
       ForceCompileAndRefreshAction(surface),
-      if (StudioFlags.COMPOSE_ANIMATED_PREVIEW.get()) AnimatedPreviewEnabler() else null,
       if (StudioFlags.COMPOSE_DEBUG_BOUNDS.get()) ShowDebugBoundaries() else null
     )
   )
@@ -154,8 +156,9 @@ class ComposeFileEditorProvider @JvmOverloads constructor(
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
     val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
     val previewProvider = object: PreviewElementProvider {
-      override val previewElements: List<PreviewElement>
-        get() = if (DumbService.isDumb(project)) emptyList() else filePreviewElementProvider().findPreviewMethods(project, file)
+      override val previewElements: Sequence<PreviewElement>
+        get() = if (DumbService.isDumb(project)) emptySequence() else
+          filePreviewElementProvider().findPreviewMethods(project, file)
     }
     val previewRepresentation = ComposePreviewRepresentation(psiFile, previewProvider)
     val previewEditor = PreviewEditor(psiFile, previewRepresentation)

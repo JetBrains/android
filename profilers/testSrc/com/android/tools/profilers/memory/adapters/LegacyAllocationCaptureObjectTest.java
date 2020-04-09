@@ -58,7 +58,7 @@ public class LegacyAllocationCaptureObjectTest {
   public void testFailedAllocationsInfo() {
     AllocationsInfo testInfo = AllocationsInfo.newBuilder().setSuccess(false).build();
     LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()),
                                         ProfilersTestData.SESSION_DATA,
                                         testInfo,
                                         myIdeProfilerServices.getFeatureTracker());
@@ -80,7 +80,7 @@ public class LegacyAllocationCaptureObjectTest {
 
     AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).setSuccess(true).build();
     LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()),
                                         ProfilersTestData.SESSION_DATA,
                                         testInfo,
                                         myIdeProfilerServices.getFeatureTracker());

@@ -26,19 +26,19 @@ import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import com.android.tools.profilers.memory.adapters.ValueObject;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableSet;
 import java.awt.Component;
@@ -72,7 +72,7 @@ public class MemoryInstanceDetailsViewTest {
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
     myStage =
-      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer),
+      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer),
                               loader);
     myDetailsView = new MemoryInstanceDetailsView(myStage, myFakeIdeProfilerComponents);
     myFakeCaptureObject = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE").build();

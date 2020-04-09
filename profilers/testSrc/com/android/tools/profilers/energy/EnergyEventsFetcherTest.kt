@@ -53,7 +53,6 @@ class EnergyEventsFetcherTest(private val useUnifiedEvents: Boolean) {
 
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel("EnergyEventsFetcherTest", myEnergyService, myTransportService)
-  val myProfilerClient = ProfilerClient(myGrpcChannel.name)
 
   @Before
   fun setUp() {
@@ -62,7 +61,7 @@ class EnergyEventsFetcherTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun expectCreateFetcherInitialFetchData() {
-    val fetcher = EnergyEventsFetcher(myProfilerClient, mySession, Range(1000.0, 2000.0), useUnifiedEvents)
+    val fetcher = EnergyEventsFetcher(ProfilerClient(myGrpcChannel.channel), mySession, Range(1000.0, 2000.0), useUnifiedEvents)
     var result: List<EnergyDuration> = ArrayList()
     val listener = EnergyEventsFetcher.Listener { list -> result = list }
     fetcher.addListener(listener)
@@ -71,7 +70,7 @@ class EnergyEventsFetcherTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun expectListenerDataAreCategorizedById() {
-    val fetcher = EnergyEventsFetcher(myProfilerClient, mySession, Range(1000.0, 2000.0), useUnifiedEvents)
+    val fetcher = EnergyEventsFetcher(ProfilerClient(myGrpcChannel.channel), mySession, Range(1000.0, 2000.0), useUnifiedEvents)
     var result: List<EnergyDuration> = ArrayList()
     val listener = EnergyEventsFetcher.Listener { list -> result = list }
     fetcher.addListener(listener)
@@ -91,7 +90,7 @@ class EnergyEventsFetcherTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun testFetchCompleteDurations() {
-    val fetcher = EnergyEventsFetcher(myProfilerClient, mySession, Range(1299.0, 2000.0), useUnifiedEvents)
+    val fetcher = EnergyEventsFetcher(ProfilerClient(myGrpcChannel.channel), mySession, Range(1299.0, 2000.0), useUnifiedEvents)
     var result: List<EnergyDuration> = ArrayList()
     val listener = EnergyEventsFetcher.Listener { list -> result = list }
     fetcher.addListener(listener)

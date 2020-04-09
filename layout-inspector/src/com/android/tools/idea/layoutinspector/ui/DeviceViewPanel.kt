@@ -212,8 +212,9 @@ class DeviceViewPanel(
     layeredPane.add(floatingToolbar)
     layeredPane.add(scrollPane, BorderLayout.CENTER)
 
-    layoutInspector.layoutInspectorModel.modificationListeners.add { _, _, structural ->
-      if (structural) {
+    // Zoom to fit on initial connect
+    layoutInspector.layoutInspectorModel.modificationListeners.add { old, _, _ ->
+      if (old == null) {
         zoom(ZoomType.FIT)
       }
     }

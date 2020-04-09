@@ -37,6 +37,7 @@ import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.SideBorder
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
@@ -90,9 +91,11 @@ class TableViewImpl : TableView {
   private val previousRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
   private val nextRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
 
-  private val pageSizeComboBox = ComboBox<Int>().apply { name = "page-size-combo-box" }
+  private val pageSizeComboBox = ComboBox<Int>()
 
-  private val refreshButton = CommonButton("Refresh table", AllIcons.Actions.Refresh).apply { name = "refresh-button" }
+  private val refreshButton = CommonButton("Refresh table", AllIcons.Actions.Refresh)
+
+  private val liveUpdatesCheckBox = JBCheckBox("Live updates")
 
   private val table = JBTable()
   private val tableScrollPane = JBScrollPane(table)
@@ -140,6 +143,7 @@ class TableViewImpl : TableView {
     setFetchNextRowsButtonState(false)
     setFetchPreviousRowsButtonState(false)
 
+    pageSizeComboBox.name = "page-size-combo-box"
     pageSizeComboBox.isEnabled = false
     pageSizeComboBox.isEditable = true
     pageSizeDefaultValues.forEach { pageSizeComboBox.addItem(it) }
@@ -157,11 +161,17 @@ class TableViewImpl : TableView {
     pagingControlsPanel.add(lastRowsPageButton)
     lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() } }
 
+    refreshButton.name = "refresh-button"
     refreshButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Refresh)
     refreshButton.toolTipText = "Refresh table"
     refreshButton.isEnabled = false
     tableActionsPanel.add(refreshButton)
     refreshButton.addActionListener { listeners.forEach { it.refreshDataInvoked() } }
+
+    liveUpdatesCheckBox.name = "live-updates-checkbox"
+    liveUpdatesCheckBox.isEnabled = false
+    liveUpdatesCheckBox.addActionListener { listeners.forEach { it.toggleLiveUpdatesInvoked() } }
+    tableActionsPanel.add(liveUpdatesCheckBox)
 
     table.background = primaryContentBackground
     table.emptyText.text = "Table is empty"
@@ -212,9 +222,11 @@ class TableViewImpl : TableView {
   override fun resetView() {
     columns = null
     table.model = MyTableModel(emptyList())
+    table.emptyText.text = "Table is empty"
   }
 
   override fun startTableLoading() {
+    liveUpdatesCheckBox.isEnabled = false
     refreshButton.isEnabled = false
     pageSizeComboBox.isEnabled = false
 
@@ -232,6 +244,7 @@ class TableViewImpl : TableView {
   }
 
   override fun stopTableLoading() {
+    liveUpdatesCheckBox.isEnabled = true
     refreshButton.isEnabled = true
     pageSizeComboBox.isEnabled = true
 
@@ -264,6 +277,10 @@ class TableViewImpl : TableView {
 
   override fun updateRows(rowDiffOperations: List<RowDiffOperation>) {
     (table.model as MyTableModel).applyRowsDiff(rowDiffOperations)
+  }
+
+  override fun setEmptyText(text: String) {
+    table.emptyText.text = text
   }
 
   override fun reportError(message: String, t: Throwable?) {

@@ -26,18 +26,24 @@ import com.android.tools.idea.layoutinspector.DEFAULT_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
+import com.android.tools.idea.layoutinspector.model.VIEW2
+import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
 import org.jetbrains.android.util.AndroidBundle
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -53,7 +59,7 @@ import javax.swing.JScrollPane
 import javax.swing.JViewport
 
 @RunsInEdt
-class DeviceViewPanelTest {
+class DeviceViewPanelWithFullInspectorTest {
 
   @get:Rule
   val disposableRule = DisposableRule()
@@ -65,6 +71,77 @@ class DeviceViewPanelTest {
   val inspectorRule = LayoutInspectorTransportRule().withDefaultDevice(connected = true)
 
   @Test
+  fun testLiveControlEnabled() {
+    val settings = DeviceViewSettings()
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
+    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    assertThat(checkbox.isEnabled).isTrue()
+    assertThat(checkbox.toolTipText).isNull()
+  }
+}
+
+@RunsInEdt
+class DeviceViewPanelTest {
+
+  @get:Rule
+  val disposableRule = DisposableRule()
+
+  @get:Rule
+  val edtRule = EdtRule()
+
+  @get:Rule
+  val projectRule = ProjectRule()
+
+  private var defaultClientFactory: ((model: InspectorModel, parentDisposable: Disposable) -> InspectorClient)? = null
+
+  @Before
+  fun setUp() {
+    defaultClientFactory = InspectorClient.clientFactory
+    InspectorClient.clientFactory = { _, _ -> mock(DefaultInspectorClient::class.java) }
+  }
+
+  @After
+  fun tearDown() {
+    InspectorClient.clientFactory =  defaultClientFactory!!
+  }
+
+  @Test
+  fun testZoomOnConnect() {
+    val viewSettings = DeviceViewSettings(scalePercent = 100)
+    val model = InspectorModel(projectRule.project)
+    val panel = DeviceViewPanel(LayoutInspector(model, disposableRule.disposable), viewSettings, disposableRule.disposable)
+
+    val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
+    scrollPane.setSize(200, 300)
+
+    assertThat(viewSettings.scalePercent).isEqualTo(100)
+
+    val newModel = model {
+      view(ROOT, 0, 0, 100, 200) {
+        view(VIEW1, 25, 30, 50, 50, imageBottom = mock(Image::class.java))
+      }
+    }
+
+    model.update(newModel.root, ROOT, listOf(ROOT))
+
+    // now we should be zoomed to fit
+    assertThat(viewSettings.scalePercent).isEqualTo(135)
+
+    viewSettings.scalePercent = 200
+
+    // Update the model
+    val newModel2 = model {
+      view(ROOT, 0, 0, 100, 200) {
+        view(VIEW2, 50, 20, 30, 40, imageBottom = mock(Image::class.java))
+      }
+    }
+    model.update(newModel2.root, ROOT, listOf(ROOT))
+
+    // Should still have the manually set zoom
+    assertThat(viewSettings.scalePercent).isEqualTo(200)
+  }
+
+  @Test
   fun testFocusableActionButtons() {
     InspectorClient.clientFactory = { _, _ -> mock(InspectorClient::class.java) }
     val model = model { view(1, 0, 0, 1200, 1600, "RelativeLayout") }
@@ -72,15 +149,6 @@ class DeviceViewPanelTest {
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(DeviceViewPanel(inspector, settings, disposableRule.disposable))
     toolbar.components.forEach { assertThat(it.isFocusable).isTrue() }
-  }
-
-  @Test
-  fun testLiveControlEnabled() {
-    val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
-    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
-    assertThat(checkbox.isEnabled).isTrue()
-    assertThat(checkbox.toolTipText).isNull()
   }
 
   @Test

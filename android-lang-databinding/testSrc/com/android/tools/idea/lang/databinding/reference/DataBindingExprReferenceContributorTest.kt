@@ -16,7 +16,7 @@
 package com.android.tools.idea.lang.databinding.reference
 
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -169,7 +169,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     }
 
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = mode
+    LayoutBindingModuleCache.getInstance(androidFacet!!).dataBindingMode = mode
   }
 
   @Test

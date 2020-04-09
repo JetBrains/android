@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.debugger
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -126,14 +127,11 @@ class LocalApkProjTest {
   }
 
   private fun buildApkLocally(apkProjectToImport: String): File {
-    val ideFrame = guiTest.importProject(apkProjectToImport)
-    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(120))
+    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish(apkProjectToImport, Wait.seconds(120))
 
-    ideFrame.waitAndInvokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
+    ideFrame.actAndWaitForBuildToFinish { it.waitAndInvokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)") }
 
-    val projectRoot = ideFrame.getProjectPath()
-    guiTest.waitForBackgroundTasks()
-
+    val projectRoot = ideFrame.projectPath
     // We will have another window opened for the APK project. Close this window
     // so we don't have to manage two windows.
     ideFrame.closeProject()

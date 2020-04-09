@@ -17,14 +17,13 @@ package org.jetbrains.android.dom.inspections;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.databinding.DataBindingModuleComponent;
+import com.android.tools.idea.databinding.DataBindingAnnotationsService;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.XmlRecursiveElementVisitor;
@@ -82,12 +81,9 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
     }
 
     if (isMyFile(facet, (XmlFile)file)) {
-      Module module = facet.getModule();
       // Support attributes defined by @BindingAdapter annotations.
-      DataBindingModuleComponent dataBindingComponent = module.getComponent(DataBindingModuleComponent.class);
-      Set<String> bindingAdapterAttributes = dataBindingComponent != null
-                                             ? dataBindingComponent.getBindingAdapterAttributes()
-                                             : Collections.emptySet();
+      DataBindingAnnotationsService bindingAnnotationsService = DataBindingAnnotationsService.getInstance(facet);
+      Set<String> bindingAdapterAttributes = bindingAnnotationsService.getBindingAdapterAttributes();
       MyVisitor visitor = new MyVisitor(manager, bindingAdapterAttributes, isOnTheFly);
       file.accept(visitor);
       return visitor.myResult.toArray(ProblemDescriptor.EMPTY_ARRAY);

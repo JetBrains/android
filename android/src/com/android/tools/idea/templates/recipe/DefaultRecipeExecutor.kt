@@ -20,6 +20,7 @@ import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.GRADLE_API_CONFIGURATION
 import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.TOOLS_URI
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
@@ -41,13 +42,11 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.gradle.util.GradleUtil.dependsOn
-import com.android.tools.idea.gradle.util.GradleUtil.dependsOnAndroidTest
-import com.android.tools.idea.gradle.util.GradleUtil.dependsOnJavaLibrary
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
+import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
 import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing
@@ -56,7 +55,6 @@ import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
 import com.android.tools.idea.templates.TemplateUtils.writeTextFile
 import com.android.tools.idea.templates.resolveDependency
-import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -112,7 +110,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val buildModel =
       if (moduleDir != null) {
         projectBuildModel?.getModuleBuildModel(moduleDir)
-      } else {
+      }
+      else {
         moduleGradleBuildModel
       } ?: return false
 
@@ -120,12 +119,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       return true
     }
 
-    val facet = context.module?.androidFacet ?: return false
-    val androidModel = AndroidModuleModel.get(facet) ?: return false
-
-    return dependsOn(androidModel, mavenCoordinate) ||
-           dependsOnJavaLibrary(androidModel, mavenCoordinate) ||
-           dependsOnAndroidTest(androidModel, mavenCoordinate)
+    return GradleCoordinate.parseCoordinateString(mavenCoordinate)
+      ?.let { gradleCoordinate -> context.module?.getModuleSystem()?.getRegisteredDependency(gradleCoordinate) } != null
   }
 
   private fun GradleBuildModel.getDependencyConfiguration(mavenCoordinate: String): String? {
@@ -356,13 +351,30 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     srcDirsModel.addListValue().setValue(relativeDir)
   }
 
-  override fun setExtVar(name: String, value: Any) {
+  override fun setExtVar(name: String, value: String) {
     val buildModel = projectGradleBuildModel ?: return
     val property = buildModel.buildscript().ext().findProperty(name)
-    if (property.valueType != GradlePropertyModel.ValueType.NONE) {
+    if (property.valueType != ValueType.NONE) {
       return // we do not override property value if it exists. TODO(qumeric): ask user?
     }
     property.setValue(value)
+  }
+
+  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) : String {
+    val mavenDependency = ArtifactDependencySpec.create(mavenCoordinate)
+    check(mavenDependency != null) { "$mavenCoordinate is not a valid classpath dependency" }
+
+    val buildScriptDependencies = projectGradleBuildModel?.buildscript()?.dependencies() ?: return valueIfNotFound
+    val targetDependencyModel = buildScriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME).firstOrNull {
+      mavenDependency.equalsIgnoreVersion(it.spec)
+    }
+    val unresolvedModel = targetDependencyModel?.version()?.unresolvedModel ?: return valueIfNotFound
+
+    if (unresolvedModel.valueType == ValueType.REFERENCE) {
+      return unresolvedModel.getValue(GradlePropertyModel.STRING_TYPE) ?: valueIfNotFound
+    }
+
+    return valueIfNotFound
   }
 
   /**
@@ -379,9 +391,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val buildModel = moduleGradleBuildModel ?: return
     val feature = when (name) {
       "compose" -> buildModel.android().buildFeatures().compose()
+      "mlModelBinding" -> buildModel.android().buildFeatures().mlModelBinding()
       else -> throw IllegalArgumentException("currently only compose build feature is supported")
     }
-    if (feature.valueType != GradlePropertyModel.ValueType.NONE) {
+    if (feature.valueType != ValueType.NONE) {
       return // we do not override value if it exists. TODO(qumeric): ask user?
     }
     feature.setValue(value)
@@ -400,7 +413,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val buildModel = moduleGradleBuildModel ?: return
 
     fun updateCompatibility(current: LanguageLevelPropertyModel) {
-      if (current.valueType == GradlePropertyModel.ValueType.NONE ||
+      if (current.valueType == ValueType.NONE ||
           current.toLanguageLevel()!!.isLessThan(languageLevel)) {
         current.setLanguageLevel(languageLevel)
       }

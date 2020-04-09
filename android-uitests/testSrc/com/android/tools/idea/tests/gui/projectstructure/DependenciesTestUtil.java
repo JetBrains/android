@@ -62,7 +62,7 @@ public class DependenciesTestUtil {
                                                     @NotNull String appName,
                                                     int minSdkApi,
                                                     @NotNull Language language) {
-    guiTest
+    return guiTest
       .welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
@@ -75,17 +75,14 @@ public class DependenciesTestUtil {
       .selectMinimumSdkApi(minSdkApi)
       .setSourceLanguage(language)
       .wizard()
-      .clickFinish();
-
-    return guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30));
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(30));
   }
 
   protected static void createJavaModule(@NotNull IdeFrameFixture ideFrame) {
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextToJavaLibrary()
       .wizard()
-      .clickFinish() // Use default Java Module name.
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
   }
 
   protected static void accessLibraryClassAndVerify(@NotNull IdeFrameFixture ideFrame,
@@ -161,8 +158,7 @@ public class DependenciesTestUtil {
       .clickNextToAndroidLibrary()
       .enterModuleName(moduleName)
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
   }
 
   protected static void createJavaClassInModule(@NotNull IdeFrameFixture ideFrame,

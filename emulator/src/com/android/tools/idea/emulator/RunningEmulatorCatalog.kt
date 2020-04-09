@@ -17,8 +17,11 @@ package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
+import com.android.emulator.control.VmRunState
 import com.android.tools.idea.concurrency.AndroidIoManager
 import com.google.common.collect.ImmutableSet
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.Disposer
@@ -27,6 +30,7 @@ import com.intellij.util.Alarm
 import gnu.trove.TObjectLongHashMap
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
@@ -49,8 +53,6 @@ class RunningEmulatorCatalog : Disposable.Parent {
   @Volatile private var isDisposing = false
   private val updateLock = Object()
   @GuardedBy("updateLock")
-  private var updateInProgress = false
-  @GuardedBy("updateLock")
   private var lastUpdateStartTime: Long = 0
   @GuardedBy("updateLock")
   private var lastUpdateDuration: Long = 0
@@ -63,6 +65,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
   /** Long.MAX_VALUE means no updates. A negative value means that the update interval needs to be calculated. */
   @GuardedBy("updateLock")
   private var updateInterval: Long = Long.MAX_VALUE
+  @GuardedBy("updateLock")
+  private var pendingFutures: MutableList<SettableFuture<Set<EmulatorController>>> = mutableListOf()
 
   /**
    * Adds a listener that will be notified when new Emulators start and running Emulators shut down.
@@ -80,9 +84,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       if (updateIntervalMillis < updateInterval) {
         updateInterval = updateIntervalMillis.toLong()
       }
-      if (!updateInProgress) {
-        scheduleUpdate(updateInterval)
-      }
+      scheduleUpdate(updateInterval)
     }
   }
 
@@ -134,28 +136,38 @@ class RunningEmulatorCatalog : Disposable.Parent {
     return updateInterval
   }
 
-  fun updateNow() {
+  /**
+   * Triggers an immediate update and returns a future for the updated set of running emulators.
+   */
+  fun updateNow(): ListenableFuture<Set<EmulatorController>> {
     synchronized(updateLock) {
+      val future: SettableFuture<Set<EmulatorController>> = SettableFuture.create()
+      pendingFutures.add(future)
       scheduleUpdate(0)
+      return future
     }
   }
 
   private fun update() {
     if (isDisposing) return
 
+    val futures: List<SettableFuture<Set<EmulatorController>>>
+
     synchronized(updateLock) {
-      if (updateInProgress) {
-        return
-      }
-      updateInProgress = true
       nextScheduledUpdateTime = Long.MAX_VALUE
+
+      if (pendingFutures.isEmpty()) {
+        futures = emptyList()
+      }
+      else {
+        futures = pendingFutures
+        pendingFutures = mutableListOf()
+      }
     }
 
     try {
       val start = System.currentTimeMillis()
-      val files = Files.list(registrationDir).use {
-        it.filter { fileNamePattern.matcher(it.fileName.toString()).matches() }.toList()
-      }
+      val files = readRegistrationDirectory()
       val oldEmulators = emulators.associateBy { it.emulatorId }
       val newEmulators = ConcurrentHashMap<EmulatorId, EmulatorController>()
       if (files.isNotEmpty() && !isDisposing) {
@@ -195,11 +207,14 @@ class RunningEmulatorCatalog : Disposable.Parent {
       val listenersSnapshot: List<Listener>
 
       synchronized(updateLock) {
+        if (isDisposing) return
         lastUpdateStartTime = start
         lastUpdateDuration = System.currentTimeMillis() - start
-        updateInProgress = false
         emulators = ImmutableSet.copyOf(newEmulators.values)
         listenersSnapshot = listeners
+        for (future in futures) {
+          future.set(emulators)
+        }
         if (!isDisposing) {
           scheduleUpdate()
         }
@@ -226,7 +241,28 @@ class RunningEmulatorCatalog : Disposable.Parent {
         Disposer.dispose(emulator)
       }
     }
-    catch (ignore: IOException) {
+    catch (e: IOException) {
+      logger.error("Running Emulator detection failed", e)
+
+      synchronized(updateLock) {
+        for (future in futures) {
+          future.setException(e)
+        }
+        if (!isDisposing) {
+          // TODO: Implement exponential backoff for retries.
+          scheduleUpdate()
+        }
+      }
+    }
+  }
+
+  private fun readRegistrationDirectory(): List<Path> {
+    return try {
+      Files.list(registrationDir).use {
+        it.filter { fileNamePattern.matcher(it.fileName.toString()).matches() }.toList()
+      }
+    } catch (e: NoSuchFileException) {
+      emptyList() // The registration directory hasn't been created yet.
     }
   }
 
@@ -297,6 +333,14 @@ class RunningEmulatorCatalog : Disposable.Parent {
 
   override fun beforeTreeDispose() {
     isDisposing = true
+
+    // Shut down all embedded Emulators.
+    synchronized(updateLock) {
+      for (emulator in emulators) {
+        val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
+        emulator.setVmState(vmRunState)
+      }
+    }
   }
 
   override fun dispose() {

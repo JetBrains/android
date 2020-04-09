@@ -24,7 +24,6 @@ import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_
 import static com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN;
 import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
@@ -82,7 +81,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBPanel;
@@ -547,7 +545,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     StudioProfilers profilers = getStage().getStudioProfilers();
     StreamingTimeline timeline = getStage().getTimeline();
     Range viewRange = timeline.getViewRange();
-    myRangeSelectionComponent = new RangeSelectionComponent(getStage().getRangeSelectionModel(), timeline.getViewRange());
+    myRangeSelectionComponent = new RangeSelectionComponent(getStage().getRangeSelectionModel());
     myRangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     RangeTooltipComponent tooltip = new RangeTooltipComponent(getStage().getTimeline(),
                                                               getTooltipPanel(),

@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ANDROID_HOME_ENV;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 
@@ -43,7 +44,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.emulator.EmulatorSettings;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -76,6 +77,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.messages.MessageBus;
 import com.intellij.util.net.HttpConfigurable;
 import java.awt.Dimension;
 import java.io.BufferedWriter;
@@ -467,7 +469,8 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
-    EmulatorRunner runner = new EmulatorRunner(newEmulatorCommand(emulatorBinary, info, parameters), info);
+    GeneralCommandLine commandLine = newEmulatorCommand(emulatorBinary, info, parameters);
+    EmulatorRunner runner = new EmulatorRunner(commandLine, info);
     addListeners(runner);
 
     final ProcessHandler processHandler;
@@ -509,6 +512,10 @@ public class AvdManagerConnection {
         p.processFinish();
       }
     });
+
+    // Send notification that the device has been launched.
+    MessageBus messageBus = project != null ? project.getMessageBus() : ApplicationManager.getApplication().getMessageBus();
+    messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(info, commandLine, project);
 
     return EmulatorConnectionListener.getDeviceForEmulator(project, info.getName(), processHandler, 5, TimeUnit.MINUTES);
   }
@@ -576,13 +583,23 @@ public class AvdManagerConnection {
     writeParameterFile(commandLine);
 
     commandLine.addParameters("-avd", info.getName());
-    if (StudioFlags.EMBEDDED_EMULATOR_ENABLED.get()) {
+    if (shouldBeLaunchedEmbedded(info)) {
       int port = 8554 + grpcPortCounter.getAndIncrement() % 32;
       commandLine.addParameters("-grpc", Integer.toString(port)); // TODO: Remove after ag/1245952 has been submitted.
+      commandLine.addParameters("-no-window", "-gpu", "auto-no-window"); // Launch headless.
     }
   }
 
   private static final AtomicInteger grpcPortCounter = new AtomicInteger();
+
+  private static boolean shouldBeLaunchedEmbedded(@NotNull AvdInfo avd) {
+    // In order for an AVD to be launched in a tool window the corresponding option should be
+    // enabled in Emulator settings and the AVD should not be foldable, TV, or Android Auto.
+    return EmulatorSettings.getInstance().getLaunchInToolWindow() &&
+           avd.getProperty("hw.displayRegion.0.1.width") == null && // Not foldable.
+           !"android-tv".equals(avd.getProperty(AVD_INI_TAG_ID)) &&
+           !"android-automotive".equals(avd.getProperty(AVD_INI_TAG_ID));
+  }
 
   /**
    * Indicates if the Emulator's version is at least {@code desired}

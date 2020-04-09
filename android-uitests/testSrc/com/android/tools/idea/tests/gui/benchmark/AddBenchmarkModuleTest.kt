@@ -60,8 +60,7 @@ class AddBenchmarkModuleTest {
       .clickNextToBenchmarkModule()
       .setSourceLanguage(Java)
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
       .projectView
       .selectAndroidPane()
       .clickPath("benchmark")
@@ -109,8 +108,7 @@ class AddBenchmarkModuleTest {
       .clickNextToBenchmarkModule()
       .setSourceLanguage(Kotlin)
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish()
       .projectView
       .selectAndroidPane()
       .clickPath("benchmark")

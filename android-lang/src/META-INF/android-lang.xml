@@ -102,6 +102,15 @@
                      implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8ArrayTypeInspection"
                      displayName="Invalid using of array type"/>
 
+    <localInspection groupPath="Android"
+                     groupName="Shrinker"
+                     language="SHRINKER_CONFIG"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     shortName="ShrinkerInnerClassSeparator"
+                     implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InnerClassSeparatorInspection"
+                     displayName="Invalid separator between class and inner class"/>
+
     <lang.inspectionSuppressor
         language="SHRINKER_CONFIG"
         implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InspectionSuppressor"/>
