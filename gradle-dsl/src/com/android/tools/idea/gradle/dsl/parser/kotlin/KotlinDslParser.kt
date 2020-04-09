@@ -142,7 +142,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         return unquoteString(literal.text)
       }
       // For String and constant literals. Ex : Integers, single-quoted Strings.
-      is KtStringTemplateExpression, is KtStringTemplateEntry -> {
+      is KtStringTemplateExpression -> {
         if (!resolve || context.hasCycle()) {
           return unquoteString(literal.text)
         }
