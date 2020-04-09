@@ -51,6 +51,7 @@ import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
@@ -61,6 +62,14 @@ const val DAGGER_BINDS_ANNOTATION = "dagger.Binds"
 const val INJECT_ANNOTATION = "javax.inject.Inject"
 const val DAGGER_COMPONENT_ANNOTATION = "dagger.Component"
 const val DAGGER_SUBCOMPONENT_ANNOTATION = "dagger.Subcomponent"
+const val DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION = "dagger.Subcomponent.Builder"
+const val DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION = "dagger.Subcomponent.Factory"
+
+
+private const val INCLUDES_ATTR_NAME = "includes"
+private const val MODULES_ATTR_NAME = "modules"
+private const val DEPENDENCIES_ATTR_NAME = "dependencies"
+private const val SUBCOMPONENTS_ATTR_NAME = "subcomponents"
 
 /**
  * Returns all classes annotated [annotationName] in a given [searchScope].
@@ -217,23 +226,24 @@ val PsiElement?.isDaggerConsumer: Boolean
            this is KtParameter && this.ownerFunction.isDaggerProvider
   }
 
+
+internal fun PsiElement?.isClassAnnotatedWith(annotationFQName: String): Boolean {
+  return this is KtClass && findAnnotation(FqName(annotationFQName)) != null ||
+         this is PsiClass && hasAnnotation(annotationFQName)
+}
+
 /**
  * True if PsiElement is class annotated DAGGER_MODULE_ANNOTATION.
  */
-internal val PsiElement?.isDaggerModule: Boolean
-  get() {
-    return this is KtClass && findAnnotation(FqName(DAGGER_MODULE_ANNOTATION)) != null ||
-           this is PsiClass && hasAnnotation(DAGGER_MODULE_ANNOTATION)
-  }
+internal val PsiElement?.isDaggerModule get() = isClassAnnotatedWith(DAGGER_MODULE_ANNOTATION)
 
 internal val PsiElement.isDaggerComponentMethod: Boolean
-  get() = this is PsiMethod && this.containingClass?.hasAnnotation(DAGGER_COMPONENT_ANNOTATION) == true
+  get() = this is PsiMethod && this.containingClass.isDaggerComponent ||
+          this is KtNamedFunction && this.containingClass().isDaggerComponent
 
-internal val PsiElement.isDaggerComponent: Boolean
-  get() {
-    return this is KtClass && findAnnotation(FqName(DAGGER_COMPONENT_ANNOTATION)) != null ||
-           this is PsiClass && hasAnnotation(DAGGER_COMPONENT_ANNOTATION)
-  }
+internal val PsiElement?.isDaggerComponent get() = isClassAnnotatedWith(DAGGER_COMPONENT_ANNOTATION)
+
+internal val PsiElement?.isDaggerSubcomponent get() = isClassAnnotatedWith(DAGGER_SUBCOMPONENT_ANNOTATION)
 
 fun Module.isDaggerPresent(): Boolean = CachedValuesManager.getManager(this.project).getCachedValue(this) {
   CachedValueProvider.Result(calculateIsDaggerPresent(this), ProjectRootModificationTracker.getInstance(this.project))
@@ -278,6 +288,51 @@ fun getDaggerComponentMethodsForProvider(provider: PsiElement): Collection<PsiMe
 }
 
 /**
+ * Returns interfaces annotated [DAGGER_COMPONENT_ANNOTATION] that are parents to a [subcomponent].
+ *
+ * A subcomponent can be associated with parent in two ways:
+ * 1. Add to the parent Component method that returns the [subcomponent] class or the [subcomponent] factory or builder class.
+ * 2. Add the [subcomponent] class to the [SUBCOMPONENTS_ATTR_NAME] attribute of a @Module that the parent component installs.
+ *
+ * See [Dagger doc](https://dagger.dev/subcomponents.html).
+ */
+internal fun getDaggerParentComponentsForSubcomponent(subcomponent: PsiClass): Collection<PsiClass> {
+  val buildersAndFactories = subcomponent.innerClasses.filter {
+    it.hasAnnotation(DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION) ||
+    it.hasAnnotation(DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION)
+  }.map { it.qualifiedName }
+
+  val components = getClassesWithAnnotation(subcomponent.project, DAGGER_COMPONENT_ANNOTATION, subcomponent.useScope)
+  val componentsMethods = components.filter { component ->
+    component.methods.any {
+      val returnClazz = (it.returnType as? PsiClassType)?.resolve() ?: return@any false
+      returnClazz.qualifiedName == subcomponent.qualifiedName || returnClazz.qualifiedName in buildersAndFactories
+    }
+  }
+
+  val modules = getDaggerModulesForSubcomponent(subcomponent)
+
+  val componentsThroughModules = modules.flatMap { module ->
+    getClassesWithAnnotation(module.project, DAGGER_COMPONENT_ANNOTATION, module.useScope).filter { component ->
+      component.getAnnotation(DAGGER_COMPONENT_ANNOTATION)
+        ?.isClassPresentedInAttribute(MODULES_ATTR_NAME, module.qualifiedName!!) == true
+    }
+  }
+
+  return (componentsMethods + componentsThroughModules).distinct()
+}
+
+/**
+ * Returns classes annotated [DAGGER_MODULE_ANNOTATION] that in [SUBCOMPONENTS_ATTR_NAME] attribute have subcomponents class.
+ */
+private fun getDaggerModulesForSubcomponent(subcomponent: PsiClass): Collection<PsiClass> {
+  val modules = getClassesWithAnnotation(subcomponent.project, DAGGER_MODULE_ANNOTATION, subcomponent.useScope)
+  return modules.filter {
+    it.getAnnotation(DAGGER_MODULE_ANNOTATION)?.isClassPresentedInAttribute(SUBCOMPONENTS_ATTR_NAME, subcomponent.qualifiedName!!) == true
+  }
+}
+
+/**
  * Returns true if an attribute with an [attrName] contains class with fully qualified name equals [fqcn].
  *
  * Assumes that the attribute has type Class<?>[]`.
@@ -290,10 +345,6 @@ private fun PsiAnnotation.isClassPresentedInAttribute(attrName: String, fqcn: St
     clazz?.qualifiedName == fqcn
   }
 }
-
-private const val INCLUDES_ATTR_NAME = "includes"
-private const val MODULES_ATTR_NAME = "modules"
-private const val DEPENDENCIES_ATTR_NAME = "dependencies"
 
 /**
  * Returns Dagger-components and Dagger-modules that in a attribute “modules” and "includes" respectively have a [module] class.

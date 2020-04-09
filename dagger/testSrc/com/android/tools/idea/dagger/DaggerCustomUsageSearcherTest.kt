@@ -612,6 +612,94 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
   }
 
+  fun testParentsForSubcomponent() {
+    // Java Subomponent
+    val subcomponentFile = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Subcomponent;
+
+      @Subcomponent
+      public interface MySubcomponent {
+        @Subcomponent.Builder
+          interface Builder {}
+      }
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+
+        import dagger.Module;
+
+        @Module(subcomponents = { MySubcomponent.class })
+        class MyModule { }
+      """.trimIndent()
+    )
+
+    // Java Component
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {}
+    """.trimIndent()
+    )
+
+    // Java Component
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component
+      public interface MyComponentWithBuilder {
+        MySubcomponent.Builder componentBuilder();
+      }
+    """.trimIndent()
+    )
+
+    // Kotlin Component
+    myFixture.addFileToProject(
+      "test/MyComponentKt.kt",
+      //language=kotlin
+      """
+      package test
+      import dagger.Component
+
+      @Component
+      interface MyComponentKt {
+         fun getSubcomponent():MySubcomponent
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(subcomponentFile)
+    val component = myFixture.moveCaret("MySubcompon|ent").parentOfType<PsiClass>()!!
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
+
+    assertThat(presentation).contains(
+      """
+      |  Dependency component(s) (3 usages)
+      |   ${myFixture.module.name} (3 usages)
+      |    test (3 usages)
+      |     MyComponent.java (1 usage)
+      |      5public interface MyComponent {}
+      |     MyComponentWithBuilder.java (1 usage)
+      |      5public interface MyComponentWithBuilder {
+      |     MyComponentKt.kt (1 usage)
+      |      5interface MyComponentKt {
+      """.trimMargin()
+    )
+  }
+
   // TODO(b/150134125): uncomment
   //fun testProvidersKotlin() {
   //  myFixture.addClass(
