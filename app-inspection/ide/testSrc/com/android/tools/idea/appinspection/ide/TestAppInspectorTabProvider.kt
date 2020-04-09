@@ -16,13 +16,12 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.StubTestAppInspectorClient
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
-import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.TEST_JAR
 import com.intellij.openapi.project.Project
-import org.mockito.Mockito.mock
 import javax.swing.JPanel
 
 /**
@@ -42,8 +41,4 @@ class StubTestAppInspectorTabProvider(override val inspectorId: String) : AppIns
       override val component = JPanel()
     }
   }
-}
-
-class StubTestAppInspectorClient(messenger: CommandMessenger) : AppInspectorClient(messenger) {
-  override val rawEventListener: RawEventListener = mock(RawEventListener::class.java)
 }

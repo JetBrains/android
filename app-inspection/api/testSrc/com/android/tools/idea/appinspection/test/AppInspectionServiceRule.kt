@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.TestInspectorClient
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.appinspection.internal.attachAppInspectionTarget
 import com.android.tools.idea.appinspection.internal.launchInspectorForTest
@@ -39,8 +38,6 @@ import org.junit.runner.Description
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
-
-val TEST_JAR = AppInspectorJar("test")
 
 /**
  * Rule providing all of the underlying components of App Inspection including [executorService], [streamChannel], [transport] and [client].
