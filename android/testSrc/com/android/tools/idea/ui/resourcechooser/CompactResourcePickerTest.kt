@@ -145,7 +145,7 @@ class CompactResourcePickerTest {
       onSelectedResource,
       {},
       disposable
-    ).component
+    )
 
     // Wait for the panel to be populated
     waitAndAssert<JList<in Any>>(panel) {

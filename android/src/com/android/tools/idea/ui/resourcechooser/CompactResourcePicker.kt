@@ -91,7 +91,7 @@ class CompactResourcePicker(
   selectedResourceCallback: (String) -> Unit,
   resourcePickerDialogOpenedCallback: () -> Unit,
   parentDisposable: Disposable
-) {
+): JPanel(BorderLayout()) {
   private val scaledCellHeight = resourceType.getScaledCellHeight()
 
   private var resourcesModel: Map<ResourceSource, List<ResourceAssetSet>> by Delegates.observable(emptyMap()) { _, _, _ ->
@@ -191,9 +191,25 @@ class CompactResourcePicker(
   }
 
   /**
-   * The main panel of the [CompactResourcePicker].
+   * JobScheduler future that when run, will make the resources list look like if it's loading. If the list loads before the job is run,
+   * then it will simply be cancelled.
    */
-  val component = JPanel(BorderLayout()).apply {
+  private val showAsLoadingFuture = JobScheduler.getScheduler().schedule(
+    {
+      GuiUtils.invokeLaterIfNeeded(
+        {
+          // Schedule the 'loading' state of the list, to avoid flashing in the UI
+          resourcesList.setPaintBusy(true)
+          resourcesList.emptyText.text = "Loading..."
+        }, ModalityState.defaultModalityState())
+    }, 250L, TimeUnit.MILLISECONDS)
+
+  init {
+    populatePanel()
+    loadResources(facet, resourceResolver, resourceType)
+  }
+
+  private fun populatePanel() {
     preferredSize = JBDimension(PANEL_WIDTH, PANEL_HEIGHT)
     maximumSize = JBDimension(PANEL_WIDTH, PANEL_HEIGHT)
 
@@ -215,24 +231,6 @@ class CompactResourcePicker(
     addPropertyChangeListener("ancestor") {
       searchTextField.requestFocusInWindow()
     }
-  }
-
-  /**
-   * JobScheduler future that when run, will make the resources list look like if it's loading. If the list loads before the job is run,
-   * then it will simply be cancelled.
-   */
-  private val showAsLoadingFuture = JobScheduler.getScheduler().schedule(
-    {
-      GuiUtils.invokeLaterIfNeeded(
-        {
-          // Schedule the 'loading' state of the list, to avoid flashing in the UI
-          resourcesList.setPaintBusy(true)
-          resourcesList.emptyText.text = "Loading..."
-        }, ModalityState.defaultModalityState())
-    }, 250L, TimeUnit.MILLISECONDS)
-
-  init {
-    loadResources(facet, resourceResolver, resourceType)
   }
 
   /**

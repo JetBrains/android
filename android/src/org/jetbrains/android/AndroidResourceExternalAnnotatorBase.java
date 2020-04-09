@@ -121,12 +121,13 @@ public abstract class AndroidResourceExternalAnnotatorBase
     }
     else {
       assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
-      return getDrawableGutterIconRenderer(resolver, reference, facet, configuration);
+      return getDrawableGutterIconRenderer(element, resolver, reference, facet, configuration);
     }
   }
 
   @Nullable
-  private static GutterIconRenderer getDrawableGutterIconRenderer(@NotNull ResourceResolver resourceResolver,
+  private static GutterIconRenderer getDrawableGutterIconRenderer(@NotNull PsiElement element,
+                                                                  @NotNull ResourceResolver resourceResolver,
                                                                   @NotNull ResourceReference reference,
                                                                   @NotNull AndroidFacet facet,
                                                                   @NotNull Configuration configuration) {
@@ -141,8 +142,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     }
     // Updating the GutterIconCache in the background thread to include the icon.
     GutterIconCache.getInstance().getIcon(bitmap, resourceResolver, facet);
-    return new com.android.tools.idea.rendering.GutterIconRenderer(resourceResolver, facet, bitmap,
-                                                                   configuration);
+    return new com.android.tools.idea.rendering.GutterIconRenderer(element, resourceResolver, facet, bitmap, configuration);
   }
 
   @Nullable

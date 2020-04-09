@@ -4,13 +4,17 @@ package com.android.tools.idea.rendering;
 import static com.android.SdkConstants.DOT_JAR;
 import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 import static com.intellij.util.io.URLUtil.JAR_PROTOCOL;
+import static org.jetbrains.android.AndroidAnnotatorUtil.createSetAttributeTask;
 
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.util.PathString;
+import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.utils.HashCodes;
 import com.android.utils.SdkUtils;
@@ -18,6 +22,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -27,11 +33,14 @@ import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.Consumer;
 import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
+import java.awt.MouseInfo;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.Icon;
@@ -41,17 +50,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GutterIconRenderer extends com.intellij.openapi.editor.markup.GutterIconRenderer implements DumbAware {
+  private final static int PREVIEW_MAX_WIDTH = JBUI.scale(128);
+  private final static int PREVIEW_MAX_HEIGHT = JBUI.scale(128);
+  private final static String PREVIEW_TEXT = "Click Image to Open Resource";
+
   @NotNull private final ResourceResolver myResourceResolver;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final VirtualFile myFile;
   @NotNull private final Configuration myConfiguration;
+  @NotNull private final Consumer<String> mySetAttributeTask;
 
-  public GutterIconRenderer(@NotNull ResourceResolver resourceResolver, @NotNull AndroidFacet facet, @NotNull VirtualFile file,
+  public GutterIconRenderer(@NotNull PsiElement element, @NotNull ResourceResolver resourceResolver, @NotNull AndroidFacet facet, @NotNull VirtualFile file,
                             @NotNull Configuration configuration) {
     myResourceResolver = resourceResolver;
     myFacet = facet;
     myFile = file;
     myConfiguration = configuration;
+    mySetAttributeTask = createSetAttributeTask(element);
   }
 
   @Override
@@ -85,10 +100,21 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     return HashCodes.mix(myFacet.hashCode(), myFile.hashCode());
   }
 
-  private static class GutterIconClickAction extends AnAction implements NavigationTargetProvider {
-    private final static int PREVIEW_MAX_WIDTH = JBUI.scale(128);
-    private final static int PREVIEW_MAX_HEIGHT = JBUI.scale(128);
-    private final static String PREVIEW_TEXT = "Click Image to Open Resource";
+  private final static String SET_RESOURCE_COMMAND_NAME = "Resource picked";
+
+  private void setAttribute(@NotNull String colorString) {
+    Project project = myFacet.getModule().getProject();
+    TransactionGuard.submitTransaction(project, () ->
+      WriteCommandAction.runWriteCommandAction(project, SET_RESOURCE_COMMAND_NAME, null, () -> mySetAttributeTask.consume(colorString))
+    );
+  }
+
+  private static void openImageResourceTab(@NotNull Project project, @NotNull VirtualFile navigationTarget) {
+    OpenFileDescriptor descriptor = new OpenFileDescriptor(project, navigationTarget, -1);
+    FileEditorManager.getInstance(project).openEditor(descriptor, true);
+  }
+
+  private class GutterIconClickAction extends AnAction implements NavigationTargetProvider {
 
     @NotNull private final VirtualFile myFile;
     @NotNull private final ResourceResolver myResourceResolver;
@@ -108,22 +134,36 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
       final Editor editor = event.getData(CommonDataKeys.EDITOR);
+      if (editor == null) return;
 
-      if (editor != null) {
-        Project project = editor.getProject();
+      Project project = editor.getProject();
+      if (project == null) return;
 
-        if (project != null) {
-          VirtualFile navigationTarget = getNavigationTarget();
-          Runnable onClick = navigationTarget == null ? null : () -> openImageResourceTab(project, navigationTarget);
-          JBPopup preview = createPreview(onClick);
-
-          if (preview != null) {
-            // Show preview popup at location of mouse click.
-            preview.show(new RelativePoint((MouseEvent)event.getInputEvent()));
+      if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && StudioFlags.NELE_DRAWABLE_POPUP_PICKER.get()) {
+        // Show the resource picker popup.
+        ResourceChooserHelperKt.createAndShowResourcePickerPopup(
+          ResourceType.DRAWABLE,
+          myConfiguration,
+          myFacet,
+          MouseInfo.getPointerInfo().getLocation(),
+          resourceReference -> {
+            setAttribute(resourceReference);
+            return null;
           }
-          else if (navigationTarget != null) {
-            openImageResourceTab(project, navigationTarget);
-          }
+        );
+      }
+      else {
+        // Show the navigate-able preview popup (a larger preview of the icon that opens the image file when clicked).
+        VirtualFile navigationTarget = getNavigationTarget();
+        Runnable onClick = navigationTarget == null ? null : () -> openImageResourceTab(project, navigationTarget);
+        JBPopup preview = createPreview(onClick);
+
+        if (preview != null) {
+          // Show preview popup at location of mouse click.
+          preview.show(new RelativePoint((MouseEvent)event.getInputEvent()));
+        }
+        else if (navigationTarget != null) {
+          openImageResourceTab(project, navigationTarget);
         }
       }
     }
@@ -156,11 +196,6 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
       }
 
       return popup;
-    }
-
-    private static void openImageResourceTab(@NotNull Project project, @NotNull VirtualFile navigationTarget) {
-      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, navigationTarget, -1);
-      FileEditorManager.getInstance(project).openEditor(descriptor, true);
     }
 
     @VisibleForTesting

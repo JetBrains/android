@@ -36,11 +36,11 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.utils.HashCodes;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
@@ -52,13 +52,14 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.util.Consumer;
-import com.intellij.util.EmptyConsumer;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
@@ -305,7 +306,7 @@ public class AndroidAnnotatorUtil {
       myColor = color;
       myResourceReference = resourceReference;
       myIncludeClickAction = includeClickAction;
-      mySetColorTask = createSetColorTask(myElement);
+      mySetColorTask = createSetAttributeTask(myElement);
       myConfiguration = configuration;
     }
 
@@ -390,21 +391,25 @@ public class AndroidAnnotatorUtil {
     public int hashCode() {
       return HashCodes.mix(myElement.hashCode(), Objects.hashCode(myColor));
     }
+  }
 
-    @VisibleForTesting
-    public static Consumer<String> createSetColorTask(@NotNull PsiElement element) {
+  /**
+   * Returns a {@link Consumer} that sets the value of an {@link XmlAttribute} or an {@link XmlTag}.
+   */
+  public static Consumer<String> createSetAttributeTask(@NotNull PsiElement psiElement) {
+    SmartPsiElementPointer<PsiElement> smartPsiElementPointer = ReadAction.compute(() -> SmartPointerManager.createPointer(psiElement));
+    return attributeValue -> {
+      PsiElement element = smartPsiElementPointer.getElement();
       if (element instanceof XmlTag) {
         XmlTagValue xmlTagValue = ((XmlTag)element).getValue();
-        return colorString -> xmlTagValue.setText(colorString);
+        xmlTagValue.setText(attributeValue);
       }
       else if (element instanceof XmlAttributeValue) {
         XmlAttribute xmlAttribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
         if (xmlAttribute != null) {
-          return colorString -> xmlAttribute.setValue(colorString);
+          xmlAttribute.setValue(attributeValue);
         }
       }
-      // Unknown case, do nothing.
-      return EmptyConsumer.getInstance();
-    }
+    };
   }
 }
