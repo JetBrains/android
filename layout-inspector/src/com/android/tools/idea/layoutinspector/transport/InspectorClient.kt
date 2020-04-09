@@ -29,6 +29,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
 /**
@@ -68,7 +69,7 @@ interface InspectorClient {
   /**
    * Disconnect from the current process.
    */
-  fun disconnect()
+  fun disconnect(): Future<*>
 
   /**
    * Send a command to the agent.
@@ -143,7 +144,7 @@ object DisconnectedClient : InspectorClient {
   override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> = emptySequence()
   override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>? = null
   override fun attach(stream: Common.Stream, process: Common.Process) {}
-  override fun disconnect() {}
+  override fun disconnect(): Future<Nothing> = CompletableFuture.completedFuture(null)
   override fun execute(command: LayoutInspectorCommand) {}
   override fun logEvent(type: DynamicLayoutInspectorEventType) {}
   override val isConnected = false

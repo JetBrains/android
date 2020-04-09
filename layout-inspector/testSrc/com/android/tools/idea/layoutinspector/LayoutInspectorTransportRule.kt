@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
@@ -352,7 +351,8 @@ class LayoutInspectorTransportRule(
     if (inspectorClient.isConnected) {
       val processDone = CountDownLatch(1)
       inspectorClient.registerProcessChanged { processDone.countDown() }
-      inspectorClient.disconnect()
+      inspectorClient.disconnect().get(10, TimeUnit.SECONDS)
+      grpcServer.channel.shutdown().awaitTermination(10, TimeUnit.SECONDS)
       assertThat(processDone.await(30, TimeUnit.SECONDS)).isTrue()
       if (inspectorClient is DefaultInspectorClient) {
         waitForUnsetSettings()

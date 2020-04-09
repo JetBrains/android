@@ -30,6 +30,7 @@ import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.containers.ContainerUtil
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
@@ -188,13 +189,14 @@ class LegacyClient(parentDisposable: Disposable) : InspectorClient {
     return true
   }
 
-  override fun disconnect() {
+  override fun disconnect(): Future<Nothing> {
     if (selectedClient != null) {
       selectedClient = null
       selectedProcess = Common.Process.getDefaultInstance()
       selectedStream = Common.Stream.getDefaultInstance()
       processChangedListeners.forEach { it() }
     }
+    return CompletableFuture.completedFuture(null)
   }
 
   override fun execute(command: LayoutInspectorProto.LayoutInspectorCommand) {}
