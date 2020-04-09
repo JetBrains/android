@@ -29,6 +29,7 @@ import com.google.common.primitives.Floats;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -36,8 +37,6 @@ import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.JBMenuItem;
-import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.io.FileTooBigException;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -49,17 +48,18 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.ui.BrowserHyperlinkListener;
+import com.intellij.ui.ColorUtil;
+import com.intellij.ui.EditorTextField;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.PlatformIcons;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI.Borders;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
@@ -251,47 +251,27 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
 
     JComponent header = createSectionHeader("Sample Code");
-    header.setBorder(Borders.empty(24, 0, 10, 0));
+    header.setBorder(Borders.empty(24, 0, 14, 0));
     sectionPanel.add(header);
 
-    // TODO(b/153084173): reimplement to support Kotlin/Java code snippet switcher.
-    JEditorPane sampleCodeEditor = new JEditorPane();
-    sampleCodeEditor.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
-    sampleCodeEditor.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-    sampleCodeEditor.setAlignmentX(Component.LEFT_ALIGNMENT);
-    sampleCodeEditor.setBackground(UIUtil.getTextFieldBackground());
-    sampleCodeEditor.setContentType("text/html");
-    sampleCodeEditor.setEditable(false);
-    setUpPopupMenu(sampleCodeEditor);
-    sectionPanel.add(sampleCodeEditor);
+    JPanel codeEditorContainer = createPanelWithYAxisBoxLayout(Borders.emptyLeft(20));
+    sectionPanel.add(codeEditorContainer);
 
+    // TODO(b/153084173): implement Kotlin/Java code snippet switcher.
     PsiClass modelClass = MlkitModuleService.getInstance(myModule)
       .getOrCreateLightModelClass(
         new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
-    sampleCodeEditor.setText(
-      "<html><head><style>\n" +
-      buildSampleCodeStyle() +
-      "</style></head><body>\n" +
-      "<table id=\"sample_code\"><tr><td><pre>\n" +
-      buildSampleCode(modelClass, modelInfo) +
-      "</pre></td></tr></table>\n" +
-      "</body></html>");
+    Color bgColor = new JBColor(ColorUtil.fromHex("#F1F3F4"), ColorUtil.fromHex("#2B2B2B"));
+    EditorTextField codeEditor = new EditorTextField(buildSampleCode(modelClass, modelInfo), myModule.getProject(), JavaFileType.INSTANCE);
+    codeEditor.setAlignmentX(Component.LEFT_ALIGNMENT);
+    codeEditor.setBackground(bgColor);
+    codeEditor.setBorder(Borders.customLine(bgColor, 12));
+    codeEditor.setFont(new Font(Font.MONOSPACED, Font.PLAIN, StartupUiUtil.getLabelFont().getSize()));
+    codeEditor.setOneLineMode(false);
+    codeEditor.getDocument().setReadOnly(true);
+    codeEditorContainer.add(codeEditor);
 
     return sectionPanel;
-  }
-
-  private static void setUpPopupMenu(@NotNull JEditorPane editorPane) {
-    JBPopupMenu popupMenu = new JBPopupMenu();
-    JBMenuItem menuItem = new JBMenuItem("Copy", PlatformIcons.COPY_ICON);
-    menuItem.addActionListener(event -> editorPane.copy());
-    popupMenu.add(menuItem);
-
-    editorPane.addMouseListener(new PopupHandler() {
-      @Override
-      public void invokePopup(@NotNull Component component, int x, int y) {
-        popupMenu.show(component, x, y);
-      }
-    });
   }
 
   @NotNull
@@ -420,7 +400,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         stringBuilder.append(
           String.format("  %s %s = outputs.%s();\n", psiMethod.getReturnType().getPresentableText(), tensorName, psiMethod.getName()));
         if (ClassNames.TENSOR_LABEL.equals(psiMethod.getReturnType().getCanonicalText())) {
-          stringBuilder.append(String.format("  Map&lt;String, Float&gt; %sMap = %s.getMapWithFloatValue();\n", tensorName, tensorName));
+          stringBuilder.append(String.format("  Map<String, Float> %sMap = %s.getMapWithFloatValue();\n", tensorName, tensorName));
         }
         else if (ClassNames.TENSOR_IMAGE.equals(psiMethod.getReturnType().getCanonicalText())) {
           stringBuilder.append(String.format("  Bitmap %sBitmap = %s.getBitmap();\n", tensorName, tensorName));
@@ -481,18 +461,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       }
     }
     return null;
-  }
-
-  @NotNull
-  private static String buildSampleCodeStyle() {
-    return "#sample_code {\n" +
-           "  font-family: 'Source Sans Pro', sans-serif; \n" +
-           "  background-color: " + (StartupUiUtil.isUnderDarcula() ? "#2B2B2B" : "#F1F3F4") + ";\n" +
-           "  color: " + (StartupUiUtil.isUnderDarcula() ? "#DDDDDD" : "#3A474E") + ";\n" +
-           "  margin-left: 16px;\n" +
-           "  padding: 5px;\n" +
-           "  margin-top: 10px;\n" +
-           "}\n";
   }
 
   @NotNull
