@@ -44,6 +44,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
@@ -71,6 +72,8 @@ import org.jetbrains.annotations.Nullable;
 public class BuildVariantUpdater {
   @NotNull public static final Key<String> MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI =
     new Key<>("module.with.build.variant.switched.from.ui");
+  @NotNull public static final Key<Boolean> USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS =
+    new Key<>("use.variants.from.previous.gradle.syncs");
   @NotNull private final IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @NotNull private final List<BuildVariantView.BuildVariantSelectionChangeListener> mySelectionChangeListeners =
     ContainerUtil.createLockFreeCopyOnWriteList();
@@ -228,6 +231,8 @@ public class BuildVariantUpdater {
       requestFullGradleSync(project, invokeVariantSelectionChangeListeners);
     }
     else if (!variantToUpdateExists) {
+      // Build file is not changed, the cached variants should be cached and reused.
+      project.putUserData(USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, true);
       setVariantSwitchedProperty(project, moduleName);
       requestVariantOnlyGradleSync(project, moduleName, buildVariantName, invokeVariantSelectionChangeListeners);
     }
@@ -257,15 +262,23 @@ public class BuildVariantUpdater {
     if (moduleToUpdate == null) {
       return;
     }
-    GradleFacet gradleFacet = GradleFacet.getInstance(moduleToUpdate);
-    if (gradleFacet == null) {
-      return;
+    String moduleId = getModuleIdForModule(moduleToUpdate);
+    if (moduleId != null) {
+      project.putUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, moduleId);
     }
-    GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
-    if (gradleModel != null) {
-      project.putUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI,
-                          createUniqueModuleId(gradleModel.getRootFolderPath(), gradleModel.getGradlePath()));
+  }
+
+  @Nullable
+  public static String getModuleIdForModule(@NotNull Module module) {
+    ExternalSystemModulePropertyManager propertyManager = ExternalSystemModulePropertyManager.getInstance(module);
+    String rootProjectPath = propertyManager.getRootProjectPath();
+    if (rootProjectPath != null) {
+      String gradlePath = propertyManager.getLinkedProjectId();
+      if (gradlePath != null) {
+        return createUniqueModuleId(rootProjectPath, gradlePath);
+      }
     }
+    return null;
   }
 
   /**
@@ -495,7 +508,13 @@ public class BuildVariantUpdater {
   private static GradleSyncListener getSyncListener(@NotNull Runnable variantSelectionChangeListeners) {
     return new GradleSyncListener() {
       @Override
+      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+        project.putUserData(USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, null);
+      }
+
+      @Override
       public void syncSucceeded(@NotNull Project project) {
+        project.putUserData(USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, null);
         variantSelectionChangeListeners.run();
       }
     };
