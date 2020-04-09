@@ -220,7 +220,7 @@ public class CreateKeyAttribute extends BaseCreateKey {
       }
     }
     MTag ret = toCommit.commit("Create KeyAttribute");
-    Track.createKeyAttribute();
+    Track.createKeyAttribute(mMotionEditor.myTrack);
     mMotionEditor.dataChanged();
     super.create();
     return ret;
