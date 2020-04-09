@@ -45,7 +45,7 @@ private fun getModelMetadata(modelFile: VirtualFile): ModelMetadata {
   try {
     val bytes = modelFile.contentsToByteArray()
     // TODO(b/153499565): Sync file hash calculation with MLKit swappable model feature.
-    metadataBuilder.fileHash = Hashing.murmur3_128().hashBytes(bytes).toString()
+    metadataBuilder.fileHash = Hashing.sha256().hashBytes(bytes).toString()
     val modelInfo = ModelInfo.buildFrom(MetadataExtractor(ByteBuffer.wrap(bytes)))
     metadataBuilder.isValidModel = true
     metadataBuilder.hasMetadata = modelInfo.isMetadataExisted
