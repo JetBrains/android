@@ -92,17 +92,17 @@ class DeviceViewPanelTest {
   @get:Rule
   val projectRule = ProjectRule()
 
-  private var defaultClientFactory: ((model: InspectorModel, parentDisposable: Disposable) -> InspectorClient)? = null
+  private var defaultClientFactory: ((model: InspectorModel, parentDisposable: Disposable) -> List<InspectorClient>)? = null
 
   @Before
   fun setUp() {
     defaultClientFactory = InspectorClient.clientFactory
-    InspectorClient.clientFactory = { _, _ -> mock(DefaultInspectorClient::class.java) }
+    InspectorClient.clientFactory = { _, _ -> listOf(mock(DefaultInspectorClient::class.java)) }
   }
 
   @After
   fun tearDown() {
-    InspectorClient.clientFactory =  defaultClientFactory!!
+    InspectorClient.clientFactory = defaultClientFactory!!
   }
 
   @Test
@@ -143,7 +143,7 @@ class DeviceViewPanelTest {
 
   @Test
   fun testFocusableActionButtons() {
-    InspectorClient.clientFactory = { _, _ -> mock(InspectorClient::class.java) }
+    InspectorClient.clientFactory = { _, _ -> listOf(mock(InspectorClient::class.java)) }
     val model = model { view(1, 0, 0, 1200, 1600, "RelativeLayout") }
     val inspector = LayoutInspector(model, disposableRule.disposable)
     val settings = DeviceViewSettings()

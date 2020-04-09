@@ -338,7 +338,7 @@ class LayoutInspectorTransportRule(
     inspectorModel = InspectorModel(project)
     inspectorClientFactory.let {
       inspectorClient = it()
-      InspectorClient.clientFactory = { _, _ -> inspectorClient }
+      InspectorClient.clientFactory = { _, _ -> listOf(inspectorClient) }
     }
     inspector = LayoutInspector(inspectorModel, project)
     inspector.currentClient = inspectorClient

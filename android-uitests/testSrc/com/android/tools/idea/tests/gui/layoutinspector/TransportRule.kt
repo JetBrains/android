@@ -169,7 +169,9 @@ class TransportRule(
   private fun before() {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
-    InspectorClient.clientFactory = { model, parentDisposable -> DefaultInspectorClient(model, parentDisposable, TEST_CHANNEL_NAME) }
+    InspectorClient.clientFactory = {
+      model, parentDisposable -> listOf(DefaultInspectorClient(model, parentDisposable, TEST_CHANNEL_NAME))
+    }
 
     // Terminate the service if it's already started (it's a UI test, so there might be no shutdown between tests).
     AdbService.getInstance().dispose()
@@ -179,6 +181,6 @@ class TransportRule(
   }
 
   private fun after() {
-    InspectorClient.clientFactory = { model, parentDisposable -> DefaultInspectorClient(model, parentDisposable) }
+    InspectorClient.clientFactory = { model, parentDisposable -> listOf(DefaultInspectorClient(model, parentDisposable)) }
   }
 }
