@@ -61,7 +61,7 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
   }
 
   @NotNull
-  protected final ListMultimap<String, ResourceItem> getOrCreateMap(@NotNull ResourceType resourceType) {
+  private ListMultimap<String, ResourceItem> getOrCreateMap(@NotNull ResourceType resourceType) {
     return myResources.computeIfAbsent(resourceType, type -> ArrayListMultimap.create());
   }
 
