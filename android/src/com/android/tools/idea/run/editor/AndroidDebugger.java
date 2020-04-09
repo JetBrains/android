@@ -101,6 +101,7 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    * @param applicationIds target Android application IDs to be debugged
    * @param state an Android debugger state and configuration to be used to start the debugger
    * @param runConfigTypeId a run configuration type ID of a debugee process
+   * @param packageNameOverride to be used for attaching to a process that has a name different from the name of the app's package
    * @return a task which starts a debugger and attach to target processes
    */
   @NotNull
@@ -109,7 +110,9 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
                                             @NotNull Set<String> applicationIds,
                                             @NotNull AndroidFacet facet,
                                             @NotNull S state,
-                                            @NotNull String runConfigTypeId);
+                                            @NotNull String runConfigTypeId,
+                                            // TODO(b/153668177): Note/Review: packageNameOverride is used in native debugger only.
+                                            @Nullable String packageNameOverride);
 
   /**
    * Returns true if this debugger supports a given {@code project}.
