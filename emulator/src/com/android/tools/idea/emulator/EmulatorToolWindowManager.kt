@@ -97,7 +97,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
       @UiThread
       override fun stateChanged() {
-        ToolWindowManager.getInstance(project).invokeLater {
+        ToolWindowManager.getInstance(project).invokeLater(Runnable {
           // We need to query the tool window again, because it might have been unregistered when closing the project.
           val toolWindow = getToolWindow()
 
@@ -109,7 +109,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
           else if (contentInitialized) {
             destroyContent(toolWindow)
           }
-        }
+        })
       }
     })
 
