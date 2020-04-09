@@ -72,6 +72,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.awt.Component
 import java.awt.event.ActionEvent
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -154,6 +155,7 @@ class DefaultInspectorClient(
     listeners.clear()
     TransportEventPoller.stopPoller(transportPoller)
     TransportStreamManager.unregisterManager(streamManager)
+    client.shutdown()
   }
 
   // TODO: detect when a connection is dropped
@@ -383,12 +385,12 @@ class DefaultInspectorClient(
     }
   }
 
-  override fun disconnect() {
-    disconnect(sendStopCommand = true)
+  override fun disconnect(): Future<*> {
+    return disconnect(sendStopCommand = true)
   }
 
-  private fun disconnect(sendStopCommand: Boolean) {
-    ApplicationManager.getApplication().executeOnPooledThread {
+  private fun disconnect(sendStopCommand: Boolean): Future<*> {
+    return ApplicationManager.getApplication().executeOnPooledThread {
       if (sendStopCommand) {
         execute(LayoutInspectorCommand.Type.STOP)
       }
@@ -403,6 +405,7 @@ class DefaultInspectorClient(
           selectedProcess != Common.Process.getDefaultInstance()) {
         didDisconnect = true
         setDebugViewAttributes(selectedStream, false)
+        client.shutdown()
         selectedStream = Common.Stream.getDefaultInstance()
         selectedProcess = Common.Process.getDefaultInstance()
         isConnected = false
