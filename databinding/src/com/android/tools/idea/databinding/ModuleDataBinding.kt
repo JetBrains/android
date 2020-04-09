@@ -221,10 +221,10 @@ class ModuleDataBinding private constructor(private val module: Module) {
               else -> currGroup
             }
             bindingLayoutGroups.add(groupToAdd)
-            lastResourcesModificationCount = modificationCount
           }
 
           _bindingLayoutGroups = bindingLayoutGroups
+          lastResourcesModificationCount = modificationCount
         }
 
         return _bindingLayoutGroups
