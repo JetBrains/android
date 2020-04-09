@@ -364,6 +364,16 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public IdeFrameFixture invokeAndWaitForBuildAction(@NotNull String... menuPath) {
+    return invokeAndWaitForBuildAction(null, menuPath);
+  }
+
+  @NotNull
+  public IdeFrameFixture invokeAndWaitForBuildAction(@Nullable Wait wait, @NotNull String... menuPath) {
+    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath(menuPath));
+  }
+
+  @NotNull
   public IdeFrameFixture actAndWaitForBuildToFinish(@NotNull Consumer<IdeFrameFixture> actions) {
     return actAndWaitForBuildToFinish(null, actions);
   }

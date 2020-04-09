@@ -54,8 +54,7 @@ class ComposePreviewFlagDisabledTest {
     val file = "app/src/main/java/google/simpleapplication/MainActivity.kt"
     editor.open(file)
 
-    fixture.invokeMenuPath("Build", "Make Project")
-      .waitForBuildToFinish(BuildMode.ASSEMBLE)
+    fixture.invokeAndWaitForBuildAction("Build", "Make Project")
 
     // Either is not a split editor or the surface is not displaying
     assertTrue(!editor.isSplitEditor() || !editor.getSplitEditorFixture().hasDesignSurface)

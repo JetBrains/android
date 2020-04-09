@@ -90,8 +90,8 @@ class ComposePreviewTest {
     val file = "app/src/main/java/google/simpleapplication/$fileName"
     editor.open(file)
 
-    fixture.invokeMenuPath("Build", "Make Project")
-      .waitForBuildToFinish(BuildMode.ASSEMBLE)
+    fixture.invokeAndWaitForBuildAction("Build", "Make Project")
+
     return editor.getSplitEditorFixture()
   }
 
@@ -251,12 +251,13 @@ class ComposePreviewTest {
       .getNotificationsFixture()
       .waitForNotificationContains("out of date")
 
-    composePreview
-      .findActionButtonByText("Build  Refresh")
-      .waitUntilEnabledAndShowing()
-      .click()
+    fixture.actAndWaitForBuildToFinish {
+      composePreview
+        .findActionButtonByText("Build  Refresh")
+        .waitUntilEnabledAndShowing()
+        .click()
+    }
 
-    fixture.waitForBuildToFinish(BuildMode.ASSEMBLE)
     composePreview.waitForRenderToFinish()
 
     // Check the new preview has been added
