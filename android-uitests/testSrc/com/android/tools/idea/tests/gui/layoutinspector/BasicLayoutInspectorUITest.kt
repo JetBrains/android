@@ -96,7 +96,14 @@ class BasicLayoutInspectorUITest {
 
   @Test
   fun testLayoutInspector() {
-    basicLayoutInspectorOperations(init())
+    try {
+      basicLayoutInspectorOperations(init())
+    }
+    catch (ex: Exception) {
+      // Print the stacktrace from the case before any cleanup that may obscure the error.
+      ex.printStackTrace()
+      throw ex
+    }
   }
 
   @Test
@@ -362,8 +369,8 @@ class BasicLayoutInspectorUITest {
           layout = strings.add(layoutReference)
           x = 0
           y = 0
-          width = 100
-          height = 200
+          width = 1000
+          height = 2000
           className = strings.add("LinearLayout")
           packageName = strings.add("android.widget")
         }
