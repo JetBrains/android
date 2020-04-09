@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ public class MeModel {
   public MTag[] mSelected;
   private float mProgress;
   private String[] mSelectedViewIDs = EMPTY_STRING_ARRAY;
+  public Track myTrack;
 
   void clearViewInfo() {
     MTag[] view = layout.getChildTags();
@@ -187,6 +189,14 @@ public class MeModel {
       }
     }
     return null;
+  }
+
+  public MeModel(MTag motionScene, MTag layout, String layoutFileName, String motionSceneFileName, Track track) {
+    this.layout = layout;
+    this.motionScene = motionScene;
+    this.layoutFileName = layoutFileName;
+    this.motionSceneFileName = motionSceneFileName;
+    this.myTrack = track;
   }
 
   public MeModel(MTag motionScene, MTag layout, String layoutFileName, String motionSceneFileName) {

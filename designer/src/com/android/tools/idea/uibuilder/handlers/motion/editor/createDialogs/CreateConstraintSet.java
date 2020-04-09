@@ -124,7 +124,7 @@ public class CreateConstraintSet extends BaseCreatePanel {
     }
 
     MTag ret = writer.commit("Create ConstraintSet");
-    Track.createConstraintSet();
+    Track.createConstraintSet(mMotionEditor.myTrack);
     mMotionEditor.setMTag(model);
     super.create();
     return ret;
