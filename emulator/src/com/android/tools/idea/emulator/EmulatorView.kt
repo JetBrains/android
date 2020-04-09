@@ -30,6 +30,7 @@ import com.android.tools.idea.protobuf.ByteString
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -63,6 +64,7 @@ import com.android.emulator.control.MouseEvent as MouseEventMessage
  */
 class EmulatorView(
   private val emulator: EmulatorController,
+  parentDisposable: Disposable,
   cropFrame: Boolean
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
@@ -78,6 +80,8 @@ class EmulatorView(
   private var screenshotReceiver: ScreenshotReceiver? = null
 
   init {
+    Disposer.register(parentDisposable, this)
+
     connectionStateLabel = JLabel(getConnectionStateText(ConnectionState.NOT_INITIALIZED))
     connectionStateLabel.border = JBUI.Borders.emptyLeft(20)
     connectionStateLabel.font = connectionStateLabel.font.deriveFont(connectionStateLabel.font.size * 1.2F)

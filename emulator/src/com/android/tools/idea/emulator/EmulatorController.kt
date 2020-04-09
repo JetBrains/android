@@ -24,6 +24,8 @@ import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.PhysicalModelValue
+import com.android.emulator.control.SnapshotPackage
+import com.android.emulator.control.SnapshotServiceGrpc
 import com.android.emulator.control.VmRunState
 import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
@@ -53,7 +55,8 @@ import java.util.concurrent.atomic.AtomicReference
  */
 class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposable) : Disposable {
   private var channel: ManagedChannel? = null
-  @Volatile private var emulatorControllerInternal: EmulatorControllerGrpc.EmulatorControllerStub? = null
+  @Volatile private var emulatorControllerStub: EmulatorControllerGrpc.EmulatorControllerStub? = null
+  @Volatile private var snapshotServiceStub: SnapshotServiceGrpc.SnapshotServiceStub? = null
   @Volatile private var emulatorConfigInternal: EmulatorConfiguration? = null
   @Volatile private var skinDefinitionInternal: SkinDefinition? = null
   private var stateInternal = AtomicReference(ConnectionState.NOT_INITIALIZED)
@@ -96,10 +99,18 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
   private var emulatorController: EmulatorControllerGrpc.EmulatorControllerStub
     get() {
-      return emulatorControllerInternal ?: throwNotYetConnected()
+      return emulatorControllerStub ?: throwNotYetConnected()
     }
     private inline set(stub) {
-      emulatorControllerInternal = stub
+      emulatorControllerStub = stub
+    }
+
+  private var snapshotService: SnapshotServiceGrpc.SnapshotServiceStub
+    get() {
+      return snapshotServiceStub ?: throwNotYetConnected()
+    }
+    private inline set(stub) {
+      snapshotServiceStub = stub
     }
 
   internal var skinDefinition: SkinDefinition?
@@ -139,6 +150,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       .decompressorRegistry(DecompressorRegistry.emptyInstance())
       .build()
     emulatorController = EmulatorControllerGrpc.newStub(channel)
+    snapshotService = SnapshotServiceGrpc.newStub(channel)
     channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
     this.channel = channel
     fetchConfiguration()
@@ -251,6 +263,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       LOG.info("getStatus()")
     }
     emulatorController.getStatus(Empty.getDefaultInstance(), responseObserver)
+  }
+
+  fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getDummyObserver()) {
+    val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("saveSnapshot(${shortDebugString(snapshot)})")
+    }
+    snapshotService.saveSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getSaveSnapshotMethod()))
   }
 
   private fun throwNotYetConnected(): Nothing {

@@ -22,8 +22,10 @@ import com.intellij.openapi.actionSystem.DataKey
  * Embedded Emulator constants.
  */
 
-val EMULATOR_CONTROLLER_KEY: DataKey<EmulatorController> = DataKey.create("emulator")
+val EMULATOR_CONTROLLER_KEY = DataKey.create<EmulatorController>("EmulatorController")
 
-val EMULATOR_VIEW_KEY: DataKey<EmulatorView> = DataKey.create("emulatorView")
+val EMULATOR_VIEW_KEY = DataKey.create<EmulatorView>("EmulatorView")
 
-const val EMULATOR_MAIN_TOOLBAR_ID = "EmulatorToolbar"
+internal val EMULATOR_TOOL_WINDOW_PANEL_KEY = DataKey.create<EmulatorToolWindowPanel>("EmulatorToolWindowPanel")
+
+internal const val EMULATOR_MAIN_TOOLBAR_ID = "EmulatorToolbar"
