@@ -105,19 +105,6 @@ public class LocaleMenuAction extends DropDownAction {
       add(new RtlAction(myRenderContext));
     }
 
-    /* TODO: Restore multi-configuration editing
-    group.addSeparator();
-    RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
-    if (currentMode != RenderPreviewMode.LOCALES && currentMode != RenderPreviewMode.RTL) {
-      if (locales.size() >= 1) {
-        ConfigurationMenuAction.addLocalePreviewAction(myRenderContext, group, true);
-      }
-      ConfigurationMenuAction.addRtlPreviewAction(myRenderContext, group);
-    } else {
-      ConfigurationMenuAction.addRemovePreviewsAction(myRenderContext, group);
-    }
-    */
-
     return true;
   }
 
