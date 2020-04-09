@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.DefaultTimeline;
 import com.android.tools.adtui.model.MultiSelectionModel;
+import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.event.EventModel;
@@ -331,7 +332,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
       myTrackGroupModels.add(createInteractionTrackGroup(getStudioProfilers(), getTimeline()));
     }
 
-    if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
+    if (capture.getType() == Cpu.CpuTraceType.ATRACE || capture.getType() == Cpu.CpuTraceType.PERFETTO) {
       // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
       myTrackGroupModels.add(createDisplayTrackGroup(capture, getTimeline()));
       // CPU per-core usage and event etc. Systrace only.
@@ -382,6 +383,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
       .setTitle(threadsTitle)
       .setTitleInfo("This section contains thread info. Double-click on the thread name to expand/collapse it.")
       .setTrackSelectable(true)
+      // For box selection
+      .setRangeSelectionModel(new RangeSelectionModel(timeline.getSelectionRange(), timeline.getViewRange()))
       .build();
     for (CpuThreadInfo threadInfo : threadInfos) {
       String title = threadInfo.getName();

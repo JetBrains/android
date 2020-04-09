@@ -20,15 +20,14 @@ import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
-import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.android.tools.idea.sqlite.sqlLanguage.needsBinding
-import com.android.tools.idea.sqlite.sqlLanguage.replaceNamedParametersWithPositionalParameters
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.Executor
@@ -69,6 +68,10 @@ class SqliteEvaluatorController(
 
   override fun refreshData(): ListenableFuture<Unit> {
     return currentTableController?.refreshData() ?: Futures.immediateFuture(Unit)
+  }
+
+  override fun notifyDataMightBeStale() {
+    currentTableController?.notifyDataMightBeStale()
   }
 
   override fun dispose() {
@@ -119,32 +122,24 @@ class SqliteEvaluatorController(
           )
           Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
           currentTableController!!.setUp()
+        } else {
+          view.tableView.setEmptyText("The statement was run successfully.")
         }
 
         listeners.forEach { it.onSqliteStatementExecuted(database) }
       }.catching(edtExecutor, Throwable::class.java) { throwable ->
+        view.tableView.setEmptyText("An error occurred while running the statement.")
         view.tableView.reportError("Error executing SQLite statement", throwable)
       }.cancelOnDispose(this)
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {
     override fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String) {
-      val psiFile = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatement)
+      DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
+      )
 
-      if (!needsBinding(psiFile)) {
-        val parsedStatement = replaceNamedParametersWithPositionalParameters(psiFile)
-        evaluateSqlStatement(database, SqliteStatement(parsedStatement.statementText))
-      }
-      else {
-        val view = viewFactory.createParametersBindingView(project)
-        ParametersBindingController(view, psiFile) {
-          evaluateSqlStatement(database, it)
-        }.also {
-          it.setUp()
-          it.show()
-          Disposer.register(project, it)
-        }
-      }
+      evaluateSqlStatement(database, SqliteStatement(sqliteStatement))
     }
   }
 

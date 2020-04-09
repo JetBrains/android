@@ -69,7 +69,8 @@ class FixNdkVersionProcessorTest : AndroidGradleTestCase() {
     val usages = processor.findUsages()
     var synced = false
     GradleSyncState.subscribe(project, object : GradleSyncListener {
-      override fun syncStarted(project: Project) {
+      override fun syncFailed(project: Project, errorMessage: String) {
+        // It fails with 77.7.7.
         synced = true
       }
     })

@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding.analytics
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.databinding.LayoutBindingProjectComponent
+import com.android.tools.idea.databinding.LayoutBindingEnabledFacetsProvider
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.databinding.index.BindingLayoutType.PLAIN_LAYOUT
@@ -41,7 +41,7 @@ import com.intellij.util.indexing.FileBasedIndex
 open class LayoutBindingTracker constructor(private val project: Project) : DataBindingTracker {
 
   override fun trackPolledMetaData() {
-    if (layoutBindingProjectComponent.getAllBindingEnabledFacets().isNotEmpty()) {
+    if (enabledFacetsProvider.getAllBindingEnabledFacets().isNotEmpty()) {
       runInBackground(TrackPollingMetadataTask(project))
     }
   }
@@ -52,12 +52,11 @@ open class LayoutBindingTracker constructor(private val project: Project) : Data
     }
   }
 
-  private val layoutBindingProjectComponent
-    get() = project.getComponent(LayoutBindingProjectComponent::class.java)
+  private val enabledFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
 
-  private fun isDataBindingEnabled() = layoutBindingProjectComponent.getDataBindingEnabledFacets().isNotEmpty()
+  private fun isDataBindingEnabled() = enabledFacetsProvider.getDataBindingEnabledFacets().isNotEmpty()
 
-  private fun isViewBindingEnabled() = layoutBindingProjectComponent.getViewBindingEnabledFacets().isNotEmpty()
+  private fun isViewBindingEnabled() = enabledFacetsProvider.getViewBindingEnabledFacets().isNotEmpty()
 
   private fun trackUserEvent(eventType: DataBindingEvent.EventType, context: DataBindingEvent.DataBindingContext) {
     val studioEventBuilder = createStudioEventBuilder().apply {

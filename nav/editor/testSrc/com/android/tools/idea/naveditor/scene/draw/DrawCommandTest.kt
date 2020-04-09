@@ -22,30 +22,22 @@ import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.scene.BUFFERED_IMAGE
 import com.android.tools.idea.naveditor.scene.RefinableImage
-import org.mockito.ArgumentMatchers.any
 import org.mockito.InOrder
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.Color
-import java.awt.FontMetrics
 import java.awt.Graphics2D
-import java.awt.GraphicsConfiguration
-import java.awt.GraphicsDevice
-import java.awt.geom.AffineTransform
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
-import java.awt.image.BufferedImage
-import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.util.concurrent.CompletableFuture
 
 private val RECTANGLE = Rectangle2D.Float(10f, 20f, 80f, 120f)
 private val IMAGE_RECTANGLE = Rectangle2D.Float(15f, 25f, 60f, 100f)
 private const val SCALE = 1.5
-@Suppress("UndesirableClassUsage")
-private val IMAGE = BufferedImage(5, 5, TYPE_INT_ARGB)
 private const val FRAME_THICKNESS = 1.5f
 private val FRAME_COLOR = Color.RED
 private val TEXT_COLOR = Color.BLUE
@@ -78,9 +70,9 @@ class DrawCommandTest : NavTestCase() {
   }
 
   fun testDrawNavScreenWithImage() {
-    val image = RefinableImage(IMAGE)
+    val image = RefinableImage(BUFFERED_IMAGE)
     val command = DrawNavScreen(SwingRectangle(RECTANGLE), image)
-    verifyDrawCommand(command) { inOrder, g -> verifyDrawNavScreenImage(inOrder, g, RECTANGLE, IMAGE) }
+    verifyDrawCommand(command) { inOrder, g -> verifyDrawNavScreenImage(inOrder, g, RECTANGLE) }
   }
 
   fun testDrawNavScreenWithLoading() {
@@ -96,28 +88,29 @@ class DrawCommandTest : NavTestCase() {
   }
 
   fun testDrawFragmentWithPlaceholder() {
-    testDrawFragment(null, null)
+    testDrawFragment(PreviewType.PLACEHOLDER)
   }
 
   fun testDrawHighlightedFragment() {
-    testDrawFragment(HIGHLIGHT_COLOR, null)
+    testDrawFragment(PreviewType.PLACEHOLDER, HIGHLIGHT_COLOR)
   }
 
   fun testDrawFragmentWithPreviewUnavailable() {
-    testDrawFragment(null, RefinableImage())
+    testDrawFragment(PreviewType.UNAVAILABLE)
   }
 
   fun testDrawFragmentWithLoading() {
-    testDrawFragment(null, RefinableImage(null, CompletableFuture()))
+    testDrawFragment(PreviewType.LOADING)
   }
 
   fun testDrawFragmentWithImage() {
-    testDrawFragment(null, RefinableImage(IMAGE))
+    testDrawFragment(PreviewType.IMAGE)
   }
 
-  private fun testDrawFragment(highlightColor: Color?, image: RefinableImage?) {
+  private fun testDrawFragment(previewType: PreviewType, highlightColor: Color? = null) {
+    val image = makeRefinableImage(previewType)
     val command = DrawFragment(SwingRectangle(RECTANGLE), Scale(SCALE), highlightColor, image)
-    verifyDrawCommand(command) { inOrder, g -> verifyDrawFragment(inOrder, g, RECTANGLE, SCALE, highlightColor, image) }
+    verifyDrawCommand(command) { inOrder, g -> verifyDrawFragment(inOrder, g, RECTANGLE, SCALE, highlightColor, previewType) }
   }
 
   fun testDrawNestedGraph() {
@@ -131,27 +124,28 @@ class DrawCommandTest : NavTestCase() {
   }
 
   fun testDrawActivityWithPlaceholder() {
-    testDrawActivity(null)
+    testDrawActivity(PreviewType.PLACEHOLDER)
   }
 
   fun testDrawActivityWithPreviewUnavailable() {
-    testDrawActivity(RefinableImage())
+    testDrawActivity(PreviewType.UNAVAILABLE)
   }
 
   fun testDrawActivityWithLoading() {
-    testDrawActivity(RefinableImage(null, CompletableFuture()))
+    testDrawActivity(PreviewType.LOADING)
   }
 
   fun testDrawActivityWithImage() {
-    testDrawActivity(RefinableImage(IMAGE))
+    testDrawActivity(PreviewType.IMAGE)
   }
 
-  private fun testDrawActivity(image: RefinableImage?) {
+  private fun testDrawActivity(previewType: PreviewType) {
+    val image = makeRefinableImage(previewType)
     val command = DrawActivity(
       SwingRectangle(RECTANGLE), SwingRectangle(IMAGE_RECTANGLE), Scale(SCALE), FRAME_COLOR, SwingLength(FRAME_THICKNESS), TEXT_COLOR,
       image)
     verifyDrawCommand(command) { inOrder, g ->
-      verifyDrawActivity(inOrder, g, RECTANGLE, IMAGE_RECTANGLE, SCALE, FRAME_COLOR, FRAME_THICKNESS, TEXT_COLOR, image)
+      verifyDrawActivity(inOrder, g, RECTANGLE, IMAGE_RECTANGLE, SCALE, FRAME_COLOR, FRAME_THICKNESS, TEXT_COLOR, previewType)
     }
   }
 
@@ -267,19 +261,8 @@ class DrawCommandTest : NavTestCase() {
   private fun verifyDrawCommand(command: DrawCommand, verifier: (InOrder, Graphics2D) -> Unit) {
     val root = mock(Graphics2D::class.java)
 
-    val graphics = mock(Graphics2D::class.java)
+    val graphics = makeGraphicsMock()
     `when`(root.create()).thenReturn(graphics)
-
-    val metrics = mock(FontMetrics::class.java)
-    `when`(graphics.fontMetrics).thenReturn(metrics)
-    `when`(graphics.getFontMetrics(any())).thenReturn(metrics)
-
-    val configuration = mock(GraphicsConfiguration::class.java)
-    `when`(graphics.deviceConfiguration).thenReturn(configuration)
-    val device = mock(GraphicsDevice::class.java)
-    `when`(configuration.device).thenReturn(device)
-    val transform = mock(AffineTransform::class.java)
-    `when`(configuration.defaultTransform).thenReturn(transform)
 
     val inOrder = inOrder(graphics)
     command.paint(root, context)
@@ -294,4 +277,11 @@ class DrawCommandTest : NavTestCase() {
   }
 
   private fun interpolate(start: Float, end: Float, fraction: Float) = start + (end - start) * fraction
+
+  private fun makeRefinableImage(previewType: PreviewType) = when (previewType) {
+    PreviewType.PLACEHOLDER -> null
+    PreviewType.LOADING -> RefinableImage(null, CompletableFuture())
+    PreviewType.UNAVAILABLE -> RefinableImage()
+    PreviewType.IMAGE -> RefinableImage(BUFFERED_IMAGE)
+  }
 }

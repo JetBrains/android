@@ -358,6 +358,11 @@ public final class StudioFlags {
     NAV_EDITOR, "safe.args.enabled", "Enable support for Safe Args",
     "Generate in-memory Safe Args classes if the current module is using the feature.",
     false);
+
+  public static final Flag<Boolean> NAV_DEEP_LINK_EXTENDED = Flag.create(
+    NAV_EDITOR, "deep.link.ex", "Extended fields for deep link dialog",
+    "Add new fields to the navigation editor's deep link dialog",
+    false);
   //endregion
 
   //region Resource Manager
@@ -401,7 +406,7 @@ public final class StudioFlags {
     "applychanges.optimisticresourceswap",
     "Use the 'Apply Changes 2.0' deployment pipeline for full Apply Changes",
     "Requires applychanges.optimisticswap to be true.",
-    false);
+    true);
 
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
     RUNDEBUG,
@@ -417,12 +422,12 @@ public final class StudioFlags {
     "So the new Instant Run can use the combo box",
     false);
 
-  public static final Flag<Boolean> ADB_CONNECTION_STATUS_ACTION_VISIBLE = Flag.create(
+  public static final Flag<Boolean> ADB_CONNECTION_STATUS_WIDGET_ENABLED = Flag.create(
     RUNDEBUG,
-    "adb.connection.status.action.visible",
-    "Show the adb connection status icon",
-    "To help developers with a remote adb setup",
-    false);
+    "adb.connection.status.widget.enabled",
+    "Enable and Show ADB Connection Widget",
+    "Enables and shows the ADB connection status widget in the status bar",
+    true);
 
   /**
    * The strategy that {@link com.android.tools.idea.run.activity.DefaultActivityLocator}
@@ -796,6 +801,11 @@ public final class StudioFlags {
     COMPOSE, "preview.double.render", "Enable the Compose double render mode",
     "If enabled, preview components will be rendered twice so components depending on a recompose (like tableDecoration) " +
     "render correctly.",
+    false);
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_DATA_SOURCES = Flag.create(
+    COMPOSE, "preview.data.sources", "Enable the Compose Data Source handling",
+    "If enable, the preview will support Preview data sources",
     false);
 
   public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(

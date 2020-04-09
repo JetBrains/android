@@ -86,14 +86,6 @@
       <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
-      <loadForDefaultProject/>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.databinding.LayoutBindingProjectComponent</implementation-class>
-      <loadForDefaultProject/>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener</implementation-class>
     </component>
     <component>
@@ -364,6 +356,7 @@
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
     <console.folding implementation="com.android.tools.idea.logcat.ExceptionFolding"/>
     <consoleActionsPostProcessor implementation="com.android.tools.idea.logcat.LogcatConsoleActionsPostProcessor" />
+    <applicationService serviceImplementation="com.android.tools.idea.emulator.EmulatorSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
     <applicationService serviceImplementation="com.android.tools.idea.IdeInfo" />
     <applicationService serviceImplementation="com.android.tools.idea.ui.GuiTestingService"/>
@@ -630,12 +623,6 @@
                       conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
                       icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
-    <facet.toolWindow id="Emulator"
-                      facetIdList="android,apk"
-                      anchor="right"
-                      icon="StudioIcons.Shell.ToolWindows.EMULATOR"
-                      secondary="true"
-                      factoryClass="com.android.tools.idea.emulator.EmulatorToolWindowFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
@@ -702,6 +689,7 @@
     <moduleService serviceImplementation="com.android.tools.idea.model.MergedManifestManager" />
     <moduleService serviceImplementation="com.android.tools.idea.model.MergedManifestModificationTracker" />
     <moduleService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.ModuleSyncIssueRegistry" />
+    <moduleService serviceImplementation="com.android.tools.idea.databinding.DataBindingAnnotationsService" />
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
                          key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>
@@ -723,6 +711,7 @@
                                      implementation="org.jetbrains.android.AndroidComponentSafeDeleteProcessor"/>
     <refactoring.safeDeleteProcessor id="android_resource_file" implementation="org.jetbrains.android.AndroidResourceFileSafeDeleteProcessor"/>
 
+    <statusBarWidgetProvider implementation="com.android.tools.idea.widget.AdbConnectionWidgetProvider" />
 
     <usageTargetProvider implementation="org.jetbrains.android.AndroidUsagesTargetProvider"/>
     <renameHandler implementation="org.jetbrains.android.AndroidRenameHandler" order="first" id="androidRenameHandler"/>
@@ -947,19 +936,11 @@
 
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep"/>
 
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.FailedToParseSdkErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingPlatformErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingDependencyErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnexpectedErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnknownHostErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.ObjectStreamErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GenericErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.NdkIntegrationDeprecatedErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.NdkToolchainMissingABIHandler"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.ide">
@@ -978,18 +959,6 @@
   </extensions>
 
   <xi:include href="new-deployment-target-selection.xml" xpointer="xpointer(/idea-plugin/*)"/>
-
-  <actions>
-    <!--suppress PluginXmlCapitalization -->
-    <action id="AdbConnectionStatus" class="com.android.tools.idea.run.AdbConnectionStatusAction" text="adb Connection Status">
-      <add-to-group group-id="ToolbarRunGroup" relative-to-action="DeviceAndSnapshotComboBox" anchor="after"/>
-    </action>
-
-    <action id="ToggleEmulatorWindow" class="com.android.tools.idea.emulator.ToggleEmulatorWindowAction"
-            text="Toggle Emulator Window">
-      <keyboard-shortcut first-keystroke="alt shift e" keymap="$default"/>
-    </action>
-  </actions>
 
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService"/>
@@ -1019,6 +988,7 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.ConnectionPermissionDeniedIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.CorruptGradleDependencyIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.DaemonContextMismatchIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.FailedToParseSdkIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.ErrorOpeningZipFileIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.Gradle2RequiredIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.GradleBrokenPipeIssueChecker"/>
@@ -1029,17 +999,21 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidPluginIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidSdkIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingNdkIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingPlatformIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.NdkToolchainMissingABIIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.SdkPlatformNotFoundIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.GradleWrapperImportChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionIssueChecker"/>
   </extensions>
 
-  <module-components>
-    <component>
-      <implementation-class>com.android.tools.idea.databinding.DataBindingModuleComponent</implementation-class>
-    </component>
-  </module-components>
+  <projectListeners>
+    <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+  </projectListeners>
 
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->
   <xi:include href="/com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>

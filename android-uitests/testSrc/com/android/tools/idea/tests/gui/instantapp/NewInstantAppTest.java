@@ -55,10 +55,9 @@ public class NewInstantAppTest {
       .enterName(projectName)
       .selectMinimumSdkApi(23)
       .wizard()
-      .clickFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
       .findRunApplicationButton().waitUntilEnabledAndShowing(); // Wait for the toolbar to be ready
 
     guiTest.ideFrame()
@@ -155,8 +154,7 @@ public class NewInstantAppTest {
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Activity")
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     assertThat(guiTest.getProjectFileText("app/src/main/res/values/strings.xml"))
       .contains("title_activity_login");
@@ -187,11 +185,8 @@ public class NewInstantAppTest {
     String releasePath = "app/src/release/res/values/google_maps_api.xml";
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
-           .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Google", "Google Maps Activity")
-           .clickFinish();
-
-    guiTest.ideFrame()
-           .waitForGradleProjectSyncToFinish();
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Google", "Google Maps Activity")
+      .clickFinishAndWaitForSyncToFinish();
 
     assertAbout(file()).that(guiTest.getProjectPath(debugPath)).isFile();
     assertAbout(file()).that(guiTest.getProjectPath(releasePath)).isFile();
@@ -204,8 +199,7 @@ public class NewInstantAppTest {
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Master/Detail Flow")
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     String baseStrings = guiTest.getProjectFileText("app/src/main/res/values/strings.xml");
     assertThat(baseStrings).contains("title_item_detail");
@@ -218,8 +212,7 @@ public class NewInstantAppTest {
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Fullscreen Activity")
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     assertThat(guiTest.getProjectFileText("app/src/main/res/values/strings.xml"))
       .contains("title_activity_fullscreen");

@@ -19,8 +19,10 @@ import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Test
-import java.io.*
-import java.util.zip.DataFormatException
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.util.zip.InflaterInputStream
 
 class AtraceExporterTest {
@@ -48,12 +50,6 @@ class AtraceExporterTest {
   @Test
   fun testExportedAtraceFileCanBeImported() {
     val file = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
-    exportImportFile(file)
-  }
-
-  @Test
-  fun testExportedPerfettoFileCanBeImported() {
-    val file = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
     exportImportFile(file)
   }
 

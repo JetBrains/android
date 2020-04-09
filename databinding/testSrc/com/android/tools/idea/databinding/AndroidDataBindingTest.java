@@ -20,7 +20,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.databinding.module.ModuleDataBinding;
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.Lists;
@@ -78,7 +78,7 @@ public class AndroidDataBindingTest {
     fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML);
 
     AndroidFacet androidFacet = FacetManager.getInstance(myProjectRule.getModule()).getFacetByType(AndroidFacet.ID);
-    ModuleDataBinding.getInstance(androidFacet).setDataBindingMode(myDataBindingMode);
+    LayoutBindingModuleCache.getInstance(androidFacet).setDataBindingMode(myDataBindingMode);
   }
 
   /**

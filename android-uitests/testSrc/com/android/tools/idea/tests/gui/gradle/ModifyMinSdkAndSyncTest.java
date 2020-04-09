@@ -74,14 +74,14 @@ public class ModifyMinSdkAndSyncTest {
   @Test
   public void modifyMinSdkAndSync() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
-    // @formatter:off
-    ideFrame.getEditor()
-            .open("app/build.gradle")
-            .select("minSdkVersion (21)")
-            .enterText("23")
-            .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-            .performActionWithoutWaitingForDisappearance("Sync Now")
-            .waitForGradleProjectSyncToFinish();
-    // @formatter:on
+    ideFrame.actAndWaitForGradleProjectSyncToFinish(it -> {
+      it.getEditor()
+        .open("app/build.gradle")
+        .select("minSdkVersion (21)")
+        .enterText("23")
+        .awaitNotification(
+          "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+        .performActionWithoutWaitingForDisappearance("Sync Now");
+    });
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.annotator
 
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.controllers.ParametersBindingController
 import com.android.tools.idea.sqlite.model.SqliteDatabase
@@ -23,6 +24,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.sqlLanguage.needsBinding
 import com.android.tools.idea.sqlite.sqlLanguage.replaceNamedParametersWithPositionalParameters
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.icons.AllIcons
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -91,12 +93,16 @@ class RunSqliteStatementGutterIconAction(
   }
 
   private fun runSqliteStatement(database: SqliteDatabase, sqliteStatementPsi: PsiElement) {
+    DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
+      AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT
+    )
+
     if (!needsBinding(sqliteStatementPsi)) {
       val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
       DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(database, SqliteStatement(sqliteStatement))
     }
     else {
-      val view = viewFactory.createParametersBindingView(project)
+      val view = viewFactory.createParametersBindingView(project, sqliteStatementPsi.text)
       ParametersBindingController(view, sqliteStatementPsi) {
         DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(database, it)
       }.also {

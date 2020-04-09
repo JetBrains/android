@@ -22,7 +22,6 @@ import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.XmlContext;
 import com.android.utils.PositionXmlParser;
-import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -42,18 +41,9 @@ import org.w3c.dom.Node;
  */
 class DomPsiParser extends XmlParser {
   private final LintIdeClient myClient;
-  private AccessToken myReadLock;
 
   DomPsiParser(LintIdeClient client) {
     myClient = client;
-  }
-
-  @Override
-  public void dispose(@NonNull XmlContext context, @NonNull Document document) {
-    if (myReadLock != null) {
-      myReadLock.finish();
-      myReadLock = null;
-    }
   }
 
   @Override
@@ -77,21 +67,14 @@ class DomPsiParser extends XmlParser {
   @Nullable
   @Override
   public Document parseXml(@NonNull final XmlContext context) {
-    assert myReadLock == null;
-    myReadLock = ApplicationManager.getApplication().acquireReadActionLock();
-    Document document = parse(context);
-    if (document == null) {
-      myReadLock.finish();
-      myReadLock = null;
-    }
-    return document;
+    // Should only be called from read thread
+    assert ApplicationManager.getApplication().isReadAccessAllowed();
+
+    return parse(context);
   }
 
   @Nullable
   private Document parse(XmlContext context) {
-    // Should only be called from read thread
-    assert ApplicationManager.getApplication().isReadAccessAllowed();
-
     final PsiFile psiFile = LintIdeUtilsKt.getPsiFile(context);
     if (!(psiFile instanceof XmlFile)) {
       return null;
@@ -142,16 +125,11 @@ class DomPsiParser extends XmlParser {
   @Nullable
   @Override
   public Document parseXml(@NonNull CharSequence xml, @Nullable File file) {
-    if (file != null) {
-      assert myReadLock == null;
-      myReadLock = ApplicationManager.getApplication().acquireReadActionLock();
-      Document document = parseXml(file);
-      if (document == null) {
-        myReadLock.finish();
-        myReadLock = null;
-      }
+    // Should only be called from read thread
+    assert ApplicationManager.getApplication().isReadAccessAllowed();
 
-      return document;
+    if (file != null) {
+      return parseXml(file);
     }
     try {
       return PositionXmlParser.parse(xml.toString());

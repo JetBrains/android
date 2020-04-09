@@ -24,6 +24,7 @@ import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.PhysicalModelValue
+import com.android.emulator.control.VmRunState
 import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
@@ -184,6 +185,26 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
     emulatorController.setPhysicalModel(
         modelValue, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetPhysicalModelMethod()))
+  }
+
+  /**
+   * Sets a virtual machine state.
+   */
+  fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setVmModel(${shortDebugString(vmState)})")
+    }
+    emulatorController.setVmState(vmState, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetVmStateMethod()))
+  }
+
+  /**
+   * Retrieves a screenshot of an Emulator display.
+   */
+  fun getScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("getScreenshot(${shortDebugString(imageFormat)})")
+    }
+    emulatorController.getScreenshot(imageFormat, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetScreenshotMethod()))
   }
 
   /**

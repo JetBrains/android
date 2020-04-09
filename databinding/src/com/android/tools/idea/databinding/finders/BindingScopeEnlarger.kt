@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.databinding.finders
 
-import com.android.tools.idea.databinding.LayoutBindingProjectComponent
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.databinding.module.ModuleDataBinding
-import com.android.tools.idea.databinding.project.ProjectLayoutResourcesModificationTracker
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
@@ -55,8 +53,6 @@ class BindingScopeEnlarger : ResolveScopeEnlarger() {
   fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
     val module = facet.module
     val project = module.project
-    val component = project.getComponent(LayoutBindingProjectComponent::class.java)
-    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
 
     return CachedValuesManager.getManager(project).getCachedValue(module) {
       val localScope = facet.getLocalBindingScope()
@@ -66,7 +62,7 @@ class BindingScopeEnlarger : ResolveScopeEnlarger() {
         .map(AndroidFacet::getLocalBindingScope)
         .fold(localScope) { scopeAccum, depScope -> scopeAccum.union(depScope) }
 
-      CachedValueProvider.Result.create(scopeIncludingDeps, component, resourcesModifiedTracker)
+      CachedValueProvider.Result.create(scopeIncludingDeps, PsiModificationTracker.MODIFICATION_COUNT)
     }
   }
 }
@@ -74,20 +70,18 @@ class BindingScopeEnlarger : ResolveScopeEnlarger() {
 private fun AndroidFacet.getLocalBindingScope(): GlobalSearchScope {
   val module = module
   val project = module.project
-  val component = project.getComponent(LayoutBindingProjectComponent::class.java)
-  val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
   return CachedValuesManager.getManager(project).getCachedValue(module) {
     val lightClasses = mutableListOf<PsiClass>()
 
-    val moduleDataBinding = ModuleDataBinding.getInstance(this)
+    val bindingModuleCache = LayoutBindingModuleCache.getInstance(this)
 
     if (DataBindingUtil.isDataBindingEnabled(this)) {
-      moduleDataBinding.lightBrClass?.let { lightClasses.add(it) }
-      moduleDataBinding.lightDataBindingComponentClass?.let { lightClasses.add(it) }
+      bindingModuleCache.lightBrClass?.let { lightClasses.add(it) }
+      bindingModuleCache.lightDataBindingComponentClass?.let { lightClasses.add(it) }
     }
 
-    moduleDataBinding.bindingLayoutGroups.forEach { group ->
-      lightClasses.addAll(moduleDataBinding.getLightBindingClasses(group))
+    bindingModuleCache.bindingLayoutGroups.forEach { group ->
+      lightClasses.addAll(bindingModuleCache.getLightBindingClasses(group))
     }
 
     // Light classes don't exist on disk, so you have to use their view provider to get a
@@ -95,7 +89,7 @@ private fun AndroidFacet.getLocalBindingScope(): GlobalSearchScope {
     // that classes they are returning belong to the current scope.
     val virtualFiles = lightClasses.map { it.containingFile!!.viewProvider.virtualFile }
     val localScope = GlobalSearchScope.filesWithoutLibrariesScope(project, virtualFiles)
-    CachedValueProvider.Result.create(localScope, component, resourcesModifiedTracker)
+    CachedValueProvider.Result.create(localScope, PsiModificationTracker.MODIFICATION_COUNT)
   }
 }
 

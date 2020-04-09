@@ -100,7 +100,6 @@ public class AndroidLibsDepTest {
       .clickNextToAndroidLibrary()
       .enterModuleName(moduleName)
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
   }
 }

@@ -46,7 +46,7 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), FakeIdeProfilerServices(), timer)
     cpuStage = CpuProfilerStage(profilers)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     profilers.stage = cpuStage

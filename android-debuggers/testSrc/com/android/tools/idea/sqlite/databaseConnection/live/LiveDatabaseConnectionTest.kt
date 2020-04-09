@@ -25,16 +25,20 @@ import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFut
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.Futures
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.registerServiceInstance
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
 class LiveDatabaseConnectionTest : PlatformTestCase() {
@@ -86,7 +90,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(schemaResponse.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
 
     // Act
     val sqliteSchema = pumpEventsAndWaitForFuture(liveDatabaseConnection.readSchema())
@@ -141,7 +145,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
 
     // Act
     val resultSet = pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(SqliteStatement("fake query")))!!
@@ -184,7 +188,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
 
     // Act
     pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(sqliteStatement))!!
@@ -210,7 +214,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
 
     // Act
     val resultSet = pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(SqliteStatement("fake query")))!!
@@ -240,7 +244,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
@@ -269,7 +273,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
@@ -298,7 +302,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
@@ -308,5 +312,92 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     assertInstanceOf(error1.cause, LiveInspectorException::class.java)
     assertEquals("An error has occurred which might require you to restart your app: errorMessage", error1.cause!!.message)
     assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
+  }
+
+  fun testRecoverableErrorAnalytics() {
+    // Prepare
+    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
+
+    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
+      SqliteInspectorProtocol.ErrorContent.newBuilder()
+        .setMessage("errorMessage")
+        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(true).build())
+        .setStackTrace("stackTrace")
+        .build()
+    ).build()
+
+    val cursor = Response.newBuilder()
+      .setErrorOccurred(errorOccurredEvent)
+      .build()
+
+    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+
+    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
+
+    // Act / Assert
+    pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
+    pumpEventsAndWaitForFutureException(liveDatabaseConnection.execute(SqliteStatement("fake query")))
+
+    verify(mockTrackerService, times(2)).trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_TRUE)
+  }
+
+  fun testNonRecoverableErrorAnalytics() {
+    // Prepare
+    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
+
+    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
+      SqliteInspectorProtocol.ErrorContent.newBuilder()
+        .setMessage("errorMessage")
+        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(false).build())
+        .setStackTrace("stackTrace")
+        .build()
+    ).build()
+
+    val cursor = Response.newBuilder()
+      .setErrorOccurred(errorOccurredEvent)
+      .build()
+
+    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+
+    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
+
+    // Act / Assert
+    pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
+    pumpEventsAndWaitForFutureException(liveDatabaseConnection.execute(SqliteStatement("fake query")))
+
+    verify(mockTrackerService, times(2)).trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_FALSE)
+  }
+
+  fun testUnknownRecoverableErrorAnalytics() {
+    // Prepare
+    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
+
+    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
+      SqliteInspectorProtocol.ErrorContent.newBuilder()
+        .setMessage("errorMessage")
+        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().build())
+        .setStackTrace("stackTrace")
+        .build()
+    ).build()
+
+    val cursor = Response.newBuilder()
+      .setErrorOccurred(errorOccurredEvent)
+      .build()
+
+    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+
+    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
+
+    // Act / Assert
+    pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
+    pumpEventsAndWaitForFutureException(liveDatabaseConnection.execute(SqliteStatement("fake query")))
+
+    verify(mockTrackerService, times(2)).trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_UNKNOWN)
   }
 }

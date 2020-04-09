@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
@@ -29,6 +30,11 @@ private fun HighlightInfo.descriptionWithLineNumber() =
   "${StringUtil.offsetToLineNumber(highlighter.document.text, startOffset)}: ${description}"
 
 class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
+  override fun tearDown() {
+    super.tearDown()
+    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.clearOverride()
+  }
+
   fun testNeedsComposableInspection() {
     myFixture.enableInspections(PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry)
 
@@ -55,12 +61,15 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
   }
 
   fun testNoParametersInPreview() {
+    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.override(true)
     myFixture.enableInspections(PreviewAnnotationInFunctionWithParametersInspection() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
       import androidx.ui.tooling.preview.Preview
+      import androidx.ui.tooling.preview.PreviewParameter
+      import androidx.ui.tooling.preview.PreviewParameterProvider
       import androidx.compose.Composable
 
       @Preview
@@ -77,17 +86,41 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       @Composable
       fun Preview3(a: Int, b: String = "hello") { // ERROR, first parameter has not default
       }
+
+      class IntProvider: PreviewParameterProvider<Int> {
+          override val values: Sequence<String> = sequenceOf(1, 2)
+      }
+
+      @Preview
+      @Composable
+      fun PreviewWithProvider(@PreviewParameter(IntProvider::class) a: Int) {
+      }
+
+      @Preview
+      @Composable
+      fun PreviewWithProviderAndDefault(@PreviewParameter(IntProvider::class) a: Int, b: String = "hello") {
+      }
+
+      @Preview
+      @Composable
+      fun PreviewWithProviderAndNoDefault(@PreviewParameter(IntProvider::class) a: Int, b: String) { // ERROR, no default in second parameter
+      }
     """.trimIndent()
 
     myFixture.configureByText("Test.kt", fileContent)
     val inspections = myFixture.doHighlighting(HighlightSeverity.ERROR)
+      // Filter out UNRESOLVED_REFERENCE caused by the standard library not being available.
+      // sequence and sequenceOf are not available. We can safely ignore them.
+      .filter { !it.description.contains("[UNRESOLVED_REFERENCE]") }
       .sortedByDescending { -it.startOffset }
       .joinToString("\n") { it.descriptionWithLineNumber() }
 
 
-    assertEquals("""3: Composable functions with non-default parameters are not supported in Preview.
-                    |13: Composable functions with non-default parameters are not supported in Preview.""".trimMargin(),
-                 inspections)
+    assertEquals(
+      """5: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
+        |15: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
+        |34: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.""".trimMargin(),
+      inspections)
   }
 
   fun testPreviewMustBeTopLevel() {

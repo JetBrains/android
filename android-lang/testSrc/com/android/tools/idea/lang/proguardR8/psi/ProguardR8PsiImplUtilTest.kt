@@ -57,6 +57,49 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(qName!!.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass"))
   }
 
+  fun testResolveInnerPsiClassFromQualifiedName() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      class MyClass {
+        class Inner {
+          class SecondInner {}
+        }
+      }
+    """.trimIndent())
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      " -keep class test.MyClass\$Inner\$Second${caret}Inner {}"
+    )
+    val qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8QualifiedName::class)!!
+
+    assertThat(qName.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass.Inner.SecondInner"))
+  }
+
+  fun testDontResolveInnerClassAfterDot() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      class MyClass {
+        class Inner {
+        }
+      }
+    """.trimIndent())
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      " -keep class test.MyClass.${caret}Inner {}"
+    )
+    val qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8QualifiedName::class)!!
+
+    assertThat(qName.resolveToPsiClass()).isNull()
+  }
+
   fun testResolvePsiClassFromQualifiedNameInQuotes() {
     myFixture.addClass(
       //language=JAVA

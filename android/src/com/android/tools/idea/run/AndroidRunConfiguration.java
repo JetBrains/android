@@ -104,6 +104,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public boolean DEPLOY_AS_INSTANT = false;
   public String ARTIFACT_NAME = "";
   public String PM_INSTALL_OPTIONS = "";
+  public boolean ALL_USERS = false;
   public String DYNAMIC_FEATURES_DISABLED_LIST = "";
 
   // Launch options
@@ -159,6 +160,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     return super.getLaunchOptions()
       .setDeploy(DEPLOY)
       .setPmInstallOptions(PM_INSTALL_OPTIONS)
+      .setAllUsers(ALL_USERS)
       .setDisabledDynamicFeatures(getDisabledDynamicFeatures())
       .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY)
       .setDeployAsInstant(DEPLOY_AS_INSTANT);

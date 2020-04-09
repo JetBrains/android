@@ -175,8 +175,8 @@ public class AxisLineChartVisualTest extends VisualTest {
     mLegendComponent.configure(legend, new LegendConfig(LegendConfig.IconType.LINE, LineConfig.getColor(1)));
 
     final Range timeSelectionRangeUs = new Range();
-    RangeSelectionModel selection = new RangeSelectionModel(timeSelectionRangeUs);
-    mSelection = new RangeSelectionComponent(selection, mTimeViewRangeUs);
+    RangeSelectionModel selection = new RangeSelectionModel(timeSelectionRangeUs, mTimeViewRangeUs);
+    mSelection = new RangeSelectionComponent(selection);
 
     // Note: the order below is important as some components depend on
     // others to be updated first. e.g. the ranges need to be updated before the axes.

@@ -32,6 +32,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPointerManager
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -42,7 +43,7 @@ import kotlin.streams.toList
 /**
  * A generic preview [com.intellij.openapi.fileEditor.FileEditor] that allows you to switch between different [PreviewRepresentation]s.
  */
-open class MultiRepresentationPreview(private val psiFile: PsiFile,
+open class MultiRepresentationPreview(psiFile: PsiFile,
                                       private val providers: List<PreviewRepresentationProvider>,
                                       persistenceProvider: (Project) -> PropertiesComponent) :
   PreviewRepresentationManager, DesignFileEditor(psiFile.virtualFile!!) {
@@ -54,10 +55,10 @@ open class MultiRepresentationPreview(private val psiFile: PsiFile,
       { p -> PropertiesComponent.getInstance(p) })
 
   private val project = psiFile.project
-  private val virtualFile = psiFile.virtualFile!!
+  private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
   private var shortcutsApplicableComponent: JComponent? = null
 
-  private val instanceId = "$MULTI_REPRESENTATION_PREVIEW${virtualFile.path}"
+  private val instanceId = "$MULTI_REPRESENTATION_PREVIEW${psiFile.virtualFile!!.path}"
 
   private val persistenceManager = persistenceProvider(project)
 
@@ -117,7 +118,12 @@ open class MultiRepresentationPreview(private val psiFile: PsiFile,
       return@invokeLaterIfNeeded
     }
 
-    val providers = providers.filter { it.accept(project, virtualFile) }.toList()
+    val file = psiFilePointer.element
+    if (file == null || !file.isValid) {
+      return@invokeLaterIfNeeded
+    }
+
+    val providers = providers.filter { it.accept(project, file.virtualFile) }.toList()
     val providerNames = providers.map { it.displayName }.toSet()
 
     // Remove unaccepted
@@ -128,7 +134,7 @@ open class MultiRepresentationPreview(private val psiFile: PsiFile,
     }
     // Add new
     for (provider in providers.filter { it.displayName !in representations.keys }) {
-      val representation = provider.createRepresentation(psiFile)
+      val representation = provider.createRepresentation(file)
       Disposer.register(this, representation)
       shortcutsApplicableComponent?.let {
         representation.registerShortcuts(it)

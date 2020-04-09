@@ -68,12 +68,18 @@ interface TableView {
    */
   fun updateRows(rowDiffOperations: List<RowDiffOperation>)
 
+  /**
+   * Sets the text shown when the table is empty.
+   */
+  fun setEmptyText(text: String)
+
   interface Listener {
     fun loadPreviousRowsInvoked()
     fun loadNextRowsInvoked()
     fun loadFirstRowsInvoked()
     fun loadLastRowsInvoked()
     fun refreshDataInvoked()
+    fun toggleLiveUpdatesInvoked()
     fun updateCellInvoked(targetRowIndex: Int, targetColumn: SqliteColumn, newValue: SqliteValue)
 
     /**

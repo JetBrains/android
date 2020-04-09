@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding
 
 import com.android.ide.common.resources.stripPrefixFromId
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
@@ -128,7 +128,7 @@ class LightBindingClassTest {
       </manifest>
     """.trimIndent())
 
-    ModuleDataBinding.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
+    LayoutBindingModuleCache.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
   }
 
   @Test
@@ -676,7 +676,7 @@ class LightBindingClassTest {
 
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)!!
     assertThat(binding.findFieldByName("testId", false)!!.type.canonicalText)
-      .isEqualTo(ModuleDataBinding.getInstance(facet).dataBindingMode.viewStubProxy)
+      .isEqualTo(LayoutBindingModuleCache.getInstance(facet).dataBindingMode.viewStubProxy)
   }
 
   @Test
@@ -715,25 +715,25 @@ class LightBindingClassTest {
     // initialize app resources
     ResourceRepositoryManager.getAppResources(facet)
 
-    assertThat(ModuleDataBinding.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+    assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
       .containsExactly("ActivityFirstBinding")
 
     val dumbService = DumbService.getInstance(project) as DumbServiceImpl
     dumbService.isDumb = true
 
     // First, verify that dumb mode doesn't prevent us from accessing the previous cache
-    assertThat(ModuleDataBinding.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+    assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
       .containsExactly("ActivityFirstBinding")
 
     // XML updates are ignored in dumb mode
     fixture.addFileToProject("res/layout/activity_second.xml", dummyXml)
-    assertThat(ModuleDataBinding.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+    assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
       .containsExactly("ActivityFirstBinding")
 
     // XML updates should catch up after dumb mode is exited (in other words, we didn't save a snapshot of the stale
     // cache from before)
     dumbService.isDumb = false
-    assertThat(ModuleDataBinding.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+    assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
       .containsExactly("ActivityFirstBinding", "ActivitySecondBinding")
   }
 

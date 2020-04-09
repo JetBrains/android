@@ -42,7 +42,7 @@ class UserEventTooltipViewTest {
 
   @Before
   fun setup() {
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), myTimer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), FakeIdeProfilerServices(), myTimer)
     myTimer.tick(TimeUnit.SECONDS.toNanos(1))
     myMonitor = EventMonitor(profilers)
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())

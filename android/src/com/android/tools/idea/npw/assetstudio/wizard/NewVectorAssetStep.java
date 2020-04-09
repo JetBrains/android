@@ -466,7 +466,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       @Nullable final File myAssetFile;
       @NotNull final VectorAsset.VectorDrawableInfo myVectorDrawableInfo;
       @NotNull final VdOverrideInfo myOverrideInfo;
-      private int myPreviewWidth;
+      private final int myPreviewWidth;
 
       @UiThread
       Worker(int previewWidth) {

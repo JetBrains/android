@@ -35,7 +35,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardF
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.ProjectManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -90,13 +89,15 @@ public class ProjectWithKotlinTestUtil {
         ideFrameFixture.getEditor().awaitNotification("Kotlin not configured");
       editorNotificationPanelFixture.performActionWithoutWaitingForDisappearance("Configure");
 
-      // As default, "All modules containing Kotlin files" option is selected for now.
-      ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
-                                  .clickOkAndWaitDialogDisappear();
-      ideFrameFixture.requestProjectSync();
+      ideFrameFixture.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(60), it -> {
+        // As default, "All modules containing Kotlin files" option is selected for now.
+        ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
+          .clickOkAndWaitDialogDisappear();
+        it.requestProjectSync();
+      });
     }
 
-    ideFrameFixture.invokeMenuPath("Build", "Rebuild Project").waitForGradleProjectSyncToFinish(Wait.seconds(60));
+    ideFrameFixture.invokeMenuPath("Build", "Rebuild Project");
 
     emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
 
@@ -155,33 +156,7 @@ public class ProjectWithKotlinTestUtil {
       newProjectWizard.clickNext();
     }
 
-    try {
-      newProjectWizard.clickFinish(Wait.seconds(30), Wait.seconds(120));
-    } catch (WaitTimedOutError setupTimeout) {
-      // We do not care about timeouts if the IDE is indexing and syncing the project,
-      // so we don't actually want to throw an error in case  we get a timeout from
-      // indexing or syncing
-
-      // Unfortunately, there are 3 different waits used in the clickFinish() method,
-      // so we have to repeat the checks to throw a more detailed error message
-
-      // Check if the dialog is still open
-      if (GuiQuery.getNonNull(() -> newProjectWizard.target().isShowing())) {
-        // dialog still showing
-        throw setupTimeout;
-      }
-
-      // Check if the project is opened
-      if (ProjectManager.getInstance().getOpenProjects().length != 1) {
-        throw setupTimeout;
-      }
-
-      // The only other possibility here is that the project is still indexing
-      // or syncing. Ignore the timeout in this case!
-    }
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(300));
+    IdeFrameFixture ideFrame = newProjectWizard.clickFinishAndWaitForSyncToFinish(Wait.seconds(300));
 
     // TODO remove the following hack: b/110174414
     File androidSdk = IdeSdks.getInstance().getAndroidSdkPath();
@@ -212,8 +187,8 @@ public class ProjectWithKotlinTestUtil {
     if(errorsWhileModifyingBuild != null) {
       throw errorsWhileModifyingBuild;
     }
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish();
     // TODO end hack for b/110174414
-
   }
 
   /**

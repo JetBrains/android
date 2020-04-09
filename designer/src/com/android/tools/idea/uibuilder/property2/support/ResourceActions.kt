@@ -18,23 +18,15 @@ package com.android.tools.idea.uibuilder.property2.support
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.res.resolveColor
-import com.android.tools.idea.ui.resourcechooser.ColorResourcePicker
-import com.android.tools.idea.ui.resourcechooser.ColorResourcePickerListener
-import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
+import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
 import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.property.panel.api.HelpSupport
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
@@ -44,10 +36,8 @@ import icons.StudioIcons
 import java.awt.Color
 import java.awt.Component
 import java.awt.Point
-import java.awt.event.ActionEvent
 import java.awt.event.MouseEvent
 import java.util.Locale
-import javax.swing.AbstractAction
 import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.SwingUtilities
@@ -153,48 +143,15 @@ object ColorSelectionAction: AnAction("Select Color") {
                                     initialColor: Color?,
                                     resourceReference: ResourceReference?,
                                     restoreFocusTo: Component?) {
-    val dialog = LightCalloutPopup()
-
-    val colorPicker = ColorPickerBuilder()
-      .setOriginalColor(initialColor)
-      .addSaturationBrightnessComponent()
-      .addColorAdjustPanel(MaterialGraphicalColorPipetteProvider())
-      .addColorValuePanel().withFocus()
-      .addSeparator()
-      .addCustomComponent(MaterialColorPaletteProvider)
-      .addColorPickerListener(ColorPickerListener { color, _ -> property.value = colorToString(color) })
-      .focusWhenDisplay(true)
-      .setFocusCycleRoot(true)
-      .addKeyAction(KeyStrokes.ESCAPE, object : AbstractAction() {
-        override fun actionPerformed(event: ActionEvent) {
-          dialog.close()
-          restoreFocus(restoreFocusTo)
-        }
-      })
-      .build()
-
-    val popupContent: JComponent
-    val configuration = property.model.surface?.focusedSceneView?.configuration ?: property.model.surface?.configurations?.firstOrNull()
-    if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && configuration != null) {
-      // Use tabbed panel instead.
-      val resourcePicker = ColorResourcePicker(configuration, resourceReference)
-      resourcePicker.addColorResourcePickerListener (object : ColorResourcePickerListener {
-        override fun colorResourcePicked(resourceReference: ResourceReference) {
-          // TODO: Use relative resource url instead.
-          property.value = resourceReference.resourceUrl.toString()
-        }
-      })
-      popupContent = HorizontalTabbedPanelBuilder()
-        .addTab("Resources", resourcePicker)
-        .addTab("Custom", colorPicker)
-        .setDefaultPage(if (resourceReference != null) 0 else 1)
-        .build()
-    }
-    else {
-      popupContent = colorPicker
-    }
-
-    dialog.show(popupContent, null, location)
+    createAndShowColorPickerPopup(
+      initialColor,
+      resourceReference,
+      property.model.surface?.focusedSceneView?.configuration ?: property.model.surface?.configurations?.firstOrNull(),
+      restoreFocusTo,
+      location,
+      { color -> property.value = colorToString(color) },
+      { resourceString -> property.value = resourceString }
+    )
   }
 
   private fun locationFromEvent(event: AnActionEvent): Point {
@@ -218,15 +175,5 @@ object ColorSelectionAction: AnAction("Select Color") {
     val component = componentFromEvent(event) ?: return null
     val table = SwingUtilities.getAncestorOfClass(JTable::class.java, component)
     return table ?: component
-  }
-
-  private fun restoreFocus(restoreFocusTo: Component?) {
-    if (restoreFocusTo is JTable && restoreFocusTo.selectedRow > 0 && restoreFocusTo.selectedColumn > 0) {
-      restoreFocusTo.editCellAt(restoreFocusTo.selectedRow, restoreFocusTo.selectedColumn)
-      restoreFocusTo.editorComponent.requestFocus()
-    }
-    else {
-      restoreFocusTo?.requestFocus()
-    }
   }
 }

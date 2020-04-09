@@ -21,22 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.EventListener;
 
 public interface GradleSyncListener extends EventListener {
-  /**
-   * Invoked when sync task has been created and sync is going to happen some time soon. Useful in situations when
-   * sync gets executed asynchronously so syncStarted() isn't called yet but it's necessary to know that sync is
-   * imminent.
-   *
-   * @param project Project which sync has been requested for.
-   * @param request Sync request to be fulfilled.
-   */
-  default void syncTaskCreated(@NotNull Project project, @NotNull GradleSyncInvoker.Request request) {
-  }
-
-  default void syncStarted(@NotNull Project project) {
-  }
-
-  default void setupStarted(@NotNull Project project) {
-  }
 
   /**
    * Invoked when a Gradle project has been synced. It is not guaranteed that the created IDEA project has been compiled.

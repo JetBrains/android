@@ -16,12 +16,13 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.Slow
+import com.android.tools.idea.compose.preview.util.PreviewElement
 
 /**
  * Interface to be implemented by classes providing a list of [PreviewElement]
  */
 interface PreviewElementProvider {
-  val previewElements: List<PreviewElement>
+  val previewElements: Sequence<PreviewElement>
 }
 
 /**
@@ -29,7 +30,7 @@ interface PreviewElementProvider {
  */
 class FilteredPreviewElementProvider(private val delegate: PreviewElementProvider,
                                      private val filter: (PreviewElement) -> Boolean) : PreviewElementProvider {
-  override val previewElements: List<PreviewElement>
+  override val previewElements: Sequence<PreviewElement>
     get() = delegate.previewElements.filter(filter)
 }
 
@@ -42,7 +43,7 @@ class MemoizedPreviewElementProvider(private val delegate: PreviewElementProvide
    * The [PreviewElement]s returned by this property are cached and might not represent the latest state of the [delegate].
    * You need to call [refresh] to update this copy.
    */
-  override var previewElements: List<PreviewElement> = emptyList()
+  override var previewElements: Sequence<PreviewElement> = emptySequence()
     @Synchronized get
     @Synchronized private set
 

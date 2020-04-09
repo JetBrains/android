@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.surface.layout
 
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 
 /*

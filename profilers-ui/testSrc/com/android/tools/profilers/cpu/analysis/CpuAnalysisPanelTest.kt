@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -52,7 +51,6 @@ class CpuAnalysisPanelTest {
                                     FakeTransportService(timer, true))
   @get:Rule val myEdtRule = EdtRule()
 
-  private val profilerClient = ProfilerClient(grpcChannel.name)
   private lateinit var profilers: StudioProfilers
   private val services = FakeIdeProfilerServices()
   private lateinit var stage: CpuCaptureStage
@@ -60,7 +58,7 @@ class CpuAnalysisPanelTest {
 
   @Before
   fun setUp() {
-    profilers = StudioProfilers(profilerClient, services, timer)
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                    TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH))
     panel = CpuAnalysisPanel(StudioProfilersView(profilers, FakeIdeProfilerComponents()), stage)

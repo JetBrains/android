@@ -16,34 +16,11 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.DefaultTimeline
-import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.MultiSelectionModel
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
 class CpuThreadTrackModelTest {
-  private val timer = FakeTimer()
-  private val services = FakeIdeProfilerServices()
-  private val transportService = FakeTransportService(timer, true)
-
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuThreadTrackModelTest", transportService)
-  private val profilerClient = ProfilerClient(grpcChannel.name)
-
-  private lateinit var profilers: StudioProfilers
-
-  @Before
-  fun setUp() {
-    services.enableEventsPipeline(true)
-    profilers = StudioProfilers(profilerClient, services, timer)
-  }
 
   @Test
   fun noThreadStatesFromArtTrace() {

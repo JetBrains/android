@@ -91,7 +91,7 @@ public class ImportAndRunInstantAppTest {
   public void importAndRunInstantApp() throws Exception {
     String runConfigName = "app";
 
-    guiTest.importProject("InstantAppsService");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("InstantAppsService", Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
     GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
 
     guiTest.ideFrame().runApp(runConfigName, avdRule.getMyAvd().getName());

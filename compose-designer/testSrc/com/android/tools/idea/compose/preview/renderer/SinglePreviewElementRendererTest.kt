@@ -15,43 +15,19 @@
  */
 package com.android.tools.idea.compose.preview.renderer
 
-import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
-import com.android.tools.idea.compose.preview.PreviewElement
+import com.android.tools.idea.compose.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.rendering.NoSecurityManagerRenderService
-import com.android.tools.idea.rendering.RenderService
-import com.android.tools.idea.testing.AndroidGradleProjectRule
-import org.junit.After
+import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
 class SinglePreviewElementRendererTest {
   @get:Rule
-  val projectRule = AndroidGradleProjectRule()
-
-  @Before
-  fun setUp() {
-    RenderService.shutdownRenderExecutor(5)
-    RenderService.initializeRenderExecutor()
-    RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
-    projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/compose-designer/testData").path
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
-    projectRule.requestSyncAndWait()
-    projectRule.invokeTasks("compileDebugSources").buildError?.let {
-      // The project must compile correctly, otherwise the tests should fail.
-      throw it
-    }
-  }
-
-  @After
-  fun tearDown() {
-    RenderService.setForTesting(projectRule.project, null)
-  }
+  val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
   /**
    * Checks that trying to render an non-existent preview returns a null image
@@ -59,7 +35,7 @@ class SinglePreviewElementRendererTest {
   @Test
   fun testInvalidPreview() {
     assertNull(renderPreviewElement(projectRule.androidFacet(":app"),
-                                    PreviewElement.forTesting("google.simpleapplication.MainActivityKt.InvalidPreview")).get())
+                                    SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.InvalidPreview")).get())
   }
 
   /**
@@ -68,7 +44,7 @@ class SinglePreviewElementRendererTest {
   @Test
   fun testDefaultPreviewRendering() {
     val defaultRender = renderPreviewElement(projectRule.androidFacet(":app"),
-                                             PreviewElement.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
+                                             SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
     ImageDiffUtil.assertImageSimilar(File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
                                      defaultRender!!,
                                      0.0)
@@ -80,7 +56,7 @@ class SinglePreviewElementRendererTest {
   @Test
   fun testDefaultPreviewRenderingWithBackground() {
     val defaultRenderWithBackground = renderPreviewElement(projectRule.androidFacet(":app"),
-                                                           PreviewElement.forTesting(
+                                                           SinglePreviewElementInstance.forTesting(
                                                              "google.simpleapplication.MainActivityKt.DefaultPreview",
                                                              showBackground = true,
                                                              backgroundColor = "#F00")).get()
@@ -97,7 +73,7 @@ class SinglePreviewElementRendererTest {
   @Test
   fun testEmptyRender() {
     val defaultRender = renderPreviewElement(projectRule.androidFacet(":app"),
-                                             PreviewElement.forTesting("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()
+                                             SinglePreviewElementInstance.forTesting("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()
 
     assertTrue(defaultRender!!.width > 0 && defaultRender.height > 0)
   }

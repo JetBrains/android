@@ -39,9 +39,10 @@ import static org.junit.Assert.fail;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -136,7 +137,7 @@ public class GradleSyncTest {
         buildModel.applyChanges();
       }));
 
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    ideFrame.actAndWaitForGradleProjectSyncToFinish(it -> it.requestProjectSync());
 
     for (OrderEntry entry : ModuleRootManager.getInstance(appModule).getOrderEntries()) {
       if (entry instanceof ModuleOrderEntry) {
@@ -160,15 +161,15 @@ public class GradleSyncTest {
 
     File wrapperDirPath = new File(ideFrame.getProjectPath(), SdkConstants.FD_GRADLE);
     delete(wrapperDirPath);
-    ideFrame.useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
+    ideFrame.actAndWaitForGradleProjectSyncToFinish(it -> {
+      it.useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
 
-    // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
-    ideFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickCancel();
+      // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
+      it.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickCancel();
 
-    ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(guiTest.robot());
-    chooseGradleHomeDialog.chooseGradleHome(gradleHomePath).clickOk().requireNotShowing();
-
-    ideFrame.waitForGradleProjectSyncToFinish();
+      ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(guiTest.robot());
+      chooseGradleHomeDialog.chooseGradleHome(gradleHomePath).clickOk().requireNotShowing();
+    });
   }
 
   @Test
@@ -180,12 +181,12 @@ public class GradleSyncTest {
 
     File wrapperDirPath = new File(ideFrame.getProjectPath(), SdkConstants.FD_GRADLE);
     delete(wrapperDirPath);
-    ideFrame.useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
+    ideFrame.actAndWaitForGradleProjectSyncToFinish(it -> {
+      it.useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
 
-    // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    ideFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
-
-    ideFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
+      // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
+      it.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
+    });
     assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").isDirectory();
   }
 
@@ -204,7 +205,7 @@ public class GradleSyncTest {
   public void javaModelSerialization() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
 
-    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish().closeProject();
+    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish().closeProject();
 
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
 
@@ -253,15 +254,15 @@ public class GradleSyncTest {
     ideSettings.USE_HTTP_PROXY = true;
     ideSettings.PROXY_HOST = host;
     ideSettings.PROXY_PORT = port;
+    ideFrame.actAndWaitForGradleProjectSyncToFinish(Wait.seconds(20), it -> {
 
-    ideFrame.requestProjectSync();
+      ideFrame.requestProjectSync();
 
-    // Expect IDE to ask user to copy proxy settings.
-    ProxySettingsDialogFixture proxyDialog = ProxySettingsDialogFixture.find(guiTest.robot());
-    proxyDialog.setDoNotShowThisDialog(true);
-    proxyDialog.clickYes();
-
-    ideFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish(Wait.seconds(20));
+      // Expect IDE to ask user to copy proxy settings.
+      ProxySettingsDialogFixture proxyDialog = ProxySettingsDialogFixture.find(guiTest.robot());
+      proxyDialog.setDoNotShowThisDialog(true);
+      proxyDialog.clickYes();
+    });
 
     // Verify gradle.properties has proxy settings.
     gradlePropertiesFile = getUserGradlePropertiesFile();
@@ -272,7 +273,7 @@ public class GradleSyncTest {
     assertEquals(String.valueOf(port), gradleProperties.getProperty("systemProp.http.proxyPort"));
 
     // Verifies that the "Do not show this dialog in the future" does not show up. If it does show up the test will timeout and fail.
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    ideFrame.actAndWaitForGradleProjectSyncToFinish(it -> it.requestProjectSync());
   }
 
   // Verifies that the IDE switches SDKs if the IDE and project SDKs are not the same.
@@ -293,12 +294,12 @@ public class GradleSyncTest {
     localProperties.setAndroidSdkPath(secondSdkPath);
     localProperties.save();
 
-    ideFrame.requestProjectSync();
+    ideFrame.actAndWaitForGradleProjectSyncToFinish(it -> {
+      ideFrame.requestProjectSync();
 
-    MessagesFixture messages = ideFrame.findMessageDialog(ANDROID_SDK_MANAGER_DIALOG_TITLE);
-    messages.click("Use Project's SDK");
-
-    ideFrame.waitForGradleProjectSyncToFinish();
+      MessagesFixture messages = ideFrame.findMessageDialog(ANDROID_SDK_MANAGER_DIALOG_TITLE);
+      messages.click("Use Project's SDK");
+    });
 
     assertThat(ideSdks.getAndroidSdkPath()).isEqualTo(secondSdkPath);
 
@@ -307,12 +308,12 @@ public class GradleSyncTest {
     localProperties.setAndroidSdkPath(originalSdkPath);
     localProperties.save();
 
-    ideFrame.requestProjectSync();
+    ideFrame.actAndWaitForGradleProjectSyncToFinish(it -> {
+      ideFrame.requestProjectSync();
 
-    messages = ideFrame.findMessageDialog(ANDROID_SDK_MANAGER_DIALOG_TITLE);
-    messages.click("Use Android Studio's SDK");
-
-    ideFrame.waitForGradleProjectSyncToFinish();
+      MessagesFixture messages = ideFrame.findMessageDialog(ANDROID_SDK_MANAGER_DIALOG_TITLE);
+      messages.click("Use Android Studio's SDK");
+    });
 
     localProperties = new LocalProperties(ideFrame.getProject());
     assertThat(localProperties.getAndroidSdkPath()).isEqualTo(secondSdkPath);
@@ -407,7 +408,7 @@ public class GradleSyncTest {
 
     ApplicationManager.getApplication().invokeAndWait(() -> runWriteCommandAction(project, () -> projectBuildModel.applyChanges()));
 
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish();
 
     Sdk sdk = ModuleRootManager.getInstance(appModule).getSdk();
 
@@ -428,17 +429,20 @@ public class GradleSyncTest {
     File projectDir = guiTest.setUpProject("SimpleApplication");
 
     // First time, open the project to sync.
-    IdeFrameFixture ideFrame = guiTest.openProject(projectDir);
-    ideFrame.waitForGradleProjectSyncToFinish();
+    IdeFrameFixture ideFrame = guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
     ideFrame.closeProject();
     // Second time, open the project expecting no sync.
-    ideFrame = guiTest.openProject(projectDir);
-    ideFrame.waitForGradleProjectSyncToFinish();
+    ideFrame = guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
 
     ProjectSystemSyncManager.SyncResult lastSyncResult =
       ProjectSystemService.getInstance(ideFrame.getProject()).getProjectSystem().getSyncManager().getLastSyncResult();
-    ideFrame.closeProject();
 
+    // A sync should not have been performed but the status should have been updated to SKIPPED.
     assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED);
+
+    // But the models should still be present
+    assertThat(AndroidModuleModel.get(ideFrame.getModule("app"))).isNotNull();
+    assertThat(GradleFacet.getInstance(ideFrame.getModule("app"))).isNotNull();
+    ideFrame.closeProject();
   }
 }

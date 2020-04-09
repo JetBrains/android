@@ -15,6 +15,20 @@ package com.android.tools.idea.compose.preview
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.android.tools.idea.compose.preview.util.COMPOSABLE_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
+import com.android.tools.idea.compose.preview.util.HEIGHT_PARAMETER
+import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.util.PREVIEW_PARAMETER_FQN
+import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
+import com.android.tools.idea.compose.preview.util.PreviewConfiguration
+import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
+import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.PreviewParameter
+import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.compose.preview.util.WIDTH_PARAMETER
+import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -31,8 +45,10 @@ import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
+import org.jetbrains.uast.UParameter
 import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.getContainingUMethod
+import org.jetbrains.uast.kotlin.KotlinUClassLiteralExpression
 import org.jetbrains.uast.visitor.UastVisitor
 
 private fun UAnnotation.findAttributeIntValue(name: String) =
@@ -40,6 +56,9 @@ private fun UAnnotation.findAttributeIntValue(name: String) =
 
 private fun UAnnotation.findAttributeFloatValue(name: String) =
   findAttributeValue(name)?.evaluate() as? Float
+
+private fun UAnnotation.findClassNameValue(name: String) =
+  (findAttributeValue(name) as? KotlinUClassLiteralExpression)?.type?.canonicalText
 
 /**
  * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
@@ -69,13 +88,12 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
 
   /**
    * Returns all the `@Composable` functions in the [uFile] that are also tagged with `@Preview`.
-   * The order of the elements will be the same as the order of the composable functions.
    */
-  override fun findPreviewMethods(uFile: UFile): List<PreviewElement> = ReadAction.compute<List<PreviewElement>, Throwable> {
+  override fun findPreviewMethods(uFile: UFile): Sequence<PreviewElement> = ReadAction.compute<Sequence<PreviewElement>, Throwable> {
     if (DumbService.isDumb(uFile.sourcePsi.project)) {
       Logger.getInstance(AnnotationFilePreviewElementFinder::class.java)
         .debug("findPreviewMethods called in dumb mode. No annotations will be found")
-      return@compute listOf()
+      return@compute sequenceOf()
     }
 
     val previewMethodsFqName = mutableSetOf<String>()
@@ -83,6 +101,18 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
     uFile.accept(object : UastVisitor {
       // Return false so we explore all the elements in the file (in case there are multiple @Preview elements)
       override fun visitElement(node: UElement): Boolean = false
+
+      /**
+       * Returns a list of [PreviewParameter] for the given [Collection<UParameter>]. If the parameters are annotated with
+       * `PreviewParameter`, then they will be returned as part of the collection.
+       */
+      private fun getPreviewParameters(parameters: Collection<UParameter>): Collection<PreviewParameter> =
+        parameters.mapIndexedNotNull { index, parameter ->
+          val annotation = parameter.findAnnotation(PREVIEW_PARAMETER_FQN) ?: return@mapIndexedNotNull null
+          val providerClassFqn = (annotation.findClassNameValue("provider")) ?: return@mapIndexedNotNull null
+          val limit = annotation.findAttributeIntValue("limit") ?: Int.MAX_VALUE
+          PreviewParameter(parameter.name, index, providerClassFqn, limit)
+        }
 
       /**
        * Called for every `@Preview` annotation.
@@ -104,11 +134,20 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
                                                        showBackground,
                                                        null)
 
-          previewElements.add(PreviewElement(composableMethod,
-                                             displaySettings,
-                                             previewAnnotation.toSmartPsiPointer(),
-                                             annotatedMethod.uastBody.toSmartPsiPointer(),
-                                             attributesToConfiguration(previewAnnotation)))
+          val parameters = getPreviewParameters(annotatedMethod.uastParameters)
+          val basePreviewElement = SinglePreviewElementInstance(composableMethod,
+                                                                displaySettings,
+                                                                previewAnnotation.toSmartPsiPointer(),
+                                                                annotatedMethod.uastBody.toSmartPsiPointer(),
+                                                                attributesToConfiguration(previewAnnotation))
+          if (!parameters.isEmpty()) {
+            if (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get()) {
+              previewElements.add(ParametrizedPreviewElementTemplate(basePreviewElement, parameters))
+            }
+          }
+          else {
+            previewElements.add(basePreviewElement)
+          }
         }
       }
 
@@ -132,6 +171,6 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
       }
     })
 
-    return@compute previewElements
+    return@compute previewElements.asSequence()
   }
 }

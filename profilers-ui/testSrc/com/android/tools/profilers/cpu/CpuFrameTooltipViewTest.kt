@@ -28,7 +28,6 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
 import com.android.tools.profilers.cpu.atrace.AtraceFrame
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
@@ -57,7 +56,7 @@ class CpuFrameTooltipViewTest {
     val device = Common.Device.newBuilder().setDeviceId(1).build()
     fakeTransportService.addDevice(device)
     fakeTransportService.addProcess(device, Common.Process.newBuilder().setDeviceId(1).setPid(1).build())
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
     stage = CpuProfilerStage(profilers)
     capture = AtraceParser(MainProcessSelector(idHint = 1)).parse(TestUtils.getWorkspaceFile(ATRACE_TRACE_PATH), 0)
     stage.capture = capture

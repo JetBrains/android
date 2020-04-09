@@ -22,7 +22,7 @@ import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -40,7 +40,6 @@ import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Dimension
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 
 class DrawableSlowPreviewProviderTest {
   @get:Rule
@@ -79,9 +78,9 @@ class DrawableSlowPreviewProviderTest {
     )
     val provider = DrawableSlowPreviewProvider(facet, resourceResolver, null)
 
-    val result = provider.getSlowPreview(100, 100, designAsset).get(5, TimeUnit.SECONDS)
+    val result = provider.getSlowPreview(100, 100, designAsset)
     assertNotNull(result)
-    Mockito.verify(drawableRenderer).getDrawableRender(MockitoKt.eq(frameworkResourceValue), MockitoKt.eq(mockFile), MockitoKt.eq(Dimension(100, 100)))
+    Mockito.verify(drawableRenderer).getDrawableRender(eq(frameworkResourceValue), eq(mockFile), eq(Dimension(100, 100)))
     Truth.assertThat(result!!.getRGB(1, 1)).isEqualTo(0xff012345.toInt())
   }
 

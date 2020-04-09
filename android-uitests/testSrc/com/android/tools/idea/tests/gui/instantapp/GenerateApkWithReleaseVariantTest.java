@@ -63,8 +63,7 @@ public class GenerateApkWithReleaseVariantTest {
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToAndroidLibrary()
       .wizard()
-      .clickFinish();
-    ideFrame.waitForGradleProjectSyncToFinish();
+      .clickFinishAndWaitForSyncToFinish();
 
     ideFrame.getEditor()
       .open("app/build.gradle")
@@ -75,9 +74,7 @@ public class GenerateApkWithReleaseVariantTest {
       .open("mylibrary/build.gradle")
       .moveBetween("release {", "")
       .enterText("\nshrinkResources true");
-    ideFrame.requestProjectSync();
-
-    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(20));
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(20));
 
     JTreeFixture treeFixture = ideFrame.getBuildToolWindow().getGradleSyncEventTree();
     // Focus the first warning so it's text is displayed in the console view

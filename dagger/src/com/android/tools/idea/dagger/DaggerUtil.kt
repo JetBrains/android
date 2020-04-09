@@ -52,6 +52,7 @@ const val DAGGER_MODULE_ANNOTATION = "dagger.Module"
 const val DAGGER_PROVIDES_ANNOTATION = "dagger.Provides"
 const val DAGGER_BINDS_ANNOTATION = "dagger.Binds"
 const val INJECT_ANNOTATION = "javax.inject.Inject"
+const val DAGGER_COMPONENT_ANNOTATION = "dagger.Component"
 
 /**
  * Returns all @Module-annotated classes in given [scope].
@@ -62,30 +63,32 @@ private fun getDaggerModules(scope: GlobalSearchScope): Query<PsiClass> {
 }
 
 /**
- * Returns all Dagger providers (@Provide/@Binds-annotated methods, @Inject-annotated constructors) for given [type] within given [scope].
+ * Returns all @Module-annotated classes in given [scope].
  */
-private fun getDaggerProvidersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
-  return getDaggerProvidesMethodsForType(type, scope) +
-         getDaggerBindsMethodsForType(type, scope) +
-         getDaggerInjectedConstructorsForType(type, scope)
+private fun getDaggerComponents(scope: GlobalSearchScope): Query<PsiClass> {
+  val scopeAnnotationClass = JavaPsiFacade.getInstance(scope.project).findClass(DAGGER_COMPONENT_ANNOTATION, scope) ?: return EmptyQuery()
+  return AnnotatedElementsSearch.searchPsiClasses(scopeAnnotationClass, scope)
+}
+
+/**
+ * Returns all Dagger providers (see [isDaggerProvider] for a [type] with a [qualifierInfo] within a [scope].
+ *
+ * Null [qualifierInfo] means that binding has not qualifier or has more then one.
+ */
+private fun getDaggerProviders(type: PsiType, qualifierInfo: QualifierInfo?, scope: GlobalSearchScope): Collection<PsiMethod> {
+  return getDaggerProvidesMethodsForType(type, scope).filterByQualifier(qualifierInfo) +
+         getDaggerBindsMethodsForType(type, scope).filterByQualifier(qualifierInfo) +
+         getDaggerInjectedConstructorsForType(type)
 }
 
 /**
  * Returns all Dagger providers (@Provide/@Binds-annotated methods, @Inject-annotated constructors) for [element].
  */
 fun getDaggerProvidersFor(element: PsiElement): Collection<PsiMethod> {
-  val type: PsiType =
-    when (element) {
-      is PsiField -> element.type
-      is KtProperty -> element.psiType
-      is PsiParameter -> element.type
-      is KtParameter -> element.psiType
-      else -> null
-    } ?: return emptyList()
-
   val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element) ?: return emptyList()
+  val (type, qualifierInfo) = extractTypeAndQualifierInfo(element) ?: return emptyList()
 
-  return getDaggerProvidersForType(type, scope)
+  return getDaggerProviders(type, qualifierInfo, scope)
 }
 
 /**
@@ -107,31 +110,29 @@ private fun getParamsOfDaggerProvidersForType(type: PsiType, scope: GlobalSearch
 }
 
 /**
- * Returns all Dagger consumers (see [isDaggerConsumer]) for given [type] within given [scope].
+ * Returns all Dagger consumers (see [isDaggerConsumer]) for given [type] with given [qualifierInfo] within [scope].
+ *
+ * Null [qualifierInfo] means that binding has not qualifier or has more then one.
  */
-private fun getDaggerConsumersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiVariable> {
-  return getInjectedFieldsForType(type, scope) + getParamsOfDaggerProvidersForType(type, scope)
+private fun getDaggerConsumers(type: PsiType, qualifierInfo: QualifierInfo?, scope: GlobalSearchScope): Collection<PsiVariable> {
+  return getInjectedFieldsForType(type, scope).filterByQualifier(qualifierInfo) +
+         getParamsOfDaggerProvidersForType(type, scope).filterByQualifier(qualifierInfo)
 }
 
 /**
  * Returns all Dagger consumers (see [isDaggerConsumer]) for given [element].
  */
 fun getDaggerConsumersFor(element: PsiElement): Collection<PsiVariable> {
-  val type: PsiType =
-    when (element) {
-      is PsiMethod -> if (element.isConstructor) element.containingClass?.let { toPsiType(it) } else element.returnType
-      is KtFunction -> if (element is KtConstructor<*>) element.containingClass()?.toPsiType() else element.psiType
-      else -> null
-    } ?: return emptyList()
-
   val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element) ?: return emptyList()
-  return getDaggerConsumersForType(type, scope)
+  val (type, qualifierInfo) = extractTypeAndQualifierInfo(element) ?: return emptyList()
+
+  return getDaggerConsumers(type, qualifierInfo, scope)
 }
 
 /**
  * Returns all @Inject-annotated constructors for given [type] within [scope].
  */
-private fun getDaggerInjectedConstructorsForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
+private fun getDaggerInjectedConstructorsForType(type: PsiType): Collection<PsiMethod> {
   val clazz = (type as? PsiClassType)?.resolve() ?: return emptyList()
   return clazz.constructors.filter { it.isInjected }
 }
@@ -215,6 +216,9 @@ val PsiElement?.isDaggerConsumer: Boolean
            this is KtParameter && this.ownerFunction.isDaggerProvider
   }
 
+internal val PsiElement.isDaggerComponentMethod: Boolean
+  get() = this is PsiMethod && this.containingClass?.hasAnnotation(DAGGER_COMPONENT_ANNOTATION) == true
+
 fun Module.isDaggerPresent(): Boolean = CachedValuesManager.getManager(this.project).getCachedValue(this) {
   CachedValueProvider.Result(calculateIsDaggerPresent(this), ProjectRootModificationTracker.getInstance(this.project))
 }
@@ -222,4 +226,38 @@ fun Module.isDaggerPresent(): Boolean = CachedValuesManager.getManager(this.proj
 private fun calculateIsDaggerPresent(module: Module): Boolean {
   val psiFacade = JavaPsiFacade.getInstance(module.project)
   return psiFacade.findClass(DAGGER_MODULE_ANNOTATION, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)) != null
+}
+
+/**
+ * Returns pair of a type and an optional [QualifierInfo] for [PsiElement].
+ *
+ * Returns null if it's impossible to extract type.
+ */
+private fun extractTypeAndQualifierInfo(element: PsiElement): Pair<PsiType, QualifierInfo?>? {
+  val type: PsiType =
+    when (element) {
+      is PsiMethod -> if (element.isConstructor) element.containingClass?.let { toPsiType(it) } else element.returnType
+      is KtFunction -> if (element is KtConstructor<*>) element.containingClass()?.toPsiType() else element.psiType
+      is PsiField -> element.type
+      is KtProperty -> element.psiType
+      is PsiParameter -> element.type
+      is KtParameter -> element.psiType
+      else -> null
+    } ?: return null
+
+  return Pair(type, element.getQualifierInfo())
+}
+
+/**
+ * Returns methods of interfaces annotated [DAGGER_COMPONENT_ANNOTATION] that have the a type and a [QualifierInfo] as a [provider].
+ */
+fun getDaggerComponentMethodsForProvider(provider: PsiElement): Collection<PsiMethod> {
+  val scope = ModuleUtil.findModuleForPsiElement(provider)?.getModuleSystem()?.getResolveScope(provider) ?: return emptyList()
+  val (type, qualifierInfo) = extractTypeAndQualifierInfo(provider) ?: return emptyList()
+  val components = getDaggerComponents(scope)
+  return components.flatMap {
+    // Instantiating methods doesn't have parameters.
+    component ->
+    component.methods.filter { it.returnType == type && !it.hasParameters() }.filterByQualifier(qualifierInfo)
+  }
 }

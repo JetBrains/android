@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.annotations.NonNull;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.android.tools.idea.run.tasks.LaunchResult;
@@ -209,6 +207,9 @@ public class LaunchTaskRunner extends Task.Backgroundable {
             return;
           }
 
+          // Notify listeners of the deployment.
+          myProject.getMessageBus().syncPublisher(AppDeploymentListener.TOPIC).appDeployedToDevice(device, myProject);
+
           // Update progress.
           elapsed += task.getDuration();
           indicator.setFraction((double)(elapsed / totalDuration + deviceIndex) / devices.size());
@@ -384,17 +385,17 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     }
 
     @Override
-    public void deviceConnected(@NonNull IDevice device) {}
+    public void deviceConnected(@NotNull IDevice device) {}
 
     @Override
-    public void deviceDisconnected(@NonNull IDevice device) {
+    public void deviceDisconnected(@NotNull IDevice device) {
       myIsDeviceAlive = false;
       myProcessKilledLatch.countDown();
       AndroidDebugBridge.removeDeviceChangeListener(this);
     }
 
     @Override
-    public void deviceChanged(@NonNull IDevice changedDevice, int changeMask) {
+    public void deviceChanged(@NotNull IDevice changedDevice, int changeMask) {
       if (changedDevice != myIDevice || (changeMask & IDevice.CHANGE_CLIENT_LIST) == 0) {
         checkDone();
         return;

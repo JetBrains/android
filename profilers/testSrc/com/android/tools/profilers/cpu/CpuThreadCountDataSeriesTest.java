@@ -60,12 +60,12 @@ public class CpuThreadCountDataSeriesTest {
     if (myIsUnifiedPipeline) {
       ProfilersTestData.populateThreadData(myTransportService, ProfilersTestData.SESSION_DATA.getStreamId());
 
-      myDataSeries = new CpuThreadCountDataSeries(new ProfilerClient(myGrpcChannel.getName()).getTransportClient(),
+      myDataSeries = new CpuThreadCountDataSeries(new ProfilerClient(myGrpcChannel.getChannel()).getTransportClient(),
                                                   ProfilersTestData.SESSION_DATA.getStreamId(),
                                                   ProfilersTestData.SESSION_DATA.getPid());
     }
     else {
-      myDataSeries = new LegacyCpuThreadCountDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA);
+      myDataSeries = new LegacyCpuThreadCountDataSeries(new ProfilerClient(myGrpcChannel.getChannel()).getCpuClient(), ProfilersTestData.SESSION_DATA);
     }
   }
 

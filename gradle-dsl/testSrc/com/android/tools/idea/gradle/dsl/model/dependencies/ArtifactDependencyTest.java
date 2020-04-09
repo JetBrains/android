@@ -1400,7 +1400,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     secondModel = artifacts.get(1);
     verifyPropertyModel(secondModel.name(), STRING_TYPE, "guava", STRING, FAKE, 1, "name");
-    assertThat(secondModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("com.google.guava:${ext.name}:+");
+    assertThat(secondModel.completeModel().getRawValue(STRING_TYPE)).isEqualTo("com.google.guava:${name}:+");
   }
 
   @Test

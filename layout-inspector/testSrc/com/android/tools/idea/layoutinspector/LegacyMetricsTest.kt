@@ -84,14 +84,12 @@ class LegacyMetricsTest {
 
     val menuAction = SelectProcessAction(inspectorRule.inspector)
     val connectAction = findFirstConnectAction(menuAction, DEFAULT_PROCESS.name)
-    kotlin.runCatching { connectAction.connect().get() }
-      .onSuccess { error("Expected a failure since reloadAllWindows will be empty") }
-      .onFailure { /* expected */ }
+    connectAction.connect().get()
 
     val usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
-    Assert.assertEquals(1, usages.size)
-    val studioEvent = usages[0].studioEvent
+    Assert.assertEquals(2, usages.size)
+    var studioEvent = usages[0].studioEvent
 
     val deviceInfo = studioEvent.deviceInfo
     Assert.assertEquals(AnonymizerUtil.anonymizeUtf8("123488"), deviceInfo.anonymizedSerialNumber)
@@ -101,6 +99,10 @@ class LegacyMetricsTest {
 
     val inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
     Assert.assertEquals(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, inspectorEvent.type)
+
+    studioEvent = usages[1].studioEvent
+    Assert.assertEquals(deviceInfo, studioEvent.deviceInfo)
+    Assert.assertEquals(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE, studioEvent.dynamicLayoutInspectorEvent.type)
   }
 
   private fun findFirstConnectAction(selectProcessAction: SelectProcessAction, withProcessName: String): SelectProcessAction.ConnectAction {

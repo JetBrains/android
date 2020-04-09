@@ -28,7 +28,7 @@ class BoxSelectionComponentTest {
    */
   private class BoxSelectionUi {
     val jList = JBList("foo", "bar")
-    val boxSelection = BoxSelectionComponent(RangeSelectionModel(Range()), Range(0.0, 100.0), jList)
+    val boxSelection = BoxSelectionComponent(RangeSelectionModel(Range(), Range(0.0, 100.0)), jList)
 
     init {
       // Make sure box selection component sits on top of the JList.

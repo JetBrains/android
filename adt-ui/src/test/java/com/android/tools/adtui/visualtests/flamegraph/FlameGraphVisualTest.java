@@ -98,8 +98,8 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
 
     mLineChartModel = new LineChartModel();
     this.mLineChart = new LineChart(mLineChartModel);
-    RangeSelectionModel selection = new RangeSelectionModel(mTimeSelectionRangeUs);
-    this.mSelector = new RangeSelectionComponent(selection, mTimeGlobalRangeUs);
+    RangeSelectionModel selection = new RangeSelectionModel(mTimeSelectionRangeUs, mTimeGlobalRangeUs);
+    this.mSelector = new RangeSelectionComponent(selection);
 
     mChart = new HTreeChart.Builder<>(null, mTimeSelectionRangeUs, new SampledMethodUsageHRenderer())
       .setOrientation(HTreeChart.Orientation.BOTTOM_UP)

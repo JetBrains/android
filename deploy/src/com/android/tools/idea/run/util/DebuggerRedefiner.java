@@ -175,7 +175,50 @@ public class DebuggerRedefiner implements ClassRedefiner {
 
   @Override
   public Deploy.SwapResponse redefine(Deploy.OverlaySwapRequest request) throws DeployerException {
-    throw DeployerException.operationNotSupported("No overlay swaps for debuggers yet.");
+    MultiProcessCommand commands = new MultiProcessCommand();
+    DebuggerSession debuggerSession = getDebuggerSession(project, debuggerPort);
+    if (debuggerSession == null) {
+      throw DeployerException.noDebuggerSession(debuggerPort);
+    }
+
+    // A bit of a hack. Exceptions posted to background tasks ends up on the log only. We are going to gather
+    // as much of these as possible and present it to the user.
+    final AtomicReference<DeployerException> exception = new AtomicReference<>();
+    DebuggerCommandImpl task = new DebuggerCommandImpl() {
+      @Override
+      protected void action() {
+        try {
+          redefine(project, debuggerSession, request);
+        } catch (DeployerException e) {
+          exception.set(e);
+        }
+      }
+
+      @Override
+      protected void commandCancelled() {
+        debuggerSession.setModifiedClassesScanRequired(true);
+      }
+    };
+    commands.addCommand(debuggerSession.getProcess(), task);
+    commands.run();
+    task.waitFor();
+
+    if (exception.get() != null) {
+      throw exception.get();
+    }
+
+    return Deploy.SwapResponse.newBuilder().setStatus(Deploy.SwapResponse.Status.OK).build();
+  }
+
+  private void redefine(Project project, DebuggerSession session, Deploy.OverlaySwapRequest request) throws DeployerException {
+    try {
+      disableBreakPoints(project, session);
+      VirtualMachine vm = session.getProcess().getVirtualMachineProxy().getVirtualMachine();
+      RedefineClassSupportState state = new RedefineClassSupportState(RedefineClassSupport.FULL, null);
+      new JdiBasedClassRedefiner(vm, state).redefine(request);
+    } finally {
+      enableBreakPoints(project, session);
+    }
   }
 
   /**

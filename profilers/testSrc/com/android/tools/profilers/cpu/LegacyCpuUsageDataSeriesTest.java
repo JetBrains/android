@@ -43,7 +43,7 @@ public class LegacyCpuUsageDataSeriesTest {
   @Test
   public void thisProcessCpuUsage() {
     mySeries = new LegacyCpuUsageDataSeries(
-      new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA, false);
+      new ProfilerClient(myGrpcChannel.getChannel()).getCpuClient(), ProfilersTestData.SESSION_DATA, false);
     int systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     int appTime = (int)(0.4 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
@@ -79,7 +79,7 @@ public class LegacyCpuUsageDataSeriesTest {
   @Test
   public void otherProcessesCpuUsage() {
     mySeries = new LegacyCpuUsageDataSeries(
-      new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA, true);
+      new ProfilerClient(myGrpcChannel.getChannel()).getCpuClient(), ProfilersTestData.SESSION_DATA, true);
     int systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
     List<SeriesData<Long>> seriesData = mySeries.getDataForRange(ANY_RANGE);
@@ -110,7 +110,7 @@ public class LegacyCpuUsageDataSeriesTest {
   @Test
   public void emptyData() {
     mySeries = new LegacyCpuUsageDataSeries(
-      new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA, false);
+      new ProfilerClient(myGrpcChannel.getChannel()).getCpuClient(), ProfilersTestData.SESSION_DATA, false);
     assertNotNull(mySeries);
     assertFalse(mySeries.getDataForRange(ANY_RANGE).isEmpty());
     myService.setEmptyUsageData(true);

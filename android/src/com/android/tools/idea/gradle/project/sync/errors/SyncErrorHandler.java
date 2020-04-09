@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter;
+import com.android.tools.idea.projectsystem.AndroidProjectRootUtil;
 import com.google.common.base.Splitter;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.notification.NotificationType;
@@ -23,6 +24,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Pair;
@@ -81,6 +84,18 @@ public abstract class SyncErrorHandler {
         break;
       }
     }
+  }
+
+  //TODO(karimai): Move when SyncIssueUsageReporter is re-worked.
+  @Nullable
+  public static Project fetchIdeaProjectForGradleProject(@NotNull String projectPath) {
+    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+      for (Module module : ModuleManager.getInstance(project).getModules()) {
+        if (Objects.equals(AndroidProjectRootUtil.getModuleDirPath(module), projectPath))
+          return project;
+      }
+    }
+    return null;
   }
 
   @NotNull

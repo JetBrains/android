@@ -16,9 +16,6 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.adtui.ZOOMABLE_KEY
-import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_CONTROLLER_KEY
-import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_TOOLBAR_ID
-import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_VIEW_KEY
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
@@ -60,7 +57,8 @@ import javax.swing.plaf.ScrollBarUI
  * Represents contents of the Emulator tool window for a single Emulator instance.
  */
 internal class EmulatorToolWindowPanel(private val emulator: EmulatorController) : BorderLayoutPanel(), DataProvider {
-  private val actionToolbar: ActionToolbar
+  private val mainToolbar: ActionToolbar
+  private val secondaryToolbar: ActionToolbar
   private var emulatorView: EmulatorView? = null
   private val scrollPane: JScrollPane
   private val layeredPane: JLayeredPane
@@ -87,8 +85,10 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
     }
 
   init {
-    val toolbarActionGroup = DefaultActionGroup(createToolbarActions())
-    actionToolbar = ActionManager.getInstance().createActionToolbar(EMULATOR_TOOLBAR_ID, toolbarActionGroup, isToolbarHorizontal)
+    mainToolbar = createToolbar(EMULATOR_MAIN_TOOLBAR_ID, isToolbarHorizontal)
+    secondaryToolbar = createToolbar(EMULATOR_SECONDARY_TOOLBAR_ID, isToolbarHorizontal)
+    secondaryToolbar.setReservePlaceAutoPopupIcon(false)
+    secondaryToolbar.layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
 
     zoomControlsLayerPane = JPanel()
     zoomControlsLayerPane.layout = BorderLayout()
@@ -111,20 +111,31 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
     layeredPane.add(zoomControlsLayerPane, BorderLayout.CENTER)
     layeredPane.add(scrollPane, BorderLayout.CENTER)
 
-    addToolbar()
+    addToolbars()
     addToCenter(layeredPane)
   }
 
-  private fun addToolbar() {
+  private fun addToolbars() {
     if (isToolbarHorizontal) {
-      actionToolbar.setOrientation(SwingConstants.HORIZONTAL)
+      mainToolbar.setOrientation(SwingConstants.HORIZONTAL)
+      secondaryToolbar.setOrientation(SwingConstants.HORIZONTAL)
       layeredPane.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
-      addToTop(actionToolbar.component)
+      val toolbarPanel = BorderLayoutPanel()
+      toolbarPanel.addToLeft(mainToolbar.component)
+      toolbarPanel.addToRight(secondaryToolbar.component)
+      addToTop(toolbarPanel)
     }
     else {
-      actionToolbar.setOrientation(SwingConstants.VERTICAL)
+      mainToolbar.setOrientation(SwingConstants.VERTICAL)
+      secondaryToolbar.setOrientation(SwingConstants.VERTICAL)
       layeredPane.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.LEFT)
-      addToLeft(actionToolbar.component)
+      val toolbarPanel = BorderLayoutPanel()
+      (toolbarPanel.layout as BorderLayout).vgap = 1
+      toolbarPanel.addToTop(secondaryToolbar.component)
+      secondaryToolbar.component.border = IdeBorderFactory.createBorder(JBColor.PanelBackground, SideBorder.BOTTOM)
+      mainToolbar.component.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
+      toolbarPanel.addToCenter(mainToolbar.component)
+      addToLeft(toolbarPanel)
     }
   }
 
@@ -136,13 +147,14 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
     try {
       val disposable = Disposer.newDisposable()
       val toolbar = EmulatorZoomToolbar.createToolbar(this, disposable)
+      contentDisposable = disposable
       toolbar.isVisible = zoomToolbarIsVisible
       floatingToolbar = toolbar
       zoomControlsLayerPane.add(toolbar, BorderLayout.EAST)
-      contentDisposable = disposable
       emulatorView = EmulatorView(emulator, cropSkin)
       scrollPane.setViewportView(emulatorView)
-      actionToolbar.setTargetComponent(emulatorView)
+      mainToolbar.setTargetComponent(emulatorView)
+      secondaryToolbar.setTargetComponent(emulatorView)
       layeredPane.repaint()
     }
     catch (e: Exception) {
@@ -156,7 +168,8 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
     floatingToolbar = null
     contentDisposable?.let { Disposer.dispose(it) }
     zoomControlsLayerPane.removeAll()
-    actionToolbar.setTargetComponent(null)
+    mainToolbar.setTargetComponent(null)
+    secondaryToolbar.setTargetComponent(null)
     scrollPane.setViewportView(null)
   }
 
@@ -168,8 +181,10 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
     }
   }
 
-  private fun createToolbarActions() =
-      listOf(CustomActionsSchema.getInstance().getCorrectedAction(EMULATOR_TOOLBAR_ID)!!)
+  private fun createToolbar(toolbarId: String, horizontal: Boolean): ActionToolbar {
+    val actions = listOf(CustomActionsSchema.getInstance().getCorrectedAction(toolbarId)!!)
+    return ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
+  }
 
   private class LayeredPaneLayoutManager : LayoutManager {
 
@@ -243,5 +258,6 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
     @JvmStatic
     private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
     private const val isToolbarHorizontal = true
+    private const val EMULATOR_SECONDARY_TOOLBAR_ID = "EmulatorSecondaryToolbar"
   }
 }

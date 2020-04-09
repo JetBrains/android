@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding
 
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
@@ -81,7 +81,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
       </manifest>
     """.trimIndent())
 
-    ModuleDataBinding.getInstance(androidFacet).dataBindingMode = mode
+    LayoutBindingModuleCache.getInstance(androidFacet).dataBindingMode = mode
   }
 
   @Test

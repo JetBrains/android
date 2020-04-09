@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -22,9 +24,9 @@ class PreviewElementProviderTest {
   @Test
   fun testFilteredProvider() {
     val staticPreviewProvider = StaticPreviewProvider(listOf(
-      PreviewElement.forTesting("com.sample.TestClass.PreviewMethod1"),
-      PreviewElement.forTesting("com.sample.TestClass.PreviewMethod2"),
-      PreviewElement.forTesting("internal.com.sample.TestClass.AMethod")
+      SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
+      SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
+      SinglePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod")
     ))
 
     var filterWord = "internal"
@@ -32,10 +34,10 @@ class PreviewElementProviderTest {
       !it.composableMethodFqn.contains(filterWord)
     }
 
-    assertEquals(3, staticPreviewProvider.previewElements.size)
+    assertEquals(3, staticPreviewProvider.previewElements.count())
     // The filtered provider contains all elements without the word internal
     assertEquals(listOf("com.sample.TestClass.PreviewMethod1", "com.sample.TestClass.PreviewMethod2"),
-                 filtered.previewElements.map { it.composableMethodFqn })
+                 filtered.previewElements.map { it.composableMethodFqn }.toList())
 
     // Now remove all elements with the word Preview
     filterWord = "Preview"
@@ -45,27 +47,27 @@ class PreviewElementProviderTest {
   @Test
   fun testMemoized() {
     var staticPreviewProvider = StaticPreviewProvider(listOf(
-      PreviewElement.forTesting("com.sample.TestClass.PreviewMethod1"),
-      PreviewElement.forTesting("com.sample.TestClass.PreviewMethod2"),
-      PreviewElement.forTesting("internal.com.sample.TestClass.AMethod")
+      SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
+      SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
+      SinglePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod")
     ))
 
     val memoized = MemoizedPreviewElementProvider(object : PreviewElementProvider {
-      override val previewElements: List<PreviewElement>
+      override val previewElements: Sequence<PreviewElement>
         get() = staticPreviewProvider.previewElements
     })
 
     // Before the first refresh, the list is empty
-    assertEquals(0, memoized.previewElements.size)
+    assertEquals(0, memoized.previewElements.count())
     memoized.refresh()
-    assertEquals(3, memoized.previewElements.size)
+    assertEquals(3, memoized.previewElements.count())
 
     staticPreviewProvider = StaticPreviewProvider(listOf(
-      PreviewElement.forTesting("com.sample.TestClass.PreviewMethod1")
+      SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1")
     ))
     // Updated the source but did not call refresh
-    assertEquals(3, memoized.previewElements.size)
+    assertEquals(3, memoized.previewElements.count())
     memoized.refresh()
-    assertEquals(1, memoized.previewElements.size)
+    assertEquals(1, memoized.previewElements.count())
   }
 }

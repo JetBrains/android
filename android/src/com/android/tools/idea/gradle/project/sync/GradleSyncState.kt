@@ -209,17 +209,6 @@ open class GradleSyncState @NonInjectable constructor(
    * */
 
   /**
-   * Triggered when the sync task has been created.
-   *
-   * This method should only be called by the sync internals.
-   * Please use [GradleSyncListener] and [subscribe] if you need to hook into sync.
-   */
-  fun syncTaskCreated(request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
-    listener?.syncTaskCreated(project, request)
-    syncPublisher { syncTaskCreated(project, request) }
-  }
-
-  /**
    * Triggered at the start of a sync which has been started by the given [request], the given [listener] will be notified of the
    * sync start along with any listeners registered via [subscribe].
    *
@@ -251,8 +240,7 @@ open class GradleSyncState @NonInjectable constructor(
     // TODO(b/133154939): Move this out of GradleSyncState, possibly to AndroidProjectComponent.
     if (lastSyncFinishedTimeStamp < 0) GradleSyncResultPublisher.getInstance(project)
 
-    listener?.syncStarted(project)
-    syncPublisher { syncStarted(project) }
+    GradleFiles.getInstance(project).maybeProcessSyncStarted()
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED)
     return true
@@ -269,7 +257,6 @@ open class GradleSyncState @NonInjectable constructor(
 
     LOG.info("Started setup of project '${project.name}'.")
 
-    syncPublisher { setupStarted(project) }
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_SETUP_STARTED)
   }
 
@@ -363,21 +350,14 @@ open class GradleSyncState @NonInjectable constructor(
   /**
    * Triggered when a sync have been skipped, this happens when the project is setup by models from the cache.
    */
-  open fun syncSkipped(lastSyncTimeStamp: Long, listener: GradleSyncListener?) {
+  open fun syncSkipped(listener: GradleSyncListener?) {
     val syncEndTimeStamp = System.currentTimeMillis()
     syncEndedTimeStamp = syncEndTimeStamp
 
-    val message = "Gradle sync finished in ${formatDuration(syncEndTimeStamp - syncStartedTimeStamp)} (from cached state)"
-    addToEventLog(SYNC_NOTIFICATION_GROUP, message, MessageType.INFO, null)
-    LOG.info(message)
-
-    // TODO: Look at removing the lastSyncTimeStamp and using syncEndTimeStamp instead.
-    syncFinished(lastSyncTimeStamp, true)
+    syncFinished(syncEndTimeStamp, true)
 
     listener?.syncSkipped(project)
     syncPublisher { syncSkipped(project) }
-
-    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_SKIPPED)
   }
 
   /*

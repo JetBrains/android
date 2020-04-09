@@ -37,7 +37,7 @@ class FilterModelTest {
       override fun applyFilter(filter: Filter): FilterResult {
         myFilter = filter
         myFilterHandled = true
-        return FilterResult()
+        return FilterResult.EMPTY_RESULT
       }
     })
   }

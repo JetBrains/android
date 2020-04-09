@@ -32,6 +32,9 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
   private lateinit var handleErrorFunction: (String) -> Unit
   private var handleErrorInvoked = false
 
+  private lateinit var hasDatabasePossiblyChangedFunction: () -> Unit
+  private var hasDatabasePossiblyChangedInvoked = false
+
   override fun setUp() {
     super.setUp()
 
@@ -43,7 +46,16 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     handleErrorInvoked = false
     handleErrorFunction = { _ -> handleErrorInvoked = true }
 
-    databaseInspectorClient = DatabaseInspectorClient(mockMessenger, handleErrorFunction, openDatabaseFunction, { })
+    hasDatabasePossiblyChangedInvoked = false
+    hasDatabasePossiblyChangedFunction = { hasDatabasePossiblyChangedInvoked = true }
+
+    databaseInspectorClient = DatabaseInspectorClient(
+      mockMessenger,
+      handleErrorFunction,
+      openDatabaseFunction,
+      hasDatabasePossiblyChangedFunction,
+      { }
+    )
   }
 
   fun testStartTrackingDatabaseConnectionSendsMessage() {
@@ -128,5 +140,18 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
 
     // Assert
     assertTrue(handleErrorInvoked)
+  }
+
+  fun testHasDatabasePossiblyChangedCallsCallback() {
+    // Prepare
+    val databasePossiblyChangedEvent = SqliteInspectorProtocol.DatabasePossiblyChangedEvent.newBuilder().build()
+    val event = SqliteInspectorProtocol.Event.newBuilder().setDatabasePossiblyChanged(databasePossiblyChangedEvent).build()
+
+    // Act
+    databaseInspectorClient.eventListener.onRawEvent(event.toByteArray())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    assertTrue(hasDatabasePossiblyChangedInvoked)
   }
 }

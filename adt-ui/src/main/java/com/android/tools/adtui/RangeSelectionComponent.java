@@ -101,9 +101,6 @@ public class RangeSelectionComponent extends AnimatedComponent {
   @NotNull
   private final RangeSelectionModel myModel;
 
-  @NotNull
-  private final Range myViewRange;
-
   /**
    * Flag to tell the component to render the grab bar if the mouse is over the selection component.
    */
@@ -116,20 +113,19 @@ public class RangeSelectionComponent extends AnimatedComponent {
 
   private int myDragBarHeight = DEFAULT_DRAG_BAR_HEIGHT;
 
-  public RangeSelectionComponent(@NotNull RangeSelectionModel model, @NotNull Range viewRange) {
-    this(model, viewRange, false);
+  public RangeSelectionComponent(@NotNull RangeSelectionModel model) {
+    this(model, false);
   }
 
-  public RangeSelectionComponent(@NotNull RangeSelectionModel model, @NotNull Range viewRange, boolean isPointSelectionReplaced) {
+  public RangeSelectionComponent(@NotNull RangeSelectionModel model, boolean isPointSelectionReplaced) {
     myModel = model;
-    myViewRange = viewRange;
     myMode = Mode.NONE;
     myIsPointSelectionReplaced = isPointSelectionReplaced;
     setFocusable(true);
     initListeners();
 
     myModel.addDependency(myAspectObserver).onChange(RangeSelectionModel.Aspect.SELECTION, this::opaqueRepaint);
-    myViewRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::opaqueRepaint);
+    myModel.getViewRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::opaqueRepaint);
   }
 
   protected void initListeners() {
@@ -163,7 +159,7 @@ public class RangeSelectionComponent extends AnimatedComponent {
         if (SwingUtilities.isLeftMouseButton(e)) {
           if (myIsPointSelectionReplaced && myModel.getSelectionRange().getLength() == 0) {
             Range range = myModel.getSelectionRange();
-            double delta = myViewRange.getLength() * CLICK_RANGE_RATIO;
+            double delta = myModel.getViewRange().getLength() * CLICK_RANGE_RATIO;
             myModel.set(range.getMin() - delta, range.getMax() + delta);
           }
 
@@ -271,13 +267,13 @@ public class RangeSelectionComponent extends AnimatedComponent {
   private void shiftModel(ShiftDirection direction, boolean zeroMin, boolean zeroMax) {
     double min = myModel.getSelectionRange().getMin();
     double max = myModel.getSelectionRange().getMax();
-    double rangeDelta = myViewRange.getLength() * SELECTION_MOVE_PERCENT;
+    double rangeDelta = myModel.getViewRange().getLength() * SELECTION_MOVE_PERCENT;
     rangeDelta = (direction == ShiftDirection.LEFT) ? rangeDelta * -1 : rangeDelta;
     double minDelta = zeroMin ? 0 : rangeDelta;
     double maxDelta = zeroMax ? 0 : rangeDelta;
     // If we don't have a selection attempt to put the selection in the center off the screen.
     if (max < min) {
-      max = min = myViewRange.getLength() / 2.0 + myViewRange.getMin();
+      max = min = myModel.getViewRange().getLength() / 2.0 + myModel.getViewRange().getMin();
     }
 
     myModel.beginUpdate();
@@ -286,7 +282,7 @@ public class RangeSelectionComponent extends AnimatedComponent {
   }
 
   protected double xToRange(int x) {
-    return x / getSize().getWidth() * getViewRange().getLength() + getViewRange().getMin();
+    return x / getSize().getWidth() * getModel().getViewRange().getLength() + getModel().getViewRange().getMin();
   }
 
   protected float rangeToX(double value, double width) {
@@ -294,8 +290,11 @@ public class RangeSelectionComponent extends AnimatedComponent {
     // If we do not clamp the selection to the screen then during painting java attempts to fill a rectangle several
     // thousand pixels off screen in both directions. This results in lots of computation that isn't required as well as,
     // lots of artifacts in the selection itself.
-    return (float)Math.min(Math.max((width * (value - getViewRange().getMin()) / (getViewRange().getMax() - getViewRange().getMin())), 0),
-                           width);
+    return (float)Math.min(
+      Math.max(
+        width * (value - getModel().getViewRange().getMin()) / (getModel().getViewRange().getMax() - getModel().getViewRange().getMin()),
+        0),
+      width);
   }
 
   /**
@@ -388,11 +387,6 @@ public class RangeSelectionComponent extends AnimatedComponent {
     return myModel;
   }
 
-  @NotNull
-  public Range getViewRange() {
-    return myViewRange;
-  }
-
   /**
    * @return true if the blue seek component from {@link RangeTooltipComponent} should be visible.
    * @see {@link RangeTooltipComponent#myShowSeekComponent}
@@ -412,7 +406,9 @@ public class RangeSelectionComponent extends AnimatedComponent {
   protected void draw(Graphics2D g, Dimension dim) {
     // Draws if the selection range is fully visible or partially visible; and hide if it is empty or not visible.
     Range selectionRange = myModel.getSelectionRange();
-    if (selectionRange.isEmpty() || selectionRange.getMin() > myViewRange.getMax() || selectionRange.getMax() < myViewRange.getMin()) {
+    if (selectionRange.isEmpty() ||
+        selectionRange.getMin() > myModel.getViewRange().getMax() ||
+        selectionRange.getMax() < myModel.getViewRange().getMin()) {
       return;
     }
     float startXPos = rangeToX(selectionRange.getMin(), dim.getWidth());

@@ -35,9 +35,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
+import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
 import java.util.function.Consumer
 
 class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
@@ -171,5 +173,17 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     // Assert
     assertSize(1, model.getOpenDatabases())
     assertEquals(fileDatabase, model.getOpenDatabases().first())
+  }
+
+  fun testDatabasePossiblyChangedNotifiesController() {
+    // Act
+    runDispatching {
+      databaseInspectorProjectService.databasePossiblyChanged()
+    }
+
+    // Assert
+    runBlocking {
+      verify(mockSqliteController).databasePossiblyChanged()
+    }
   }
 }

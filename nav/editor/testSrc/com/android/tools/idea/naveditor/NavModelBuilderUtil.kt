@@ -14,8 +14,23 @@
 package com.android.tools.idea.naveditor
 
 import com.android.SdkConstants
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_AUTO_VERIFY
+import com.android.SdkConstants.ATTR_DEEPLINK_ACTION
+import com.android.SdkConstants.ATTR_DEEPLINK_MIMETYPE
+import com.android.SdkConstants.ATTR_GRAPH
+import com.android.SdkConstants.ATTR_LABEL
+import com.android.SdkConstants.ATTR_LAYOUT
+import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.ATTR_START_DESTINATION
+import com.android.SdkConstants.ATTR_URI
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.NAVIGATION_PREFIX
 import com.android.SdkConstants.TAG_ACTION
+import com.android.SdkConstants.TAG_ACTIVITY
+import com.android.SdkConstants.TAG_DEEP_LINK
+import com.android.SdkConstants.TAG_INCLUDE
+import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
@@ -32,7 +47,11 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavInteractionHandler
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.dom.navigation.NavigationSchema.*
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE
+import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
+import org.jetbrains.android.dom.navigation.NavigationSchema.createIfNecessary
 import org.jetbrains.android.facet.AndroidFacet
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -152,8 +171,8 @@ object NavModelBuilderUtil {
       action.apply(f)
     }
 
-    fun deeplink(id: String, uri: String, autoVerify: Boolean = false) {
-      addChild(DeepLinkComponentDescriptor(id, uri, autoVerify), null)
+    fun deeplink(id: String, uri: String, autoVerify: Boolean = false, mimeType: String? = null, action: String? = null) {
+      addChild(DeepLinkComponentDescriptor(id, uri, autoVerify, mimeType, action), null)
     }
 
     fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
@@ -183,8 +202,8 @@ object NavModelBuilderUtil {
       action.apply(f)
     }
 
-    fun deeplink(id: String, uri: String, autoVerify: Boolean = false) {
-      addChild(DeepLinkComponentDescriptor(id, uri, autoVerify), null)
+    fun deeplink(id: String, uri: String, autoVerify: Boolean = false, mimeType: String? = null, action: String? = null) {
+      addChild(DeepLinkComponentDescriptor(id, uri, autoVerify, mimeType, action), null)
     }
 
     fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
@@ -215,8 +234,8 @@ object NavModelBuilderUtil {
       layout?.let { withAttribute(TOOLS_URI, ATTR_LAYOUT, layout) }
     }
 
-    fun deeplink(id: String, uri: String, autoVerify: Boolean = false) {
-      addChild(DeepLinkComponentDescriptor(id, uri, autoVerify), null)
+    fun deeplink(id: String, uri: String, autoVerify: Boolean = false, mimeType: String? = null, action: String? = null) {
+      addChild(DeepLinkComponentDescriptor(id, uri, autoVerify, mimeType, action), null)
     }
 
     fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
@@ -230,13 +249,16 @@ object NavModelBuilderUtil {
     }
   }
 
-  class DeepLinkComponentDescriptor(id: String, uri: String, autoVerify: Boolean) : NavComponentDescriptor(TAG_DEEP_LINK) {
+  class DeepLinkComponentDescriptor(id: String, uri: String, autoVerify: Boolean, mimeType: String?, action: String?)
+    : NavComponentDescriptor(TAG_DEEP_LINK) {
     init {
       id("@+id/$id")
       withAttribute(AUTO_URI, ATTR_URI, uri)
       if (autoVerify) {
         withAttribute(ANDROID_URI, ATTR_AUTO_VERIFY, "true")
       }
+      mimeType?.let { withAttribute(AUTO_URI, ATTR_DEEPLINK_MIMETYPE, it) }
+      action?.let { withAttribute(AUTO_URI, ATTR_DEEPLINK_ACTION, it) }
     }
   }
 

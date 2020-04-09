@@ -41,6 +41,7 @@ iml_module(
     deps = [
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/base/mlkit-common:studio.android.sdktools.mlkit-common[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/idea/java/java-indexing-impl:intellij.java.indexing.impl[module]",
@@ -58,6 +59,8 @@ iml_module(
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 
@@ -132,5 +135,9 @@ iml_module(
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/idea/.idea/libraries:protobuf[test]",
+        "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
     ],
 )

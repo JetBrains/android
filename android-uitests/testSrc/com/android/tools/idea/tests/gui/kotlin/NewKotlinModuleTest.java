@@ -57,9 +57,7 @@ public class NewKotlinModuleTest {
       .enterPackageName("android.com")
       .setSourceLanguage(hasKotlinSupport ? Kotlin : Java)
       .wizard()
-      .clickFinish();
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30)); // Kotlin projects take longer to sync
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(30));  // Kotlin projects take longer to sync
 
     if (hasKotlinSupport) {
       assertModuleSupportsKotlin(APP_NAME);
@@ -77,8 +75,7 @@ public class NewKotlinModuleTest {
       .wizard()
       .clickNext() // Default options
       .clickNext() // Default Activity
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish(Wait.seconds(30)); // Kotlin projects take longer to sync
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(30)); // Kotlin projects take longer to sync
 
     assertModuleSupportsKotlin(NEW_KOTLIN_MODULE_NAME);
   }

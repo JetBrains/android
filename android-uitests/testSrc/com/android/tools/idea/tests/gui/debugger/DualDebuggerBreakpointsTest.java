@@ -127,7 +127,7 @@ public class DualDebuggerBreakpointsTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)  // b/77970753
   public void dualDebuggerBreakpoints() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProject("debugger/BasicCmakeAppForUI");
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/BasicCmakeAppForUI");
 
     // TODO should we need to modify the debugger type? Shouldn't it be AUTO?
     DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.DUAL);

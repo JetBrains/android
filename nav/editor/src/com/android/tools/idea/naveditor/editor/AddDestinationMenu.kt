@@ -35,8 +35,8 @@ import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROP
 import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
-import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.rendering.LayoutSlowPreviewProvider
 import com.android.tools.idea.ui.resourcemanager.rendering.SlowResourcePreviewManager
 import com.android.tools.idea.util.addDependencies
@@ -372,9 +372,12 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       if (psiClass != null) {
         NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_FRAGMENT).log()
 
-        val tags = schema.getTagsForDestinationClass(psiClass) ?: return@runWhenSmart
-        val tag = if (tags.size == 1) tags.first()
-        else schema.getDefaultTag(NavigationSchema.DestinationType.FRAGMENT) ?: return@runWhenSmart
+        // If the new destination requires a dependency that hasn't been added yet we might not be able to
+        // get the tag name from the navigation schema. Default to fragment since we're being called from
+        // the new fragment wizard.
+        val tag = schema.getTagsForDestinationClass(psiClass)?.singleOrNull()
+                  ?: schema.getDefaultTag(NavigationSchema.DestinationType.FRAGMENT)
+                  ?: return@runWhenSmart
 
         val destination =
           Destination.RegularDestination(surface.currentNavigation, tag, null, psiClass, layoutFile = layoutFile)

@@ -188,7 +188,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         tasks.add(new ApplyCodeChangesTask(myProject, packages.build(), isApplyCodeChangesFallbackToRun()));
       }
       else {
-        tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions()));
+        tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions(), myLaunchOptions.getInstallOnAllUsers()));
       }
     }
     return ImmutableList.copyOf(tasks);

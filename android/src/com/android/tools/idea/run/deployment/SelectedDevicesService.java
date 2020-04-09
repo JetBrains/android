@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -35,8 +40,19 @@ final class SelectedDevicesService {
   @NotNull
   private final Project myProject;
 
+  @NotNull
+  private final Function<Project, PropertiesComponent> myPropertiesComponentGetInstance;
+
+  @SuppressWarnings("unused")
   private SelectedDevicesService(@NotNull Project project) {
+    this(project, PropertiesComponent::getInstance);
+  }
+
+  @VisibleForTesting
+  @NonInjectable
+  SelectedDevicesService(@NotNull Project project, @NotNull Function<Project, PropertiesComponent> propertiesComponentGetInstance) {
     myProject = project;
+    myPropertiesComponentGetInstance = propertiesComponentGetInstance;
   }
 
   @NotNull
@@ -45,8 +61,7 @@ final class SelectedDevicesService {
   }
 
   boolean isSelectionEmpty() {
-    Object[] keys = PropertiesComponent.getInstance(myProject).getValues(SELECTED_DEVICES);
-    return keys == null || keys.length == 0;
+    return !myPropertiesComponentGetInstance.apply(myProject).isValueSet(SELECTED_DEVICES);
   }
 
   @NotNull
@@ -55,25 +70,41 @@ final class SelectedDevicesService {
     return ContainerUtil.filter(AsyncDevicesGetter.getInstance(myProject).get(), device -> keys.contains(device.getKey()));
   }
 
+  void setSelectedDevices(@NotNull List<Device> selectedDevices) {
+    setSelectedDeviceKeys(selectedDevices.stream().map(Device::getKey));
+  }
+
   @NotNull
-  Collection<Key> getSelectedDeviceKeys() {
-    String[] keys = PropertiesComponent.getInstance(myProject).getValues(SELECTED_DEVICES);
+  Set<Key> getSelectedDeviceKeys() {
+    String[] keys = myPropertiesComponentGetInstance.apply(myProject).getValues(SELECTED_DEVICES);
 
     if (keys == null) {
       return Collections.emptySet();
     }
+
+    assert !Arrays.asList(keys).contains("") : Arrays.toString(keys);
 
     return Arrays.stream(keys)
       .map(Key::new)
       .collect(Collectors.toSet());
   }
 
-  void setSelectedDevices(@NotNull List<Device> selectedDevices) {
-    String[] keys = selectedDevices.stream()
-      .map(Device::getKey)
+  void setSelectedDeviceKeys(@NotNull Set<Key> selectedDeviceKeys) {
+    setSelectedDeviceKeys(selectedDeviceKeys.stream());
+  }
+
+  private void setSelectedDeviceKeys(@NotNull Stream<Key> stream) {
+    String[] array = stream
       .map(Key::toString)
       .toArray(String[]::new);
 
-    PropertiesComponent.getInstance(myProject).setValues(SELECTED_DEVICES, keys);
+    PropertiesComponent properties = myPropertiesComponentGetInstance.apply(myProject);
+
+    if (array.length == 0) {
+      properties.unsetValue(SELECTED_DEVICES);
+    }
+    else {
+      properties.setValues(SELECTED_DEVICES, array);
+    }
   }
 }

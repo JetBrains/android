@@ -80,8 +80,7 @@ public class ChangeLibModSettingsTest {
       .clickNextToAndroidLibrary()
       .enterModuleName("library_module")
       .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish(Wait.seconds(30));
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(30));
 
     guiTest.waitForBackgroundTasks();
 

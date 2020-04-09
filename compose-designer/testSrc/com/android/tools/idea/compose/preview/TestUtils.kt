@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.util.PreviewElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 
@@ -29,6 +30,6 @@ internal fun UFile.method(name: String): UMethod? =
     .singleOrNull()
 
 internal class StaticPreviewProvider(private val list: List<PreviewElement>): PreviewElementProvider {
-  override val previewElements: List<PreviewElement>
-    get() = list
+  override val previewElements: Sequence<PreviewElement>
+    get() = list.asSequence()
 }

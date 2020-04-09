@@ -24,7 +24,7 @@ class ParametersBindingDialogViewImplTest : LightPlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
-    view = ParametersBindingDialogViewImpl(project, true)
+    view = ParametersBindingDialogViewImpl("SELECT * FROM tab", project, true)
     view.component.size = Dimension(600, 200)
   }
 

@@ -67,7 +67,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   private fun showPopup(component: JComponent, x: Int, y: Int) {
     val node = componentTreeSelectionModel.currentSelection.singleOrNull() as ViewNode?
     if (node != null) {
-      layoutInspector?.let { showViewContextMenu(node, it.layoutInspectorModel, component, x, y) }
+      layoutInspector?.let { showViewContextMenu(listOf(node), it.layoutInspectorModel, component, x, y) }
     }
   }
 

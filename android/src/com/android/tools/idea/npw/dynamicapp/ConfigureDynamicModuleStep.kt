@@ -19,15 +19,12 @@ import com.android.AndroidProjectTypes
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.LabelWithEditButton
 import com.android.tools.adtui.util.FormScalingUtil
-import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
-import com.android.tools.idea.npw.module.AppNameToModuleNameExpression
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
@@ -59,18 +56,15 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.ContextHelpLabel
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.layout.panel
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle
-import java.util.Optional
 import java.util.function.Consumer
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JTextField
-import kotlin.properties.ObservableProperty
 
 /**
  * This class configures the Dynamic Feature Module specific data such as the "Base Application Module", "Module Name", "Package Name" and
@@ -166,9 +160,8 @@ class ConfigureDynamicModuleStep(
     bindings.bind(model.moduleName, moduleNameText)
     listeners.listen(moduleNameText) { value: String -> isModuleNameSynced.set(value == computedModuleName.get()) }
 
-    AndroidProjectInfo.getInstance(model.project).getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP)
-      .stream()
-      .filter { module: Module? -> AndroidModuleModel.get(module!!) != null }
+    AndroidProjectInfo.getInstance(model.project)
+      .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP)
       .forEach { module: Module -> baseApplication.addItem(module) }
     val baseApplication: OptionalProperty<Module> = model.baseApplication
     bindings.bind(baseApplication, SelectedItemProperty(this.baseApplication))

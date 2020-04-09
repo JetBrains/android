@@ -28,6 +28,7 @@ import com.intellij.util.lang.UrlClassLoader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -85,11 +86,13 @@ public abstract class RenderClassLoader extends ClassLoader {
 
   @NotNull
   private UrlClassLoader createJarClassLoader(@NotNull List<URL> urls) {
-    return UrlClassLoader.build()
-      .parent(this)
-      .urls(urls)
-      .setLogErrorOnMissingJar(false)
-      .get();
+    return new UrlClassLoader(UrlClassLoader.build().parent(this).urls(urls).setLogErrorOnMissingJar(false)) {
+      // TODO(b/151089727): Fix this (see RenderClassLoader#getResources)
+      @Override
+      public Enumeration<URL> getResources(String name) throws IOException {
+        return findResources(name);
+      }
+    };
   }
 
   @NotNull
@@ -182,5 +185,18 @@ public abstract class RenderClassLoader extends ClassLoader {
 
     return currentDependencies.containsAll(updatedDependencies);
 
+  }
+
+  // TODO(b/151089727): Fix this
+  // Technically, this is incorrect and we should never override getResources method. However, we can not handle dependencies properly
+  // in studio project and cannot properly isolate layoutlib class/resource loader from the libraries available in Android plugin. This
+  // allows us to ignore all the resources from the Android plugin and use only resource from the Android project module dependencies.
+  // In theory we are actually "loosing" resource from standard library and layoutlib, though we are currently not expecting any to be
+  // there. All the rest (from other dependencies of core plugin, android plugin etc.) should never be accessible from here.
+  @Override
+  public Enumeration<URL> getResources(String name) throws IOException {
+    synchronized (myJarClassLoaderLock) {
+      return myJarClassLoader.get().getResources(name);
+    }
   }
 }

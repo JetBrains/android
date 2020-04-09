@@ -19,6 +19,8 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ARG_TYPE
 import com.android.SdkConstants.ATTR_AUTO_VERIFY
+import com.android.SdkConstants.ATTR_DEEPLINK_ACTION
+import com.android.SdkConstants.ATTR_DEEPLINK_MIMETYPE
 import com.android.SdkConstants.ATTR_GRAPH
 import com.android.SdkConstants.ATTR_LAYOUT
 import com.android.SdkConstants.ATTR_NAME
@@ -343,6 +345,18 @@ fun NlComponent.setAutoVerifyAndLog(value: Boolean?, site: NavEditorEvent.Source
 private val uriDelegate = MetricsLoggingAttributeDelegate(::StringAutoAttributeDelegate, ATTR_URI, NlComponent::uri)
 var NlComponent.uri: String? by uriDelegate
 fun NlComponent.setUriAndLog(value: String?, site: NavEditorEvent.Source) = uriDelegate.set(this, value, site)
+
+private val deepLinkMimeTypeDelegate =
+  MetricsLoggingAttributeDelegate(::StringAttributeDelegate, AUTO_URI, ATTR_DEEPLINK_MIMETYPE, NlComponent::deepLinkMimeType)
+var NlComponent.deepLinkMimeType: String? by deepLinkMimeTypeDelegate
+fun NlComponent.setDeeplinkMimeTypeAndLog(value: String?, site: NavEditorEvent.Source)
+  = deepLinkMimeTypeDelegate.set(this, value, site)
+
+private val deepLinkActionDelegate =
+  MetricsLoggingAttributeDelegate(::StringAttributeDelegate, AUTO_URI, ATTR_DEEPLINK_ACTION, NlComponent::deepLinkAction)
+var NlComponent.deepLinkAction: String? by deepLinkActionDelegate
+fun NlComponent.setDeeplinkActionAndLog(value: String?, site: NavEditorEvent.Source)
+  = deepLinkActionDelegate.set(this, value, site)
 
 val NlComponent.actionDestination: NlComponent?
   get() {

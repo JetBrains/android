@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding
 
-import com.android.tools.idea.databinding.module.ModuleDataBinding
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.renameElementAtCaretUsingAndroidHandler
@@ -77,7 +77,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
       </manifest>
     """.trimIndent())
 
-    ModuleDataBinding.getInstance(facet).dataBindingMode = dataBindingMode
+    LayoutBindingModuleCache.getInstance(facet).dataBindingMode = dataBindingMode
   }
 
   private fun checkAndRenameElementAtCaret(newName: String) {

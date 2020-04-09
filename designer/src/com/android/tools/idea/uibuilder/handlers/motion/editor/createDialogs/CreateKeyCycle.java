@@ -267,9 +267,9 @@ public class CreateKeyCycle extends BaseCreateKey {
     }
     MTag ret = toCommit.commit("Create KeyCycle");
     if (KEY_TAG.equals( MotionSceneAttrs.Tags.KEY_TIME_CYCLE)) {
-      Track.createKeyTimeCycle();
+      Track.createKeyTimeCycle(mMotionEditor.myTrack);
     } else {
-      Track.createKeyCycle();
+      Track.createKeyCycle(mMotionEditor.myTrack);
     }
     mMotionEditor.dataChanged();
     super.create();

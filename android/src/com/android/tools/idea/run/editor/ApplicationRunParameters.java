@@ -62,6 +62,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   private LabeledComponent<JBTextField> myAmOptionsLabeledComponent;
   private JComponent myDynamicFeaturesParametersComponent;
   private JBCheckBox myInstantAppDeployCheckBox;
+  private JBCheckBox myAllUsersCheckbox;
 
   private final Project myProject;
   private final ConfigurationModuleSelector myModuleSelector;
@@ -212,6 +213,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     }
 
     myPmOptionsLabeledComponent.getComponent().setText(configuration.PM_INSTALL_OPTIONS);
+    myAllUsersCheckbox.setSelected(configuration.ALL_USERS);
 
     for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
       LaunchOptionState state = configuration.getLaunchOptionState(option.getId());
@@ -254,6 +256,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
       }
     }
     configuration.PM_INSTALL_OPTIONS = StringUtil.notNullize(myPmOptionsLabeledComponent.getComponent().getText());
+    configuration.ALL_USERS = myAllUsersCheckbox.isSelected();
 
     for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
       LaunchOptionState state = configuration.getLaunchOptionState(option.getId());

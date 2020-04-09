@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import static com.android.testutils.truth.FileSubject.assertThat;
-
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
@@ -109,8 +107,8 @@ public class AbiSplitApksTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   public void testX64AbiSplitApks() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProject("debugger/BasicCmakeAppForUI");
-    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
+    IdeFrameFixture ideFrame =
+      guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/BasicCmakeAppForUI", Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
 
     DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.NATIVE);
 
@@ -120,10 +118,11 @@ public class AbiSplitApksTest extends DebuggerTestBase {
             .enterText("\n\nandroid.splits.abi.enable true")
             .invokeAction(EditorFixture.EditorAction.SAVE);
 
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
 
     String expectedApkName = "app-x86_64-debug.apk";
-    ideFrame.debugApp("app", "Google Nexus 5X");
+    // Request debugging and wait for Gradle build to finish.
+    ideFrame.actAndWaitForBuildToFinish(it -> it.debugApp("app", "Google Nexus 5X"));
 
     // Wait for build to complete
     guiTest.waitForBackgroundTasks();

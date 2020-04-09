@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.TestDataProvider
@@ -33,7 +34,7 @@ class MissingAndroidPluginIssueCheckerTest : AndroidGradleTestCase() {
     // Verify quickFixes
     assertThat(buildIssue.quickFixes).hasSize(2)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(MissingAndroidPluginIssueChecker.AddGoogleMavenRepositoryQuickFix::class.java)
-    assertThat(buildIssue.quickFixes[1]).isInstanceOf(MissingAndroidPluginIssueChecker.OpenPluginBuildFileQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenPluginBuildFileQuickFix::class.java)
 
     buildIssue.quickFixes[0].runQuickFix(project, TestDataProvider(project))
   }

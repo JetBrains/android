@@ -28,6 +28,7 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
@@ -44,10 +45,15 @@ class StudioLegacyCpuTraceProfilerTest {
   @Rule
   @JvmField
   var myGrpcChannel = FakeGrpcChannel("StudioLegacyCpuTraceProfilerTest", myTransportService, myCpuService)
-  val myProfilerClient = ProfilerClient(myGrpcChannel.name)
+  private lateinit var myProfilerClient: ProfilerClient
 
   @get:Rule
   val thrown = ExpectedException.none()
+
+  @Before
+  fun setUp() {
+    myProfilerClient = ProfilerClient(myGrpcChannel.channel)
+  }
 
   @Test
   fun simplePerfThrowsAssertion() {

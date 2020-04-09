@@ -94,13 +94,14 @@ abstract class BasePerspectiveConfigurable protected constructor(
     (splitter as JBSplitter).splitterProportionKey = "android.psd.proportion.modules"
 
     @Suppress("LeakingThis")
-    context.add(object : GradleSyncListener {
-      override fun syncStarted(project: Project) {
+    context.add(object : PsContext.SyncListener {
+      override fun started() {
         loadingPanel?.startLoading()
       }
 
-      override fun syncSucceeded(project: Project) = stopSyncAnimation()
-      override fun syncFailed(project: Project, errorMessage: String) = stopSyncAnimation()
+      override fun ended() {
+        stopSyncAnimation()
+      }
     }, this)
 
     @Suppress("LeakingThis")

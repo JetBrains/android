@@ -409,9 +409,14 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   @Override
   public void rename(@NotNull String name) {
+    rename(Arrays.asList(name));
+  }
+
+  @Override
+  public void rename(@NotNull List<String> name) {
     // If we have no backing element then just alter the name that we will change.
     if (myElement == null) {
-      myName = name;
+      myName = GradleNameElement.join(name);
       return;
     }
 

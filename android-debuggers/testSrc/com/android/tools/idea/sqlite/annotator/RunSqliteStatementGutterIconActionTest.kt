@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.annotator
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
@@ -29,12 +30,14 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.toSqliteValues
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.awt.RelativePoint
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -435,6 +438,46 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
         "select * from Foo where id = '1'"
       )
     )
+  }
+
+  fun testRunSqliteStatementOnSingleDBAnalytics() {
+    // Prepare
+    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
+
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabase1))
+
+    buildActionFromJavaFile("select * from Foo where id")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    // Assert
+    verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT)
+  }
+
+  fun testRunSqliteStatementOnMultipleDBAnalytics() {
+    // Prepare
+    val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
+
+    val databases = listOf(sqliteDatabase1, sqliteDatabase2).sortedBy { database -> database.name }
+    val mockJBPopupFactory = ideComponents.mockApplicationService(JBPopupFactory::class.java)
+    val spyPopupChooserBuilder = spy(MockPopupChooserBuilder::class.java)
+    `when`(mockJBPopupFactory.createPopupChooserBuilder(databases.toList())).thenReturn(spyPopupChooserBuilder)
+
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(databases)
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+
+    buildActionFromJavaFile("select * from Foo")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+    spyPopupChooserBuilder.callback?.consume(sqliteDatabase1)
+
+    // Assert
+    verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT)
   }
 
   private fun buildActionFromJavaFile(sqlStatement: String) {

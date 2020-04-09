@@ -70,7 +70,8 @@ public class MlkitModuleService {
 
     return myLightModelClassMap.computeIfAbsent(modelMetadata.myModelFileUrl, fileUrl -> {
       LightModelClassConfig classConfig = MlModelClassGenerator.generateLightModelClass(myModule, modelMetadata);
-      return classConfig != null ? new LightModelClass(myModule, classConfig) : null;
+      VirtualFile modelFile = VirtualFileManager.getInstance().findFileByUrl(fileUrl);
+      return classConfig != null && modelFile != null ? new LightModelClass(myModule, modelFile, classConfig) : null;
     });
   }
 

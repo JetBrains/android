@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.testrunner.IInstrumentationResultParser.StatusKeys.DDMLIB_LOGCAT
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
@@ -71,6 +72,7 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
   override fun testEnded(testId: TestIdentifier, testMetrics: MutableMap<String, String>) {
     val testCase = myTestCases.getValue(testId)
     testCase.result = testCase.result ?: AndroidTestCaseResult.PASSED
+    testCase.logcat = testMetrics.getOrDefault(DDMLIB_LOGCAT, "")
     listener.onTestCaseFinished(myDevice, myTestSuite, testCase)
   }
 

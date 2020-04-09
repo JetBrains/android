@@ -23,6 +23,7 @@ import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -40,6 +41,7 @@ import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -74,6 +76,8 @@ class TableController(
   private var orderBy: OrderBy? = null
   private var start = 0
 
+  private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
+
   private var lastExecutedQuery = sqliteStatement
 
   /**
@@ -90,6 +94,8 @@ class TableController(
    * Future corresponding to a [refreshData] operation. If the future is done, the refresh operation is over.
    */
   private var refreshDataFuture: ListenableFuture<Unit> = Futures.immediateFuture(Unit)
+
+  private var liveUpdatesEnabled = false
 
   fun setUp(): ListenableFuture<Unit> {
     view.startTableLoading()
@@ -113,6 +119,13 @@ class TableController(
     view.startTableLoading()
     refreshDataFuture = fetchAndDisplayTableData()
     return refreshDataFuture
+  }
+
+  override fun notifyDataMightBeStale() {
+    // refresh the table, without showing a loading screen.
+    if (liveUpdatesEnabled && refreshDataFuture.isDone) {
+      refreshDataFuture = fetchAndDisplayTableData()
+    }
   }
 
   override fun dispose() {
@@ -238,7 +251,7 @@ class TableController(
     return future
   }
 
-  private fun isEditable() = tableSupplier() != null
+  private fun isEditable() = tableSupplier() != null && !liveUpdatesEnabled
 
   private inner class TableViewListenerImpl : TableView.Listener {
     override fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn) {
@@ -273,6 +286,9 @@ class TableController(
     }
 
     override fun cancelRunningStatementInvoked() {
+      databaseInspectorAnalyticsTracker.trackStatementExecutionCanceled(
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.UNKNOWN_STATEMENT_CONTEXT
+      )
       // Closing a tab triggers its dispose method, which cancels the future, stopping the running query.
       closeTabInvoked()
     }
@@ -313,7 +329,19 @@ class TableController(
     }
 
     override fun refreshDataInvoked() {
+      databaseInspectorAnalyticsTracker.trackTargetRefreshed(AppInspectionEvent.DatabaseInspectorEvent.TargetType.TABLE_TARGET)
       refreshData()
+    }
+
+    override fun toggleLiveUpdatesInvoked() {
+      liveUpdatesEnabled = !liveUpdatesEnabled
+      view.setEditable(!liveUpdatesEnabled)
+
+      if (liveUpdatesEnabled) {
+        notifyDataMightBeStale()
+      }
+
+      databaseInspectorAnalyticsTracker.trackLiveUpdatedToggled(liveUpdatesEnabled)
     }
 
     override fun updateCellInvoked(targetRowIndex: Int, targetColumn: SqliteColumn, newValue: SqliteValue) {
@@ -356,6 +384,8 @@ class TableController(
 
       val psiElement = AndroidSqlParserDefinition.parseSqlQuery(project, updateStatement)
       val updateStatementStringRepresentation = inlineParameterValues(psiElement, LinkedList(parametersValues))
+
+      databaseInspectorAnalyticsTracker.trackTableCellEdited()
 
       databaseConnection.execute(SqliteStatement(updateStatement, parametersValues, updateStatementStringRepresentation))
         .addCallback(edtExecutor, object : FutureCallback<SqliteResultSet> {

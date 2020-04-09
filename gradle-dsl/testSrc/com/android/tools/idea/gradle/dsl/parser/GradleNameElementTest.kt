@@ -19,9 +19,9 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.UsefulTestCase
 
-// These tests check that we have correctly implemented the isomorphism between a list of unescaped strings and a single string with
-// a delimiter to separate suitably-escaped parts.
 class GradleNameElementTest : UsefulTestCase() {
+  // These tests check that we have correctly implemented the isomorphism between a list of unescaped strings and a single string with
+  // a delimiter to separate suitably-escaped parts.
   fun testSplitNoDots() {
     assertThat(GradleNameElement.split("abcde")).isEqualTo(listOf("abcde"))
   }
@@ -47,11 +47,11 @@ class GradleNameElementTest : UsefulTestCase() {
   }
 
   fun testSplitEscapedDot() {
-    assertThat(GradleNameElement.split("ab\\.de")).isEqualTo(listOf("ab.de"))
+    assertThat(GradleNameElement.split("""ab\.de""")).isEqualTo(listOf("ab.de"))
   }
 
   fun testSplitEscapedBackslash() {
-    assertThat(GradleNameElement.split("ab\\\\de")).isEqualTo(listOf("ab\\de"))
+    assertThat(GradleNameElement.split("""ab\\de""")).isEqualTo(listOf("""ab\de"""))
   }
 
   fun testSplitExoticCharacters() {
@@ -83,14 +83,80 @@ class GradleNameElementTest : UsefulTestCase() {
   }
 
   fun testJoinEscapedDot() {
-    assertThat(GradleNameElement.join(listOf("ab.de"))).isEqualTo("ab\\.de")
+    assertThat(GradleNameElement.join(listOf("ab.de"))).isEqualTo("""ab\.de""")
   }
 
   fun testJoinEscapedBackslash() {
-    assertThat(GradleNameElement.join(listOf("ab\\de"))).isEqualTo("ab\\\\de")
+    assertThat(GradleNameElement.join(listOf("""ab\de"""))).isEqualTo("""ab\\de""")
   }
 
   fun testJoinExoticCharacters() {
     assertThat(GradleNameElement.join(listOf("ab \t \n é Å £ € \u1234"))).isEqualTo("ab \t \n é Å £ € \u1234")
+  }
+
+  // These tests check that we have implemented the lower-level escaping and unescaping operations correctly, which are occasionally
+  // needed by backends.
+  fun testEscapeNoDot() {
+    assertThat(GradleNameElement.escape("abcde")).isEqualTo("abcde")
+  }
+
+  fun testEscapeDot() {
+    assertThat(GradleNameElement.escape("ab.de")).isEqualTo("""ab\.de""")
+  }
+
+  fun testEscapeMultipleDots() {
+    assertThat(GradleNameElement.escape("ab.de.gh")).isEqualTo("""ab\.de\.gh""")
+  }
+
+  fun testEscapeMultipleConsecutiveDots() {
+    assertThat(GradleNameElement.escape("ab..ef")).isEqualTo("""ab\.\.ef""")
+  }
+
+  fun testEscapeDotAtBeginning() {
+    assertThat(GradleNameElement.escape(".bcdef")).isEqualTo("""\.bcdef""")
+  }
+
+  fun testEscapeDotAtEnd() {
+    assertThat(GradleNameElement.escape("abcde.")).isEqualTo("""abcde\.""")
+  }
+
+  fun testEscapeEscapedDot() {
+    assertThat(GradleNameElement.escape("""ab\.de""")).isEqualTo("""ab\\\.de""")
+  }
+
+  fun testEscapeEscapedBackslash() {
+    assertThat(GradleNameElement.escape("""ab\\de""")).isEqualTo("""ab\\\\de""")
+  }
+
+  fun testUnescapeNoDot() {
+    assertThat(GradleNameElement.unescape("abcde")).isEqualTo("abcde")
+  }
+
+  fun testUnescapeDot() {
+    assertThat(GradleNameElement.unescape("""ab\.de""")).isEqualTo("ab.de")
+  }
+
+  fun testUnescapeMultipleDots() {
+    assertThat(GradleNameElement.unescape("""ab\.de\.gh""")).isEqualTo("ab.de.gh")
+  }
+
+  fun testUnescapeMultipleConsecutiveDots() {
+    assertThat(GradleNameElement.unescape("""ab\.\.ef""")).isEqualTo("ab..ef")
+  }
+
+  fun testUnescapeDotAtBeginning() {
+    assertThat(GradleNameElement.unescape("""\.bcdef""")).isEqualTo(".bcdef")
+  }
+
+  fun testUnescapeDotAtEnd() {
+    assertThat(GradleNameElement.unescape("""abcde\.""")).isEqualTo("abcde.")
+  }
+
+  fun testUnescapeEscapedEscapedDot() {
+    assertThat(GradleNameElement.unescape("""ab\\\.de""")).isEqualTo("""ab\.de""")
+  }
+
+  fun testUnescapeEscapedEscapedBackslash() {
+    assertThat(GradleNameElement.unescape("""ab\\\\de""")).isEqualTo("""ab\\de""")
   }
 }

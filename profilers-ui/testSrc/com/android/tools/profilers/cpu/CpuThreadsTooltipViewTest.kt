@@ -49,7 +49,6 @@ class CpuThreadsTooltipViewTest {
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel("CpuThreadsTooltipViewTest", cpuService,
                                       transportService, FakeProfilerService(timer))
-  val myProfilerClient = ProfilerClient(myGrpcChannel.name)
 
   @Before
   fun setUp() {
@@ -63,7 +62,7 @@ class CpuThreadsTooltipViewTest {
                                                                     .setTraceType(Cpu.CpuTraceType.ART)))
                               .build())
 
-    val profilers = StudioProfilers(myProfilerClient, FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), FakeIdeProfilerServices(), timer)
     cpuStage = CpuProfilerStage(profilers)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     profilers.stage = cpuStage
@@ -91,7 +90,7 @@ class CpuThreadsTooltipViewTest {
   fun textUpdateOnThreadChange() {
     var tooltipTime = TimeUnit.SECONDS.toMicros(1)
     cpuStage.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
-    var threadSeries = LegacyCpuThreadStateDataSeries(myProfilerClient.cpuClient, ProfilersTestData.SESSION_DATA, 1, selectedCapture)
+    var threadSeries = LegacyCpuThreadStateDataSeries(ProfilerClient(myGrpcChannel.channel).cpuClient, ProfilersTestData.SESSION_DATA, 1, selectedCapture)
 
     cpuThreadsTooltip.setThread("myThread", threadSeries)
     var labels = TreeWalker(cpuThreadsTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
@@ -111,7 +110,7 @@ class CpuThreadsTooltipViewTest {
     assertThat(labels[2].text).isEqualTo("Dead")
     assertThat(labels[3].text).isEqualTo("Details Unavailable")
 
-    threadSeries = LegacyCpuThreadStateDataSeries(myProfilerClient.cpuClient,
+    threadSeries = LegacyCpuThreadStateDataSeries(ProfilerClient(myGrpcChannel.channel).cpuClient,
                                                   ProfilersTestData.SESSION_DATA,
                                                   selectedCapture.mainThreadId,
                                                   selectedCapture)
