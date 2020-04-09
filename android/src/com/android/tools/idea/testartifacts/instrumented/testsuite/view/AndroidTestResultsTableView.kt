@@ -21,13 +21,18 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import java.awt.Component
+import javax.swing.JTable
 import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionEvent
+import javax.swing.table.DefaultTableCellRenderer
+import javax.swing.table.TableCellRenderer
 
 /**
  * A table to display Android test results. Test results are grouped by device and test case. The column is a device name
@@ -46,6 +51,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener) {
   @UiThread
   fun addDevice(device: AndroidDevice) {
     myModel.addDeviceColumn(device)
+    refreshTable()
   }
 
   /**
@@ -58,6 +64,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener) {
   @UiThread
   fun addTestCase(device: AndroidDevice, testCase: AndroidTestCase) {
     myModel.addTestResultsRow(device, testCase)
+    refreshTable()
   }
 
   /**
@@ -65,6 +72,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener) {
    */
   @UiThread
   fun refreshTable() {
+    myTableView.updateColumnSizes()
     myModel.fireTableDataChanged()
   }
 
@@ -115,7 +123,10 @@ private class AndroidTestResultsTableViewComponent(model: AndroidTestResultsTabl
 
   override fun valueChanged(event: ListSelectionEvent) {
     super.valueChanged(event)
-    selectedObject?.let { listener.onAndroidTestResultsRowSelected(it) }
+    selectedObject?.let {
+      listener.onAndroidTestResultsRowSelected(it)
+      clearSelection()
+    }
   }
 }
 
@@ -154,15 +165,64 @@ private class AndroidTestResultsTableModel :
 /**
  * A column for displaying a test name.
  */
-private class TestNameColumn : ColumnInfo<AndroidTestResultsRow, String>("Tests") {
-  override fun valueOf(item: AndroidTestResultsRow) = item.testCaseName
+private class TestNameColumn : ColumnInfo<AndroidTestResultsRow, AndroidTestResultsRow>("Tests") {
+  override fun valueOf(item: AndroidTestResultsRow): AndroidTestResultsRow = item
+  override fun getCustomizedRenderer(o: AndroidTestResultsRow?, renderer: TableCellRenderer?): TableCellRenderer {
+    return TestNameColumnCellRenderer
+  }
+}
+
+private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
+  override fun getTableCellRendererComponent(table: JTable?,
+                                             value: Any?,
+                                             isSelected: Boolean,
+                                             hasFocus: Boolean,
+                                             row: Int,
+                                             column: Int): Component {
+    val results = value as? AndroidTestResultsRow ?: return this
+
+    super.getTableCellRendererComponent(table, results.testCaseName, isSelected, hasFocus, row, column)
+    icon = when(value.getTestResultSummary()) {
+      AndroidTestCaseResult.PASSED -> AllIcons.RunConfigurations.TestPassed
+      AndroidTestCaseResult.SKIPPED -> AllIcons.RunConfigurations.TestSkipped
+      AndroidTestCaseResult.FAILED -> AllIcons.RunConfigurations.TestFailed
+      else -> null
+    }
+    this.iconTextGap
+    return this
+  }
 }
 
 /**
  * A column for displaying an aggregated test result grouped by a test case ID.
  */
-private class TestStatusColumn : ColumnInfo<AndroidTestResultsRow, String>("Status") {
-  override fun valueOf(item: AndroidTestResultsRow) = item.getTestResultSummary()
+private class TestStatusColumn : ColumnInfo<AndroidTestResultsRow, AndroidTestResultsRow>("Status") {
+  override fun valueOf(item: AndroidTestResultsRow): AndroidTestResultsRow = item
+  override fun getWidth(table: JTable): Int = 80
+  override fun getCustomizedRenderer(o: AndroidTestResultsRow?, renderer: TableCellRenderer?): TableCellRenderer {
+    return TestStatusColumnCellRenderer
+  }
+}
+
+private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
+  override fun getTableCellRendererComponent(table: JTable?,
+                                             value: Any?,
+                                             isSelected: Boolean,
+                                             hasFocus: Boolean,
+                                             row: Int,
+                                             column: Int): Component {
+    val results = value as? AndroidTestResultsRow ?: return this
+    super.getTableCellRendererComponent(table, results.getTestResultSummaryText(), isSelected, hasFocus, row, column)
+    horizontalAlignment = CENTER
+    horizontalTextPosition = CENTER
+    foreground = when(results.getTestResultSummary()) {
+      AndroidTestCaseResult.PASSED -> ColorProgressBar.GREEN
+      AndroidTestCaseResult.FAILED -> ColorProgressBar.RED_TEXT
+      AndroidTestCaseResult.SKIPPED -> ColorProgressBar.GREEN
+      else -> ColorProgressBar.RED_TEXT
+    }
+    return this
+  }
 }
 
 /**
@@ -170,9 +230,33 @@ private class TestStatusColumn : ColumnInfo<AndroidTestResultsRow, String>("Stat
  *
  * @param device shows an individual test case result in this column for a given [device]
  */
-private class AndroidTestResultsColumn(private val device: AndroidDevice) : ColumnInfo<AndroidTestResultsRow, String>(device.name) {
-  override fun valueOf(item: AndroidTestResultsRow): String {
-    return item.getTestCaseResult(device)?.name ?: ""
+private class AndroidTestResultsColumn(private val device: AndroidDevice) :
+  ColumnInfo<AndroidTestResultsRow, AndroidTestCaseResult?>(device.name) {
+  override fun valueOf(item: AndroidTestResultsRow): AndroidTestCaseResult? {
+    return item.getTestCaseResult(device)
+  }
+  override fun getWidth(table: JTable): Int = 120
+  override fun getCustomizedRenderer(o: AndroidTestResultsRow?, renderer: TableCellRenderer?): TableCellRenderer {
+    return AndroidTestResultsColumnCellRenderer
+  }
+}
+
+private object AndroidTestResultsColumnCellRenderer : DefaultTableCellRenderer() {
+  override fun getTableCellRendererComponent(table: JTable?,
+                                             value: Any?,
+                                             isSelected: Boolean,
+                                             hasFocus: Boolean,
+                                             row: Int,
+                                             column: Int): Component {
+    super.getTableCellRendererComponent(table, "", isSelected, hasFocus, row, column)
+    horizontalAlignment = CENTER
+    icon = when(value) {
+      AndroidTestCaseResult.PASSED -> AllIcons.RunConfigurations.TestPassed
+      AndroidTestCaseResult.SKIPPED -> AllIcons.RunConfigurations.TestSkipped
+      AndroidTestCaseResult.FAILED -> AllIcons.RunConfigurations.TestFailed
+      else -> null
+    }
+    return this
   }
 }
 
@@ -205,7 +289,30 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
   /**
    * Returns a one liner test result summary string.
    */
-  fun getTestResultSummary(): String {
+  fun getTestResultSummaryText(): String {
+    val (passed, failed, skipped) = getResultStats()
+    return when {
+      failed == 1 -> "Fail"
+      failed > 0 -> "Fail ($failed)"
+      skipped == myTestCases.size -> "Skip"
+      passed + skipped == myTestCases.size -> "Pass"
+      else -> ""
+    }
+  }
+
+  /**
+   * Returns an aggregated test result.
+   */
+  fun getTestResultSummary(): AndroidTestCaseResult {
+    val (passed, failed, skipped) = getResultStats()
+    return when {
+      failed > 0 -> AndroidTestCaseResult.FAILED
+      skipped == myTestCases.size -> AndroidTestCaseResult.SKIPPED
+      else -> AndroidTestCaseResult.PASSED
+    }
+  }
+
+  private fun getResultStats(): Triple<Int, Int, Int> {
     var passed = 0
     var failed = 0
     var skipped = 0
@@ -216,11 +323,6 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
         AndroidTestCaseResult.SKIPPED -> skipped++
       }
     }
-    return when {
-      failed > 0 -> "Fail ($failed)"
-      passed + skipped == myTestCases.size -> "Pass"
-      skipped == myTestCases.size -> "Skipped"
-      else -> ""
-    }
+    return Triple(passed, failed, skipped)
   }
 }
