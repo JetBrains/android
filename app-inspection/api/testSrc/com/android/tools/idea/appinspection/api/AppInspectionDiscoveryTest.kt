@@ -16,9 +16,13 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.StubTestAppInspectorClient
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
+import com.android.tools.idea.appinspection.test.INSPECTOR_ID
+import com.android.tools.idea.appinspection.test.TEST_JAR
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -72,83 +76,77 @@ class AppInspectionDiscoveryTest {
   }
 
   @Test
-  fun attachToProcessNotifiesListener() {
+  fun launchNewInspector() {
     val discovery =
       AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client)
 
-    val targetReadyLatch = CountDownLatch(1)
-    discovery.addTargetListener(appInspectionServiceRule.executorService) {
-      targetReadyLatch.countDown()
-    }
-
-    discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier, appInspectionServiceRule.streamChannel)
+    discovery.launchInspector(
+      AppInspectionDiscoveryHost.LaunchParameters(FAKE_PROCESS, INSPECTOR_ID, TEST_JAR, "testProject"),
+      { StubTestAppInspectorClient(it) },
+      AppInspectionTestUtils.TestTransportJarCopier,
+      appInspectionServiceRule.streamChannel
+    ).get()
   }
 
   @Test
-  fun targetIsCached() {
+  fun clientIsCached() {
     val discovery =
       AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client)
 
-    var target: AppInspectionTarget? = null
-    val targetReadyLatch = CountDownLatch(1)
-    discovery.addTargetListener(appInspectionServiceRule.executorService) {
-      target = it
-      targetReadyLatch.countDown()
-    }
+    // Launch an inspector.
+    val firstClient = discovery.launchInspector(
+      AppInspectionDiscoveryHost.LaunchParameters(FAKE_PROCESS, INSPECTOR_ID, TEST_JAR, "testProject"),
+      { StubTestAppInspectorClient(it) },
+      AppInspectionTestUtils.TestTransportJarCopier,
+      appInspectionServiceRule.streamChannel
+    ).get()
 
-    // Attach to the process.
-    val target2 =
-      discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier, appInspectionServiceRule.streamChannel).get()
+    // Launch same inspector.
+    val secondClient = discovery.launchInspector(
+      AppInspectionDiscoveryHost.LaunchParameters(FAKE_PROCESS, INSPECTOR_ID, TEST_JAR, "testProject"),
+      { StubTestAppInspectorClient(it) },
+      AppInspectionTestUtils.TestTransportJarCopier,
+      appInspectionServiceRule.streamChannel
+    ).get()
 
-    // Attach to the same process again.
-    val target3 =
-      discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier, appInspectionServiceRule.streamChannel).get()
-
-    targetReadyLatch.await()
-
-    assertThat(target).isSameAs(target2)
-    assertThat(target).isSameAs(target3)
+    // Check they are the same.
+    assertThat(firstClient).isSameAs(secondClient)
   }
 
   @Test
-  fun newListenerReceivesExistingTargets() {
-    val discovery =
-      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client)
-
-    val targetReadyLatch = CountDownLatch(1)
-    discovery.addTargetListener(appInspectionServiceRule.executorService) {
-      targetReadyLatch.countDown()
-    }
-
-    discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier, appInspectionServiceRule.streamChannel)
-
-    targetReadyLatch.await()
-
-    val secondListenerLatch = CountDownLatch(1)
-    discovery.addTargetListener(appInspectionServiceRule.executorService) {
-      secondListenerLatch.countDown()
-    }
-
-    secondListenerLatch.await()
-  }
-
-  @Test
-  fun terminatedTargetIsRemovedFromCache() {
+  fun processTerminationRemovesTargetAndClientFromCache() {
     // Setup
-    val discovery =
-      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client)
+    val discovery = AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client)
 
-    // Wait for 1st target to be ready
+    // Launch an inspector client.
+    discovery.launchInspector(
+      AppInspectionDiscoveryHost.LaunchParameters(FAKE_PROCESS, INSPECTOR_ID, TEST_JAR, "testProject"),
+      { StubTestAppInspectorClient(it) },
+      AppInspectionTestUtils.TestTransportJarCopier,
+      appInspectionServiceRule.streamChannel
+    ).get()
+
+    // Verify there is one new target.
+    assertThat(discovery.targets).hasSize(1)
+    assertThat(discovery.clients).hasSize(1)
+
+    // Set up latches to wait for target and client termination
+    // Note: The callbacks below must use the same executor as discovery service because we rely on the knowledge that the single threaded
+    // executor will execute them AFTER executing the system's cleanup code. Otherwise, the latches may get released too early due to race,
+    // and cause flaky tests.
     val targetTerminatedLatch = CountDownLatch(1)
-    discovery.addTargetListener(appInspectionServiceRule.executorService) {
-      it.addTargetTerminatedListener(appInspectionServiceRule.executorService) {
-        targetTerminatedLatch.countDown()
-      }
+    discovery.targets.values.first().get().addTargetTerminatedListener(appInspectionServiceRule.executorService) {
+      targetTerminatedLatch.countDown()
     }
-    val firstTarget =
-      discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier, appInspectionServiceRule.streamChannel)
 
-    // Fake process ended event
+    val clientDisposedLatch = CountDownLatch(1)
+    discovery.clients.values.first().get().addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+      override fun onDispose() {
+        clientDisposedLatch.countDown()
+      }
+    }, appInspectionServiceRule.executorService)
+
+    // Fake target termination to dispose of both target and client
     transportService.addEventToStream(
       FakeTransportService.FAKE_DEVICE_ID,
       Common.Event.newBuilder()
@@ -160,13 +158,11 @@ class AppInspectionDiscoveryTest {
         .build()
     )
 
-    // Wait
+    // Wait and verify
     targetTerminatedLatch.await()
+    assertThat(discovery.targets).isEmpty()
 
-    val secondTarget =
-      discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier, appInspectionServiceRule.streamChannel).get()
-
-    // Verify first target was removed from discovery's internal cache, therefore the second target is newly created.
-    assertThat(firstTarget).isNotSameAs(secondTarget)
+    clientDisposedLatch.await()
+    assertThat(discovery.clients).isEmpty()
   }
 }

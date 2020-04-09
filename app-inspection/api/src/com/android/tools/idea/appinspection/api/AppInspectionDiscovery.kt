@@ -17,9 +17,13 @@ package com.android.tools.idea.appinspection.api
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.appinspection.internal.attachAppInspectionTarget
+import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.idea.transport.manager.TransportStreamEventListener
@@ -27,33 +31,31 @@ import com.android.tools.idea.transport.manager.TransportStreamListener
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Common
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import javax.annotation.concurrent.ThreadSafe
 
-typealias TargetListener = (AppInspectionTarget) -> Unit
 typealias JarCopierCreator = (Common.Device) -> AppInspectionJarCopier?
 
 /**
  * A class that hosts an [AppInspectionDiscovery] and manages processes discovered from transport pipeline and other sources.
  *
  * Definition: An inspectable process is a process that has certain inspection flags indicated in its manifest. However, currently it is
- * simply a process that is known by transport pipeline and was launched by studio (signalled via AppInspectionLaunchTaskContributor).
+ * simply a process that is known by transport pipeline and is running on a JVMTI-compatible (O+) device.
  * TODO(b/148540564): tracks the work needed to make process detection feasible.
  *
- * Processes are discovered by listening to the transport pipeline via [TransportEventListener]. However, because the transport pipeline
- * does not distinguish between inspectable and non-inspectable processes, we use the process information passed by
- * AppInspectionLaunchTaskContributor to identify which process was launched and assume it is inspectable. In other words, this service
- * considers a process inspectable when it is known by both the transport pipeline and the launch task contributor.
+ * Processes are discovered by listening to the transport pipeline via [TransportEventListener].
  *
- * [addProcessListener] allows the frontend to listen for new inspectable processes. Meant for populating the combobox.
+ * [addProcessListener] allows the frontend to listen for new inspectable processes. Meant for populating the AppInspection combobox.
  *
- * [attachToProcess] is used by the frontend to establish an [AppInspectionTarget] when it needs to (ex: when user selects process).
+ * [launchInspector] is used by the frontend to launch an inspector. It is used when user selects a process in the combobox.
  */
-// TODO(b/143628758): This Discovery mechanism must be called only behind the flag SQLITE_APP_INSPECTOR_ENABLED
 @ThreadSafe
 class AppInspectionDiscoveryHost(
   private val executor: ExecutorService,
@@ -76,7 +78,29 @@ class AppInspectionDiscoveryHost(
     fun onProcessDisconnected(descriptor: ProcessDescriptor)
   }
 
-  val discovery = AppInspectionDiscovery(executor, client)
+  /**
+   * Encapsulates all of the parameters that are required for launching an inspector.
+   */
+  data class LaunchParameters(
+    /**
+     * Identifies the target process in which to launch the inspector. It is supplied by [AppInspectionDiscoveryHost].
+     */
+    val processDescriptor: ProcessDescriptor,
+    /**
+     * Id of the inspector.
+     */
+    val inspectorId: String,
+    /**
+     * The [AppInspectorJar] containing the location of the dex to be installed on device.
+     */
+    val inspectorJar: AppInspectorJar,
+    /**
+     * The name of the studio project launching the inspector.
+     */
+    val projectName: String
+  )
+
+  private val discovery = AppInspectionDiscovery(executor, client)
 
   private val streamIdMap = ConcurrentHashMap<Long, TransportStreamChannel>()
 
@@ -117,20 +141,22 @@ class AppInspectionDiscoveryHost(
    */
   fun removeProcessListener(listener: ProcessListener) = synchronized(processData) { processData.processListeners.remove(listener) }
 
+
   /**
-   * Attaches to a process on device and creates an [AppInspectionTarget] which will be passed to clients via [TargetListener].
+   * Launches an inspector based on the information given by [params].
    *
-   * This is meant to be called by the frontend when it needs to obtain an [AppInspectionTarget]. For example, when user selects a process
-   * from a dropdown of all inspectable processes.
+   * [params] contains information such as the inspector's id and dex location, as well as the targeted process's descriptor.
+   * [creator] is a callback used to set up a client's [AppInspectorClient.rawEventListener].
    */
-  fun attachToProcess(processDescriptor: ProcessDescriptor): ListenableFuture<AppInspectionTarget> {
-    streamIdMap[processDescriptor.stream.streamId]?.let { streamChannel ->
-      createJarCopier(processDescriptor.stream.device)?.let { jarCopier ->
-        return discovery.attachToProcess(processDescriptor, jarCopier, streamChannel)
+  fun <T : AppInspectorClient> launchInspector(params: LaunchParameters,
+                                               creator: (AppInspectorClient.CommandMessenger) -> T): ListenableFuture<AppInspectorClient> {
+    streamIdMap[params.processDescriptor.stream.streamId]?.let { streamChannel ->
+      createJarCopier(params.processDescriptor.stream.device)?.let { jarCopier ->
+        return discovery.launchInspector(params, creator, jarCopier, streamChannel)
       }
     }
     return Futures.immediateFailedFuture(
-      RuntimeException("Cannot attach to process because the device does not exist. Process: $processDescriptor"))
+      RuntimeException("Cannot attach to process because the device does not exist. Process: ${params.processDescriptor}"))
   }
 
   /**
@@ -206,13 +232,9 @@ class AppInspectionDiscoveryHost(
 }
 
 /**
- * A class which keeps track of [AppInspectionTarget] and triggers callbacks on [TargetListener] when new targets are available.
- *
- * This class exposes an [addTargetListener] method that allows clients to add their own listeners to be notified of when new targets become
- * available. The method [attachToProcess] is exposed internally to [AppInspectionDiscoveryHost] and allows it to obtain an
- * [AppInspectionTarget].
+ * A class which keeps track of live [AppInspectionTarget] and [AppInspectorClient]. It exposes [launchInspector] that allows for launching
+ * of inspection targets and individual inspectors.
  */
-// TODO(b/143628758): This Discovery mechanism must be called only behind the flag SQLITE_APP_INSPECTOR_ENABLED
 @ThreadSafe
 class AppInspectionDiscovery internal constructor(
   private val executor: ExecutorService,
@@ -220,47 +242,72 @@ class AppInspectionDiscovery internal constructor(
 ) {
   private val lock = Any()
 
+  @VisibleForTesting
   @GuardedBy("lock")
-  private val targetListeners = mutableMapOf<TargetListener, Executor>()
+  internal val targets = ConcurrentHashMap<ProcessDescriptor, ListenableFuture<AppInspectionTarget>>()
 
   @GuardedBy("lock")
-  private val targets = ConcurrentHashMap<ProcessDescriptor, ListenableFuture<AppInspectionTarget>>()
-
-  /**
-   * Adds a [TargetListener]. Target listeners will receive a callback when a new target is available.
-   *
-   * This has the side effect of notifying users of all existing live targets the discovery service is aware of.
-   *
-   * This method is synchronized to make sure the listener receives correct callback for existing targets.
-   */
-  fun addTargetListener(executor: Executor, listener: TargetListener) {
-    synchronized(lock) {
-      if (targetListeners.putIfAbsent(listener, executor) == null) {
-        targets.values.forEach { targetFuture -> targetFuture.transform(executor) { target -> listener(target) } }
-      }
-    }
-  }
+  @VisibleForTesting
+  internal val clients = ConcurrentHashMap<AppInspectionDiscoveryHost.LaunchParameters, ListenableFuture<AppInspectorClient>>()
 
   /**
    * Attempts to connect to a process on device specified by [processDescriptor]. Returns a future of [AppInspectionTarget] which can be
    * used to launch inspector connections.
-   *
-   * Synchronization used here to make sure no new listener is added during the life of this function call, and this gets called atomically.
    */
-  internal fun attachToProcess(
+  @GuardedBy("lock")
+  private fun attachToProcess(
     processDescriptor: ProcessDescriptor,
     jarCopier: AppInspectionJarCopier,
     streamChannel: TransportStreamChannel
-  ): ListenableFuture<AppInspectionTarget> =
-    synchronized(lock) {
-      targets.computeIfAbsent(processDescriptor) {
-        val transport =
-          AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, executor, streamChannel)
-        attachAppInspectionTarget(transport, jarCopier).transform { target ->
-          target.addTargetTerminatedListener(executor) { targets.remove(it) }
-          targetListeners.forEach { (listener, executor) -> executor.execute { listener(target) } }
-          target
+  ): ListenableFuture<AppInspectionTarget> {
+    return targets.computeIfAbsent(processDescriptor) {
+      val transport =
+        AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, executor, streamChannel)
+      attachAppInspectionTarget(transport, jarCopier).transform { target ->
+        target.addTargetTerminatedListener(executor) { targets.remove(it) }
+        target
+      }
+    }.also {
+      it.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<AppInspectionTarget> {
+        override fun onSuccess(result: AppInspectionTarget?) {}
+        override fun onFailure(t: Throwable) {
+          targets.remove(processDescriptor)
         }
+      })
+    }
+  }
+
+  /**
+   * Launches an inspector using the information given by [launchParameters]. Returns a future of the launched [AppInspectorClient].
+   *
+   * This can return an existing live [AppInspectorClient] if an identical inspector was launched on the same process.
+   */
+  internal fun launchInspector(
+    launchParameters: AppInspectionDiscoveryHost.LaunchParameters,
+    creator: (AppInspectorClient.CommandMessenger) -> AppInspectorClient,
+    jarCopier: AppInspectionJarCopier,
+    streamChannel: TransportStreamChannel
+  ): ListenableFuture<AppInspectorClient> = synchronized(lock) {
+    clients.computeIfAbsent(launchParameters) {
+      attachToProcess(launchParameters.processDescriptor, jarCopier, streamChannel).transformAsync(
+        MoreExecutors.directExecutor()) { target ->
+        target.launchInspector(launchParameters.inspectorId, launchParameters.inspectorJar, launchParameters.projectName,
+                               creator).transform { client ->
+          client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+            override fun onDispose() {
+              clients.remove(launchParameters)
+            }
+          }, MoreExecutors.directExecutor())
+          client
+        }
+      }.also {
+        it.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<AppInspectorClient> {
+          override fun onSuccess(result: AppInspectorClient?) {}
+          override fun onFailure(t: Throwable) {
+            clients.remove(launchParameters)
+          }
+        })
       }
     }
+  }
 }

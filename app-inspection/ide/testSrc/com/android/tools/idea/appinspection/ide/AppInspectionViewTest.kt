@@ -99,18 +99,13 @@ class AppInspectionViewTest {
     val inspectionView = AppInspectionView(projectRule.project, discoveryHost, appInspectionCallbacks,
                                            { listOf(FakeTransportService.FAKE_PROCESS_NAME) },
                                            mock(AppInspectionNotificationFactory::class.java))
-    val newProcessLatch = CountDownLatch(1)
     val tabAddedLatch = CountDownLatch(2)
-    discoveryHost.discovery.addTargetListener(appInspectionServiceRule.executorService) {
-      newProcessLatch.countDown()
-    }
     inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
       override fun componentAdded(e: ContainerEvent) = tabAddedLatch.countDown()
     })
     // Attach to a fake process.
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
-    newProcessLatch.await()
     tabAddedLatch.await()
   }
 

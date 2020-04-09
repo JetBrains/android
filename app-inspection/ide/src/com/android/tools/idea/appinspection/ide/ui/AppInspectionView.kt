@@ -127,29 +127,33 @@ class AppInspectionView(
   }
 
   private fun launchInspectorTabsForCurrentProcess() {
-    appInspectionDiscoveryHost.attachToProcess(currentProcess).transform { target ->
-      AppInspectorTabProvider.EP_NAME.extensionList
-        .filter { provider -> provider.isApplicable() }
-        .forEach { provider ->
-          target.launchInspector(provider.inspectorId, provider.inspectorAgentJar, project.name) { messenger ->
-            val tab = invokeAndWaitIfNeeded {
-              provider.createTab(project, messenger, appInspectionCallbacks)
-                .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
-                .also { updateUi() }
-            }
-            activeClients.add(tab.client.messenger)
-            tab.client
-          }.transform {
-            it.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
-              override fun onCrashEvent(message: String) {
-                createCrashNotification(provider.displayName).notify(project)
-              }
-            }, MoreExecutors.directExecutor())
-          }.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Unit> {
+    AppInspectorTabProvider.EP_NAME.extensionList
+      .filter { provider -> provider.isApplicable() }
+      .forEach { provider ->
+        appInspectionDiscoveryHost.launchInspector(
+          AppInspectionDiscoveryHost.LaunchParameters(
+            currentProcess,
+            provider.inspectorId,
+            provider.inspectorAgentJar,
+            project.name
+          )
+        ) { messenger ->
+          val tab = invokeAndWaitIfNeeded {
+            provider.createTab(project, messenger, appInspectionCallbacks)
+              .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
+              .also { updateUi() }
+          }
+          activeClients.add(tab.client.messenger)
+          tab.client
+        }.transform { client ->
+          client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+            override fun onCrashEvent(message: String) {
+              createCrashNotification(provider.displayName).notify(project) }
+          }, MoreExecutors.directExecutor())
+        }.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Unit> {
             override fun onSuccess(result: Unit?) {}
             override fun onFailure(t: Throwable) = Logger.getInstance(AppInspectionView::class.java).error(t)
           })
-        }
     }
 
     updateUi()
