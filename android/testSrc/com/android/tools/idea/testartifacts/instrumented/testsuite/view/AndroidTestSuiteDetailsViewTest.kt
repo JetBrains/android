@@ -74,10 +74,11 @@ class AndroidTestSuiteDetailsViewTest {
     verify(mockListener).onAndroidTestSuiteDetailsViewCloseButtonClicked()
   }
 
-  private fun createTestResults(testCaseName: String, testCaseResult: AndroidTestCaseResult?): AndroidTestResults {
+  private fun createTestResults(testCaseName: String, testCaseResult: AndroidTestCaseResult): AndroidTestResults {
     return object: AndroidTestResults {
       override val testCaseName: String = testCaseName
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = testCaseResult
+      override fun getTestResultSummary(): AndroidTestCaseResult = testCaseResult
       override fun getLogcat(device: AndroidDevice): String = ""
     }
   }

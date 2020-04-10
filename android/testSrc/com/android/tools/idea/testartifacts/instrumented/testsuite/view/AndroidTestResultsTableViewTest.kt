@@ -176,6 +176,7 @@ class AndroidTestResultsTableViewTest {
     return object:AndroidTestResults {
       override val testCaseName: String = ""
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
+      override fun getTestResultSummary(): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
       override fun getLogcat(device: AndroidDevice): String = ""
     }
   }

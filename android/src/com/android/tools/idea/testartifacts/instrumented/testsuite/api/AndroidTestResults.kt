@@ -34,6 +34,11 @@ interface AndroidTestResults {
   fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult?
 
   /**
+   * Returns the aggregated test result.
+   */
+  fun getTestResultSummary(): AndroidTestCaseResult
+
+  /**
    * Returns the logcat message emitted during the test on a given device.
    */
   fun getLogcat(device: AndroidDevice): String
