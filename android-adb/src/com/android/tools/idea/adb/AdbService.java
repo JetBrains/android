@@ -23,10 +23,10 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.AdbInitOptions;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.TimeoutRemainder;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -317,15 +317,6 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
 
       LOG.info("Initializing adb using: " + myAdb.getAbsolutePath());
 
-      ImmutableMap<String, String> env;
-      if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
-        // adb accesses $HOME/.android, which isn't allowed when running in the bazel sandbox
-        env = ImmutableMap.of("HOME", Files.createTempDir().getAbsolutePath());
-      }
-      else {
-        env = ImmutableMap.of();
-      }
-
       try {
         myPreCreateAction.run();
       } catch (Exception e) {
@@ -336,8 +327,15 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
       AdbLogOutput.ToStringLogger toStringLogger = new AdbLogOutput.ToStringLogger();
       Log.addLogger(toStringLogger);
       try {
+        AdbInitOptions.Builder options = AdbInitOptions.builder();
+        options.setClientSupportEnabled(true); // IDE needs client monitoring support.
+        options.withEnv("ADB_LIBUSB", AdbOptionsService.getInstance().shouldUseLibusb() ? "1" : "0");
+        if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
+          // adb accesses $HOME/.android, which isn't allowed when running in the bazel sandbox
+          options.withEnv("HOME", Files.createTempDir().getAbsolutePath());
+        }
         synchronized (ADB_INIT_LOCK) {
-          AndroidDebugBridge.init(true, AdbOptionsService.getInstance().shouldUseLibusb(), env);
+          AndroidDebugBridge.init(options.build());
           bridge = AndroidDebugBridge.createBridge(myAdb.getPath(), false, rem.getRemainingUnits(), myUnit);
         }
 

@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.framework.emulator
 
-import com.android.ddmlib.*
+import com.android.ddmlib.AdbCommandRejectedException
+import com.android.ddmlib.AdbInitOptions
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.CollectingOutputReceiver
+import com.android.ddmlib.DdmPreferences
+import com.android.ddmlib.EmulatorConsole
+import com.android.ddmlib.IDevice
+import com.android.ddmlib.TimeoutException
 import com.android.prefs.AndroidLocation
 import com.android.repository.testframework.FakeProgressIndicator
 import com.android.resources.ScreenOrientation
@@ -35,7 +42,6 @@ import org.junit.Assert
 import org.junit.rules.ExternalResource
 import java.io.File
 import java.io.IOException
-import java.lang.Exception
 import java.net.ConnectException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
@@ -247,9 +253,9 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
   }
 
   private fun setupAdb(sdkLocation: File): AndroidDebugBridge {
-    val env = HashMap<String, String>()
-    env["HOME"] = AndroidLocation.getUserHomeFolder()!!
-    AndroidDebugBridge.init(false, false, env)
+    AndroidDebugBridge.init(AdbInitOptions.builder()
+                              .withEnv("HOME", AndroidLocation.getUserHomeFolder()!!)
+                              .build())
     val adbBinary = File(sdkLocation, "platform-tools/adb")
 
     // Wait for ADB to start with 30 seconds. Slow machine can cause ADB to take very long time to start
