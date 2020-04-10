@@ -49,20 +49,32 @@ class LegacyProcessManager(parentDisposable: Disposable) : InspectorProcessManag
    */
   private val processes = ConcurrentHashMap<Common.Stream, ConcurrentHashMap<Int, ProcessSpec>>()
 
-  private val clientChangeListener = AndroidDebugBridge.IClientChangeListener { client, _ -> replaceClientAndReport(client) }
+  private val listenerLock = Any()
+
+  private val clientChangeListener = AndroidDebugBridge.IClientChangeListener { client, _ ->
+    synchronized(listenerLock) {
+      replaceClientAndReport(client)
+    }
+  }
   private val deviceChangeListener = object : AndroidDebugBridge.IDeviceChangeListener {
     override fun deviceConnected(device: IDevice) {
-      replaceProcesses(device)
-    }
-
-    override fun deviceChanged(device: IDevice, changeMask: Int) {
-      if (changeMask and IDevice.CHANGE_CLIENT_LIST > 0) {
+      synchronized(listenerLock) {
         replaceProcesses(device)
       }
     }
 
+    override fun deviceChanged(device: IDevice, changeMask: Int) {
+      synchronized(listenerLock) {
+        if (changeMask and IDevice.CHANGE_CLIENT_LIST > 0) {
+          replaceProcesses(device)
+        }
+      }
+    }
+
     override fun deviceDisconnected(device: IDevice) {
-      removeDevice(device)
+      synchronized(listenerLock) {
+        removeDevice(device)
+      }
     }
   }
 
