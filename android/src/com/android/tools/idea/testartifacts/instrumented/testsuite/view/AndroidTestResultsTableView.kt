@@ -30,6 +30,7 @@ import com.intellij.ui.table.TableView
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import java.awt.Component
+import javax.swing.Icon
 import javax.swing.JTable
 import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionEvent
@@ -114,6 +115,19 @@ interface AndroidTestResultsTableListener {
 }
 
 /**
+ * Returns an icon which represents a given [androidTestResult].
+ */
+fun getIconFor(androidTestResult: AndroidTestCaseResult?): Icon? {
+  return when(androidTestResult) {
+    AndroidTestCaseResult.PASSED -> AllIcons.RunConfigurations.TestPassed
+    AndroidTestCaseResult.SKIPPED -> AllIcons.RunConfigurations.TestSkipped
+    AndroidTestCaseResult.FAILED -> AllIcons.RunConfigurations.TestFailed
+    AndroidTestCaseResult.IN_PROGRESS -> SMPoolOfTestIcons.RUNNING_ICON
+    else -> null
+  }
+}
+
+/**
  * An internal swing view component implementing AndroidTestResults table view.
  */
 private class AndroidTestResultsTableViewComponent(model: AndroidTestResultsTableModel,
@@ -185,13 +199,7 @@ private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
     val results = value as? AndroidTestResultsRow ?: return this
 
     super.getTableCellRendererComponent(table, results.testCaseName, isSelected, hasFocus, row, column)
-    icon = when(results.getTestResultSummary()) {
-      AndroidTestCaseResult.PASSED -> AllIcons.RunConfigurations.TestPassed
-      AndroidTestCaseResult.SKIPPED -> AllIcons.RunConfigurations.TestSkipped
-      AndroidTestCaseResult.FAILED -> AllIcons.RunConfigurations.TestFailed
-      AndroidTestCaseResult.IN_PROGRESS -> SMPoolOfTestIcons.RUNNING_ICON
-      else -> null
-    }
+    icon = getIconFor(results.getTestResultSummary())
 
     return this
   }
@@ -254,13 +262,7 @@ private object AndroidTestResultsColumnCellRenderer : DefaultTableCellRenderer()
                                              column: Int): Component {
     super.getTableCellRendererComponent(table, "", isSelected, hasFocus, row, column)
     horizontalAlignment = CENTER
-    icon = when(value) {
-      AndroidTestCaseResult.PASSED -> AllIcons.RunConfigurations.TestPassed
-      AndroidTestCaseResult.SKIPPED -> AllIcons.RunConfigurations.TestSkipped
-      AndroidTestCaseResult.FAILED -> AllIcons.RunConfigurations.TestFailed
-      AndroidTestCaseResult.IN_PROGRESS -> SMPoolOfTestIcons.RUNNING_ICON
-      else -> null
-    }
+    icon = getIconFor(value as? AndroidTestCaseResult)
     return this
   }
 }
@@ -308,7 +310,7 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
   /**
    * Returns an aggregated test result.
    */
-  fun getTestResultSummary(): AndroidTestCaseResult {
+  override fun getTestResultSummary(): AndroidTestCaseResult {
     val stats = getResultStats()
     return when {
       stats.failed > 0 -> AndroidTestCaseResult.FAILED

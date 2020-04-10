@@ -166,7 +166,10 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @Override
   @AnyThread
   public void onTestCaseStarted(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite, @NotNull AndroidTestCase testCase) {
-    AppUIUtil.invokeOnEdt(() -> myTable.addTestCase(device, testCase));
+    AppUIUtil.invokeOnEdt(() -> {
+      myTable.addTestCase(device, testCase);
+      myDetailsView.reloadAndroidTestResults();
+    });
   }
 
   @Override
@@ -188,13 +191,17 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
       }
       updateProgress();
       myTable.refreshTable();
+      myDetailsView.reloadAndroidTestResults();
     });
   }
 
   @Override
   @AnyThread
   public void onTestSuiteFinished(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite) {
-    AppUIUtil.invokeOnEdt(() -> myTable.refreshTable());
+    AppUIUtil.invokeOnEdt(() -> {
+      myTable.refreshTable();
+      myDetailsView.reloadAndroidTestResults();
+    });
   }
 
   @Override

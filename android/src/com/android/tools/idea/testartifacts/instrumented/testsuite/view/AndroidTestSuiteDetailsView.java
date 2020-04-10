@@ -126,12 +126,19 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
   @UiThread
   public void setAndroidTestResults(@NotNull AndroidTestResults results) {
     myTestResults = results;
-    setTitle(results.getTestCaseName());
+    reloadAndroidTestResults();
   }
 
+  /**
+   * Reload AndroidTestResults set by {@link #setAndroidTestResults(AndroidTestResults)}.
+   */
   @UiThread
-  private void setTitle(@NotNull String title) {
-    myTitleText.setText(title);
+  public void reloadAndroidTestResults() {
+    if (myTestResults == null) {
+      return;
+    }
+    myTitleText.setText(myTestResults.getTestCaseName());
+    myTitleText.setIcon(AndroidTestResultsTableViewKt.getIconFor(myTestResults.getTestResultSummary()));
   }
 
   /**
