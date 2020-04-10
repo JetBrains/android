@@ -21,6 +21,7 @@ import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
@@ -33,7 +34,10 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
                                    private val listener: AndroidTestResultListener) : ITestRunListener {
 
   private val myDevice = AndroidDevice(device.serialNumber,
-                                       device.avdName ?: device.serialNumber)
+                                       device.avdName ?: device.serialNumber,
+                                       if (device.isEmulator) { AndroidDeviceType.LOCAL_EMULATOR }
+                                       else { AndroidDeviceType.LOCAL_PHYSICAL_DEVICE },
+                                       device.version)
   private lateinit var myTestSuite: AndroidTestSuite
   private val myTestCases = mutableMapOf<TestIdentifier, AndroidTestCase>()
 

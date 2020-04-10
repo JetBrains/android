@@ -29,6 +29,7 @@ import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import java.awt.event.ActionEvent;
@@ -61,8 +62,8 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
   /**
    * Minimum width of the device list swing component in pixel.
    */
-  private static final int MIN_DEVICE_LIST_WIDTH = 64;
-  private static final int DEFAULT_DEVICE_LIST_WIDTH = 128;
+  private static final int MIN_DEVICE_LIST_WIDTH = 100;
+  private static final int DEFAULT_DEVICE_LIST_WIDTH = 300;
 
   // Those properties are initialized by IntelliJ form editor before the constructor using reflection.
   private JPanel myRootPanel;
@@ -75,6 +76,7 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
   private final DetailsViewContentView myContentView;
 
   @Nullable private AndroidTestResults myTestResults;
+  @Nullable AndroidDevice mySelectedDevice;
 
   @UiThread
   public AndroidTestSuiteDetailsView(@NotNull Disposable parentDisposable,
@@ -102,6 +104,8 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
     componentsSplitter.setLastComponent(myContentView.getRootPanel());
 
     myContentPanel.add(componentsSplitter);
+
+    myTitleText.setBorder(JBUI.Borders.empty(0, 10));
   }
 
   /**
@@ -139,6 +143,16 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
     }
     myTitleText.setText(myTestResults.getTestCaseName());
     myTitleText.setIcon(AndroidTestResultsTableViewKt.getIconFor(myTestResults.getTestResultSummary()));
+
+    myDeviceSelectorListView.setAndroidTestResults(myTestResults);
+
+    if (mySelectedDevice != null) {
+      AndroidTestCaseResult resultForSelectedDevice = myTestResults.getTestCaseResult(mySelectedDevice);
+      if (resultForSelectedDevice != null) {
+        myContentView.setAndroidTestCaseResult(resultForSelectedDevice);
+        myContentView.setLogcat(myTestResults.getLogcat(mySelectedDevice));
+      }
+    }
   }
 
   /**
@@ -147,20 +161,18 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
   @UiThread
   public void addDevice(@NotNull AndroidDevice device) {
     myDeviceSelectorListView.addDevice(device);
+
+    // If a user hasn't select a device yet, set the first come device as default.
+    if (mySelectedDevice == null) {
+      myDeviceSelectorListView.selectDevice(device);
+    }
   }
 
   @Override
   @UiThread
   public void onDeviceSelected(@NotNull AndroidDevice selectedDevice) {
-    if (myTestResults == null) {
-      return;
-    }
-    AndroidTestCaseResult resultForSelectedDevice = myTestResults.getTestCaseResult(selectedDevice);
-    if (resultForSelectedDevice == null) {
-      return;
-    }
-    myContentView.setAndroidTestCaseResult(resultForSelectedDevice);
-    myContentView.setLogcat(myTestResults.getLogcat(selectedDevice));
+    mySelectedDevice = selectedDevice;
+    reloadAndroidTestResults();
   }
 
   @VisibleForTesting

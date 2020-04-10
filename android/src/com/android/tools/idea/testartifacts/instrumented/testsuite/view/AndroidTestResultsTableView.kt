@@ -28,6 +28,7 @@ import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.ColumnInfo
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import java.awt.Component
 import javax.swing.Icon
@@ -190,6 +191,7 @@ private class TestNameColumn : ColumnInfo<AndroidTestResultsRow, AndroidTestResu
 }
 
 private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
+  private val myEmptyBorder = JBUI.Borders.empty(10)
   override fun getTableCellRendererComponent(table: JTable?,
                                              value: Any?,
                                              isSelected: Boolean,
@@ -200,6 +202,7 @@ private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
 
     super.getTableCellRendererComponent(table, results.testCaseName, isSelected, hasFocus, row, column)
     icon = getIconFor(results.getTestResultSummary())
+    border = myEmptyBorder
 
     return this
   }
@@ -217,6 +220,7 @@ private class TestStatusColumn : ColumnInfo<AndroidTestResultsRow, AndroidTestRe
 }
 
 private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
+  private val myEmptyBorder = JBUI.Borders.empty()
   override fun getTableCellRendererComponent(table: JTable?,
                                              value: Any?,
                                              isSelected: Boolean,
@@ -233,6 +237,7 @@ private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
       AndroidTestCaseResult.SKIPPED -> ColorProgressBar.GREEN
       else -> ColorProgressBar.RED_TEXT
     }
+    border = myEmptyBorder
     return this
   }
 }
@@ -254,6 +259,7 @@ private class AndroidTestResultsColumn(private val device: AndroidDevice) :
 }
 
 private object AndroidTestResultsColumnCellRenderer : DefaultTableCellRenderer() {
+  private val myEmptyBorder = JBUI.Borders.empty()
   override fun getTableCellRendererComponent(table: JTable?,
                                              value: Any?,
                                              isSelected: Boolean,
@@ -263,6 +269,7 @@ private object AndroidTestResultsColumnCellRenderer : DefaultTableCellRenderer()
     super.getTableCellRendererComponent(table, "", isSelected, hasFocus, row, column)
     horizontalAlignment = CENTER
     icon = getIconFor(value as? AndroidTestCaseResult)
+    border = myEmptyBorder
     return this
   }
 }

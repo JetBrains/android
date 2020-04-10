@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
@@ -79,8 +81,8 @@ class AndroidTestSuiteViewTest {
   fun openAndCloseDetailsView() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project)
 
-    val device1 = AndroidDevice("deviceId1", "deviceName1")
-    val device2 = AndroidDevice("deviceId2", "deviceName2")
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
     val testcase1OnDevice1 = AndroidTestCase("testId1", "testName1")
     val testcase2OnDevice1 = AndroidTestCase("testId2", "testName2")
@@ -122,5 +124,9 @@ class AndroidTestSuiteViewTest {
     view.onAndroidTestSuiteDetailsViewCloseButtonClicked()
 
     assertThat(view.detailsViewForTesting.rootPanel.isVisible).isFalse()
+  }
+
+  private fun device(id: String, name: String): AndroidDevice {
+    return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28))
   }
 }

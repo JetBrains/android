@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.DetailsViewDeviceSelectorListView.DetailsViewDeviceSelectorListViewListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -54,7 +56,7 @@ class DetailsViewDeviceSelectorListViewTest {
   @Test
   fun addDevice() {
     val view = DetailsViewDeviceSelectorListView(mockListener)
-    val device = AndroidDevice(id = "device id", name = "device name")
+    val device = device(id = "device id", name = "device name")
 
     view.addDevice(device)
 
@@ -65,8 +67,8 @@ class DetailsViewDeviceSelectorListViewTest {
   @Test
   fun selectDevice() {
     val view = DetailsViewDeviceSelectorListView(mockListener)
-    val device1 = AndroidDevice(id = "device id 1", name = "device name 1")
-    val device2 = AndroidDevice(id = "device id 2", name = "device name 2")
+    val device1 = device(id = "device id 1", name = "device name 1")
+    val device2 = device(id = "device id 2", name = "device name 2")
 
     view.addDevice(device1)
     view.addDevice(device2)
@@ -77,5 +79,9 @@ class DetailsViewDeviceSelectorListViewTest {
     view.deviceListForTesting.selectedIndex = 0
 
     verify(mockListener).onDeviceSelected(eq(device1))
+  }
+
+  private fun device(id: String, name: String): AndroidDevice {
+    return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28))
   }
 }
