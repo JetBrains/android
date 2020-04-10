@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.mlkit;
 
+import static com.intellij.util.ui.StartupUiUtil.isUnderDarcula;
+
 import com.android.tools.idea.mlkit.lightpsi.ClassNames;
 import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.ModelParsingException;
 import com.android.tools.mlkit.TensorInfo;
+import com.android.utils.StringHelper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -34,6 +37,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -54,7 +58,10 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.JBUI.Borders;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
@@ -70,8 +77,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -89,6 +99,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.KotlinFileType;
 
 /**
  * Editor for the TFLite mode file.
@@ -112,7 +123,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     myProject = project;
     myFile = file;
     myModule = ModuleUtilCore.findModuleForFile(file, project);
-    myUnderDarcula = StartupUiUtil.isUnderDarcula();
+    myUnderDarcula = isUnderDarcula();
     myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
 
     myRootPane = new JBScrollPane(createContentPanel());
@@ -140,7 +151,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       if (modelInfo.isMetadataExisted()) {
         contentPanel.add(createModelSection(modelInfo));
         contentPanel.add(createTensorsSection(modelInfo));
-      } else {
+      }
+      else {
         contentPanel.add(createNoMetadataSection());
       }
       if (myModule != null && myIsSampleCodeSectionVisible) {
@@ -256,24 +268,36 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
 
     JComponent header = createSectionHeader("Sample Code");
-    header.setBorder(Borders.empty(24, 0, 14, 0));
+    header.setBorder(Borders.empty(24, 0, 16, 0));
     sectionPanel.add(header);
 
-    JPanel codeEditorContainer = createPanelWithYAxisBoxLayout(Borders.emptyLeft(20));
-    sectionPanel.add(codeEditorContainer);
+    JPanel codePaneContainer = createPanelWithYAxisBoxLayout(Borders.emptyLeft(20));
+    sectionPanel.add(codePaneContainer);
 
-    // TODO(b/153084173): implement Kotlin/Java code snippet switcher.
-    Color bgColor = new JBColor(ColorUtil.fromHex("#F1F3F4"), ColorUtil.fromHex("#2B2B2B"));
-    EditorTextField codeEditor = new EditorTextField(buildSampleCode(modelClass, modelInfo), myProject, JavaFileType.INSTANCE);
+    JBTabbedPane tabbedCodePane = new JBTabbedPane();
+    tabbedCodePane.setBackground(UIUtil.getTextFieldBackground());
+    tabbedCodePane.setBorder(BorderFactory.createLineBorder(new JBColor(ColorUtil.fromHex("#C9C9C9"), ColorUtil.fromHex("#2C2F30"))));
+    tabbedCodePane.setTabComponentInsets(JBUI.insets(0));
+    String sampleKotlinCode = buildSampleCodeInKotlin(modelClass, modelInfo);
+    tabbedCodePane.add("Kotlin", createCodeEditor(myProject, KotlinFileType.INSTANCE, sampleKotlinCode));
+    String sampleJavaCode = buildSampleCodeInJava(modelClass, modelInfo);
+    tabbedCodePane.add("Java", createCodeEditor(myProject, JavaFileType.INSTANCE, sampleJavaCode));
+    codePaneContainer.add(tabbedCodePane);
+
+    return sectionPanel;
+  }
+
+  @NotNull
+  private static EditorTextField createCodeEditor(@NotNull Project project, @NotNull FileType fileType, @NotNull String codeBody) {
+    Color bgColor = new JBColor(ColorUtil.fromHex("#F1F3F4"), ColorUtil.fromHex("#3D3F41"));
+    EditorTextField codeEditor = new EditorTextField(codeBody, project, fileType);
     codeEditor.setAlignmentX(Component.LEFT_ALIGNMENT);
     codeEditor.setBackground(bgColor);
     codeEditor.setBorder(Borders.customLine(bgColor, 12));
     codeEditor.setFont(new Font(Font.MONOSPACED, Font.PLAIN, StartupUiUtil.getLabelFont().getSize()));
     codeEditor.setOneLineMode(false);
     codeEditor.getDocument().setReadOnly(true);
-    codeEditorContainer.add(codeEditor);
-
-    return sectionPanel;
+    return codeEditor;
   }
 
   @NotNull
@@ -374,80 +398,171 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private static String buildSampleCode(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
-    StringBuilder stringBuilder = new StringBuilder();
+  private static String buildSampleCodeInJava(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
+    StringBuilder codeBuilder = new StringBuilder();
     String modelClassName = modelClass.getName();
-    stringBuilder.append("try {\n");
-    stringBuilder.append(String.format("  %s model = %s.newInstance(context);\n\n", modelClassName, modelClassName));
+    codeBuilder.append("try {\n");
+    codeBuilder.append(String.format("  %s model = %s.newInstance(context);\n\n", modelClassName, modelClassName));
 
     PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
-    if (processMethod != null && processMethod.getReturnType() != null) {
-      stringBuilder.append(buildTensorInputSampleCode(processMethod, modelInfo));
-      stringBuilder
-        .append(String.format("  %s.%s outputs = model.%s(", modelClassName, processMethod.getReturnType().getPresentableText(),
-                              processMethod.getName()));
-      for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
-        stringBuilder.append(parameter.getName()).append(", ");
-      }
-      stringBuilder.delete(stringBuilder.length() - 2, stringBuilder.length());
-
-      stringBuilder.append(");\n\n");
+    if (processMethod.getReturnType() != null) {
+      codeBuilder.append(buildTensorInputSampleCode(processMethod, modelInfo));
+      String parameterNames = Arrays.stream(processMethod.getParameterList().getParameters())
+        .map(PsiParameter::getName)
+        .collect(Collectors.joining(", "));
+      codeBuilder.append(String.format(
+        "  %s.%s outputs = model.%s(%s);\n\n",
+        modelClassName,
+        processMethod.getReturnType().getPresentableText(),
+        processMethod.getName(),
+        parameterNames
+      ));
     }
 
-    int index = 0;
     PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
     if (outputsClass != null) {
+      Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getName).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
-        String tensorName = modelInfo.getOutputs().get(index++).getName();
-        stringBuilder.append(
-          String.format("  %s %s = outputs.%s();\n", psiMethod.getReturnType().getPresentableText(), tensorName, psiMethod.getName()));
-        if (ClassNames.TENSOR_LABEL.equals(psiMethod.getReturnType().getCanonicalText())) {
-          stringBuilder.append(String.format("  Map<String, Float> %sMap = %s.getMapWithFloatValue();\n", tensorName, tensorName));
-        }
-        else if (ClassNames.TENSOR_IMAGE.equals(psiMethod.getReturnType().getCanonicalText())) {
-          stringBuilder.append(String.format("  Bitmap %sBitmap = %s.getBitmap();\n", tensorName, tensorName));
+        String tensorName = outputTensorNameIterator.next();
+        codeBuilder.append(
+          String.format(
+            "  %s %s = outputs.%s();\n",
+            Objects.requireNonNull(psiMethod.getReturnType()).getPresentableText(),
+            tensorName,
+            psiMethod.getName()));
+        switch (psiMethod.getReturnType().getCanonicalText()) {
+          case ClassNames.TENSOR_LABEL:
+            codeBuilder.append(String.format("  Map<String, Float> %sMap = %s.getMapWithFloatValue();\n", tensorName, tensorName));
+            break;
+          case ClassNames.TENSOR_IMAGE:
+            codeBuilder.append(String.format("  Bitmap %sBitmap = %s.getBitmap();\n", tensorName, tensorName));
+            break;
         }
       }
     }
 
-    stringBuilder.append("} catch (IOException e) {\n  // Handles exception here.\n}");
+    codeBuilder.append("} catch (IOException e) {\n  // TODO Handle the exception\n}");
 
-    return stringBuilder.toString();
+    return codeBuilder.toString();
+  }
+
+  @NotNull
+  private static String buildSampleCodeInKotlin(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
+    StringBuilder codeBuilder = new StringBuilder();
+    codeBuilder.append(String.format("val model = %s.newInstance(context)\n\n", modelClass.getName()));
+
+    PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
+    if (processMethod.getReturnType() != null) {
+      codeBuilder.append(buildTensorInputSampleCodeInKotlin(processMethod, modelInfo));
+      String parameterNames = Arrays.stream(processMethod.getParameterList().getParameters())
+        .map(PsiParameter::getName)
+        .collect(Collectors.joining(", "));
+      codeBuilder.append(String.format("val outputs = model.%s(%s)\n\n", processMethod.getName(), parameterNames));
+    }
+
+    PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
+    if (outputsClass != null) {
+      Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getName).iterator();
+      for (PsiMethod psiMethod : outputsClass.getMethods()) {
+        String tensorName = outputTensorNameIterator.next();
+        codeBuilder.append(String.format("val %s = outputs.%s\n", tensorName, convertToKotlinPropertyName(psiMethod.getName())));
+        switch (psiMethod.getReturnType().getCanonicalText()) {
+          case ClassNames.TENSOR_LABEL:
+            codeBuilder.append(String.format("val %sMap = %s.mapWithFloatValue\n", tensorName, tensorName));
+            break;
+          case ClassNames.TENSOR_IMAGE:
+            codeBuilder.append(String.format("val %sBitmap = %s.bitmap\n", tensorName, tensorName));
+            break;
+        }
+      }
+    }
+
+    return codeBuilder.toString();
+  }
+
+  /**
+   * Converts Java getter method name to Kotlin property name, e.g. getFoo -> foo.
+   */
+  @NotNull
+  private static String convertToKotlinPropertyName(String getterMethodName) {
+    // TODO: Is there a better way?
+    return StringHelper.usLocaleDecapitalize(getterMethodName.substring(3));
   }
 
   @NotNull
   private static String buildTensorInputSampleCode(@NotNull PsiMethod processMethod, @NotNull ModelInfo modelInfo) {
-    StringBuilder stringBuilder = new StringBuilder();
+    StringBuilder codeBuilder = new StringBuilder();
     int index = 0;
     for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
       TensorInfo tensorInfo = modelInfo.getInputs().get(index++);
-      if (ClassNames.TENSOR_IMAGE.equals(parameter.getType().getCanonicalText())) {
-        stringBuilder.append(String.format("  TensorImage %s = new TensorImage();\n", parameter.getName()))
-          .append(String.format("  %s.load(bitmap);\n", parameter.getName()));
-      }
-      else if (ClassNames.TENSOR_BUFFER.equals(parameter.getType().getCanonicalText())) {
-        stringBuilder
-          .append(String.format("  TensorBuffer %s = TensorBuffer.createFixedSize(%s, %s);\n", parameter.getName(),
-                                buildIntArray(tensorInfo.getShape()), buildDataType(tensorInfo.getDataType())))
-          .append(String.format("  %s.loadBuffer(byteBuffer);\n", parameter.getName()));
+      switch (parameter.getType().getCanonicalText()) {
+        case ClassNames.TENSOR_IMAGE:
+          codeBuilder
+            .append(String.format("  TensorImage %s = new TensorImage();\n", parameter.getName()))
+            .append(String.format("  %s.load(bitmap);\n", parameter.getName()));
+          break;
+        case ClassNames.TENSOR_BUFFER:
+          codeBuilder
+            .append(
+              String.format(
+                "  TensorBuffer %s = TensorBuffer.createFixedSize(%s, %s);\n",
+                parameter.getName(),
+                buildIntArrayInJava(tensorInfo.getShape()),
+                buildDataType(tensorInfo.getDataType())))
+            .append(String.format("  %s.loadBuffer(byteBuffer);\n", parameter.getName()));
+          break;
       }
     }
 
-    return stringBuilder.toString();
+    return codeBuilder.toString();
+  }
+
+  @NotNull
+  private static String buildTensorInputSampleCodeInKotlin(@NotNull PsiMethod processMethod, @NotNull ModelInfo modelInfo) {
+    StringBuilder codeBuilder = new StringBuilder();
+    Iterator<TensorInfo> tensorInfoIterator = modelInfo.getInputs().iterator();
+    for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
+      TensorInfo tensorInfo = tensorInfoIterator.next();
+      switch (parameter.getType().getCanonicalText()) {
+        case ClassNames.TENSOR_IMAGE:
+          codeBuilder
+            .append(String.format("val %s = TensorImage()\n", parameter.getName()))
+            .append(String.format("%s.load(bitmap)\n", parameter.getName()));
+          break;
+        case ClassNames.TENSOR_BUFFER:
+          codeBuilder
+            .append(
+              String.format(
+                "val %s = TensorBuffer.createFixedSize(%s, %s)\n",
+                parameter.getName(),
+                buildIntArrayInKotlin(tensorInfo.getShape()),
+                buildDataType(tensorInfo.getDataType())))
+            .append(String.format("%s.loadBuffer(byteBuffer)\n", parameter.getName()));
+          break;
+      }
+    }
+
+    return codeBuilder.toString();
   }
 
   /**
-   * Returns string representation of int array (e.g. new int[] {1,2,3}.)
+   * Returns the Java declaration of the array, e.g. new int[]{1, 2, 3}.
    */
   @NotNull
-  private static String buildIntArray(@NotNull int[] array) {
-    StringBuilder stringBuilder = new StringBuilder("new int[]{");
-    for (int value : array) {
-      stringBuilder.append(value).append(",");
-    }
-    stringBuilder.deleteCharAt(stringBuilder.length() - 1).append("}");
+  private static String buildIntArrayInJava(@NotNull int[] array) {
+    return Arrays.stream(array)
+      .mapToObj(Integer::toString)
+      .collect(Collectors.joining(", ", "new int[]{", "}"));
+  }
 
-    return stringBuilder.toString();
+  /**
+   * Returns the Kotlin declaration of the array, e.g. intArrayOf(1, 2, 3).
+   */
+  @NotNull
+  private static String buildIntArrayInKotlin(@NotNull int[] array) {
+    return Arrays.stream(array)
+      .mapToObj(Integer::toString)
+      .collect(Collectors.joining(", ", "intArrayOf(", ")"));
   }
 
   @NotNull
@@ -468,8 +583,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   @Override
   public JComponent getComponent() {
-    if (myUnderDarcula != StartupUiUtil.isUnderDarcula() || myIsSampleCodeSectionVisible != shouldDisplaySampleCodeSection()) {
-      myUnderDarcula = StartupUiUtil.isUnderDarcula();
+    if (myUnderDarcula != isUnderDarcula() || myIsSampleCodeSectionVisible != shouldDisplaySampleCodeSection()) {
+      myUnderDarcula = isUnderDarcula();
       myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
       // Refresh UI
       myRootPane.setViewportView(createContentPanel());
