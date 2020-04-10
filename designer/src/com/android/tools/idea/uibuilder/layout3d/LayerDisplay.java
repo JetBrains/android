@@ -69,7 +69,7 @@ public class LayerDisplay {
 
     public static void initDebugBridge() {
       if (bridge == null) {
-        AndroidDebugBridge.init(false /* debugger support */);
+        AndroidDebugBridge.init(AdbInitOptions.DEFAULT);
       }
       if (bridge == null || !bridge.isConnected()) {
         String adbLocation = System.getProperty("hierarchyviewer.adb");
