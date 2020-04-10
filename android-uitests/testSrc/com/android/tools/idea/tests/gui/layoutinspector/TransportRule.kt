@@ -21,6 +21,7 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.protobuf.ByteString
@@ -32,6 +33,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.AgentData.Status.UNATTACHABLE
+import com.intellij.openapi.Disposable
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -98,6 +100,8 @@ class TransportRule(
       handler?.invoke(command, events)
     }
   }
+
+  private var originalClientFactory: ((InspectorModel, Disposable) -> List<InspectorClient>)? = null
 
   fun withTestData(directory: File) =
     apply { testDataDir = directory }
@@ -169,6 +173,7 @@ class TransportRule(
   private fun before() {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
+    originalClientFactory = InspectorClient.clientFactory
     InspectorClient.clientFactory = {
       model, parentDisposable -> listOf(DefaultInspectorClient(model, parentDisposable, TEST_CHANNEL_NAME))
     }
@@ -181,6 +186,6 @@ class TransportRule(
   }
 
   private fun after() {
-    InspectorClient.clientFactory = { model, parentDisposable -> listOf(DefaultInspectorClient(model, parentDisposable)) }
+    InspectorClient.clientFactory = originalClientFactory!!
   }
 }
