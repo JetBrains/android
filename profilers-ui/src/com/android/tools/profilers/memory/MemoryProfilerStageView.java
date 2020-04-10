@@ -36,6 +36,7 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.DataVisualizationColors;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.instructions.IconInstruction;
 import com.android.tools.adtui.instructions.InstructionsPanel;
@@ -90,6 +91,7 @@ import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.FontMetrics;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -647,13 +649,14 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
           data -> String.format("Dump (%s)", data.getDurationUs() == Long.MAX_VALUE ? "in progress" :
                                              TimeAxisFormatter.DEFAULT
                                                .getFormattedString(viewRange.getLength(), data.getDurationUs(), true)))
+        .setCustomDecorator((graphics, clipRect, isMouseOver) -> {
+          Color boxColor = isMouseOver
+                           ? ProfilerColors.CPU_CALLCHART_VENDOR_HOVER
+                           : StudioColorsKt.getPrimaryContentBackground();
+          HeapDumpDataRangeRenderingKt.draw(graphics, clipRect, boxColor);
+        })
         .build();
 
-    for (RangedContinuousSeries series : memoryUsage.getSeries()) {
-      LineConfig config = lineChart.getLineConfig(series);
-      LineConfig newConfig = LineConfig.copyOf(config).setColor(DataVisualizationColors.INSTANCE.toGrayscale(config.getColor()));
-      heapDumpRenderer.addCustomLineConfig(series, newConfig);
-    }
     lineChart.addCustomRenderer(heapDumpRenderer);
     overlay.addDurationDataRenderer(heapDumpRenderer);
 
