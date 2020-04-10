@@ -60,11 +60,6 @@ public class AtraceParser implements TraceParser {
   static final long UTILIZATION_BUCKET_LENGTH_US = TimeUnit.MILLISECONDS.toMicros(50);
 
   /**
-   * SurfaceFlinger is responsible for compositing all the application and system surfaces into a single buffer
-   */
-  private static final String SURFACE_FLINGER_PROCESS_NAME = "surfaceflinger";
-
-  /**
    * Map of CpuThreadInfo to capture nodes. The thread info in this map does not contain process information.
    */
   private final Map<CpuThreadInfo, CaptureNode> myCaptureTreeNodes;
@@ -164,7 +159,9 @@ public class AtraceParser implements TraceParser {
     buildCpuStateData();
 
     AtraceFrameManager frameManager = new AtraceFrameManager(myProcessModel, convertToUserTimeUsFunction());
-    return new AtraceCpuCapture(traceId, myCpuTraceType, myRange, this, frameManager);
+    AtraceSurfaceflingerManager sfManager = new AtraceSurfaceflingerManager(myModel, convertToUserTimeUsFunction());
+
+    return new AtraceCpuCapture(traceId, myCpuTraceType, myRange, this, frameManager, sfManager);
   }
 
   /**
@@ -473,11 +470,5 @@ public class AtraceParser implements TraceParser {
       }
     }
     return name;
-  }
-
-  @Nullable
-  public ProcessModel getSurfaceflingerProcessModel() {
-    return getProcessList(SURFACE_FLINGER_PROCESS_NAME).stream().findFirst()
-      .map(threadInfo -> myModel.getProcesses().get(threadInfo.getProcessId())).orElse(null);
   }
 }
