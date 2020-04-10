@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.google.common.truth.Truth.assertThat
@@ -74,8 +76,8 @@ class AndroidTestResultsTableViewTest {
   fun addDevice() {
     val table = AndroidTestResultsTableView(mockListener)
 
-    table.addDevice(AndroidDevice("deviceId1", "deviceName1"))
-    table.addDevice(AndroidDevice("deviceId2", "deviceName2"))
+    table.addDevice(device("deviceId1", "deviceName1"))
+    table.addDevice(device("deviceId2", "deviceName2"))
 
     assertThat(table.getModelForTesting().columnInfos).hasLength(4)
     assertThat(table.getModelForTesting().columnInfos[2].name).isEqualTo("deviceName1")
@@ -88,8 +90,8 @@ class AndroidTestResultsTableViewTest {
   @Test
   fun addTestResults() {
     val table = AndroidTestResultsTableView(mockListener)
-    val device1 = AndroidDevice("deviceId1", "deviceName1")
-    val device2 = AndroidDevice("deviceId2", "deviceName2")
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
     val testcase1OnDevice1 = AndroidTestCase("testid1", "testname1")
     val testcase2OnDevice1 = AndroidTestCase("testid2", "testname2")
     val testcase1OnDevice2 = AndroidTestCase("testid1", "testname1")
@@ -130,8 +132,8 @@ class AndroidTestResultsTableViewTest {
   @Test
   fun clickTestResultsRow() {
     val table = AndroidTestResultsTableView(mockListener)
-    val device1 = AndroidDevice("deviceId1", "deviceName1")
-    val device2 = AndroidDevice("deviceId2", "deviceName2")
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
 
     table.addDevice(device1)
     table.addDevice(device2)
@@ -179,5 +181,9 @@ class AndroidTestResultsTableViewTest {
       override fun getTestResultSummary(): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
       override fun getLogcat(device: AndroidDevice): String = ""
     }
+  }
+
+  private fun device(id: String, name: String): AndroidDevice {
+    return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28))
   }
 }
