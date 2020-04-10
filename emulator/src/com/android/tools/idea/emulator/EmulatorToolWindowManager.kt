@@ -53,7 +53,7 @@ import java.time.Duration
 internal class EmulatorToolWindowManager private constructor(private val project: Project) : RunningEmulatorCatalog.Listener, DumbAware {
   private val ID_KEY = Key.create<EmulatorId>("emulator-id")
 
-  private var contentInitialized = false
+  private var contentCreated = false
   private val panels: MutableList<EmulatorToolWindowPanel> = arrayListOf()
   private var selectedPanel: EmulatorToolWindowPanel? = null
   /** When the tool window is hidden, the ID of the last selected Emulator, otherwise null. */
@@ -102,11 +102,9 @@ internal class EmulatorToolWindowManager private constructor(private val project
           val toolWindow = getToolWindow()
 
           if (toolWindow.isVisible) {
-            if (!contentInitialized) {
-              createContent(toolWindow)
-            }
+            createContent(toolWindow)
           }
-          else if (contentInitialized) {
+          else {
             destroyContent(toolWindow)
           }
         })
@@ -127,6 +125,10 @@ internal class EmulatorToolWindowManager private constructor(private val project
                                        onDeploymentToEmulator(device)
                                      }
                                    })
+
+    Disposer.register(project, Disposable {
+      destroyContent(getToolWindow())
+    })
   }
 
   @AnyThread
@@ -169,7 +171,10 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   private fun createContent(toolWindow: ToolWindow) {
-    contentInitialized = true
+    if (contentCreated) {
+      return
+    }
+    contentCreated = true
 
     val actionGroup = DefaultActionGroup()
     actionGroup.addAction(ToggleZoomToolbarAction())
@@ -204,8 +209,12 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   private fun destroyContent(toolWindow: ToolWindow) {
+    if (!contentCreated) {
+      return
+    }
+    contentCreated = false
+
     lastSelectedEmulatorId = selectedPanel?.id
-    contentInitialized = false
     RunningEmulatorCatalog.getInstance().removeListener(this)
     emulators.clear()
     val contentManager = toolWindow.contentManager
@@ -310,7 +319,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
   @AnyThread
   override fun emulatorAdded(emulator: EmulatorController) {
     invokeLater {
-      if (contentInitialized && emulators.add(emulator)) {
+      if (contentCreated && emulators.add(emulator)) {
         addEmulatorPanel(emulator)
       }
     }
@@ -319,7 +328,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
   @AnyThread
   override fun emulatorRemoved(emulator: EmulatorController) {
     invokeLater {
-      if (contentInitialized && emulators.remove(emulator)) {
+      if (contentCreated && emulators.remove(emulator)) {
         removeEmulatorPanel(emulator)
       }
     }
