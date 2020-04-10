@@ -21,8 +21,10 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.progress.util.ColorProgressBar
+import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.ColumnInfo
@@ -118,6 +120,7 @@ private class AndroidTestResultsTableViewComponent(model: AndroidTestResultsTabl
                                                    private val listener: AndroidTestResultsTableListener)
   : TableView<AndroidTestResultsRow>(model) {
   init {
+    putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
     selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
   }
 
@@ -182,13 +185,14 @@ private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
     val results = value as? AndroidTestResultsRow ?: return this
 
     super.getTableCellRendererComponent(table, results.testCaseName, isSelected, hasFocus, row, column)
-    icon = when(value.getTestResultSummary()) {
+    icon = when(results.getTestResultSummary()) {
       AndroidTestCaseResult.PASSED -> AllIcons.RunConfigurations.TestPassed
       AndroidTestCaseResult.SKIPPED -> AllIcons.RunConfigurations.TestSkipped
       AndroidTestCaseResult.FAILED -> AllIcons.RunConfigurations.TestFailed
+      AndroidTestCaseResult.IN_PROGRESS -> SMPoolOfTestIcons.RUNNING_ICON
       else -> null
     }
-    this.iconTextGap
+
     return this
   }
 }
@@ -254,6 +258,7 @@ private object AndroidTestResultsColumnCellRenderer : DefaultTableCellRenderer()
       AndroidTestCaseResult.PASSED -> AllIcons.RunConfigurations.TestPassed
       AndroidTestCaseResult.SKIPPED -> AllIcons.RunConfigurations.TestSkipped
       AndroidTestCaseResult.FAILED -> AllIcons.RunConfigurations.TestFailed
+      AndroidTestCaseResult.IN_PROGRESS -> SMPoolOfTestIcons.RUNNING_ICON
       else -> null
     }
     return this
@@ -290,12 +295,12 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
    * Returns a one liner test result summary string.
    */
   fun getTestResultSummaryText(): String {
-    val (passed, failed, skipped) = getResultStats()
+    val stats = getResultStats()
     return when {
-      failed == 1 -> "Fail"
-      failed > 0 -> "Fail ($failed)"
-      skipped == myTestCases.size -> "Skip"
-      passed + skipped == myTestCases.size -> "Pass"
+      stats.failed == 1 -> "Fail"
+      stats.failed > 0 -> "Fail (${stats.failed})"
+      stats.skipped == myTestCases.size -> "Skip"
+      stats.passed + stats.skipped == myTestCases.size -> "Pass"
       else -> ""
     }
   }
@@ -304,25 +309,35 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
    * Returns an aggregated test result.
    */
   fun getTestResultSummary(): AndroidTestCaseResult {
-    val (passed, failed, skipped) = getResultStats()
+    val stats = getResultStats()
     return when {
-      failed > 0 -> AndroidTestCaseResult.FAILED
-      skipped == myTestCases.size -> AndroidTestCaseResult.SKIPPED
-      else -> AndroidTestCaseResult.PASSED
+      stats.failed > 0 -> AndroidTestCaseResult.FAILED
+      stats.skipped == myTestCases.size -> AndroidTestCaseResult.SKIPPED
+      stats.running > 0 -> AndroidTestCaseResult.IN_PROGRESS
+      stats.passed + stats.skipped == myTestCases.size -> AndroidTestCaseResult.PASSED
+      else -> AndroidTestCaseResult.SCHEDULED
     }
   }
 
-  private fun getResultStats(): Triple<Int, Int, Int> {
+  private data class ResultStats(val passed: Int,
+                                 val failed: Int,
+                                 val skipped: Int,
+                                 val running: Int)
+
+  private fun getResultStats(): ResultStats {
     var passed = 0
     var failed = 0
     var skipped = 0
+    var running = 0
     myTestCases.values.forEach {
       when(it.result) {
         AndroidTestCaseResult.PASSED -> passed++
         AndroidTestCaseResult.FAILED -> failed++
         AndroidTestCaseResult.SKIPPED -> skipped++
+        AndroidTestCaseResult.IN_PROGRESS -> running++
+        else -> {}
       }
     }
-    return Triple(passed, failed, skipped)
+    return ResultStats(passed, failed, skipped, running)
   }
 }

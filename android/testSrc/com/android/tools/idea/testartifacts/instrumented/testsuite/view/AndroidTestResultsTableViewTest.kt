@@ -103,10 +103,10 @@ class AndroidTestResultsTableViewTest {
     // No test cases are finished yet.
     assertThat(table.getModelForTesting().rowCount).isEqualTo(2)
     assertThat(table.getModelForTesting().getItem(0).testCaseName).isEqualTo("testname1")
-    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device1)).isNull()
-    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device2)).isNull()
+    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
     assertThat(table.getModelForTesting().getItem(1).testCaseName).isEqualTo("testname2")
-    assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device1)).isNull()
+    assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
     assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device2)).isNull()
 
     // Let test case 1 and 2 finish on the device 1.
@@ -114,7 +114,7 @@ class AndroidTestResultsTableViewTest {
     testcase2OnDevice1.result = AndroidTestCaseResult.FAILED
 
     assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
-    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device2)).isNull()
+    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
     assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
     assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device2)).isNull()
 

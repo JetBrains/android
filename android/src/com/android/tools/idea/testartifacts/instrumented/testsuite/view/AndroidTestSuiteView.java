@@ -126,7 +126,8 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private void updateProgress() {
     int completedTestCases = passedTestCases + failedTestCases + skippedTestCases;
     if (scheduledTestCases == 0) {
-      myProgressBar.setIndeterminate(true);
+      myProgressBar.setFraction(0);
+      myProgressBar.setIndeterminate(false);
       myProgressBar.setColor(ColorProgressBar.BLUE);
     } else {
       float progress = (float) completedTestCases / scheduledTestCases;

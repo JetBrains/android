@@ -26,25 +26,35 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.model
  */
 data class AndroidTestCase(val id: String,
                            val name: String,
-                           var result: AndroidTestCaseResult? = null,
+                           var result: AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED,
                            var logcat: String = "")
 
 /**
  * A result of a test case execution.
  */
-enum class AndroidTestCaseResult {
+enum class AndroidTestCaseResult(val isTerminalState: Boolean) {
   /**
    * A test case is passed.
    */
-  PASSED,
+  PASSED(true),
 
   /**
    * A test case is failed.
    */
-  FAILED,
+  FAILED(true),
 
   /**
    * A test case is skipped by test runner.
    */
-  SKIPPED
+  SKIPPED(true),
+
+  /**
+   * A test case is scheduled but not started yet.
+   */
+  SCHEDULED(false),
+
+  /**
+   * A test case is in progress.
+   */
+  IN_PROGRESS(false)
 }

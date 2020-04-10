@@ -47,7 +47,7 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
   }
 
   override fun testStarted(testId: TestIdentifier) {
-    val testCase = AndroidTestCase(testId.toString(), testId.toString())
+    val testCase = AndroidTestCase(testId.toString(), testId.toString(), AndroidTestCaseResult.IN_PROGRESS)
     myTestCases[testId] = testCase
     listener.onTestCaseStarted(myDevice, myTestSuite, testCase)
   }
@@ -71,7 +71,9 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
 
   override fun testEnded(testId: TestIdentifier, testMetrics: MutableMap<String, String>) {
     val testCase = myTestCases.getValue(testId)
-    testCase.result = testCase.result ?: AndroidTestCaseResult.PASSED
+    if (!testCase.result.isTerminalState) {
+      testCase.result = AndroidTestCaseResult.PASSED
+    }
     testCase.logcat = testMetrics.getOrDefault(DDMLIB_LOGCAT, "")
     listener.onTestCaseFinished(myDevice, myTestSuite, testCase)
   }
