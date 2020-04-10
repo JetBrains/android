@@ -23,7 +23,6 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
 import com.intellij.execution.ExecutionTarget;
-import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunProfile;
@@ -38,7 +37,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
@@ -103,13 +101,13 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private final Clock myClock;
 
   @NotNull
+  private final Function<Project, ExecutionTargetService> myExecutionTargetServiceGetInstance;
+
+  @NotNull
   private final Function<Project, SelectedDevicesService> mySelectedDevicesServiceGetInstance;
 
   @NotNull
   private final Function<Project, RunManager> myGetRunManager;
-
-  @NotNull
-  private final Function<Project, ExecutionTargetManager> myGetExecutionTargetManager;
 
   @NotNull
   private final AnAction myMultipleDevicesAction;
@@ -132,21 +130,21 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     private Clock myClock;
 
     @Nullable
+    private Function<Project, ExecutionTargetService> myExecutionTargetServiceGetInstance;
+
+    @Nullable
     private Function<Project, SelectedDevicesService> mySelectedDevicesServiceGetInstance;
 
     @Nullable
     private Function<Project, RunManager> myGetRunManager;
 
-    @Nullable
-    private Function<Project, ExecutionTargetManager> myGetExecutionTargetManager;
-
     Builder() {
       mySelectDeviceSnapshotComboBoxSnapshotsEnabled = () -> false;
       myDevicesGetterGetter = project -> null;
       myGetProperties = project -> null;
+      myExecutionTargetServiceGetInstance = project -> null;
       mySelectedDevicesServiceGetInstance = project -> null;
       myGetRunManager = project -> null;
-      myGetExecutionTargetManager = project -> null;
     }
 
     @NotNull
@@ -174,6 +172,12 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     @NotNull
+    Builder setExecutionTargetServiceGetInstance(@NotNull Function<Project, ExecutionTargetService> executionTargetServiceGetInstance) {
+      myExecutionTargetServiceGetInstance = executionTargetServiceGetInstance;
+      return this;
+    }
+
+    @NotNull
     Builder setSelectedDevicesServiceGetInstance(@NotNull Function<Project, SelectedDevicesService> selectedDevicesServiceGetInstance) {
       mySelectedDevicesServiceGetInstance = selectedDevicesServiceGetInstance;
       return this;
@@ -182,12 +186,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     @NotNull
     Builder setGetRunManager(@NotNull Function<Project, RunManager> getRunManager) {
       myGetRunManager = getRunManager;
-      return this;
-    }
-
-    @NotNull
-    Builder setGetExecutionTargetManager(@NotNull Function<Project, ExecutionTargetManager> getExecutionTargetManager) {
-      myGetExecutionTargetManager = getExecutionTargetManager;
       return this;
     }
 
@@ -204,9 +202,9 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
            .setDevicesGetterGetter(AsyncDevicesGetter::getInstance)
            .setGetProperties(PropertiesComponent::getInstance)
            .setClock(Clock.systemDefaultZone())
+           .setExecutionTargetServiceGetInstance(ExecutionTargetService::getInstance)
            .setSelectedDevicesServiceGetInstance(SelectedDevicesService::getInstance)
-           .setGetRunManager(RunManager::getInstance)
-           .setGetExecutionTargetManager(ExecutionTargetManager::getInstance));
+           .setGetRunManager(RunManager::getInstance));
   }
 
   @NonInjectable
@@ -223,14 +221,14 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     assert builder.myClock != null;
     myClock = builder.myClock;
 
+    assert builder.myExecutionTargetServiceGetInstance != null;
+    myExecutionTargetServiceGetInstance = builder.myExecutionTargetServiceGetInstance;
+
     assert builder.mySelectedDevicesServiceGetInstance != null;
     mySelectedDevicesServiceGetInstance = builder.mySelectedDevicesServiceGetInstance;
 
     assert builder.myGetRunManager != null;
     myGetRunManager = builder.myGetRunManager;
-
-    assert builder.myGetExecutionTargetManager != null;
-    myGetExecutionTargetManager = builder.myGetExecutionTargetManager;
 
     myMultipleDevicesAction = new MultipleDevicesAction(this);
     myModifyDeviceSetAction = new ModifyDeviceSetAction(this);
@@ -347,7 +345,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       target = new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevice);
     }
 
-    updateExecutionTargetManager(project, target);
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(target);
   }
 
   @NotNull
@@ -391,7 +389,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       target = new DeviceAndSnapshotComboBoxExecutionTarget(mySelectedDevicesServiceGetInstance.apply(project).getSelectedDevices());
     }
 
-    updateExecutionTargetManager(project, target);
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(target);
   }
 
   void modifyDeviceSet(@NotNull Project project) {
@@ -399,8 +397,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return;
     }
 
-    SelectedDevicesService service = mySelectedDevicesServiceGetInstance.apply(project);
-    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(service.getSelectedDevices()));
+    List<Device> devices = mySelectedDevicesServiceGetInstance.apply(project).getSelectedDevices();
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(devices));
   }
 
   @NotNull
@@ -614,7 +612,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
         assert false : place;
     }
 
-    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(getSelectedDevices(project, devices)));
+    List<Device> selectedDevices = getSelectedDevices(project, devices);
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevices));
   }
 
   @VisibleForTesting
@@ -708,30 +707,5 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   static String getText(@NotNull Device device, @NotNull Collection<Device> devices, boolean snapshotsEnabled) {
     boolean anotherDeviceHasSameName = Devices.containsAnotherDeviceWithSameName(devices, device);
     return Devices.getText(device, anotherDeviceHasSameName ? device.getKey() : null, snapshotsEnabled ? device.getSnapshot() : null);
-  }
-
-  private void updateExecutionTargetManager(@NotNull Project project, @NotNull ExecutionTarget activeTarget) {
-    ExecutionTargetManager executionTargetManager = myGetExecutionTargetManager.apply(project);
-
-    if (executionTargetManager.getActiveTarget().equals(activeTarget)) {
-      return;
-    }
-
-    // In certain test scenarios, this action may get updated in the main test thread instead of the EDT thread (is this correct?).
-    // So we'll just make sure the following gets run on the EDT thread and wait for its result.
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      RunManager runManager = myGetRunManager.apply(project);
-      RunnerAndConfigurationSettings settings = runManager.getSelectedConfiguration();
-
-      // There is a bug in {@link com.intellij.execution.impl.RunManagerImplKt#clear(boolean)} where it's possible the selected setting's
-      // RunConfiguration is be non-existent in the RunManager. This happens when temporary/shared RunnerAndConfigurationSettings are
-      // cleared from the list of RunnerAndConfigurationSettings, and the selected RunnerAndConfigurationSettings is temporary/shared and
-      // left dangling.
-      if (settings == null || runManager.findSettings(settings.getConfiguration()) == null) {
-        return;
-      }
-
-      executionTargetManager.setActiveTarget(activeTarget);
-    });
   }
 }

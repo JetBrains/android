@@ -17,10 +17,6 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.execution.ExecutionTargetManager;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -45,6 +41,8 @@ public final class ModifyDeviceSetActionTest {
     PropertiesComponent properties = Mockito.mock(PropertiesComponent.class);
     Mockito.when(properties.getBoolean(DeviceAndSnapshotComboBoxAction.MULTIPLE_DEVICES_SELECTED)).thenReturn(true);
 
+    ExecutionTargetService executionTargetService = Mockito.mock(ExecutionTargetService.class);
+
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 2 API 29")
       .setKey(new Key("Pixel_2_API_29"))
@@ -59,28 +57,14 @@ public final class ModifyDeviceSetActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    SelectedDevicesService service = Mockito.mock(SelectedDevicesService.class);
-    Mockito.when(service.getSelectedDevices()).thenReturn(Arrays.asList(device1, device2));
-
-    RunConfiguration configuration = Mockito.mock(RunConfiguration.class);
-
-    RunnerAndConfigurationSettings configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
-    Mockito.when(configurationAndSettings.getConfiguration()).thenReturn(configuration);
-
-    RunManager runManager = Mockito.mock(RunManager.class);
-
-    Mockito.when(runManager.getSelectedConfiguration()).thenReturn(configurationAndSettings);
-    Mockito.when(runManager.findSettings(configuration)).thenReturn(configurationAndSettings);
-
-    ExecutionTargetManager executionTargetManager = Mockito.mock(ExecutionTargetManager.class);
-    Mockito.when(executionTargetManager.getActiveTarget()).thenReturn(new DeviceAndSnapshotComboBoxExecutionTarget(device1));
+    SelectedDevicesService selectedDevicesService = Mockito.mock(SelectedDevicesService.class);
+    Mockito.when(selectedDevicesService.getSelectedDevices()).thenReturn(Arrays.asList(device1, device2));
 
     DeviceAndSnapshotComboBoxAction comboBoxAction = new DeviceAndSnapshotComboBoxAction.Builder()
       .setGetProperties(project -> properties)
       .setClock(Mockito.mock(Clock.class))
-      .setSelectedDevicesServiceGetInstance(project -> service)
-      .setGetRunManager(project -> runManager)
-      .setGetExecutionTargetManager(project -> executionTargetManager)
+      .setExecutionTargetServiceGetInstance(project -> executionTargetService)
+      .setSelectedDevicesServiceGetInstance(project -> selectedDevicesService)
       .build();
 
     DialogWrapper dialog = Mockito.mock(DialogWrapper.class);
@@ -95,7 +79,6 @@ public final class ModifyDeviceSetActionTest {
     action.actionPerformed(event);
 
     // Assert
-    Mockito.verify(executionTargetManager).getActiveTarget();
-    Mockito.verify(executionTargetManager).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(Arrays.asList(device1, device2)));
+    Mockito.verify(executionTargetService).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(Arrays.asList(device1, device2)));
   }
 }
