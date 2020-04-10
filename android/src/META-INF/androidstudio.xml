@@ -126,6 +126,10 @@
             class="com.android.tools.idea.apk.ImportApkAction" text="Profile or Debug APK...">
       <add-to-group group-id="FileOpenGroup" relative-to-action="OpenFile" anchor="after"/>
     </action>
+
+    <action id="ImportUtpResultAction"
+            class="com.android.tools.idea.testartifacts.instrumented.ImportUtpResultAction" text="Import Android Test Results...">
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
