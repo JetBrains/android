@@ -413,6 +413,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     builder.setBorder(DEFAULT_TOP_BORDER);
     builder.setShowVerticalLines(true);
     builder.setTableIntercellSpacing(new Dimension());
+    builder.setShowHeaderTooltips(true);
     return builder.build();
   }
 

@@ -348,6 +348,7 @@ final class MemoryClassSetView extends AspectObserver {
     builder.setBorder(DEFAULT_TOP_BORDER);
     builder.setShowVerticalLines(true);
     builder.setTableIntercellSpacing(new Dimension());
+    builder.setShowHeaderTooltips(true);
     myColumnTree = builder.build();
     myInstancesPanel.add(myColumnTree, BorderLayout.CENTER);
   }
