@@ -58,6 +58,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.JBUI.Borders;
 import com.intellij.util.ui.StartupUiUtil;
@@ -65,20 +66,19 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -86,12 +86,13 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import org.jetbrains.annotations.NotNull;
@@ -319,23 +320,41 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     table.setAlignmentX(Component.LEFT_ALIGNMENT);
     table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     table.setBackground(UIUtil.getTextFieldBackground());
-    table.setDefaultRenderer(String.class, new MetadataCellRenderer());
+    table.setDefaultEditor(String.class, new MetadataCellComponentProvider());
+    table.setDefaultRenderer(String.class, new MetadataCellComponentProvider());
     table.setFocusable(false);
     table.setRowSelectionAllowed(false);
     table.setShowGrid(false);
     table.setShowColumns(true);
     table.getTableHeader().setReorderingAllowed(false);
     table.getTableHeader().setResizingAllowed(false);
+    table.addMouseMotionListener(new MouseAdapter() {
+      @Override
+      public void mouseMoved(@NotNull MouseEvent event) {
+        int row = table.rowAtPoint(event.getPoint());
+        int column = table.columnAtPoint(event.getPoint());
+        if (row != -1 && column != -1 && table.isCellEditable(row, column)) {
+          // Hack for skipping one extra click to turn the table cell into editable mode so links can be clickable immediately.
+          table.editCellAt(row, column);
+        }
+        else {
+          table.removeEditor();
+        }
+      }
+    });
 
-    // Sets up a appropriate width for each column.
+    // Sets up appropriate column width.
     TableCellRenderer headerCellRenderer = table.getTableHeader().getDefaultRenderer();
     for (int c = 0; c < table.getColumnCount(); c++) {
       TableColumn column = table.getColumnModel().getColumn(c);
-      int headerCellWidth =
+      int cellWidth =
         headerCellRenderer.getTableCellRendererComponent(table, column.getHeaderValue(), false, false, 0, c).getPreferredSize().width;
-      int cellWidth = table.getDefaultRenderer(tableModel.getColumnClass(c))
-        .getTableCellRendererComponent(table, tableModel.getLongestCellValue(c), false, false, 0, c).getPreferredSize().width;
-      column.setPreferredWidth(Math.max(headerCellWidth, cellWidth) + 10);
+      for (int r = 0; r < table.getRowCount(); r++) {
+        TableCellRenderer cellRenderer = table.getCellRenderer(r, c);
+        Component component = table.prepareRenderer(cellRenderer, r, c);
+        cellWidth = Math.max(cellWidth, component.getPreferredSize().width);
+      }
+      column.setPreferredWidth(cellWidth + 10);
     }
 
     return table;
@@ -348,7 +367,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     tableData.add(Lists.newArrayList("Description", Strings.nullToEmpty(modelInfo.getModelDescription())));
     tableData.add(Lists.newArrayList("Version", Strings.nullToEmpty(modelInfo.getModelVersion())));
     tableData.add(Lists.newArrayList("Author", Strings.nullToEmpty(modelInfo.getModelAuthor())));
-    // TODO(b/153093288): Linkify urls in the license text correctly.
     tableData.add(Lists.newArrayList("License", Strings.nullToEmpty(modelInfo.getModelLicense())));
     return tableData;
   }
@@ -666,36 +684,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     StringBuilder result = new StringBuilder();
     StringBuilder tmp = new StringBuilder();
     for (String word : words) {
-      tmp.append(word);
+      tmp.append(word).append(" ");
       if (tmp.length() > MAX_LINE_LENGTH) {
-        tmp.append("\n");
-        result.append(tmp);
-        tmp = new StringBuilder();
-      }
-      else {
-        tmp.append(" ");
+        result.append(tmp).append("\n");
+        tmp.setLength(0);
       }
     }
     result.append(tmp);
-    return result.toString().trim();
-  }
-
-  @NotNull
-  private static String linkifyUrls(@NotNull String text) {
-    StringBuilder result = new StringBuilder();
-    for (String word : text.split(" ")) {
-      if (!word.isEmpty()) {
-        try {
-          int wordLen = word.length();
-          boolean hasSentenceSeparator = word.charAt(wordLen - 1) == ',' || word.charAt(wordLen - 1) == '.';
-          URL url = new URL(hasSentenceSeparator ? word.substring(0, word.length() - 1) : word);
-          result.append(String.format("<a href=\"%s\">%s</a>%s ", url, url, hasSentenceSeparator ? word.charAt(wordLen - 1) : ""));
-        }
-        catch (MalformedURLException e) {
-          result.append(word).append(" ");
-        }
-      }
-    }
     return result.toString().trim();
   }
 
@@ -704,7 +699,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     private final List<String> myHeaderData;
 
     private MetadataTableModel(@NotNull List<List<String>> rowDataList, @NotNull List<String> headerData) {
-      myRowDataList = rowDataList;
+      myRowDataList = ContainerUtil.map(rowDataList, row -> ContainerUtil.map(row, cellValue -> breakIntoMultipleLines(cellValue)));
       myHeaderData = headerData;
     }
 
@@ -719,7 +714,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
 
     @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
+    public String getValueAt(int rowIndex, int columnIndex) {
       return myRowDataList.get(rowIndex).get(columnIndex);
     }
 
@@ -733,12 +728,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       return column < myHeaderData.size() ? myHeaderData.get(column) : super.getColumnName(column);
     }
 
-    @NotNull
-    private String getLongestCellValue(int columnIndex) {
-      Optional<String> optionalValue = myRowDataList.stream()
-        .map(row -> row.get(columnIndex))
-        .max(Comparator.comparing(String::length));
-      return optionalValue.orElse("");
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+      // HACK We're relying on cell editor components (as opposed to cell renderer components) in order to receive events so we can linkify
+      // urls and make them clickable. We're not using those editors to actually edit the table model values.
+      return getValueAt(rowIndex, columnIndex).startsWith("<html>");
     }
 
     private boolean hasHeader() {
@@ -746,39 +740,67 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
   }
 
-  private static class MetadataCellRenderer implements TableCellRenderer {
-    private final JTextArea myTextArea;
+  // HACK This is a TableCellEditor so the hyperlink listener works. It doesn't actually edit any table model cell values.
+  private static class MetadataCellComponentProvider extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
+    @NotNull
+    private final JTextPane myTextPane;
 
-    private MetadataCellRenderer() {
-      myTextArea = new JTextArea();
-      myTextArea.setEditable(false);
-      myTextArea.setOpaque(false);
-      myTextArea.setFont(StartupUiUtil.getLabelFont());
+    private MetadataCellComponentProvider() {
+      myTextPane = new JTextPane();
+      myTextPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
+      myTextPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
+      myTextPane.setBackground(UIUtil.getTextFieldBackground());
+      myTextPane.setEditable(false);
+      myTextPane.setHighlighter(null);
     }
 
+    @NotNull
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      String cellValue = (String)value;
-      if (cellValue.length() > MAX_LINE_LENGTH) {
-        cellValue = breakIntoMultipleLines(cellValue);
-      }
-      myTextArea.setText(cellValue);
+    public Component getTableCellRendererComponent(@NotNull JTable table,
+                                                   @NotNull Object value,
+                                                   boolean isSelected,
+                                                   boolean hasFocus,
+                                                   int row,
+                                                   int column) {
+      configureTextPane(table, row, column);
+      return myTextPane;
+    }
 
+    @NotNull
+    @Override
+    public Component getTableCellEditorComponent(@NotNull JTable table, @NotNull Object value, boolean isSelected, int row, int column) {
+      configureTextPane(table, row, column);
+      return myTextPane;
+    }
+
+    @Nullable
+    @Override
+    public Object getCellEditorValue() {
+      return null;
+    }
+
+    private void configureTextPane(@NotNull JTable table, int row, int column) {
+      // TODO(b/153093288): add html wrapping function and set content type "text/html" properly.
+      myTextPane.setContentType("text/plain");
+      myTextPane.setText((String)table.getValueAt(row, column));
       if (((MetadataTableModel)table.getModel()).hasHeader()) {
-        myTextArea.setBorder(Borders.empty(8, 8, 8, 0));
+        myTextPane.setBorder(Borders.empty(8, 8, 8, 0));
       }
       else {
-        myTextArea.setBorder(Borders.empty(4, 0));
+        myTextPane.setBorder(Borders.empty(4, 0));
       }
-
-      return myTextArea;
     }
   }
 
   private static class TableHeaderCellRenderer extends DefaultTableCellRenderer {
-
+    @NotNull
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    public Component getTableCellRendererComponent(@NotNull JTable table,
+                                                   @NotNull Object value,
+                                                   boolean isSelected,
+                                                   boolean hasFocus,
+                                                   int row,
+                                                   int column) {
       Component delegate = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
       if (!(delegate instanceof JLabel)) return delegate;
 
