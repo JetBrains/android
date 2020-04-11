@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.emulator
 
-/**
- * Identifying information for a running Emulator.
- */
-// TODO: Don't accept null avdDir and empty commandLine once b/148935382 is fixed.
-data class EmulatorId(val grpcPort: Int, val grpcCertificate: String, val avdId: String, val avdName: String, val avdDir: String?,
-                      val serialPort: Int, val adbPort: Int, val commandLine: List<String>, val registrationFileName: String) {
-  override fun toString(): String {
-    return "$avdId @ $grpcPort"
-  }
+import com.google.common.truth.Truth.assertThat
+import org.junit.Test
 
-  val isEmbedded: Boolean
-    get() = commandLine.isEmpty() || commandLine.contains("auto-no-window")
+/**
+ * Tests for functions defined in CommandLineDecoder.kt.
+ */
+class CommandLineDecoderTest {
+  @Test
+  fun testCommandLineArguments() {
+    val commandLine = """
+        "C:\\home\\janedoe\\my emulator" "quoted \"\arg\"" arg\ without\ "\\\ quotes
+        """.trimIndent()
+    assertThat(decodeCommandLine(commandLine)).containsExactly("C:\\home\\janedoe\\my emulator",
+                                                               "quoted \"arg\"",
+                                                               "arg without \"\\ quotes")
+  }
 }
