@@ -208,7 +208,7 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
     loadingPanel?.stopLoading()
   }
 
-  private fun createToolbar(toolbarId: String, horizontal: Boolean): ActionToolbar {
+  private fun createToolbar(toolbarId: String, @Suppress("SameParameterValue") horizontal: Boolean): ActionToolbar {
     val actions = listOf(CustomActionsSchema.getInstance().getCorrectedAction(toolbarId)!!)
     return ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
   }
