@@ -179,7 +179,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
             var created = false
             if (!isDisposing) {
               val emulatorId = readEmulatorInfo(file)
-              if (emulatorId != null) {
+              if (emulatorId != null && emulatorId.isEmbedded) {
                 emulator = oldEmulators[emulatorId]
                 if (emulator == null) {
                   emulator = EmulatorController(emulatorId, this)
@@ -271,8 +271,10 @@ class RunningEmulatorCatalog : Disposable.Parent {
     var grpcCertificate: String? = null
     var avdId: String? = null
     var avdName: String? = null
+    var avdDir: String? = null
     var serialPort = 0
     var adbPort = 0
+    var commandLine = emptyList<String>()
     try {
       for (line in Files.readAllLines(file)) {
         when {
@@ -288,11 +290,17 @@ class RunningEmulatorCatalog : Disposable.Parent {
           line.startsWith("avd.name=") -> {
             avdName = line.substring("avd.name=".length).replace('_', ' ')
           }
+          line.startsWith("avd.dir=") -> {
+            avdDir = line.substring("add.dir=".length)
+          }
           line.startsWith("port.serial=") -> {
             serialPort = line.substring("port.serial=".length).toInt()
           }
           line.startsWith("port.adb=") -> {
             adbPort = line.substring("port.adb=".length).toInt()
+          }
+          line.startsWith("cmdline=") -> {
+            commandLine = decodeCommandLine(line.substring ("cmdline=".length))
           }
         }
       }
@@ -303,7 +311,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
     }
 
     return if (grpcPort > 0 && grpcCertificate != null && avdId != null && avdName != null && serialPort != 0 && adbPort != 0) {
-      EmulatorId(grpcPort, grpcCertificate, avdId, avdName, serialPort, adbPort, file.fileName.toString())
+      EmulatorId(grpcPort, grpcCertificate, avdId, avdName, avdDir, serialPort, adbPort, commandLine, file.fileName.toString())
     }
     else {
       null
