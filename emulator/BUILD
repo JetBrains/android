@@ -113,6 +113,7 @@ iml_module(
         "//tools/idea:intellij.platform.jps.build_and_others[module]",
         "//tools/idea/.idea/libraries:emulator-proto",
         "//tools/idea/.idea/libraries:Guava",
+        "//tools/idea/.idea/libraries:jimfs[test]",
         "//tools/idea/.idea/libraries:kotlin-plugin[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:studio-grpc",

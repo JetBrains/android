@@ -20,11 +20,9 @@ import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.Rotation.SkinRotation.LANDSCAPE
 import com.android.emulator.control.Rotation.SkinRotation.REVERSE_LANDSCAPE
 import com.android.emulator.control.Rotation.SkinRotation.REVERSE_PORTRAIT
-import com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH
 import com.android.tools.adtui.ImageUtils.rotateByQuadrantsAndScale
 import com.android.tools.idea.avdmanager.SkinLayoutDefinition
 import com.android.tools.idea.emulator.ScaledSkinLayout.AnchoredImage
-import com.google.common.base.Splitter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.ImageUtil
@@ -37,8 +35,8 @@ import java.io.IOException
 import java.net.URL
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
-import java.nio.file.Paths
 import javax.imageio.ImageIO
 import kotlin.math.min
 
@@ -136,25 +134,6 @@ internal class SkinDefinition private constructor(
   companion object {
     @Slow
     @JvmStatic
-    fun getSkinFolder(avdFolder: Path): Path? {
-      val configFile = avdFolder.resolve("config.ini")
-      try {
-        val splitter = Splitter.on('=').trimResults()
-        for (line in Files.readAllLines(configFile)) {
-          val keyValue = splitter.splitToList(line)
-          if (keyValue.size == 2 && keyValue[0] == AVD_INI_SKIN_PATH) {
-            return Paths.get(keyValue[1])
-          }
-        }
-      }
-      catch (e: IOException) {
-        logger.error(e)
-      }
-      return null
-    }
-
-    @Slow
-    @JvmStatic
     fun create(skinFolder: Path): SkinDefinition? {
       try {
         val layoutFile = skinFolder.resolve("layout") ?: return null
@@ -225,6 +204,9 @@ internal class SkinDefinition private constructor(
         if (primaryLayout != null) {
           return SkinDefinition(primaryLayout, rotatedLayout)
         }
+      }
+      catch (e: NoSuchFileException) {
+        logger.error("File not found: ${e.file}")
       }
       catch (e: IOException) {
         logger.error(e)
