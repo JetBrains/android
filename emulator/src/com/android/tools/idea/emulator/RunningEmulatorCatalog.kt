@@ -26,6 +26,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.Alarm
 import gnu.trove.TObjectLongHashMap
 import java.io.IOException
@@ -266,12 +267,15 @@ class RunningEmulatorCatalog : Disposable.Parent {
     }
   }
 
+  /**
+   * Reads and interprets the registration file of an Emulator (pid_NNNN.ini).
+   */
   private fun readEmulatorInfo(file: Path): EmulatorId? {
     var grpcPort = 0
     var grpcCertificate: String? = null
     var avdId: String? = null
     var avdName: String? = null
-    var avdDir: String? = null
+    var avdFolder: Path? = null
     var serialPort = 0
     var adbPort = 0
     var commandLine = emptyList<String>()
@@ -279,7 +283,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       for (line in Files.readAllLines(file)) {
         when {
           line.startsWith("grpc.port=") -> {
-            grpcPort = line.substring("grpc.port=".length).toInt()
+            grpcPort = parseInt(line.substring("grpc.port=".length), 0)
           }
           line.startsWith("grpc.certificate=") -> {
             grpcCertificate = line.substring("grpc.certificate=".length)
@@ -291,13 +295,13 @@ class RunningEmulatorCatalog : Disposable.Parent {
             avdName = line.substring("avd.name=".length).replace('_', ' ')
           }
           line.startsWith("avd.dir=") -> {
-            avdDir = line.substring("add.dir=".length)
+            avdFolder = Paths.get(line.substring("add.dir=".length))
           }
           line.startsWith("port.serial=") -> {
-            serialPort = line.substring("port.serial=".length).toInt()
+            serialPort = parseInt(line.substring("port.serial=".length), 0)
           }
           line.startsWith("port.adb=") -> {
-            adbPort = line.substring("port.adb=".length).toInt()
+            adbPort = parseInt(line.substring("port.adb=".length), 0)
           }
           line.startsWith("cmdline=") -> {
             commandLine = decodeCommandLine(line.substring ("cmdline=".length))
@@ -307,11 +311,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
     }
     catch (ignore: IOException) {
     }
-    catch (ignore: NumberFormatException) {
-    }
 
     return if (grpcPort > 0 && grpcCertificate != null && avdId != null && avdName != null && serialPort != 0 && adbPort != 0) {
-      EmulatorId(grpcPort, grpcCertificate, avdId, avdName, avdDir, serialPort, adbPort, commandLine, file.fileName.toString())
+      EmulatorId(grpcPort, grpcCertificate, avdId, avdName, avdFolder, serialPort, adbPort, commandLine, file.fileName.toString())
     }
     else {
       null

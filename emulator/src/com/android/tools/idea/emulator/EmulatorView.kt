@@ -465,7 +465,8 @@ class EmulatorView(
     @Slow
     private fun updateSkinAndDisplayImage() {
       val screenshot = screenshotForSkinUpdate.getAndSet(null) ?: return
-      screenshot.skinLayout = emulator.skinDefinition?.createScaledLayout(displayShape.width, displayShape.height, displayShape.rotation)
+      screenshot.skinLayout = emulator.skinDefinition?.createScaledLayout(displayShape.width, displayShape.height, displayShape.rotation) ?:
+                              ScaledSkinLayout(Dimension(displayShape.width, displayShape.height))
       updateDisplayImageAsync(screenshot)
     }
 
