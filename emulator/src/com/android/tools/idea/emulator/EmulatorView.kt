@@ -385,8 +385,7 @@ class EmulatorView(
       val scaledDisplaySize = rotatedDisplaySize.scaled(scale)
 
       // Limit the size of the received screenshots to avoid wasting gRPC resources.
-      // TODO: Replace 0.5 by 1.0 after b/152320201 is fixed.
-      val screenshotSize = rotatedDisplaySize.scaled(min(scale, 0.5))
+      val screenshotSize = rotatedDisplaySize.scaled(scale.coerceAtMost(1.0))
 
       val imageFormat = ImageFormat.newBuilder()
         .setFormat(ImageFormat.ImgFormat.RGBA8888) // TODO: Change to RGB888 after b/150494232 is fixed.
