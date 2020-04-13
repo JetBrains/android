@@ -97,6 +97,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -147,6 +149,7 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace;
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
+  public static final String BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME = "Build sync orphan modules";
   private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
   static final Logger RESOLVER_LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
 
@@ -567,6 +570,24 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
       return new AdditionalArtifactsPaths(artifacts.getSources(), artifacts.getJavadoc(), artifacts.getSampleSources());
     });
+  }
+
+  @Override
+  public void resolveFinished(@NotNull DataNode<ProjectData> projectDataNode) {
+    disableOrphanModuleNotifications();
+  }
+
+  /**
+   * A method that resets the configuration of "Build sync orphan modules" notification group to "not display" and "not log"
+   * in order to prevent a notification which allows users to restore the removed module as a non-Gradle module. Non-Gradle modules
+   * are not supported by AS in Gradle projects.
+   */
+  private static void disableOrphanModuleNotifications() {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      NotificationsConfiguration
+        .getNotificationsConfiguration()
+        .changeSettings(BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME, NotificationDisplayType.NONE, false, false);
+    }
   }
 
   // Indicates it is an "Android" project if at least one module has an AndroidProject.
