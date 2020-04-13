@@ -180,6 +180,7 @@ class AndroidTestResultsTableViewTest {
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
       override fun getTestResultSummary(): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
       override fun getLogcat(device: AndroidDevice): String = ""
+      override fun getErrorStackTrace(device: AndroidDevice): String = ""
     }
   }
 

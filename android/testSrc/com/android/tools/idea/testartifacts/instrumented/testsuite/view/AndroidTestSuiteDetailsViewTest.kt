@@ -80,6 +80,7 @@ class AndroidTestSuiteDetailsViewTest {
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = testCaseResult
       override fun getTestResultSummary(): AndroidTestCaseResult = testCaseResult
       override fun getLogcat(device: AndroidDevice): String = ""
+      override fun getErrorStackTrace(device: AndroidDevice): String = ""
     }
   }
 }

@@ -30,6 +30,7 @@ import com.intellij.ui.table.TableView
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
+import java.awt.Color
 import java.awt.Component
 import javax.swing.Icon
 import javax.swing.JTable
@@ -124,6 +125,18 @@ fun getIconFor(androidTestResult: AndroidTestCaseResult?): Icon? {
     AndroidTestCaseResult.SKIPPED -> AllIcons.RunConfigurations.TestSkipped
     AndroidTestCaseResult.FAILED -> AllIcons.RunConfigurations.TestFailed
     AndroidTestCaseResult.IN_PROGRESS -> SMPoolOfTestIcons.RUNNING_ICON
+    else -> null
+  }
+}
+
+/**
+ * Returns a color which represents a given [androidTestResult].
+ */
+fun getColorFor(androidTestResult: AndroidTestCaseResult?): Color? {
+  return when(androidTestResult) {
+    AndroidTestCaseResult.PASSED -> ColorProgressBar.GREEN
+    AndroidTestCaseResult.FAILED -> ColorProgressBar.RED_TEXT
+    AndroidTestCaseResult.SKIPPED -> ColorProgressBar.GREEN
     else -> null
   }
 }
@@ -231,12 +244,7 @@ private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
     super.getTableCellRendererComponent(table, results.getTestResultSummaryText(), isSelected, hasFocus, row, column)
     horizontalAlignment = CENTER
     horizontalTextPosition = CENTER
-    foreground = when(results.getTestResultSummary()) {
-      AndroidTestCaseResult.PASSED -> ColorProgressBar.GREEN
-      AndroidTestCaseResult.FAILED -> ColorProgressBar.RED_TEXT
-      AndroidTestCaseResult.SKIPPED -> ColorProgressBar.GREEN
-      else -> ColorProgressBar.RED_TEXT
-    }
+    foreground = getColorFor(results.getTestResultSummary())
     border = myEmptyBorder
     return this
   }
@@ -299,6 +307,11 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
    * Returns a logcat message for a given [device].
    */
   override fun getLogcat(device: AndroidDevice): String = myTestCases[device.id]?.logcat ?: ""
+
+  /**
+   * Returns an error stack for a given [device].
+   */
+  override fun getErrorStackTrace(device: AndroidDevice): String = myTestCases[device.id]?.errorStackTrace ?: ""
 
   /**
    * Returns a one liner test result summary string.
