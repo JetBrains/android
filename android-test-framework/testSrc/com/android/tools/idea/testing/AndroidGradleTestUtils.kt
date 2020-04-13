@@ -82,6 +82,7 @@ import com.android.utils.appendCapitalized
 import com.google.common.collect.ImmutableList
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.ide.impl.ProjectUtil
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -101,6 +102,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
+import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.text.nullize
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemDependent
@@ -949,12 +952,20 @@ fun GradleIntegrationTest.openGradleProject(testProjectPath: String, name: Strin
  * the project.
  */
 fun <T> GradleIntegrationTest.openGradleProject(testProjectPath: String, name: String, action: (Project) -> T): T {
-  val project = openGradleProject(testProjectPath, name)
+  val project = runInEdtAndGet {
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    val project = openGradleProject(testProjectPath, name)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    project
+  }
   try {
     return action(project)
   }
   finally {
-    ProjectUtil.closeAndDispose(project)
+    runInEdtAndWait {
+      ProjectUtil.closeAndDispose(project)
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
   }
 }
 
@@ -965,6 +976,7 @@ fun <T> GradleIntegrationTest.openGradleProject(testProjectPath: String, name: S
  */
 fun <T> GradleIntegrationTest.reopenGradleProject(name: String, action: (Project) -> T): T {
   val projectPath = File(FileUtil.toSystemDependentName(getBaseTestPath() + "/" + name))
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   try {
@@ -972,5 +984,6 @@ fun <T> GradleIntegrationTest.reopenGradleProject(name: String, action: (Project
   }
   finally {
     ProjectUtil.closeAndDispose(project)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 }
