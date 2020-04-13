@@ -43,5 +43,7 @@ public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCas
     }
   }
 
-  protected abstract boolean useSingleVariantSyncInfrastructure();
+  protected boolean useSingleVariantSyncInfrastructure() {
+    return true;
+  }
 }
