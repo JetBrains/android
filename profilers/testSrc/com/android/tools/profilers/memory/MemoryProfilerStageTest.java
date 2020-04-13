@@ -23,12 +23,14 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 import com.android.ddmlib.allocations.AllocationsParserTest;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
@@ -842,5 +844,25 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Selecting no capture means no filtering.
     myStage.selectCaptureDuration(null, null);
     assertThat(myStage.getClassGroupingModel().getSize()).isEqualTo(5);
+  }
+
+  @Test
+  public void testStateSetOnEnterWhenOngoingCapture() {
+    assumeTrue(myUnifiedPipeline);
+    myTransportService.addEventToStream(FAKE_DEVICE_ID, Common.Event.newBuilder()
+      .setPid(FAKE_PROCESS.getPid())
+      .setCommandId(1)
+      .setKind(Common.Event.Kind.MEMORY_NATIVE_SAMPLE_STATUS)
+      .setTimestamp(myTimer.getCurrentTimeNs())
+      .setGroupId(myTimer.getCurrentTimeNs())
+      .setMemoryNativeTrackingStatus(Memory.MemoryNativeTrackingData.newBuilder()
+                                       .setStartTime(myTimer.getCurrentTimeNs())
+                                       .setStatus(Memory.MemoryNativeTrackingData.Status.SUCCESS)
+                                       .build())
+      .build());
+    MemoryProfilerStage stage = new MemoryProfilerStage(myProfilers, myMockLoader);
+    assertThat(stage.isTrackingAllocations()).isFalse();
+    stage.enter();
+    assertThat(stage.isTrackingAllocations()).isTrue();
   }
 }

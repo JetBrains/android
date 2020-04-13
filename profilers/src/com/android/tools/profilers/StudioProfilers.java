@@ -34,6 +34,7 @@ import com.android.tools.profiler.proto.Common.Device;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateResponse;
@@ -248,6 +249,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
         if (startupCpuProfilingStarted()) {
           setStage(new CpuProfilerStage(this));
+        }
+        else if (startupMemoryProfilingStarted()) {
+          setStage(new MemoryProfilerStage(this));
         }
       }
       else {
@@ -679,6 +683,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
   }
 
+  private boolean startupMemoryProfilingStarted() {
+    List<Memory.MemoryNativeTrackingData> samples =
+      MemoryProfiler.getNativeHeapStatusForSession(myClient, mySelectedSession, new Range(Long.MIN_VALUE, Long.MAX_VALUE));
+    if (samples.isEmpty()) {
+      return false;
+    }
+    Memory.MemoryNativeTrackingData last = samples.get(samples.size() - 1);
+    // If we are ongoing, and we started before the process then we have a startup session.
+    return last.getStatus() == Memory.MemoryNativeTrackingData.Status.SUCCESS &&
+           last.getStartTime() <= mySelectedSession.getStartTimestamp();
+  }
+
   /**
    * Checks whether startup CPU Profiling started for the selected session by making RPC call to perfd.
    */
@@ -950,7 +966,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         if (getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
           // TODO(b/150503095)
           Transport.ExecuteResponse response = getClient().getTransportClient().execute(
-              Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
+            Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
                                                                .setStreamId(getSession().getStreamId())
                                                                .setPid(getSession().getPid())
                                                                .setType(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING)
@@ -960,7 +976,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         else {
           // TODO(b/150503095)
           SetAllocationSamplingRateResponse response =
-              getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
+            getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
                                                                       .setSession(getSession())
                                                                       .setSamplingRate(samplingRate)
                                                                       .build());
