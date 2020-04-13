@@ -160,6 +160,15 @@ class AppInspectionDiscoveryHost(
   }
 
   /**
+   * Disposes all of the currently active inspectors associated to project with provided [projectName].
+   *
+   * This is used by the service to clean up after projects when they are no longer interested in a process, or when they exit.
+   */
+  fun disposeClients(projectName: String) {
+    discovery.disposeClients(projectName)
+  }
+
+  /**
    * Register listeners to receive stream and process events from transport pipeline.
    */
   private fun registerListenersForDiscovery() {
@@ -308,6 +317,17 @@ class AppInspectionDiscovery internal constructor(
           }
         })
       }
+    }
+  }
+
+  /**
+   * Dispose clients belonging to the project that matches the provided [projectName].
+   */
+  internal fun disposeClients(projectName: String) {
+    synchronized(lock) {
+      clients.filterKeys { it.projectName == projectName }
+        .values.forEach { if (it.isDone) it.get().messenger.disposeInspector() else it.cancel(false) }
+      clients.keys.removeAll { it.projectName == projectName }
     }
   }
 }

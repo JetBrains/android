@@ -47,7 +47,6 @@ import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ItemEvent
-import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.SwingConstants
@@ -90,8 +89,6 @@ class AppInspectionView(
 
   private lateinit var currentProcess: ProcessDescriptor
 
-  private val activeClients = CopyOnWriteArrayList<AppInspectorClient.CommandMessenger>()
-
   init {
     component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
 
@@ -124,10 +121,7 @@ class AppInspectionView(
   @UiThread
   private fun clearTabs() {
     inspectorTabs.removeAll()
-    activeClients.removeAll {
-      it.disposeInspector()
-      true
-    }
+    appInspectionDiscoveryHost.disposeClients(project.name)
     updateUi()
   }
 
@@ -150,13 +144,11 @@ class AppInspectionView(
             project.name
           )
         ) { messenger ->
-          val tab = invokeAndWaitIfNeeded {
+          invokeAndWaitIfNeeded {
             provider.createTab(project, messenger, appInspectionCallbacks)
               .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
               .also { updateUi() }
-          }
-          activeClients.add(tab.client.messenger)
-          tab.client
+          }.client
         }.transform { client ->
           client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
             override fun onCrashEvent(message: String) {
