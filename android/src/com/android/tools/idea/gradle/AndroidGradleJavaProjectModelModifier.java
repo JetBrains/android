@@ -81,6 +81,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.concurrency.AsyncPromise;
 import org.jetbrains.concurrency.Promise;
 import org.jetbrains.concurrency.Promises;
@@ -245,7 +246,12 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @Nullable
-  private static String selectVersion(@NotNull ExternalLibraryDescriptor descriptor) {
+  @TestOnly
+  static String selectVersion(@NotNull ExternalLibraryDescriptor descriptor) {
+    if (descriptor.getPreferredVersion() != null){
+      return descriptor.getPreferredVersion();
+    }
+
     String libraryArtifactId = descriptor.getLibraryArtifactId();
     String libraryGroupId = descriptor.getLibraryGroupId();
     String groupAndId = libraryGroupId + ":" + libraryArtifactId;
