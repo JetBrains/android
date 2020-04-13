@@ -79,6 +79,7 @@ import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.annotations.SystemIndependent;
 
 /**
@@ -452,5 +453,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   protected TestGradleSyncListener requestSync(@NotNull GradleSyncInvoker.Request request) throws Exception {
     refreshProjectFiles();
     return AndroidGradleTests.syncProject(getProject(), request);
+  }
+
+  @SystemDependent
+  public String getBaseTestPath() {
+    return myFixture.getTempDirPath();
   }
 }

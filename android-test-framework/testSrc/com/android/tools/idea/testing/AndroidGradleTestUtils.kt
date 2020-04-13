@@ -913,7 +913,7 @@ interface GradleIntegrationTest {
   /**
    * The base testData directory to be used in tests.
    */
-  fun getBaseTestPath(): @SystemDependent String = FileUtil.getTempDirectory()
+  fun getBaseTestPath(): @SystemDependent String
 
   /**
    * The base testData directory to be used in tests.
