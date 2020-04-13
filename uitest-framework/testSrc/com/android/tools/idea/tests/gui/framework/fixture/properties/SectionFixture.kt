@@ -25,4 +25,9 @@ import org.fest.swing.fixture.AbstractComponentFixture
  */
 class SectionFixture(val title: CollapsibleLabelPanelFixture?) {
   val components = mutableListOf<AbstractComponentFixture<*, *, *>>()
+
+  fun findEditorOf(attributeName: String): ActionButtonBindingFixture {
+    val index = components.indexOfFirst { (it as? CollapsibleLabelPanelFixture)?.name == attributeName }
+    return components[index + 1] as ActionButtonBindingFixture
+  }
 }

@@ -16,25 +16,20 @@
 package com.android.tools.idea.tests.gui.framework.fixture.properties
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
-import com.android.tools.property.panel.impl.ui.CollapsibleLabelPanel
+import com.android.tools.idea.uibuilder.property2.ui.HorizontalEditorPanel
 import org.fest.swing.core.Robot
 
 /**
- * Fixture for a [CollapsibleLabelPanel] commonly used as a title for a section in the properties panel.
+ * Fixture for an [HorizontalEditorPanel] which contains multiple controls in the properties panel.
+ *
+ * This fixture is created but not utilized yet.
  */
-class CollapsibleLabelPanelFixture(
+class HorizontalEditorPanelFixture(
   robot: Robot,
-  private val label: CollapsibleLabelPanel
-) : ComponentFixture<CollapsibleLabelPanelFixture, CollapsibleLabelPanel>(
-  CollapsibleLabelPanelFixture::class.java,
+  panel: HorizontalEditorPanel
+) : ComponentFixture<HorizontalEditorPanelFixture, HorizontalEditorPanel>(
+  HorizontalEditorPanelFixture::class.java,
   robot,
-  label
+  panel
 ) {
-
-  /**
-   * The currently visible name of the Collapsible label.
-   */
-  val name: String
-    get() = label.model.name
-
 }
