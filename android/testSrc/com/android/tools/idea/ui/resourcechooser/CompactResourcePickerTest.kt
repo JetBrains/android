@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser
 
 import com.android.resources.ResourceType
+import com.android.testutils.AssumeUtil
 import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -60,6 +61,8 @@ class CompactResourcePickerTest {
     @BeforeClass
     @JvmStatic
     fun setup() {
+      // TODO(b/153469993): Remove assumption when fixed.
+      AssumeUtil.assumeNotWindows()
       rule.fixture.addFileToProject("res/values/colors.xml", COLORS_RESOURCE_FILE_CONTENTS)
     }
   }
