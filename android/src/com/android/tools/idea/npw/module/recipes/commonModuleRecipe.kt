@@ -122,7 +122,7 @@ fun RecipeExecutor.generateCommonModule(
   if (includeCppSupport) {
     with(moduleOut.resolve("src/main/cpp")) {
       createDirectory(this)
-      save(cMakeListsTxt(), resolve("CMakeLists.txt"))
+      save(cMakeListsTxt(packageName), resolve("CMakeLists.txt"))
     }
   }
 }
