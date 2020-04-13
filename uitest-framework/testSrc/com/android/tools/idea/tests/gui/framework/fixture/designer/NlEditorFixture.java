@@ -39,7 +39,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlView
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.HostPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.properties.PropertiesPanelFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -72,6 +74,7 @@ import org.jetbrains.annotations.NotNull;
 public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerEditorPanel> {
   private final DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface> myDesignSurfaceFixture;
   private NlPropertyInspectorFixture myPropertyFixture;
+  private PropertiesPanelFixture<NelePropertyItem> myPropertiesFixture;
   private NlPaletteFixture myPaletteFixture;
   private WorkBenchLoadingPanelFixture myLoadingPanelFixture;
   private final ComponentDragAndDrop myDragAndDrop;
@@ -188,6 +191,14 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
       myPropertyFixture = new NlPropertyInspectorFixture(robot(), NlPropertyInspectorFixture.create(robot()));
     }
     return myPropertyFixture;
+  }
+
+  @NotNull
+  public PropertiesPanelFixture<NelePropertyItem> getAttributesPanel() {
+    if (myPropertiesFixture == null) {
+      myPropertiesFixture = PropertiesPanelFixture.Companion.findPropertiesPanelInContainer(target(), robot());
+    }
+    return myPropertiesFixture;
   }
 
   @NotNull

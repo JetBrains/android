@@ -15,46 +15,46 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
+import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
 import com.android.tools.idea.uibuilder.handlers.constraint.MarginWidget;
 import com.android.tools.idea.uibuilder.handlers.constraint.SingleWidgetView;
 import com.android.tools.idea.uibuilder.handlers.constraint.SingleWidgetView.KillButton;
+import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
 import java.awt.Container;
 import javax.swing.JComboBox;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
-public final class ConstraintLayoutViewInspectorFixture {
-  private final Robot myRobot;
-  private final Container myTarget;
+public final class ConstraintLayoutViewInspectorFixture
+  extends ComponentFixture<ConstraintLayoutViewInspectorFixture, WidgetConstraintPanel> {
 
-  public ConstraintLayoutViewInspectorFixture(@NotNull Robot robot, @NotNull Container target) {
-    myRobot = robot;
-    myTarget = target;
+  public ConstraintLayoutViewInspectorFixture(@NotNull Robot robot, @NotNull WidgetConstraintPanel target) {
+    super(ConstraintLayoutViewInspectorFixture.class, robot, target);
   }
 
   public void selectMarginStart(int margin) {
     MarginWidget marginWidget = findMarginWidget(SingleWidgetView.TOP_MARGIN_WIDGET);
-    myRobot.moveMouse(marginWidget);
-    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(myRobot, myRobot.finder().findByType(marginWidget, JComboBox.class));
+    robot().moveMouse(marginWidget);
+    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(robot(), robot().finder().findByType(marginWidget, JComboBox.class));
     comboBoxFixture.selectItem(Integer.toString(margin));
   }
 
   private void setMargin(String widgetName, int marginValue) {
     MarginWidget widget = findMarginWidget(widgetName);
-    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(myRobot, myRobot.finder().findByType(widget, JComboBox.class));
+    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(robot(), robot().finder().findByType(widget, JComboBox.class));
     comboBoxFixture.replaceText(Integer.toString(marginValue));
   }
 
   @NotNull
   private MarginWidget findMarginWidget(String name) {
-    return myRobot.finder().findByName(name, MarginWidget.class);
+    return robot().finder().findByName(name, MarginWidget.class);
   }
 
   @NotNull
   public KillButtonFixture getDeleteRightConstraintButton() {
-    return new KillButtonFixture(myRobot, myTarget, "deleteRightConstraintButton");
+    return new KillButtonFixture(robot(), target(), "deleteRightConstraintButton");
   }
 
   public static final class KillButtonFixture extends JComponentFixture<KillButtonFixture, KillButton> {

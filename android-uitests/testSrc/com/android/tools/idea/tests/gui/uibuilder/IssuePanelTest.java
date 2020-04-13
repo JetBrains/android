@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -28,16 +27,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPropertyInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,17 +42,6 @@ public class IssuePanelTest {
 
   @Rule public final GuiTestRule myGuiTest = new GuiTestRule();
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
-
-  @Before
-  public void setUp() {
-    // Temporary: until this test can run with new properties panel
-    StudioFlags.NELE_NEW_PROPERTY_PANEL.override(false);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NELE_NEW_PROPERTY_PANEL.clearOverride();
-  }
 
   /**
    * Scenario:
@@ -92,9 +76,14 @@ public class IssuePanelTest {
     panelFixture.requireVisible();
     assertEquals("No issues", panelFixture.getTitle());
 
-    NlPropertyInspectorFixture propertyPanel = layoutEditor.getPropertiesPanel();
-    propertyPanel.focusAndWaitForFocusGainInProperty("text", null);
-    propertyPanel.pressKeyInUnknownProperty(KeyEvent.VK_B);
+    layoutEditor.getAttributesPanel()
+      .waitForId("<unnamed>")
+      .findSectionByName("Common Attributes")
+      .findEditorOf("text")
+      .getTextField()
+      .selectAll()
+      .enterText("Hello My World!");
+
     textView.getSceneComponent().click();
 
     layoutEditor.waitForRenderToFinish();

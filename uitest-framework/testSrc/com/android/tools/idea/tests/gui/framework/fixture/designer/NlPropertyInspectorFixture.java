@@ -85,7 +85,7 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   @NotNull
   public ConstraintLayoutViewInspectorFixture getConstraintLayoutViewInspector() {
     Robot robot = robot();
-    Container target = waitUntilFound(robot, myPanel, Matchers.byType(WidgetConstraintPanel.class));
+    WidgetConstraintPanel target = waitUntilFound(robot, myPanel, Matchers.byType(WidgetConstraintPanel.class));
 
     return new ConstraintLayoutViewInspectorFixture(robot, target);
   }
