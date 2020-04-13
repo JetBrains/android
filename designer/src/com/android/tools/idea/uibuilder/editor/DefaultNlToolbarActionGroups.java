@@ -31,6 +31,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.common.actions.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
 import com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction;
+import com.android.tools.idea.uibuilder.surface.LayoutValidatorAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -86,8 +87,10 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(new ThemeMenuAction(mySurface::getConfiguration));
 
     group.addSeparator();
-
     group.add(new LocaleMenuAction(mySurface::getConfiguration));
+
+    group.addSeparator();
+    group.add(new LayoutValidatorAction());
     return group;
   }
 

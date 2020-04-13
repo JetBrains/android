@@ -197,6 +197,11 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   private float quality = 1f;
 
+  /**
+   * When true, it render from layoutlib will contain validation results. When false it'll bypass
+   * the validation. In order to allow validation, the layoutlib needs to re-inflate.
+   */
+  public boolean isLayoutValidationEnabled = false;
 
   /**
    * When true, this will force the current {@link RenderTask} to be disposed and re-created on the next render. This will also
@@ -918,6 +923,7 @@ public class LayoutlibSceneManager extends SceneManager {
     RenderLogger logger = renderService.createLogger(facet);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
       .withPsiFile(getModel().getFile())
+      .withLayoutValidation(isLayoutValidationEnabled)
       .withLogger(logger);
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
