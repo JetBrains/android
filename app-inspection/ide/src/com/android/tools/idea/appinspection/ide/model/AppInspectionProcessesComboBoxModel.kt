@@ -22,7 +22,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.util.concurrency.EdtExecutorService
 
 // TODO(b/152215087): This text needs to live in an Android Bundle and be internationalized.
-private const val DEFAULT_SELECTION_TEXT = "No Inspection Target Available"
+private const val NO_PROCESS_TEXT = "No Process Available"
 
 private const val NO_SELECTION_TEXT = "No Process Selected"
 
@@ -59,7 +59,7 @@ class AppInspectionProcessesComboBoxModel(
     appInspectionDiscoveryHost.addProcessListener(EdtExecutorService.getInstance(), processListener)
   }
 
-  override fun getSelectedItem() = super.getSelectedItem() ?: if (size == 0) DEFAULT_SELECTION_TEXT else NO_SELECTION_TEXT
+  override fun getSelectedItem() = super.getSelectedItem() ?: if (size == 0) NO_PROCESS_TEXT else NO_SELECTION_TEXT
 
   override fun dispose() {
     appInspectionDiscoveryHost.removeProcessListener(processListener)
