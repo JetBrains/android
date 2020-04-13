@@ -314,6 +314,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
 
     updateAllocationTrackingStatus();
+    updateNativeAllocationTrackingStatus();
   }
 
   @Override
@@ -589,7 +590,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
     else {
       // TODO(b/150503095)
       ForceGarbageCollectionResponse response =
-          myClient.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(mySessionData).build());
+        myClient.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(mySessionData).build());
     }
   }
 
@@ -884,7 +885,8 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
 
     if (captureObject.canSafelyLoad()) {
       load.run();
-    } else {
+    }
+    else {
       getStudioProfilers().getIdeServices()
         .openYesNoDialog("The hprof file is large, and Android Studio may become unresponsive while " +
                          "it parses the data and afterwards. Do you want to continue?",
@@ -932,7 +934,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
       else {
         // TODO(b/150503095)
         SetAllocationSamplingRateResponse response =
-            getStudioProfilers().getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
+          getStudioProfilers().getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
                                                                                          .setSession(mySessionData)
                                                                                          .setSamplingRate(samplingRate)
                                                                                          .build());
@@ -966,6 +968,19 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
     else {
       myPendingCaptureStartTime = INVALID_START_TIME;
       myPendingLegacyAllocationStartTimeNs = INVALID_START_TIME;
+    }
+  }
+
+  private void updateNativeAllocationTrackingStatus() {
+    List<Memory.MemoryNativeTrackingData> samples = MemoryProfiler
+      .getNativeHeapStatusForSession(getStudioProfilers().getClient(), mySessionData, new Range(Long.MIN_VALUE, Long.MAX_VALUE));
+    if (samples.isEmpty()) {
+      return;
+    }
+    Memory.MemoryNativeTrackingData last = samples.get(samples.size() - 1);
+    // If there is an ongoing recording.
+    if (last.getStatus() == Memory.MemoryNativeTrackingData.Status.SUCCESS) {
+      nativeAllocationTrackingStart(last);
     }
   }
 
