@@ -106,24 +106,32 @@ class AppInspectionView(
     component.add(inspectorPanel, TabularLayout.Constraint(2, 0))
 
     inspectionProcessesComboBox.addItemListener { e ->
-      if (e.stateChange == ItemEvent.SELECTED) {
-        refreshTabs(e)
+      if (e.item is ProcessDescriptor) {
+        if (e.stateChange == ItemEvent.SELECTED) {
+          populateTabs(e)
+        } else if (e.stateChange == ItemEvent.DESELECTED) {
+          clearTabs()
+        }
       }
     }
-
     updateUi()
   }
 
   @UiThread
-  private fun refreshTabs(itemEvent: ItemEvent) {
+  private fun clearTabs() {
     inspectorTabs.removeAll()
-
     activeClients.removeAll {
       it.disposeInspector()
       true
     }
-    currentProcess = itemEvent.item as? ProcessDescriptor ?: return
+    updateUi()
+  }
+
+  @UiThread
+  private fun populateTabs(itemEvent: ItemEvent) {
+    currentProcess = itemEvent.item as ProcessDescriptor
     launchInspectorTabsForCurrentProcess()
+    updateUi()
   }
 
   private fun launchInspectorTabsForCurrentProcess() {
@@ -148,15 +156,14 @@ class AppInspectionView(
         }.transform { client ->
           client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
             override fun onCrashEvent(message: String) {
-              createCrashNotification(provider.displayName).notify(project) }
+              createCrashNotification(provider.displayName).notify(project)
+            }
           }, MoreExecutors.directExecutor())
         }.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Unit> {
-            override fun onSuccess(result: Unit?) {}
-            override fun onFailure(t: Throwable) = Logger.getInstance(AppInspectionView::class.java).error(t)
-          })
-    }
-
-    updateUi()
+          override fun onSuccess(result: Unit?) {}
+          override fun onFailure(t: Throwable) = Logger.getInstance(AppInspectionView::class.java).error(t)
+        })
+      }
   }
 
   private fun updateUi() {

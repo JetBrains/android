@@ -230,7 +230,7 @@ class AppInspectionProcessesComboBoxModelTest {
     })
 
     // Verify combobox's selection is set to the correct text.
-    assertThat(model.selectedItem).isEqualTo("No Inspection Target Available")
+    assertThat(model.selectedItem).isEqualTo("No Process Available")
 
     val process = FakeTransportService.FAKE_PROCESS.toBuilder().setName("A").setPid(100).build()
     val deadProcess = process.toBuilder().setState(Common.Process.State.DEAD).build()
@@ -245,6 +245,6 @@ class AppInspectionProcessesComboBoxModelTest {
     processRemovedLatch.await()
 
     // Verify combobox's selection is set to the correct text.
-    assertThat(model.selectedItem).isEqualTo("No Inspection Target Available")
+    assertThat(model.selectedItem).isEqualTo("No Process Available")
   }
 }
