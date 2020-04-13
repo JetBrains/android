@@ -24,7 +24,8 @@ import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
-import com.android.tools.idea.testing.openGradleProject
+import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.prepareGradleProject
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
@@ -139,9 +140,10 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   }
 
   fun testMissingImlIsIgnored() {
-    val text = openGradleProject(TestProjectPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40, "testMissingImlIsIgnored_Test") { project ->
-      project.dumpAndroidProjectView()
-    }
+    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40, "testMissingImlIsIgnored_Test")
+    val text = openPreparedProject("testMissingImlIsIgnored_Test" ) { project: Project ->
+    project.dumpAndroidProjectView()
+  }
 
     assertIsEqualToSnapshot(text)
   }

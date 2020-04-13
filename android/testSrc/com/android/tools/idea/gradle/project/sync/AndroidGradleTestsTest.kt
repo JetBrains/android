@@ -19,7 +19,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openGradleProject
+import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.prepareGradleProject
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -36,13 +37,15 @@ class AndroidGradleTestsTest : GradleIntegrationTest {
 
   @Test
   fun testEmptyNotInEdt() {
-    openGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project") { }
+    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    openPreparedProject("project") { }
   }
 
   @Test
   @RunsInEdt
   fun testEmptyInEdt() {
-    openGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project") { }
+    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    openPreparedProject("project") { }
   }
 
   override fun getName(): String = testName.methodName

@@ -48,14 +48,15 @@ import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.fileUnderGradleRoot
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.gradleModule
-import com.android.tools.idea.testing.openGradleProject
-import com.android.tools.idea.testing.reopenGradleProject
+import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Truth.assertAbout
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.WriteAction.run
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.join
@@ -341,14 +342,12 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     fun testReimportSimpleApplication() {
-      var root: String? = null
-      val before = openGradleProject(SIMPLE_APPLICATION, "project") { project ->
-        val snapshot = project.saveAndDump()
-        root = project.basePath
-        snapshot
+      val root = prepareGradleProject(SIMPLE_APPLICATION, "project")
+      val before = openPreparedProject("project") { project: Project ->
+        project.saveAndDump()
       }
-      FileUtil.delete(File(root!!, ".idea"))
-      val after = reopenGradleProject("project") { project ->
+      FileUtil.delete(File(root, ".idea"))
+      val after = openPreparedProject("project") { project ->
         project.saveAndDump()
       }
       assertAreEqualToSnapshots(
@@ -358,15 +357,16 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     fun testSwitchingVariantsWithReopen_simpleApplication() {
-      val debugBefore = openGradleProject(SIMPLE_APPLICATION, "project") { project ->
+      prepareGradleProject(SIMPLE_APPLICATION, "project")
+      val debugBefore = openPreparedProject("project") { project: Project ->
         project.saveAndDump()
       }
-      val release = reopenGradleProject("project") { project ->
+      val release = openPreparedProject("project") { project ->
         BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release", true)
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         project.saveAndDump()
       }
-      val reopenedRelease = reopenGradleProject("project") { project ->
+      val reopenedRelease = openPreparedProject("project") { project ->
         project.saveAndDump()
       }
       assertAreEqualToSnapshots(
@@ -377,10 +377,11 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     open fun testSwitchingVariantsWithReopenAndResync_simpleApplication() {
-      val debugBefore = openGradleProject(SIMPLE_APPLICATION, "project") { project ->
+      prepareGradleProject(SIMPLE_APPLICATION, "project")
+      val debugBefore = openPreparedProject("project") { project: Project ->
         project.saveAndDump()
       }
-      val release = reopenGradleProject("project") { project ->
+      val release = openPreparedProject("project") { project ->
         BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release", true)
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         runWriteAction {
@@ -391,7 +392,7 @@ abstract class GradleSyncProjectComparisonTest(
         }
         project.saveAndDump()
       }
-      val reopenedRelease = reopenGradleProject("project") { project ->
+      val reopenedRelease = openPreparedProject("project") { project ->
         project.saveAndDump()
       }
       assertAreEqualToSnapshots(

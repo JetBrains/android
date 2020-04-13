@@ -19,18 +19,20 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.openGradleProject
-import com.android.tools.idea.testing.reopenGradleProject
+import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import java.util.function.Consumer
 
 class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegrationTest {
   override fun useSingleVariantSyncInfrastructure(): Boolean = true
 
   fun testReopenProject() {
-    openGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project") { }
-    reopenGradleProject("project") { project ->
+    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    openPreparedProject("project") { it: Project -> }
+    openPreparedProject("project") { project ->
       assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
       var completed = false
       project.runWhenSmartAndSynced(testRootDisposable, callback = Consumer {
