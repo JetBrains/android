@@ -533,7 +533,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   private boolean removeModelImpl(@NotNull NlModel model) {
     SceneManager manager;
-      myModelToSceneManagersLock.writeLock().lock();
+    myModelToSceneManagersLock.writeLock().lock();
     try {
       manager = myModelToSceneManagers.remove(model);
     }

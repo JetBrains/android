@@ -18,6 +18,7 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.uibuilder.surface.LayoutValidatorControl
 import com.intellij.openapi.actionSystem.DataKey
 
 /**
@@ -27,3 +28,10 @@ import com.intellij.openapi.actionSystem.DataKey
  */
 @JvmField
 val DESIGN_SURFACE: DataKey<DesignSurface> = DataKey.create(DesignSurface::class.qualifiedName!!)
+
+/**
+ * Data key to retrieve [LayoutValidatorControl]. The control allows layout validator to be turned
+ * on or off.
+ */
+@JvmField
+val LAYOUT_VALIDATOR_KEY = DataKey.create<LayoutValidatorControl>(LayoutValidatorControl::class.java.name)
