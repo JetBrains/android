@@ -29,8 +29,7 @@ public class PreSyncProjectCleanUp {
   }
 
   public PreSyncProjectCleanUp() {
-    this(new ProjectPreferencesCleanUpTask(),
-         new HttpProxySettingsCleanUpTask(), new GradleDistributionCleanUpTask());
+    this(new HttpProxySettingsCleanUpTask(), new GradleDistributionCleanUpTask());
   }
 
   @VisibleForTesting

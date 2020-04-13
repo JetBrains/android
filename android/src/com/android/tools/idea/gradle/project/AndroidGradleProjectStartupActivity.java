@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
+import com.android.tools.idea.gradle.util.AndroidStudioPreferences;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.diagnostic.Logger;
@@ -79,6 +80,10 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
       attachCachedModelsOrTriggerSync(project, gradleProjectInfo);
     }
     gradleProjectInfo.setSkipStartupActivity(false);
+
+    // Disable all settings sections that we don't want to be present in Android Studio.
+    // See AndroidStudioPreferences for a full list.
+    AndroidStudioPreferences.cleanUpPreferences(project);
   }
 
   /**
