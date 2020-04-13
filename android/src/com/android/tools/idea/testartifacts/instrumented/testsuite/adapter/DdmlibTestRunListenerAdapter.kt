@@ -59,12 +59,14 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
   override fun testFailed(testId: TestIdentifier, trace: String) {
     val testCase = myTestCases.getValue(testId)
     testCase.result = AndroidTestCaseResult.FAILED
+    testCase.errorStackTrace = trace
     myTestSuite.result = AndroidTestSuiteResult.FAILED
   }
 
   override fun testAssumptionFailure(testId: TestIdentifier, trace: String) {
     val testCase = myTestCases.getValue(testId)
     testCase.result = AndroidTestCaseResult.FAILED
+    testCase.errorStackTrace = trace
     myTestSuite.result = AndroidTestSuiteResult.FAILED
   }
 

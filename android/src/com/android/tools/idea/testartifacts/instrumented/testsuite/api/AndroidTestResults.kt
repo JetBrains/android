@@ -42,4 +42,9 @@ interface AndroidTestResults {
    * Returns the logcat message emitted during the test on a given device.
    */
   fun getLogcat(device: AndroidDevice): String
+
+  /**
+   * Returns an error stack trace or empty if a test passes.
+   */
+  fun getErrorStackTrace(device: AndroidDevice): String
 }

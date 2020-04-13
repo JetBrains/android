@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
@@ -43,22 +46,64 @@ class DetailsViewContentViewTest {
     .around(disposableRule)
 
   @Test
-  fun setAndroidTestCaseResult() {
+  fun testResultLabelOnPassing() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
     view.setAndroidTestCaseResult(AndroidTestCaseResult.PASSED)
-    assertThat(view.myTestResultLabel.text).isEqualTo("PASSED")
+    view.setAndroidDevice(device("device id", "device name"))
+    assertThat(view.myTestResultLabel.text)
+      .isEqualTo("<html><font color='#6cad74'>Passed</font> on device name</html>")
   }
 
   @Test
-  fun setLogcat() {
+  fun testResultLabelOnFailing() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+    view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
+    view.setAndroidDevice(device("device id", "device name"))
+    assertThat(view.myTestResultLabel.text).isEqualTo(
+      "<html><font size='+1'></font><br><font color='#b81708'>Failed</font> on device name</html>")
+  }
+
+  @Test
+  fun testResultLabelOnRunning() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+    view.setAndroidTestCaseResult(AndroidTestCaseResult.IN_PROGRESS)
+    view.setAndroidDevice(device("device id", "device name"))
+    assertThat(view.myTestResultLabel.text).isEqualTo("Running on device name")
+  }
+
+  @Test
+  fun logsView() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
 
     view.setLogcat("test logcat message")
-    view.myLogcatView.waitAllRequests()
-    assertThat(view.myLogcatView.text).isEqualTo("test logcat message")
+    view.myLogsView.waitAllRequests()
+    assertThat(view.myLogsView.text).isEqualTo("test logcat message\n")
+  }
+
+  @Test
+  fun logsViewWithErrorStackTrace() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+
+    view.setLogcat("test logcat message")
+    view.setErrorStackTrace("error stack trace")
+    view.myLogsView.waitAllRequests()
+    assertThat(view.myLogsView.text).isEqualTo("test logcat message\nerror stack trace")
+  }
+
+  @Test
+  fun logsViewShouldClearPreviousMessage() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+
+    view.setLogcat("test logcat message")
+    view.myLogsView.waitAllRequests()
+    assertThat(view.myLogsView.text).isEqualTo("test logcat message\n")
 
     view.setLogcat("test logcat message 2")
-    view.myLogcatView.waitAllRequests()
-    assertThat(view.myLogcatView.text).isEqualTo("test logcat message 2")
+    view.myLogsView.waitAllRequests()
+    assertThat(view.myLogsView.text).isEqualTo("test logcat message 2\n")
+  }
+
+  private fun device(id: String, name: String): AndroidDevice {
+    return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
   }
 }

@@ -149,8 +149,10 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
     if (mySelectedDevice != null) {
       AndroidTestCaseResult resultForSelectedDevice = myTestResults.getTestCaseResult(mySelectedDevice);
       if (resultForSelectedDevice != null) {
+        myContentView.setAndroidDevice(mySelectedDevice);
         myContentView.setAndroidTestCaseResult(resultForSelectedDevice);
         myContentView.setLogcat(myTestResults.getLogcat(mySelectedDevice));
+        myContentView.setErrorStackTrace(myTestResults.getErrorStackTrace(mySelectedDevice));
       }
     }
   }
