@@ -165,4 +165,30 @@ class AppInspectionDiscoveryTest {
     clientDisposedLatch.await()
     assertThat(discovery.clients).isEmpty()
   }
+
+  @Test
+  fun disposeClients() {
+    val discovery = AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client)
+
+    discovery.launchInspector(
+      AppInspectionDiscoveryHost.LaunchParameters(FAKE_PROCESS, INSPECTOR_ID, TEST_JAR, "project_to_dispose"),
+      { StubTestAppInspectorClient(it) },
+      AppInspectionTestUtils.TestTransportJarCopier,
+      appInspectionServiceRule.streamChannel
+    ).get()
+
+    discovery.launchInspector(
+      AppInspectionDiscoveryHost.LaunchParameters(FAKE_PROCESS, INSPECTOR_ID, TEST_JAR, "other_project"),
+      { StubTestAppInspectorClient(it) },
+      AppInspectionTestUtils.TestTransportJarCopier,
+      appInspectionServiceRule.streamChannel
+    ).get()
+
+    assertThat(discovery.clients).hasSize(2)
+
+    discovery.disposeClients("project_to_dispose")
+
+    assertThat(discovery.clients).hasSize(1)
+    assertThat(discovery.clients.keys.first().projectName).isEqualTo("other_project")
+  }
 }
