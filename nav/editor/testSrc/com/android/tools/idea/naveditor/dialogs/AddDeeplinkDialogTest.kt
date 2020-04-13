@@ -128,7 +128,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
         verifyLogEvent(tracker, NavPropertyInfo.Property.URI)
         verifyLogEvent(tracker, NavPropertyInfo.Property.AUTO_VERIFY)
         verifyLogEvent(tracker, NavPropertyInfo.Property.ACTION)
-        verifyLogEvent(tracker, NavPropertyInfo.Property.CUSTOM) // TODO (b/152980736): Update with actual value
+        verifyLogEvent(tracker, NavPropertyInfo.Property.MIME_TYPE)
       }
     }
   }
