@@ -58,31 +58,32 @@ fun showViewContextMenu(views: List<ViewNode>, inspectorModel: InspectorModel, s
         viewMenu.addAll(views.reversed().map { SelectViewAction(it, inspectorModel) })
         result.add(viewMenu)
       }
-      if (views.isNotEmpty()) {
-        val topView = views.last()
-        result.add(object : AnAction("Hide Subtree") {
-          override fun actionPerformed(unused: AnActionEvent) {
-            topView.flatten().forEach { it.visible = false }
-            inspectorModel.notifyModified()
-          }
-        })
-        result.add(object : AnAction("Show Only Subtree") {
-          override fun actionPerformed(unused: AnActionEvent) {
-            root.flatten().forEach { it.visible = false }
-            topView.flatten().forEach { it.visible = true }
-            inspectorModel.notifyModified()
-          }
-        })
-        result.add(object : AnAction("Show Only Parents") {
-          override fun actionPerformed(unused: AnActionEvent) {
-            root.flatten().forEach { it.visible = false }
-            generateSequence(topView) { it.parent }.forEach { it.visible = true }
-            inspectorModel.notifyModified()
-          }
-        })
+      if (inspectorModel.hasSubImages) {
+        if (views.isNotEmpty()) {
+          val topView = views.last()
+          result.add(object : AnAction("Hide Subtree") {
+            override fun actionPerformed(unused: AnActionEvent) {
+              topView.flatten().forEach { it.visible = false }
+              inspectorModel.notifyModified()
+            }
+          })
+          result.add(object : AnAction("Show Only Subtree") {
+            override fun actionPerformed(unused: AnActionEvent) {
+              root.flatten().forEach { it.visible = false }
+              topView.flatten().forEach { it.visible = true }
+              inspectorModel.notifyModified()
+            }
+          })
+          result.add(object : AnAction("Show Only Parents") {
+            override fun actionPerformed(unused: AnActionEvent) {
+              root.flatten().forEach { it.visible = false }
+              generateSequence(topView) { it.parent }.forEach { it.visible = true }
+              inspectorModel.notifyModified()
+            }
+          })
+        }
+        result.add(showAllAction)
       }
-      result.add(showAllAction)
-
       return result.toArray(arrayOf())
     }
   }
