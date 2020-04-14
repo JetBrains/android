@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.adb.wireless
 
-import com.android.annotations.concurrency.UiThread
+import java.security.SecureRandom
 
 /**
- * Definition of the view (in the context of a Model-View-Controller pattern) used to pair devices
+ * A wrapper around [SecureRandom] to improve testability
  */
-@UiThread
-interface AdbDevicePairingView {
-  val model: AdbDevicePairingModel
+open class RandomProvider {
+  private val random by lazy {
+    SecureRandom()
+  }
 
-  fun showDialog()
+  open fun nextInt(bound: Int): Int {
+    return random.nextInt(bound)
+  }
 }

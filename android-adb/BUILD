@@ -62,6 +62,7 @@ iml_module(
         "//tools/idea/.idea/libraries:zxing-core",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
     ],
 )
 

@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.annotations.concurrency.UiThread
+
 /**
  * Interface definition of the ADB device pairing controller.
  */
+@UiThread
 interface AdbDevicePairingController {
   /**
    * Starts the modal dialog allowing pairing devices using QR codes and pin codes.

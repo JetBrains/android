@@ -15,13 +15,29 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.intellij.openapi.project.Project
+import java.util.concurrent.Executor
 
+@UiThread
 class AdbDevicePairingControllerImpl(private val project: Project,
+                                     edtExecutor: Executor,
                                      private val service: AdbDevicePairingService,
-                                     private val view: AdbDevicePairingView,
-                                     private val model: AdbDevicePairingModel) : AdbDevicePairingController {
+                                     private val view: AdbDevicePairingView
+) : AdbDevicePairingController {
+
+  private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
+
   override fun startPairingProcess() {
+    generateQrCode(view.model)
     view.showDialog()
+  }
+
+  private fun generateQrCode(model: AdbDevicePairingModel) {
+    val futureQrCode = service.generateQrCode(QrCodeColors.BACKGROUND, QrCodeColors.FOREGROUND)
+    edtExecutor.transform(futureQrCode) {
+      model.qrCodeImage = it
+    }
   }
 }

@@ -15,12 +15,33 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 
-class AdbDevicePairingViewImpl(private val project: Project, private val model: AdbDevicePairingModel) : AdbDevicePairingView {
+@UiThread
+class AdbDevicePairingViewImpl(private val project: Project, override val model: AdbDevicePairingModel) : AdbDevicePairingView {
+  private val dlg: AdbDevicePairingDialog
+
+  init {
+    // Note: No need to remove the listener, as the Model and View have the same lifetime
+    model.addListener(ModelListener())
+    dlg = AdbDevicePairingDialog(project, true, DialogWrapper.IdeModalityType.PROJECT)
+  }
+
   override fun showDialog() {
-    val dlg = AdbDevicePairingDialog(project, true, DialogWrapper.IdeModalityType.PROJECT)
+    updateQrCodeImage(model.qrCodeImage)
     dlg.show()
+  }
+
+  private fun updateQrCodeImage(image: QrCodeImage?) {
+    image?.let { dlg.setQrCodeImage(it) }
+  }
+
+  @UiThread
+  private inner class ModelListener : AdbDevicePairingModelListener {
+    override fun qrCodeGenerated(newImage: QrCodeImage) {
+      updateQrCodeImage(newImage)
+    }
   }
 }

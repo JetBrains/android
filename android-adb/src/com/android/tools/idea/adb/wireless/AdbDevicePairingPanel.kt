@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.annotations.concurrency.UiThread
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.ui.Splitter
+import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.labels.LinkLabel
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBDimension
 import java.awt.BorderLayout
 import java.awt.Color
@@ -26,15 +31,17 @@ import javax.swing.GroupLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
+@UiThread
 internal class AdbDevicePairingPanel {
-  private var myRootComponent: JComponent? = null
-  val rootComponent: JComponent
-    get() {
-      if (myRootComponent == null) {
-        myRootComponent = createPanel()
-      }
-      return myRootComponent!!
-    }
+  val rootComponent: JComponent by lazy {
+    createPanel()
+  }
+  private var qrCodeImagePanel = QrCodePanel()
+
+  fun setQrCodeImage(image: QrCodeImage) {
+    qrCodeImagePanel.setQrCode(image)
+    qrCodeImagePanel.setLabels("Scan the QR Code from you mobile", "phone to begin pairing")
+  }
 
   private fun createPanel(): JComponent {
     val leftPanel = createQrCodePairingPanel()
@@ -68,15 +75,20 @@ internal class AdbDevicePairingPanel {
 
     val label2 = JBLabel("Pair new devices by scanning QR Code")
 
-    val bottomPanel = createQrCodePanel()
+    val qrCodePanel = createQrCodePanel()
+
+    val bottomPanel = createQrCodeBottomPanel()
 
     val horizontalGroup: GroupLayout.Group = layout.createParallelGroup()
       .addComponent(label1)
       .addComponent(label2)
+      .addComponent(qrCodePanel)
       .addComponent(bottomPanel)
     val verticalGroup: GroupLayout.Group = layout.createSequentialGroup()
       .addComponent(label1)
       .addComponent(label2)
+      .addGap(JBUIScale.scale(20))
+      .addComponent(qrCodePanel)
       .addComponent(bottomPanel)
 
     layout.autoCreateGaps = true
@@ -106,6 +118,7 @@ internal class AdbDevicePairingPanel {
     val verticalGroup: GroupLayout.Group = layout.createSequentialGroup()
       .addComponent(label1)
       .addComponent(label2)
+      .addGap(JBUIScale.scale(20))
       .addComponent(bottomPanel)
 
     layout.autoCreateGaps = true
@@ -122,10 +135,18 @@ internal class AdbDevicePairingPanel {
   }
 
   private fun createQrCodePanel(): JPanel {
-    val rootPanel = JPanel()
-    rootPanel.border = IdeBorderFactory.createBorder(Color.BLACK)
-    rootPanel.minimumSize = JBDimension(100, 300)
-    return rootPanel
+    qrCodeImagePanel = QrCodePanel()
+    return qrCodeImagePanel.component
+  }
+
+  private fun createQrCodeBottomPanel(): JComponent {
+    val panel = JPanel(BorderLayout())
+
+    val link = HyperlinkLabel("Where to find scanner on phone?")
+    //TODO: Update with actual link
+    link.setHyperlinkTarget("https://developer.android.com/docs")
+    panel.add(link, BorderLayout.SOUTH)
+    return panel
   }
 
   private fun createPairWithCodePanel(): JPanel {
