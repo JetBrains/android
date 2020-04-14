@@ -20,6 +20,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.largeFilesEditor.GuiUtils;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -32,6 +33,7 @@ import com.intellij.ui.tabs.JBTabsFactory;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.Locale;
@@ -55,6 +57,7 @@ public class DetailsViewContentView {
   @NotNull private String myErrorStackTrace = "";
 
   @VisibleForTesting final ConsoleViewImpl myLogsView;
+  @VisibleForTesting final AndroidDeviceInfoTableView myDeviceInfoTableView;
 
   public DetailsViewContentView(@NotNull Disposable parentDisposable,
                                 @NotNull Project project) {
@@ -69,7 +72,18 @@ public class DetailsViewContentView {
     logsTab.setText("Logs");
     tabs.addTab(logsTab);
 
-    myContentPanel.add(tabs.getComponent());
+    // Device info tab.
+    myDeviceInfoTableView = new AndroidDeviceInfoTableView();
+    TabInfo deviceInfoTab = new TabInfo(myDeviceInfoTableView.getComponent());
+    deviceInfoTab.setText("Device Info");
+    tabs.addTab(deviceInfoTab);
+
+    // Wrap JBTabs to draw a border on top.
+    JPanel tabsWrapper = new JPanel(new BorderLayout());
+    tabsWrapper.add(tabs.getComponent());
+    GuiUtils.setStandardLineBorderToPanel(tabsWrapper, 1, 0, 0, 0);
+
+    myContentPanel.add(tabsWrapper);
   }
 
   /**
@@ -83,6 +97,7 @@ public class DetailsViewContentView {
   public void setAndroidDevice(@NotNull AndroidDevice androidDevice) {
     myAndroidDevice = androidDevice;
     refreshTestResultLabel();
+    myDeviceInfoTableView.setAndroidDevice(androidDevice);
   }
 
   public void setAndroidTestCaseResult(@NotNull AndroidTestCaseResult result) {

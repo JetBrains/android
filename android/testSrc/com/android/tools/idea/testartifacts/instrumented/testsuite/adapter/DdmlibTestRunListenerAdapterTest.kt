@@ -29,7 +29,9 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ProjectRule
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
@@ -41,6 +43,8 @@ import org.mockito.MockitoAnnotations
  * Unit tests for [DdmlibTestRunListenerAdapter].
  */
 class DdmlibTestRunListenerAdapterTest {
+
+  @get:Rule val projectRule = ProjectRule()
 
   @Mock lateinit var mockDevice: IDevice
   @Mock lateinit var mockListener: AndroidTestResultListener
