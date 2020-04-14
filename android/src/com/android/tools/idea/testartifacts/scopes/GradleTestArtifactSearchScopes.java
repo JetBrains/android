@@ -24,6 +24,7 @@ import static com.intellij.openapi.roots.DependencyScope.TEST;
 
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -144,9 +145,24 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
         }
       }
       else {
-        // TODO consider generated source
         for (SourceProvider sourceProvider : androidModel.getTestSourceProviders(artifactName)) {
           roots.addAll(getAllSourceFolders(sourceProvider));
+        }
+
+        // Workaround for (b/151029089) and Gradle not providing generated test sources (b/153655585)
+        IdeBaseArtifact testArtifact;
+        switch (artifactName) {
+          case ARTIFACT_UNIT_TEST:
+            testArtifact = androidModel.getSelectedVariant().getUnitTestArtifact();
+            break;
+          case ARTIFACT_ANDROID_TEST:
+            testArtifact = androidModel.getSelectedVariant().getAndroidTestArtifact();
+            break;
+          default:
+            testArtifact = null;
+        }
+        if (testArtifact != null) {
+          roots.addAll(testArtifact.getGeneratedSourceFolders());
         }
       }
     }
