@@ -100,8 +100,13 @@ public class AndroidSdks {
     return ServiceManager.getService(AndroidSdks.class);
   }
 
+  public AndroidSdks(){
+    this(Jdks.getInstance(), IdeInfo.getInstance());
+  }
+
   @NonInjectable
-  public AndroidSdks(@NotNull Jdks jdks, @NotNull IdeInfo ideInfo) {
+  @VisibleForTesting
+  AndroidSdks(@NotNull Jdks jdks, @NotNull IdeInfo ideInfo) {
     myIdeInfo = ideInfo;
     myJdks = jdks;
   }
