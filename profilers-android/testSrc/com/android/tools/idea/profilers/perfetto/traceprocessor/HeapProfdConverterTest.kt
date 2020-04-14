@@ -87,6 +87,7 @@ class HeapProfdConverterTest {
     assertThat(instances[0].callStackDepth).isEqualTo(1)
     assertThat(instances[0].allocationCallStack).isNotNull()
     assertThat(instances[0].allocationCallStack!!.fullStack.getFrames(0).methodName).isEqualTo("Frame 1")
+    assertThat(instances[0].allocationCallStack!!.fullStack.getFrames(0).moduleName).isEqualTo("/data/local/fakeModule%%")
     // Frame 1
     assertThat(instances[1].name).isEqualTo("Frame 1")
     // Invalid link returns unknown
