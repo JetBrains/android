@@ -35,7 +35,6 @@ inline class SwingLength(val value: Float) {
   operator fun compareTo(rhs: SwingLength) = this.value.compareTo(rhs.value)
   fun toInt() = value.toInt()
   fun toDouble() = value.toDouble()
-  override fun toString() = value.toString()
 }
 
 fun scaledSwingLength(value: Float) = SwingLength(JBUIScale.scale(value))
@@ -43,5 +42,4 @@ operator fun Int.times(rhs: SwingLength) = rhs * this
 fun hypotenuse(x: SwingLength, y: SwingLength) = SwingLength(hypot(x.value, y.value))
 fun max(a: SwingLength, b: SwingLength) = SwingLength(max(a.value, b.value))
 fun min(a: SwingLength, b: SwingLength) = SwingLength(min(a.value, b.value))
-fun String.toSwingLength() = SwingLength(this.toFloat())
 fun interpolate(start: SwingLength, end: SwingLength, fraction: Float) = start + (end - start) * fraction

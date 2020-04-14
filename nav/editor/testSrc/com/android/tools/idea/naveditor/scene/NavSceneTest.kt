@@ -600,14 +600,6 @@ class NavSceneTest : NavTestCase() {
     val scene = surface.scene!!
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals(
-      "Clip,0,0,977,1028\n" +
-      "DrawRoundRectangle,450x450x77x128,FRAMES,1,0\n" +
-      "DrawActionHandle,527,514,0,0,FRAMES,0\n" +
-      "DrawScreenLabel,450,445,fragment1\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
 
     list.clear()
     model.configuration
@@ -615,28 +607,12 @@ class NavSceneTest : NavTestCase() {
     surface.sceneManager!!.update()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals(
-      "Clip,0,0,914,914\n" +
-      "DrawRoundRectangle,425x425x64x64,FRAMES,1,0\n" +
-      "DrawActionHandle,489,456,0,0,FRAMES,0\n" +
-      "DrawTruncatedText,3,fragment1,425x415x64x5,SUBDUED_TEXT,0,false\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
 
     list.clear()
     model.configuration.setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("tv_1080p", "Google"), false)
     surface.sceneManager!!.update()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals(
-      "Clip,0,0,1028,972\n" +
-      "DrawRoundRectangle,450x450x128x72,FRAMES,1,0\n" +
-      "DrawActionHandle,578,486,0,0,FRAMES,0\n" +
-      "DrawTruncatedText,3,fragment1,450x440x128x5,SUBDUED_TEXT,0,false\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
   }
 
   fun testGlobalActions() {
