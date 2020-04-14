@@ -83,13 +83,18 @@ public class NdkModuleNode extends AndroidViewModuleNode {
     Multimap<String, NativeArtifact> nativeLibraries = HashMultimap.create();
     for (NativeArtifact artifact : variant.getArtifacts()) {
       File file = artifact.getOutputFile();
-      if (file == null) continue;
-      String artifactOutputFileName = file.getName();
+      String artifactOutputFileName;
+      if (file == null) {
+        artifactOutputFileName = artifact.getTargetName();
+      }
+      else {
+        artifactOutputFileName = file.getName();
+      }
       nativeLibraries.put(artifactOutputFileName, artifact);
     }
     List<AbstractTreeNode> children = new ArrayList<>();
     for (String name : nativeLibraries.keySet()) {
-      String nativeLibraryType = "";
+      String nativeLibraryType;
       String nativeLibraryName = trimEnd(name, ".so");
       if (nativeLibraryName.length() < name.length()) {
         nativeLibraryType = "Shared Library";
@@ -98,6 +103,8 @@ public class NdkModuleNode extends AndroidViewModuleNode {
         nativeLibraryName = trimEnd(name, ".a");
         if (nativeLibraryName.length() < name.length()) {
           nativeLibraryType = "Static Library";
+        } else {
+          nativeLibraryType = "Object Library";
         }
       }
       nativeLibraryName = trimStart(nativeLibraryName, "lib");
