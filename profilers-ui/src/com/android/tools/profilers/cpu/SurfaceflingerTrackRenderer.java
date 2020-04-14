@@ -17,31 +17,36 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
-import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
+import com.android.tools.profilers.cpu.atrace.SurfaceflingerEvent;
 import java.awt.Color;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Track renderer for Atrace Surfaceflinger events.
+ * Track renderer for SysTrace Surfaceflinger events.
  */
-public class SurfaceflingerTrackRenderer implements TrackRenderer<StateChartModel<EventAction>, ProfilerTrackRendererType> {
+public class SurfaceflingerTrackRenderer implements TrackRenderer<SurfaceflingerTrackModel, ProfilerTrackRendererType> {
   @NotNull
   @Override
-  public JComponent render(@NotNull TrackModel<StateChartModel<EventAction>, ProfilerTrackRendererType> trackModel) {
+  public JComponent render(@NotNull TrackModel<SurfaceflingerTrackModel, ProfilerTrackRendererType> trackModel) {
     return new StateChart<>(trackModel.getDataModel(), new SurfaceflingerColorProvider());
   }
 
-  private static class SurfaceflingerColorProvider extends StateChartColorProvider<EventAction> {
+  private static class SurfaceflingerColorProvider extends StateChartColorProvider<SurfaceflingerEvent> {
     @NotNull
     @Override
-    public Color getColor(boolean isMouseOver, @NotNull EventAction value) {
-      return ProfilerColors.DEFAULT_STAGE_BACKGROUND;
+    public Color getColor(boolean isMouseOver, @NotNull SurfaceflingerEvent value) {
+      switch (value.getType()) {
+        case PROCESSING:
+          return ProfilerColors.SURFACEFLINGER_EVENT;
+        case IDLE: // fallthrough
+        default:
+          return ProfilerColors.DEFAULT_STAGE_BACKGROUND;
+      }
     }
   }
 }

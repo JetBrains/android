@@ -119,8 +119,10 @@ class CpuCaptureStageTest {
 
     val displayTrackGroup = stage.trackGroupModels[0]
     assertThat(displayTrackGroup.title).isEqualTo("Display")
-    assertThat(displayTrackGroup.size).isEqualTo(1)
+    assertThat(displayTrackGroup.size).isEqualTo(3)
     assertThat(displayTrackGroup[0].title).isEqualTo("Frames")
+    assertThat(displayTrackGroup[1].title).isEqualTo("Surfaceflinger")
+    assertThat(displayTrackGroup[2].title).isEqualTo("VSYNC")
 
     val coresTrackGroup = stage.trackGroupModels[1]
     assertThat(coresTrackGroup.title).isEqualTo("CPU cores (4)")
@@ -141,8 +143,10 @@ class CpuCaptureStageTest {
 
     val displayTrackGroup = stage.trackGroupModels[0]
     assertThat(displayTrackGroup.title).isEqualTo("Display")
-    assertThat(displayTrackGroup.size).isEqualTo(1)
+    assertThat(displayTrackGroup.size).isEqualTo(3)
     assertThat(displayTrackGroup[0].title).isEqualTo("Frames")
+    assertThat(displayTrackGroup[1].title).isEqualTo("Surfaceflinger")
+    assertThat(displayTrackGroup[2].title).isEqualTo("VSYNC")
 
     val coresTrackGroup = stage.trackGroupModels[1]
     assertThat(coresTrackGroup.title).isEqualTo("CPU cores (8)")
