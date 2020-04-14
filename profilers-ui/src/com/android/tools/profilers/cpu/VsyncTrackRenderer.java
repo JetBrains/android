@@ -15,33 +15,29 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.chart.statechart.StateChart;
-import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
-import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
-import java.awt.Color;
+import java.awt.BorderLayout;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Track renderer for Atrace VSYNC signals.
  */
-public class VsyncTrackRenderer implements TrackRenderer<StateChartModel<EventAction>, ProfilerTrackRendererType> {
+public class VsyncTrackRenderer implements TrackRenderer<VsyncTrackModel, ProfilerTrackRendererType> {
   @NotNull
   @Override
-  public JComponent render(@NotNull TrackModel<StateChartModel<EventAction>, ProfilerTrackRendererType> trackModel) {
-    return new StateChart<>(trackModel.getDataModel(), new VsyncColorProvider());
-  }
-
-  private static class VsyncColorProvider extends StateChartColorProvider<EventAction> {
-    @NotNull
-    @Override
-    public Color getColor(boolean isMouseOver, @NotNull EventAction value) {
-      return ProfilerColors.DEFAULT_STAGE_BACKGROUND;
-    }
+  public JComponent render(@NotNull TrackModel<VsyncTrackModel, ProfilerTrackRendererType> trackModel) {
+    VsyncTrackModel lineChartModel = trackModel.getDataModel();
+    LineChart lineChart = new LineChart(lineChartModel);
+    lineChart.configure(lineChartModel.getVsyncCounterSeries(), new LineConfig(ProfilerColors.VSYNC_COUNTER_VALUE).setStepped(true));
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(lineChart);
+    return panel;
   }
 }
