@@ -26,8 +26,6 @@ inline class SwingY(val value: Float) {
   operator fun compareTo(rhs: SwingY) = value.compareTo(rhs.value)
   fun toInt() = value.toInt()
   fun toDouble() = value.toDouble()
-  override fun toString() = value.toString()
 }
 
-fun String.toSwingY() = SwingY(this.toFloat())
 fun interpolate(start: SwingY, end: SwingY, fraction: Float) = start + (end - start) * fraction

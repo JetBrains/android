@@ -16,13 +16,10 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingRectangle
-import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
 import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
-import com.android.tools.idea.common.scene.draw.buildString
-import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_TEXT
@@ -47,13 +44,6 @@ private const val FONT_NAME = "Default"
  */
 class DrawNavScreen(private val rectangle: SwingRectangle,
                     private val image: RefinableImage) : DrawCommandBase() {
-
-  private constructor(tokens: Array<String>) : this(tokens[0].toSwingRect(), RefinableImage())
-
-  constructor(serialized: String) : this(parse(serialized, 1))
-
-  override fun serialize() = buildString(javaClass.simpleName, rectangle.toString())
-
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)
     g.clip(rectangle.value)
