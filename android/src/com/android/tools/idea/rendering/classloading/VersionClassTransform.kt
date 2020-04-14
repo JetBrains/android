@@ -23,7 +23,7 @@ import org.jetbrains.org.objectweb.asm.Opcodes
  */
 class VersionClassTransform(delegate: ClassVisitor,
                             private val maxVersion: Int,
-                            private val minVersion: Int) : ClassVisitor(Opcodes.ASM5, delegate) {
+                            private val minVersion: Int) : ClassVisitor(Opcodes.ASM7, delegate) {
   override fun visit(version: Int,
                      access: Int,
                      name: String,
