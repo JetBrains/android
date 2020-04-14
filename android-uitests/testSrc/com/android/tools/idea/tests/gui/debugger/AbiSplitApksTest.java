@@ -25,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ProcessRunningDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.util.Arrays;
@@ -132,15 +131,16 @@ public class AbiSplitApksTest extends DebuggerTestBase {
 
     Wait.seconds(30).expecting("Apk file to be generated.")
       .until(() -> expectedPathOfApk.exists());
-
-    ideFrame.closeProjectWithPrompt();
-    ProcessRunningDialogFixture.find(ideFrame).clickTerminate();
   }
 
   @After
   public void shutdownFakeAdb() throws Exception {
     AndroidDebugBridge.terminate();
     AndroidDebugBridge.disableFakeAdbServerMode();
-    fakeAdbServer.close();
+
+    try {
+      fakeAdbServer.awaitServerTermination(120, TimeUnit.SECONDS);
+    } catch (InterruptedException ignored) {
+    }
   }
  }
