@@ -337,29 +337,6 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull
   public AaptOptions getAaptOptions() {
     return new AaptOptions() {
-      @Nullable
-      @Override
-      public String getIgnoreAssets() {
-        return null;
-      }
-
-      @Nullable
-      @Override
-      public Collection<String> getNoCompress() {
-        return null;
-      }
-
-      @Override
-      public boolean getFailOnMissingConfigEntry() {
-        return false;
-      }
-
-      @NotNull
-      @Override
-      public List<String> getAdditionalParameters() {
-        return Collections.emptyList();
-      }
-
       @NotNull
       @Override
       public Namespacing getNamespacing() {
