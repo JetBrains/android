@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.EdtExecutorService
+import java.util.concurrent.Executor
 
 /**
  * The action to show the [AdbDevicePairingDialog] window.
  */
+@UiThread
 class PairDevicesUsingWiFiAction : AnAction() {
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -34,10 +39,13 @@ class PairDevicesUsingWiFiAction : AnAction() {
     }
     val project = event.project ?: return
 
-    val service = AdbDevicePairingServiceImpl()
+    val edtExecutor = EdtExecutorService.getInstance()
+    val taskExecutor: Executor = AppExecutorUtil.getAppExecutorService()
+    val randomProvider = RandomProvider()
+    val service = AdbDevicePairingServiceImpl(randomProvider, taskExecutor)
     val model = AdbDevicePairingModel()
     val view = AdbDevicePairingViewImpl(project, model)
-    val controller = AdbDevicePairingControllerImpl(project, service, view, model)
+    val controller = AdbDevicePairingControllerImpl(project, edtExecutor, service, view)
     controller.startPairingProcess()
   }
 

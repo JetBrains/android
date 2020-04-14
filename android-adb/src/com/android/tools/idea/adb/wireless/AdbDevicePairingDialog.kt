@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.ui.AbstractDialogWrapper
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.util.ui.JBDimension
 import javax.swing.JComponent
 
+@UiThread
 class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModalityType: DialogWrapper.IdeModalityType) {
   private val dialogWrapper = AbstractDialogWrapper.factory.createDialogWrapper(project, canBeParent, ideModalityType)
   private val pairingPanel = AdbDevicePairingPanel()
@@ -41,6 +43,10 @@ class AdbDevicePairingDialog(project: Project, canBeParent: Boolean, ideModality
 
   fun show() {
     dialogWrapper.show()
+  }
+
+  fun setQrCodeImage(qrCodeImage: QrCodeImage) {
+    pairingPanel.setQrCodeImage(qrCodeImage)
   }
 
   private val panelPreferredSize: JBDimension
