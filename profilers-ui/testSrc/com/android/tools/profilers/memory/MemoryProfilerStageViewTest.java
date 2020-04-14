@@ -89,6 +89,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
@@ -795,6 +796,23 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       view2.getAllocationSamplingRateLabel(),
       view2.getAllocationSamplingRateDropDown()
     );
+  }
+
+  @Test
+  public void testNavigationButtonNameIsCaptureInNewUi() {
+    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
+    Executor joiner = MoreExecutors.directExecutor();
+    // Load a fake capture
+    FakeCaptureObject fakeCapture =
+      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setStartTime(0).setEndTime(10).setInfoMessage("Foo").build();
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> fakeCapture)), joiner);
+    myStage.refreshSelectedHeap();
+    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
+    view.getLayout().setShowingCaptureUi(true);
+    TreeWalker walker = new TreeWalker(view.getToolbar());
+    JLabel label = (JLabel)walker.descendantStream().filter(c -> c instanceof JLabel).findFirst().get();
+    assertThat(label.getText()).startsWith(fakeCapture.getName());
   }
 
   @Test

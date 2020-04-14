@@ -410,7 +410,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       long startMicros = (long)getStage().getTimeline().getDataRange().getMin();
       long elapsedMicros = TimeUnit.NANOSECONDS.toMicros(capture.getStartTimeNs()) - startMicros;
       String timeString = TimeFormatter.getSimplifiedClockString(elapsedMicros);
-      myToolbar.add(makeNavigationButton("Heap dump: " + timeString, true, () -> {
+      myToolbar.add(makeNavigationButton(capture.getName() + ": " + timeString, true, () -> {
       }));
     }
   }
