@@ -37,7 +37,7 @@ public class NativeCallStackSet extends ClassifierSet {
     myCallstackDepth = callstackDepth;
     myStackFrame = stackFrame;
   }
-  
+
   public String getFileName() {
     return myStackFrame.getFileName();
   }
@@ -45,6 +45,9 @@ public class NativeCallStackSet extends ClassifierSet {
   public int getLineNumber() {
     return myStackFrame.getLineNumber();
   }
+
+  @NotNull
+  public String getModuleName() { return myStackFrame.getModuleName(); }
 
   @NotNull
   @Override

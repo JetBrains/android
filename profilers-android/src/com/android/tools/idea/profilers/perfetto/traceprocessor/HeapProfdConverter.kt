@@ -45,18 +45,19 @@ class HeapProfdConverter(private val abi: String,
    * The file name and line number are also populated if available.
    */
   private fun toBestAvailableStackFrame(rawFrame: StackFrame): Memory.AllocationStack.StackFrame {
+    val module = String(Base64.decode(rawFrame.module))
     val symbolizedFrame = symbolizer.symbolize(abi, Memory.NativeCallStack.NativeFrame.newBuilder()
-      .setModuleName(String(Base64.decode(rawFrame.module)))
+      .setModuleName(module)
       // +1 because the common symbolizer does -1 accounting for an offset heapprofd does not have.
       // see IntellijNativeFrameSymbolizer:getOffsetOfPreviousInstruction
       .setModuleOffset(rawFrame.relPc + 1)
       .build())
     if (symbolizedFrame.symbolName.startsWith("0x")) {
-      // Raw name is better than PC offset.
-      if (rawFrame.name.isNullOrBlank()) {
-        return UNKNOWN_FRAME
-      }
-      return Memory.AllocationStack.StackFrame.newBuilder().setMethodName(String(Base64.decode(rawFrame.name))).build()
+      val methodName = if (rawFrame.name.isNullOrBlank()) UNKNOWN_FRAME.methodName else String(Base64.decode(rawFrame.name))
+      return Memory.AllocationStack.StackFrame.newBuilder()
+        .setMethodName(methodName)
+        .setModuleName(module)
+        .build()
     }
     val file = File(symbolizedFrame.fileName).name
     val formattedName = "${symbolizedFrame.symbolName} (${file}:${symbolizedFrame.lineNumber})"
@@ -64,6 +65,7 @@ class HeapProfdConverter(private val abi: String,
       .setMethodName(formattedName)
       .setFileName(symbolizedFrame.fileName)
       .setLineNumber(symbolizedFrame.lineNumber)
+      .setModuleName(symbolizedFrame.moduleName)
       .build()
   }
 
