@@ -33,7 +33,6 @@ import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
-import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -93,16 +92,11 @@ public class GradleSpecificInitializer implements Runnable {
 
   private static final Logger LOG = Logger.getInstance(GradleSpecificInitializer.class);
 
-  // Id for TemplateProjectSettingsGroup
-  @NotNull public static final String TEMPLATE_PROJECT_SETTINGS_GROUP_ID = "TemplateProjectSettingsGroup";
-
   @Override
   public void run() {
     setUpNewProjectActions();
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
-    // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
-    replaceAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID, new AndroidTemplateProjectSettingsGroup());
     hideAction("Groovy.CheckResources.Rebuild");
     hideAction("Groovy.CheckResources.Make");
     setUpGradleViewToolbarActions();

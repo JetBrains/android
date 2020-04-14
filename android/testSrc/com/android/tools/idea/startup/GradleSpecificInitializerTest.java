@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.startup;
 
-import static com.android.tools.idea.startup.GradleSpecificInitializer.TEMPLATE_PROJECT_SETTINGS_GROUP_ID;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -29,14 +27,6 @@ import com.intellij.openapi.actionSystem.EmptyAction;
  * Tests for {@link GradleSpecificInitializer}
  */
 public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
-
-  /**
-   * Verify {@link AndroidTemplateProjectSettingsGroup} is used in ActionManager and in Welcome dialog (b/37141013)
-   */
-  public void testAndroidTemplateProjectSettingsGroup() {
-    AnAction action = ActionManager.getInstance().getAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID);
-    assertThat(action).isInstanceOf(AndroidTemplateProjectSettingsGroup.class);
-  }
 
   /**
    * Verify {@link AndroidTemplateProjectStructureAction} is used in Welcome dialog
