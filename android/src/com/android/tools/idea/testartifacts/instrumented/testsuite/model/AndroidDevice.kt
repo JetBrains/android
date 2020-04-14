@@ -25,11 +25,13 @@ import com.android.sdklib.AndroidVersion
  * @param name a display name of this device
  * @param deviceType a device type
  * @param version Android version of this device
+ * @param additionalInfo an additional device info (such as RAM, processor name) as a key value pair
  */
 data class AndroidDevice(val id: String,
                          val name: String,
                          val deviceType: AndroidDeviceType,
-                         val version: AndroidVersion)
+                         val version: AndroidVersion,
+                         val additionalInfo: MutableMap<String,String> = mutableMapOf())
 
 enum class AndroidDeviceType {
   // A virtual Android device running on a local machine.
