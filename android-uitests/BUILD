@@ -796,6 +796,7 @@ java_test(
 # sanity test
 java_test(
     name = "AbiSplitApksTest",
+    size = "enormous",
     data = COMMON_DATA + glob([
         "testData/debugger/BasicCmakeAppForUI/**",
     ]),
@@ -811,6 +812,7 @@ java_test(
 # sanity test
 java_test(
     name = "X86AbiSplitApksTest",
+    size = "enormous",
     data = COMMON_DATA + glob([
         "testData/debugger/BasicCmakeAppForUI/**",
     ]),

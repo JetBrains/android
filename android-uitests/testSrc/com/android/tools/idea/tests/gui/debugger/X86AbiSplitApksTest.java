@@ -21,12 +21,10 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ProcessRunningDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.util.Arrays;
@@ -134,15 +132,16 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
     File expectedPathOfApk = new File(projectRoot, "app/build/outputs/apk/debug/" + expectedApkName);
     Wait.seconds(30).expecting("Apk file to be generated.")
       .until(() -> expectedPathOfApk.exists());
-
-    ideFrame.closeProjectWithPrompt();
-    ProcessRunningDialogFixture.find(ideFrame).clickTerminate();
   }
 
   @After
   public void shutdownFakeAdb() throws Exception {
     AndroidDebugBridge.terminate();
     AndroidDebugBridge.disableFakeAdbServerMode();
-    fakeAdbServer.close();
+
+    try {
+      fakeAdbServer.awaitServerTermination(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    } catch (InterruptedException ignored) {
+    }
   }
 }
