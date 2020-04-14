@@ -19,7 +19,9 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.LoggingUtils;
 import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.idea.mlkit.TfliteModelFileEditor;
-import com.android.tools.idea.projectsystem.SourceProviders;
+import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvider;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -27,15 +29,24 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.impl.file.PsiDirectoryFactory;
+import com.intellij.refactoring.copy.CopyFilesOrDirectoriesHandler;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
+import java.awt.Component;
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import javax.swing.BoxLayout;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,24 +88,24 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
             return;
           }
 
-          SourceProviders sourceProviders = SourceProviders.getInstance(androidFacet);
-          Optional<VirtualFile> targetMlDir = sourceProviders.getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream()
-            .flatMap(sourceProvider -> sourceProvider.getMlModelsDirectories().stream())
-            .filter(mlDir -> VfsUtilCore.isAncestor(mlDir.getParent(), file, true))
-            .findFirst();
-          if (targetMlDir.isPresent()) {
+          MoveModelFileDialog moveModelFileDialog = new MoveModelFileDialog(module, file);
+          if (moveModelFileDialog.showAndGet()) {
+            VirtualFile mlVirtualDir = null;
             try {
-              file.move(this, targetMlDir.get());
-              LoggingUtils.logEvent(EventType.MODEL_IMPORT_FROM_MOVE_FILE_BUTTON, file);
+              mlVirtualDir = VfsUtil.createDirectoryIfMissing(moveModelFileDialog.getSelectedMlDirectoryPath());
+              if (mlVirtualDir != null) {
+                PsiDirectory mlPsiDir = PsiDirectoryFactory.getInstance(project).createDirectory(mlVirtualDir);
+                if (!CopyFilesOrDirectoriesHandler.checkFileExist(
+                  mlPsiDir, null, PsiManager.getInstance(project).findFile(file), file.getName(), "Move")) {
+                  file.move(this, mlVirtualDir);
+                  LoggingUtils.logEvent(EventType.MODEL_IMPORT_FROM_MOVE_FILE_BUTTON, file);
+                }
+              }
             }
             catch (IOException e) {
               Logger.getInstance(InNonMlFolderNotificationProvider.class)
-                .error(String.format("Error moving %s to %s.", file, targetMlDir.get()), e);
+                .error(String.format("Error moving %s to %s.", file, mlVirtualDir), e);
             }
-          }
-          else {
-            // TODO(b/153573353): handle the case where the ml folders are custom configured.
-            Logger.getInstance(InNonMlFolderNotificationProvider.class).error("Can't determine the target ml folder.");
           }
         }
       }));
@@ -106,5 +117,41 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
     }
 
     return null;
+  }
+
+  private static class MoveModelFileDialog extends DialogWrapper {
+    private final Module myModule;
+    private final VirtualFile myModelFile;
+    private ComboBox<NamedModuleTemplate> myComboBox;
+
+    private MoveModelFileDialog(@NotNull Module module, @NotNull VirtualFile modelFile) {
+      super(true);
+      myModule = module;
+      myModelFile = modelFile;
+      init();
+      setTitle("Move TensorFlow Lite Model File");
+    }
+
+    @Nullable
+    @Override
+    protected JComponent createCenterPanel() {
+      JPanel dialogPanel = new JPanel();
+      dialogPanel.setLayout(new BoxLayout(dialogPanel, BoxLayout.X_AXIS));
+      dialogPanel.setAlignmentY(Component.CENTER_ALIGNMENT);
+      dialogPanel.setBorder(JBUI.Borders.empty(10));
+      dialogPanel.add(new JBLabel("Move the model file to ml/ repository in "));
+
+      myComboBox =
+        new ModuleTemplateComboProvider(ProjectSystemUtil.getModuleSystem(myModule).getModuleTemplates(myModelFile))
+          .createComponent();
+      dialogPanel.add(myComboBox);
+
+      return dialogPanel;
+    }
+
+    @NotNull
+    private String getSelectedMlDirectoryPath() {
+      return ((NamedModuleTemplate)myComboBox.getSelectedItem()).getPaths().getMlModelsDirectories().get(0).getPath();
+    }
   }
 }
