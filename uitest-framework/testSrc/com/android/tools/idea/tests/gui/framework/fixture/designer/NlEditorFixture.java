@@ -73,7 +73,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerEditorPanel> {
   private final DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface> myDesignSurfaceFixture;
-  private NlPropertyInspectorFixture myPropertyFixture;
   private PropertiesPanelFixture<NelePropertyItem> myPropertiesFixture;
   private NlPaletteFixture myPaletteFixture;
   private WorkBenchLoadingPanelFixture myLoadingPanelFixture;
@@ -183,14 +182,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   @NotNull
   public NlViewActionToolbarFixture getComponentToolbar() {
     return NlViewActionToolbarFixture.create(this);
-  }
-
-  @NotNull
-  public NlPropertyInspectorFixture getPropertiesPanel() {
-    if (myPropertyFixture == null) {
-      myPropertyFixture = new NlPropertyInspectorFixture(robot(), NlPropertyInspectorFixture.create(robot()));
-    }
-    return myPropertyFixture;
   }
 
   @NotNull
