@@ -80,39 +80,42 @@ public class NdkModuleNode extends AndroidViewModuleNode {
     Collection<String> sourceFileExtensions = nativeAndroidProject.getFileExtensions().keySet();
 
     NdkVariant variant = ndkModel.getSelectedVariant();
-    Multimap<String, NativeArtifact> nativeLibraries = HashMultimap.create();
+    Multimap<NativeLibraryKey, NativeArtifact> nativeLibraries = HashMultimap.create();
     for (NativeArtifact artifact : variant.getArtifacts()) {
       File file = artifact.getOutputFile();
-      String artifactOutputFileName;
+      String nativeLibraryName;
+      NativeLibraryType nativeLibraryType;
       if (file == null) {
-        artifactOutputFileName = artifact.getTargetName();
+        nativeLibraryName = artifact.getTargetName();
+        nativeLibraryType = NativeLibraryType.OBJECT_LIBRARY;
       }
       else {
-        artifactOutputFileName = file.getName();
+        String name = file.getName();
+        if (name.endsWith(".so")) {
+          nativeLibraryName = trimEnd(name, ".so");
+          nativeLibraryType = NativeLibraryType.SHARED_LIBRARY;
+        }
+        else if (name.endsWith(".a")) {
+          nativeLibraryName = trimEnd(name, ".a");
+          nativeLibraryType = NativeLibraryType.STATIC_LIBRARY;
+        }
+        else {
+          nativeLibraryName = name;
+          nativeLibraryType = NativeLibraryType.OTHER;
+        }
+        nativeLibraryName = trimStart(nativeLibraryName, "lib");
       }
-      nativeLibraries.put(artifactOutputFileName, artifact);
+      nativeLibraries.put(new NativeLibraryKey(nativeLibraryName, nativeLibraryType), artifact);
     }
     List<AbstractTreeNode> children = new ArrayList<>();
-    for (String name : nativeLibraries.keySet()) {
-      String nativeLibraryType;
-      String nativeLibraryName = trimEnd(name, ".so");
-      if (nativeLibraryName.length() < name.length()) {
-        nativeLibraryType = "Shared Library";
-      }
-      else {
-        nativeLibraryName = trimEnd(name, ".a");
-        if (nativeLibraryName.length() < name.length()) {
-          nativeLibraryType = "Static Library";
-        } else {
-          nativeLibraryType = "Object Library";
-        }
-      }
-      nativeLibraryName = trimStart(nativeLibraryName, "lib");
+    for (NativeLibraryKey key : nativeLibraries.keySet()) {
+      String nativeLibraryType = key.getType().getDisplayText();
+      String nativeLibraryName = key.getName();
       LocalFileSystem fileSystem = LocalFileSystem.getInstance();
       VirtualFile buildFileFolder = fileSystem.findFileByIoFile(ndkModel.getRootDirPath());
       NdkLibraryEnhancedHeadersNode node =
-        new NdkLibraryEnhancedHeadersNode(buildFileFolder, project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(name),
-                                          new NativeIncludes(ndkModel::findSettings, nativeLibraries.get(name)), settings,
+        new NdkLibraryEnhancedHeadersNode(buildFileFolder, project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(key),
+                                          new NativeIncludes(ndkModel::findSettings, nativeLibraries.get(key)), settings,
                                           sourceFileExtensions);
       children.add(node);
     }
