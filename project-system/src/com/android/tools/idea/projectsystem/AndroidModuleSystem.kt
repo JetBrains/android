@@ -20,6 +20,9 @@ package com.android.tools.idea.projectsystem
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.Library
+import com.android.tools.idea.run.ApkProvisionException
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
@@ -177,6 +180,20 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    * this method may be optimized to avoid the costs of merged manifest computation.
    */
   fun getPackageName(): String?
+
+  /**
+   * Returns the best effort [ApplicationIdProvider] for the given module and [runConfiguration].
+   *
+   * Some project systems may be unable to retrieve the package name if no [runConfiguration] is provided or before
+   * the project has been successfully built. The returned [ApplicationIdProvider] will throw [ApkProvisionException]'s
+   * or return a name derived from incomplete configuration in this case.
+   */
+  // TODO(b/154038950): Move to AndroidProjectSystem when runConfiguration made non-nullable.
+  @JvmDefault
+  fun getApplicationIdProvider(runConfiguration: RunConfiguration?): ApplicationIdProvider = object : ApplicationIdProvider {
+    override fun getPackageName(): String = throw ApkProvisionException("The project system cannot obtain the package name at this moment.")
+    override fun getTestPackageName(): String? = null
+  }
 
   /**
    * Returns the [GlobalSearchScope] for a given module that should be used to resolving references.

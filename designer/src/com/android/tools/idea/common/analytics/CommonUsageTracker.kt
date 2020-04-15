@@ -18,7 +18,9 @@ package com.android.tools.idea.common.analytics
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.RenderResult
+import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.GradleApplicationIdProvider
 import com.android.tools.idea.run.NonGradleApplicationIdProvider
@@ -74,9 +76,12 @@ fun AndroidStudioEvent.Builder.setApplicationId(facet: AndroidFacet): AndroidStu
   return setRawProjectId(appId).setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
 }
 
-private fun getApplicationId(facet: AndroidFacet): String  = getApplicationIdProvider(facet).packageName
-
-private fun getApplicationIdProvider(facet: AndroidFacet): ApplicationIdProvider =
-  if (AndroidModel.get(facet) is AndroidModuleModel)
-    GradleApplicationIdProvider(facet)
-  else NonGradleApplicationIdProvider(facet)
+@Throws(ApkProvisionException::class)
+private fun getApplicationId(facet: AndroidFacet): String {
+  return try {
+    facet.getModuleSystem().getApplicationIdProvider(null).packageName
+  }
+  catch (e: ApkProvisionException) {
+    AndroidModel.get(facet)?.applicationId ?: throw e
+  }
+}
