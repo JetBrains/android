@@ -165,7 +165,7 @@ private class ComponentTreeLoaderImpl(
     resourceLookup?.updateConfiguration(tree.resources, stringTable)
     if (tree.hasRoot()) {
       try {
-        return loadView(tree.root, null)
+        return loadView(tree.root)
       }
       catch (interrupted: InterruptedException) {
         return null
@@ -174,7 +174,7 @@ private class ComponentTreeLoaderImpl(
     return null
   }
 
-  private fun loadView(view: LayoutInspectorProto.View, parent: ViewNode?): ViewNode {
+  private fun loadView(view: LayoutInspectorProto.View): ViewNode {
     if (isInterrupted) {
       throw InterruptedException()
     }
@@ -182,11 +182,8 @@ private class ComponentTreeLoaderImpl(
     val viewId = stringTable[view.viewId]
     val textValue = stringTable[view.textValue]
     val layout = stringTable[view.layout]
-    val x = view.x + (parent?.let { it.x - it.scrollX } ?: 0)
-    val y = view.y + (parent?.let { it.y - it.scrollY } ?: 0)
-    val node = ViewNode(view.drawId, qualifiedName, layout, x, y, view.scrollX, view.scrollY, view.width, view.height, viewId, textValue,
-                        view.layoutFlags)
-    view.subViewList.map { loadView(it, node) }.forEach {
+    val node = ViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, viewId, textValue, view.layoutFlags)
+    view.subViewList.map { loadView(it) }.forEach {
       node.children.add(it)
       it.parent = node
     }

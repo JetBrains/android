@@ -96,10 +96,10 @@ class LegacyPropertiesProvider : PropertiesProvider {
       }
       while (!stop)
 
-      view.x = (table.remove(SdkConstants.ANDROID_URI, ATTR_LEFT)?.value?.toInt() ?: 0) - (parent?.scrollX ?: 0)
-      view.y = (table.remove(SdkConstants.ANDROID_URI, ATTR_TOP)?.value?.toInt() ?: 0) - (parent?.scrollY ?: 0)
-      view.scrollX = table[SdkConstants.ANDROID_URI, ATTR_SCROLL_X]?.value?.toInt() ?: 0
-      view.scrollY = table[SdkConstants.ANDROID_URI, ATTR_SCROLL_Y]?.value?.toInt() ?: 0
+      view.x = (table.remove(SdkConstants.ANDROID_URI, ATTR_LEFT)?.value?.toInt() ?: 0) - (parent?.legacyScrollX ?: 0)
+      view.y = (table.remove(SdkConstants.ANDROID_URI, ATTR_TOP)?.value?.toInt() ?: 0) - (parent?.legacyScrollY ?: 0)
+      view.legacyScrollX = table[SdkConstants.ANDROID_URI, ATTR_SCROLL_X]?.value?.toInt() ?: 0
+      view.legacyScrollY = table[SdkConstants.ANDROID_URI, ATTR_SCROLL_Y]?.value?.toInt() ?: 0
       view.width = table.remove(SdkConstants.ANDROID_URI, SdkConstants.ATTR_WIDTH)?.value?.toInt() ?: 0
       view.height = table.remove(SdkConstants.ANDROID_URI, SdkConstants.ATTR_HEIGHT)?.value?.toInt() ?: 0
       view.textValue = table[SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT]?.value ?: ""

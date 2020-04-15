@@ -77,8 +77,6 @@ DONE.
     assertThat(root.y).isEqualTo(0)
     assertThat(root.width).isEqualTo(1080)
     assertThat(root.height).isEqualTo(1920)
-    assertThat(root.scrollX).isEqualTo(0)
-    assertThat(root.scrollY).isEqualTo(0)
     assertThat(root.viewId).isNull()
     assertThat(printTree(root).trim()).isEqualTo("""
           0x41673e3
@@ -101,8 +99,6 @@ DONE.
     assertThat(actionMenuView.y).isEqualTo(63)
     assertThat(actionMenuView.width).isEqualTo(148)
     assertThat(actionMenuView.height).isEqualTo(147)
-    assertThat(actionMenuView.scrollX).isEqualTo(0)
-    assertThat(actionMenuView.scrollY).isEqualTo(0)
     assertThat(actionMenuView.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=ac}")
   }
 
