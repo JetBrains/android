@@ -58,10 +58,8 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRA
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -79,12 +77,10 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
-import com.android.tools.idea.gradle.project.sync.idea.issues.InvalidGradleWrapperException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckException;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
-import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;

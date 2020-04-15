@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.annotations.SystemIndependent
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -50,5 +51,7 @@ class AndroidGradleTestsTest : GradleIntegrationTest {
 
   override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
+  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData"
+
   override fun getAdditionalRepos(): Collection<File> = listOf()
 }
