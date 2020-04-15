@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.mlkit;
 
-import static com.intellij.util.ui.StartupUiUtil.isUnderDarcula;
-
 import com.android.tools.idea.mlkit.lightpsi.ClassNames;
 import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.MlkitNames;
@@ -60,7 +58,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.JBUI.Borders;
 import com.intellij.util.ui.StartupUiUtil;
@@ -113,9 +110,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private final Project myProject;
   private final VirtualFile myFile;
   @Nullable private final Module myModule;
+  private final UiStyleTracker myUiStyleTracker;
   private final JBScrollPane myRootPane;
 
-  private boolean myUnderDarcula;
   @VisibleForTesting
   boolean myIsSampleCodeSectionVisible;
 
@@ -123,9 +120,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     myProject = project;
     myFile = file;
     myModule = ModuleUtilCore.findModuleForFile(file, project);
-    myUnderDarcula = isUnderDarcula();
+    myUiStyleTracker = new UiStyleTracker();
     myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
-
     myRootPane = new JBScrollPane(createContentPanel());
 
     project.getMessageBus().connect(project).subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
@@ -319,7 +315,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   private static JBTable createTable(@NotNull List<List<String>> rowDataList, @NotNull List<String> headerData) {
     MetadataTableModel tableModel = new MetadataTableModel(rowDataList, headerData);
-    JBTable table = new JBTable(new MetadataTableModel(rowDataList, headerData));
+    JBTable table = new JBTable(tableModel);
     table.setAlignmentX(Component.LEFT_ALIGNMENT);
     table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     table.setBackground(UIUtil.getTextFieldBackground());
@@ -583,10 +579,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   @Override
   public JComponent getComponent() {
-    if (myUnderDarcula != isUnderDarcula() || myIsSampleCodeSectionVisible != shouldDisplaySampleCodeSection()) {
-      myUnderDarcula = isUnderDarcula();
+    if (myUiStyleTracker.isUiStyleChanged() || myIsSampleCodeSectionVisible != shouldDisplaySampleCodeSection()) {
       myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
-      // Refresh UI
       myRootPane.setViewportView(createContentPanel());
     }
     return myRootPane;
@@ -792,6 +786,26 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       label.setHorizontalAlignment(SwingConstants.LEFT);
       label.setBorder(Borders.empty(4, 8));
       return label;
+    }
+  }
+
+  private static class UiStyleTracker {
+    private Font myLabelFont;
+    private boolean myUnderDarcula;
+
+    private UiStyleTracker() {
+      myLabelFont = StartupUiUtil.getLabelFont();
+      myUnderDarcula = StartupUiUtil.isUnderDarcula();
+    }
+
+    private boolean isUiStyleChanged() {
+      if (myLabelFont.equals(StartupUiUtil.getLabelFont()) && myUnderDarcula == StartupUiUtil.isUnderDarcula()) {
+        return false;
+      }
+
+      myLabelFont = StartupUiUtil.getLabelFont();
+      myUnderDarcula = StartupUiUtil.isUnderDarcula();
+      return true;
     }
   }
 }
