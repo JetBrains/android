@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -80,7 +81,7 @@ public class MlkitModuleService {
    */
   @NotNull
   public List<LightModelClass> getLightModelClassList() {
-    if (!MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule)) {
+    if (!MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule) || DumbService.isDumb(myModule.getProject())) {
       return Collections.emptyList();
     }
 
