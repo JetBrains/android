@@ -214,6 +214,12 @@ iml_module(
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.project.sync",
         },
+        "gradle.project.sync.snapshots": {
+            "data": ["//prebuilts/studio/sdk:ndk"],
+            # Mismatches from ProjectDumper (b/150709248), and sync errors/timeout (b/152778663)
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.snapshots",
+        },
         "gradle.project.model.NdkModuleModelTest.testVariantAbiNames": {
             "data": ["//prebuilts/studio/sdk:ndk"],
             # Sync error with cmake (b/152814925)
