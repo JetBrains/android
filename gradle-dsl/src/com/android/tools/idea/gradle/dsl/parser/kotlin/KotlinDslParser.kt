@@ -419,7 +419,6 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         is GradleDslExpressionMap -> {
           val name = GradleNameElement.create(unquoteString(index))
           val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
-          propertyElement.setUseAssignment(true)
           propertyElement.elementType = DERIVED
 
           parentBlock.setParsedElement(propertyElement)
