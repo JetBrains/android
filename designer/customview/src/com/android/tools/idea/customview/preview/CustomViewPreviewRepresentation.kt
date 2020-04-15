@@ -173,7 +173,6 @@ class CustomViewPreviewRepresentation(
       "com.android.tools.idea.customview.preview.customViewEditorNotificationProvider"))
 
   private val surface = NlDesignSurface.builder(project, this)
-    .setDefaultSurfaceState(DesignSurface.State.SPLIT)
     .setOnConfigurationChangedZoom(ZoomType.FIT)
     .setSceneManagerProvider { surface, model ->
       NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {

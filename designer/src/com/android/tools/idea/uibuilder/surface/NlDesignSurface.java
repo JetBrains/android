@@ -67,7 +67,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -150,7 +149,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private boolean myIsEditable = true;
     private SurfaceLayoutManager myLayoutManager;
     private NavigationHandler myNavigationHandler;
-    @NotNull private State myDefaultSurfaceState = State.FULL;
     private double myMinScale = DEFAULT_MIN_SCALE;
     private double myMaxScale = DEFAULT_MAX_SCALE;
     @NotNull private ZoomType myOnChangeZoom = ZoomType.FIT_INTO;
@@ -250,16 +248,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     /**
-     * Specify the default {@link State} of this {@link NlDesignSurface}, which will be set for newly created files or if the {@link State}
-     * is not overridden somewhere else (e.g. {@link State} saved before closing the file).
-     */
-    @NotNull
-    public Builder setDefaultSurfaceState(@NotNull State surfaceState) {
-      myDefaultSurfaceState = surfaceState;
-      return this;
-    }
-
-    /**
      * When the surface is clicked, it can delegate navigation related task to the given handler.
      * @param navigationHandler handles the navigation when the surface is clicked.
      */
@@ -335,7 +323,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  layoutManager,
                                  myActionManagerProvider,
                                  myInteractionHandlerProvider,
-                                 myDefaultSurfaceState,
                                  myNavigationHandler,
                                  myMinScale,
                                  myMaxScale,
@@ -404,13 +391,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull SurfaceLayoutManager layoutManager,
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
                           @NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider,
-                          @NotNull State defaultSurfaceState,
                           @Nullable NavigationHandler navigationHandler,
                           double minScale,
                           double maxScale,
                           @NotNull ZoomType onChangeZoom,
                           @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider) {
-    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceState, isEditable, onChangeZoom,
+    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable, onChangeZoom,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, layoutManager),
           actionHandlerProvider);
     myAnalyticsManager = new NlAnalyticsManager(this);

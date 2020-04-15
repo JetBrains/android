@@ -109,7 +109,7 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
     }
 
     return builder.setType(surface.getAnalyticsManager().getLayoutType())
-      .setMode(surface.getAnalyticsManager().getSurfaceMode())
+      .setMode(surface.getAnalyticsManager().getEditorMode())
       .setSurfaces(surface.getAnalyticsManager().getSurfaceType())
       .build();
   }

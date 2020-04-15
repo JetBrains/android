@@ -99,7 +99,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import javax.annotation.concurrent.GuardedBy;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
@@ -128,14 +127,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private static final Predicate<SceneManager> FILTER_DISPOSED_SCENE_MANAGERS =
     input -> input != null && FILTER_DISPOSED_MODELS.apply(input.getModel());
 
-  public enum State {
-    /** Surface is taking the total space of the design editor. */
-    FULL,
-    /** Surface is sharing the design editor horizontal space with a text editor. */
-    SPLIT,
-    /** Surface is deactivated and not being displayed. */
-    DEACTIVATED
-  }
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10;
 
   private final Project myProject;
@@ -199,11 +190,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private final DesignerAnalyticsManager myAnalyticsManager;
 
-  @NotNull
-  private State myState;
-  @Nullable
-  private StateChangeListener myStateChangeListener;
-
   private float myMaxFitIntoScale = Float.MAX_VALUE;
 
   private final Timer myRepaintTimer = new Timer(15, (actionEvent) -> {
@@ -218,11 +204,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
-    @NotNull State defaultSurfaceState,
     boolean isEditable,
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider) {
-    this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, defaultSurfaceState, isEditable, ZoomType.FIT_INTO,
+    this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, isEditable, ZoomType.FIT_INTO,
          positionableLayoutManagerProvider, designSurfaceActionHandlerProvider);
   }
 
@@ -231,7 +216,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
-    @NotNull State defaultSurfaceState,
     boolean isEditable,
     @NotNull ZoomType onChangedZoom,
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
@@ -247,7 +231,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     Disposer.register(parentDisposable, this);
     myProject = project;
     myIsEditable = isEditable;
-    myState = defaultSurfaceState;
 
     setOpaque(true);
     setFocusable(false);
@@ -669,26 +652,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public JComponent getPreferredFocusedComponent() {
     return getInteractionPane();
-  }
-
-  public final void setState(@NotNull State state) {
-    myState = state;
-    if (myStateChangeListener != null) {
-      myStateChangeListener.onStateChange(state);
-    }
-  }
-
-  @NotNull
-  public final State getState() {
-    return myState;
-  }
-
-  public void setStateChangeListener(@Nullable StateChangeListener stateChangeListener) {
-    myStateChangeListener = stateChangeListener;
-  }
-
-  public interface StateChangeListener {
-    void onStateChange(@NotNull State newState);
   }
 
   /**
