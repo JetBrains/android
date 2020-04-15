@@ -537,6 +537,7 @@ filegroup(
             "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
         ],
     }),
+    visibility = ["//tools/base/bazel:__pkg__"],
 )
 
 maven_repo(
