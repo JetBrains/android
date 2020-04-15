@@ -311,6 +311,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   @NotNull
   @Override
+  @SystemIndependent
   public String getTestDataDirectoryWorkspaceRelativePath() {
     return "tools/adt/idea/android/testData";
   }

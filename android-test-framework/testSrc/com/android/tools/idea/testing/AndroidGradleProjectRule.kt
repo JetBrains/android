@@ -42,7 +42,7 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
   @Ignore // TestCase used here for its internal logic, not to run tests. Tests will be run by the class that uses this rule.
   private inner class DelegateGradleTestCase : AndroidGradleTestCase() {
     val fixture: CodeInsightTestFixture get() = myFixture
-    override fun getTestDataDirectoryWorkspaceRelativePath(): String = workspaceRelativeTestDataPath
+    override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = workspaceRelativeTestDataPath
 
     fun invokeTasks(project: Project, vararg tasks: String): GradleInvocationResult {
       return AndroidGradleTestCase.invokeGradleTasks(project, *tasks)
