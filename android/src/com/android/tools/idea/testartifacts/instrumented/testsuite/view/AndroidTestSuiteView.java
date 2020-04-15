@@ -19,10 +19,13 @@ import static com.android.tools.idea.testartifacts.instrumented.testsuite.api.An
 
 import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.UiThread;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener;
 import com.google.common.annotations.VisibleForTesting;
@@ -32,14 +35,17 @@ import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.icons.AllIcons;
 import com.intellij.largeFilesEditor.GuiUtils;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.progress.util.ColorProgressBar;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.AppUIUtil;
+import com.intellij.ui.SortedComboBoxModel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.paint.LinePainter2D;
 import com.intellij.ui.scale.JBUIScale;
@@ -48,6 +54,11 @@ import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.Comparator;
+import java.util.Locale;
+import java.util.Objects;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -62,11 +73,88 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListener, AndroidTestResultsTableListener,
                                              AndroidTestSuiteDetailsViewListener {
-
   /**
    * Minimum height of swing components in ThreeComponentsSplitter container in pixel.
    */
   private static final int MIN_COMPONENT_HEIGHT_IN_SPLITTER = 48;
+
+  /**
+   * A ComboBox item to be used in API level filter ComboBox.
+   */
+  @VisibleForTesting
+  static final class ApiLevelFilterComboBoxItem implements Comparable<ApiLevelFilterComboBoxItem> {
+    @NotNull final Comparator<AndroidVersion> myComparator = Comparator.nullsFirst(Comparator.naturalOrder());
+    @Nullable final AndroidVersion myVersion;
+
+    /**
+     * @param androidVersion an Android version to be shown or null for "All API versions".
+     */
+    ApiLevelFilterComboBoxItem(@Nullable AndroidVersion androidVersion) {
+      myVersion = androidVersion;
+    }
+
+    @Override
+    public int compareTo(@NotNull ApiLevelFilterComboBoxItem o) {
+      return Objects.compare(myVersion, o.myVersion, myComparator);
+    }
+
+    @Override
+    public String toString() {
+      if (myVersion == null) {
+        return "All API levels";
+      } else {
+        return String.format(Locale.US, "API %s", myVersion.getApiString());
+      }
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(myVersion);
+    }
+  }
+
+  /**
+   * A ComboBox item to be used in device filter ComboBox.
+   */
+  @VisibleForTesting
+  static final class DeviceFilterComboBoxItem implements Comparable<DeviceFilterComboBoxItem> {
+    @NotNull final Comparator<String> myComparator = Comparator.nullsFirst(Comparator.naturalOrder());
+    @Nullable final AndroidDevice myDevice;
+
+    /**
+     * @param androidDevice an Android device to be shown or null for "All devices".
+     */
+    DeviceFilterComboBoxItem(@Nullable AndroidDevice androidDevice) {
+      myDevice = androidDevice;
+    }
+
+    @Override
+    public int compareTo(@NotNull DeviceFilterComboBoxItem o) {
+      String lhs = null;
+      if (myDevice != null) {
+        lhs = myDevice.getName();
+      }
+      String rhs = null;
+      if (o.myDevice != null) {
+        rhs = o.myDevice.getName();
+      }
+      return Objects.compare(lhs, rhs, myComparator);
+    }
+
+    @Override
+    public String toString() {
+      if (myDevice == null) {
+        return "All devices";
+      } else {
+        return myDevice.getName();
+      }
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(myDevice);
+    }
+  }
 
   // Those properties are initialized by IntelliJ form editor before the constructor using reflection.
   private JPanel myRootPanel;
@@ -75,7 +163,18 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private JBLabel myStatusBreakdownText;
   private JPanel myTableViewContainer;
   private JPanel myStatusPanel;
-  private MyStatusPanelItemSeparator mySeparator;
+  private MyItemSeparator myStatusSeparator;
+  private JPanel myFilterPanel;
+  private CommonToggleButton myAllToggleButton;
+  private CommonToggleButton myFailedToggleButton;
+  private MyItemSeparator myFilterSeparator;
+  private ComboBox<DeviceFilterComboBoxItem> myDeviceFilterComboBox;
+  @VisibleForTesting SortedComboBoxModel<DeviceFilterComboBoxItem> myDeviceFilterComboBoxModel;
+  private MyItemSeparator myDeviceFilterSeparator;
+  private ComboBox<ApiLevelFilterComboBoxItem> myApiLevelFilterComboBox;
+  @VisibleForTesting SortedComboBoxModel<ApiLevelFilterComboBoxItem> myApiLevelFilterComboBoxModel;
+  @VisibleForTesting CommonToggleButton myPassedToggleButton;
+  private CommonToggleButton myInProgressToggleButton;
 
   private final ThreeComponentsSplitter myComponentsSplitter;
   private final AndroidTestResultsTableView myTable;
@@ -90,7 +189,30 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
    * This method is invoked before the constructor by IntelliJ form editor runtime.
    */
   private void createUIComponents() {
-    mySeparator = new MyStatusPanelItemSeparator();
+    myStatusSeparator = new MyItemSeparator();
+    myFilterSeparator = new MyItemSeparator();
+    myDeviceFilterSeparator = new MyItemSeparator();
+    myAllToggleButton = new CommonToggleButton("All", null);
+    myAllToggleButton.setBorder(JBUI.Borders.empty(10));
+    myAllToggleButton.setSelected(true);
+    myFailedToggleButton = new CommonToggleButton(null, AllIcons.RunConfigurations.TestFailed);
+    myFailedToggleButton.setBorder(JBUI.Borders.empty(10));
+    myPassedToggleButton = new CommonToggleButton(null, AllIcons.RunConfigurations.TestPassed);
+    myPassedToggleButton.setBorder(JBUI.Borders.empty(10));
+    myInProgressToggleButton = new CommonToggleButton(null, AllIcons.Process.Step_1);
+    myInProgressToggleButton.setBorder(JBUI.Borders.empty(10));
+
+    myDeviceFilterComboBoxModel = new SortedComboBoxModel<>(Comparator.naturalOrder());
+    DeviceFilterComboBoxItem allDevicesItem = new DeviceFilterComboBoxItem(null);
+    myDeviceFilterComboBoxModel.add(allDevicesItem);
+    myDeviceFilterComboBoxModel.setSelectedItem(allDevicesItem);
+    myDeviceFilterComboBox = new ComboBox<>(myDeviceFilterComboBoxModel);
+
+    myApiLevelFilterComboBoxModel = new SortedComboBoxModel<>(Comparator.naturalOrder());
+    ApiLevelFilterComboBoxItem allApiLevelsItem = new ApiLevelFilterComboBoxItem(null);
+    myApiLevelFilterComboBoxModel.add(allApiLevelsItem);
+    myApiLevelFilterComboBoxModel.setSelectedItem(allApiLevelsItem);
+    myApiLevelFilterComboBox = new ComboBox<>(myApiLevelFilterComboBoxModel);
   }
 
   /**
@@ -102,9 +224,84 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @UiThread
   public AndroidTestSuiteView(@NotNull Disposable parentDisposable, @NotNull Project project) {
     GuiUtils.setStandardLineBorderToPanel(myStatusPanel, 0, 0, 1, 0);
-    GuiUtils.setStandardLineBorderToPanel(myTableViewContainer, 0, 0, 1, 0);
+    GuiUtils.setStandardLineBorderToPanel(myFilterPanel, 0, 0, 1, 0);
+
+    myAllToggleButton.addItemListener(new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+          myFailedToggleButton.setSelected(false);
+          myPassedToggleButton.setSelected(false);
+          myInProgressToggleButton.setSelected(false);
+        }
+      }
+    });
+    ItemListener resultFilterButtonItemListener = new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+          myAllToggleButton.setSelected(false);
+        } else if (e.getStateChange() == ItemEvent.DESELECTED) {
+          // If all test result filters are deselected, select "All" toggle button automatically.
+          if (!myFailedToggleButton.isSelected()
+              && !myPassedToggleButton.isSelected()
+              && !myInProgressToggleButton.isSelected()) {
+            myAllToggleButton.setSelected(true);
+          }
+        }
+      }
+    };
+    myFailedToggleButton.addItemListener(resultFilterButtonItemListener);
+    myPassedToggleButton.addItemListener(resultFilterButtonItemListener);
+    myInProgressToggleButton.addItemListener(resultFilterButtonItemListener);
 
     myTable = new AndroidTestResultsTableView(this);
+    myTable.setRowFilter(testResults -> {
+      if (myAllToggleButton.isSelected()) {
+        return true;
+      }
+      if (myFailedToggleButton.isSelected()
+          && testResults.getTestResultSummary() == AndroidTestCaseResult.FAILED) {
+        return true;
+      }
+      if (myPassedToggleButton.isSelected()
+          && testResults.getTestResultSummary() == AndroidTestCaseResult.PASSED) {
+        return true;
+      }
+      if (myInProgressToggleButton.isSelected()
+          && testResults.getTestResultSummary() == AndroidTestCaseResult.IN_PROGRESS) {
+        return true;
+      }
+      return false;
+    });
+    myTable.setColumnFilter(androidDevice -> {
+      DeviceFilterComboBoxItem deviceItem = myDeviceFilterComboBoxModel.getSelectedItem();
+      if (deviceItem != null && deviceItem.myDevice != null) {
+        if (!androidDevice.getId().equals(deviceItem.myDevice.getId())) {
+          return false;
+        }
+      }
+
+      ApiLevelFilterComboBoxItem apiItem = myApiLevelFilterComboBoxModel.getSelectedItem();
+      if (apiItem != null && apiItem.myVersion != null) {
+        if (!androidDevice.getVersion().equals(apiItem.myVersion)) {
+          return false;
+        }
+      }
+      return true;
+    });
+    ItemListener tableUpdater = new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent e) {
+        myTable.refreshTable();
+      }
+    };
+    myAllToggleButton.addItemListener(tableUpdater);
+    myFailedToggleButton.addItemListener(tableUpdater);
+    myPassedToggleButton.addItemListener(tableUpdater);
+    myInProgressToggleButton.addItemListener(tableUpdater);
+    myDeviceFilterComboBox.addItemListener(tableUpdater);
+    myApiLevelFilterComboBox.addItemListener(tableUpdater);
     myTableViewContainer.add(myTable.getComponent());
 
     myComponentsSplitter = new ThreeComponentsSplitter(/*vertical=*/true,
@@ -150,6 +347,16 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @AnyThread
   public void onTestSuiteScheduled(@NotNull AndroidDevice device) {
     AppUIUtil.invokeOnEdt(() -> {
+      DeviceFilterComboBoxItem deviceFilterItem = new DeviceFilterComboBoxItem(device);
+      if (myDeviceFilterComboBoxModel.indexOf(deviceFilterItem) == -1) {
+        myDeviceFilterComboBoxModel.add(deviceFilterItem);
+      }
+
+      ApiLevelFilterComboBoxItem apiLevelFilterItem = new ApiLevelFilterComboBoxItem(device.getVersion());
+      if (myApiLevelFilterComboBoxModel.indexOf(apiLevelFilterItem) == -1) {
+        myApiLevelFilterComboBoxModel.add(apiLevelFilterItem);
+      }
+
       myTable.addDevice(device);
       myDetailsView.addDevice(device);
     });
@@ -323,7 +530,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     return myDetailsView;
   }
 
-  public final class MyStatusPanelItemSeparator extends JComponent {
+  public final class MyItemSeparator extends JComponent {
     @Override
     public Dimension getPreferredSize() {
       int gap = JBUIScale.scale(2);

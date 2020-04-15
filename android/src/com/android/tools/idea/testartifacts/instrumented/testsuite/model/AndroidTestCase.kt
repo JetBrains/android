@@ -36,14 +36,14 @@ data class AndroidTestCase(val id: String,
  */
 enum class AndroidTestCaseResult(val isTerminalState: Boolean) {
   /**
-   * A test case is passed.
-   */
-  PASSED(true),
-
-  /**
    * A test case is failed.
    */
   FAILED(true),
+
+  /**
+   * A test case is passed.
+   */
+  PASSED(true),
 
   /**
    * A test case is skipped by test runner.
@@ -51,12 +51,12 @@ enum class AndroidTestCaseResult(val isTerminalState: Boolean) {
   SKIPPED(true),
 
   /**
-   * A test case is scheduled but not started yet.
-   */
-  SCHEDULED(false),
-
-  /**
    * A test case is in progress.
    */
-  IN_PROGRESS(false)
+  IN_PROGRESS(false),
+
+  /**
+   * A test case is scheduled but not started yet.
+   */
+  SCHEDULED(false)
 }
