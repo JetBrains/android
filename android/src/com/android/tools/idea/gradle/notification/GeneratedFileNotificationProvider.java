@@ -110,11 +110,5 @@ public final class GeneratedFileNotificationProvider extends EditorNotifications
       super();
       setText(text);
     }
-
-    @VisibleForTesting
-    @Nullable
-    String getText() {
-      return myLabel.getText();
-    }
   }
 }
