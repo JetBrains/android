@@ -55,7 +55,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI.Borders;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
@@ -100,8 +99,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     ImmutableList.of("Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max");
   private static final int MAX_LINE_LENGTH = 100;
 
-  private final Module myModule;
+  private final Project myProject;
   private final VirtualFile myFile;
+  @Nullable private final Module myModule;
   private final JBScrollPane myRootPane;
 
   private boolean myUnderDarcula;
@@ -109,6 +109,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   boolean myIsSampleCodeSectionVisible;
 
   public TfliteModelFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
+    myProject = project;
     myFile = file;
     myModule = ModuleUtilCore.findModuleForFile(file, project);
     myUnderDarcula = StartupUiUtil.isUnderDarcula();
@@ -116,8 +117,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
     myRootPane = new JBScrollPane(createContentPanel());
 
-    MessageBusConnection connection = myModule.getMessageBus().connect(myModule);
-    connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
+    project.getMessageBus().connect(project).subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
       public void after(@NotNull List<? extends VFileEvent> events) {
         for (VFileEvent event : events) {
@@ -143,8 +143,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       } else {
         contentPanel.add(createNoMetadataSection());
       }
-      if (myIsSampleCodeSectionVisible) {
-        contentPanel.add(createSampleCodeSection(modelInfo));
+      if (myModule != null && myIsSampleCodeSectionVisible) {
+        PsiClass modelClass = MlkitModuleService.getInstance(myModule)
+          .getOrCreateLightModelClass(
+            new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
+        if (modelClass != null) {
+          contentPanel.add(createSampleCodeSection(modelClass, modelInfo));
+        }
       }
     }
     catch (FileTooBigException e) {
@@ -247,7 +252,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private JComponent createSampleCodeSection(@NotNull ModelInfo modelInfo) {
+  private JComponent createSampleCodeSection(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
     JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
 
     JComponent header = createSectionHeader("Sample Code");
@@ -258,11 +263,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     sectionPanel.add(codeEditorContainer);
 
     // TODO(b/153084173): implement Kotlin/Java code snippet switcher.
-    PsiClass modelClass = MlkitModuleService.getInstance(myModule)
-      .getOrCreateLightModelClass(
-        new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
     Color bgColor = new JBColor(ColorUtil.fromHex("#F1F3F4"), ColorUtil.fromHex("#2B2B2B"));
-    EditorTextField codeEditor = new EditorTextField(buildSampleCode(modelClass, modelInfo), myModule.getProject(), JavaFileType.INSTANCE);
+    EditorTextField codeEditor = new EditorTextField(buildSampleCode(modelClass, modelInfo), myProject, JavaFileType.INSTANCE);
     codeEditor.setAlignmentX(Component.LEFT_ALIGNMENT);
     codeEditor.setBackground(bgColor);
     codeEditor.setBorder(Borders.customLine(bgColor, 12));
@@ -534,7 +536,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   private boolean shouldDisplaySampleCodeSection() {
-    return MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule) && MlkitUtils.isModelFileInMlModelsFolder(myModule, myFile);
+    return myModule != null &&
+           MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule) &&
+           MlkitUtils.isModelFileInMlModelsFolder(myModule, myFile);
   }
 
   @NotNull
