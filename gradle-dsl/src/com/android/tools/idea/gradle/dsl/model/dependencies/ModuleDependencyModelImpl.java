@@ -121,14 +121,14 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel path() {
-    return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).addTransform(new MapMethodTransform(PROJECT, PATH))
+    return GradlePropertyModelBuilder.create(myDslElement).addTransform(new MapMethodTransform(PROJECT, PATH))
                                      .addTransform(new SingleArgumentMethodTransform(PROJECT)).buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel configuration() {
-    return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).addTransform(new SingleArgToMapTransform(PATH, CONFIGURATION))
+    return GradlePropertyModelBuilder.create(myDslElement).addTransform(new SingleArgToMapTransform(PATH, CONFIGURATION))
                                      .addTransform(new MapMethodTransform(PROJECT, CONFIGURATION)).buildResolved();
   }
 }
