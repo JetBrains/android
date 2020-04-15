@@ -68,6 +68,12 @@ class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor
       try {
         val toDir: VirtualFile? = VfsUtil.createDirectoryIfMissing(directoryPath)
         if (fromFile != null && toDir != null) {
+          // Delete existing file if it exists.
+          val existingFile = toDir.findChild(fromFile.name)
+          if (existingFile != null && existingFile.exists()) {
+            existingFile.delete(this);
+          }
+
           val virtualFile = fromFile.copy(this, toDir, fromFile.name)
           val fileEditorManager: FileEditorManager = FileEditorManager.getInstance(module.project)
           fileEditorManager.openFile(virtualFile, true)

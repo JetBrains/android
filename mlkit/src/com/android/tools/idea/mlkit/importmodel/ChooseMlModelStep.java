@@ -92,15 +92,18 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
       myFlavorBox.addItem(namedModuleTemplate);
     }
 
+    myBindings.bindTwoWay(new TextProperty(myModelLocation.getTextField()), model.sourceLocation);
+    myBindings.bindTwoWay(new SelectedProperty(myAutoCheckBox), model.autoUpdateBuildFile);
+
     myInfoTextArea.setBackground(null);
     myInfoTextArea.setForeground(JBColor.DARK_GRAY);
 
     String text = getInformationText();
     myInfoTextArea.setText(text);
-    myAutoCheckBox.setVisible(!text.isEmpty());
-
-    myBindings.bindTwoWay(new TextProperty(myModelLocation.getTextField()), model.sourceLocation);
-    myBindings.bindTwoWay(new SelectedProperty(myAutoCheckBox), model.autoUpdateBuildFile);
+    if (text.isEmpty()) {
+      myAutoCheckBox.setVisible(false);
+      model.autoUpdateBuildFile.set(false);
+    }
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     Expression<File> locationFile = model.sourceLocation.transform(File::new);
@@ -155,6 +158,11 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     }
     else {
       VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
+      VirtualFile existingFile = findExistingModelFile(file.getName());
+      if (existingFile != null && existingFile.exists()) {
+        return new Validator.Result(Validator.Severity.WARNING, "File already exists and will be override.");
+      }
+
       if (virtualFile != null && SingleRootFileViewProvider.isTooLargeForContentLoading(virtualFile)) {
         String message = isTooLargeForTfliteValidation(file)
           ? "This file is too large so TensorFlow Lite validator is skipped."
@@ -163,6 +171,17 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
       }
     }
     return Validator.Result.OK;
+  }
+
+  @Nullable
+  private VirtualFile findExistingModelFile(@NotNull String fileName) {
+    VirtualFile directory =
+      VfsUtil.findFileByIoFile(((NamedModuleTemplate)myFlavorBox.getSelectedItem()).component2().getMlModelsDirectories().get(0), false);
+    if (directory == null || !directory.exists()) {
+      return null;
+    }
+
+    return directory.findChild(fileName);
   }
 
   private static boolean isTooLargeForTfliteValidation(@NotNull File file) {
