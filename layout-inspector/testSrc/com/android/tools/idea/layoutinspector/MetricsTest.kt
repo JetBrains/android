@@ -21,13 +21,9 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_SUCCESS
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Presentation
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import java.util.concurrent.TimeUnit
 
 class MetricsTest {
@@ -41,13 +37,8 @@ class MetricsTest {
 
   @Test
   fun testAttachSuccessViaSelectProcess() {
-    val event = mock(AnActionEvent::class.java)
-    val presentation = Presentation()
-    `when`(event.presentation).thenReturn(presentation)
-
     SelectProcessAction.ConnectAction(DEFAULT_PROCESS, DEFAULT_STREAM,
-                                      inspectorRule.inspectorClient).setSelected(event, true)
-
+                                      inspectorRule.inspectorClient).connect().get()
     inspectorRule.advanceTime(110, TimeUnit.MILLISECONDS)
     inspectorRule.waitForStart()
 
@@ -73,12 +64,8 @@ class MetricsTest {
   @Test
   fun testAttachFailViaSelectProcess() {
     inspectorRule.shouldConnectSuccessfully = false
-    val event = mock(AnActionEvent::class.java)
-    val presentation = Presentation()
-    `when`(event.presentation).thenReturn(presentation)
 
-    SelectProcessAction.ConnectAction(DEFAULT_PROCESS, DEFAULT_STREAM, inspectorRule.inspectorClient).setSelected(event, true)
-
+    SelectProcessAction.ConnectAction(DEFAULT_PROCESS, DEFAULT_STREAM, inspectorRule.inspectorClient).connect().get()
     inspectorRule.advanceTime(1100, TimeUnit.MILLISECONDS)
     inspectorRule.waitForStart()
 

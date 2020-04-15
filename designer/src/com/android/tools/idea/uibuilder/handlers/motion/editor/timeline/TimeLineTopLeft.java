@@ -26,6 +26,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 /**
  * This show the main control buttons in the top left hand corner of the timeline panel.
@@ -35,7 +36,7 @@ public class TimeLineTopLeft extends JPanel {
   JButton mForward = MEUI.createToolBarButton(MEIcons.FORWARD,"Jump to the end of the Transition");
   JButton mBackward =  MEUI.createToolBarButton(MEIcons.BACKWARD, "Jump to the start of the Transition");
   JButton mPlay =  MEUI.createToolBarButton(MEIcons.PLAY,"Play the transition");
-  JButton mSlow =  MEUI.createToolBarButton(MEIcons.SLOW_MOTION, "x1");
+  JButton mSlow =  MEUI.createToolBarButton(MEIcons.SMALL_DOWN_ARROW, "x1");
   JButton mLoop = MEUI.createToolBarButton(MEIcons.LOOP_FORWARD,"Cycle between forward, backward, and yoyo");
   JButton[] buttons = {mLoop, mBackward, mPlay, mForward, mSlow};
   Icon[]loop_cycle = {MEIcons.LOOP_FORWARD, MEIcons.LOOP_BACKWARD, MEIcons.LOOP_YOYO };
@@ -68,6 +69,7 @@ public class TimeLineTopLeft extends JPanel {
 
   TimeLineTopLeft() {
     super(new GridBagLayout());
+    mSlow.setText("1.0x");
     setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, MEUI.ourBorder));
     setBackground(MEUI.ourSecondaryPanelBackground);
     Dimension size = new Dimension(MEUI.scale(13), MEUI.scale(13));
@@ -81,6 +83,17 @@ public class TimeLineTopLeft extends JPanel {
       JButton button = buttons[i];
       button.setBackground(this.getBackground());
       TimelineCommands cmd = TimelineCommands.values()[i];
+      if (cmd == TimelineCommands.SPEED) {
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        button.setForeground(MEUI.ourTextColor);
+        button.setHorizontalTextPosition(SwingConstants.LEFT);
+        button.setFont(MEUI.getToolBarButtonSmallFont());
+      }
+      else {
+        gbc.weightx = 0.05;
+        gbc.fill = GridBagConstraints.NONE;
+      }
       button.setPreferredSize(size);
       add(button, gbc);
       gbc.gridx++;

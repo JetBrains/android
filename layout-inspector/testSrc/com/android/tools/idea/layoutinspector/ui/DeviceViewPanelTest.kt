@@ -33,6 +33,7 @@ import com.intellij.testFramework.RunsInEdt
 import junit.framework.TestCase
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -135,6 +136,7 @@ class DeviceViewPanelTest {
   }
 }
 
+@Ignore("The client is not correctly setup for this test. Delay this test until 4.1.")
 @RunsInEdt
 class DeviceViewPanelLegacyTest {
   @get:Rule

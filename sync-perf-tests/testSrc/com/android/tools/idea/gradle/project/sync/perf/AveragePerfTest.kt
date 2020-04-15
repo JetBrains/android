@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.perf;
+package com.android.tools.idea.gradle.project.sync.perf
 
-public class Base100SVSPerfTest extends Base100FullPerfTest {
-  @Override
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return true;
-  }
+import com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths.SYNC_AVERAGE_PERF_PROJECT
+
+class AveragePerfTest(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?) :
+  AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion) {
+  override val relativePath: String = SYNC_AVERAGE_PERF_PROJECT
+  override val projectName: String = "Average"
 }

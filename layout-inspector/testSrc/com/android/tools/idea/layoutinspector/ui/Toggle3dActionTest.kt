@@ -81,5 +81,4 @@ class Toggle3dActionTest {
     verify(presentation).isEnabled = false
     verify(presentation).text = "Rotation not available for devices below API 29"
   }
-
 }

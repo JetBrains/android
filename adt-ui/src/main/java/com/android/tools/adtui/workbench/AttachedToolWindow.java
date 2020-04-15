@@ -446,12 +446,21 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     attachedSide.add(new TogglePropertyTypeAction(PropertyType.LEFT, "Left"));
     attachedSide.add(new ToggleOppositePropertyTypeAction(PropertyType.LEFT, "Right"));
     attachedSide.add(new SwapAction());
-    attachedSide.add(new TogglePropertyTypeAction(PropertyType.DETACHED, "None"));
+    if (myDefinition.isFloatingAllowed()) {
+      attachedSide.add(new TogglePropertyTypeAction(PropertyType.DETACHED, "None"));
+    }
     group.add(attachedSide);
     ActionManager manager = ActionManager.getInstance();
-    group.add(new ToggleOppositePropertyTypeAction(PropertyType.AUTO_HIDE, manager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)));
-    group.add(new TogglePropertyTypeAction(PropertyType.FLOATING, manager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)));
-    group.add(new TogglePropertyTypeAction(PropertyType.SPLIT, manager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)));
+    if (myDefinition.isAutoHideAllowed()) {
+      group.add(
+        new ToggleOppositePropertyTypeAction(PropertyType.AUTO_HIDE, manager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)));
+    }
+    if (myDefinition.isFloatingAllowed()) {
+      group.add(new TogglePropertyTypeAction(PropertyType.FLOATING, manager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)));
+    }
+    if (myDefinition.isSplitModeChangesAllowed()) {
+      group.add(new TogglePropertyTypeAction(PropertyType.SPLIT, manager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)));
+    }
   }
 
   static class DragEvent {

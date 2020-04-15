@@ -128,7 +128,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     myListeners = new ArrayList<>();
     myResourceListener = createResourceChangeListener();
 
-    Track.init(myDesignSurface);
+    mMotionEditor.myTrack.init(myDesignSurface);
     SelectionModel designSurfaceSelection = myDesignSurface.getSelectionModel();
     ImmutableList<NlComponent> dsSelection = designSurfaceSelection.getSelection();
     designSurfaceSelection.addListener((model, selection) -> handleSelectionChanged(model, selection));
@@ -445,7 +445,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     }
 
     XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, virtualFile);
-    return MotionSceneTag.parse(motionLayout, myProject, virtualFile, xmlFile);
+    return MotionSceneTag.parse(motionLayout, myProject, virtualFile, xmlFile, mMotionEditor.myTrack);
   }
 
   @NotNull

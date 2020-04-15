@@ -159,6 +159,10 @@ public class CombinedListPanel extends JPanel {
         } else {
           label.setBorder(mNoBorder);
         }
+        mConstraintSetPane.getColumnHeader().getView().setBackground(MEUI.ourSecondaryHeaderBackgroundColor);
+        mConstraintSetPane.getColumnHeader().getView().setForeground(MEUI.ourSecondaryPanelHeaderTitleColor);
+        mTransitionPane.getColumnHeader().getView().setBackground(MEUI.ourSecondaryHeaderBackgroundColor);
+        mTransitionPane.getColumnHeader().getView().setForeground(MEUI.ourSecondaryPanelHeaderTitleColor);
       } else {
         label.setBorder(mNoBorder);
         title.setBorder(mNoBorder);
@@ -169,9 +173,11 @@ public class CombinedListPanel extends JPanel {
           panel.remove(title);
         }
       }
+      title.setBackground(MEUI.ourSecondaryHeaderBackgroundColor);
+      title.setForeground(MEUI.ourSecondaryPanelHeaderTitleColor);
       label.setBackground(isSelected ? mSelectedColor : mUnselectedColor);
-      panel.setBackground(isSelected ? mSelectedColor : mUnselectedColor);
       label.setForeground(isSelected ? Color.WHITE : ourTextColor);
+      panel.setBackground(isSelected ? mSelectedColor : mUnselectedColor);
       panel.setForeground(isSelected ? Color.WHITE : ourTextColor);
       return panel;
     }

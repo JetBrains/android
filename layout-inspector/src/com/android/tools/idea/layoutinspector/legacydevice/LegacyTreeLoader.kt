@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.collect.Lists
+import com.intellij.openapi.project.Project
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -45,7 +46,9 @@ import javax.imageio.ImageIO
  */
 object LegacyTreeLoader : TreeLoader {
 
-  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): Pair<ViewNode, String>? {
+  override fun loadComponentTree(
+    data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
+  ): Pair<ViewNode, String>? {
     val legacyClient = client as? LegacyClient ?: return null
     val ddmClient = legacyClient.selectedClient ?: return null
     val (windowName, updater, _) = data as? LegacyEvent ?: return null
