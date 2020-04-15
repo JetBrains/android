@@ -223,37 +223,37 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     @Override
     @NotNull
     public ResolvedPropertyModel name() {
-      return GradlePropertyModelBuilder.create(myDslElement, "name").asMethod(true).buildResolved();
+      return GradlePropertyModelBuilder.create(myDslElement, "name").buildResolved();
     }
 
     @Override
     @NotNull
     public ResolvedPropertyModel group() {
-      return GradlePropertyModelBuilder.create(myDslElement, "group").asMethod(true).buildResolved();
+      return GradlePropertyModelBuilder.create(myDslElement, "group").buildResolved();
     }
 
     @Override
     @NotNull
     public ResolvedPropertyModel version() {
-      return GradlePropertyModelBuilder.create(myDslElement, "version").asMethod(true).buildResolved();
+      return GradlePropertyModelBuilder.create(myDslElement, "version").buildResolved();
     }
 
     @Override
     @NotNull
     public ResolvedPropertyModel classifier() {
-      return GradlePropertyModelBuilder.create(myDslElement, "classifier").asMethod(true).buildResolved();
+      return GradlePropertyModelBuilder.create(myDslElement, "classifier").buildResolved();
     }
 
     @Override
     @NotNull
     public ResolvedPropertyModel extension() {
-      return GradlePropertyModelBuilder.create(myDslElement, "ext").asMethod(true).buildResolved();
+      return GradlePropertyModelBuilder.create(myDslElement, "ext").buildResolved();
     }
 
     @NotNull
     @Override
     public ResolvedPropertyModel completeModel() {
-      return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).buildResolved();
+      return GradlePropertyModelBuilder.create(myDslElement).buildResolved();
     }
 
     @Override
@@ -301,7 +301,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
       GradleDslSimpleExpression element = mySetThrough ? resolveElement(myDslExpression) : myDslExpression;
       FakeElement fakeElement =
         new FakeArtifactElement(element.getParent(), GradleNameElement.fake(name), element, getFunc, setFunc, canDelete);
-      return GradlePropertyModelBuilder.create(fakeElement).addTransform(new FakeElementTransform()).asMethod(true).buildResolved();
+      return GradlePropertyModelBuilder.create(fakeElement).addTransform(new FakeElementTransform()).buildResolved();
     }
 
     @Override
@@ -337,7 +337,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     @NotNull
     @Override
     public ResolvedPropertyModel completeModel() {
-      return GradlePropertyModelBuilder.create(myDslExpression).asMethod(true).buildResolved();
+      return GradlePropertyModelBuilder.create(myDslExpression).buildResolved();
     }
 
     @Override

@@ -122,25 +122,6 @@ public class GradlePropertyModelBuilder {
   }
 
   /**
-   * Sets whether or not the property model should be represented as a method call or an assignment statement. The
-   * difference is as follows:
-   * {@code true}  -> Method Call -> propertyName propertyValue
-   * {@code false} -> Assignment  -> propertyName = propertyValue
-   * <p>
-   * This is only applied to new elements that are created via this model. If an element already exists on file and does not
-   * use the form that is requested, changing its value may or may not cause the form to change. A form change will occur
-   * if the underlying {@link GradleDslElement} can't be reused i.e if an existing literal property is being set to a reference.
-   * <p>
-   * Defaults to {@code false}.
-   *
-   * @param bool whether to use the method call form.
-   * @return this model builder
-   */
-  public GradlePropertyModelBuilder asMethod(boolean bool) {
-    return this;
-  }
-
-  /**
    * Sets the type of this model, defaults to {@link PropertyType#REGULAR}
    *
    * @param type of the result model.
