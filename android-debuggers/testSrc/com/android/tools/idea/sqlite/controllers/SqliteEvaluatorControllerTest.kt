@@ -28,6 +28,7 @@ import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockSqliteEvaluatorView
 import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
@@ -385,6 +386,29 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     verify(mockDatabaseConnection).execute(SqliteStatement(action))
     verify(sqliteEvaluatorView.tableView).resetView()
     verify(sqliteEvaluatorView.tableView).setEmptyText("The statement was run successfully.")
+  }
+
+  fun testOldTableControllerListenerIsRemoveFromViewWhenNewQueryIsExecuted() {
+    // Prepare
+    val sqlStatement1 = SqliteStatement("fake stmt1")
+    val sqlStatement2 = SqliteStatement("fake stmt2")
+
+    val mockSqliteResultSet1 = MockSqliteResultSet()
+    val mockSqliteResultSet2 = MockSqliteResultSet(columns = listOf(ResultSetSqliteColumn("c1")))
+
+    `when`(mockDatabaseConnection.execute(sqlStatement1)).thenReturn(Futures.immediateFuture(mockSqliteResultSet1))
+    `when`(mockDatabaseConnection.execute(sqlStatement2)).thenReturn(Futures.immediateFuture(mockSqliteResultSet2))
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, sqlStatement1))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, sqlStatement2))
+    viewFactory.tableView.listeners.forEach { it.refreshDataInvoked() }
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(sqliteEvaluatorView.tableView).showTableColumns(mockSqliteResultSet1._columns)
+    verify(sqliteEvaluatorView.tableView, times(2)).showTableColumns(mockSqliteResultSet2._columns)
   }
 
   private fun evaluateSqlActionFailure(action: String) {
