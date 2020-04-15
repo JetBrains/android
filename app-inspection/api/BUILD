@@ -45,6 +45,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/.idea/libraries:transport-proto",
         "//tools/idea/.idea/libraries:Guava",
+        "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
