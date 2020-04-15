@@ -50,6 +50,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +70,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
 
   // Those properties are initialized by IntelliJ form editor before the constructor using reflection.
   private JPanel myRootPanel;
-  private ColorProgressBar myProgressBar;
+  private JProgressBar myProgressBar;
   private JBLabel myStatusText;
   private JBLabel myStatusBreakdownText;
   private JPanel myTableViewContainer;
@@ -126,17 +127,17 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private void updateProgress() {
     int completedTestCases = passedTestCases + failedTestCases + skippedTestCases;
     if (scheduledTestCases == 0) {
-      myProgressBar.setFraction(0);
+      myProgressBar.setValue(0);
       myProgressBar.setIndeterminate(false);
-      myProgressBar.setColor(ColorProgressBar.BLUE);
+      myProgressBar.setForeground(ColorProgressBar.BLUE);
     } else {
-      float progress = (float) completedTestCases / scheduledTestCases;
-      myProgressBar.setFraction(progress);
+      myProgressBar.setMaximum(scheduledTestCases);
+      myProgressBar.setValue(completedTestCases);
       myProgressBar.setIndeterminate(false);
       if (failedTestCases > 0) {
-        myProgressBar.setColor(ColorProgressBar.RED);
+        myProgressBar.setForeground(ColorProgressBar.RED);
       } else if (completedTestCases == scheduledTestCases) {
-        myProgressBar.setColor(ColorProgressBar.GREEN);
+        myProgressBar.setForeground(ColorProgressBar.GREEN);
       }
     }
 
