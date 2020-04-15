@@ -18,13 +18,20 @@ package com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.SkiaParserService
+import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.LowMemoryWatcher
 import com.intellij.util.ui.UIUtil
 import java.awt.Image
 import java.awt.Rectangle
@@ -41,21 +48,21 @@ private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 object ComponentTreeLoader : TreeLoader {
 
   override fun loadComponentTree(
-    maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient
+    data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
   ): Pair<ViewNode, Long>? {
-    return loadComponentTree(maybeEvent, resourceLookup, client, SkiaParser)?.let { Pair(it, it.drawId) }
+    return loadComponentTree(data, resourceLookup, client, SkiaParser, project)?.let { Pair(it, it.drawId) }
   }
 
   @VisibleForTesting
   fun loadComponentTree(
-    maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient, skiaParser: SkiaParserService
+    maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient, skiaParser: SkiaParserService, project: Project
   ): ViewNode? {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
-    return ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser)
+    return ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project)
   }
 
-  override fun getAllWindowIds(maybeEvent: Any?, client: InspectorClient): List<Long>? {
-    val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
+  override fun getAllWindowIds(data: Any?, client: InspectorClient): List<Long>? {
+    val event = data as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
     return event.tree.allWindowIdsList
   }
 }
@@ -65,8 +72,16 @@ private class ComponentTreeLoaderImpl(
 ) {
   private val loadStartTime = AtomicLong(-1)
   private val stringTable = StringTableImpl(tree.stringList)
+  // if true, exit immediately and return null
+  private var isInterrupted = false
 
-  fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService): ViewNode? {
+  @Suppress("unused") // Need to keep a reference to receive notifications
+  private val lowMemoryWatcher = LowMemoryWatcher.register(
+    {
+      isInterrupted = true
+    }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
+
+  fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): ViewNode? {
     val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
       "ComponentTreeLoaderImpl requires a DefaultClient")
     val time = System.currentTimeMillis()
@@ -74,33 +89,20 @@ private class ComponentTreeLoaderImpl(
       return null
     }
     return try {
-      val rootView = loadRootView()
+      val rootView = loadRootView() ?: return null
+      rootView.imageType = tree.payloadType
       val bytes = defaultClient.getPayload(tree.payloadId)
-      var rootViewFromSkiaImage: InspectorView? = null
       if (bytes.isNotEmpty()) {
         try {
-          if (tree.payloadType == LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG && rootView != null) {
-            ImageIO.read(ByteArrayInputStream(bytes))?.let {
-              rootView.imageBottom = it
-              rootView.fallbackMode = true
-            }
-          }
-          else if (tree.payloadType == LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP) {
-            rootViewFromSkiaImage = skiaParser.getViewTree(bytes)
-            if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id.isEmpty()) {
-              // We were unable to parse the skia image. Allow the user to interact with the component tree.
-              rootViewFromSkiaImage = null
-            }
-            defaultClient.logInitialRender(rootViewFromSkiaImage != null)
+          when (tree.payloadType) {
+            PNG_AS_REQUESTED, PNG_SKP_TOO_LARGE -> processPng(bytes, rootView, defaultClient)
+            SKP -> processSkp(bytes, skiaParser, project, defaultClient, rootView)
+            else -> defaultClient.logInitialRender(false) // Shouldn't happen
           }
         }
         catch (ex: Exception) {
           Logger.getInstance(LayoutInspector::class.java).warn(ex)
         }
-      }
-      if (rootViewFromSkiaImage != null && rootView != null) {
-        val imageLoader = ComponentImageLoader(rootView, rootViewFromSkiaImage)
-        imageLoader.loadImages()
       }
       rootView
     }
@@ -109,12 +111,70 @@ private class ComponentTreeLoaderImpl(
     }
   }
 
+  private fun processSkp(bytes: ByteArray,
+                         skiaParser: SkiaParserService,
+                         project: Project,
+                         client: DefaultInspectorClient,
+                         rootView: ViewNode) {
+    val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, skiaParser)
+
+    if (errorMessage != null) {
+      InspectorBannerService.getInstance(project).setNotification(errorMessage)
+    }
+    if (rootViewFromSkiaImage == null || rootViewFromSkiaImage.id.isEmpty()) {
+      // We were unable to parse the skia image. Turn on screenshot mode on the device.
+      client.requestScreenshotMode()
+      // metrics will be logged when we come back with a bitmap
+    }
+    else {
+      client.logInitialRender(true)
+      ComponentImageLoader(rootView, rootViewFromSkiaImage).loadImages()
+    }
+  }
+
+  private fun processPng(bytes: ByteArray,
+                         rootView: ViewNode,
+                         client: DefaultInspectorClient) {
+    ImageIO.read(ByteArrayInputStream(bytes))?.let {
+      rootView.imageBottom = it
+    }
+    client.logInitialRender(true)
+  }
+
+  private fun getViewTree(bytes: ByteArray, skiaParser: SkiaParserService): Pair<InspectorView?, String?> {
+    var errorMessage: String? = null
+    val inspectorView = try {
+      val root = skiaParser.getViewTree(bytes) { isInterrupted }
+      if (root == null) {
+        // We were unable to parse the skia image. Allow the user to interact with the component tree.
+        errorMessage = "Invalid picture data received from device. Rotation disabled."
+      }
+      root
+    }
+    catch (ex: UnsupportedPictureVersionException) {
+      errorMessage = "No renderer supporting SKP version ${ex.version} found. Rotation disabled."
+      null
+    }
+    return Pair(inspectorView, errorMessage)
+  }
+
   private fun loadRootView(): ViewNode? {
     resourceLookup?.updateConfiguration(tree.resources, stringTable)
-    return if (tree.hasRoot()) loadView(tree.root, null) else null
+    if (tree.hasRoot()) {
+      try {
+        return loadView(tree.root, null)
+      }
+      catch (interrupted: InterruptedException) {
+        return null
+      }
+    }
+    return null
   }
 
   private fun loadView(view: LayoutInspectorProto.View, parent: ViewNode?): ViewNode {
+    if (isInterrupted) {
+      throw InterruptedException()
+    }
     val qualifiedName = "${stringTable[view.packageName]}.${stringTable[view.className]}"
     val viewId = stringTable[view.viewId]
     val textValue = stringTable[view.textValue]

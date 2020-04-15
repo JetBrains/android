@@ -26,6 +26,7 @@ import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessAdapter
@@ -36,7 +37,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.SystemInfo.isWindows
 import com.intellij.util.net.NetUtils
-import com.intellij.util.ui.UIUtil
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -54,6 +54,7 @@ import java.io.File
 import java.io.FileReader
 import java.nio.ByteOrder
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.bind.annotation.XmlElement
@@ -65,11 +66,15 @@ private const val INITIAL_DELAY_MILLI_SECONDS = 10L
 private const val MAX_DELAY_MILLI_SECONDS = 1000L
 private const val MAX_TIMES_TO_RETRY = 10
 
+// enable for debugging purposes
+private const val DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER = false
+
 class InvalidPictureException : Exception()
+class UnsupportedPictureVersionException(val version: Int) : Exception()
 
 interface SkiaParserService {
   @Throws(InvalidPictureException::class)
-  fun getViewTree(data: ByteArray): InspectorView?
+  fun getViewTree(data: ByteArray, isInterrupted: () -> Boolean = { false }): InspectorView?
 
   fun shutdownAll()
 }
@@ -77,23 +82,35 @@ interface SkiaParserService {
 object SkiaParser : SkiaParserService {
   private val unmarshaller = JAXBContext.newInstance(VersionMap::class.java).createUnmarshaller()
   private val devbuildServerInfo = ServerInfo(null, -1, -1)
+
   private var supportedVersionMap: Map<Int?, ServerInfo>? = null
   private val mapLock = Any()
   private const val VERSION_MAP_FILE_NAME = "version-map.xml"
   private val progressIndicator = StudioLoggerProgressIndicator(SkiaParser::class.java)
 
   @Throws(InvalidPictureException::class)
-  override fun getViewTree(data: ByteArray): InspectorView? {
-    val server = runServer(data)
+  override fun getViewTree(data: ByteArray, isInterrupted: () -> Boolean): InspectorView? {
+    val server = runServer(data) ?: throw UnsupportedPictureVersionException(getSkpVersion(data))
     val response = server.getViewTree(data)
-    return response?.root?.let { buildTree(it) }
+    return response?.root?.let {
+      try {
+        buildTree(it, isInterrupted)
+      }
+      catch (interruptedException: InterruptedException) {
+        null
+      }
+    }
   }
 
   override fun shutdownAll() {
     supportedVersionMap?.values?.forEach { it.shutdown() }
+    devbuildServerInfo.shutdown()
   }
 
-  private fun buildTree(node: SkiaParser.InspectorView): InspectorView? {
+  private fun buildTree(node: SkiaParser.InspectorView, isInterrupted: () -> Boolean): InspectorView? {
+    if (isInterrupted()) {
+      throw InterruptedException()
+    }
     val width = node.width
     val height = node.height
     var image: Image? = null
@@ -109,17 +126,18 @@ object SkiaParser : SkiaParserService {
       image = BufferedImage(colorModel, raster, false, null)
     }
     val res = InspectorView(node.id, node.type, node.x, node.y, width, height, image)
-    node.childrenList.mapNotNull { buildTree(it) }.forEach { res.addChild(it) }
+    node.childrenList.mapNotNull { buildTree(it, isInterrupted) }.forEach { res.addChild(it) }
     return res
   }
 
-  private fun runServer(data: ByteArray): ServerInfo {
-    val server = findServerInfoForSkpVersion(getSkpVersion(data))
+  private fun runServer(data: ByteArray): ServerInfo? {
+    val server = findServerInfoForSkpVersion(getSkpVersion(data)) ?: return null
     server.runServer()
     return server
   }
 
-  private fun getSkpVersion(data: ByteArray): Int {
+  @VisibleForTesting
+  fun getSkpVersion(data: ByteArray): Int {
     // SKPs start with "skiapict" in ascii
     if (data.slice(0..7) != "skiapict".toByteArray(Charsets.US_ASCII).asList() || data.size < 12) {
       throw InvalidPictureException()
@@ -135,8 +153,11 @@ object SkiaParser : SkiaParserService {
     return skpVersion
   }
 
-  private fun findServerInfoForSkpVersion(skpVersion: Int): ServerInfo {
+  private fun findServerInfoForSkpVersion(skpVersion: Int): ServerInfo? {
     // TODO: try devbuild first if appropriate
+    if (DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER) {
+      return devbuildServerInfo
+    }
     if (supportedVersionMap == null) {
       readVersionMapping()
     }
@@ -147,9 +168,7 @@ object SkiaParser : SkiaParserService {
       serverInfo = findVersionInMap(skpVersion)
     }
 
-    // We didn't find it. Maybe it hasn't been published yet, but is supported by the latest checked-in code. Try using the locally-built
-    // server.
-    return serverInfo ?: devbuildServerInfo
+    return serverInfo
   }
 
   private fun findVersionInMap(skpVersion: Int): ServerInfo? {
@@ -282,7 +301,8 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     handler = OSProcessHandler(GeneralCommandLine(realPath.absolutePath, localPort.toString()))
     handler!!.addProcessListener(object : ProcessAdapter() {
       override fun processTerminated(event: ProcessEvent) {
-        if (event.exitCode != 0) {
+        // TODO(b/151639359) // We get a 137 when we terminate the server. Silence this error.
+        if (event.exitCode != 0 && event.exitCode != 137) {
           Logger.getInstance(SkiaParser::class.java).error("SkiaServer terminated exitCode: ${event.exitCode}  text: ${event.text}")
         }
         else {
@@ -302,6 +322,10 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   }
 
   fun shutdown() {
+    channel?.shutdownNow()
+    channel?.awaitTermination(1, TimeUnit.SECONDS)
+    channel = null
+    client = null
     handler?.destroyProcess()
     handler = null
   }

@@ -45,6 +45,8 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -63,6 +65,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLayer;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.Timer;
 import javax.swing.event.ListSelectionEvent;
@@ -103,6 +106,7 @@ public class TimeLinePanel extends JPanel {
   int[] myYPoints = new int[5];
   private MTagActionListener mListener;
   Timer myMouseDownTimer;
+  JPopupMenu myPlaybackSpeedPopupMenu = new JPopupMenu();
 
   @Override
   public void updateUI() {
@@ -116,6 +120,11 @@ public class TimeLinePanel extends JPanel {
   }
   public TimeLinePanel() {
     super(new BorderLayout());
+
+    for (int i = 0; i < ourSpeedsMultipliers.length; i++) {
+      myPlaybackSpeedPopupMenu.add(ourSpeedsMultipliers[i] + "x").addActionListener(createPlaybackSpeedPopupMenuActionListener(i));
+    }
+
     JPanel top = new JPanel(new BorderLayout());
     top.add(myTimeLineTopPanel, BorderLayout.CENTER);
     top.add(mTimeLineTopLeft, BorderLayout.WEST);
@@ -209,7 +218,7 @@ public class TimeLinePanel extends JPanel {
             mSelectedKeyFrame = rowData.mKeyFrames.get(selIndex);
 
             mTimeLine.getTimeLineRow(mTimeLine.getSelectedIndex()).setSelectedKeyFrame(mSelectedKeyFrame);
-            Track.timelineTableSelect();
+            Track.timelineTableSelect(mMeModel.myTrack);
             mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME, new MTag[]{mSelectedKeyFrame}, flags);
             if (mListener != null && mSelectedKeyFrame != null) {
               mListener.select(mSelectedKeyFrame, 0);
@@ -229,7 +238,7 @@ public class TimeLinePanel extends JPanel {
             int selIndex = (indexInRow + 1) % numOfKeyFrames;
             mSelectedKeyFrame = rowData.mKeyFrames.get(selIndex);
             mTimeLine.getTimeLineRow(mTimeLine.getSelectedIndex()).setSelectedKeyFrame(mSelectedKeyFrame);
-            Track.timelineTableSelect();
+            Track.timelineTableSelect(mMeModel.myTrack);
             mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME, new MTag[]{mSelectedKeyFrame}, flags);
             if (mListener != null && mSelectedKeyFrame != null) {
               mListener.select(mSelectedKeyFrame, 0);
@@ -475,24 +484,39 @@ public class TimeLinePanel extends JPanel {
     }
   }
 
+  private ActionListener createPlaybackSpeedPopupMenuActionListener(int playbackSpeedIndex) {
+    return new ActionListener() {
+      int speedIndex = playbackSpeedIndex;
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        Track.animationSpeed(mMeModel.myTrack);
+        mCurrentSpeed = speedIndex;
+        myProgressPerMillisecond = ourSpeedsMultipliers[mCurrentSpeed] / (float)mDuration;
+        mTimeLineTopLeft.mSlow.setToolTipText(mDuration + " x " + ourSpeedsMultipliers[mCurrentSpeed]);
+        mTimeLineTopLeft.mSlow.setText(ourSpeedsMultipliers[mCurrentSpeed] + "x");
+      }
+    };
+  }
+
+  private void showPlaybackSpeedPopup() {
+    myPlaybackSpeedPopupMenu.show(mTimeLineTopLeft.mSlow, 0, 20);
+  }
+
   private void performCommand(TimelineCommands e, int mode) {
     watchdog();
     switch (e) {
       case PLAY:
         last_time = System.nanoTime();
-        Track.playAnimation();
+        Track.playAnimation(mMeModel.myTrack);
         createTimer();
         notifyTimeLineListeners(TimeLineCmd.MOTION_PLAY, mMotionProgress);
         mIsPlaying = true;
         break;
       case SPEED:
-        Track.animationSpeed();
-        mCurrentSpeed = (mCurrentSpeed + 1) % ourSpeedsMultipliers.length;
-        myProgressPerMillisecond = ourSpeedsMultipliers[mCurrentSpeed] / (float)mDuration;
-        mTimeLineTopLeft.mSlow.setToolTipText(mDuration + " x " + ourSpeedsMultipliers[mCurrentSpeed]);
+        showPlaybackSpeedPopup();
         break;
       case LOOP:
-        Track.animationDirectionToggle();
+        Track.animationDirectionToggle(mMeModel.myTrack);
         myYoyo = mode;
         break;
       case PAUSE:
@@ -502,7 +526,7 @@ public class TimeLinePanel extends JPanel {
         mTimeLineTopLeft.displayPlay();
         break;
       case END:
-        Track.animationEnd();
+        Track.animationEnd(mMeModel.myTrack);
         mIsPlaying = false;
         destroyTimer();
         mMotionProgress = 1;
@@ -510,7 +534,7 @@ public class TimeLinePanel extends JPanel {
         notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
         break;
       case START:
-        Track.animationStart();
+        Track.animationStart(mMeModel.myTrack);
         mIsPlaying = false;
         destroyTimer();
         mMotionProgress = 0;
@@ -834,7 +858,7 @@ public class TimeLinePanel extends JPanel {
           if (row == null) {
             return;
           }
-          Track.timelineTableSelect();
+          Track.timelineTableSelect(mMeModel.myTrack);
           row.setSelectedKeyFrame(mSelectedKeyFrame);
           if (mSelectedKeyFrame != null && oldSelection != mSelectedKeyFrame) {
 

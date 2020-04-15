@@ -16,31 +16,25 @@
 package com.android.tools.idea.layoutinspector.legacydevice
 
 import com.android.ddmlib.ByteBufferUtil
-import com.android.ddmlib.Client
 import com.android.ddmlib.FakeClientBuilder
-import com.android.ddmlib.HandleViewDebug
 import com.android.ddmlib.HandleViewDebug.CHUNK_VULW
-import com.android.ddmlib.HandleViewDebug.CHUNK_VURT
 import com.android.ddmlib.JdwpPacket
 import com.android.tools.idea.layoutinspector.FakeAdbRule
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.project.Project
+import com.intellij.testFramework.DisposableRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatcher
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.argThat
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import java.nio.ByteBuffer
 
 class LegacyTreeLoaderTest {
 
-  @Rule
-  @JvmField
+  @get:Rule
   val adb = FakeAdbRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private val treeSample = """
 com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1920 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
@@ -120,7 +114,7 @@ DONE.
     ByteBufferUtil.putString(responseBytes, window2)
     val ddmClient = FakeClientBuilder().registerResponse(requestMatcher, CHUNK_VULW, responseBytes).build()
 
-    val legacyClient = LegacyClient(mock(Project::class.java))
+    val legacyClient = LegacyClient(disposableRule.disposable)
     legacyClient.selectedClient = ddmClient
 
     val result = LegacyTreeLoader.getAllWindowIds(null, legacyClient)

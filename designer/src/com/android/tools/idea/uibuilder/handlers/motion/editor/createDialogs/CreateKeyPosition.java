@@ -211,7 +211,7 @@ public class CreateKeyPosition extends BaseCreateKey {
     }
 
     MTag ret = toCommit.commit("Create KeyPosition");
-    Track.createKeyPosition();
+    Track.createKeyPosition(mMotionEditor.myTrack);
     mMotionEditor.dataChanged();
     super.create();
     return ret;

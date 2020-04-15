@@ -37,9 +37,9 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
     private set(client) {
       if (field != client) {
         field.disconnect()
+        field = client
+        layoutInspectorModel.updateConnection(client)
       }
-      field = client
-      layoutInspectorModel.updateConnection(client)
     }
 
   private val latestLoadTime = AtomicLong(-1)
@@ -49,7 +49,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
   init {
     val defaultClient = InspectorClient.createInstance(layoutInspectorModel, this)
     registerClientListeners(defaultClient)
-    val legacyClient = LegacyClient(layoutInspectorModel.project)
+    val legacyClient = LegacyClient(this)
     registerClientListeners(legacyClient)
     allClients = listOf(defaultClient, legacyClient)
     Disposer.register(parentDisposable, this)
@@ -71,7 +71,8 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
   private fun loadComponentTree(event: Any) {
     val time = System.currentTimeMillis()
     val allIds = currentClient.treeLoader.getAllWindowIds(event, currentClient)
-    val (root, rootId) = currentClient.treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup, currentClient) ?: return
+    val (root, rootId) = currentClient.treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup,
+                                                                    currentClient, layoutInspectorModel.project) ?: return
     if (rootId != null && allIds != null) {
       ApplicationManager.getApplication().invokeLater {
         synchronized(latestLoadTime) {

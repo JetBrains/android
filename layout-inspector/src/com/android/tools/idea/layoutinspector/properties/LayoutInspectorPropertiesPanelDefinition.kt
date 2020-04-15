@@ -24,11 +24,14 @@ import com.intellij.icons.AllIcons
 
 class LayoutInspectorPropertiesPanelDefinition :
   ToolWindowDefinition<LayoutInspector>(
-    "Properties",
+    "Attributes",
     AllIcons.Toolwindows.ToolWindowStructure,
     "PROPERTIES",
     Side.RIGHT,
     Split.TOP,
     AutoHide.DOCKED,
+    DEFAULT_SIDE_WIDTH,
+    DEFAULT_BUTTON_SIZE,
+    ALLOW_SPLIT_MODE,
     { LayoutInspectorProperties(it) }
   )

@@ -314,6 +314,26 @@ public class RenderTask {
     }
   }
 
+  // Workaround for http://b/153570299
+  private void clearCallbacks() {
+    try {
+      Class<?> handlerDelegateClass = myLayoutlibCallback.findClass("android.os.Handler_Delegate");
+      Field runnablesMapField = handlerDelegateClass.getDeclaredField("sRunnablesMap");
+      runnablesMapField.setAccessible(true);
+      RenderService.runAsyncRenderAction(() -> {
+        try {
+          WeakHashMap runnablesMap = (WeakHashMap)runnablesMapField.get(null);
+          runnablesMap.clear();
+        }
+        catch (IllegalAccessException e) {
+          LOG.debug(e);
+        }
+      });
+    } catch (Throwable t) {
+      LOG.debug(t);
+    }
+  }
+
   // Workaround for http://b/143378087
   private void clearCompose() {
     if (!myLayoutlibCallback.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
@@ -385,6 +405,7 @@ public class RenderTask {
       myAssetRepository = null;
 
       clearCompose();
+      clearCallbacks();
 
       return null;
     });

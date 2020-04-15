@@ -73,6 +73,7 @@ public class MotionEditor extends JPanel {
   public final static boolean DEBUG = false;
   private final JPanel mMainPanel;
   private CardLayout mErrorSwitchCard;
+  public Track myTrack = new Track();
   ErrorPanel myErrorPanel = new ErrorPanel();
   MeModel mMeModel;
   MotionEditorSelector mMotionEditorSelector = new MotionEditorSelector();
@@ -350,7 +351,7 @@ public class MotionEditor extends JPanel {
                       @Nullable String motionSceneFileName, String setupError) {
     if (setupError == null && myErrorPanel.validateMotionScene(motionScene)) {
       mErrorSwitchCard.show(this, MAIN_PANEL);
-      setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName));
+      setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName, myTrack));
     }
     else {
       if (setupError != null) {
@@ -421,7 +422,7 @@ public class MotionEditor extends JPanel {
     else {
       mLayoutMode = LayoutMode.values()[(mLayoutMode.ordinal() + 1) % LayoutMode.values().length];
     }
-    Track.changeLayout();
+    Track.changeLayout(myTrack);
     switch (mLayoutMode) {
       case VERTICAL_LAYOUT:
         mCombinedListPanel.setSplitView(true);
@@ -477,7 +478,7 @@ public class MotionEditor extends JPanel {
     mOverviewPanel.setConstraintSetIndex(index);
     mTransitionPanel.stopAnimation();
     if (index >= 0) {
-      Track.showConstraintSetTable();
+      Track.showConstraintSetTable(myTrack);
       MTag[] c_sets = mCombinedListPanel.mMotionScene.getChildTags("ConstraintSet");
       if (0 < index) {
         mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = CONSTRAINTSET_PANEL);
@@ -488,7 +489,7 @@ public class MotionEditor extends JPanel {
         mConstraintSetPanel.setMTag(selectedConstraintSet, mMeModel);
       }
       else {
-        Track.showLayoutTable();
+        Track.showLayoutTable(myTrack);
         mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = LAYOUT_PANEL);
           notifyListeners(MotionEditorSelector.Type.LAYOUT,
                           (mCombinedListPanel.mMotionLayout == null) ? new MTag[0] :
@@ -502,7 +503,7 @@ public class MotionEditor extends JPanel {
 
 
   void transitionSelection() {
-    Track.transitionSelection();
+    Track.transitionSelection(myTrack);
     int index = mCombinedListPanel.getSelectedTransition();
     mOverviewPanel.setTransitionSetIndex(index);
     mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = TRANSITION_PANEL);

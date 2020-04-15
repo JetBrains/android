@@ -36,14 +36,13 @@ public class MECreateOnClickTest extends BaseMotionEditorTest {
   public void testCreateOnClickLayout() {
     CreatorAccess panel = new CreatorAccess();
     String layout = "0,CreatorAccess      ,0,0,99,99\n" +
-                    "1,JLabel             ,5,3,88,6\n" +
-                    "1,JSeparator         ,0,14,99,0\n" +
-                    "1,JLabel             ,5,18,88,6\n" +
-                    "1,MEComboBox         ,6,27,87,11\n" +
-                    "1,JLabel             ,5,42,88,6\n" +
-                    "1,MEComboBox         ,6,51,87,11\n" +
-                    "1,JLabel             ,5,66,88,6\n" +
-                    "1,JButton            ,5,82,88,11\n";
+                    "1,JLabel             ,5,4,88,7\n" +
+                    "1,JSeparator         ,0,16,99,1\n" +
+                    "1,JLabel             ,5,21,88,7\n" +
+                    "1,MEComboBox         ,6,31,87,12\n" +
+                    "1,JLabel             ,5,48,88,7\n" +
+                    "1,MEComboBox         ,6,58,87,12\n" +
+                    "1,JButton            ,5,79,88,13\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
@@ -67,7 +66,6 @@ public class MECreateOnClickTest extends BaseMotionEditorTest {
                   "1,MEComboBox,base_state->dial,base_state->half_people,half_people->people\n" +
                   "1,JLabel,View To Click\n" +
                   "1,MEComboBox,(Base Layout),number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
-                  "1,JLabel,Action\n" +
                   "1,JButton,Add\n";
     assertEquals(info, componentFieldsString(panel, 0));
     MTag tag = panel.create();

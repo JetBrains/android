@@ -16,6 +16,7 @@
 package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.idea.gradle.project.sync.perf.AbstractGradleSyncPerfTestCase;
 import com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
@@ -25,11 +26,12 @@ import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
-  SyncPerfTestSuite.class,  // a suite mustn't contain itself
+  SyncPerfTestSuite.class,              // a suite mustn't contain itself
+  AbstractGradleSyncPerfTestCase.class, // Abstract class
 })
 public class SyncPerfTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
-  @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
+  @ClassRule public static final LeakCheckerRule checker = new LeakCheckerRule();
+  @ClassRule public static final GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
     symlinkToIdeaHome(
@@ -52,6 +54,7 @@ public class SyncPerfTestSuite extends IdeaTestSuiteBase {
     setUpOfflineRepo("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/repo.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/repo.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/adt/idea/sync-perf-tests/test_deps.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/base/build-system/previous-versions/3.5.0.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
   }
 }

@@ -27,6 +27,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import java.util.concurrent.Future
 
 /**
@@ -44,9 +45,14 @@ interface InspectorClient {
   fun registerProcessChanged(callback: () -> Unit)
 
   /**
-   * Find all processes that the inspector can attach to.
+   * Returns a sequence of the known devices seen from this client.
    */
-  fun loadProcesses(): Map<Common.Stream, List<Common.Process>>
+  fun getStreams(): Sequence<Common.Stream>
+
+  /**
+   * Returns a sequence of the known processes for the specified device/stream.
+   */
+  fun getProcesses(stream: Common.Stream): Sequence<Common.Process>
 
   /**
    * Attach to a preferred process.
@@ -120,12 +126,15 @@ interface InspectorClient {
 
 object DisconnectedClient : InspectorClient {
   override val treeLoader: TreeLoader = object: TreeLoader {
-    override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): Pair<ViewNode, Any>? = null
+    override fun loadComponentTree(
+      data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
+    ): Pair<ViewNode, Any>? = null
     override fun getAllWindowIds(data: Any?, client: InspectorClient) = listOf<Any>()
   }
   override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}
   override fun registerProcessChanged(callback: () -> Unit) {}
-  override fun loadProcesses(): Map<Common.Stream, List<Common.Process>> = mapOf()
+  override fun getStreams(): Sequence<Common.Stream> = emptySequence()
+  override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> = emptySequence()
   override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>? = null
   override fun attach(stream: Common.Stream, process: Common.Process) {}
   override fun disconnect() {}

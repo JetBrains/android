@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.perf;
+package com.android.tools.idea.layoutinspector.model
+
+import com.intellij.openapi.actionSystem.AnAction
 
 /**
- * Measure performance for Single variant sync using the average project.
+ * A notification to be shown on top of the Inspector.
  */
-public class AverageSVSPerfTest extends AverageFullPerfTest {
-  @Override
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return true;
-  }
+interface StatusNotification {
+  val message: String
+  val actions: List<AnAction>
 }
+
+class StatusNotificationImpl(override val message: String, override val actions: List<AnAction> = listOf()): StatusNotification

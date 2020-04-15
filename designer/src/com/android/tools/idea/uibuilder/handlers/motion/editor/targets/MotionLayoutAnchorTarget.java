@@ -251,7 +251,7 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
         matchesFilter = false;
         break;
     }
-    Integer state = DecoratorUtilities.getTryingToConnectState(myComponent.getNlComponent());
+    Integer state =  myType.getMask();
     boolean tryingToConnect = state != null && (state & myType.getMask()) != 0 && isTargeted();
     return  matchesFilter || tryingToConnect;
   }
@@ -285,10 +285,11 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
   @Override
   protected DrawAnchor.Mode getDrawMode() {
     Integer state = DecoratorUtilities.getTryingToConnectState(myComponent.getNlComponent());
+    boolean doing_connection = state != null;
+    state = myType.getMask();
     // While creating a constraint, this anchor is a valid target for the connection.
     boolean can_connect = state != null && (state & myType.getMask()) != 0;
     // There is a connection being created in the space of this anchor.
-    boolean doing_connection = state != null;
     boolean is_connected = isConnected();
     int drawState =
       (can_connect ? 1 : 0) | (mIsOver ? 2 : 0) | (is_connected ? 4 : 0) | (doing_connection ? 8 : 0) | (myComponent.isSelected() ? 16 : 0);
@@ -317,7 +318,7 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
       DrawAnchor.Mode.NORMAL,      // isSelected & is_connected
       DrawAnchor.Mode.NORMAL,      // isSelected & is_connected & can_connect
       DrawAnchor.Mode.DELETE,      // isSelected & is_connected & mIsOver
-      DrawAnchor.Mode.OVER,        // isSelected & is_connected & can_connect & mIsOver
+      DrawAnchor.Mode.DELETE,        // isSelected & is_connected & can_connect & mIsOver
       DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection
       DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & can_connect
       DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & mIsOver
@@ -812,7 +813,7 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
       if (attribute != null) {
         if (targetAnchor.myComponent != myComponent && !targetAnchor.isConnected(this)) {
           if (myComponent.getParent() != targetAnchor.myComponent) {
-            Integer state = DecoratorUtilities.getTryingToConnectState(targetAnchor.myComponent.getNlComponent());
+            Integer state = targetAnchor.myType.getMask();
             if (state == null) {
               return;
             }
@@ -885,7 +886,7 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
               return;
             }
             if (myComponent.getParent() != closestTarget.myComponent) {
-              Integer state = DecoratorUtilities.getTryingToConnectState(closestTarget.myComponent.getNlComponent());
+              Integer state = closestTarget.myType.getMask();
               if (state == null) {
                 return;
               }
@@ -1093,9 +1094,7 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
                               String from,
                               String to,
                               Icon icon) {
-    if (Scout.connectCheck(list, type, false)) {
-      menu.add(new ConnectMenu(allItems, myComponent, from, component, to, icon, type, isRtl()));
-    }
+     menu.add(new ConnectMenu(allItems, myComponent, from, component, to, icon, type, isRtl()));
   }
 
   static class ConnectMenu extends JBMenuItem implements ActionListener, ChangeListener {
