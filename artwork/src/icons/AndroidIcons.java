@@ -33,9 +33,6 @@ public class AndroidIcons {
     public static final Icon ThingsModule = load("/icons/wizards/things_module.png"); // 256x256
     public static final Icon TvModule = load("/icons/wizards/tv_module.png"); // 256x256
     public static final Icon WearModule = load("/icons/wizards/wear_module.png"); // 256x256
-    public static final Icon NavigationDrawer = load("/icons/wizards/navigation/navigation_drawer.png"); // 256x256
-    public static final Icon BottomNavigation = load("/icons/wizards/navigation/bottom_navigation.png"); // 256x256
-    public static final Icon NavigationTabs = load("/icons/wizards/navigation/navigation_tabs.png"); // 256x256
     public static final Icon CppConfiguration = load("/icons/wizards/cpp_configure.png"); // 256x256
     public static final Icon NoActivity = load("/icons/wizards/no_activity.png"); // 256x256
   }
