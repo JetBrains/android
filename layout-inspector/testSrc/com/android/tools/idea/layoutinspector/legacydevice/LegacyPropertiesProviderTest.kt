@@ -64,7 +64,7 @@ class LegacyPropertiesProviderTest {
 
   @Test
   fun testExample() {
-    val root = ViewNode(1234, "TextView", null, 0, 0, 0, 0, 0, 0, null, "", 0)
+    val root = ViewNode(1234, "TextView", null, 0, 0, 0, 0, null, "", 0)
     val provider = LegacyPropertiesProvider()
     val propertyLoader = LegacyPropertiesProvider.Updater()
     propertyLoader.parseProperties(root, example)
@@ -77,8 +77,6 @@ class LegacyPropertiesProviderTest {
     assertThat(root.y).isEqualTo(350)
     assertThat(root.width).isEqualTo(1432)
     assertThat(root.height).isEqualTo(123)
-    assertThat(root.scrollX).isEqualTo(0)
-    assertThat(root.scrollY).isEqualTo(0)
     assertThat(root.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=textView}")
     assertThat(root.isDimBehind).isTrue()
     check(properties, SdkConstants.ATTR_ID, "@id/textView")

@@ -279,13 +279,13 @@ class ResourceLookupResolverTest {
     val model = InspectorPropertiesModel()
     val inspectorModel = model.layoutInspector?.layoutInspectorModel
     val resourceLookup = inspectorModel?.resourceLookup
-    val relativeLayout = ViewNode(1, "RelativeLayout", demo, 0, 0, 0, 0, 300, 900, relativeId, "", 0)
-    val title = ViewNode(2, "TextView", demo, 30, 60, 0, 0, 300, 100, titleId, "Hello Folks", 0)
-    val frameLayout = ViewNode(3, "RelativeLayout", demo, 0, 200, 0, 0, 300, 700, frameId, "", 0)
-    val textView1 = ViewNode(4, "TextView", demo, 400, 60, 0, 0, 300, 100, null, "TextView without an ID", 0)
-    val textView2 = ViewNode(5, "TextView", demo, 0, 200, 0, 0, 300, 700, null, "TextView without an ID", 0)
-    val button = ViewNode(6, "Button", demo, 30, 400, 0, 0, 300, 100, buttonId, "OK", 0)
-    val singleTextView = ViewNode(1, "TextView", design_text, 0, 0, 0, 0, 400, 50, null, "Tab3", 0)
+    val relativeLayout = ViewNode(1, "RelativeLayout", demo, 0, 0, 300, 900, relativeId, "", 0)
+    val title = ViewNode(2, "TextView", demo, 30, 60, 300, 100, titleId, "Hello Folks", 0)
+    val frameLayout = ViewNode(3, "RelativeLayout", demo, 0, 200, 300, 700, frameId, "", 0)
+    val textView1 = ViewNode(4, "TextView", demo, 400, 60, 300, 100, null, "TextView without an ID", 0)
+    val textView2 = ViewNode(5, "TextView", demo, 0, 200, 300, 700, null, "TextView without an ID", 0)
+    val button = ViewNode(6, "Button", demo, 30, 400, 300, 100, buttonId, "OK", 0)
+    val singleTextView = ViewNode(1, "TextView", design_text, 0, 0, 400, 50, null, "Tab3", 0)
     val textColor = InspectorPropertyItem(
       ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "", PropertySection.DECLARED, demo, title, resourceLookup)
     val background = InspectorPropertyItem(

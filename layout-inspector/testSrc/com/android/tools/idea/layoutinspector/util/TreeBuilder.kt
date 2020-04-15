@@ -27,8 +27,6 @@ class TreeBuilder(private val strings: TestStringTable) {
       layout = strings.add(view.layout) ?: LayoutInspectorProto.Resource.getDefaultInstance()
       x = view.x
       y = view.y
-      scrollX = view.scrollX
-      scrollY = view.scrollY
       width = view.width
       height = view.height
       className = strings.add(view.unqualifiedName)

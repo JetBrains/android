@@ -44,8 +44,6 @@ class ViewNode(var drawId: Long,
                val layout: ResourceReference?,
                var x: Int,
                var y: Int,
-               var scrollX: Int,
-               var scrollY: Int,
                var width: Int,
                var height: Int,
                var viewId: ResourceReference?,
@@ -59,6 +57,10 @@ class ViewNode(var drawId: Long,
 
   val children = mutableListOf<ViewNode>()
   var parent: ViewNode? = null
+
+  // scrollX and scrollY are only needed for loading of nodes from legacy device
+  var legacyScrollX: Int = 0
+  var legacyScrollY: Int = 0
 
   // imageBottom: the image painted before the sub views
   var imageBottom: Image? = null
