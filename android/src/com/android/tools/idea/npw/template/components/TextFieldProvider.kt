@@ -15,20 +15,16 @@
  */
 package com.android.tools.idea.npw.template.components
 
-import com.android.tools.idea.ui.wizard.WizardUtils
+import com.android.tools.idea.observable.AbstractProperty
+import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.wizard.template.Parameter
-import com.google.common.base.Strings
-import javax.swing.JComponent
+import com.android.tools.idea.wizard.template.StringParameter
+import javax.swing.JTextField
 
 /**
- * A class responsible for converting a [Parameter] to a [JComponent]. Any parameter
- * that represents a value (most of them, except for e.g. SEPARATOR should
- * be sure to also create an appropriate Swing property to control the component.
+ * Provides a textfield well suited for handling [StringParameter].
  */
-abstract class ParameterComponentProvider2<T : JComponent> protected constructor(private val parameter: Parameter<*>) : ComponentProvider<T>() {
-  override fun createComponent(): T = createComponent(parameter).apply {
-    toolTipText = WizardUtils.toHtmlString(parameter.help ?: "")
-  }
-
-  protected abstract fun createComponent(parameter: Parameter<*>): T
+class TextFieldProvider(parameter: Parameter<String>) : ParameterComponentProvider<JTextField>(parameter) {
+  override fun createComponent(parameter: Parameter<*>): JTextField = JTextField()
+  override fun createProperty(component: JTextField): AbstractProperty<*>? = TextProperty(component)
 }

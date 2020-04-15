@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.npw.template.components
 
+import com.android.tools.adtui.LabelWithEditButton
 import com.android.tools.idea.observable.AbstractProperty
-import com.android.tools.idea.observable.ui.SelectedProperty
-import com.android.tools.idea.wizard.template.BooleanParameter
+import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.wizard.template.Parameter
-import javax.swing.JCheckBox
+import com.android.tools.idea.wizard.template.StringParameter
 
 /**
- * Provides a checkbox well suited for handling [BooleanParameter].
+ * Provides a [LabelWithEditButton] for more advanced [StringParameter] that only users who know what they're doing should modify.
  */
-class CheckboxProvider2(parameter: BooleanParameter) : ParameterComponentProvider2<JCheckBox>(parameter) {
-  override fun createComponent(parameter: Parameter<*>): JCheckBox = JCheckBox(parameter.name)
-  override fun createProperty(component: JCheckBox): AbstractProperty<*>? = SelectedProperty(component)
+class LabelWithEditButtonProvider(parameter: StringParameter) : ParameterComponentProvider<LabelWithEditButton>(parameter) {
+  override fun createComponent(parameter: Parameter<*>): LabelWithEditButton = LabelWithEditButton()
+  override fun createProperty(component: LabelWithEditButton): AbstractProperty<*> = TextProperty(component)
 }

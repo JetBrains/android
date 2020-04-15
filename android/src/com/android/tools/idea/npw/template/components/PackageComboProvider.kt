@@ -29,10 +29,10 @@ import com.intellij.ui.RecentsManager
 /**
  * Provides an editable combobox which allows the user to specify a package name (or pull from a list of recently used packages).
  */
-class PackageComboProvider2(private val project: Project,
-                            parameter: StringParameter,
-                            private val initialPackage: String,
-                            private val recentsKey: String) : ParameterComponentProvider2<EditorComboBox>(parameter) {
+class PackageComboProvider(private val project: Project,
+                           parameter: StringParameter,
+                           private val initialPackage: String,
+                           private val recentsKey: String) : ParameterComponentProvider<EditorComboBox>(parameter) {
   override fun createComponent(parameter: Parameter<*>): EditorComboBox {
     val doc = JavaReferenceEditorUtil.createDocument(
       initialPackage, project, false, JavaCodeFragment.VisibilityChecker.PROJECT_SCOPE_VISIBLE)!!

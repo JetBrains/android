@@ -31,8 +31,8 @@ import javax.swing.DefaultComboBoxModel
 /**
  * Provides a [ComboBox] well suited for handling [EnumParameter] parameters.
  */
-class EnumComboProvider2(parameter: EnumParameter<*>) : ParameterComponentProvider2<ComboBox<*>>(parameter) {
-  private val log: Logger = Logger.getInstance(EnumComboProvider2::class.java)
+class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvider<ComboBox<*>>(parameter) {
+  private val log: Logger = Logger.getInstance(EnumComboProvider::class.java)
 
   // TODO add support for min api, or better yet custom availability condition
   private fun createItemForOption(parameter: EnumParameter<*>, value: Enum<*>): ApiComboBoxItem<String> =
