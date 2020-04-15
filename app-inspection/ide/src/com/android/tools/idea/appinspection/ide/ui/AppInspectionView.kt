@@ -21,6 +21,7 @@ import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.ProcessDescriptor
+import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
@@ -30,6 +31,7 @@ import com.android.tools.idea.concurrency.transform
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationType
@@ -78,6 +80,7 @@ class AppInspectionView(
       NotificationType.ERROR,
       object : NotificationListener.Adapter() {
         override fun hyperlinkActivated(notification: Notification, e: HyperlinkEvent) {
+          AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
           launchInspectorTabsForCurrentProcess()
           notification.expire()
         }
@@ -92,7 +95,8 @@ class AppInspectionView(
   init {
     component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
 
-    val comboBoxModel = AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost, getPreferredProcesses)
+    val comboBoxModel = AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost, getPreferredProcesses,
+                                                            AppInspectionAnalyticsTrackerService.getInstance(project))
     Disposer.register(this, comboBoxModel)
 
     val inspectionProcessesComboBox = AppInspectionProcessesComboBox(comboBoxModel)
@@ -156,6 +160,7 @@ class AppInspectionView(
         }.transform { client ->
           client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
             override fun onCrashEvent(message: String) {
+              AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
               createCrashNotification(provider.displayName).notify(project)
             }
           }, MoreExecutors.directExecutor())

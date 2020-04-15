@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamManager
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 

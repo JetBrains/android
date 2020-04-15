@@ -25,12 +25,13 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 @Service
 class AppInspectionAnalyticsTrackerService(private val project: Project): AppInspectionAnalyticsTracker {
   companion object {
-    fun getInstance(project: Project) = project.getService(AppInspectionAnalyticsTrackerService::class.java)!!
+    fun getInstance(project: Project) = project.service<AppInspectionAnalyticsTrackerService>()
   }
 
   override fun trackErrorOccurred(errorKind: AppInspectionEvent.ErrorKind) {
@@ -39,10 +40,8 @@ class AppInspectionAnalyticsTrackerService(private val project: Project): AppIns
     }
   }
 
-  override fun trackToolWindowOpened(numDevices: Int, numProcesses: Int) {
-    track(AppInspectionEvent.Type.TOOL_WINDOW_OPENED) { events ->
-      events.inspectionEvent.environmentMetadata = toEnvironmentMetadata(numDevices, numProcesses)
-    }
+  override fun trackToolWindowOpened() {
+    track(AppInspectionEvent.Type.TOOL_WINDOW_OPENED)
   }
 
   override fun trackToolWindowHidden() {

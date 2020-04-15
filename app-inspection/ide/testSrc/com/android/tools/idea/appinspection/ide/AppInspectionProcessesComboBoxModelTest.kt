@@ -71,7 +71,7 @@ class AppInspectionProcessesComboBoxModelTest {
     val addedLatch = CountDownLatch(1)
     val removedLatch = CountDownLatch(1)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { emptyList() }
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost, { emptyList() })
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -111,7 +111,7 @@ class AppInspectionProcessesComboBoxModelTest {
 
     val addedLatch = CountDownLatch(2)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { listOf("preferred") }
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost, { listOf("preferred") })
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -152,7 +152,7 @@ class AppInspectionProcessesComboBoxModelTest {
 
     val processReadyLatch = CountDownLatch(2)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { listOf("A", "B") }
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost, { listOf("A", "B") })
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -185,7 +185,7 @@ class AppInspectionProcessesComboBoxModelTest {
 
     val processReadyLatch = CountDownLatch(1)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { emptyList() }
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost, { emptyList() })
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -216,7 +216,7 @@ class AppInspectionProcessesComboBoxModelTest {
     val processReadyLatch = CountDownLatch(1)
     val processRemovedLatch = CountDownLatch(1)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { emptyList() }
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost, { emptyList() })
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 

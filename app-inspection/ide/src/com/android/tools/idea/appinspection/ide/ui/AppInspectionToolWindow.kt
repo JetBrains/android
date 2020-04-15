@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.idea.appinspection.ide.AppInspectionHostService
+import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.intellij.notification.NotificationGroup
@@ -24,6 +25,8 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import javax.swing.JComponent
 
 class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {
@@ -49,6 +52,21 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
 
   init {
     Disposer.register(this, appInspectionView)
+    project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
+      private var wasVisible = false
+      override fun stateChanged() {
+        val inspectionToolWindow = ToolWindowManager.getInstance(project).getToolWindow(APP_INSPECTION_ID) ?: return
+        val visibilityChanged = inspectionToolWindow.isVisible != wasVisible
+        wasVisible = inspectionToolWindow.isVisible
+        if (visibilityChanged) {
+          if (inspectionToolWindow.isVisible) {
+            AppInspectionAnalyticsTrackerService.getInstance(project).trackToolWindowOpened()
+          } else {
+            AppInspectionAnalyticsTrackerService.getInstance(project).trackToolWindowHidden()
+          }
+        }
+      }
+    })
   }
 
   override fun dispose() {
