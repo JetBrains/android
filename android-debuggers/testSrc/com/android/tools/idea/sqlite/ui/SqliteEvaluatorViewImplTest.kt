@@ -32,15 +32,16 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.testing.IdeComponents
+import com.intellij.mock.MockPsiManager
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.concurrency.EdtExecutorService
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.awt.Dimension
@@ -115,7 +116,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   fun testPsiCacheIsDroppedWhenNewDatabaseIsSelected() {
     // Prepare
     val ideComponents = IdeComponents(myFixture)
-    val mockPsiManager = mock(PsiManager::class.java)
+    val mockPsiManager = spy(MockPsiManager(project))
     ideComponents.replaceProjectService(PsiManager::class.java, mockPsiManager)
 
     val comboBox = TreeWalker(view.component).descendants().filterIsInstance<JComboBox<*>>().first()
@@ -138,7 +139,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   fun testSchemaUpdatedDropsCachesAndGetsNewSchema() {
     // Prepare
     val ideComponents = IdeComponents(myFixture)
-    val mockPsiManager = mock(PsiManager::class.java)
+    val mockPsiManager = spy(MockPsiManager(project))
     ideComponents.replaceProjectService(PsiManager::class.java, mockPsiManager)
 
     val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1"))
