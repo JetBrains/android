@@ -22,7 +22,7 @@ import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED;
 import static com.android.builder.model.AndroidProject.PROPERTY_INVOKED_FROM_IDE;
 import static com.android.builder.model.AndroidProject.PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL;
-import static com.android.builder.model.AndroidProject.PROPERTY_STUDIO_VERSION;
+import static com.android.builder.model.AndroidProject.PROPERTY_ANDROID_SUPPORT_VERSION;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.google.common.truth.Truth.assertThat;
@@ -42,7 +42,6 @@ import com.intellij.openapi.util.BuildNumber;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.model.Build;
 import org.mockito.Mock;
 
 /**
@@ -86,7 +85,7 @@ public class CommandLineArgsTest extends HeavyPlatformTestCase {
     List<String> args = myArgs.get(getProject());
     check(args);
     // In tests the version of the plugin is reported as the build number.
-    assertThat(args).contains("-P" + PROPERTY_STUDIO_VERSION + "=" + BuildNumber.currentVersion().asString());
+    assertThat(args).contains("-P" + PROPERTY_ANDROID_SUPPORT_VERSION + "=" + BuildNumber.currentVersion().asString());
     assertThat(args).contains("-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks");
   }
 
@@ -94,14 +93,14 @@ public class CommandLineArgsTest extends HeavyPlatformTestCase {
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
     List<String> args = myArgs.get(getProject());
     check(args);
-    assertThat(args).doesNotContain("-P" + PROPERTY_STUDIO_VERSION + "=dev build");
+    assertThat(args).doesNotContain("-P" + PROPERTY_ANDROID_SUPPORT_VERSION + "=dev build");
   }
 
   public void testGetWithIdeNotAndroidStudio() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(false);
     List<String> args = myArgs.get(getProject());
     check(args);
-    assertThat(args).contains("-P" + PROPERTY_STUDIO_VERSION + "=" + BuildNumber.currentVersion().asString());
+    assertThat(args).contains("-P" + PROPERTY_ANDROID_SUPPORT_VERSION + "=" + BuildNumber.currentVersion().asString());
   }
 
   public void testGetWithExtraCommandLineOptions() {

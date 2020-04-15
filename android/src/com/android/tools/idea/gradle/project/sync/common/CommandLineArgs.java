@@ -23,7 +23,7 @@ import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED;
 import static com.android.builder.model.AndroidProject.PROPERTY_INVOKED_FROM_IDE;
 import static com.android.builder.model.AndroidProject.PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL;
-import static com.android.builder.model.AndroidProject.PROPERTY_STUDIO_VERSION;
+import static com.android.builder.model.AndroidProject.PROPERTY_ANDROID_SUPPORT_VERSION;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
@@ -100,7 +100,7 @@ public class CommandLineArgs {
     IdeaPluginDescriptor androidSupport = PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.android"));
     if (androidSupport != null && !isDevBuild(androidSupport.getVersion())) {
       // Example of version to pass: 2.4.0.6
-      args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, androidSupport.getVersion()));
+      args.add(createProjectProperty(PROPERTY_ANDROID_SUPPORT_VERSION, androidSupport.getVersion()));
     }
     // Skip download of source and javadoc jars during Gradle sync, this flag only has effect on AGP 3.5.
     //noinspection deprecation AGP 3.6 and above do not download sources at all.
