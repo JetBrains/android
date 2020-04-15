@@ -27,22 +27,22 @@ import com.android.tools.idea.testing.FileSubject.file
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.TestProjectPaths.APP_WITH_ML_MODELS
-import com.android.tools.idea.testing.TestProjectPaths.BASIC
-import com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY
-import com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI
-import com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL
-import com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE
-import com.android.tools.idea.testing.TestProjectPaths.NEW_SYNC_KOTLIN_TEST
-import com.android.tools.idea.testing.TestProjectPaths.NON_STANDARD_SOURCE_SETS
-import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
-import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
-import com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT
-import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
-import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
-import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
-import com.android.tools.idea.testing.TestProjectPaths.VARIANT_SPECIFIC_DEPENDENCIES
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.*
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.APP_WITH_ML_MODELS
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.BASIC
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.CENTRAL_BUILD_DIRECTORY
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.HELLO_JNI
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_GRADLE_DSL
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NESTED_MODULE
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NEW_SYNC_KOTLIN_TEST
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_DEPENDENCY
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PURE_JAVA_PROJECT
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.SIMPLE_APPLICATION
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TWO_JARS
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.VARIANT_SPECIFIC_DEPENDENCIES
 import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.fileUnderGradleRoot
@@ -65,6 +65,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.PathUtil.toSystemDependentName
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemDependent
+import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -158,13 +159,13 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     fun testMultiFlavor() {
-      val text = importSyncAndDumpProject(TestProjectPaths.MULTI_FLAVOR)
+      val text = importSyncAndDumpProject(MULTI_FLAVOR)
       assertIsEqualToSnapshot(text)
     }
 
     fun testExternalSourceSets() {
       val projectRootPath = prepareProjectForImport(NON_STANDARD_SOURCE_SETS)
-      val request = GradleSyncInvoker.Request.testRequest(true);
+      val request = GradleSyncInvoker.Request.testRequest(true)
       AndroidGradleTests.importProject(project, request) {
         // ignore missing manifest errors
         it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
@@ -314,17 +315,17 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     fun testWithCompositeBuild() {
-      val text = importSyncAndDumpProject(TestProjectPaths.COMPOSITE_BUILD)
+      val text = importSyncAndDumpProject(COMPOSITE_BUILD)
       assertIsEqualToSnapshot(text)
     }
 
     fun testWithBuildSrc() {
-      val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_BUILDSRC)
+      val text = importSyncAndDumpProject(APP_WITH_BUILDSRC)
       assertIsEqualToSnapshot(text)
     }
 
     fun testKapt() {
-      val text = importSyncAndDumpProject(TestProjectPaths.KOTLIN_KAPT)
+      val text = importSyncAndDumpProject(KOTLIN_KAPT)
       assertIsEqualToSnapshot(text)
     }
 
@@ -420,18 +421,18 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     fun testCompatibilityWithAndroidStudio36Project() {
-      val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36)
+      val text = importSyncAndDumpProject(COMPATIBILITY_TESTS_AS_36)
       assertIsEqualToSnapshot(text)
     }
 
     fun testCompatibilityWithAndroidStudio36NoImlProject() {
-      val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
+      val text = importSyncAndDumpProject(COMPATIBILITY_TESTS_AS_36_NO_IML)
       assertIsEqualToSnapshot(text)
     }
 
     fun testApiDependency() {
       val text = importSyncAndDumpProject(
-        projectDir = TestProjectPaths.API_DEPENDENCY,
+        projectDir = API_DEPENDENCY,
         issueFilter = AndroidGradleTests.SyncIssueFilter {
           // ignore missing manifest errors
           it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
@@ -441,12 +442,14 @@ abstract class GradleSyncProjectComparisonTest(
     }
   }
 
-  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/syncedProjectSnapshots"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
   override val snapshotSuffixes = listOfNotNull(
     // Suffixes to use to override the default expected result.
     ".single_variant".takeIf { singleVariantSync },
     ""
   )
+
+  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
 
   private lateinit var ideComponents: IdeComponents
 
@@ -485,7 +488,7 @@ abstract class GradleSyncProjectComparisonTest(
   }
 
   override fun getAdditionalRepos() =
-    listOf(File(AndroidTestBase.getTestDataPath(), toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)))
+    listOf(File(AndroidTestBase.getTestDataPath(), toSystemDependentName(PSD_SAMPLE_REPO)))
 
   private val tempSuffix: String = java.time.Clock.systemUTC().millis().toString()
 
