@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags.DAGGER_SUPPORT_ENABLED
 import com.intellij.find.findUsages.CustomUsageSearcher
 import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.components.service
 import com.intellij.psi.PsiElement
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.PsiElementUsageTarget
@@ -30,7 +31,6 @@ import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.usages.impl.rules.UsageTypeProviderEx
 import com.intellij.util.Processor
-import org.jetbrains.kotlin.idea.util.module
 
 private val DEPENDENCY_PROVIDERS_USAGE_TYPE = UsageType(DEPENDENCY_PROVIDERS)
 private val DEPENDENCY_CONSUMERS_USAGE_TYPE = UsageType(DEPENDENCY_CONSUMERS)
@@ -46,7 +46,7 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
     val target = (targets.firstOrNull() as? PsiElementUsageTarget)?.element ?: return null
     return when {
       !DAGGER_SUPPORT_ENABLED.get() -> null
-      element?.module?.isDaggerPresent() != true -> null
+      element?.project?.service<DaggerDependencyChecker>()?.isDaggerPresent() != true -> null
       target.isDaggerConsumer && element.isDaggerProvider -> DEPENDENCY_PROVIDERS_USAGE_TYPE
       target.isDaggerProvider && element.isDaggerConsumer -> DEPENDENCY_CONSUMERS_USAGE_TYPE
       target.isDaggerProvider && element.isDaggerComponentMethod -> DEPENDENCY_COMPONENT_METHOD_USAGE_TYPE
@@ -76,7 +76,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
     runReadAction {
       when {
         !DAGGER_SUPPORT_ENABLED.get() -> return@runReadAction
-        element.module?.isDaggerPresent() != true -> return@runReadAction
+        !element.project.service<DaggerDependencyChecker>().isDaggerPresent() -> return@runReadAction
         element.isDaggerConsumer -> processCustomUsagesForConsumers(element, processor)
         element.isDaggerProvider -> processCustomUsagesForProvider(element, processor)
         element.isDaggerModule -> processCustomUsagesForModule(element, processor)

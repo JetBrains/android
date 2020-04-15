@@ -21,6 +21,7 @@ import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.navigation.GotoRelatedItem
+import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.NotNullLazyValue
@@ -29,7 +30,6 @@ import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.lexer.KtTokens
 import javax.swing.Icon
 
@@ -47,7 +47,7 @@ internal const val DEPENDENCY_MODULES = "Dependency modules(s)"
 class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
   override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<PsiElement>>) {
-    if (!StudioFlags.DAGGER_SUPPORT_ENABLED.get() || element.module?.isDaggerPresent() != true) return
+    if (!StudioFlags.DAGGER_SUPPORT_ENABLED.get() || !element.project.service<DaggerDependencyChecker>().isDaggerPresent()) return
 
     if (!element.canBeLineMarkerProvide) return
 
