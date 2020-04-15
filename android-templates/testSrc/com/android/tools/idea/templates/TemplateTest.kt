@@ -28,6 +28,7 @@ import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.StringParameter
+import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.util.SystemInfo
@@ -268,7 +269,6 @@ open class TemplateTest : AndroidGradleTestCase() {
     checkCreateTemplate("Empty Compose Activity", withKotlin) // Compose is always Kotlin
   }
 
-
   @TemplateCheck
   fun testNewBlankWearActivity() {
     checkCreateTemplate("Blank Activity")
@@ -289,7 +289,6 @@ open class TemplateTest : AndroidGradleTestCase() {
     checkCreateTemplate("Google Maps Activity", withKotlin, formFactor = FormFactor.Wear)
   }
 
-
   @TemplateCheck
   fun testNewTvActivity() {
     checkCreateTemplate("Android TV Blank Activity")
@@ -299,7 +298,6 @@ open class TemplateTest : AndroidGradleTestCase() {
   fun testNewTvActivityWithKotlin() {
     checkCreateTemplate("Android TV Blank Activity", withKotlin)
   }
-
 
   @TemplateCheck
   fun testNewThingsActivity() {
@@ -502,7 +500,6 @@ open class TemplateTest : AndroidGradleTestCase() {
     checkCreateTemplate("Values XML File")
   }
 
-
   @TemplateCheck
   fun testWatchFace() {
     checkCreateTemplate("Watch Face")
@@ -512,7 +509,6 @@ open class TemplateTest : AndroidGradleTestCase() {
   fun testWatchFaceWithKotlin() {
     checkCreateTemplate("Watch Face", withKotlin)
   }
-
 
   @TemplateCheck
   fun testAutomotiveMessagingService() {
@@ -532,6 +528,13 @@ open class TemplateTest : AndroidGradleTestCase() {
   @TemplateCheck
   fun testAutomotiveMediaServiceWithKotlin() {
     checkCreateTemplate("Media service", withKotlin)
+  }
+
+  fun testWizardUiContext() {
+    TemplateResolver.getAllTemplates().filter { it.uiContexts.contains(WizardUiContext.NewProjectExtraDetail) }.forEach {
+      // NewProjectExtraDetail should simultaneously declare NewProject
+      assertThat(it.uiContexts).contains(WizardUiContext.NewProject)
+    }
   }
 
   open fun testAllTemplatesCovered() {
