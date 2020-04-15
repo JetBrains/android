@@ -22,10 +22,12 @@ import com.android.ide.common.util.PathString
 import com.android.projectmodel.Library
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
 import com.google.common.collect.HashMultimap
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -82,7 +84,7 @@ class TestProjectSystem @JvmOverloads constructor(
   fun getAddedDependencies(module: Module): Set<GradleCoordinate> = dependenciesByModule.get(module)
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
-    return object : AndroidModuleSystem {
+    class TestAndroidModuleSystemImpl : AndroidModuleSystem {
       override val module = module
 
       override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
@@ -149,12 +151,21 @@ class TestProjectSystem @JvmOverloads constructor(
         return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(PathString(primaryManifest.path))
       }
 
+      override fun getApplicationIdProvider(runConfiguration: RunConfiguration?): ApplicationIdProvider {
+        return object : ApplicationIdProvider {
+          override fun getPackageName(): String = this@TestAndroidModuleSystemImpl.getPackageName()!!
+          override fun getTestPackageName(): String? = null
+        }
+      }
+
       override fun getManifestOverrides() = ManifestOverrides()
 
       override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
         return module.getModuleWithDependenciesAndLibrariesScope(scopeType != ScopeType.MAIN)
       }
     }
+
+    return TestAndroidModuleSystemImpl()
   }
 
   fun emulateSync(result: SyncResult) {
