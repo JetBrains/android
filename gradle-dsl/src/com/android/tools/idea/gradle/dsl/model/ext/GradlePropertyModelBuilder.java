@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
@@ -25,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.model.java.LanguageLevelPropertyModelIm
 import com.android.tools.idea.gradle.dsl.model.kotlin.JvmTargetPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslGlobalValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
@@ -90,8 +88,6 @@ public class GradlePropertyModelBuilder {
   @Nullable
   private GradleDslElement myDefault;
   @NotNull
-  private PropertyType myType = REGULAR;
-  @NotNull
   private List<PropertyTransform> myTransforms = new ArrayList<>();
 
   private GradlePropertyModelBuilder(@NotNull GradlePropertiesDslElement holder, @NotNull String name) {
@@ -119,17 +115,6 @@ public class GradlePropertyModelBuilder {
     else {
       myProperty = effect.property;
     }
-  }
-
-  /**
-   * Sets the type of this model, defaults to {@link PropertyType#REGULAR}
-   *
-   * @param type of the result model.
-   * @return this model builder
-   */
-  public GradlePropertyModelBuilder withType(@NotNull PropertyType type) {
-    myType = type;
-    return this;
   }
 
   /**
@@ -187,10 +172,10 @@ public class GradlePropertyModelBuilder {
       model = new GradlePropertyModelImpl(currentElement);
     }
     else if(myProperty != null) {
-      model = new GradlePropertyModelImpl(getParentElement(), myType, myProperty);
+      model = new GradlePropertyModelImpl(getParentElement(), REGULAR, myProperty);
     }
     else {
-      model = new GradlePropertyModelImpl(getParentElement(), myType, myName);
+      model = new GradlePropertyModelImpl(getParentElement(), REGULAR, myName);
     }
     return setUpModel(model);
   }
@@ -207,7 +192,7 @@ public class GradlePropertyModelBuilder {
   public PasswordPropertyModelImpl buildPassword() {
     GradleDslElement currentElement = getElement();
     PasswordPropertyModelImpl model = currentElement == null
-                                      ? new PasswordPropertyModelImpl(getParentElement(), myType, myName)
+                                      ? new PasswordPropertyModelImpl(getParentElement(), REGULAR, myName)
                                       : new PasswordPropertyModelImpl(currentElement);
     return setUpModel(model);
   }
