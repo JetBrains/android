@@ -91,7 +91,6 @@ public class GradlePropertyModelBuilder {
   private GradleDslElement myDefault;
   @NotNull
   private PropertyType myType = REGULAR;
-  private boolean myIsMethod = false;
   @NotNull
   private List<PropertyTransform> myTransforms = new ArrayList<>();
 
@@ -113,7 +112,6 @@ public class GradlePropertyModelBuilder {
     myHolder = null;
     myName = element.getName();
     myElement = element;
-    myIsMethod = !myElement.shouldUseAssignment();
     ModelEffectDescription effect = element.getModelEffect();
     if (effect == null) {
       myProperty = null;
@@ -139,7 +137,6 @@ public class GradlePropertyModelBuilder {
    * @return this model builder
    */
   public GradlePropertyModelBuilder asMethod(boolean bool) {
-    myIsMethod = bool;
     return this;
   }
 
@@ -263,10 +260,6 @@ public class GradlePropertyModelBuilder {
 
   @NotNull
   private <T extends GradlePropertyModelImpl> T setUpModel(@NotNull T model) {
-    if (myIsMethod) {
-      model.markAsMethodCall();
-    }
-
     if (myDefault != null) {
       model.setDefaultElement(myDefault);
     }

@@ -41,10 +41,6 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Nullable protected GradleDslElement myElement;
   @Nullable protected GradleDslElement myDefaultElement;
   @NotNull protected GradleDslElement myPropertyHolder;
-  // Indicates whether this property represents a method call or an assignment. This is needed to remove the braces when creating
-  // properties for example "android.defaultConfig.proguardFiles" requires "proguardFiles "file.txt", "file.pro"" whereas
-  // assignments require "prop = ["file.txt", "file.pro"]". If the method syntax is required #markAsMethodCall should be used.
-  private boolean myIsMethodCall;
 
   // The list of transforms to be checked for this property model. Only the first transform that has its PropertyTransform#condition
   // return true will be used.
@@ -69,8 +65,6 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     myPropertyType = myElement.getElementType();
     myName = myElement.getName();
     myPropertyDescription = myElement.getModelProperty();
-
-    myIsMethodCall = false;
   }
 
   // Used to create an empty property with no backing element.
@@ -79,19 +73,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     myPropertyType = type;
     myName = name;
     myTransforms.add(DEFAULT_TRANSFORM);
-
-    myIsMethodCall = false;
-
     myPropertyDescription = null; // TODO(xof): this does not actually mean (yet, during transition) that this is not a model property
   }
 
   public GradlePropertyModelImpl(@NotNull GradleDslElement holder, @NotNull PropertyType type, @NotNull ModelPropertyDescription description) {
     this(holder, type, description.name);
     myPropertyDescription = description;
-  }
-
-  public void markAsMethodCall() {
-    myIsMethodCall = true;
   }
 
   public void addTransform(@NotNull PropertyTransform transform) {
@@ -631,19 +618,19 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   private void makeEmptyMap() {
     if (myPropertyDescription == null) {
-      bindToNewElement(getTransform().bindMap(myPropertyHolder, myElement, getName(), myIsMethodCall));
+      bindToNewElement(getTransform().bindMap(myPropertyHolder, myElement, getName(), false));
     }
     else {
-      bindToNewElement(getTransform().bindMap(myPropertyHolder, myElement, myPropertyDescription, myIsMethodCall));
+      bindToNewElement(getTransform().bindMap(myPropertyHolder, myElement, myPropertyDescription, false));
     }
   }
 
   private void makeEmptyList() {
     if (myPropertyDescription == null) {
-      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, getName(), myIsMethodCall));
+      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, getName(), false));
     }
     else {
-      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, myPropertyDescription, myIsMethodCall));
+      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, myPropertyDescription, false));
     }
   }
 
@@ -659,7 +646,9 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     GradleDslElement element = getTransform().replace(myPropertyHolder, myElement, newElement, getName());
     element.setElementType(myPropertyType);
-    element.setUseAssignment(!myIsMethodCall); // TODO(b/141970574): myElement.useAssignment
+    if (myElement != null) {
+      element.setUseAssignment(myElement.shouldUseAssignment()); // TODO(b/141970574): myElement.useAssignment
+    }
     // TODO(b/...): this is necessary until models store the properties they're associated with: for now, the models have only names
     //  while the Dsl elements are annotated with model effect / properties.
     if (myElement != null) {
