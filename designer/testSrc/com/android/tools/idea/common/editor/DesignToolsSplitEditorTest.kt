@@ -44,6 +44,7 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     super.setUp()
     val panel = mock(DesignerEditorPanel::class.java)
     `when`(panel.surface).thenReturn(NlDesignSurface.build(project, testRootDisposable))
+    `when`(panel.state).thenReturn(DesignerEditorPanel.State.FULL)
     designerEditor = mock(DesignerEditor::class.java)
     `when`(designerEditor.component).thenReturn(panel)
     val textEditorComponent = mock(JComponent::class.java)

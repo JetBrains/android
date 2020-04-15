@@ -45,12 +45,10 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
   override fun getEditorId() = NL_EDITOR_ID
 
   override fun createEditorPanel() =
-    DesignerEditorPanel(this, myProject, myFile, WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this),
-                        { NlDesignSurface.builder(myProject, this)
-                          .setDefaultSurfaceState(AndroidEditorSettings.getInstance().globalState.preferredSurfaceState())
-                          .build()
-                        },
-                        { toolWindowDefinitions(it) })
+    DesignerEditorPanel(this, myProject, myFile, WorkBench(myProject, WORKBENCH_NAME, this, this),
+                        { NlDesignSurface.builder(myProject, this).build() },
+                        { toolWindowDefinitions(it) },
+                        AndroidEditorSettings.getInstance().globalState.preferredSurfaceState())
 
   private fun toolWindowDefinitions(facet: AndroidFacet): List<ToolWindowDefinition<DesignSurface>> {
     val definitions = ImmutableList.builder<ToolWindowDefinition<DesignSurface>>()
@@ -74,8 +72,8 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
 }
 
 fun AndroidEditorSettings.GlobalState.preferredSurfaceState() = when(preferredEditorMode) {
-  AndroidEditorSettings.EditorMode.CODE -> DesignSurface.State.DEACTIVATED
-  AndroidEditorSettings.EditorMode.SPLIT -> DesignSurface.State.SPLIT
-  AndroidEditorSettings.EditorMode.DESIGN -> DesignSurface.State.FULL
-  else -> DesignSurface.State.FULL // default
+  AndroidEditorSettings.EditorMode.CODE -> DesignerEditorPanel.State.DEACTIVATED
+  AndroidEditorSettings.EditorMode.SPLIT -> DesignerEditorPanel.State.SPLIT
+  AndroidEditorSettings.EditorMode.DESIGN -> DesignerEditorPanel.State.FULL
+  else -> DesignerEditorPanel.State.FULL // default
 }

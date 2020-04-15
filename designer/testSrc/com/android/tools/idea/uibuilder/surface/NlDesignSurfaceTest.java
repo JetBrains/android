@@ -28,7 +28,6 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
@@ -553,9 +552,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     final int surfaceHeight = 500;
 
     // First use an empty surface to measure the zoom-to-fit scale.
-    NlDesignSurface surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
-      .setDefaultSurfaceState(DesignSurface.State.SPLIT)
-      .build();
+    NlDesignSurface surface = NlDesignSurface.builder(getProject(), getTestRootDisposable()).build();
     surface.addAndRenderModel(model);
     surface.setSize(surfaceWidth, surfaceHeight);
     surface.doLayout();
@@ -565,7 +562,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     // Create another surface which the minimum scale is larger than fitScale.
     surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
-      .setDefaultSurfaceState(DesignSurface.State.SPLIT)
       .setMinScale(fitScale * 2)
       .build();
     surface.addAndRenderModel(model);
@@ -579,7 +575,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     // Create another surface which the maximum scale is lower than fitScale.
     surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
-      .setDefaultSurfaceState(DesignSurface.State.SPLIT)
       .setMaxScale(fitScale / 2)
       .build();
     surface.addAndRenderModel(model);
@@ -626,12 +621,5 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     NlDesignSurface otherSurface = NlDesignSurface.build(getProject(), getTestRootDisposable());
     assertNotSame(SceneMode.COMPOSE, otherSurface.getSceneMode());
-  }
-
-  public void testDefaultSurfaceState() {
-    assertEquals(DesignSurface.State.FULL, mySurface.getState()); // If nothing is explicitly set, we should default to FULL mode
-
-    mySurface = NlDesignSurface.builder(getProject(), getTestRootDisposable()).setDefaultSurfaceState(DesignSurface.State.SPLIT).build();
-    assertEquals(DesignSurface.State.SPLIT, mySurface.getState());
   }
 }

@@ -249,7 +249,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     .setIsPreview(true)
     .showModelNames()
     .setNavigationHandler(navigationHandler)
-    .setDefaultSurfaceState(DesignSurface.State.SPLIT)
     .setLayoutManager(GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X, DEFAULT_SCREEN_OFFSET_Y, SCREEN_DELTA, SCREEN_DELTA))
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
     .setInteractionHandlerProvider { surface ->
