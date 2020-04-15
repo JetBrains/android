@@ -54,8 +54,6 @@ open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: De
       return String.format("%s_%s", SPLIT_MODE_PROPERTY_PREFIX, file.path)
     }
 
-  private var stateRestored = false
-
   init {
     clearLastModeProperty()
   }
@@ -67,19 +65,6 @@ open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: De
     // Note: "${editorName}Layout" is the current format used by TextEditorWithPreview. Check TextEditorWithPreview#getLayoutPropertyName in
     // the unlikely event this starts to fail, since the property name might have changed.
     PropertiesComponent.getInstance().setValue("${EDITOR_NAME}Layout", null)
-  }
-
-  override fun getComponent(): JComponent {
-    val thisComponent = super.getComponent()
-    if (!stateRestored) {
-      stateRestored = true
-      restoreSurfaceState()
-    }
-    return thisComponent
-  }
-
-  private fun restoreSurfaceState() {
-    (getSelectedAction() as? MyToolBarAction)?.let { designerEditor.component.surface.state = it.surfaceState }
   }
 
   override fun getBackgroundHighlighter(): BackgroundEditorHighlighter {
