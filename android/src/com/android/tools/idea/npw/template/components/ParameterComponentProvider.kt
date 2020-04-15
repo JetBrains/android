@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.npw.template.components
 
-import com.android.tools.adtui.LabelWithEditButton
-import com.android.tools.idea.observable.AbstractProperty
-import com.android.tools.idea.observable.ui.TextProperty
+import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.template.Parameter
-import com.android.tools.idea.wizard.template.StringParameter
+import com.google.common.base.Strings
+import javax.swing.JComponent
 
 /**
- * Provides a [LabelWithEditButton] for more advanced [StringParameter] that only users who know what they're doing should modify.
+ * A class responsible for converting a [Parameter] to a [JComponent]. Any parameter
+ * that represents a value (most of them, except for e.g. SEPARATOR should
+ * be sure to also create an appropriate Swing property to control the component.
  */
-class LabelWithEditButtonProvider2(parameter: StringParameter) : ParameterComponentProvider2<LabelWithEditButton>(parameter) {
-  override fun createComponent(parameter: Parameter<*>): LabelWithEditButton = LabelWithEditButton()
-  override fun createProperty(component: LabelWithEditButton): AbstractProperty<*> = TextProperty(component)
+abstract class ParameterComponentProvider<T : JComponent> protected constructor(private val parameter: Parameter<*>) : ComponentProvider<T>() {
+  override fun createComponent(): T = createComponent(parameter).apply {
+    toolTipText = WizardUtils.toHtmlString(parameter.help ?: "")
+  }
+
+  protected abstract fun createComponent(parameter: Parameter<*>): T
 }

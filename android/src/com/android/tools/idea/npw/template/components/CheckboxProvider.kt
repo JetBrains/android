@@ -16,15 +16,15 @@
 package com.android.tools.idea.npw.template.components
 
 import com.android.tools.idea.observable.AbstractProperty
-import com.android.tools.idea.observable.ui.TextProperty
+import com.android.tools.idea.observable.ui.SelectedProperty
+import com.android.tools.idea.wizard.template.BooleanParameter
 import com.android.tools.idea.wizard.template.Parameter
-import com.android.tools.idea.wizard.template.StringParameter
-import javax.swing.JTextField
+import javax.swing.JCheckBox
 
 /**
- * Provides a textfield well suited for handling [StringParameter].
+ * Provides a checkbox well suited for handling [BooleanParameter].
  */
-class TextFieldProvider2(parameter: Parameter<String>) : ParameterComponentProvider2<JTextField>(parameter) {
-  override fun createComponent(parameter: Parameter<*>): JTextField = JTextField()
-  override fun createProperty(component: JTextField): AbstractProperty<*>? = TextProperty(component)
+class CheckboxProvider(parameter: BooleanParameter) : ParameterComponentProvider<JCheckBox>(parameter) {
+  override fun createComponent(parameter: Parameter<*>): JCheckBox = JCheckBox(parameter.name)
+  override fun createProperty(component: JCheckBox): AbstractProperty<*>? = SelectedProperty(component)
 }
