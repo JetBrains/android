@@ -45,7 +45,7 @@ public final class ModifyDeviceSetDialogTest {
         .setAndroidDevice(Mockito.mock(AndroidDevice.class))
         .build();
 
-      SelectedDevicesService service = Mockito.mock(SelectedDevicesService.class);
+      DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
 
       myDialog = new ModifyDeviceSetDialog(
         myRule.getProject(),
