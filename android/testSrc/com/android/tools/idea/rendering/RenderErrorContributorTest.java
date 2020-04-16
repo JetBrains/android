@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.tools.idea.rendering.RenderErrorContributor.isBuiltByJdk7OrHigher;
+
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
@@ -24,21 +26,15 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.StringHelper;
 import com.android.utils.TraceUtils;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -46,8 +42,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.rendering.RenderErrorContributor.isBuiltByJdk7OrHigher;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 public class RenderErrorContributorTest extends AndroidTestCase {
@@ -131,7 +130,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       }
     }
 
-    List<StackTraceElement> frames = Lists.newArrayList();
+    List<StackTraceElement> frames = new ArrayList<>();
     Pattern outerPattern = Pattern.compile("\tat (.*)\\.([^.]*)\\((.*)\\)");
     Pattern innerPattern = Pattern.compile("(.*):(\\d*)");
     while (iterator.hasNext()) {

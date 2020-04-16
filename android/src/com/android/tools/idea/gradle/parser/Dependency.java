@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralString;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,13 +45,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringContent;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
-
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralString;
 
 /**
  * Represents a dependency statement in a Gradle build file. Dependencies have a scope (which defines what types of compiles the
@@ -390,7 +389,7 @@ public class Dependency extends BuildFileStatement {
       }
 
       GrArgumentList argumentList = call.getArgumentList();
-      List<BuildFileStatement> dependencies = Lists.newArrayList();
+      List<BuildFileStatement> dependencies = new ArrayList<>();
 
       GroovyPsiElement[] allArguments = argumentList.getAllArguments();
       if (allArguments.length == 1) {

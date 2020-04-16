@@ -66,7 +66,6 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -848,7 +847,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     // Dragging over a non-root component: move the set of components (if the component dragged over is
     // part of the selection, drag them all, otherwise drag just this component)
     if (getSelectionModel().isSelected(draggedSceneComponent.getNlComponent())) {
-      dragged = Lists.newArrayList();
+      dragged = new ArrayList<>();
 
       // Make sure the primary is the first element
       if (primary.getParent() == null) {

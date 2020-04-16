@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.editor.parser;
 
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.Location;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.NO_ARGS_METHOD_ASSIGNMENT_VALUE;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.Value;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.Variable;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.editor.entity.GradleEditorEntity;
 import com.android.tools.idea.gradle.editor.entity.GradleEditorEntityGroup;
@@ -36,6 +41,14 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.jetbrains.plugins.groovy.GroovyLanguage;
@@ -49,16 +62,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplic
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-
-import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.*;
 
 /**
  * Entry point for functionality of {@link #parse(VirtualFile, Project) building} {@link GradleEditorEntity} objects from
@@ -116,7 +119,7 @@ public class GradleEditorModelParserFacade {
         if (!line.startsWith(startLineMarker)) {
           continue;
         }
-        List<String> subProjects = Lists.newArrayList();
+        List<String> subProjects = new ArrayList<>();
         for (String s : Splitter.on(",").trimResults().omitEmptyStrings().split(line.substring(startLineMarker.length()))) {
           // Sub-projects are defined as strings with leading colon, e.g. include ':app'.
           s = GradleEditorModelUtil.unquote(s);
@@ -125,7 +128,7 @@ public class GradleEditorModelParserFacade {
           }
           subProjects.add(s);
         }
-        List<String> dirs = Lists.newArrayList();
+        List<String> dirs = new ArrayList<>();
         LocalFileSystem fileSystem = LocalFileSystem.getInstance();
         VirtualFile rootDir = fileSystem.refreshAndFindFileByIoFile(settingsFile.getParentFile());
         if (rootDir == null) {

@@ -16,16 +16,19 @@
 package com.android.tools.idea.structure.services;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.bind.*;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.ValidationEvent;
+import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.io.Reader;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * JAXB enabled POJO representing a group of {@code Services}. Can be used by plugins to define a grouping of related
@@ -41,8 +44,8 @@ public class ServiceBundle {
   @XmlElements({
     @XmlElement(name = "service", type = Service.class)
   })
-  private List<Service> myServices = Lists.newArrayList();
-  // @formatter:on
+  private List<Service> myServices = new ArrayList<>();
+// @formatter:on
 
   /**
    * Parse a bundle XML.
@@ -94,8 +97,8 @@ public class ServiceBundle {
     @XmlElements({
       @XmlElement(name = "resource", type = String.class)
     })
-    private List<String> myResources = Lists.newArrayList();
-    // @formatter:on
+    private List<String> myResources = new ArrayList<>();
+// @formatter:on
 
     public List<String> getResources() {
       return ImmutableList.copyOf(myResources);

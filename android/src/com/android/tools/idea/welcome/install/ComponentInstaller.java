@@ -15,18 +15,28 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.repository.api.*;
+import com.android.repository.api.Downloader;
+import com.android.repository.api.Installer;
+import com.android.repository.api.InstallerFactory;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.Uninstaller;
+import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.installer.BasicInstallerFactory;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.ThrottledProgressWrapper;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
 
 /**
  * Installs SDK components.
@@ -47,10 +57,10 @@ public final class ComponentInstaller {
     for (InstallableComponent component : components) {
       requests.addAll(component.getPackagesToInstall());
     }
-    List<UpdatablePackage> resolved = Lists.newArrayList();
+    List<UpdatablePackage> resolved = new ArrayList<>();
     resolved.addAll(SdkQuickfixUtils.resolve(requests, sdkManager.getPackages()));
 
-    List<RemotePackage> result = Lists.newArrayList();
+    List<RemotePackage> result = new ArrayList<>();
     for (UpdatablePackage p : resolved) {
       result.add(p.getRemote());
     }

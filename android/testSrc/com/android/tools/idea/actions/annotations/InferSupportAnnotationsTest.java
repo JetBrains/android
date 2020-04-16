@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.actions.annotations;
 
-import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.JavaCodeInsightTestCase;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
@@ -26,11 +25,11 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.usageView.UsageInfo;
-import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.annotations.NotNull;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.NotNull;
 
 public class InferSupportAnnotationsTest extends JavaCodeInsightTestCase {
   private static final String INFER_PATH = "/infer/";
@@ -182,7 +181,7 @@ public class InferSupportAnnotationsTest extends JavaCodeInsightTestCase {
     }
 
     if (summary != null) {
-      List<UsageInfo> infos = Lists.newArrayList();
+      List<UsageInfo> infos = new ArrayList<>();
       inference.collect(infos, scope);
       String s = InferSupportAnnotations.generateReport(infos.toArray(UsageInfo.EMPTY_ARRAY));
       s = StringUtil.trimStart(s, "INFER SUPPORT ANNOTATIONS REPORT\n" +

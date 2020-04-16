@@ -24,21 +24,24 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.Method
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.AssignStmt;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.Stmt;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.value.*;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.InstanceInvokeExpr;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.InvokeExpr;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.NewExpr;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.StaticInvokeExpr;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.ThisRef;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 import com.android.tools.idea.experimental.codeanalysis.utils.PsiCFGAnalysisUtil;
 import com.android.tools.idea.experimental.codeanalysis.utils.PsiCFGDebugUtil;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiType;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A call graph builder.
@@ -189,7 +192,7 @@ public class CallgraphBuilder {
       }
 
       //Find concrete method to the leaf
-      ArrayList<PsiCFGMethod> methodList = Lists.newArrayList();
+      ArrayList<PsiCFGMethod> methodList = new ArrayList<>();
       recursivelyQueryConcreteMethodFromChildrenWithCache(methodList, receiverClass, methodSignature);
       for (PsiCFGMethod concreteMethodFromSubClass : methodList) {
         addToCallGraph(node, concreteMethodFromSubClass);
@@ -249,7 +252,7 @@ public class CallgraphBuilder {
                                     + thisBaseType.getClass().getSimpleName());
       }
 
-      ArrayList<PsiCFGMethod> methodsList = Lists.newArrayList();
+      ArrayList<PsiCFGMethod> methodsList = new ArrayList<>();
       recursivelyQueryConcreteMethodFromChildrenWithCache(methodsList, cfgClass, method.getSignature());
     }
   }

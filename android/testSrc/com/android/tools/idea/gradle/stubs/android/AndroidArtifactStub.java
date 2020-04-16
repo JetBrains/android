@@ -15,27 +15,34 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import static org.mockito.Mockito.mock;
+
 import com.android.annotations.NonNull;
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.ClassField;
+import com.android.builder.model.InstantRun;
+import com.android.builder.model.NativeLibrary;
+import com.android.builder.model.TestOptions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStub;
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.google.common.collect.Lists;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.*;
-
-import static com.intellij.openapi.util.text.StringUtil.capitalize;
-import static org.mockito.Mockito.mock;
-
 public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidArtifact {
-  @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
+  @NotNull private final List<File> myGeneratedResourceFolders = new ArrayList<>();
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
-  @NotNull private final Collection<NativeLibrary> myNativeLibraries = Lists.newArrayList();
+  @NotNull private final Collection<NativeLibrary> myNativeLibraries = new ArrayList<>();
   @NotNull private IdeDependenciesStub myIdeLevel2DependenciesStub;
   @NotNull private String myApplicationId;
 

@@ -17,17 +17,22 @@ package com.android.tools.idea.gradle.editor.parser;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.gradle.editor.entity.GradleEditorEntity;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 /**
  * Utility class which stores intermediate information during building {@link GradleEditorEntity} from the <code>build.gradle</code>.
@@ -46,7 +51,7 @@ public class GradleEditorModelParseContext {
    * Holds information about nested named code blocks, e.g. it's empty initially, holds 'buildscript' when we start parsing that section,
    * 'dependencies' (for the nested block) etc.
    */
-  private final List<String> myCodeStructure = Lists.newArrayList();
+  private final List<String> myCodeStructure = new ArrayList<>();
 
   /**
    * There is a possible case that a variable is defined like <code>'a.b.c = 1'</code>. Here variable name is 'c' and it's qualifier
@@ -55,9 +60,9 @@ public class GradleEditorModelParseContext {
    * <p/>
    * Current list is assumed to be ['a', 'b'] (at that order) when <code>'c'</code> is being parsed.
    */
-  private final List<String> myCachedVariableQualifier = Lists.newArrayList();
+  private final List<String> myCachedVariableQualifier = new ArrayList<>();
   private final Multimap<Variable, Location> myCachedVariables = HashMultimap.create();
-  private final List<Value> myCachedValues = Lists.newArrayList();
+  private final List<Value> myCachedValues = new ArrayList<>();
 
   @NotNull private final VirtualFile myTargetFile;
   @NotNull private final Project myProject;

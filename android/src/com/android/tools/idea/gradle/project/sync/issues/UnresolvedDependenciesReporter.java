@@ -41,7 +41,6 @@ import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -108,7 +107,7 @@ public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyn
     SyncIssue issue = syncIssues.get(0);
     String dependency = issue.getData();
 
-    List<NotificationHyperlink> quickFixes = Lists.newArrayList();
+    List<NotificationHyperlink> quickFixes = new ArrayList<>();
     if (dependency == null) {
       List<String> extraInfo = new ArrayList<>();
       try {

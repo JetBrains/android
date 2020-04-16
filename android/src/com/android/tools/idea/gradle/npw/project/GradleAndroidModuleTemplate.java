@@ -28,12 +28,12 @@ import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -167,7 +167,7 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
     if (facet == null) {
       return Collections.emptyList();
     }
-    List<NamedModuleTemplate> templates = Lists.newArrayList();
+    List<NamedModuleTemplate> templates = new ArrayList<>();
     for (SourceProvider sourceProvider : getSourceProviders(facet, targetDirectory)) {
       GradleAndroidModuleTemplate paths = new GradleAndroidModuleTemplate();
       VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();

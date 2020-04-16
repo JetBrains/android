@@ -15,8 +15,20 @@
  */
 package com.android.tools.idea.gradle.editor.parser;
 
+import static com.android.tools.idea.gradle.editor.metadata.StdGradleEditorEntityMetaData.INJECTED;
+import static com.android.tools.idea.gradle.editor.metadata.StdGradleEditorEntityMetaData.OUTGOING;
+import static com.android.tools.idea.gradle.editor.metadata.StdGradleEditorEntityMetaData.READ_ONLY;
+import static com.android.tools.idea.gradle.editor.metadata.StdGradleEditorEntityMetaData.REMOVABLE;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorParserTestUtil.externalDependency;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorParserTestUtil.property;
+
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.editor.entity.*;
+import com.android.tools.idea.gradle.editor.entity.AbstractSimpleGradleEditorEntity;
+import com.android.tools.idea.gradle.editor.entity.ExternalDependencyGradleEditorEntity;
+import com.android.tools.idea.gradle.editor.entity.GradleEditorEntity;
+import com.android.tools.idea.gradle.editor.entity.GradleEditorEntityGroup;
+import com.android.tools.idea.gradle.editor.entity.GradleEditorRepositoryEntity;
+import com.android.tools.idea.gradle.editor.entity.VersionGradleEditorEntity;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -29,19 +41,15 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.intellij.util.Processor;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.editor.metadata.StdGradleEditorEntityMetaData.*;
-import static com.android.tools.idea.gradle.editor.parser.GradleEditorParserTestUtil.externalDependency;
-import static com.android.tools.idea.gradle.editor.parser.GradleEditorParserTestUtil.property;
 
 public class GradleEditorParserTest extends BasePlatformTestCase {
 
@@ -230,7 +238,7 @@ public class GradleEditorParserTest extends BasePlatformTestCase {
   private static <T> List<T> getEntities(@NotNull List<GradleEditorEntityGroup> groups,
                                          @NotNull @PropertyKey(resourceBundle = "messages.AndroidBundle") String groupNameKey,
                                          @NotNull Class<T> entityClass) {
-    List<T> result = Lists.newArrayList();
+    List<T> result = new ArrayList<>();
     String groupName = AndroidBundle.message(groupNameKey);
     for (GradleEditorEntityGroup group : groups) {
       if (!groupName.equals(group.getName())) {
@@ -309,7 +317,7 @@ public class GradleEditorParserTest extends BasePlatformTestCase {
    * @throws IOException  in case of unexpected I/O exception occurred during processing
    */
   private void purgeGradleConfig(@NotNull VirtualFile rootDir) throws IOException {
-    final List<VirtualFile> toRemove = Lists.newArrayList();
+    final List<VirtualFile> toRemove = new ArrayList<>();
     VfsUtil.processFileRecursivelyWithoutIgnored(rootDir, new Processor<VirtualFile>() {
       @Override
       public boolean process(VirtualFile file) {

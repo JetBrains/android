@@ -44,7 +44,6 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
@@ -67,6 +66,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -449,7 +449,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
 
     @NotNull
     private List<WebpConvertedFile> findImages(@NotNull ProgressIndicator progressIndicator, @NotNull LinkedList<VirtualFile> images) {
-      List<WebpConvertedFile> files = Lists.newArrayList();
+      List<WebpConvertedFile> files = new ArrayList<>();
 
       Set<String> launcherIconNames = getLauncherIconNames(images);
 
@@ -494,7 +494,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
 
   @NotNull
   private static List<VirtualFile> computeParentFolders(@NotNull List<WebpConvertedFile> files) {
-    List<VirtualFile> toRefresh = Lists.newArrayList();
+    List<VirtualFile> toRefresh = new ArrayList<>();
     for (WebpConvertedFile file : files) {
       VirtualFile parent = file.sourceFile.getParent();
       if (parent != null && !toRefresh.contains(parent)) {

@@ -345,7 +345,7 @@ public class TemplateManager {
 
   @NotNull
   public static List<File> getTemplatesFromDirectory(@NotNull File externalDirectory, boolean recursive) {
-    List<File> templates = Lists.newArrayList();
+    List<File> templates = new ArrayList<>();
     if (new File(externalDirectory, TEMPLATE_XML_NAME).exists()) {
       templates.add(externalDirectory);
     }
@@ -364,7 +364,7 @@ public class TemplateManager {
 
   @NotNull
   public List<File> getTemplateDirectoriesFromAars(@Nullable Project project) {
-    List<File> templateDirectories = Lists.newArrayList();
+    List<File> templateDirectories = new ArrayList<>();
     if (project != null && project.getBaseDir() != null) {
       if (myAarCache == null) {
         String prefix = project.getName();
@@ -396,7 +396,7 @@ public class TemplateManager {
 
   @NotNull
   private List<File> getHighestVersionedTemplateRoot(@NotNull File artifactNameRoot) {
-    List<File> templateDirectories = Lists.newArrayList();
+    List<File> templateDirectories = new ArrayList<>();
     File highestVersionDir = null;
     Revision highestVersionNumber = null;
     for (File versionDir : listFiles(artifactNameRoot)) {
@@ -449,7 +449,7 @@ public class TemplateManager {
         return Lists.newArrayList(table.row(category).values());
       }
       else {
-        return Lists.newArrayList();
+        return new ArrayList<>();
       }
     }
   }
@@ -709,7 +709,7 @@ public class TemplateManager {
   }
 
   private List<TemplateHandle> getTemplateList(@NotNull FormFactor formFactor, @NotNull Set<String> categories, @NotNull Set<String> excluded) {
-    ArrayList<TemplateHandle> templates = Lists.newArrayList();
+    ArrayList<TemplateHandle> templates = new ArrayList<>();
     for (String category : categories) {
       templates.addAll(getTemplateList(formFactor, category, excluded));
     }

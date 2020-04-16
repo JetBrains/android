@@ -17,14 +17,13 @@ package com.android.tools.idea.gradle.parser;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
-
-import java.util.List;
 
 /**
  * This is a generic class that knows how to convert items in a Gradle buildfile closure into Java-domain objects of a given type.
@@ -44,7 +43,7 @@ public abstract class ValueFactory<E> {
 
   @NotNull
   public List<E> getValues(@NotNull GrStatementOwner closure) {
-    List<E> result = Lists.newArrayList();
+    List<E> result = new ArrayList<>();
     for (PsiElement element : closure.getChildren()) {
       List<E> values = getValues(element);
       if (values != null && !values.isEmpty()) {

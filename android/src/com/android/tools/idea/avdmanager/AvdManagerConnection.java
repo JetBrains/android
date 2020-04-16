@@ -22,7 +22,6 @@ import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 
 import com.android.SdkConstants;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
@@ -46,6 +45,7 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.ILogger;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -272,7 +272,7 @@ public class AvdManagerConnection {
    */
   @NotNull
   public List<String> getSystemImageUpdates() {
-    List<String> requested = Lists.newArrayList();
+    List<String> requested = new ArrayList<>();
     SystemImageUpdateDependency[] dependencies = getSystemImageUpdateDependencies();
     if (dependencies == null) {
       return requested;

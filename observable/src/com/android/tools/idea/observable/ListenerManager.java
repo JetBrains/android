@@ -18,13 +18,13 @@ package com.android.tools.idea.observable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Convenience class for managing property listeners.
@@ -48,7 +48,7 @@ public final class ListenerManager {
   /**
    * List of all listeners registered by one of the listen calls.
    */
-  private final List<ListenerPairing> myListeners = Lists.newArrayList();
+  private final List<ListenerPairing> myListeners = new ArrayList<>();
 
   /**
    * The listen methods take either an invalidation listener (untyped) or a receiver (typed).

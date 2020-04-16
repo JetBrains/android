@@ -19,7 +19,11 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.editor.entity.GradleEditorSourceBinding;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimaps;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -47,20 +51,31 @@ import com.intellij.util.text.CharArrayUtil;
 import com.intellij.util.ui.GridBag;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Graphics2D;
+import java.awt.GridBagLayout;
+import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * There is a possible case that there is more than one {@link GradleEditorSourceBinding source binding} for particular value, e.g.:
@@ -195,7 +210,7 @@ public class ReferencedValuesGradleEditorComponent extends JBPanel {
     ContainerUtil.sort(orderedFiles, FILES_COMPARATOR);
     for (VirtualFile file : orderedFiles) {
       ImmutableList<GradleEditorSourceBinding> list = byFile.get(file);
-      List<RangeMarker> rangeMarkers = Lists.newArrayList();
+      List<RangeMarker> rangeMarkers = new ArrayList<>();
       for (GradleEditorSourceBinding descriptor : list) {
         rangeMarkers.add(descriptor.getRangeMarker());
       }
@@ -221,7 +236,7 @@ public class ReferencedValuesGradleEditorComponent extends JBPanel {
     if (!VfsUtilCore.isAncestor(projectBaseDir, file, false)) {
       return file.getPresentableName();
     }
-    List<String> pathEntries = Lists.newArrayList();
+    List<String> pathEntries = new ArrayList<>();
     for (VirtualFile f = file.getParent(); !projectBaseDir.equals(f); f = f.getParent()) {
       pathEntries.add(f.getPresentableName());
     }
@@ -311,7 +326,7 @@ public class ReferencedValuesGradleEditorComponent extends JBPanel {
     private static final String FILE_KEY = "__FILE";
     private static final String MARKER_KEY = "__MARKER";
 
-    private final List<JComponent> myTextFragmentPanels = Lists.newArrayList();
+    private final List<JComponent> myTextFragmentPanels = new ArrayList<>();
     @NotNull private final Runnable myCloseCallback;
     @Nullable private JComponent myTextFragmentPanelUnderMouse;
 

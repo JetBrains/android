@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralString;
+
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.openapi.application.ApplicationManager;
@@ -29,8 +30,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
@@ -46,12 +55,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpres
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralString;
 
 /**
  * Base class for classes that parse Gradle Groovy files (e.g. settings.gradle, build.gradle). It provides a number of convenience
@@ -396,7 +399,7 @@ class GradleGroovyFile {
       if (grLom.isMap()) {
         return null;
       }
-      List<Object> values = Lists.newArrayList();
+      List<Object> values = new ArrayList<>();
       for (GrExpression subexpression : grLom.getInitializers()) {
         Object subValue = parseValueExpression(subexpression);
         if (subValue != null) {

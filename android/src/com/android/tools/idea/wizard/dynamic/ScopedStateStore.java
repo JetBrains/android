@@ -16,12 +16,20 @@
 package com.android.tools.idea.wizard.dynamic;
 
 import com.google.common.base.Function;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.ref.WeakReference;
-import java.util.*;
 
 /**
  * Used by {@link DynamicWizard}, {@link DynamicWizardPath}, and {@link DynamicWizardStep} to store their state.
@@ -179,7 +187,7 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
       list = get(key);
     }
     if (list == null) {
-      list = Lists.newArrayList();
+      list = new ArrayList<>();
     }
     boolean stateChanged = list.add(value);
     put(key, list);

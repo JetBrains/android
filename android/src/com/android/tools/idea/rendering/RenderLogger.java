@@ -41,13 +41,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import java.util.HashSet;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -510,7 +510,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     else if (TAG_MISSING_FRAGMENT.equals(tag)) {
       if (!ourIgnoreFragments) {
         if (myMissingFragments == null) {
-          myMissingFragments = Lists.newArrayList();
+          myMissingFragments = new ArrayList<>();
         }
         String name = data instanceof String ? (String)data : null;
         myMissingFragments.add(name);

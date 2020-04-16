@@ -18,15 +18,14 @@ package com.android.tools.idea.gradle.editor.entity;
 import com.android.tools.idea.gradle.editor.metadata.GradleEditorEntityMetaData;
 import com.android.tools.idea.gradle.editor.value.GradleEditorEntityValueManager;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.util.Disposer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * {@link GradleEditorEntity} which holds information about external dependency.
@@ -35,16 +34,16 @@ public class ExternalDependencyGradleEditorEntity extends AbstractGradleEditorEn
   implements GradleEntityDeclarationValueLocationAware, GradleEntityDefinitionValueLocationAware {
 
   @NotNull private String myScope;
-  @NotNull private final List<GradleEditorSourceBinding> myScopeBindings = Lists.newArrayList();
+  @NotNull private final List<GradleEditorSourceBinding> myScopeBindings = new ArrayList<>();
 
   @NotNull private String myGroupId;
-  @NotNull private final List<GradleEditorSourceBinding> myGroupIdSourceBindings = Lists.newArrayList();
+  @NotNull private final List<GradleEditorSourceBinding> myGroupIdSourceBindings = new ArrayList<>();
 
   @NotNull private String myArtifactId;
-  @NotNull private final List<GradleEditorSourceBinding> myArtifactIdSourceBindings = Lists.newArrayList();
+  @NotNull private final List<GradleEditorSourceBinding> myArtifactIdSourceBindings = new ArrayList<>();
 
   @NotNull private String myVersion;
-  @NotNull private final List<GradleEditorSourceBinding> myVersionSourceBindings = Lists.newArrayList();
+  @NotNull private final List<GradleEditorSourceBinding> myVersionSourceBindings = new ArrayList<>();
   @NotNull private final GradleEditorSourceBinding myVersionDeclarationLocation;
 
   @NotNull private final GradleEditorEntityValueManager myVersionValueManager;

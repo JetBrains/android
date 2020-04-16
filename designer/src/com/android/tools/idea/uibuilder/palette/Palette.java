@@ -21,19 +21,27 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.IconLoader;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.Icon;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.*;
-import java.io.Reader;
-import java.util.*;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElements;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlValue;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link Palette} contains a list of palette groups and items.
@@ -159,8 +167,8 @@ public class Palette {
       @XmlElement(name = "group", type = Group.class),
       @XmlElement(name = "item", type = Item.class)
     })
-    private List<BaseItem> myItems = Lists.newArrayList();
-    // @formatter:on
+    private List<BaseItem> myItems = new ArrayList<>();
+// @formatter:on
 
     @Nullable
     private Group myParent;

@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralString;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
-
-import java.util.List;
-
-import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralString;
 
 /**
  * Represents a Maven repository where the Android plugin or library dependencies may be found.
@@ -145,7 +144,7 @@ public class Repository extends BuildFileStatement {
         return getUnparseableStatements(statement);
       }
       GrMethodCall methodCall = (GrMethodCall)statement;
-      List<BuildFileStatement> list = Lists.newArrayList();
+      List<BuildFileStatement> list = new ArrayList<>();
       String callName = GradleGroovyFile.getMethodCallName(methodCall);
       if (Type.MAVEN_CENTRAL.getCallName().equals(callName)) {
         list.add(new Repository(Type.MAVEN_CENTRAL, null));

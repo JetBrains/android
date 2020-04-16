@@ -34,11 +34,11 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -83,7 +83,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   @NotNull
   @Override
   public List<String> modulePaths() {
-    List<String> result = Lists.newArrayList();
+    List<String> result = new ArrayList<>();
     result.add(":"); // Indicates the root module.
 
     GradleDslExpressionList includePaths = myGradleDslFile.getPropertyElement(INCLUDE, GradleDslExpressionList.class);

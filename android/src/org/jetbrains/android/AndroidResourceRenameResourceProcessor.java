@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2010 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import static com.android.SdkConstants.ATTR_ID;
@@ -43,7 +29,6 @@ import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 import com.intellij.find.findUsages.FindUsagesHandler;
@@ -104,7 +89,6 @@ import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.dom.resources.Style;
-import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -784,7 +768,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     Collection<Library> libraries = null;
     // Write a set of descriptions to library references. Put them in a list first such that we can
     // sort the (to for example make test output stable.)
-    List<String> descriptions = Lists.newArrayList();
+    List<String> descriptions = new ArrayList<>();
     for (ResourceItem item : all) {
       if (!local.contains(item)) {
         if (libraries == null) {

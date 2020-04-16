@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHype
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
@@ -165,7 +164,7 @@ public final class Jdks {
   @Nullable
   private static String getBestJdkHomePath(@NotNull Collection<String> jdkHomePaths, @NotNull LanguageLevel langLevel) {
     // Search for JDKs in both the suggest folder and all its sub folders.
-    List<String> roots = Lists.newArrayList();
+    List<String> roots = new ArrayList<>();
     for (String jdkHomePath : jdkHomePaths) {
       if (isNotEmpty(jdkHomePath)) {
         roots.add(jdkHomePath);
@@ -181,7 +180,7 @@ public final class Jdks {
     if (!dir.isDirectory()) {
       return emptyList();
     }
-    List<String> childrenPaths = Lists.newArrayList();
+    List<String> childrenPaths = new ArrayList<>();
     for (File child : notNullize(dir.listFiles())) {
       boolean directory = child.isDirectory();
       if (directory) {
@@ -273,7 +272,7 @@ public final class Jdks {
 
   @NotNull
   public List<NotificationHyperlink> getWrongJdkQuickFixes(@NotNull Project project) {
-    List<NotificationHyperlink> quickFixes = Lists.newArrayList();
+    List<NotificationHyperlink> quickFixes = new ArrayList<>();
 
     if (myIdeInfo.isAndroidStudio()) {
       IdeSdks ideSdks = IdeSdks.getInstance();

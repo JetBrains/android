@@ -29,11 +29,11 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.structure.services.DeveloperServiceBuildSystemOperations;
 import com.android.tools.idea.structure.services.DeveloperServiceMetadata;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.text.VersionComparatorUtil;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +53,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
     // isn't installed even if its dependency happens to be added to the project. For example,
     // multiple services might share a dependency but have additional settings that indicate some
     // are installed and others aren't.
-    List<String> moduleDependencyNames = Lists.newArrayList();
+    List<String> moduleDependencyNames = new ArrayList<>();
     GradleBuildModel buildModel = GradleBuildModel.get(module);
     if (buildModel != null) {
       DependenciesModel dependenciesModel = buildModel.dependencies();

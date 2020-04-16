@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.gradle.editor.parser;
 
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.Assignment;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.Location;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.Variable;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.editor.entity.ExternalDependencyGradleEditorEntity;
 import com.android.tools.idea.gradle.editor.entity.GradleEditorEntity;
 import com.android.tools.idea.gradle.editor.entity.GradleEditorSourceBinding;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -31,12 +34,14 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.text.CharArrayUtil;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.Stack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.*;
 
 public class GradleEditorModelUtil {
 
@@ -171,10 +176,10 @@ public class GradleEditorModelUtil {
     Set<Variable> processed = Sets.newHashSet();
     Stack<Variable> toProcess = new Stack<Variable>();
     toProcess.addAll(variables);
-    List<GradleEditorSourceBinding> sourceBindings = Lists.newArrayList();
+    List<GradleEditorSourceBinding> sourceBindings = new ArrayList<>();
     String value = "";
     boolean skipValue = false;
-    List<Assignment> assignments = Lists.newArrayList();
+    List<Assignment> assignments = new ArrayList<>();
     while (!toProcess.isEmpty()) {
       Variable dependency = toProcess.pop();
       if (!processed.add(dependency)) {

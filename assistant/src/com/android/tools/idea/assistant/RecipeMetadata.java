@@ -16,23 +16,22 @@
 package com.android.tools.idea.assistant;
 
 import com.android.tools.idea.templates.recipe.Recipe;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Container for instruction details from a {@code Recipe} instance.
  */
 public class RecipeMetadata {
 
-  @NotNull private final List<String> myDependencies = Lists.newArrayList();
-  @NotNull private final List<String> myClasspathEntries = Lists.newArrayList();
-  @NotNull private final List<String> myPlugins = Lists.newArrayList();
-  @NotNull private final List<String> myPermissions = Lists.newArrayList();
-  @NotNull private final List<String> myModifiedFiles = Lists.newArrayList();
+  @NotNull private final List<String> myDependencies = new ArrayList<>();
+  @NotNull private final List<String> myClasspathEntries = new ArrayList<>();
+  @NotNull private final List<String> myPlugins = new ArrayList<>();
+  @NotNull private final List<String> myPermissions = new ArrayList<>();
+  @NotNull private final List<String> myModifiedFiles = new ArrayList<>();
   @NotNull private final Module myModule;
   @NotNull private final Recipe myRecipe;
 

@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.SdkConstants.ANDROIDX_APPCOMPAT_LIB_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_LEANBACK_ARTIFACT;
+import static com.android.SdkConstants.ANDROIDX_SUPPORT_LIB_ARTIFACT;
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
+import static com.android.SdkConstants.LEANBACK_V17_ARTIFACT;
+import static com.android.SdkConstants.SUPPORT_LIB_ARTIFACT;
+import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
+
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.JavaLibrary;
@@ -43,15 +51,28 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.GeneratedSourcesFilter;
+import com.intellij.openapi.roots.LibraryOrderEntry;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.graph.Graph;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.compiler.AndroidDexCompiler;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -62,13 +83,7 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
 
 /**
  * An {@linkplain LintIdeProject} represents a lint project, which typically corresponds to a {@link Module},
@@ -94,7 +109,7 @@ public class LintIdeProject extends Project {
   /** Creates a set of projects for the given IntelliJ modules */
   @NonNull
   public static List<Project> create(@NonNull LintIdeClient client, @Nullable List<VirtualFile> files, @NonNull Module... modules) {
-    List<Project> projects = Lists.newArrayList();
+    List<Project> projects = new ArrayList<>();
 
     Map<Project,Module> projectMap = Maps.newHashMap();
     Map<Module,Project> moduleMap = Maps.newHashMap();
@@ -256,7 +271,7 @@ public class LintIdeProject extends Project {
       return;
     }
 
-    List<Project> dependencies = Lists.newArrayList();
+    List<Project> dependencies = new ArrayList<>();
     // No, this shouldn't use getAllAndroidDependencies; we may have non-Android dependencies that this won't include
     // (e.g. Java-only modules)
     List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(module, true);
@@ -544,7 +559,7 @@ public class LintIdeProject extends Project {
     public List<File> getJavaLibraries(boolean includeProvided) {
       if (SUPPORT_CLASS_FILES) {
         if (javaLibraries == null) {
-          javaLibraries = Lists.newArrayList();
+          javaLibraries = new ArrayList<>();
 
           final OrderEntry[] entries = ModuleRootManager.getInstance(myModule).getOrderEntries();
           // loop in the inverse order to resolve dependencies on the libraries, so that if a library
@@ -779,7 +794,7 @@ public class LintIdeProject extends Project {
     @Override
     public List<File> getManifestFiles() {
       if (manifestFiles == null) {
-        manifestFiles = Lists.newArrayList();
+        manifestFiles = new ArrayList<>();
         File mainManifest = SourceProviderManager.getInstance(myFacet).getMainSourceProvider().getManifestFile();
         if (mainManifest.exists()) {
           manifestFiles.add(mainManifest);
@@ -825,7 +840,7 @@ public class LintIdeProject extends Project {
     @Override
     public List<File> getAssetFolders() {
       if (assetFolders == null) {
-        assetFolders = Lists.newArrayList();
+        assetFolders = new ArrayList<>();
         for (SourceProvider provider : IdeaSourceProvider.getAllSourceProviders(myFacet)) {
           Collection<File> dirs = provider.getAssetsDirectories();
           for (File dir : dirs) {
@@ -848,7 +863,7 @@ public class LintIdeProject extends Project {
           AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
           if (androidModel != null) {
             ProductFlavor flavor = androidModel.getAndroidProject().getDefaultConfig().getProductFlavor();
-            proguardFiles = Lists.newArrayList();
+            proguardFiles = new ArrayList<>();
             for (File file : flavor.getProguardFiles()) {
               if (file.exists()) {
                 proguardFiles.add(file);
@@ -1213,7 +1228,7 @@ public class LintIdeProject extends Project {
         }
 
         if (javaLibraries == null) {
-          javaLibraries = Lists.newArrayList();
+          javaLibraries = new ArrayList<>();
           File jarFile = myLibrary.getJarFile();
           if (jarFile.exists()) {
             javaLibraries.add(jarFile);

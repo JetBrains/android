@@ -45,7 +45,6 @@ import com.android.tools.idea.stats.RunStats;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
@@ -88,7 +87,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @NotNull
   @Override
   public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
-    final List<LaunchTask> launchTasks = Lists.newArrayList();
+    final List<LaunchTask> launchTasks = new ArrayList<>();
 
     if (myLaunchOptions.isClearLogcatBeforeStart()) {
       launchTasks.add(new ClearLogcatTask(myProject));

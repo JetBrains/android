@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.npw.module;
 
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
+import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
+import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
+import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.AndroidVersion.VersionCodes;
@@ -24,22 +31,24 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
+import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
-import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
-import com.android.tools.idea.npw.model.RenderTemplateModel;
+import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.validator.ModuleValidator;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.expressions.Expression;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
-import com.android.tools.idea.observable.BindingsManager;
-import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.expressions.Expression;
-import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -47,20 +56,20 @@ import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ContextHelpLabel;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.*;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.TestOnly;
-
-import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
-import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
-import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
-import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
 
 public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleModel> {
@@ -161,7 +170,8 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     // Note: MultiTemplateRenderer needs that all Models constructed (ie myRenderModel) are inside a Step, so handleSkipped() is called
-    ChooseActivityTypeStep chooseActivityStep = new ChooseActivityTypeStep(getModel(), myRenderModel, myFormFactor, Lists.newArrayList());
+    ChooseActivityTypeStep chooseActivityStep = new ChooseActivityTypeStep(getModel(), myRenderModel, myFormFactor,
+                                                                           new ArrayList<com.android.tools.idea.projectsystem.NamedModuleTemplate>());
     chooseActivityStep.setShouldShow(!getModel().isLibrary().get());
 
     LicenseAgreementStep licenseAgreementStep =

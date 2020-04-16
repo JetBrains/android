@@ -19,15 +19,14 @@ import com.android.repository.api.RemotePackage;
 import com.android.tools.idea.npw.importing.ImportUIUtil;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.progress.ProgressIndicator;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Install or updates SDK components if needed.
@@ -48,7 +47,7 @@ public class InstallComponentsOperation extends InstallOperation<File, File> {
   @Nullable
   private static String getRetryMessage(Collection<RemotePackage> packages) {
     if (!packages.isEmpty()) {
-      List<String> descriptions = Lists.newArrayList();
+      List<String> descriptions = new ArrayList<>();
       for (RemotePackage p : packages) {
         descriptions.add(p.getDisplayName());
       }

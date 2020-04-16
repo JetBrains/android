@@ -29,6 +29,7 @@ import com.intellij.ui.CheckedTreeNode;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.tree.TreeUtil;
 import java.awt.BorderLayout;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -98,7 +99,7 @@ class ConflictResolutionDialog extends DialogWrapper {
       variantNode.setChecked(false);
       root.add(variantNode);
 
-      List<Module> dependents = Lists.newArrayList();
+      List<Module> dependents = new ArrayList<>();
       for (Conflict.AffectedModule affected : conflict.getModulesExpectingVariant(variant)) {
         Module module = affected.getTarget();
         dependents.add(module);

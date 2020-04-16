@@ -17,18 +17,21 @@
 package com.android.tools.idea.gradle.eclipse;
 
 import com.android.annotations.NonNull;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.Revision;
 import com.android.utils.SdkUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /** Records information about the import to be presented to the user:
  * <ul>
@@ -155,9 +158,9 @@ public class ImportSummary {
   private Map<ImportModule, Map<File, File>> myMoved = Maps.newHashMap();
   private Map<File, GradleCoordinate> myJarDependencies = Maps.newHashMap();
   private Map<String, List<GradleCoordinate>> myLibDependencies = Maps.newHashMap();
-  private List<String> myGuessedDependencyVersions = Lists.newArrayList();
+  private List<String> myGuessedDependencyVersions = new ArrayList<>();
   private File myLastGuessedJar;
-  private List<String> myIgnoredUserHomeProGuardFiles = Lists.newArrayList();
+  private List<String> myIgnoredUserHomeProGuardFiles = new ArrayList<>();
   private boolean myHasRiskyPathChars;
   private boolean myWrapErrorMessages = true;
 
@@ -244,7 +247,7 @@ public class ImportSummary {
   public void reportIgnored(@NonNull String module, @NonNull String path) {
     List<String> list = myNotMigrated.get(module);
     if (list == null) {
-      list = Lists.newArrayList();
+      list = new ArrayList<>();
       myNotMigrated.put(module, list);
     }
     list.add(path);
@@ -258,7 +261,7 @@ public class ImportSummary {
     StringBuilder sb = new StringBuilder(2000);
     sb.append(MSG_HEADER);
 
-    List<String> problems = Lists.newArrayList();
+    List<String> problems = new ArrayList<>();
     problems.addAll(myImporter.getErrors());
     problems.addAll(myImporter.getWarnings());
     if (!problems.isEmpty()) {

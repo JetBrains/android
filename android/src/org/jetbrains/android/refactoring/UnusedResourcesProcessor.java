@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.refactoring;
 
+import static com.android.SdkConstants.ATTR_ID;
+
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.lint.LintIdeClient;
@@ -40,7 +42,14 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiBinaryFile;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.SmartPsiFileRange;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -53,6 +62,13 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
 import com.intellij.util.IncorrectOperationException;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,11 +78,6 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyRecursiveElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.util.GroovyConstantExpressionEvaluator;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.SdkConstants.ATTR_ID;
 
 public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   private final String myFilter;
@@ -125,7 +136,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   private List<PsiElement> computeUnusedDeclarationElements(Map<Issue, Map<File, List<ProblemData>>> map) {
-    final List<PsiElement> elements = Lists.newArrayList();
+    final List<PsiElement> elements = new ArrayList<>();
 
     // Make sure lint didn't put extra issues into the map
     for (Issue issue : Lists.newArrayList(map.keySet())) {

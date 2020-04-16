@@ -15,10 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.resources.Density.DEFAULT_DENSITY;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.MAX_MATCH_DISTANCE;
+
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.configuration.*;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.ScreenHeightQualifier;
+import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
+import com.android.ide.common.resources.configuration.ScreenRatioQualifier;
+import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
+import com.android.ide.common.resources.configuration.ScreenWidthQualifier;
+import com.android.ide.common.resources.configuration.SmallestScreenWidthQualifier;
 import com.android.resources.ResourceType;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
@@ -44,27 +53,30 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.reference.SoftReference;
-import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.ImageUtil;
-import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import org.intellij.lang.annotations.JdkConstants.InputEventMask;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.android.resources.Density.DEFAULT_DENSITY;
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.MAX_MATCH_DISTANCE;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CanvasResizeInteraction extends Interaction {
   private static final double SQRT_2 = Math.sqrt(2.0);
@@ -89,7 +101,7 @@ public class CanvasResizeInteraction extends Interaction {
   private final UnavailableSizesLayer myUnavailableLayer = new UnavailableSizesLayer();
   private final OrientationLayer myOrientationLayer;
   private final SizeBucketLayer mySizeBucketLayer;
-  private final List<DeviceLayer> myDeviceLayers = Lists.newArrayList();
+  private final List<DeviceLayer> myDeviceLayers = new ArrayList<>();
   private final Device myOriginalDevice;
   private final State myOriginalDeviceState;
   private final Map<Point, Device> myAndroidCoordinatesToDeviceMap = Maps.newHashMapWithExpectedSize(DEVICES_TO_SHOW.length);
@@ -209,7 +221,7 @@ public class CanvasResizeInteraction extends Interaction {
       return;
     }
 
-    List<Area> configAreas = Lists.newArrayList();
+    List<Area> configAreas = new ArrayList<>();
     Area totalCoveredArea = new Area();
     for (FolderConfiguration configuration : myFolderConfigurations) {
       Area configArea = coveredAreaForConfig(configuration, myScreenView);

@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package com.android.tools.idea.run;
 
@@ -27,7 +27,6 @@ import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.ExecutionException;
@@ -119,7 +118,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
    * We use a separate method for the collection so the compiler prevents us from accidentally throwing.
    */
   public List<ValidationError> validate(@Nullable Executor executor) {
-    List<ValidationError> errors = Lists.newArrayList();
+    List<ValidationError> errors = new ArrayList<>();
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     try {
       configurationModule.checkForWarning();

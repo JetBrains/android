@@ -23,8 +23,8 @@ import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.SystemInfo;
+import java.util.ArrayList;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +62,7 @@ public final class AndroidSdk extends InstallableComponent {
   @NotNull
   @VisibleForTesting
   Collection<String> getRequiredSdkPackages(boolean chromeOs) {
-    Collection<String> result = Lists.newArrayList();
+    Collection<String> result = new ArrayList<>();
 
     if (!chromeOs) {
       result.add(SdkConstants.FD_EMULATOR);

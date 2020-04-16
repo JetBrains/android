@@ -15,32 +15,84 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
-import com.android.ide.common.rendering.api.*;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_BACKGROUND;
+import static com.android.SdkConstants.ATTR_CHECKED;
+import static com.android.SdkConstants.ATTR_ENABLED;
+import static com.android.SdkConstants.ATTR_GRAVITY;
+import static com.android.SdkConstants.ATTR_ICON;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP;
+import static com.android.SdkConstants.ATTR_LAYOUT_BELOW;
+import static com.android.SdkConstants.ATTR_LAYOUT_GRAVITY;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP;
+import static com.android.SdkConstants.ATTR_LAYOUT_WEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
+import static com.android.SdkConstants.ATTR_SHOW_AS_ACTION;
+import static com.android.SdkConstants.ATTR_SINGLE_LINE;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.ATTR_TEXT_SIZE;
+import static com.android.SdkConstants.ATTR_TITLE;
+import static com.android.SdkConstants.ATTR_VISIBILITY;
+import static com.android.SdkConstants.ATTR_VISIBLE;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.CHECK_BOX;
+import static com.android.SdkConstants.GRAVITY_VALUE_CENTER;
+import static com.android.SdkConstants.GRAVITY_VALUE_CENTER_VERTICAL;
+import static com.android.SdkConstants.GRAVITY_VALUE_RIGHT;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.RADIO_BUTTON;
+import static com.android.SdkConstants.RELATIVE_LAYOUT;
+import static com.android.SdkConstants.TAG_GROUP;
+import static com.android.SdkConstants.TAG_ITEM;
+import static com.android.SdkConstants.TAG_MENU;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.VALUE_1;
+import static com.android.SdkConstants.VALUE_FALSE;
+import static com.android.SdkConstants.VALUE_FILL_PARENT;
+import static com.android.SdkConstants.VALUE_HORIZONTAL;
+import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.SdkConstants.VALUE_VERTICAL;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.SdkConstants.VALUE_ZERO_DP;
+import static com.android.SdkConstants.VIEW;
+import static com.android.tools.idea.rendering.parsers.LayoutPullParsers.addRootElement;
+import static com.android.tools.idea.rendering.parsers.LayoutPullParsers.createEmptyParser;
+import static com.android.tools.idea.rendering.parsers.LayoutPullParsers.setAndroidAttr;
+
+import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.rendering.RenderTaskContext;
 import com.android.tools.idea.res.ResourceHelper;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.rendering.parsers.LayoutPullParsers.*;
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Renderer which creates a preview of menus and renders them into a layout XML element hierarchy
@@ -237,7 +289,7 @@ class MenuPreviewRenderer {
   }
 
   private boolean addActionBar(Element root) {
-    List<Pair<String,XmlTag>> icons = Lists.newArrayList();
+    List<Pair<String,XmlTag>> icons = new ArrayList<>();
 
     if (myRootTag != null) {
       for (XmlTag tag : myRootTag.getSubTags()) {
@@ -481,7 +533,7 @@ class MenuPreviewRenderer {
   }
 
   private List<MenuItem> readMenu() {
-    ArrayList<MenuItem> items = Lists.newArrayList();
+    ArrayList<MenuItem> items = new ArrayList<>();
     addMenuItems(items, myRootTag);
 
     return items;

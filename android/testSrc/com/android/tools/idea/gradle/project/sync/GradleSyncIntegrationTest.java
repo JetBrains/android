@@ -86,7 +86,6 @@ import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.android.tools.idea.testing.IdeComponents;
-import com.google.common.collect.Lists;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FailureResult;
@@ -122,6 +121,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.LeakHunter;
 import com.intellij.testFramework.ServiceContainerUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
@@ -132,7 +132,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -464,7 +463,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
                 Collection<ContentEntry> contentEntries =
                         findChildContentEntries(centralBuildDirPath, Arrays.stream(rootModel.getContentEntries()));
 
-                List<File> paths = Lists.newArrayList();
+                List<File> paths = new ArrayList<>();
 
                 for (SourceFolder source : contentEntries.stream().flatMap(contentEntry -> Arrays.stream(contentEntry.getSourceFolders()))
                         .collect(Collectors.toSet())) {

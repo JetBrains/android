@@ -26,10 +26,13 @@ import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
 
 /**
  * Base class for leaf components (the ones that are immediately installed).
@@ -76,7 +79,7 @@ public abstract class InstallableComponent extends ComponentTreeNode {
    */
   @NotNull
   public Collection<UpdatablePackage> getPackagesToInstall() {
-    List<UpdatablePackage> result = Lists.newArrayList();
+    List<UpdatablePackage> result = new ArrayList<>();
     Map<String, UpdatablePackage> consolidatedPackages = getRepositoryPackages().getConsolidatedPkgs();
     for (String path : getRequiredSdkPackages()) {
       UpdatablePackage p = consolidatedPackages.get(path);

@@ -17,7 +17,6 @@ package org.jetbrains.android.dom.structure.resources;
 
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
-import com.google.common.collect.Lists;
 import com.intellij.ide.structureView.StructureViewModel;
 import com.intellij.ide.structureView.StructureViewModelBase;
 import com.intellij.ide.structureView.StructureViewTreeElement;
@@ -29,6 +28,10 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomElementVisitor;
 import com.intellij.util.xml.DomFileElement;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
@@ -37,11 +40,6 @@ import org.jetbrains.android.dom.structure.StructureUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Structure view builder for &lt;resources&gt; XML files
@@ -141,7 +139,7 @@ public class ResourceStructureViewBuilder extends TreeBasedStructureViewBuilder 
     @NotNull
     @Override
     public Collection<StructureViewTreeElement> getChildrenBase() {
-      final List<StructureViewTreeElement> result = Lists.newArrayList();
+      final List<StructureViewTreeElement> result = new ArrayList<>();
       final DomElementVisitor visitor = new DomElementVisitor() {
         public void visitStyleItem(StyleItem element) {
           final ResourceReference resourceReference = element.getName().getValue();

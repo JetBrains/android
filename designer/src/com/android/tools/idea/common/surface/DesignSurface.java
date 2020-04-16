@@ -1042,7 +1042,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public void addPanZoomListener(PanZoomListener listener) {
     if (myZoomListeners == null) {
-      myZoomListeners = Lists.newArrayList();
+      myZoomListeners = new ArrayList<>();
     }
     else {
       myZoomListeners.remove(listener);

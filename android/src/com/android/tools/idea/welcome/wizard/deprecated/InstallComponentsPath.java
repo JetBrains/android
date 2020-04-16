@@ -35,14 +35,26 @@ import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.install.*;
+import com.android.tools.idea.welcome.install.AndroidSdk;
+import com.android.tools.idea.welcome.install.AndroidVirtualDevice;
+import com.android.tools.idea.welcome.install.CheckSdkOperation;
+import com.android.tools.idea.welcome.install.ComponentCategory;
+import com.android.tools.idea.welcome.install.ComponentInstaller;
+import com.android.tools.idea.welcome.install.ComponentTreeNode;
+import com.android.tools.idea.welcome.install.Haxm;
+import com.android.tools.idea.welcome.install.InstallComponentsOperation;
+import com.android.tools.idea.welcome.install.InstallContext;
+import com.android.tools.idea.welcome.install.InstallOperation;
+import com.android.tools.idea.welcome.install.InstallableComponent;
+import com.android.tools.idea.welcome.install.InstallationCancelledException;
+import com.android.tools.idea.welcome.install.Platform;
+import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -50,16 +62,16 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Wizard path that manages component installation flow. It will prompt the user
@@ -98,7 +110,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   private ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason,
                                                 @NotNull ScopedStateStore stateStore,
                                                 boolean createAvd) {
-    List<ComponentTreeNode> components = Lists.newArrayList();
+    List<ComponentTreeNode> components = new ArrayList<>();
     components.add(new AndroidSdk(stateStore, myInstallUpdates));
 
     RepoManager sdkManager = myLocalHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));

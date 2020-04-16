@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ui.components.JBLabel;
 import java.awt.Font;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -80,7 +81,7 @@ public class IssuesViewer {
       PsIssue.Severity severity = issue.getSeverity();
       List<PsIssue> currentIssues = issuesBySeverity.get(severity);
       if (currentIssues == null) {
-        currentIssues = Lists.newArrayList();
+        currentIssues = new ArrayList<>();
         issuesBySeverity.put(severity, currentIssues);
       }
       currentIssues.add(issue);
