@@ -71,6 +71,8 @@ public abstract class ClassifierSet implements MemoryObject {
     new CachedFunction<>(this::countInstanceFilterMatch, new IdentityHashMap<>());
 
   protected boolean myIsFiltered;
+  // FIXME: `myIsMatched` should be `true` initially, as "no filter" means "trivially matched".
+  //        But at the moment that would break one test in `HeapSetNodeHRendererTest`
   protected boolean myIsMatched;
   // We need to apply filter to ClassifierSet again after any updates (insertion, deletion etc.)
   protected boolean myNeedsRefiltering;
@@ -307,6 +309,10 @@ public abstract class ClassifierSet implements MemoryObject {
   @NotNull
   protected Stream<InstanceObject> getSnapshotInstanceStream() {
     return getStreamOf(me -> me.mySnapshotInstances.stream());
+  }
+
+  public Stream<InstanceObject> getFilterMatches() {
+    return getStreamOf(me -> me.getIsMatched() ? me.getInstancesStream() : Stream.empty());
   }
 
   private Stream<InstanceObject> getStreamOf(Function<ClassifierSet, Stream<InstanceObject>> extractor) {

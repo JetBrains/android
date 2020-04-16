@@ -29,12 +29,9 @@ import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_WIDTH
 import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE
 import com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER
 import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
-import com.android.tools.profilers.StudioProfiler
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
-import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
 import com.android.tools.profilers.memory.chart.MemoryVisualizationView
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.util.ui.JBEmptyBorder
@@ -42,7 +39,6 @@ import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.FlowLayout
-import java.util.stream.Collectors
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -249,22 +245,28 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
     val totalRetainedSizeLabel = mkLabel("Retained Size")
 
     fun refreshSummaries() {
-      selection.selectedCapture?.let {
-        // Hide summary panel for native memory captures.
-        isVisible = it is HeapDumpCaptureObject
-        totalClassLabel.numValue = countClasses(it)
-        setLabelSumBy(it, totalCountLabel) { it.totalObjectCount.toLong() }
-        setLabelSumBy(it, totalNativeSizeLabel) { it.totalNativeSize }
-        setLabelSumBy(it, totalShallowSizeLabel) { it.totalShallowSize }
-        setLabelSumBy(it, totalRetainedSizeLabel) { it.totalRetainedSize }
+      selection.selectedHeapSet?.let { heap ->
+        // Handle "no filter" case specially, because it recomputes from the current instance stream,
+        // and `ClassifierSet` only considers instances as "matched" if the filter is not empty.
+        // This is analogous to how `MemoryClassifierView` is checking if filter is empty to treat it specially
+        val filterMatches = if (selection.filterHandler.filter.isEmpty) heap.instancesStream else heap.filterMatches
+        // Other totals other than class count don't need this, because they are direct fields initialized correctly
+        totalClassLabel.numValue = filterMatches.map{it.classEntry.classId}.distinct().count()
+        totalCountLabel.numValue = heap.totalObjectCount.toLong()
+        totalNativeSizeLabel.numValue = heap.totalNativeSize
+        totalShallowSizeLabel.numValue = heap.totalShallowSize
+        totalRetainedSizeLabel.numValue = heap.totalRetainedSize
 
-        // Only show "leak" stat when it's supported
-        when (val leakCount = countLeaks(it)) {
-          null -> totalLeakLabel.isVisible = false
-          else -> totalLeakLabel.apply {
-            isVisible = true
-            numValue = leakCount.toLong()
-            icon = if (leakCount > 0) StudioIcons.Common.WARNING else null
+        selection.selectedCapture?.let { capture ->
+          isVisible = capture is HeapDumpCaptureObject
+          when (val filter = capture.activityFragmentLeakFilter) {
+            null -> totalLeakLabel.isVisible = false
+            else -> totalLeakLabel.apply {
+              val leakCount = heap.getInstanceFilterMatchCount(filter).toLong()
+              isVisible = true
+              numValue = leakCount
+              icon = if (leakCount > 0) StudioIcons.Common.WARNING else null
+            }
           }
         }
       }
@@ -288,19 +290,5 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
     selection.selectedCapture?.activityFragmentLeakFilter?.let {
       instanceFilterMenu.component.selectedItem = it
     }
-  }
-
-  private fun countClasses(capture: CaptureObject) = // count distinct class Ids across all heap sets
-    capture.heapSets.stream().flatMap { hs ->
-      hs.instancesStream.map { it.classEntry.classId }
-    }.collect(Collectors.toSet()).size.toLong()
-
-  private fun countLeaks(captureObject: CaptureObject): Int? =
-    captureObject.activityFragmentLeakFilter
-      ?.filter(captureObject.instances.collect(Collectors.toSet()))
-      ?.size
-
-  private fun setLabelSumBy(capture: CaptureObject, label: StatLabel, prop: (ClassifierSet) -> Long) {
-    label.numValue = capture.heapSets.fold(0L) { sum, heapSet -> sum + prop(heapSet) }
   }
 }
