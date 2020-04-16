@@ -1,0 +1,101 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.emulator
+
+import com.android.tools.idea.testing.AndroidProjectRule.Companion.inMemory
+import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.rules.TempDirectory
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import java.nio.file.Path
+import java.util.concurrent.LinkedBlockingDeque
+import java.util.concurrent.TimeUnit
+
+/**
+ * Tests for [RunningEmulatorCatalog].
+ */
+class RunningEmulatorCatalogTest {
+  private val tempDir = TempDirectory()
+  private val projectRule = inMemory()
+  private val testConfiguration = TestConfiguration()
+  private val configurationRule = OverriddenConfigurationRule(testConfiguration)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(tempDir).around(projectRule).around(configurationRule)
+
+  @Test
+  fun testCatalogUpdates() {
+    val catalog = RunningEmulatorCatalog.getInstance()
+    val tempFolder = tempDir.root.toPath()
+    val emulator1 = FakeEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, testConfiguration)
+    val emulator2 = FakeEmulator(FakeEmulator.createWatchAvd(tempFolder), 8555, testConfiguration)
+
+    val eventQueue = LinkedBlockingDeque<CatalogEvent>()
+    catalog.addListener(object : RunningEmulatorCatalog.Listener {
+      override fun emulatorAdded(emulator: EmulatorController) {
+        eventQueue.add(CatalogEvent(EventType.ADDED, emulator))
+      }
+
+      override fun emulatorRemoved(emulator: EmulatorController) {
+        eventQueue.add(CatalogEvent(EventType.REMOVED, emulator))
+      }
+    }, updateIntervalMillis = 1000)
+
+    // Check that the catalog is empty.
+    assertThat(catalog.emulators).isEmpty()
+
+    // Start the first Emulator and check that it is reflected in the catalog after an explicit update.
+    emulator1.start()
+    val emulators = catalog.updateNow().get()
+    val event1: CatalogEvent = eventQueue.poll(20, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
+    assertThat(event1.type).isEqualTo(EventType.ADDED)
+    assertThat(event1.emulator.emulatorId.grpcPort).isEqualTo(emulator1.grpcPort)
+    assertThat(event1.emulator.emulatorId.avdFolder).isEqualTo(emulator1.avdFolder)
+    assertThat(catalog.emulators).containsExactly(event1.emulator)
+    assertThat(emulators).isEqualTo(catalog.emulators)
+
+    // Start the second Emulator and check that a listener gets notified.
+    emulator2.start()
+    val event2 = eventQueue.poll(1100, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
+    assertThat(event2.type).isEqualTo(EventType.ADDED)
+    assertThat(event2.emulator.emulatorId.grpcPort).isEqualTo(emulator2.grpcPort)
+    assertThat(event2.emulator.emulatorId.avdFolder).isEqualTo(emulator2.avdFolder)
+    assertThat(catalog.emulators).containsExactly(event1.emulator, event2.emulator)
+
+    // Stop the first Emulator and check that a listener gets notified.
+    emulator1.stop()
+    val event3 = eventQueue.poll(1100, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
+    assertThat(event3.type).isEqualTo(EventType.REMOVED)
+    assertThat(event3.emulator).isEqualTo(event1.emulator)
+    assertThat(catalog.emulators).containsExactly(event2.emulator)
+
+    // Stop the second Emulator and check that a listener gets notified.
+    emulator2.stop()
+    val event4 = eventQueue.poll(1100, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
+    assertThat(event4.type).isEqualTo(EventType.REMOVED)
+    assertThat(event4.emulator).isEqualTo(event2.emulator)
+    assertThat(catalog.emulators).isEmpty()
+  }
+
+  private enum class EventType { ADDED, REMOVED }
+
+  private class CatalogEvent(val type: EventType, val emulator: EmulatorController)
+
+  private inner class TestConfiguration : Configuration() {
+    override val emulatorRegistrationDirectory: Path by lazy {
+      tempDir.newFolder("avd/running").toPath()
+    }
+  }
+}

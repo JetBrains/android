@@ -68,6 +68,7 @@ iml_module(
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/emulator/testData",
         "//tools/idea/java/mockJDK-1.7",
     ],
     # do not sort: must match IML order
