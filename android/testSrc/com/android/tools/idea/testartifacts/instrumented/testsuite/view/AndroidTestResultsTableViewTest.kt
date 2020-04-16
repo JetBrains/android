@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
@@ -34,6 +35,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
+import org.mockito.Mockito.isNull
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
@@ -145,33 +147,37 @@ class AndroidTestResultsTableViewTest {
     table.addTestCase(device2, AndroidTestCase("testid1", "testname1", AndroidTestCaseResult.SKIPPED))
     table.addTestCase(device2, AndroidTestCase("testid2", "testname2", AndroidTestCaseResult.SKIPPED))
 
-    // Select the test case 1.
-    table.getTableViewForTesting().addSelection(table.getTableViewForTesting().getRow(0))
+    // Select the test case 1. Click on the test name column.
+    table.getTableViewForTesting().addColumnSelectionInterval(0, 0)
+    table.getTableViewForTesting().selectionModel.addSelectionInterval(0, 0)
 
     verify(mockListener).onAndroidTestResultsRowSelected(argThat { results ->
       results.testCaseName == "testname1" &&
       results.getTestCaseResult(device1) == AndroidTestCaseResult.PASSED &&
       results.getLogcat(device1) == "test logcat message" &&
       results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
-    })
+    }, isNull())
 
-    // Select the test case 2.
-    table.getTableViewForTesting().addSelection(table.getTableViewForTesting().getRow(1))
+    // Select the test case 2. Click on the device2 column.
+    table.getTableViewForTesting().addColumnSelectionInterval(3, 3)
+    table.getTableViewForTesting().selectionModel.addSelectionInterval(1, 1)
 
     verify(mockListener).onAndroidTestResultsRowSelected(argThat { results ->
       results.testCaseName == "testname2" &&
       results.getTestCaseResult(device1) == AndroidTestCaseResult.FAILED &&
       results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
-    })
+    }, eq(device2))
 
     // Select the test case 2 again should trigger the callback.
     // (Because a user may click the same row again after he/she closes the second page.)
-    table.getTableViewForTesting().addSelection(table.getTableViewForTesting().getRow(1))
+    table.getTableViewForTesting().addColumnSelectionInterval(3, 3)
+    table.getTableViewForTesting().selectionModel.addSelectionInterval(1, 1)
+
     verify(mockListener, times(2)).onAndroidTestResultsRowSelected(argThat { results ->
       results.testCaseName == "testname2" &&
       results.getTestCaseResult(device1) == AndroidTestCaseResult.FAILED &&
       results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
-    })
+    }, eq(device2))
   }
 
   @Test
