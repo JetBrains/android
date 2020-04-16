@@ -23,5 +23,6 @@
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
+    <orderEntry type="module" module-name="intellij.xml.dom" />
   </component>
 </module>
