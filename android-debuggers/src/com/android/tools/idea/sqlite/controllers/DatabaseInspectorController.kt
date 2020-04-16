@@ -30,6 +30,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.mainView.AddColumns
 import com.android.tools.idea.sqlite.ui.mainView.AddTable
@@ -326,7 +327,7 @@ class DatabaseInspectorControllerImpl(
         view = tableView,
         tableSupplier = { model.getDatabaseSchema(database)?.tables?.firstOrNull{ it.name == table.name } },
         databaseConnection = databaseConnection,
-        sqliteStatement = SqliteStatement(selectAllAndRowIdFromTable(table)),
+        sqliteStatement = createSqliteStatement(project, selectAllAndRowIdFromTable(table)),
         edtExecutor = edtExecutor,
         taskExecutor = taskExecutor
       )

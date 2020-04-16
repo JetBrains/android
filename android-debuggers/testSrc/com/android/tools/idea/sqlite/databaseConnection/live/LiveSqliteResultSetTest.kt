@@ -23,9 +23,8 @@ import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFut
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteAffinity
-import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
@@ -36,7 +35,6 @@ import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import java.sql.ResultSet
 
 class LiveSqliteResultSetTest : LightPlatformTestCase() {
   private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
@@ -53,7 +51,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
       .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger)
+    val resultSet = createLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
 
     // Act
     val columnsFromResultSet = pumpEventsAndWaitForFuture(resultSet.columns)
@@ -85,7 +83,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
       .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger)
+    val resultSet = createLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
 
     // Act
     val rowCount = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
@@ -106,7 +104,9 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
       .thenReturn(SettableFuture.create())
 
-    val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT COUNT(*) FROM (query)"), mockMessenger)
+    val resultSet = createLiveSqliteResultSet(
+      SqliteStatement(SqliteStatementType.SELECT, "SELECT COUNT(*) FROM (query)"), mockMessenger
+    )
     Disposer.register(project, resultSet)
 
     // Act / Assert
@@ -136,7 +136,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
       .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger)
+    val resultSet = createLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
 
     // Act
     // Since we are mocking the answer the values passed to getRowBatch don't matter.
@@ -160,7 +160,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
       .thenReturn(SettableFuture.create())
 
-    val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger)
+    val resultSet = createLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
     Disposer.register(project, resultSet)
 
     // Act / Assert
@@ -180,7 +180,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
       .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger)
+    val resultSet = createLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
 
     // Act / Assert
     assertThrows<IllegalArgumentException>(IllegalArgumentException::class.java) {
@@ -200,7 +200,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
       .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger)
+    val resultSet = createLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
 
     // Act / Assert
     assertThrows<IllegalArgumentException>(IllegalArgumentException::class.java) {
@@ -225,7 +225,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger)
+    val resultSet = createLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(resultSet.columns)
@@ -256,7 +256,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger)
+    val resultSet = createLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(resultSet.columns)
@@ -287,7 +287,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger)
+    val resultSet = createLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(resultSet.columns)

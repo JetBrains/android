@@ -29,6 +29,7 @@ import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.testing.IdeComponents
@@ -202,7 +203,9 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
 
     // Act
-    pumpEventsAndWaitForFuture(controller.evaluateSqlStatement(database, SqliteStatement("SELECT * FROM t1")))
+    pumpEventsAndWaitForFuture(
+      controller.evaluateSqlStatement(database, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+    )
 
     // Assert
     assertEquals(2, table.model.columnCount)
@@ -211,7 +214,9 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("42", table.model.getValueAt(0, 1))
 
     // Act
-    pumpEventsAndWaitForFuture(controller.evaluateSqlStatement(database, SqliteStatement("SELECT * FROM t1")))
+    pumpEventsAndWaitForFuture(
+      controller.evaluateSqlStatement(database, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+    )
 
     // Assert
     assertEquals(2, table.model.columnCount)

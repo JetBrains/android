@@ -22,7 +22,6 @@ import com.android.tools.idea.concurrency.finallySync
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
-import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -30,10 +29,11 @@ import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.model.transform
-import com.android.tools.idea.sqlite.sqlLanguage.inlineParameterValues
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.google.common.base.Functions
@@ -46,7 +46,6 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ComparatorUtil.max
-import java.util.LinkedList
 import java.util.concurrent.CancellationException
 import java.util.concurrent.Executor
 import kotlin.math.min
@@ -262,7 +261,7 @@ class TableController(
       }
 
       val order = if (orderBy!!.asc) "ASC" else "DESC"
-      val selectOrderByStatement = sqliteStatement.transform {
+      val selectOrderByStatement = sqliteStatement.transform(SqliteStatementType.SELECT) {
         "SELECT * FROM ($it) ORDER BY ${AndroidSqlLexer.getValidName(orderBy!!.column.name)} $order"
       }
 
@@ -382,12 +381,9 @@ class TableController(
         "SET ${AndroidSqlLexer.getValidName(targetColumn.name)} = ? " +
         "WHERE $whereExpression"
 
-      val psiElement = AndroidSqlParserDefinition.parseSqlQuery(project, updateStatement)
-      val updateStatementStringRepresentation = inlineParameterValues(psiElement, LinkedList(parametersValues))
-
       databaseInspectorAnalyticsTracker.trackTableCellEdited()
 
-      databaseConnection.execute(SqliteStatement(updateStatement, parametersValues, updateStatementStringRepresentation))
+      databaseConnection.execute(createSqliteStatement(project, updateStatement, parametersValues))
         .addCallback(edtExecutor, object : FutureCallback<SqliteResultSet> {
           override fun onSuccess(result: SqliteResultSet?) {
             refreshData()

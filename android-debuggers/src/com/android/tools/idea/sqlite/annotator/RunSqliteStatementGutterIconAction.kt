@@ -20,7 +20,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.controllers.ParametersBindingController
 import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.sqlLanguage.needsBinding
 import com.android.tools.idea.sqlite.sqlLanguage.replaceNamedParametersWithPositionalParameters
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
@@ -100,7 +100,7 @@ class RunSqliteStatementGutterIconAction(
 
     if (!needsBinding(sqliteStatementPsi)) {
       val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
-      DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(database, SqliteStatement(sqliteStatement))
+      DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(database, createSqliteStatement(project, sqliteStatement))
       databaseInspectorProjectService.toolWindow?.showToolWindow()
     }
     else {
@@ -126,8 +126,7 @@ class RunSqliteStatementGutterIconAction(
       private val cellInsets = JBUI.insets(2, 6)
     }
 
-    private val border = EmptyBorder(
-      cellInsets)
+    private val border = EmptyBorder(cellInsets)
 
     override fun getBorder(): Border = border
 

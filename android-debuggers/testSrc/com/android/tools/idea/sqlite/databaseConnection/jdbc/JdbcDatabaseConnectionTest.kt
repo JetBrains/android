@@ -25,6 +25,7 @@ import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.toSqliteValues
@@ -123,7 +124,9 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement("SELECT * FROM Book")))!!
+    val resultSet = pumpEventsAndWaitForFuture(
+      databaseConnection.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM Book"))
+    )!!
 
     // Assert
     assertThat(resultSet.hasColumn("book_id", SqliteAffinity.INTEGER)).isTrue()
@@ -148,7 +151,9 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement("SELECT book_id FROM Book")))!!
+    val resultSet = pumpEventsAndWaitForFuture(
+      databaseConnection.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT book_id FROM Book"))
+    )!!
 
     // Assert
     assertThat(resultSet.hasColumn("book_id", SqliteAffinity.INTEGER)).isTrue()
@@ -173,15 +178,17 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
 
     // Act/Assert
-    pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement("DROP TABLE Book")))
-    pumpEventsAndWaitForFutureException(databaseConnection.execute(SqliteStatement("SELECT * FROM Book")))
+    pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "DROP TABLE Book")))
+    pumpEventsAndWaitForFutureException(databaseConnection.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM Book")))
   }
 
   fun testResultSetThrowsAfterDisposed() {
     // Prepare
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement("SELECT * FROM Book")))!!
+    val resultSet = pumpEventsAndWaitForFuture(
+      databaseConnection.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM Book"))
+    )!!
     Disposer.dispose(resultSet)
     val error = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0,3))
 
@@ -194,7 +201,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
 
     // Act/Assert
     pumpEventsAndWaitForFutureException(
-      databaseConnection.execute(SqliteStatement("SELECT * FROM wrongName"))
+      databaseConnection.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM wrongName"))
     )
   }
 
@@ -538,7 +545,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
 
     // Act
     val resultSet = pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement("INSERT INTO tableName (c1) values (1)"))
+      customConnection!!.execute(SqliteStatement(SqliteStatementType.INSERT, "INSERT INTO tableName (c1) values (1)"))
     )
 
     // Assert
@@ -555,11 +562,13 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
       getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
-    pumpEventsAndWaitForFuture(customConnection!!.execute(SqliteStatement("INSERT INTO tableName (c1) values (0)")))
+    pumpEventsAndWaitForFuture(
+      customConnection!!.execute(SqliteStatement(SqliteStatementType.INSERT, "INSERT INTO tableName (c1) values (0)"))
+    )
 
     // Act
     val resultSet = pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement("UPDATE tableName SET c1 = 1 WHERE c1 = 0"))
+      customConnection!!.execute(SqliteStatement(SqliteStatementType.UPDATE, "UPDATE tableName SET c1 = 1 WHERE c1 = 0"))
     )
 
     // Assert
@@ -578,7 +587,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
 
     // Act
     val resultSet = pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement("CREATE TABLE t1 (c1 int)"))
+      customConnection!!.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "CREATE TABLE t1 (c1 int)"))
     )
 
     // Assert
@@ -597,12 +606,13 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement("CREATE TABLE t1 (c1 text, c2 text)"))
+      customConnection!!.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "CREATE TABLE t1 (c1 text, c2 text)"))
     )
 
     pumpEventsAndWaitForFuture(
       customConnection!!.execute(
         SqliteStatement(
+          SqliteStatementType.INSERT,
           "INSERT INTO t1 (c1, c2) VALUES (?, ?)",
           listOf(null, "null").toSqliteValues(),
           "INSERT INTO t1 (c1, c2) VALUES (null, 'null')"
@@ -610,7 +620,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     )
 
     val resultSet = pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement("SELECT * FROM t1"))
+      customConnection!!.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
 
     // Assert

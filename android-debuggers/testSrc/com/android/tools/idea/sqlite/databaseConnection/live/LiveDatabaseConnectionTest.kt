@@ -30,6 +30,7 @@ import com.android.tools.idea.sqlite.createErrorSideChannel
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.Futures
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
@@ -149,7 +150,9 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     liveDatabaseConnection = LiveDatabaseConnection(mockMessenger)
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(SqliteStatement("fake query")))!!
+    val resultSet = pumpEventsAndWaitForFuture(
+      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+    )!!
 
     // Assert
     val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
@@ -181,7 +184,11 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
   fun testExecuteStatementWithParameters() {
     // Prepare
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    val sqliteStatement = SqliteStatement("fake query", listOf(SqliteValue.StringValue("1"), SqliteValue.NullValue), "fakeQuery")
+    val sqliteStatement = SqliteStatement(
+      SqliteStatementType.UNKNOWN,
+      "fake query",
+      listOf(SqliteValue.StringValue("1"), SqliteValue.NullValue),
+      "fakeQuery")
 
     val cursor = Response.newBuilder()
       .setQuery(QueryResponse.newBuilder())
@@ -218,7 +225,9 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     liveDatabaseConnection = LiveDatabaseConnection(mockMessenger)
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(SqliteStatement("fake query")))!!
+    val resultSet = pumpEventsAndWaitForFuture(
+      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+    )!!
 
     // Assert
     val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)
@@ -249,7 +258,9 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
-    val error2 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.execute(SqliteStatement("fake query")))
+    val error2 = pumpEventsAndWaitForFutureException(
+      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+    )
 
     assertEquals(error1.cause, error2.cause)
     assertInstanceOf(error1.cause, LiveInspectorException::class.java)
@@ -278,7 +289,9 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
-    val error2 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.execute(SqliteStatement("fake query")))
+    val error2 = pumpEventsAndWaitForFutureException(
+      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+    )
 
     assertEquals(error1.cause, error2.cause)
     assertInstanceOf(error1.cause, LiveInspectorException::class.java)
@@ -307,7 +320,9 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
-    val error2 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.execute(SqliteStatement("fake query")))
+    val error2 = pumpEventsAndWaitForFutureException(
+      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+    )
 
     assertEquals(error1.cause, error2.cause)
     assertInstanceOf(error1.cause, LiveInspectorException::class.java)
@@ -339,7 +354,9 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
     // Act / Assert
     pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
-    pumpEventsAndWaitForFutureException(liveDatabaseConnection.execute(SqliteStatement("fake query")))
+    pumpEventsAndWaitForFutureException(
+      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+    )
 
     verify(mockTrackerService, times(2)).trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_TRUE)
   }
@@ -368,7 +385,9 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
     // Act / Assert
     pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
-    pumpEventsAndWaitForFutureException(liveDatabaseConnection.execute(SqliteStatement("fake query")))
+    pumpEventsAndWaitForFutureException(
+      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+    )
 
     verify(mockTrackerService, times(2)).trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_FALSE)
   }
@@ -397,7 +416,9 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
     // Act / Assert
     pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
-    pumpEventsAndWaitForFutureException(liveDatabaseConnection.execute(SqliteStatement("fake query")))
+    pumpEventsAndWaitForFutureException(
+      liveDatabaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "fake query"))
+    )
 
     verify(mockTrackerService, times(2)).trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_UNKNOWN)
   }
