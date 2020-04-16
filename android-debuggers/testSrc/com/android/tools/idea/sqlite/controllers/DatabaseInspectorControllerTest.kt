@@ -26,7 +26,6 @@ import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
@@ -150,7 +149,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     mockDatabaseConnection = mock(DatabaseConnection::class.java)
     `when`(mockDatabaseConnection.close()).thenReturn(Futures.immediateFuture(null))
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
     sqliteDatabase1 = LiveSqliteDatabase("db1", mockDatabaseConnection)
     sqliteDatabase2 = LiveSqliteDatabase("db2", mockDatabaseConnection)
@@ -350,7 +349,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   fun testCloseTabInvokedFromEvaluatorViewClosesTab() {
     // Prepare
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    `when`(mockDatabaseConnection.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tab")))
+    `when`(mockDatabaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tab")))
       .thenReturn(Futures.immediateFuture(MockSqliteResultSet()))
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
@@ -552,8 +551,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
     `when`(mockDatabaseConnection.execute(SqliteStatement(SqliteStatementType.INSERT, "INSERT INTO t VALUES (42)")))
-      .thenReturn(Futures.immediateFuture(
-        EmptySqliteResultSet()))
+      .thenReturn(Futures.immediateFuture(Unit))
 
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
@@ -911,14 +909,14 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
     }
     val executionFuture = SettableFuture.create<SqliteResultSet>()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(executionFuture)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(executionFuture)
 
     // Act
     mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     //verify that future is in use now
-    verify(mockDatabaseConnection).execute(any(SqliteStatement::class.java))
+    verify(mockDatabaseConnection).query(any(SqliteStatement::class.java))
 
     mockSqliteView.viewListeners.single().closeTabActionInvoked(TabId.TableTab(sqliteDatabase1, testSqliteTable.name))
 
@@ -955,7 +953,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema(emptyList())))
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
@@ -968,7 +966,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     runDispatching {
       // open evaluator tab
-      sqliteController.runSqlStatement(sqliteDatabase1, SqliteStatement(SqliteStatementType.UNKNOWN, "fake stmt"))
+      sqliteController.runSqlStatement(sqliteDatabase1, SqliteStatement(SqliteStatementType.SELECT, "fake stmt"))
     }
 
     // enable live updates in table tab

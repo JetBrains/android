@@ -48,6 +48,8 @@ fun <T> ResultSet.map(transform: ResultSet.() -> T): Sequence<T> {
 }
 
 fun Connection.getColumnNamesInPrimaryKey(tableName: String): List<String> {
+  if (tableName.isEmpty()) return emptyList()
+
   val keySet = metaData.getPrimaryKeys(null, null, tableName)
   return keySet.map {
     getString("COLUMN_NAME")

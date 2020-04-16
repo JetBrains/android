@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.concurrency.executeAsync
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
@@ -31,14 +30,15 @@ import com.intellij.openapi.util.Disposer
 import java.sql.Connection
 import java.sql.JDBCType
 import java.sql.ResultSet
+import java.util.concurrent.Executor
 
-class JdbcSqliteResultSet(
-  private val service: JdbcDatabaseConnection,
+abstract class JdbcSqliteResultSet(
+  private val taskExecutor: Executor,
   private val connection: Connection,
   private val sqliteStatement: SqliteStatement
 ) : SqliteResultSet {
 
-  override val columns get() = service.sequentialTaskExecutor.executeAsync {
+  override val columns get() = taskExecutor.executeAsync {
     connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
       preparedStatement.executeQuery().use {
         val metaData = it.metaData
@@ -58,52 +58,38 @@ class JdbcSqliteResultSet(
     }
   }
 
-  override val totalRowCount get() = service.sequentialTaskExecutor.executeAsync {
-    check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
-    check(!connection.isClosed) { "The connection has been closed." }
+  abstract override val totalRowCount: ListenableFuture<Int>
+  abstract override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>>
 
-    val newStatement = sqliteStatement.toRowCountStatement()
-    connection.resolvePreparedStatement(newStatement).use { preparedStatement ->
-      preparedStatement.executeQuery().use {
-        it.next()
-        val count = it.getInt(1)
+  protected fun getRowCount(sqliteStatement: SqliteStatement, handleResponse: (ResultSet) -> Int): ListenableFuture<Int> {
+    return taskExecutor.executeAsync {
+      check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
+      check(!connection.isClosed) { "The connection has been closed." }
 
-        it.close()
-        preparedStatement.close()
-
-        count
+      connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
+        preparedStatement.executeQuery().use { handleResponse(it) }
       }
     }
   }
 
-  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
-    checkOffsetAndSize(rowOffset, rowBatchSize)
-
-    return columns.transform(service.sequentialTaskExecutor) { columns ->
+  protected fun getRowBatch(
+    sqliteStatement: SqliteStatement,
+    handleResponse: (ResultSet, List<ResultSetSqliteColumn>) -> List<SqliteRow>
+  ): ListenableFuture<List<SqliteRow>> {
+    return columns.transform(taskExecutor) { columns ->
       check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
       check(!connection.isClosed) { "The connection has been closed." }
 
-      val newStatement = sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize)
-      connection.resolvePreparedStatement(newStatement).use { preparedStatement ->
-        preparedStatement.executeQuery().use {
-          val rows = ArrayList<SqliteRow>()
-          while (it.next()) {
-            rows.add(createCurrentRow(it, columns))
-          }
-
-          preparedStatement.close()
-
-          rows
-        }
+      connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
+        preparedStatement.executeQuery().use { handleResponse(it, columns) }
       }
     }
   }
 
   @WorkerThread
-  private fun createCurrentRow(resultSet: ResultSet, columns: List<ResultSetSqliteColumn>): SqliteRow {
+  protected fun createCurrentRow(resultSet: ResultSet, columns: List<ResultSetSqliteColumn>): SqliteRow {
     return SqliteRow(columns.mapIndexed { i, column -> SqliteColumnValue(column.name, SqliteValue.fromAny(resultSet.getObject(i + 1))) })
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() { }
 }

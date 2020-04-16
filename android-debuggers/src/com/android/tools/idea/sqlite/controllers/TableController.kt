@@ -98,7 +98,7 @@ class TableController(
 
   fun setUp(): ListenableFuture<Unit> {
     view.startTableLoading()
-    return databaseConnection.execute(sqliteStatement).transform(edtExecutor) { newResultSet ->
+    return databaseConnection.query(sqliteStatement).transform(edtExecutor) { newResultSet ->
       lastExecutedQuery = sqliteStatement
       view.setEditable(isEditable())
       view.showPageSizeValue(rowBatchSize)
@@ -268,7 +268,7 @@ class TableController(
       Disposer.dispose(resultSet)
 
       view.startTableLoading()
-      databaseConnection.execute(selectOrderByStatement).transform(edtExecutor) { newResultSet ->
+      databaseConnection.query(selectOrderByStatement).transform(edtExecutor) { newResultSet ->
         lastExecutedQuery = selectOrderByStatement
 
         if (Disposer.isDisposed(this@TableController)) {
@@ -384,8 +384,8 @@ class TableController(
       databaseInspectorAnalyticsTracker.trackTableCellEdited()
 
       databaseConnection.execute(createSqliteStatement(project, updateStatement, parametersValues))
-        .addCallback(edtExecutor, object : FutureCallback<SqliteResultSet> {
-          override fun onSuccess(result: SqliteResultSet?) {
+        .addCallback(edtExecutor, object : FutureCallback<Unit> {
+          override fun onSuccess(result: Unit?) {
             refreshData()
           }
 

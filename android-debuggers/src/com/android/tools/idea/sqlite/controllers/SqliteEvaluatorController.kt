@@ -19,10 +19,10 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
@@ -103,33 +103,47 @@ class SqliteEvaluatorController(
   }
 
   private fun execute(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+    resetTable()
+
+    return if (
+      sqliteStatement.statementType == SqliteStatementType.SELECT ||
+      sqliteStatement.statementType == SqliteStatementType.EXPLAIN
+    ) {
+      runQuery(database, sqliteStatement)
+    }
+    else {
+      runUpdate(database, sqliteStatement)
+    }
+  }
+
+  private fun resetTable() {
+    if (currentTableController != null) {
+      Disposer.dispose(currentTableController!!)
+    }
+    view.tableView.resetView()
+  }
+
+  private fun runQuery(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+    currentTableController = TableController(
+      closeTabInvoked = closeTabInvoked,
+      project = project,
+      view = view.tableView,
+      tableSupplier = { null },
+      databaseConnection = database.databaseConnection,
+      sqliteStatement = sqliteStatement,
+      edtExecutor = edtExecutor,
+      taskExecutor = taskExecutor
+    )
+    Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
+    currentTableController!!.setUp()
+
+    return Futures.immediateFuture(Unit)
+  }
+
+  private fun runUpdate(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     return database.databaseConnection.execute(sqliteStatement)
-      .transformAsync(taskExecutor) { sqliteResultSet ->
-        sqliteResultSet.totalRowCount
-      }.transform(edtExecutor) { rowCount ->
-        if (currentTableController != null) {
-          Disposer.dispose(currentTableController!!)
-        }
-
-        view.tableView.resetView()
-
-        if (rowCount > 0) {
-          currentTableController = TableController(
-            closeTabInvoked = closeTabInvoked,
-            project = project,
-            view = view.tableView,
-            tableSupplier = { null },
-            databaseConnection = database.databaseConnection,
-            sqliteStatement = sqliteStatement,
-            edtExecutor = edtExecutor,
-            taskExecutor = taskExecutor
-          )
-          Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
-          currentTableController!!.setUp()
-        } else {
-          view.tableView.setEmptyText("The statement was run successfully.")
-        }
-
+      .transform(edtExecutor) {
+        view.tableView.setEmptyText("The statement was run successfully.")
         listeners.forEach { it.onSqliteStatementExecuted(database) }
       }.catching(edtExecutor, Throwable::class.java) { throwable ->
         view.tableView.setEmptyText("An error occurred while running the statement.")
