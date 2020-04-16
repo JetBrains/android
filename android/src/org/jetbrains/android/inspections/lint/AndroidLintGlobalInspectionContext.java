@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections.lint;
 
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
@@ -18,7 +19,6 @@ import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.lint.detector.api.Scope;
-import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LintSession.AnalysisType;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.GlobalInspectionContext;
@@ -49,6 +49,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -139,7 +140,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     }
 
     List<VirtualFile> files = null;
-    final List<Module> modules = Lists.newArrayList();
+    final List<Module> modules = new ArrayList<>();
 
     int scopeType = scope.getScopeType();
     switch (scopeType) {
@@ -156,7 +157,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       case AnalysisScope.FILE:
       case AnalysisScope.VIRTUAL_FILES:
       case AnalysisScope.UNCOMMITTED_FILES: {
-        files = Lists.newArrayList();
+        files = new ArrayList<>();
         SearchScope searchScope = ReadAction.compute(scope::toSearchScope);
         if (searchScope instanceof LocalSearchScope) {
           final LocalSearchScope localSearchScope = (LocalSearchScope)searchScope;

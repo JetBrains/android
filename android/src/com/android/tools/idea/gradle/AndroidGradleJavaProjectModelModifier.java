@@ -51,12 +51,11 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
+import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -75,6 +74,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -159,7 +159,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
     VirtualFile openedFile = FileEditorManagerEx.getInstanceEx(firstModule.getProject()).getCurrentFile();
 
-    List<GradleBuildModel> buildModelsToUpdate = Lists.newArrayList();
+    List<GradleBuildModel> buildModelsToUpdate = new ArrayList<>();
     for (Module module : modules) {
       GradleBuildModel buildModel = GradleBuildModel.get(module);
       if (buildModel == null) {

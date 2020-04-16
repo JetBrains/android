@@ -20,7 +20,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeLayout;
 import com.android.tools.tests.LeakCheckerRule;
-import com.google.common.collect.Lists;
 import com.google.common.testing.EqualsTester;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
@@ -43,9 +42,9 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
 
 
   public void testEquals() throws IOException {
-    List<NativeArtifact> nativeArtifacts = Lists.newArrayList();
+    List<NativeArtifact> nativeArtifacts = new ArrayList<>();
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = Lists.newArrayList();
+    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
       .addRemoteHeaders("my-sdk/bar.h")
@@ -78,9 +77,9 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
   }
 
   public void testSimplest() throws IOException {
-    List<NativeArtifact> nativeArtifacts = Lists.newArrayList();
+    List<NativeArtifact> nativeArtifacts = new ArrayList<>();
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = Lists.newArrayList();
+    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
       .addRemoteHeaders("my-sdk/bar.h")
@@ -104,7 +103,7 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
 
   public void testSimplestWithArtifacts() throws IOException {
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = Lists.newArrayList();
+    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
       .addRemoteHeaders("my-sdk/bar.h")
@@ -132,7 +131,7 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
 
   public void testSimplestWithArtifactsSubfolders() throws IOException {
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = Lists.newArrayList();
+    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
       .addRemoteHeaders("my-sdk/bar.h")
@@ -180,7 +179,7 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
 
   public void testSimplestWithMultipleArtifactIncludePaths() throws IOException {
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = Lists.newArrayList();
+    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
       .addRemoteHeaders("my-sdk/bar.h")
@@ -210,7 +209,7 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
 
   public void testSimplestWithMultipleArtifacts() throws IOException {
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = Lists.newArrayList();
+    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk1/foo1.h")
       .addRemoteHeaders("my-sdk1/bar1.h")
@@ -250,7 +249,7 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
 
   public void testMergeFolders() throws IOException {
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = Lists.newArrayList();
+    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk1/foo1.h")
       .addRemoteHeaders("my-sdk1/bar1.h")

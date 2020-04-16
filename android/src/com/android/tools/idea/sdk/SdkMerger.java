@@ -20,17 +20,16 @@ import com.android.repository.api.RepoPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SdkMerger {
   private static final Logger LOG = Logger.getInstance(SdkMerger.class);
@@ -95,7 +94,7 @@ public class SdkMerger {
                                                           @NotNull File destDir,
                                                           @Nullable ProgressIndicator progress) {
     com.android.repository.api.ProgressIndicator repoProgress = getRepoProgress(progress);
-    Collection<MergeablePackage> results = Lists.newArrayList();
+    Collection<MergeablePackage> results = new ArrayList<>();
 
     AndroidSdkHandler srcHandler = AndroidSdkHandler.getInstance(srcDir);
     AndroidSdkHandler destHandler = AndroidSdkHandler.getInstance(destDir);

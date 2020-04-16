@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.editor;
 
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
@@ -49,6 +48,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -346,7 +346,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
     Collections.sort(viewActions);
 
-    List<AnAction> target = Lists.newArrayList();
+    List<AnAction> target = new ArrayList<>();
     for (ViewAction viewAction : viewActions) {
       addActions(target, toolbar, viewAction, editor, handler, component, newSelection);
     }
@@ -399,7 +399,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       target.add(new ToggleViewActionWrapper((ToggleViewAction)viewAction, editor, handler, parent, newSelection));
     }
     else if (viewAction instanceof ToggleViewActionGroup) {
-      List<ToggleViewActionWrapper> actions = Lists.newArrayList();
+      List<ToggleViewActionWrapper> actions = new ArrayList<>();
       for (ToggleViewAction action : ((ToggleViewActionGroup)viewAction).getActions()) {
         actions.add(new ToggleViewActionWrapper(action, editor, handler, parent, newSelection));
       }
@@ -691,7 +691,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     @NotNull
     @Override
     public AnAction[] getChildren(@Nullable AnActionEvent e) {
-      List<AnAction> actions = Lists.newArrayList();
+      List<AnAction> actions = new ArrayList<>();
       for (ViewAction viewAction : myAction.getActions()) {
         addActions(actions, false, viewAction, myEditor, myHandler, myComponent, mySelectedChildren);
       }
@@ -739,7 +739,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       removeAll();
       List<List<ViewAction>> rows = myAction.getActions();
       if (rows.size() == 1) {
-        List<AnAction> actions = Lists.newArrayList();
+        List<AnAction> actions = new ArrayList<>();
         for (ViewAction viewAction : rows.get(0)) {
           addActions(actions, false, viewAction, myEditor, myHandler, myComponent, mySelectedChildren);
         }
@@ -764,7 +764,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
           }
           continue;
         }
-        List<AnAction> actions = Lists.newArrayList();
+        List<AnAction> actions = new ArrayList<>();
         for (ViewAction viewAction : row) {
           addActions(actions, false, viewAction, myEditor, myHandler, myComponent, mySelectedChildren);
         }

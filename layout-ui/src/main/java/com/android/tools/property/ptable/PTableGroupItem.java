@@ -15,13 +15,12 @@
  */
 package com.android.tools.property.ptable;
 
-import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.DataContext;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class PTableGroupItem extends PTableItem {
   private List<PTableItem> myItems;
@@ -41,7 +40,7 @@ public abstract class PTableGroupItem extends PTableItem {
   public void addChild(@NotNull PTableItem item, @Nullable PTableItem after) {
     item.setParent(this);
     if (myItems == null) {
-      myItems = Lists.newArrayList();
+      myItems = new ArrayList<>();
     }
     int index = after != null ? myItems.indexOf(after) : -1;
     if (index != -1) {

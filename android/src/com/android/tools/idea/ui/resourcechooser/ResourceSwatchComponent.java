@@ -21,7 +21,6 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.ui.ClickableLabel;
 import com.android.tools.adtui.util.GraphicsUtil;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
@@ -54,6 +53,7 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Area;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import javax.swing.Icon;
@@ -96,7 +96,7 @@ public class ResourceSwatchComponent extends JPanel {
   private @Nullable final TextFieldWithAutoCompletion<String> myTextField;
   private @Nullable final JLabel myTextLabel;
   private final ClickableLabel mySwatchButton;
-  private final List<ActionListener> myTextListeners = Lists.newArrayList();
+  private final List<ActionListener> myTextListeners = new ArrayList<>();
 
   private Color myBorderColor;
   private final @NotNull Project myProject;

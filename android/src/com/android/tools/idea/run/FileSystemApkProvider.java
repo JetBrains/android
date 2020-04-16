@@ -16,16 +16,15 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Provides Apk whose path is specified when instantiated.
@@ -48,7 +47,7 @@ public class FileSystemApkProvider implements ApkProvider {
       throw new ApkProvisionException("Invalid manifest, no package name specified");
     }
 
-    List<ApkInfo> apkList = Lists.newArrayList();
+    List<ApkInfo> apkList = new ArrayList<>();
     apkList.add(new ApkInfo(myApkPath, id));
     return apkList;
   }

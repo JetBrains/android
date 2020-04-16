@@ -18,12 +18,10 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollectionDslElement {
   @NonNls public static final String PRODUCT_FLAVORS_BLOCK_NAME = "productFlavors";
@@ -34,7 +32,7 @@ public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollection
 
   @NotNull
   public List<ProductFlavorModel> get() {
-    List<ProductFlavorModel> result = Lists.newArrayList();
+    List<ProductFlavorModel> result = new ArrayList<>();
     for (ProductFlavorDslElement dslElement : getValues(ProductFlavorDslElement.class)) {
       if (!KNOWN_METHOD_NAMES.contains(dslElement.getName())) {
         result.add(new ProductFlavorModelImpl(dslElement));

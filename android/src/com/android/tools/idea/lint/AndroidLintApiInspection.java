@@ -23,7 +23,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
@@ -32,6 +31,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
@@ -53,7 +53,7 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
     Integer apiLevel = LintFix.getData(fixData, Integer.class);
     if (apiLevel != null) {
       int api = apiLevel;
-      List<AndroidLintQuickFix> list = Lists.newArrayList();
+      List<AndroidLintQuickFix> list = new ArrayList<>();
       PsiFile file = startElement.getContainingFile();
       boolean isXml = false;
       if (file instanceof XmlFile) {

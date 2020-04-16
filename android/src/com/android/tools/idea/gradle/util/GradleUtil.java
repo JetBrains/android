@@ -96,7 +96,6 @@ import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.icons.AllIcons;
@@ -117,6 +116,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -309,7 +309,7 @@ public final class GradleUtil {
    */
   @NotNull
   public static List<Library> getModuleDependencies(@NotNull IdeVariant variant) {
-    List<Library> libraries = Lists.newArrayList();
+    List<Library> libraries = new ArrayList<>();
 
     IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
     IdeDependencies dependencies = mainArtifact.getLevel2Dependencies();
@@ -842,7 +842,7 @@ public final class GradleUtil {
   }
 
   public static void setBuildToolsVersion(@NotNull Project project, @NotNull String version) {
-    List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
+    List<GradleBuildModel> modelsToUpdate = new ArrayList<>();
 
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);

@@ -30,7 +30,6 @@ import com.android.SdkConstants;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.ui.validation.validators.ProjectImportPathValidator;
-import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.util.PropertiesComponent;
@@ -51,12 +50,12 @@ import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.projectImport.ProjectImportProvider;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NonNls;
@@ -227,7 +226,7 @@ public class AndroidImportProjectAction extends AnAction {
   @NotNull
   private static List<ProjectImportProvider> getImportProvidersForTarget(@NotNull VirtualFile file) {
     VirtualFile target = findImportTarget(file);
-    List<ProjectImportProvider> available = Lists.newArrayList();
+    List<ProjectImportProvider> available = new ArrayList<>();
     for (ProjectImportProvider provider : ProjectImportProvider.PROJECT_IMPORT_PROVIDER.getExtensions()) {
       if (provider.canImport(target, null)) {
         available.add(provider);

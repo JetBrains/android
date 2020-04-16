@@ -56,6 +56,7 @@ import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.rename.RenameHandler;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -145,7 +146,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
       }
 
       // Rename all references in build.gradle
-      final List<GradleBuildModel> modifiedBuildModels = Lists.newArrayList();
+      final List<GradleBuildModel> modifiedBuildModels = new ArrayList<>();
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         GradleBuildModel buildModel = GradleBuildModel.get(module);
         if (buildModel != null) {

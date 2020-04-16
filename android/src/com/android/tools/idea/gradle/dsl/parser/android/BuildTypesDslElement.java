@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +32,7 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
 
   @NotNull
   public List<BuildTypeModel> get() {
-    List<BuildTypeModel> result = Lists.newArrayList();
+    List<BuildTypeModel> result = new ArrayList<>();
     for (BuildTypeDslElement dslElement : getValues(BuildTypeDslElement.class)) {
       // Filter any buildtypes that we have wrongly detected.
       if (!KNOWN_METHOD_NAMES.contains(dslElement.getName())) {

@@ -21,27 +21,30 @@ import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.tools.idea.templates.recipe.RecipeExecutor;
 import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * A collection of utility methods for interacting with an {@code Recipe}.
@@ -65,8 +68,8 @@ public class RecipeUtils {
     SetMultimap<String, String> dependencies = LinkedHashMultimap.create();
     Set<String> classpathEntries = Sets.newHashSet();
     Set<String> plugins = Sets.newHashSet();
-    List<File> sourceFiles = Lists.newArrayList();
-    List<File> targetFiles = Lists.newArrayList();
+    List<File> sourceFiles = new ArrayList<>();
+    List<File> targetFiles = new ArrayList<>();
     RecipeMetadata metadata = new RecipeMetadata(recipe, module);
     RenderingContext context = null;
 
@@ -134,7 +137,7 @@ public class RecipeUtils {
   }
 
   public static void execute(@NotNull Recipe recipe, @NotNull Module module) {
-    List<File> filesToOpen = Lists.newArrayList();
+    List<File> filesToOpen = new ArrayList<>();
     File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module);
     assert moduleRoot != null;
     File RootPath = null;

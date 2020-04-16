@@ -15,35 +15,35 @@
  */
 package com.android.tools.idea.device;
 
+import static com.android.utils.XmlUtils.getSubTags;
+
 import com.android.SdkConstants;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.ImageUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import static com.android.utils.XmlUtils.getSubTags;
 
 /**
  * Descriptor for a device frame picture (background, shadow, reflection) which can be
@@ -129,7 +129,7 @@ public class DeviceArtDescriptor {
 
   public static List<DeviceArtDescriptor> getDescriptors(@Nullable File[] folders) {
     List<File> files = getDescriptorFiles(folders);
-    List<DeviceArtDescriptor> result = Lists.newArrayList();
+    List<DeviceArtDescriptor> result = new ArrayList<>();
 
     for (File file : files)
       try {

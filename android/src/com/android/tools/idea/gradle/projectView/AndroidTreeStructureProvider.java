@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.projectView;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElement;
@@ -33,11 +32,11 @@ import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.EventDispatcher;
-import org.jetbrains.annotations.NotNull;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EventListener;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Changes the structure of the JDK node (under "External Libraries" in the Project View
@@ -62,7 +61,7 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
         if (orderEntry instanceof JdkOrderEntry) {
           Sdk sdk = ((JdkOrderEntry)orderEntry).getJdk();
           if (sdk.getSdkType() instanceof JavaSdk) {
-            List<AbstractTreeNode<?>> newChildren = Lists.newArrayList();
+            List<AbstractTreeNode<?>> newChildren = new ArrayList<>();
             for (AbstractTreeNode child : children) {
               if (isRtJar(child)) {
                 newChildren.add(child);
@@ -76,7 +75,7 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
         }
       }
       else if (isRtJar(parent)) {
-        List<AbstractTreeNode<?>> newChildren = Lists.newArrayList();
+        List<AbstractTreeNode<?>> newChildren = new ArrayList<>();
         for (AbstractTreeNode child : children) {
           if (child instanceof PsiDirectoryNode) {
             VirtualFile file = ((PsiDirectoryNode)child).getVirtualFile();

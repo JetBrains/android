@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections.lint;
 
 import static com.android.tools.lint.detector.api.TextFormat.HTML;
@@ -22,7 +22,6 @@ import com.android.tools.lint.detector.api.LintFix.SetAttribute;
 import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
-import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -660,7 +659,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
                                                                 data.dot, data.mark)};
     } else if (lintFix instanceof LintFixGroup) {
       LintFixGroup group = (LintFixGroup)lintFix;
-      List<AndroidLintQuickFix> fixList = Lists.newArrayList();
+      List<AndroidLintQuickFix> fixList = new ArrayList<>();
       for (LintFix fix : group.fixes) {
         Collections.addAll(fixList, createFixes(file, fix));
       }

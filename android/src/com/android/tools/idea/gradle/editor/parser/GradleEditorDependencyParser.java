@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.editor.parser;
 
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.Assignment;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.Location;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.Variable;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelUtil.buildSourceBinding;
+
 import com.android.tools.idea.gradle.editor.entity.ExternalDependencyGradleEditorEntity;
 import com.android.tools.idea.gradle.editor.entity.GradleEditorEntity;
 import com.android.tools.idea.gradle.editor.entity.GradleEditorSourceBinding;
@@ -22,21 +27,17 @@ import com.android.tools.idea.gradle.editor.metadata.GradleEditorEntityMetaData;
 import com.android.tools.idea.gradle.editor.metadata.StdGradleEditorEntityMetaData;
 import com.android.tools.idea.gradle.editor.value.GradleEditorEntityValueManager;
 import com.android.tools.idea.gradle.editor.value.LibraryVersionsManager;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.TextRange;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.*;
-import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelUtil.buildSourceBinding;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Encapsulates functionality of parsing dependencies declared at <code>build.gradle</code>.
@@ -134,14 +135,14 @@ public class GradleEditorDependencyParser {
       return null;
     }
     TextRange dimensionRangeInFile = dimensionRange.shiftRight(assignment.value.location.range.getStartOffset());
-    List<Variable> dependencies = Lists.newArrayList();
+    List<Variable> dependencies = new ArrayList<>();
     for (Map.Entry<Variable, Location> entry : assignment.dependencies.entries()) {
       if (dimensionRangeInFile.contains(entry.getValue().range)) {
         dependencies.add(entry.getKey());
       }
     }
     String dimensionValue = dependencyDeclarationString.substring(dimensionRange.getStartOffset(), dimensionRange.getEndOffset());
-    List<GradleEditorSourceBinding> sourceBindings = Lists.newArrayList();
+    List<GradleEditorSourceBinding> sourceBindings = new ArrayList<>();
     if (dependencies.isEmpty()
         || dependencies.size() > 1
         // There is a possible definition like 'my-group:my-artifact:$version' - we don't want to count referenced version as

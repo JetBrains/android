@@ -15,9 +15,31 @@
  */
 package com.android.tools.idea.gradle.editor.parser;
 
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorDsl.ALL_PROJECTS_SECTION;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorDsl.BUILD_SCRIPT_SECTION;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorDsl.BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorDsl.CLASSPATH_CONFIGURATION;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorDsl.COMPILE_SDK_VERSION;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorDsl.DEPENDENCIES_SECTION;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorDsl.JCENTER;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorDsl.MAVEN_CENTRAL;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorDsl.MAVEN_REPO;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorDsl.MAVEN_REPO_URL;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorDsl.REPOSITORIES_SECTION;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorDsl.SUB_PROJECT_SECTION;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.Assignment;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.NO_ARGS_METHOD_ASSIGNMENT_VALUE;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.Variable;
+import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelUtil.buildSourceBinding;
+
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.editor.entity.*;
+import com.android.tools.idea.gradle.editor.entity.ExternalDependencyGradleEditorEntity;
+import com.android.tools.idea.gradle.editor.entity.GradleEditorEntity;
+import com.android.tools.idea.gradle.editor.entity.GradleEditorEntityGroup;
+import com.android.tools.idea.gradle.editor.entity.GradleEditorRepositoryEntity;
+import com.android.tools.idea.gradle.editor.entity.GradleEditorSourceBinding;
+import com.android.tools.idea.gradle.editor.entity.VersionGradleEditorEntity;
 import com.android.tools.idea.gradle.editor.metadata.GradleEditorEntityMetaData;
 import com.android.tools.idea.gradle.editor.metadata.StdGradleEditorEntityMetaData;
 import com.android.tools.idea.gradle.editor.value.BuildToolsValueManager;
@@ -27,15 +49,15 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.tools.idea.gradle.editor.parser.GradleEditorDsl.*;
-import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext.*;
-import static com.android.tools.idea.gradle.editor.parser.GradleEditorModelUtil.buildSourceBinding;
 
 public class GradleEditorModelParserV1 implements GradleEditorModelParser {
 
@@ -61,7 +83,7 @@ public class GradleEditorModelParserV1 implements GradleEditorModelParser {
   @NotNull
   @Override
   public List<GradleEditorEntityGroup> buildEntities(@NotNull GradleEditorModelParseContext context) {
-    List<GradleEditorEntityGroup> result = Lists.newArrayList();
+    List<GradleEditorEntityGroup> result = new ArrayList<>();
 
     GradleEditorEntityGroup buildConfiguration = buildConfiguration(context);
     if (buildConfiguration != null) {
@@ -251,7 +273,7 @@ public class GradleEditorModelParserV1 implements GradleEditorModelParser {
 
   @Nullable
   protected GradleEditorEntityGroup dependencies(@NotNull GradleEditorModelParseContext context) {
-    List<GradleEditorEntity> dependencies = Lists.newArrayList();
+    List<GradleEditorEntity> dependencies = new ArrayList<>();
 
     GradleEditorDependencyParser dependencyParser = new GradleEditorDependencyParser();
     Collection<Assignment> currentDependencies = context.getAssignments(Collections.singletonList(DEPENDENCIES_SECTION));
@@ -273,9 +295,9 @@ public class GradleEditorModelParserV1 implements GradleEditorModelParser {
 
   @Nullable
   protected GradleEditorEntityGroup repositories(@NotNull GradleEditorModelParseContext context) {
-    List<GradleEditorEntity> repositories = Lists.newArrayList();
+    List<GradleEditorEntity> repositories = new ArrayList<>();
 
-    Collection<List<String>> requestKeys = Lists.newArrayList();
+    Collection<List<String>> requestKeys = new ArrayList<>();
     requestKeys.add(Arrays.asList(BUILD_SCRIPT_SECTION, REPOSITORIES_SECTION)); // Current public repo
     requestKeys.add(Arrays.asList(BUILD_SCRIPT_SECTION, REPOSITORIES_SECTION, MAVEN_REPO)); // Current third-party repo
     requestKeys.add(Arrays.asList(SUB_PROJECT_SECTION, REPOSITORIES_SECTION)); // Outgoing public repo
@@ -283,7 +305,7 @@ public class GradleEditorModelParserV1 implements GradleEditorModelParser {
     requestKeys.add(Arrays.asList(ALL_PROJECTS_SECTION, REPOSITORIES_SECTION)); // 'All-projects' public repo
     requestKeys.add(Arrays.asList(ALL_PROJECTS_SECTION, REPOSITORIES_SECTION, MAVEN_REPO)); // 'All-projects' third-party repo
 
-    Collection<Assignment> assignments = Lists.newArrayList();
+    Collection<Assignment> assignments = new ArrayList<>();
     for (List<String> key : requestKeys) {
       assignments.addAll(context.getAssignments(key));
     }

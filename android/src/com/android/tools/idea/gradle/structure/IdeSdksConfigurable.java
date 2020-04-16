@@ -50,7 +50,6 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -85,6 +84,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.JComboBox;
@@ -621,7 +621,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   @NotNull
   public List<ProjectConfigurationError> validateState() {
-    List<ProjectConfigurationError> errors = Lists.newArrayList();
+    List<ProjectConfigurationError> errors = new ArrayList<>();
 
     String msg = validateAndroidSdkPath();
     if (msg != null) {

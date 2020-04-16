@@ -19,11 +19,10 @@ import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public final class SigningConfigsDslElement extends GradleDslElementMap {
   @NonNls public static final String SIGNING_CONFIGS_BLOCK_NAME = "signingConfigs";
@@ -39,7 +38,7 @@ public final class SigningConfigsDslElement extends GradleDslElementMap {
 
   @NotNull
   public List<SigningConfigModel> get() {
-    List<SigningConfigModel> result = Lists.newArrayList();
+    List<SigningConfigModel> result = new ArrayList<>();
     for (SigningConfigDslElement dslElement : getValues(SigningConfigDslElement.class)) {
       result.add(new SigningConfigModelImpl(dslElement));
     }

@@ -54,6 +54,7 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.Ref;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
@@ -62,12 +63,12 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.IconUtil;
-import com.intellij.openapi.util.NlsContexts;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -89,7 +90,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   @NotNull private final JPanel myContentsPanel;
   @NotNull private final String myEmptyText;
 
-  @NotNull private final List<DependencyDetails> myDependencyDetails = Lists.newArrayList();
+  @NotNull private final List<DependencyDetails> myDependencyDetails = new ArrayList<>();
 
   @Nullable private final PsModule myModule;
 

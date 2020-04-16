@@ -22,7 +22,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProviderContainer;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +32,7 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
   @NotNull private final SourceProviderStub mySourceProvider;
   @NotNull private final SourceProviderStub myInstrumentationTestSourceProvider;
 
-  @NotNull private final Collection<SourceProviderContainer> myExtraArtifactSourceProviders = Lists.newArrayList();
+  @NotNull private final Collection<SourceProviderContainer> myExtraArtifactSourceProviders = new ArrayList<>();
 
   /**
    * Creates a new {@clink ProductFlavorContainerStub}.

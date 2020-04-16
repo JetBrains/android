@@ -15,25 +15,34 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.layoutinspector.model.DisplayInfo;
 import com.android.layoutinspector.model.ViewNode;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.MaterialColors;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.paint.LinePainter2D;
-import org.intellij.images.options.GridOptions;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Composite;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JComponent;
+import org.intellij.images.options.GridOptions;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A component to display a {@link ViewNode} with display boxes.
@@ -57,7 +66,7 @@ public class ViewNodeActiveDisplay extends JComponent {
   @Nullable
   private Image mPreview;
 
-  private final List<ViewNodeActiveDisplayListener> mListeners = Lists.newArrayList();
+  private final List<ViewNodeActiveDisplayListener> mListeners = new ArrayList<>();
 
   private float mZoomFactor = 1;
 

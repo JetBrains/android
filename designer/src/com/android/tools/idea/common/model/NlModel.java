@@ -50,7 +50,6 @@ import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -597,7 +596,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
 
       // Look for any NlComponents no longer present in the new set
-      List<XmlTag> missing = Lists.newArrayList();
+      List<XmlTag> missing = new ArrayList<>();
       Set<XmlTag> remaining = Sets.newIdentityHashSet();
       remaining.addAll(myTagToComponentMap.keySet());
       checkMissing(newRootTag, remaining, missing);

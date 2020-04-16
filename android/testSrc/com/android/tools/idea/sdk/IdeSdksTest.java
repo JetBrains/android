@@ -34,7 +34,6 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.testing.Sdks;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
@@ -42,6 +41,7 @@ import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -141,7 +141,7 @@ public class IdeSdksTest extends PlatformTestCase {
   }
 
   private void assertOneSdkPerAvailableTarget(@NotNull List<Sdk> sdks) {
-    List<IAndroidTarget> platformTargets = Lists.newArrayList();
+    List<IAndroidTarget> platformTargets = new ArrayList<>();
     AndroidSdkData sdkData = AndroidSdkData.getSdkData(myAndroidSdkPath);
     assertNotNull(sdkData);
     for (IAndroidTarget target : sdkData.getTargets()) {

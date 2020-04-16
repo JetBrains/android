@@ -16,6 +16,35 @@
 
 package com.android.tools.idea.gradle.eclipse;
 
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.BIN_FOLDER;
+import static com.android.SdkConstants.DOT_AIDL;
+import static com.android.SdkConstants.DOT_CLASS;
+import static com.android.SdkConstants.DOT_FS;
+import static com.android.SdkConstants.DOT_JAR;
+import static com.android.SdkConstants.DOT_JAVA;
+import static com.android.SdkConstants.DOT_RS;
+import static com.android.SdkConstants.DOT_RSH;
+import static com.android.SdkConstants.FD_AIDL;
+import static com.android.SdkConstants.FD_ASSETS;
+import static com.android.SdkConstants.FD_JAVA;
+import static com.android.SdkConstants.FD_JAVA_RES;
+import static com.android.SdkConstants.FD_MAIN;
+import static com.android.SdkConstants.FD_RENDERSCRIPT;
+import static com.android.SdkConstants.FD_RES;
+import static com.android.SdkConstants.FD_SOURCES;
+import static com.android.SdkConstants.FD_TEST;
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.FN_PROJECT_PROPERTIES;
+import static com.android.SdkConstants.GEN_FOLDER;
+import static com.android.SdkConstants.LIBS_FOLDER;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.ECLIPSE_DOT_CLASSPATH;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.ECLIPSE_DOT_PROJECT;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.isIgnoredFile;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.isTextFile;
+import static java.io.File.separator;
+import static java.io.File.separatorChar;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -23,20 +52,18 @@ import com.android.repository.io.FileOpUtils;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.text.StringUtil;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.*;
-import static java.io.File.separator;
-import static java.io.File.separatorChar;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
 
 public abstract class ImportModule implements Comparable<ImportModule> {
   @SuppressWarnings("SpellCheckingInspection")
@@ -52,10 +79,10 @@ public abstract class ImportModule implements Comparable<ImportModule> {
   public static final String MEDIA_ROUTER_ARTIFACT = "mediarouter-v7";
 
   protected final GradleImport myImporter;
-  protected final List<GradleCoordinate> myDependencies = Lists.newArrayList();
-  protected final List<GradleCoordinate> myTestDependencies = Lists.newArrayList();
-  protected final List<File> myJarDependencies = Lists.newArrayList();
-  protected final List<File> myTestJarDependencies = Lists.newArrayList();
+  protected final List<GradleCoordinate> myDependencies = new ArrayList<>();
+  protected final List<GradleCoordinate> myTestDependencies = new ArrayList<>();
+  protected final List<File> myJarDependencies = new ArrayList<>();
+  protected final List<File> myTestJarDependencies = new ArrayList<>();
   protected List<GradleCoordinate> myReplaceWithDependencies;
   private String myModuleName;
 

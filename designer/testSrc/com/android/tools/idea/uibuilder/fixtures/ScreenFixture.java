@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createScreen;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentFixture;
@@ -22,18 +28,11 @@ import com.android.tools.idea.common.fixtures.ComponentListFixture;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
-
-import java.util.List;
-
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createScreen;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 public class ScreenFixture {
   private final SyncNlModel myModel;
@@ -67,7 +66,7 @@ public class ScreenFixture {
 
   @NotNull
   public ComponentListFixture find(@NotNull String... descriptions) {
-    List<ComponentFixture> fixtures = Lists.newArrayList();
+    List<ComponentFixture> fixtures = new ArrayList<>();
     for (String description : descriptions) {
       ComponentFixture fixture = find(description);
       if (fixture != null) {
@@ -79,7 +78,7 @@ public class ScreenFixture {
 
   @NotNull
   public ComponentListFixture get(@NotNull String... descriptions) {
-    List<ComponentFixture> fixtures = Lists.newArrayList();
+    List<ComponentFixture> fixtures = new ArrayList<>();
     for (String description : descriptions) {
       fixtures.add(get(description));
     }
@@ -145,7 +144,7 @@ public class ScreenFixture {
 
   @NotNull
   private List<NlComponent> findAllById(@NotNull String id) {
-    List<NlComponent> list = Lists.newArrayList();
+    List<NlComponent> list = new ArrayList<>();
     for (NlComponent root : myModel.getComponents()) {
       findById(list, root, id);
     }
@@ -155,7 +154,7 @@ public class ScreenFixture {
 
   @NotNull
   private List<NlComponent> findAllByTag(@NotNull String tag) {
-    List<NlComponent> list = Lists.newArrayList();
+    List<NlComponent> list = new ArrayList<>();
     for (NlComponent root : myModel.getComponents()) {
       findByTag(list, root, tag);
     }
@@ -175,7 +174,7 @@ public class ScreenFixture {
 
   @NotNull
   private static List<NlComponent> findByTag(@NotNull NlComponent component, @NotNull String tag) {
-    List<NlComponent> list = Lists.newArrayList();
+    List<NlComponent> list = new ArrayList<>();
     findByTag(list, component, tag);
     return list;
   }

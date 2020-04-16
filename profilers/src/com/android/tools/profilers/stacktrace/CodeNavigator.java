@@ -16,17 +16,16 @@
 package com.android.tools.profilers.stacktrace;
 
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-
+import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class for a service responsible for handling navigations to target {@link CodeLocation}s,
  * as well as registering and triggering listeners interested in the event.
  */
 public abstract class CodeNavigator {
-  private final List<Listener> myListeners = Lists.newArrayList();
+  private final List<Listener> myListeners = new ArrayList<>();
   @NotNull private final FeatureTracker myFeatureTracker;
 
   /**
