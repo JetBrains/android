@@ -42,7 +42,7 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
 
   private static final int TIMEOUT_SECONDS = 120;
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES).settingNdkPath();
 
   private FakeAdbServer fakeAdbServer;
 
