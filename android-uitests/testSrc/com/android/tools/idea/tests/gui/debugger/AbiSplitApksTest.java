@@ -42,7 +42,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
 
   private static final int GRADLE_SYNC_TIMEOUT_SECONDS = 90;
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES).settingNdkPath();
 
   private FakeAdbServer fakeAdbServer;
 
