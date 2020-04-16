@@ -33,8 +33,6 @@ import com.intellij.openapi.Disposable
  * the result set.
  */
 interface SqliteResultSet : Disposable {
-  // TODO(b/149286475): make sure that this works for statements that end with a comment.
-  //  eg SELECT COUNT(*) FROM (select * from tab /*a comment*/)
   fun SqliteStatement.toRowCountStatement() = this.transform(SqliteStatementType.SELECT) { "SELECT COUNT(*) FROM ($it)" }
   fun SqliteStatement.toSelectLimitOffset(rowOffset: Int, rowBatchSize: Int) = this.transform(SqliteStatementType.SELECT) {
     "SELECT * FROM ($it) LIMIT $rowOffset, $rowBatchSize"

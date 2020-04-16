@@ -60,18 +60,15 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
     )
 
     // Act
-    val resultSetBeforeAlterTable = pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+    val resultSet = pumpEventsAndWaitForFuture(
+      customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
-    val columnsBeforeAlterTable = pumpEventsAndWaitForFuture(resultSetBeforeAlterTable.columns)
+    val columnsBeforeAlterTable = pumpEventsAndWaitForFuture(resultSet.columns)
 
     pumpEventsAndWaitForFuture(
       customConnection!!.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 ADD COLUMN c2 INT"))
     )
-    val resultSetAfterAlterTable = pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-    )
-    val columnsAfterAlterTable = pumpEventsAndWaitForFuture(resultSetAfterAlterTable.columns)
+    val columnsAfterAlterTable = pumpEventsAndWaitForFuture(resultSet.columns)
 
     // Assert
     assertSize(1, columnsBeforeAlterTable)
@@ -92,21 +89,44 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
     )
 
     // Act
-    val resultSetBeforeAlterTable = pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+    val resultSet = pumpEventsAndWaitForFuture(
+      customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
-    val rowCountBeforeInsert = pumpEventsAndWaitForFuture(resultSetBeforeAlterTable.totalRowCount)
+    val rowCountBeforeInsert = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
 
     pumpEventsAndWaitForFuture(
       customConnection!!.execute(SqliteStatement(SqliteStatementType.INSERT, "INSERT INTO t1 (c1) VALUES (2)"))
     )
-    val resultSetAfterAlterTable = pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-    )
-    val rowCountAfterInsert = pumpEventsAndWaitForFuture(resultSetAfterAlterTable.totalRowCount)
+    val rowCountAfterInsert = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
 
     // Assert
     assertEquals(1, rowCountBeforeInsert)
     assertEquals(2, rowCountAfterInsert)
+  }
+
+  fun `test CreateResultSetFromExplain ThenAddColumn ResultSetReturnsOneMoreRow`() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (c1 INT)",
+      insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
+    )
+    customConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val resultSet = pumpEventsAndWaitForFuture(
+      customConnection!!.query(SqliteStatement(SqliteStatementType.EXPLAIN, "EXPLAIN SELECT * FROM t1"))
+    )
+    val rowCountBefore = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
+
+    pumpEventsAndWaitForFuture(
+      customConnection!!.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 ADD COLUMN c2 text"))
+    )
+    val rowCountAfter = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
+
+    // Assert
+    assertEquals(9, rowCountBefore)
+    assertEquals(10, rowCountAfter)
   }
 }

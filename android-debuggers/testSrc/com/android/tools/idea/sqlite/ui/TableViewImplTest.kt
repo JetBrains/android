@@ -472,7 +472,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     val resultSet = pumpEventsAndWaitForFuture(
-      realDatabaseConnection!!.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+      realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
     assertSize(1, rows)
@@ -515,7 +515,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     val resultSet = pumpEventsAndWaitForFuture(
-      realDatabaseConnection!!.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+      realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
     assertSize(1, rows)
@@ -558,7 +558,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     val resultSet = pumpEventsAndWaitForFuture(
-      realDatabaseConnection!!.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+      realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
     assertSize(1, rows)
@@ -601,7 +601,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     val resultSet = pumpEventsAndWaitForFuture(
-      realDatabaseConnection!!.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+      realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
     assertSize(1, rows)

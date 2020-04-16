@@ -151,7 +151,7 @@ class TableControllerTest : PlatformTestCase() {
 
   fun testSetUp() {
     // Prepare
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -180,7 +180,7 @@ class TableControllerTest : PlatformTestCase() {
 
   fun testSetUpTableNameIsNull() {
     // Prepare
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -206,7 +206,7 @@ class TableControllerTest : PlatformTestCase() {
     // Prepare
     val sqliteTable = SqliteTable("tableName", emptyList(), RowIdName.ROWID, false)
 
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -232,7 +232,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = mock(SqliteResultSet::class.java)
     val throwable = Throwable()
     `when`(mockResultSet.columns).thenReturn(Futures.immediateFailedFuture(throwable))
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -257,7 +257,7 @@ class TableControllerTest : PlatformTestCase() {
 
   fun testSetUpIsDisposed() {
     // Prepare
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -283,7 +283,7 @@ class TableControllerTest : PlatformTestCase() {
     // Prepare
     val mockResultSet = mock(SqliteResultSet::class.java)
     `when`(mockResultSet.columns).thenReturn(Futures.immediateFailedFuture(Throwable()))
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -304,7 +304,7 @@ class TableControllerTest : PlatformTestCase() {
 
   fun testRefreshData() {
     // Prepare
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -334,7 +334,7 @@ class TableControllerTest : PlatformTestCase() {
 
   fun testRefreshDataScheduledOneAtATime() {
     // Prepare
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -363,7 +363,7 @@ class TableControllerTest : PlatformTestCase() {
 
   fun testReloadDataFailsWhenControllerIsDisposed() {
     // Prepare
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -450,7 +450,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test Next UiIsDisabledWhenNoMoreRowsAvailableOnSetup`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(10)
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -474,7 +474,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test Next UiIsDisabledWhenNoMoreRowsAvailableOnNext`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(2)
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       1,
@@ -502,7 +502,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test Next`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -536,7 +536,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test Next ShowsLoadingUi`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -563,7 +563,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test NextBatchOf5`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       5,
@@ -597,7 +597,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test Next Prev`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -637,7 +637,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test Prev ShowsLoadingUi`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -664,7 +664,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test Next Prev Next`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -710,7 +710,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test ChangeBatchSize`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -747,7 +747,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test ChangeBatchSize At End`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(20)
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -781,7 +781,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `testChangeBatchSize DisablesPreviousButton`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -814,7 +814,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test ChangeBatchSize DisablesNextButton`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(50)
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -847,7 +847,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test ChangeBatchSize Max Min`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(50)
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -883,7 +883,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test ChangeBatchSize Next`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -923,7 +923,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test ChangeBatchSize Prev`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -963,7 +963,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test ChangeBatchSize Prev ChangeBatchSize Prev Next`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1015,7 +1015,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test First`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1052,7 +1052,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test First ShowsLoadingUi`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1079,7 +1079,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test First ChangeBatchSize`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1116,7 +1116,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test Last`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(50)
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1147,7 +1147,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test Last ShowsLoadingUi`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(50)
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1174,7 +1174,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test Last LastPage Not Full`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(61)
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1205,7 +1205,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test Last Prev ChangeBatchSize First`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(50)
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1245,7 +1245,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test InsertAtBeginning Next Prev`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1281,7 +1281,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test DeleteAtBeginning Next`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1403,7 +1403,8 @@ class TableControllerTest : PlatformTestCase() {
       ResultSetSqliteColumn("c1", SqliteAffinity.TEXT, true, false)
     )
 
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(Unit))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1484,7 +1485,7 @@ class TableControllerTest : PlatformTestCase() {
     val targetCol = targetTable.columns.find { it.name == "c1" }!!
 
     val originalResultSet = pumpEventsAndWaitForFuture(
-      customDatabaseConnection!!.execute(SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)))
+      customDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)))
     )
     val targetRow = pumpEventsAndWaitForFuture(originalResultSet!!.getRowBatch(0, 1)).first()
 
@@ -1511,7 +1512,7 @@ class TableControllerTest : PlatformTestCase() {
 
     // Assert
     verify(tableView).reportError("Can't update. No primary keys or rowid column.", null)
-    val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(
+    val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.query(
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tableName")
     ))
     val rows = pumpEventsAndWaitForFuture(sqliteResultSet?.getRowBatch(0, 1))
@@ -1534,7 +1535,7 @@ class TableControllerTest : PlatformTestCase() {
     val targetCol = targetTable.columns.find { it.name == "c1" }!!
 
     val originalResultSet = pumpEventsAndWaitForFuture(
-      customDatabaseConnection!!.execute(SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)))
+      customDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)))
     )
     val targetRow = pumpEventsAndWaitForFuture(originalResultSet!!.getRowBatch(0, 1)).first()
 
@@ -1578,7 +1579,7 @@ class TableControllerTest : PlatformTestCase() {
 
     // Assert
     verify(tableView).reportError("Can't update. No primary keys or rowid column.", null)
-    val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(
+    val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.query(
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
     ))
     val rows = pumpEventsAndWaitForFuture(sqliteResultSet?.getRowBatch(0, 1))
@@ -1589,7 +1590,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test AddRows`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(15)
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1613,7 +1614,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test AddRows RemoveRows`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(15)
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1640,7 +1641,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test AddRows UpdateRows`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(20)
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1667,7 +1668,7 @@ class TableControllerTest : PlatformTestCase() {
   fun `test AddRows RemoveRows AddRows`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(15)
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1736,7 +1737,7 @@ class TableControllerTest : PlatformTestCase() {
     // Assert
     orderVerifier.verify(tableView).showTableColumns(targetTable.columns.toResultSetCol())
     orderVerifier.verify(tableView).updateRows(listOf(
-      RowDiffOperation.AddRow (SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("1")))))
+      RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("1")))))
     ))
 
     orderVerifier.verify(tableView).resetView()
@@ -1843,7 +1844,7 @@ class TableControllerTest : PlatformTestCase() {
 
   fun testDisposeCancelsExecution() {
     val executionFuture = SettableFuture.create<SqliteResultSet>()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(executionFuture)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(executionFuture)
     tableController = TableController(
       project,
       10,
@@ -1871,7 +1872,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
 
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1901,7 +1902,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
 
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1931,7 +1932,8 @@ class TableControllerTest : PlatformTestCase() {
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
 
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(MockSqliteResultSet()))
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(Unit))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1962,7 +1964,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
 
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -1990,7 +1992,7 @@ class TableControllerTest : PlatformTestCase() {
   fun testNotifyDataMightBeStaleUpdatesTable() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
       10,
@@ -2053,7 +2055,7 @@ class TableControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(
+    val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.query(
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM ${AndroidSqlLexer.getValidName(targetTableName)}")
     ))
     val rows = pumpEventsAndWaitForFuture(sqliteResultSet?.getRowBatch(0, 1))
