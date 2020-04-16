@@ -20,8 +20,6 @@ import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult;
-import com.android.tools.idea.testartifacts.instrumented.testsuite.view.DetailsViewContentView;
-import com.android.tools.idea.testartifacts.instrumented.testsuite.view.DetailsViewDeviceSelectorListView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
@@ -47,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * Note: This view is under development and most of methods are not implemented yet.
  */
-public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorListView.DetailsViewDeviceSelectorListViewListener {
+public class AndroidTestSuiteDetailsView {
 
   /**
    * An interface to listen events occurred in AndroidTestSuiteDetailsView.
@@ -76,7 +74,7 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
   private final DetailsViewContentView myContentView;
 
   @Nullable private AndroidTestResults myTestResults;
-  @Nullable AndroidDevice mySelectedDevice;
+  @Nullable private AndroidDevice mySelectedDevice;
 
   @UiThread
   public AndroidTestSuiteDetailsView(@NotNull Disposable parentDisposable,
@@ -96,7 +94,14 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
     componentsSplitter.setMinSize(MIN_DEVICE_LIST_WIDTH);
     Disposer.register(parentDisposable, componentsSplitter);
 
-    myDeviceSelectorListView = new DetailsViewDeviceSelectorListView(this);
+    myDeviceSelectorListView = new DetailsViewDeviceSelectorListView(
+      new DetailsViewDeviceSelectorListView.DetailsViewDeviceSelectorListViewListener() {
+        @Override
+        public void onDeviceSelected(@NotNull AndroidDevice selectedDevice) {
+          mySelectedDevice = selectedDevice;
+          reloadAndroidTestResults();
+        }
+      });
     componentsSplitter.setFirstComponent(myDeviceSelectorListView.getRootPanel());
     componentsSplitter.setFirstSize(DEFAULT_DEVICE_LIST_WIDTH);
 
@@ -166,15 +171,16 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
 
     // If a user hasn't select a device yet, set the first come device as default.
     if (mySelectedDevice == null) {
-      myDeviceSelectorListView.selectDevice(device);
+      selectDevice(device);
     }
   }
 
-  @Override
+  /**
+   * Selects a given device and display test results specifically to the device.
+   */
   @UiThread
-  public void onDeviceSelected(@NotNull AndroidDevice selectedDevice) {
-    mySelectedDevice = selectedDevice;
-    reloadAndroidTestResults();
+  public void selectDevice(@NotNull AndroidDevice device) {
+    myDeviceSelectorListView.selectDevice(device);
   }
 
   @VisibleForTesting
@@ -185,5 +191,11 @@ public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorLis
   @VisibleForTesting
   public CommonButton getCloseButtonForTesting() {
     return myCloseButton;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  public AndroidDevice getSelectedDeviceForTesting() {
+    return mySelectedDevice;
   }
 }

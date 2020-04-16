@@ -114,11 +114,22 @@ class AndroidTestSuiteViewTest {
     view.onTestSuiteFinished(device2, testsuiteOnDevice2)
 
     // Click on the test case 2 results row.
-    view.onAndroidTestResultsRowSelected(view.tableForTesting.getModelForTesting().getItem(1))
+    view.onAndroidTestResultsRowSelected(view.tableForTesting.getModelForTesting().getItem(1),
+                                         /*selectedDevice=*/null)
 
     // Verifies the details view is visible now.
     assertThat(view.detailsViewForTesting.rootPanel.isVisible).isTrue()
     assertThat(view.detailsViewForTesting.titleTextViewForTesting.text).isEqualTo("testName2")
+    assertThat(view.detailsViewForTesting.selectedDeviceForTesting).isEqualTo(device1)
+
+    // Click on the test case 1 results row in device2 column.
+    view.onAndroidTestResultsRowSelected(view.tableForTesting.getModelForTesting().getItem(0),
+                                         /*selectedDevice=*/device2)
+
+    // Verifies the details view is visible now.
+    assertThat(view.detailsViewForTesting.rootPanel.isVisible).isTrue()
+    assertThat(view.detailsViewForTesting.titleTextViewForTesting.text).isEqualTo("testName1")
+    assertThat(view.detailsViewForTesting.selectedDeviceForTesting).isEqualTo(device2)
 
     // Finally, close the details view.
     view.onAndroidTestSuiteDetailsViewCloseButtonClicked()

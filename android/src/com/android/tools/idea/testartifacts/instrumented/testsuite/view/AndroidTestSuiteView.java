@@ -414,8 +414,9 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
 
   @Override
   @UiThread
-  public void onAndroidTestResultsRowSelected(@NotNull AndroidTestResults selectedResults) {
-    openAndroidTestSuiteDetailsView(selectedResults);
+  public void onAndroidTestResultsRowSelected(@NotNull AndroidTestResults selectedResults,
+                                              @Nullable AndroidDevice selectedDevice) {
+    openAndroidTestSuiteDetailsView(selectedResults, selectedDevice);
   }
 
   @Override
@@ -425,8 +426,12 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   }
 
   @UiThread
-  private void openAndroidTestSuiteDetailsView(@NotNull AndroidTestResults results) {
+  private void openAndroidTestSuiteDetailsView(@NotNull AndroidTestResults results,
+                                               @Nullable AndroidDevice selectedDevice) {
     myDetailsView.setAndroidTestResults(results);
+    if (selectedDevice != null) {
+      myDetailsView.selectDevice(selectedDevice);
+    }
     myDetailsView.getRootPanel().setVisible(true);
 
     // ComponentsSplitter doesn't update child components' size automatically when you change its visibility.

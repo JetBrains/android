@@ -146,8 +146,11 @@ interface AndroidTestResultsTableListener {
    * is invoked only for the first time.
    *
    * @param selectedResults results which a user selected
+   * @param selectedDevice Android device which a user selected
+   *   or null if a user clicks on non-device specific column
    */
-  fun onAndroidTestResultsRowSelected(selectedResults: AndroidTestResults)
+  fun onAndroidTestResultsRowSelected(selectedResults: AndroidTestResults,
+                                      selectedDevice: AndroidDevice?)
 }
 
 /**
@@ -178,7 +181,7 @@ fun getColorFor(androidTestResult: AndroidTestCaseResult?): Color? {
 /**
  * An internal swing view component implementing AndroidTestResults table view.
  */
-private class AndroidTestResultsTableViewComponent(model: AndroidTestResultsTableModel,
+private class AndroidTestResultsTableViewComponent(private val model: AndroidTestResultsTableModel,
                                                    private val listener: AndroidTestResultsTableListener)
   : TableView<AndroidTestResultsRow>(model) {
   init {
@@ -189,7 +192,9 @@ private class AndroidTestResultsTableViewComponent(model: AndroidTestResultsTabl
   override fun valueChanged(event: ListSelectionEvent) {
     super.valueChanged(event)
     selectedObject?.let {
-      listener.onAndroidTestResultsRowSelected(it)
+      listener.onAndroidTestResultsRowSelected(
+        it,
+        (model.columnInfos.getOrNull(selectedColumn) as? AndroidTestResultsColumn)?.device)
       clearSelection()
     }
   }
@@ -318,7 +323,7 @@ private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
  *
  * @param device shows an individual test case result in this column for a given [device]
  */
-private class AndroidTestResultsColumn(private val device: AndroidDevice) :
+private class AndroidTestResultsColumn(val device: AndroidDevice) :
   ColumnInfo<AndroidTestResultsRow, AndroidTestCaseResult?>(device.name) {
   private val myComparator = Comparator<AndroidTestResultsRow> { lhs, rhs ->
     compareValues(lhs.getTestCaseResult(device), rhs.getTestCaseResult(device))
