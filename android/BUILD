@@ -179,7 +179,10 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.core.tests",
-    exec_properties = LARGE_MACHINE,
+    # During the transition to windows 2019, we don't have enough worker pools to have
+    # separate large machines. Disable for now.
+    # See 151856181
+    #    exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
     split_test_targets = {
         "gradle": {
