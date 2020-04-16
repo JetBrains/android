@@ -93,7 +93,7 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
   fun testFieldMethodWildcardsCompletion() {
     // Don't appear outside class specification body.
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, "${caret}")
+    myFixture.configureByText(ProguardR8FileType.INSTANCE, caret)
 
     var keys = myFixture.completeBasic()
 
@@ -511,6 +511,42 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
     )
 
     assertThat(myFixture.completeBasic()).hasLength(1)
+  }
+
+  fun testKeepModifierOption() {
+    // Suggest after FLAG + COMMA.
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep,<caret>
+      """.trimIndent()
+    )
+
+    myFixture.completeBasic()
+    var modifiers = myFixture.lookupElementStrings
+
+    assertThat(modifiers).containsAllOf("includedescriptorclasses",
+                                        "includecode",
+                                        "allowshrinking",
+                                        "allowoptimization",
+                                        "allowobfuscation")
+
+    // Suggest after KEEP_OPTION_MODIFIER + COMMA.
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep, includecode, allowobfuscation, <caret>
+      """.trimIndent()
+    )
+
+    myFixture.completeBasic()
+    modifiers = myFixture.lookupElementStrings
+
+    assertThat(modifiers).containsAllOf("includedescriptorclasses",
+                                        "includecode",
+                                        "allowshrinking",
+                                        "allowoptimization",
+                                        "allowobfuscation")
   }
 }
 
