@@ -65,7 +65,7 @@ class CaptureNodeSummaryDetailsViewTest {
     // Selected node basic stats table and longest occurrences table.
     assertThat(treeWalker.descendants().filterIsInstance<JTable>().size).isEqualTo(2)
     // 5 stat labels: count, average, max, min, std.
-    assertThat(treeWalker.descendants().filterIsInstance<StatLabel>().map { it.getDescText() })
+    assertThat(treeWalker.descendants().filterIsInstance<StatLabel>().map { it.descText })
       .containsExactly("Count", "Average", "Max", "Min", "Std Dev")
   }
 }
