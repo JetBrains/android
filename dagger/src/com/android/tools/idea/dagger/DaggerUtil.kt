@@ -22,9 +22,13 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getResolveScope
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiAnnotation
+import com.intellij.psi.PsiArrayInitializerMemberValue
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassObjectAccessExpression
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -34,16 +38,20 @@ import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import com.intellij.psi.PsiVariable
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.EmptyQuery
 import com.intellij.util.Query
+import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
@@ -53,21 +61,23 @@ const val DAGGER_PROVIDES_ANNOTATION = "dagger.Provides"
 const val DAGGER_BINDS_ANNOTATION = "dagger.Binds"
 const val INJECT_ANNOTATION = "javax.inject.Inject"
 const val DAGGER_COMPONENT_ANNOTATION = "dagger.Component"
+const val DAGGER_SUBCOMPONENT_ANNOTATION = "dagger.Subcomponent"
+const val DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION = "dagger.Subcomponent.Builder"
+const val DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION = "dagger.Subcomponent.Factory"
+
+
+private const val INCLUDES_ATTR_NAME = "includes"
+private const val MODULES_ATTR_NAME = "modules"
+private const val DEPENDENCIES_ATTR_NAME = "dependencies"
+private const val SUBCOMPONENTS_ATTR_NAME = "subcomponents"
 
 /**
- * Returns all @Module-annotated classes in given [scope].
+ * Returns all classes annotated [annotationName] in a given [searchScope].
  */
-private fun getDaggerModules(scope: GlobalSearchScope): Query<PsiClass> {
-  val scopeAnnotationClass = JavaPsiFacade.getInstance(scope.project).findClass(DAGGER_MODULE_ANNOTATION, scope) ?: return EmptyQuery()
-  return AnnotatedElementsSearch.searchPsiClasses(scopeAnnotationClass, scope)
-}
-
-/**
- * Returns all @Module-annotated classes in given [scope].
- */
-private fun getDaggerComponents(scope: GlobalSearchScope): Query<PsiClass> {
-  val scopeAnnotationClass = JavaPsiFacade.getInstance(scope.project).findClass(DAGGER_COMPONENT_ANNOTATION, scope) ?: return EmptyQuery()
-  return AnnotatedElementsSearch.searchPsiClasses(scopeAnnotationClass, scope)
+private fun getClassesWithAnnotation(project: Project, annotationName: String, searchScope: SearchScope): Query<PsiClass> {
+  val annotationClass = JavaPsiFacade.getInstance(project).findClass(annotationName, GlobalSearchScope.allScope(project))
+                        ?: return EmptyQuery()
+  return AnnotatedElementsSearch.searchPsiClasses(annotationClass, searchScope)
 }
 
 /**
@@ -130,7 +140,7 @@ fun getDaggerConsumersFor(element: PsiElement): Collection<PsiVariable> {
 }
 
 /**
- * Returns all @Inject-annotated constructors for given [type] within [scope].
+ * Returns all @Inject-annotated constructors for a given [type].
  */
 private fun getDaggerInjectedConstructorsForType(type: PsiType): Collection<PsiMethod> {
   val clazz = (type as? PsiClassType)?.resolve() ?: return emptyList()
@@ -216,8 +226,24 @@ val PsiElement?.isDaggerConsumer: Boolean
            this is KtParameter && this.ownerFunction.isDaggerProvider
   }
 
+
+internal fun PsiElement?.isClassAnnotatedWith(annotationFQName: String): Boolean {
+  return this is KtClass && findAnnotation(FqName(annotationFQName)) != null ||
+         this is PsiClass && hasAnnotation(annotationFQName)
+}
+
+/**
+ * True if PsiElement is class annotated DAGGER_MODULE_ANNOTATION.
+ */
+internal val PsiElement?.isDaggerModule get() = isClassAnnotatedWith(DAGGER_MODULE_ANNOTATION)
+
 internal val PsiElement.isDaggerComponentMethod: Boolean
-  get() = this is PsiMethod && this.containingClass?.hasAnnotation(DAGGER_COMPONENT_ANNOTATION) == true
+  get() = this is PsiMethod && this.containingClass.isDaggerComponent ||
+          this is KtNamedFunction && this.containingClass().isDaggerComponent
+
+internal val PsiElement?.isDaggerComponent get() = isClassAnnotatedWith(DAGGER_COMPONENT_ANNOTATION)
+
+internal val PsiElement?.isDaggerSubcomponent get() = isClassAnnotatedWith(DAGGER_SUBCOMPONENT_ANNOTATION)
 
 fun Module.isDaggerPresent(): Boolean = CachedValuesManager.getManager(this.project).getCachedValue(this) {
   CachedValueProvider.Result(calculateIsDaggerPresent(this), ProjectRootModificationTracker.getInstance(this.project))
@@ -252,12 +278,104 @@ private fun extractTypeAndQualifierInfo(element: PsiElement): Pair<PsiType, Qual
  * Returns methods of interfaces annotated [DAGGER_COMPONENT_ANNOTATION] that have the a type and a [QualifierInfo] as a [provider].
  */
 fun getDaggerComponentMethodsForProvider(provider: PsiElement): Collection<PsiMethod> {
-  val scope = ModuleUtil.findModuleForPsiElement(provider)?.getModuleSystem()?.getResolveScope(provider) ?: return emptyList()
   val (type, qualifierInfo) = extractTypeAndQualifierInfo(provider) ?: return emptyList()
-  val components = getDaggerComponents(scope)
+  val components = getClassesWithAnnotation(provider.project, DAGGER_COMPONENT_ANNOTATION, provider.useScope)
   return components.flatMap {
     // Instantiating methods doesn't have parameters.
     component ->
     component.methods.filter { it.returnType == type && !it.hasParameters() }.filterByQualifier(qualifierInfo)
   }
 }
+
+/**
+ * Returns interfaces annotated [DAGGER_COMPONENT_ANNOTATION] that are parents to a [subcomponent].
+ *
+ * A subcomponent can be associated with parent in two ways:
+ * 1. Add to the parent Component method that returns the [subcomponent] class or the [subcomponent] factory or builder class.
+ * 2. Add the [subcomponent] class to the [SUBCOMPONENTS_ATTR_NAME] attribute of a @Module that the parent component installs.
+ *
+ * See [Dagger doc](https://dagger.dev/subcomponents.html).
+ */
+internal fun getDaggerParentComponentsForSubcomponent(subcomponent: PsiClass): Collection<PsiClass> {
+  val buildersAndFactories = subcomponent.innerClasses.filter {
+    it.hasAnnotation(DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION) ||
+    it.hasAnnotation(DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION)
+  }.map { it.qualifiedName }
+
+  val components = getClassesWithAnnotation(subcomponent.project, DAGGER_COMPONENT_ANNOTATION, subcomponent.useScope)
+  val componentsMethods = components.filter { component ->
+    component.methods.any {
+      val returnClazz = (it.returnType as? PsiClassType)?.resolve() ?: return@any false
+      returnClazz.qualifiedName == subcomponent.qualifiedName || returnClazz.qualifiedName in buildersAndFactories
+    }
+  }
+
+  val modules = getDaggerModulesForSubcomponent(subcomponent)
+
+  val componentsThroughModules = modules.flatMap { module ->
+    getClassesWithAnnotation(module.project, DAGGER_COMPONENT_ANNOTATION, module.useScope).filter { component ->
+      component.getAnnotation(DAGGER_COMPONENT_ANNOTATION)
+        ?.isClassPresentedInAttribute(MODULES_ATTR_NAME, module.qualifiedName!!) == true
+    }
+  }
+
+  return (componentsMethods + componentsThroughModules).distinct()
+}
+
+/**
+ * Returns classes annotated [DAGGER_MODULE_ANNOTATION] that in [SUBCOMPONENTS_ATTR_NAME] attribute have subcomponents class.
+ */
+private fun getDaggerModulesForSubcomponent(subcomponent: PsiClass): Collection<PsiClass> {
+  val modules = getClassesWithAnnotation(subcomponent.project, DAGGER_MODULE_ANNOTATION, subcomponent.useScope)
+  return modules.filter {
+    it.getAnnotation(DAGGER_MODULE_ANNOTATION)?.isClassPresentedInAttribute(SUBCOMPONENTS_ATTR_NAME, subcomponent.qualifiedName!!) == true
+  }
+}
+
+/**
+ * Returns true if an attribute with an [attrName] contains class with fully qualified name equals [fqcn].
+ *
+ * Assumes that the attribute has type Class<?>[]`.
+ */
+private fun PsiAnnotation.isClassPresentedInAttribute(attrName: String, fqcn: String): Boolean {
+  val attr = findAttributeValue(attrName) as? PsiArrayInitializerMemberValue ?: return false
+  val classes = attr.initializers
+  return classes.any {
+    val clazz = ((it as? PsiClassObjectAccessExpression)?.operand?.type as? PsiClassType)?.resolve()
+    clazz?.qualifiedName == fqcn
+  }
+}
+
+/**
+ * Returns Dagger-components and Dagger-modules that in a attribute “modules” and "includes" respectively have a [module] class.
+ *
+ * Dagger-component is interface annotated [DAGGER_COMPONENT_ANNOTATION] or [DAGGER_SUBCOMPONENT_ANNOTATION]).
+ * Dagger-module is class annotated [DAGGER_MODULE_ANNOTATION].
+ * The "modules" attribute and "includes" have a type `Class<?>[]`.
+ */
+fun getUsagesForDaggerModule(module: PsiClass): Collection<PsiClass> {
+  val componentQuery = getClassesWithAnnotation(module.project, DAGGER_COMPONENT_ANNOTATION, module.useScope)
+  val subComponentQuery = getClassesWithAnnotation(module.project, DAGGER_SUBCOMPONENT_ANNOTATION, module.useScope)
+  val moduleQuery = getClassesWithAnnotation(module.project, DAGGER_MODULE_ANNOTATION, module.useScope)
+  val predicate: (PsiClass, String, String) -> Boolean = predicate@{ component, annotationName, attrName ->
+    component.getAnnotation(annotationName)?.isClassPresentedInAttribute(attrName, module.qualifiedName!!) == true
+  }
+  return componentQuery.filter { predicate(it, DAGGER_COMPONENT_ANNOTATION, MODULES_ATTR_NAME) } +
+         subComponentQuery.filter { predicate(it, DAGGER_SUBCOMPONENT_ANNOTATION, MODULES_ATTR_NAME) } +
+         moduleQuery.filter { predicate(it, DAGGER_MODULE_ANNOTATION, INCLUDES_ATTR_NAME) }
+}
+
+/**
+ * Return classes annotated [DAGGER_COMPONENT_ANNOTATION] that in a attribute [DEPENDENCIES_ATTR_NAME] have a [component] class.
+ */
+fun getDependantComponentsForComponent(component: PsiClass): Collection<PsiClass> {
+  val components = getClassesWithAnnotation(component.project, DAGGER_COMPONENT_ANNOTATION, component.useScope)
+  return components.filter {
+    it.getAnnotation(DAGGER_COMPONENT_ANNOTATION)?.isClassPresentedInAttribute(DEPENDENCIES_ATTR_NAME, component.qualifiedName!!) == true
+  }
+}
+
+/**
+ * Tries to cast PsiElement to PsiClass.
+ */
+internal fun PsiElement.toPsiClass(): PsiClass? = if (this is PsiClass) this else (this as KtClass).toLightClass()

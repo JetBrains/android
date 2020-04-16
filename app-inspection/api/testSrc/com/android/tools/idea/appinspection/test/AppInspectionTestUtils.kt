@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamManager
+import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
@@ -35,7 +36,10 @@ import java.util.concurrent.TimeUnit
  */
 const val ASYNC_TIMEOUT_MS: Long = 10000
 
-const val INSPECTOR_ID = "test.inspector"
+const val INSPECTOR_ID = "test.inspector.1"
+const val INSPECTOR_ID_2 = "test.inspector.2"
+
+val TEST_JAR = AppInspectorJar("test")
 
 /**
  * A collection of utility functions for inspection tests.

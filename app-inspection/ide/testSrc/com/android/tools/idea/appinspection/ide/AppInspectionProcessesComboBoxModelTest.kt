@@ -71,7 +71,7 @@ class AppInspectionProcessesComboBoxModelTest {
     val addedLatch = CountDownLatch(1)
     val removedLatch = CountDownLatch(1)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { emptyList() }
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost, { emptyList() })
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -111,7 +111,7 @@ class AppInspectionProcessesComboBoxModelTest {
 
     val addedLatch = CountDownLatch(2)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { listOf("preferred") }
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost, { listOf("preferred") })
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -152,7 +152,7 @@ class AppInspectionProcessesComboBoxModelTest {
 
     val processReadyLatch = CountDownLatch(2)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { listOf("A", "B") }
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost, { listOf("A", "B") })
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -185,7 +185,7 @@ class AppInspectionProcessesComboBoxModelTest {
 
     val processReadyLatch = CountDownLatch(1)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { emptyList() }
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost, { emptyList() })
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -216,7 +216,7 @@ class AppInspectionProcessesComboBoxModelTest {
     val processReadyLatch = CountDownLatch(1)
     val processRemovedLatch = CountDownLatch(1)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { emptyList() }
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost, { emptyList() })
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -230,7 +230,7 @@ class AppInspectionProcessesComboBoxModelTest {
     })
 
     // Verify combobox's selection is set to the correct text.
-    assertThat(model.selectedItem).isEqualTo("No Inspection Target Available")
+    assertThat(model.selectedItem).isEqualTo("No Process Available")
 
     val process = FakeTransportService.FAKE_PROCESS.toBuilder().setName("A").setPid(100).build()
     val deadProcess = process.toBuilder().setState(Common.Process.State.DEAD).build()
@@ -245,6 +245,6 @@ class AppInspectionProcessesComboBoxModelTest {
     processRemovedLatch.await()
 
     // Verify combobox's selection is set to the correct text.
-    assertThat(model.selectedItem).isEqualTo("No Inspection Target Available")
+    assertThat(model.selectedItem).isEqualTo("No Process Available")
   }
 }

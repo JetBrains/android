@@ -35,7 +35,9 @@ import com.google.wireless.android.sdk.stats.MlModelBindingEvent;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.WaitFor;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -96,13 +98,18 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
     UsageTracker.setWriterForTest(usageTracker);
 
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
-    List<MlModelBindingEvent> loggedUsageList =
-      usageTracker.getUsages().stream()
-        .filter(it -> it.getStudioEvent().getKind() == EventKind.ML_MODEL_BINDING)
-        .map(usage -> usage.getStudioEvent().getMlModelBindingEvent())
-        .filter(it -> it.getEventType() == MlModelBindingEvent.EventType.MODEL_VIEWER_OPEN)
-        .collect(Collectors.toList());
-    assertThat(loggedUsageList.size()).isEqualTo(1);
+    new WaitFor((int)TimeUnit.SECONDS.toMillis(5)) {
+      @Override
+      protected boolean condition() {
+        List<MlModelBindingEvent> loggedUsageList =
+          usageTracker.getUsages().stream()
+            .filter(it -> it.getStudioEvent().getKind() == EventKind.ML_MODEL_BINDING)
+            .map(usage -> usage.getStudioEvent().getMlModelBindingEvent())
+            .filter(it -> it.getEventType() == MlModelBindingEvent.EventType.MODEL_VIEWER_OPEN)
+            .collect(Collectors.toList());
+        return !loggedUsageList.isEmpty();
+      }
+    }.assertCompleted("Model viewer open event is not logged within 5000 ms.");
 
     UsageTracker.cleanAfterTesting();
     usageTracker.close();
@@ -110,23 +117,23 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
 
   public void testCreateHtmlBody_normalModel() {
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
-    JPanel contentPanel = ((JPanel) ((JScrollPane) editor.getComponent()).getViewport().getView());
+    JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
     assertThat(contentPanel.getComponentCount()).isEqualTo(3);
-    verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(0), "Model");
-    verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(1), "Tensors");
-    verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(2), "Sample Code");
+    verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(0), "Model");
+    verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(1), "Tensors");
+    verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(2), "Sample Code");
   }
 
   public void testCreateHtmlBody_modelWithoutMetadata() {
     modelFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_model.tflite");
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
-    JPanel contentPanel = ((JPanel) ((JScrollPane) editor.getComponent()).getViewport().getView());
+    JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
     assertThat(contentPanel.getComponentCount()).isEqualTo(2);
-    verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(0), "Model");
-    verifySectionPanelContainsLabel((JPanel) contentPanel.getComponent(1), "Sample Code");
+    verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(0), "Model");
+    verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(1), "Sample Code");
   }
 
   private static void verifySectionPanelContainsLabel(@NonNull JPanel sectionPanel, @NonNull String labelText) {
-    assertThat(((JBLabel) sectionPanel.getComponent(0)).getText()).isEqualTo(labelText);
+    assertThat(((JBLabel)sectionPanel.getComponent(0)).getText()).isEqualTo(labelText);
   }
 }

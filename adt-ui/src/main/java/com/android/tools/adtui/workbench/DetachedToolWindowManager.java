@@ -46,7 +46,8 @@ public class DetachedToolWindowManager implements ProjectComponent {
   private final FileEditorManager myEditorManager;
   private final MyFileEditorManagerListener myEditorManagerListener;
   private final Map<FileEditor, WorkBench<?>> myWorkBenchMap;
-  private final HashMap<String, DetachedToolWindow<?>> myToolWindowMap;
+  private final Map<String, DetachedToolWindow<?>> myToolWindowMap;
+
   private DetachedToolWindowFactory myDetachedToolWindowFactory;
   private FileEditor myLastSelectedEditor;
 
@@ -151,14 +152,16 @@ public class DetachedToolWindowManager implements ProjectComponent {
     }
     Set<String> ids = new HashSet<>(myToolWindowMap.keySet());
     if (workBench != null) {
+      String workBenchPrefix = workBench.getName() + ".";
       //noinspection unchecked
       List<AttachedToolWindow> detachedToolWindows = workBench.getDetachedToolWindows();
       for (AttachedToolWindow tool : detachedToolWindows) {
         ToolWindowDefinition definition = tool.getDefinition();
-        String id = definition.getName();
+        String id = workBenchPrefix + definition.getName();
         DetachedToolWindow detachedToolWindow = myToolWindowMap.get(id);
         if (detachedToolWindow == null) {
-          detachedToolWindow = myDetachedToolWindowFactory.create(myProject, definition);
+          String workBenchName = getWorkBenchTitleName(workBench);
+          detachedToolWindow = myDetachedToolWindowFactory.create(myProject, workBenchName, definition);
           Disposer.register(myProject, detachedToolWindow);
           myToolWindowMap.put(id, detachedToolWindow);
         }
@@ -174,6 +177,15 @@ public class DetachedToolWindowManager implements ProjectComponent {
 
   public void restoreDefaultLayout() {
     myApplication.invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
+  }
+
+  @NotNull
+  private static String getWorkBenchTitleName(@NotNull WorkBench workBench) {
+    switch (workBench.getName()) {
+      case "NELE_EDITOR": return "Designer";
+      case "NAV_EDITOR": return "Navigation";
+      default: return workBench.getName();
+    }
   }
 
   private class MyFileEditorManagerListener implements FileEditorManagerListener {
@@ -196,6 +208,6 @@ public class DetachedToolWindowManager implements ProjectComponent {
   }
 
   interface DetachedToolWindowFactory {
-    DetachedToolWindow create(@NotNull Project project, @NotNull ToolWindowDefinition definition);
+    DetachedToolWindow create(@NotNull Project project, @NotNull String workBenchName, @NotNull ToolWindowDefinition definition);
   }
 }

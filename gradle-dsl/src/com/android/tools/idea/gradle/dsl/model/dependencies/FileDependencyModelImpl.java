@@ -99,6 +99,6 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
   @Override
   @NotNull
   public ResolvedPropertyModel file() {
-    return GradlePropertyModelBuilder.create(myFileDslExpression).asMethod(true).buildResolved();
+    return GradlePropertyModelBuilder.create(myFileDslExpression).buildResolved();
   }
 }

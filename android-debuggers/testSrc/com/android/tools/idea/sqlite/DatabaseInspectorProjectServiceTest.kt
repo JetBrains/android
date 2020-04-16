@@ -23,7 +23,6 @@ import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.device.fs.DownloadedFileData
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorController
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
@@ -107,24 +106,6 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
     // Assert
     assertEquals(sqliteFile1, fileOpened)
-  }
-
-  fun testReDownloadFileIfFileNotOpened() {
-    // Prepare
-    val deviceFileId = DeviceFileId("deviceId", "filePath")
-    val mockVirtualFile = mock(VirtualFile::class.java)
-    deviceFileId.storeInVirtualFile(mockVirtualFile)
-    val fileDatabase = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mockVirtualFile)
-
-    val mockDownloaderService = mock(DeviceFileDownloaderService::class.java)
-    `when`(mockDownloaderService.downloadFile(any(DeviceFileId::class.java), any(DownloadProgress::class.java)))
-      .thenReturn(Futures.immediateFuture(DownloadedFileData(deviceFileId, sqliteFile1, emptyList())))
-    project.registerServiceInstance(DeviceFileDownloaderService::class.java, mockDownloaderService)
-
-    // Act/Assert
-    pumpEventsAndWaitForFutureException(
-      databaseInspectorProjectService.reDownloadAndOpenFile(fileDatabase, mock(DownloadProgress::class.java))
-    )
   }
 
   fun testReDownloadFileHasNoMetadata() {

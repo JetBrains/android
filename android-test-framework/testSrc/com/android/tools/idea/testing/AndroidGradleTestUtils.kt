@@ -87,8 +87,6 @@ import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.JavaModuleType
@@ -96,13 +94,15 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
+import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.ThrowableConsumer
 import com.intellij.util.text.nullize
-import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
@@ -111,6 +111,7 @@ import org.jetbrains.plugins.gradle.model.ExternalSourceSet
 import org.jetbrains.plugins.gradle.model.ExternalTask
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import java.io.File
+import java.io.IOException
 
 typealias AndroidProjectBuilderCore = (projectName: String, basePath: File, agpVersion: String) -> AndroidProject
 
@@ -911,66 +912,81 @@ interface GradleIntegrationTest {
   fun getName(): String
 
   /**
-   * The base testData directory to be used in tests.
+   * The base test directory to be used in tests.
    */
-  fun getBaseTestPath(): @SystemDependent String = FileUtil.getTempDirectory()
+  fun getBaseTestPath(): @SystemDependent String
+
 
   /**
-   * The base testData directory to be used in tests.
+   * The path to a test data directory relative to the workspace or `null` to use the legacy resolution.
    */
-  fun getBaseTestDataPath(): @SystemDependent String = AndroidTestBase.getTestDataPath()
+  fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String
 
   /**
    * The collection of additional repositories to be added to the Gradle project.
    */
   fun getAdditionalRepos(): Collection<File>
+
+  /**
+   * The base testData directory to be used in tests.
+   */
+  fun resolveTestDataPath(testDataPath: @SystemIndependent String): File {
+    val testDataDirectory = File(TestUtils.getWorkspaceRoot(), toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
+    return testDataDirectory.resolve(toSystemDependentName(testDataPath))
+  }
 }
 
 /**
- * Opens a test project created from a [testProjectPath] under the given [name].
+ * Prepares a test project created from a [testProjectPath] under the given [name] so that it can be opened with [openPreparedProject].
  */
-fun GradleIntegrationTest.openGradleProject(testProjectPath: String, name: String): Project {
+fun GradleIntegrationTest.prepareGradleProject(
+  testProjectPath: String,
+  name: String,
+  gradleVersion: String? = null,
+  gradlePluginVersion: String? = null
+): File {
   if (name == this.getName()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
-  val srcPath = File(getBaseTestDataPath(), FileUtil.toSystemDependentName(testProjectPath))
-  val projectPath = File(FileUtil.toSystemDependentName(getBaseTestPath() + "/" + name))
+  val srcPath = resolveTestDataPath(testProjectPath)
+  val projectPath = nameToPath(name)
 
-  AndroidGradleTests.validateGradleProjectSource(srcPath)
-  AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
-    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, null, null, *getAdditionalRepos().toTypedArray())
-  }
+  prepareGradleProject(
+    srcPath, projectPath,
+    ThrowableConsumer<File, IOException> { projectRoot ->
+      AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion,
+                                                     *getAdditionalRepos().toTypedArray())
+    })
+  return projectPath
+}
 
-  val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
-  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-  return project
+fun prepareGradleProject(projectSourceRoot: File, projectPath: File, projectPatcher: ThrowableConsumer<File, IOException>) {
+  AndroidGradleTests.validateGradleProjectSource(projectSourceRoot)
+  AndroidGradleTests.prepareProjectForImportCore(projectSourceRoot, projectPath, projectPatcher)
 }
 
 /**
- * Opens a test project created from a [testProjectPath] under the given [name], runs a test [action] and then closes and disposes
- * the project.
- */
-fun <T> GradleIntegrationTest.openGradleProject(testProjectPath: String, name: String, action: (Project) -> T): T {
-  val project = openGradleProject(testProjectPath, name)
-  try {
-    return action(project)
-  }
-  finally {
-    ProjectUtil.closeAndDispose(project)
-  }
-}
-
-/**
- * Re-opens a test project previously opened under the given [name], runs a test [action] and then closes and disposes the project.
+ * Opens a test project previously prepared under the given [name], runs a test [action] and then closes and disposes the project.
  *
  * The project's `.idea` directory is not required to exist, however.
  */
-fun <T> GradleIntegrationTest.reopenGradleProject(name: String, action: (Project) -> T): T {
-  val projectPath = File(FileUtil.toSystemDependentName(getBaseTestPath() + "/" + name))
-  val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
-  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+fun <T> GradleIntegrationTest.openPreparedProject(name: String, action: (Project) -> T): T = openPreparedProject(nameToPath(name), action)
+
+private fun <T> openPreparedProject(projectPath: File, action: (Project) -> T): T {
+  val project = runInEdtAndGet {
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    project
+  }
   try {
     return action(project)
   }
   finally {
-    ProjectUtil.closeAndDispose(project)
+    runInEdtAndWait {
+      ProjectUtil.closeAndDispose(project)
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
   }
 }
+
+private fun GradleIntegrationTest.nameToPath(name: String) =
+  File(toSystemDependentName(getBaseTestPath() + "/" + name))

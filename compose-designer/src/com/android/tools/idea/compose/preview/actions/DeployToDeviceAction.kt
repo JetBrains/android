@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.compose.preview.runconfiguration.isNonLibraryAndroidModule
@@ -37,7 +38,8 @@ import org.jetbrains.kotlin.idea.util.module
  *
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
  */
-internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext) : AnAction(null, null, RUN_ON_DEVICE) {
+internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext)
+  : AnAction(message("action.deploy.title"), null, RUN_ON_DEVICE) {
   override fun actionPerformed(e: AnActionEvent) {
     dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT)?.let {
       val psiElement = it.previewBodyPsi?.element

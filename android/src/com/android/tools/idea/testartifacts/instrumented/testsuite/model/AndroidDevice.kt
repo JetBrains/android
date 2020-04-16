@@ -15,12 +15,27 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model
 
+import com.android.sdklib.AndroidVersion
+
 
 /**
  * Encapsulates an Android device metadata to be displayed in Android test suite view.
  *
  * @param id a device identifier. This can be arbitrary string as long as it is unique to other devices.
  * @param name a display name of this device
+ * @param deviceType a device type
+ * @param version Android version of this device
+ * @param additionalInfo an additional device info (such as RAM, processor name) as a key value pair
  */
 data class AndroidDevice(val id: String,
-                         val name: String)
+                         val name: String,
+                         val deviceType: AndroidDeviceType,
+                         val version: AndroidVersion,
+                         val additionalInfo: MutableMap<String,String> = mutableMapOf())
+
+enum class AndroidDeviceType {
+  // A virtual Android device running on a local machine.
+  LOCAL_EMULATOR,
+  // A physical Android device connected to a local machine.
+  LOCAL_PHYSICAL_DEVICE
+}

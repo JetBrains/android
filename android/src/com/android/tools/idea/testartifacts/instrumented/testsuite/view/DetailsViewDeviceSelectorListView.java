@@ -16,15 +16,32 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.largeFilesEditor.GuiUtils;
+import com.intellij.ui.AnimatedIcon;
 import com.intellij.ui.components.JBList;
+import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.util.Locale;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Shows a list of devices. This view is intended to be used in Android test suite details page
@@ -49,6 +66,8 @@ public class DetailsViewDeviceSelectorListView {
   private JBList<AndroidDevice> myDeviceList;
   private DefaultListModel<AndroidDevice> myDeviceListModel;
 
+  private AndroidDeviceListCellRenderer myCellRenderer;
+
   public DetailsViewDeviceSelectorListView(@NotNull DetailsViewDeviceSelectorListViewListener listener) {
     myDeviceList.addListSelectionListener(new ListSelectionListener() {
       @Override
@@ -69,6 +88,9 @@ public class DetailsViewDeviceSelectorListView {
     myDeviceListModel = new DefaultListModel<>();
     myDeviceList = new JBList<>(myDeviceListModel);
     myDeviceList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+    myDeviceList.putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true);
+    myCellRenderer = new AndroidDeviceListCellRenderer();
+    myDeviceList.setCellRenderer(myCellRenderer);
   }
 
   /**
@@ -87,8 +109,96 @@ public class DetailsViewDeviceSelectorListView {
     myDeviceListModel.addElement(device);
   }
 
+  /**
+   * Select a given device in the list.
+   * @param device a device to be selected
+   */
+  @UiThread
+  public void selectDevice(@Nullable AndroidDevice device) {
+    myDeviceList.setSelectedValue(device, true);
+  }
+
+  /**
+   * Updates the view with a given AndroidTestResults.
+   */
+  @UiThread
+  public void setAndroidTestResults(@NotNull AndroidTestResults results) {
+    myCellRenderer.setAndroidTestResults(results);
+    myDeviceList.updateUI();
+  }
+
   @VisibleForTesting
   public JBList<AndroidDevice> getDeviceListForTesting() {
     return myDeviceList;
+  }
+
+  private static class AndroidDeviceListCellRenderer extends DefaultListCellRenderer {
+
+    private final EmptyBorder myEmptyBorder = JBUI.Borders.empty(5, 10);
+    private final JPanel myCellRendererComponent = new JPanel(new BorderLayout());
+    private final JLabel myDeviceLabel = new JLabel();
+    private final JLabel myTestResultLabel = new JLabel();
+
+    @Nullable
+    private AndroidTestResults myTestResults;
+
+    private AndroidDeviceListCellRenderer() {
+      JPanel left = new JPanel();
+      left.setLayout(new BoxLayout(left, BoxLayout.X_AXIS));
+      setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+      left.add(this);
+      left.add(myDeviceLabel);
+
+      myCellRendererComponent.add(left, BorderLayout.WEST);
+      myCellRendererComponent.add(myTestResultLabel, BorderLayout.EAST);
+      GuiUtils.setStandardLineBorderToPanel(myCellRendererComponent, 0, 0, 1, 0);
+    }
+
+    public void setAndroidTestResults(@NotNull AndroidTestResults results) {
+      myTestResults = results;
+    }
+
+    @Override
+    public Component getListCellRendererComponent(JList<?> list,
+                                                  Object value,
+                                                  int index,
+                                                  boolean isSelected,
+                                                  boolean cellHasFocus) {
+      super.getListCellRendererComponent(list, " ", index, isSelected, cellHasFocus);
+
+      if (!(value instanceof AndroidDevice)) {
+        return myCellRendererComponent;
+      }
+      AndroidDevice device = (AndroidDevice) value;
+
+      myDeviceLabel.setText(
+        String.format(Locale.US, "<html>%s<br>API %d</html>",
+                      device.getName(), device.getVersion().getApiLevel()));
+      myDeviceLabel.setIcon(getIconForDeviceType(device.getDeviceType()));
+      myDeviceLabel.setIconTextGap(10);
+      myDeviceLabel.setBorder(myEmptyBorder);
+
+      if (myTestResults != null) {
+        myTestResultLabel.setIcon(
+          AndroidTestResultsTableViewKt.getIconFor(myTestResults.getTestCaseResult(device)));
+      } else {
+        myTestResultLabel.setIcon(null);
+      }
+      myTestResultLabel.setBorder(myEmptyBorder);
+
+      return myCellRendererComponent;
+    }
+
+    @Nullable
+    private static Icon getIconForDeviceType(@NotNull AndroidDeviceType deviceType) {
+      switch (deviceType) {
+        case LOCAL_EMULATOR:
+          return StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
+        case LOCAL_PHYSICAL_DEVICE:
+          return StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE;
+        default:
+          return null;
+      }
+    }
   }
 }

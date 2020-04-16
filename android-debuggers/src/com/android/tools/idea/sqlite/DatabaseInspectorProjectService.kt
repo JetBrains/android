@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
@@ -75,6 +76,11 @@ interface DatabaseInspectorProjectService {
   }
 
   /**
+   * The tool window containing the Database Inspector.
+   */
+  var toolWindow: AppInspectionCallbacks?
+
+  /**
    * [JComponent] that contains the view of the Database Inspector.
    */
   val sqliteInspectorComponent: JComponent
@@ -90,12 +96,11 @@ interface DatabaseInspectorProjectService {
    * and shows the database content in the Database Inspector.
    *
    * @param id Unique identifier of a connection to a database.
-   * @param name The name of the database. Could be the path of the database for an on-disk database,
-   * or a different string for other types of database. (eg :memory: for an in-memory database)
+   * @param path Path of the database on device. It can be the string ":memory:" in case of in-memory databases.
    * @param messenger The [AppInspectorClient.CommandMessenger] used to send messages between studio and an on-device inspector.
    */
   @AnyThread
-  fun openSqliteDatabase(messenger: AppInspectorClient.CommandMessenger, id: Int, name: String): ListenableFuture<SqliteDatabase>
+  fun openSqliteDatabase(messenger: AppInspectorClient.CommandMessenger, id: Int, path: String): ListenableFuture<SqliteDatabase>
 
   /**
    * Closes all open live databases in [DatabaseInspectorController].
@@ -209,6 +214,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     createController(model)
   }
 
+  override var toolWindow: AppInspectionCallbacks? = null
+
   override val sqliteInspectorComponent
     @UiThread get() = controller.component
 
@@ -232,12 +239,10 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   @AnyThread
   override fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabase> = projectScope.future {
-    // TODO(b/139525976): finalize naming convention
-    val name = file.path.split("data/data/").getOrNull(1)?.replace("databases/", "") ?: file.path
 
     val database = async {
       val connection = databaseConnectionFactory.getDatabaseConnection(file, taskExecutor).await()
-      FileSqliteDatabase(name, connection, file)
+      FileSqliteDatabase(connection, file)
     }
 
     withContext(uiThread) {
@@ -251,11 +256,11 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   override fun openSqliteDatabase(
     messenger: AppInspectorClient.CommandMessenger,
     id: Int,
-    name: String
+    path: String
   ): ListenableFuture<SqliteDatabase> = projectScope.future {
     val database = async {
       val connection = databaseConnectionFactory.getLiveDatabaseConnection(project, messenger, id, taskExecutor).await()
-      LiveSqliteDatabase(name, connection)
+      LiveSqliteDatabase(path, connection)
     }
 
     withContext(uiThread) {

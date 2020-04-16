@@ -228,6 +228,20 @@ class ResourceLookupResolverTest {
   }
 
   @Test
+  fun testButtonWithBackgroundColor() {
+    val data = Data()
+    val resolver = createResourceLookupResolver(data.theme)
+    val background = InspectorPropertyItem(
+      ANDROID_URI, ATTR_BACKGROUND, ATTR_BACKGROUND, Type.COLOR, "", PropertySection.DECLARED, data.demo, data.button, data.resourceLookup)
+    val locations = resolver.findFileLocations(background, data.demo, 10)
+    checkLocation(locations[0], "demo.xml:25", "framework:background=\"@color/textBlue\"")
+    checkLocation(locations[1], "colors.xml:7", "<color name=\"textBlue\">#2122F8</color>")
+    assertThat(locations.size).isEqualTo(2)
+    assertThat(resolver.findAttributeValue(background, data.demo)).isEqualTo("#2122F8")
+    assertThat(resolver.findAttributeValue(background, data.myButtonStyle)).isEqualTo("@framework:drawable/btn_default_material")
+  }
+
+  @Test
   fun testApproximateFileLocation() {
     val data = Data()
     val resolver = createResourceLookupResolver(data.theme)
@@ -257,9 +271,11 @@ class ResourceLookupResolverTest {
     val myTextStyleExtra = ResourceReference(exampleNS, ResourceType.STYLE, "MyTextStyle.Extra")
     val textStyleMaterial = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material")
     val textStyleMaterialBody1 = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material.Body1")
+    val myButtonStyle = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Widget.Material.Button")
     val relativeId = ResourceReference(exampleNS, ResourceType.ID, "relativeLayout")
     val frameId = ResourceReference(exampleNS, ResourceType.ID, "frameLayout")
     val titleId = ResourceReference(exampleNS, ResourceType.ID, "title")
+    val buttonId = ResourceReference(exampleNS, ResourceType.ID, "button")
     val model = InspectorPropertiesModel()
     val inspectorModel = model.layoutInspector?.layoutInspectorModel
     val resourceLookup = inspectorModel?.resourceLookup
@@ -268,6 +284,7 @@ class ResourceLookupResolverTest {
     val frameLayout = ViewNode(3, "RelativeLayout", demo, 0, 200, 0, 0, 300, 700, frameId, "", 0)
     val textView1 = ViewNode(4, "TextView", demo, 400, 60, 0, 0, 300, 100, null, "TextView without an ID", 0)
     val textView2 = ViewNode(5, "TextView", demo, 0, 200, 0, 0, 300, 700, null, "TextView without an ID", 0)
+    val button = ViewNode(6, "Button", demo, 30, 400, 0, 0, 300, 100, buttonId, "OK", 0)
     val singleTextView = ViewNode(1, "TextView", design_text, 0, 0, 0, 0, 400, 50, null, "Tab3", 0)
     val textColor = InspectorPropertyItem(
       ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "", PropertySection.DECLARED, demo, title, resourceLookup)

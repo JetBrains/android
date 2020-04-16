@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.naveditor.dialogs
 
-import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.google.wireless.android.sdk.stats.NavPropertyInfo
@@ -87,7 +87,7 @@ class AddDeeplinkDialogTest : NavTestCase() {
     val model = model("nav.xml") {
       navigation {
         fragment("fragment1") {
-          deeplink("deepLink","http://example.com", autoVerify = true, mimeType = "pdf", action = "send")
+          deeplink("deepLink", "http://example.com", autoVerify = true, mimeType = "pdf", action = "send")
         }
       }
     }
@@ -101,7 +101,14 @@ class AddDeeplinkDialogTest : NavTestCase() {
   }
 
   fun testInitWithDefaults() {
-    AddDeeplinkDialog(null, mock(NlComponent::class.java)).runAndClose { dialog ->
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+
+    val fragment1 = model.find("fragment1")!!
+    AddDeeplinkDialog(null, fragment1).runAndClose { dialog ->
       assertEquals("", dialog.uri)
       assertFalse(dialog.autoVerify)
       assertEquals("", dialog.mimeType)
@@ -120,25 +127,26 @@ class AddDeeplinkDialogTest : NavTestCase() {
     AddDeeplinkDialog(null, f1).runAndClose { dialog ->
       dialog.myUriField.text = "http://example.com"
       dialog.myAutoVerify.isSelected = true
+      dialog.myMimeTypeField.text = "*/*"
+      dialog.myActionField.text = "send"
 
       TestNavUsageTracker.create(model).use { tracker ->
         dialog.save()
-        Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                           .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
-                                           .setPropertyInfo(NavPropertyInfo.newBuilder()
-                                                              .setWasEmpty(true)
-                                                              .setProperty(NavPropertyInfo.Property.URI)
-                                                              .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG))
-                                           .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
-        Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                           .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
-                                           .setPropertyInfo(NavPropertyInfo.newBuilder()
-                                                              .setWasEmpty(true)
-                                                              .setProperty(NavPropertyInfo.Property.AUTO_VERIFY)
-                                                              .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG))
-                                           .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
+        verifyLogEvent(tracker, NavPropertyInfo.Property.URI)
+        verifyLogEvent(tracker, NavPropertyInfo.Property.AUTO_VERIFY)
+        verifyLogEvent(tracker, NavPropertyInfo.Property.ACTION)
+        verifyLogEvent(tracker, NavPropertyInfo.Property.MIME_TYPE)
       }
     }
   }
 
+  private fun verifyLogEvent(tracker: NavUsageTracker, property: NavPropertyInfo.Property) {
+    Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                       .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
+                                       .setPropertyInfo(NavPropertyInfo.newBuilder()
+                                                          .setWasEmpty(true)
+                                                          .setProperty(property)
+                                                          .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG))
+                                       .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
+  }
 }

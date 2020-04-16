@@ -32,14 +32,16 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.testing.IdeComponents
+import com.intellij.mock.MockPsiManager
+import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.concurrency.EdtExecutorService
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.awt.Dimension
@@ -84,10 +86,10 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Act/Assert
     assertEquals(-1, comboBox.selectedIndex)
 
-    view.addDatabase(FileSqliteDatabase("db1", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java)), 0)
+    view.addDatabase(FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1")), 0)
     assertEquals(0, comboBox.selectedIndex)
 
-    view.addDatabase(FileSqliteDatabase("db2", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java)), 1)
+    view.addDatabase(FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db2")), 1)
     assertEquals(0, comboBox.selectedIndex)
 
     view.removeDatabase(0)
@@ -99,8 +101,8 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testSelectDatabaseChangesSelectedDatabase() {
     // Prepare
-    val database1 = FileSqliteDatabase("db1", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
-    val database2 = FileSqliteDatabase("db2", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database1 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1"))
+    val database2 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db2"))
 
     // Act/Assert
     view.addDatabase(database1, 0)
@@ -114,13 +116,13 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   fun testPsiCacheIsDroppedWhenNewDatabaseIsSelected() {
     // Prepare
     val ideComponents = IdeComponents(myFixture)
-    val mockPsiManager = mock(PsiManager::class.java)
+    val mockPsiManager = spy(MockPsiManager(project))
     ideComponents.replaceProjectService(PsiManager::class.java, mockPsiManager)
 
     val comboBox = TreeWalker(view.component).descendants().filterIsInstance<JComboBox<*>>().first()
 
-    val database1 = FileSqliteDatabase("db1", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
-    val database2 = FileSqliteDatabase("db2", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database1 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1"))
+    val database2 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db2"))
 
     // Act/Assert
     view.addDatabase(database1, 0)
@@ -137,10 +139,10 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   fun testSchemaUpdatedDropsCachesAndGetsNewSchema() {
     // Prepare
     val ideComponents = IdeComponents(myFixture)
-    val mockPsiManager = mock(PsiManager::class.java)
+    val mockPsiManager = spy(MockPsiManager(project))
     ideComponents.replaceProjectService(PsiManager::class.java, mockPsiManager)
 
-    val database = FileSqliteDatabase("db1", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1"))
 
     view.addDatabase(database, 0)
 
@@ -182,7 +184,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
-    val database = FileSqliteDatabase("db", realDatabaseConnection!!, sqliteFile)
+    val database = FileSqliteDatabase(realDatabaseConnection!!, sqliteFile)
 
     val controller = SqliteEvaluatorController(
       project,

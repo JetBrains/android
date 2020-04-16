@@ -705,7 +705,7 @@ public final class StudioFlags {
     EDITOR, "dagger.support.enabled",
     "Enable editor support for Dagger",
     "If enabled adds Dagger specific find usages, gutter icons and new parsing for Dagger errors",
-    false
+    true
   );
 
   //endregion

@@ -23,7 +23,7 @@ import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.utils.FileUtils
 import com.intellij.ide.impl.ProjectUtil
@@ -34,6 +34,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.facet.getManifestFiles
+import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 
 /**
@@ -50,46 +51,47 @@ bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sh
 --jvmopt='-DUPDATE_TEST_SNAPSHOTS' --test_output=streamed
  */
 class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotComparisonTest {
-  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/sourceProvidersSnapshots"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/sourceProviders"
+  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
 
   fun testSimpleApplication() {
-    val text = importSyncAndDumpProject(TestProjectPaths.SIMPLE_APPLICATION)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION)
     assertIsEqualToSnapshot(text)
   }
 
   fun testWithMlModels() {
-    val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_ML_MODELS)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS)
     assertIsEqualToSnapshot(text)
   }
 
   // TODO(b/121345405): Fix missing test source providers.
   fun testMultiFlavor() {
-    val text = importSyncAndDumpProject(TestProjectPaths.MULTI_FLAVOR)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.MULTI_FLAVOR)
     assertIsEqualToSnapshot(text)
   }
 
   fun testNestedProjects() {
-    val text = importSyncAndDumpProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY)
     assertIsEqualToSnapshot(text)
   }
 
   fun testCompositeBuild() {
-    val text = importSyncAndDumpProject(TestProjectPaths.COMPOSITE_BUILD)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD)
     assertIsEqualToSnapshot(text)
   }
 
   fun testWithBuildSrc() {
-    val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_BUILDSRC)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.APP_WITH_BUILDSRC)
     assertIsEqualToSnapshot(text)
   }
 
   fun testDependentNativeModules() {
-    val text = importSyncAndDumpProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.DEPENDENT_NATIVE_MODULES)
     assertIsEqualToSnapshot(text)
   }
 
   fun testJpsWithQualifiedNames() {
-    val srcPath = File(myFixture.testDataPath, toSystemDependentName(TestProjectPaths.JPS_WITH_QUALIFIED_NAMES))
+    val srcPath = File(myFixture.testDataPath, toSystemDependentName(TestProjectToSnapshotPaths.JPS_WITH_QUALIFIED_NAMES))
     // Prepare project in a different directory (_jps) to avoid closing the currently opened project.
     val projectPath = File(toSystemDependentName(project.basePath + "_jps"))
 
@@ -106,12 +108,12 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
   }
 
   fun testCompatibilityWithAndroidStudio36Project() {
-    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36)
     assertIsEqualToSnapshot(text)
   }
 
   fun testCompatibilityWithAndroidStudio36NoImlProject() {
-    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
     assertIsEqualToSnapshot(text)
   }
 

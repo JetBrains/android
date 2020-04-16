@@ -67,9 +67,7 @@
       </component>
       <component id="a8ccd" class="javax.swing.JTextArea" binding="myInfoTextArea">
         <constraints>
-          <grid row="4" column="0" row-span="1" col-span="4" vsize-policy="6" hsize-policy="0" anchor="8" fill="2" indent="2" use-parent-layout="false">
-            <preferred-size width="150" height="50"/>
-          </grid>
+          <grid row="4" column="0" row-span="1" col-span="4" vsize-policy="6" hsize-policy="0" anchor="8" fill="2" indent="2" use-parent-layout="false"/>
         </constraints>
         <properties>
           <margin top="0" left="2" bottom="0" right="0"/>

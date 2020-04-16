@@ -15,18 +15,24 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder
 
+import com.android.tools.idea.rendering.AllocationStackTrace
+import com.android.tools.idea.rendering.DisposeStackTrace
+import com.android.tools.idea.rendering.StackTraceCapture
 import com.android.tools.idea.rendering.clearTrackedAllocations
 import com.android.tools.idea.rendering.notDisposedRenderTasks
+import com.intellij.openapi.diagnostic.Logger
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.util.concurrent.TimeUnit
-import java.util.stream.Collectors
 
 /**
  * [TestRule] that verifies that all [RenderTask] have been properly de-allocated
  */
 class RenderTaskLeakCheckRule : TestRule {
+  private fun StackTraceCapture.asString(): String =
+    stackTrace.joinToString("\n") { element: StackTraceElement -> "\t\t$element" }
+
   override fun apply(base: Statement,
                      description: Description): Statement {
     return object : Statement() {
@@ -37,19 +43,26 @@ class RenderTaskLeakCheckRule : TestRule {
         var wait = TimeUnit.SECONDS.toMillis(1)
         var retries = 3
         while (notDisposedRenderTasks().count() != 0 && retries-- > 0) {
+          Logger.getInstance(RenderTaskLeakCheckRule::class.java).warn("Waiting for RenderTasks to be disposed. ${retries} retries left")
           // Give tasks the opportunity to complete the dispose
           Thread.sleep(wait)
           wait *= 2
         }
 
-        notDisposedRenderTasks()
-          .forEach { stackTrace: List<StackTraceElement> ->
-            val stackTraceString = stackTrace.stream()
-              .map { element: StackTraceElement -> "\t\t" + element }
-              .collect(Collectors.joining("\n"))
-            throw IllegalStateException(
-              "Render task not released. Allocated at \n$stackTraceString")
-          }
+        val notDisposed = notDisposedRenderTasks().toList()
+        if (notDisposed.isNotEmpty()) {
+          val exceptionText = notDisposed.mapIndexed { index, (task, stackTrace) ->
+            val type = when (stackTrace) {
+              is AllocationStackTrace -> "Allocated at"
+              is DisposeStackTrace -> "Scheduled for dispose but not disposed yet. Disposed scheduled at"
+              else -> "Unknown"
+            }
+            "RenderTask[$index] (${task}) ${type}\n${stackTrace.asString()}"
+          }.joinToString("\n\n")
+
+          throw IllegalStateException(
+            "${notDisposed.size} RenderTask(s) not released. \n$exceptionText")
+        }
       }
     }
   }

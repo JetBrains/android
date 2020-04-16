@@ -206,7 +206,10 @@ class DatabaseInspectorViewImpl(
       "DATABASES",
       Side.LEFT,
       Split.TOP,
-      AutoHide.DOCKED
+      AutoHide.DOCKED,
+      ToolWindowDefinition.DEFAULT_SIDE_WIDTH,
+      ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
+      ToolWindowDefinition.ALLOW_BASICS
     ) { SchemaPanelToolContent() }
   }
 

@@ -163,19 +163,19 @@ public class AndroidDependenciesCache implements Disposable {
   }
 
   private static void logObsoleteFacet() {
-    Logger.getInstance(AndroidDependenciesCache.class).error("obsolete facet");
+    Logger.getInstance(AndroidDependenciesCache.class).warn("obsolete facet");
   }
 
   private static void logNonAndroidModule() {
-    Logger.getInstance(AndroidDependenciesCache.class).error("non-Android module");
+    Logger.getInstance(AndroidDependenciesCache.class).warn("non-Android module");
   }
 
   private static void logDisposedFacet() {
-    Logger.getInstance(AndroidDependenciesCache.class).error("disposed facet");
+    Logger.getInstance(AndroidDependenciesCache.class).warn("disposed facet");
   }
 
   private static void logNullReference() {
-    Logger.getInstance(AndroidDependenciesCache.class).error("null in dereference");
+    Logger.getInstance(AndroidDependenciesCache.class).warn("null in dereference");
   }
 
   private static void collectAllAndroidDependencies(@NotNull Module module,

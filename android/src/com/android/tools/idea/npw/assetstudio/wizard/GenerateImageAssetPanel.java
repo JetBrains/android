@@ -119,7 +119,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   private JPanel myRootPanel;
   private JComboBox<AndroidIconType> myIconTypeCombo;
   private JPanel myConfigureIconPanels;
-  private Map<AndroidIconType, ConfigureIconView> myConfigureIconViews = new TreeMap<>();
+  private final Map<AndroidIconType, ConfigureIconView> myConfigureIconViews = new TreeMap<>();
   private CheckeredBackgroundPanel myOutputPreviewPanel;
   private TitledSeparator myOutputPreviewLabel;
   private JBScrollPane myOutputPreviewScrollPane;
@@ -137,10 +137,10 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   private JPanel myPreviewContentsPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer
   private JPanel myOutputIconTypePanel;
-  private SelectedProperty myShowGridProperty;
-  private SelectedProperty myShowSafeZoneProperty;
-  private AbstractProperty<Density> myPreviewDensityProperty;
-  private JBLoadingPanel myLoadingPanel;
+  private final SelectedProperty myShowGridProperty;
+  private final SelectedProperty myShowSafeZoneProperty;
+  private final AbstractProperty<Density> myPreviewDensityProperty;
+  private final JBLoadingPanel myLoadingPanel;
 
   @NotNull private AndroidModulePaths myPaths;
   @NotNull private final IconGenerationProcessor myIconGenerationProcessor = new IconGenerationProcessor();

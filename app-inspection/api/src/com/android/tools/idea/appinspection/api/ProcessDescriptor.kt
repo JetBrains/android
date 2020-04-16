@@ -22,8 +22,8 @@ import com.android.tools.profiler.proto.Common
  * [Common.Process] which are supplied by the transport pipeline.
  */
 class ProcessDescriptor internal constructor(
-  internal val stream: Common.Stream,
-  internal val process: Common.Process
+  val stream: Common.Stream,
+  val process: Common.Process
 ) {
   /** The manufacturer of the device. */
   val manufacturer: String = stream.device.manufacturer

@@ -43,11 +43,11 @@ import java.io.IOException
 /**
  * [WizardModel] that contains model location to import.
  */
-class MlWizardModel(private val module: Module) : WizardModel(), LargeFileWriteRequestor {
+class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor {
 
   private val mlkitRecipe: Recipe = {
-    for (dependency in MlkitUtils.getRequiredDependencies()) {
-      addDependency(dependency)
+    for (dependency in MlkitUtils.getMissingDependencies(module)) {
+      addDependency(dependency.toString())
     }
     setBuildFeature("mlModelBinding", true)
   }
@@ -68,6 +68,12 @@ class MlWizardModel(private val module: Module) : WizardModel(), LargeFileWriteR
       try {
         val toDir: VirtualFile? = VfsUtil.createDirectoryIfMissing(directoryPath)
         if (fromFile != null && toDir != null) {
+          // Delete existing file if it exists.
+          val existingFile = toDir.findChild(fromFile.name)
+          if (existingFile != null && existingFile.exists()) {
+            existingFile.delete(this);
+          }
+
           val virtualFile = fromFile.copy(this, toDir, fromFile.name)
           val fileEditorManager: FileEditorManager = FileEditorManager.getInstance(module.project)
           fileEditorManager.openFile(virtualFile, true)

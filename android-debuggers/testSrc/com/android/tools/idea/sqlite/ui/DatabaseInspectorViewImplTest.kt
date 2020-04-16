@@ -30,7 +30,7 @@ import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteColumn
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.RemoveColumns
 import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.mock.MockVirtualFile
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.ui.treeStructure.Tree
 import org.mockito.Mockito.mock
@@ -50,7 +50,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -68,7 +68,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -93,7 +93,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -114,7 +114,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -134,7 +134,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -159,7 +159,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -187,7 +187,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -209,7 +209,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
@@ -245,7 +245,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testEmptyStateIsHiddenAfterOpeningADatabase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
-    val database = FileSqliteDatabase("name", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
 
     // Act
     view.addDatabaseSchema(database, SqliteSchema(emptyList()), 0)
@@ -268,7 +268,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testEmptyStateIsShownAfterOpenDatabasesAreRemoved() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
-    val database = FileSqliteDatabase("name", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
 
     // Act
     view.addDatabaseSchema(database, SqliteSchema(emptyList()), 0)

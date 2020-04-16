@@ -41,7 +41,6 @@ import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFil
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
-import com.android.tools.idea.compose.preview.util.previewElementComparatorByDisplayName
 import com.android.tools.idea.compose.preview.util.previewElementComparatorBySourcePosition
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -92,6 +91,7 @@ import java.awt.BorderLayout
 import java.time.Duration
 import java.util.EnumMap
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -127,11 +127,12 @@ private class ModelDataContext(private val composePreviewManager: ComposePreview
  * @param showDecorations when true, the rendered content will be shown with the full device size specified in
  * the device configuration and with the frame decorations.
  */
-private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager, showDecorations: Boolean): LayoutlibSceneManager =
+private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager, showDecorations: Boolean, isInteractive: Boolean): LayoutlibSceneManager =
   sceneManager.apply {
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
     setUseImagePool(false)
+    setInteractive(isInteractive)
     setQuality(0.7f)
     setShowDecorations(showDecorations)
     forceReinflate()
@@ -144,13 +145,14 @@ private fun configureExistingModel(existingModel: NlModel,
                                    displayName: String,
                                    newDataContext: ModelDataContext,
                                    showDecorations: Boolean,
+                                   isInteractive: Boolean,
                                    fileContents: String,
                                    surface: NlDesignSurface): NlModel {
   existingModel.updateFileContentBlocking(fileContents)
   // Reconfigure the model by setting the new display name and applying the configuration values
   existingModel.modelDisplayName = displayName
   existingModel.dataContext = newDataContext
-  configureLayoutlibSceneManager(surface.getSceneManager(existingModel) as LayoutlibSceneManager, showDecorations)
+  configureLayoutlibSceneManager(surface.getSceneManager(existingModel) as LayoutlibSceneManager, showDecorations, isInteractive)
 
   return existingModel
 }
@@ -199,19 +201,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (oldValue != newValue) {
       LOG.debug("New group preview element selection: $newValue")
       this.groupNameFilteredProvider.groupName = newValue.name
-      ApplicationManager.getApplication().invokeLater { refresh() }
+      refresh()
     }
   }
   override val availableGroups: Set<PreviewGroup> get() = groupNameFilteredProvider.availableGroups.map {
     PreviewGroup.namedGroup(it)
   }.toSet()
-  override var singlePreviewElementFqnFocus: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
-    if (oldValue != newValue) {
-      LOG.debug("New single preview element focus: $newValue")
-      this.singleElementFilteredProvider.composableMethodFqn = newValue
-      ApplicationManager.getApplication().invokeLater { refresh() }
-    }
-  }
 
   private enum class InteractionMode {
     DEFAULT,
@@ -220,6 +215,29 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val navigationHandler = PreviewNavigationHandler()
   private var interactionHandler: SwitchingInteractionHandler<InteractionMode>? = null
+
+  private val isInteractive = AtomicBoolean(false)
+
+  override var interactivePreviewElementFqn: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
+    if (oldValue != newValue) {
+      LOG.debug("New single preview element focus: $newValue")
+      // The order matters because we first want to change the composable being previewed and then start interactive loop when enabled
+      // but we want to stop the loop first and then change the composable when disabled
+      isInteractive.set(newValue != null)
+      if (isInteractive.get()) { // Enable interactive
+        this.singleElementFilteredProvider.composableMethodFqn = newValue
+        refresh()
+        ticker.start()
+        interactionHandler?.let { it.selected = InteractionMode.INTERACTIVE }
+      }
+      else { // Disable interactive
+        interactionHandler?.let { it.selected = InteractionMode.DEFAULT }
+        ticker.stop()
+        this.singleElementFilteredProvider.composableMethodFqn = null
+        refresh()
+      }
+    }
+  }
 
   override var showDebugBoundaries: Boolean = false
     set(value) {
@@ -247,23 +265,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     .apply {
       setScreenMode(SceneMode.COMPOSE, false)
       setMaxFitIntoScale(2f) // Set fit into limit to 200%
-    }
-
-  override var isInteractive: Boolean
-    set(value) {
-      interactionHandler?.let {
-        it.selected = if (value) InteractionMode.INTERACTIVE else InteractionMode.DEFAULT
-      }
-      surface.models.map { surface.getSceneManager(it) }.filterIsInstance<LayoutlibSceneManager>().forEach { it.setAnimated(value) }
-      if (value) {
-        ticker.start()
-      }
-      else {
-        ticker.stop()
-      }
-    }
-    get() {
-      return interactionHandler?.selected == InteractionMode.INTERACTIVE
     }
 
   private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
@@ -540,6 +541,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                  previewElement.displaySettings.name,
                                  ModelDataContext(this, previewElement),
                                  previewElement.displaySettings.showDecoration,
+                                 isInteractive.get(),
                                  fileContents,
                                  surface)
         }
@@ -580,7 +582,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // We call addModel even though the model might not be new. If we try to add an existing model,
         // this will trigger a new render which is exactly what we want.
         configureLayoutlibSceneManager(surface.addModelWithoutRender(model) as LayoutlibSceneManager,
-                                       showDecorations = previewElement.displaySettings.showDecoration)
+                                       showDecorations = previewElement.displaySettings.showDecoration,
+                                       isInteractive = isInteractive.get())
           .requestComposeRender()
           .await()
       }.ifEmpty {
@@ -655,7 +658,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             .forEach {
               val (previewElement, sceneManager) = it
               // When showing decorations, show the full device size
-              configureLayoutlibSceneManager(sceneManager, showDecorations = previewElement.displaySettings.showDecoration)
+              configureLayoutlibSceneManager(sceneManager,
+                                             showDecorations = previewElement.displaySettings.showDecoration,
+                                             isInteractive = isInteractive.get())
                 .requestComposeRender()
                 .await()
             }

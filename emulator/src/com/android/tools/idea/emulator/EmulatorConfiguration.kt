@@ -17,7 +17,10 @@ package com.android.tools.idea.emulator
 
 import com.android.emulator.control.EntryList
 import com.android.sdklib.internal.avd.AvdManager.AVD_FOLDER_EXTENSION
-import java.lang.Boolean.parseBoolean
+import com.google.common.base.Splitter
+import com.intellij.openapi.util.text.StringUtil.parseInt
+import java.io.IOException
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -25,11 +28,14 @@ import java.nio.file.Paths
  * Represents configuration of a running Emulator.
  */
 class EmulatorConfiguration private constructor(
+  val avdName: String,
   val avdFolder: Path,
   val displayWidth: Int,
   val displayHeight: Int,
-  val hasAudioOutput: Boolean,
-  val hasOrientationSensors: Boolean
+  val density: Int,
+  val skinFolder: Path?,
+  val hasOrientationSensors: Boolean,
+  val hasAudioOutput: Boolean
 ) {
 
   companion object {
@@ -37,12 +43,10 @@ class EmulatorConfiguration private constructor(
      * Creates and returns an [EmulatorConfiguration] using data contained in a proto message.
      * Returns null if any of the essential data is missing.
      */
+    // TODO: Remove this function after b/152438029 is fixed.
     fun fromHardwareConfig(hardwareConfig: EntryList): EmulatorConfiguration? {
       var avdHome: String? = null
       var avdId: String? = null
-      var displayWidth: Int? = null
-      var displayHeight: Int? = null
-      var hasOrientationSensors = true
       var hasAudioOutput = true
       for (entry in hardwareConfig.entryList) {
         when (entry.key) {
@@ -52,38 +56,102 @@ class EmulatorConfiguration private constructor(
           "avd.id" -> {
             avdId = entry.value
           }
-          "hw.lcd.width" -> {
-            displayWidth = parseInt(entry.value)
-          }
-          "hw.lcd.height" -> {
-            displayHeight = parseInt(entry.value)
-          }
-          "hw.sensors.orientation" -> {
-            hasOrientationSensors = parseBoolean(entry.value)
-          }
           "hw.audioOutput" -> {
-            hasAudioOutput = parseBoolean(entry.value)
+            hasAudioOutput = entry.value?.toBoolean() ?: true
           }
         }
       }
-      return if (avdHome != null && avdId != null &&
-                 displayWidth != null && displayWidth > 0 && displayHeight != null && displayHeight > 0) {
-        EmulatorConfiguration(avdFolder = Paths.get(avdHome, avdId + AVD_FOLDER_EXTENSION),
-                              displayWidth = displayWidth, displayHeight = displayHeight,
-                              hasOrientationSensors = hasOrientationSensors, hasAudioOutput = hasAudioOutput)
+      if (avdHome == null || avdId == null) {
+        return null
       }
-      else {
-        null
+
+      val avdFolder = Paths.get(avdHome, avdId + AVD_FOLDER_EXTENSION)
+
+      val keysToExtract = setOf("avd.ini.displayname", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density",
+                                "showDeviceFrame", "skin.path", "hw.sensors.orientation")
+      val configIni = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract) ?: return null
+
+      val avdName = configIni["avd.ini.displayname"] ?: avdId.replace('_', ' ')
+      val displayWidth = parseInt(configIni["hw.lcd.width"], 0)
+      val displayHeight = parseInt(configIni["hw.lcd.height"], 0)
+      val density = parseInt(configIni["hw.lcd.density"], 0)
+      val skinPath = getSkinPath(configIni, avdFolder)
+      val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
+      if (displayWidth <= 0 || displayHeight <= 0) {
+        return null
+      }
+
+      return EmulatorConfiguration(avdName = avdName,
+                                   avdFolder = avdFolder,
+                                   displayWidth = displayWidth,
+                                   displayHeight = displayHeight,
+                                   density = density,
+                                   skinFolder = skinPath,
+                                   hasOrientationSensors = hasOrientationSensors,
+                                   hasAudioOutput = hasAudioOutput)
+    }
+
+    /**
+     * Creates and returns an [EmulatorConfiguration] using data in the AVD folder.
+     * Returns null if any of the essential data is missing.
+     */
+    fun readAvdDefinition(avdId: String, avdFolder: Path): EmulatorConfiguration? {
+      val keysToExtract = setOf("avd.ini.displayname", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density",
+                                "showDeviceFrame", "skin.path", "hw.sensors.orientation")
+      val configIni = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract) ?: return null
+
+      val avdName = configIni["avd.ini.displayname"] ?: avdId.replace('_', ' ')
+      val displayWidth = parseInt(configIni["hw.lcd.width"], 0)
+      val displayHeight = parseInt(configIni["hw.lcd.height"], 0)
+      val density = parseInt(configIni["hw.lcd.density"], 0)
+      val skinPath = getSkinPath(configIni, avdFolder)
+      val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
+      if (displayWidth <= 0 || displayHeight <= 0) {
+        return null
+      }
+
+      val hardwareIni = readKeyValueFile(avdFolder.resolve("hardware-qemu.ini"), setOf("hw.audioOutput"))
+      val hasAudioOutput = hardwareIni?.get("hw.audioOutput")?.toBoolean() ?: true
+
+      return EmulatorConfiguration(avdName = avdName,
+                                   avdFolder = avdFolder,
+                                   displayWidth = displayWidth,
+                                   displayHeight = displayHeight,
+                                   density = density,
+                                   skinFolder = skinPath,
+                                   hasOrientationSensors = hasOrientationSensors,
+                                   hasAudioOutput = hasAudioOutput)
+    }
+
+    private fun readKeyValueFile(file: Path, keysToExtract: Set<String>): Map<String, String>? {
+      val splitter = Splitter.on('=').trimResults()
+      val result = mutableMapOf<String, String>()
+      try {
+        for (line in Files.readAllLines(file)) {
+          val keyValue = splitter.splitToList(line)
+          if (keyValue.size == 2 && keysToExtract.contains(keyValue[0])) {
+            result[keyValue[0]] = keyValue[1]
+          }
+        }
+        return result
+      }
+      catch (e: IOException) {
+        if (e.message == null) {
+          EmulatorConfiguration.logger.error("Error reading ${file}")
+        }
+        else {
+          EmulatorConfiguration.logger.error("Error reading ${file} - ${e.message}")
+        }
+        return null
       }
     }
 
-    private fun parseInt(value: String): Int? {
-      return try {
-        Integer.parseInt(value)
+    private fun getSkinPath(configIni: Map<String, String>, avdFolder: Path): Path? {
+      if (configIni["showDeviceFrame"]?.equals("no", ignoreCase = true) == true) {
+        return null
       }
-      catch (e: NumberFormatException) {
-        null
-      }
+      val skinPath = configIni["skin.path"]
+      return if (skinPath == null || skinPath == "_no_skin") null else avdFolder.resolve(skinPath)
     }
   }
 }

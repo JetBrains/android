@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.TestInspectorClient
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.appinspection.internal.attachAppInspectionTarget
 import com.android.tools.idea.appinspection.internal.launchInspectorForTest
@@ -39,8 +38,6 @@ import org.junit.runner.Description
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
-
-val TEST_JAR = AppInspectorJar("test")
 
 /**
  * Rule providing all of the underlying components of App Inspection including [executorService], [streamChannel], [transport] and [client].
@@ -113,14 +110,12 @@ class AppInspectionServiceRule(
   fun launchInspectorConnection(
     inspectorId: String = INSPECTOR_ID,
     commandHandler: CommandHandler = TestInspectorCommandHandler(timer),
-    eventListener: AppInspectorClient.EventListener = TestInspectorEventListener()
-  ): AppInspectorClient.CommandMessenger {
+    eventListener: AppInspectorClient.RawEventListener = TestInspectorRawEventListener()
+  ): AppInspectorClient {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    val messenger = launchInspectorForTest(inspectorId, transport, timer.currentTimeNs) {
+    return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs) {
       TestInspectorClient(it, eventListener)
-    }.messenger
-    timer.currentTimeNs += 1
-    return messenger
+    }.also { timer.currentTimeNs += 1 }
   }
 
   fun addEvent(event: Common.Event) {
@@ -166,27 +161,14 @@ class AppInspectionServiceRule(
   /**
    * Keeps track of all events so they can be gotten later and compared.
    */
-  open class TestInspectorEventListener : AppInspectorClient.EventListener {
+  open class TestInspectorRawEventListener : AppInspectorClient.RawEventListener {
     private val events = mutableListOf<ByteArray>()
-    private val crashes = mutableListOf<String>()
-    var isDisposed = false
 
     val rawEvents
       get() = events.toList()
 
-    val crashEvents
-      get() = crashes.toList()
-
     override fun onRawEvent(eventData: ByteArray) {
       events.add(eventData)
-    }
-
-    override fun onCrashEvent(message: String) {
-      crashes.add(message)
-    }
-
-    override fun onDispose() {
-      isDisposed = true
     }
   }
 }

@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.testutils.PropertySetterRule
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
@@ -51,15 +53,10 @@ class DeviceViewContentPanelTest {
   @get:Rule
   val chain = RuleChain.outerRule(ProjectRule()).around(DeviceViewSettingsRule())
 
-  @Before
-  fun setUp() {
-    InspectorClient.clientFactory = { _, _ -> mock(InspectorClient::class.java) }
-  }
-
-  @After
-  fun tearDown() {
-    InspectorClient.clientFactory = { model, disposable -> DefaultInspectorClient(model, disposable) }
-  }
+  @get:Rule
+  val clientFactoryRule = PropertySetterRule(
+    { _, _ -> listOf(mock(InspectorClient::class.java)) },
+    InspectorClient.Companion::clientFactory)
 
   @Test
   fun testSize() {

@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.analytics
 
 import com.android.SdkConstants.ATTR_ARG_TYPE
 import com.android.SdkConstants.ATTR_AUTO_VERIFY
+import com.android.SdkConstants.ATTR_DEEPLINK_MIMETYPE
 import com.android.SdkConstants.ATTR_DEFAULT_NAV_HOST
 import com.android.SdkConstants.ATTR_GRAPH
 import com.android.SdkConstants.ATTR_ID
@@ -122,6 +123,7 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
       ATTR_POP_UP_TO_INCLUSIVE -> NavPropertyInfo.Property.POP_UP_TO_INCLUSIVE
       ATTR_START_DESTINATION -> NavPropertyInfo.Property.START_DESTINATION
       ATTR_URI -> NavPropertyInfo.Property.URI
+      ATTR_DEEPLINK_MIMETYPE -> NavPropertyInfo.Property.MIME_TYPE
 
       else -> NavPropertyInfo.Property.CUSTOM
     }

@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.annotator
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
@@ -57,6 +58,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
   private lateinit var mouseEvent: MouseEvent
   private lateinit var anAction: RunSqliteStatementGutterIconAction
   private lateinit var viewFactory: MockDatabaseInspectorViewsFactory
+  private lateinit var mockAppInspectionToolWindow: AppInspectionCallbacks
 
   override fun setUp() {
     super.setUp()
@@ -66,6 +68,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
     ideComponents = IdeComponents(myFixture)
     mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)
+
+    mockAppInspectionToolWindow = mock(AppInspectionCallbacks::class.java)
+    `when`(mockDatabaseInspectorProjectService.toolWindow).thenReturn(mockAppInspectionToolWindow)
 
     mouseEvent = mock(MouseEvent::class.java)
     `when`(mouseEvent.component).thenReturn(mock(Component::class.java))
@@ -480,6 +485,39 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT)
   }
 
+  fun testRunFromGutterIconOpensToolWindowDirectly() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabase1))
+
+    buildActionFromJavaFile("select * from Foo where id = 1")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    // Assert
+    verify(mockAppInspectionToolWindow).showToolWindow()
+  }
+
+  fun testRunFromGutterIconOpensToolWindowFromDialog() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabase1))
+
+    buildActionFromJavaFile("select * from Foo where id = :anId")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    val listener = viewFactory.parametersBindingDialogView.listeners.first()
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter(":anId") to SqliteParameterValue.fromAny("1")
+    ))
+
+    // Assert
+    verify(mockAppInspectionToolWindow).showToolWindow()
+  }
+
   private fun buildActionFromJavaFile(sqlStatement: String) {
     setUpJavaFixture(sqlStatement)
     setUpAction()
@@ -492,7 +530,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   private fun setUpAction() {
     val hostElement = myFixture.file.findElementAt(myFixture.caretOffset)!!.parent
-    anAction = RunSqliteStatementGutterIconAction(hostElement.project, hostElement, viewFactory)
+    anAction = RunSqliteStatementGutterIconAction(hostElement.project, hostElement, viewFactory, mockDatabaseInspectorProjectService)
     anActionEvent = TestActionEvent.createFromAnAction(anAction, mouseEvent, "", DataContext.EMPTY_CONTEXT)
   }
 

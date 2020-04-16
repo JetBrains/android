@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.testutils.PropertySetterRule
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeMouse.Button
@@ -25,6 +26,7 @@ import com.android.tools.idea.layoutinspector.DEFAULT_PROCESS
 import com.android.tools.idea.layoutinspector.DEFAULT_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
+import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
@@ -92,18 +94,10 @@ class DeviceViewPanelTest {
   @get:Rule
   val projectRule = ProjectRule()
 
-  private var defaultClientFactory: ((model: InspectorModel, parentDisposable: Disposable) -> InspectorClient)? = null
-
-  @Before
-  fun setUp() {
-    defaultClientFactory = InspectorClient.clientFactory
-    InspectorClient.clientFactory = { _, _ -> mock(DefaultInspectorClient::class.java) }
-  }
-
-  @After
-  fun tearDown() {
-    InspectorClient.clientFactory =  defaultClientFactory!!
-  }
+  @get:Rule
+  val clientFactoryRule = PropertySetterRule(
+    { _, _ -> listOf(mock(DefaultInspectorClient::class.java)) },
+    InspectorClient.Companion::clientFactory)
 
   @Test
   fun testZoomOnConnect() {
@@ -143,7 +137,6 @@ class DeviceViewPanelTest {
 
   @Test
   fun testFocusableActionButtons() {
-    InspectorClient.clientFactory = { _, _ -> mock(InspectorClient::class.java) }
     val model = model { view(1, 0, 0, 1200, 1600, "RelativeLayout") }
     val inspector = LayoutInspector(model, disposableRule.disposable)
     val settings = DeviceViewSettings()

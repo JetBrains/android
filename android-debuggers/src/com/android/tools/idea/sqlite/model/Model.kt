@@ -24,6 +24,11 @@ import java.sql.JDBCType
  */
 sealed class SqliteDatabase {
   /**
+   * Full path of database
+   */
+  abstract val path: String
+
+  /**
    * Human readable name of the database.
    */
   abstract val name: String
@@ -37,17 +42,23 @@ sealed class SqliteDatabase {
 /**
  * [SqliteDatabase] accessed through live connection.
  */
-data class LiveSqliteDatabase(override val name: String, override val databaseConnection: DatabaseConnection) : SqliteDatabase()
+data class LiveSqliteDatabase(override val path: String, override val databaseConnection: DatabaseConnection) : SqliteDatabase() {
+  override val name = path.substringAfterLast("/")
+}
 
 /**
  * File based-[SqliteDatabase]. This database is accessed through a [VirtualFile].
  * The [DatabaseConnection] gets closed when the file is deleted.
  */
 data class FileSqliteDatabase(
-  override val name: String,
   override val databaseConnection: DatabaseConnection,
   val virtualFile: VirtualFile
-) : SqliteDatabase()
+) : SqliteDatabase() {
+  // TODO(b/139525976): finalize naming convention
+  override val name = virtualFile.path.split("data/data/").getOrNull(1)?.replace("databases/", "") ?: virtualFile.path
+
+  override val path = virtualFile.path
+}
 
 /** Representation of the Sqlite database schema */
 data class SqliteSchema(val tables: List<SqliteTable>)
@@ -66,6 +77,18 @@ data class SqliteColumnValue(val columnName: String, val value: SqliteValue)
 
 /** Representation of a Sqlite table column */
 data class SqliteColumn(val name: String, val affinity: SqliteAffinity, val isNullable: Boolean, val inPrimaryKey: Boolean)
+
+/**
+ *  A column obtained from a result set.
+ *  We cannot use [SqliteColumn] because the on-device database inspector is not capable of providing the optional properties of this class,
+ *  while JDBC is.
+ */
+data class ResultSetSqliteColumn(
+  val name: String,
+  val affinity: SqliteAffinity? = null,
+  val isNullable: Boolean? = null,
+  val inPrimaryKey: Boolean? = null
+)
 
 /**
  * Representation of a SQLite statement that may contain positional parameters.

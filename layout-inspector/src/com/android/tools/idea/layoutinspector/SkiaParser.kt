@@ -323,7 +323,7 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
       .build()
     client = SkiaParserServiceGrpc.newBlockingStub(channel)
 
-    handler = OSProcessHandler(GeneralCommandLine(realPath.absolutePath, localPort.toString()))
+    handler = OSProcessHandler.Silent(GeneralCommandLine(realPath.absolutePath, localPort.toString()))
     handler!!.addProcessListener(object : ProcessAdapter() {
       override fun processTerminated(event: ProcessEvent) {
         // TODO(b/151639359) // We get a 137 when we terminate the server. Silence this error.

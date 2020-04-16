@@ -142,7 +142,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         return unquoteString(literal.text)
       }
       // For String and constant literals. Ex : Integers, single-quoted Strings.
-      is KtStringTemplateExpression, is KtStringTemplateEntry -> {
+      is KtStringTemplateExpression -> {
         if (!resolve || context.hasCycle()) {
           return unquoteString(literal.text)
         }
@@ -419,7 +419,6 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         is GradleDslExpressionMap -> {
           val name = GradleNameElement.create(unquoteString(index))
           val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
-          propertyElement.setUseAssignment(true)
           propertyElement.elementType = DERIVED
 
           parentBlock.setParsedElement(propertyElement)
@@ -486,7 +485,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     isLiteral : Boolean = false
   ) : GradleDslExpression? {
     when (methodName) {
-      "mapOf", "mutableMapOf" -> return getExpressionMap(parentElement, psiElement, name, argumentsList.arguments)
+      "mapOf", "mutableMapOf" -> return getExpressionMap(parentElement, psiElement, name, argumentsList.arguments, isLiteral)
       "listOf", "mutableListOf" -> return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, isLiteral, false)
       "setOf", "mutableSetOf" -> return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, isLiteral, true)
       "kotlin" -> return GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
@@ -551,8 +550,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   private fun getExpressionMap(parentElement : GradleDslElement,
                                mapPsiElement: PsiElement,
                                propertyName : GradleNameElement,
-                               arguments : List<KtElement>) : GradleDslExpressionMap {
-    val expressionMap = GradleDslExpressionMap(parentElement, mapPsiElement, propertyName, false)
+                               arguments : List<KtElement>,
+                               isLiteral : Boolean) : GradleDslExpressionMap {
+    val expressionMap = GradleDslExpressionMap(parentElement, mapPsiElement, propertyName, isLiteral)
     arguments.map {
       arg -> (arg as KtValueArgument).getArgumentExpression()
     }.filter {

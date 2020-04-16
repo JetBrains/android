@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.customview
 
-import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -64,7 +63,8 @@ class CustomViewPreviewTest {
 
     assertTrue(multiRepresentationFixture.hasRenderErrors())
 
-    fixture.invokeMenuPath("Build", "Make Project").waitForBuildToFinish(BuildMode.ASSEMBLE)
+    fixture.invokeAndWaitForBuildAction("Build", "Make Project")
+
     multiRepresentationFixture.waitForRenderToFinish()
     guiTest.robot().waitForIdle()
 

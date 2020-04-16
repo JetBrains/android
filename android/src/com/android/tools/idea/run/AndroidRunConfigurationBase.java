@@ -17,6 +17,10 @@ import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -384,11 +388,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    final Project project = module.getProject();
-    if (AndroidProjectInfo.getInstance(project).requiredAndroidModelMissing()) {
-      return null;
-    }
-
     final AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return null;
@@ -404,10 +403,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   public ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
-    if (AndroidModel.get(facet) != null && AndroidModel.get(facet) instanceof AndroidModuleModel) {
-      return new GradleApplicationIdProvider(facet, () -> getUserData(GradleApkProvider.POST_BUILD_MODEL));
-    }
-    return new NonGradleApplicationIdProvider(facet);
+    return ProjectSystemUtil.getModuleSystem(facet).getApplicationIdProvider(this);
   }
 
   @NotNull

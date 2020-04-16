@@ -121,17 +121,17 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
   @NotNull
   private ConnectionState getConnectionState() {
     if (myAdapter.isBridgeConnected()) {
-      return myAdapter.isBridgeUserManagedMode() ? USER_MANAGED_CONNECTED : STUDIO_MANAGED_CONNECTED;
+      return myAdapter.isBridgeInUserManagedMode() ? USER_MANAGED_CONNECTED : STUDIO_MANAGED_CONNECTED;
     }
-    return myAdapter.isBridgeUserManagedMode() ? USER_MANAGED_DISCONNECTED : STUDIO_MANAGED_DISCONNECTED;
+    return myAdapter.isBridgeInUserManagedMode() ? USER_MANAGED_DISCONNECTED : STUDIO_MANAGED_DISCONNECTED;
   }
 
   @SuppressWarnings("UseJBColor")
   enum ConnectionState {
-    STUDIO_MANAGED_DISCONNECTED(getStatusIcon(ADB_MANAGED, RED), "Not initialized/connected to local ADB"),
-    STUDIO_MANAGED_CONNECTED(getStatusIcon(ADB_MANAGED, GREEN), "Initialized/connected to local ADB"),
-    USER_MANAGED_DISCONNECTED(getStatusIcon(ADB_UNMANAGED, RED), "Not connected to remote ADB"),
-    USER_MANAGED_CONNECTED(getStatusIcon(ADB_UNMANAGED, GREEN), "Connected to remote ADB");
+    STUDIO_MANAGED_DISCONNECTED(getStatusIcon(ADB_MANAGED, RED), "Not initialized/connected to local adb"),
+    STUDIO_MANAGED_CONNECTED(getStatusIcon(ADB_MANAGED, GREEN), "Initialized/connected to local adb"),
+    USER_MANAGED_DISCONNECTED(getStatusIcon(ADB_UNMANAGED, RED), "Not connected to remote adb"),
+    USER_MANAGED_CONNECTED(getStatusIcon(ADB_UNMANAGED, GREEN), "Connected to remote adb");
 
     @VisibleForTesting
     @NotNull
@@ -158,7 +158,7 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
   interface StudioAdapter {
     boolean isBridgeConnected();
 
-    boolean isBridgeUserManagedMode();
+    boolean isBridgeInUserManagedMode();
 
     @NotNull
     ModalityState getModalityState();

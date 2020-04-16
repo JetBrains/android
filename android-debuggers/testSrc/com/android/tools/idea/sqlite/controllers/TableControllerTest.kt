@@ -33,6 +33,7 @@ import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
 import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.MockTableView
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -74,13 +75,12 @@ class TableControllerTest : PlatformTestCase() {
   private lateinit var realDatabaseConnection: DatabaseConnection
   private var customDatabaseConnection: DatabaseConnection? = null
 
-  private lateinit var authorIdColumn: SqliteColumn
+  private lateinit var authorIdColumn: ResultSetSqliteColumn
   private lateinit var authorsRow1: SqliteRow
   private lateinit var authorsRow2: SqliteRow
   private lateinit var authorsRow4: SqliteRow
   private lateinit var authorsRow5: SqliteRow
 
-  private val database = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
   private val sqliteTable = SqliteTable("tableName", emptyList(), null, false)
 
   override fun setUp() {
@@ -100,7 +100,7 @@ class TableControllerTest : PlatformTestCase() {
       getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
-    authorIdColumn = SqliteColumn("author_id", SqliteAffinity.INTEGER, false, true)
+    authorIdColumn = ResultSetSqliteColumn("author_id", SqliteAffinity.INTEGER, false, true)
     val authorNameColumn = SqliteColumn("first_name", SqliteAffinity.TEXT, true, false)
     val authorLastColumn = SqliteColumn("last_name", SqliteAffinity.TEXT, true, false)
 
@@ -1126,6 +1126,11 @@ class TableControllerTest : PlatformTestCase() {
       false
     )
 
+    val resultSetCols = listOf(
+      ResultSetSqliteColumn("rowid", SqliteAffinity.INTEGER, false, false),
+      ResultSetSqliteColumn("c1", SqliteAffinity.TEXT, true, false)
+    )
+
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
       project,
@@ -1141,7 +1146,7 @@ class TableControllerTest : PlatformTestCase() {
     Disposer.register(testRootDisposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
-    val targetCol = customSqliteTable.columns[1]
+    val targetCol = resultSetCols[1]
     val newValue = SqliteValue.StringValue("new value")
 
     val orderVerifier = inOrder(tableView, mockDatabaseConnection)
@@ -1228,7 +1233,7 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
-    tableView.listeners.first().updateCellInvoked(0, targetCol, newValue)
+    tableView.listeners.first().updateCellInvoked(0, targetCol.toResultSetCol(), newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -1287,7 +1292,7 @@ class TableControllerTest : PlatformTestCase() {
     val updatedTargetTable = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema()).tables.find { it.name == "t1" }!!
     tableProvider.table = updatedTargetTable
 
-    tableView.listeners.first().updateCellInvoked(0, targetCol, newValue)
+    tableView.listeners.first().updateCellInvoked(0, targetCol.toResultSetCol(), newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -1414,7 +1419,7 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFutureException(tableController.refreshData())
 
     // Assert
-    orderVerifier.verify(tableView).showTableColumns(targetTable.columns)
+    orderVerifier.verify(tableView).showTableColumns(targetTable.columns.toResultSetCol())
     orderVerifier.verify(tableView).updateRows(listOf(
       RowDiffOperation.AddRow (SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("1")))))
     ))
@@ -1461,12 +1466,12 @@ class TableControllerTest : PlatformTestCase() {
     // Assert
     val targetTableAfterAlterTable = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema()).tables.find { it.name == "t1" }!!
 
-    orderVerifier.verify(tableView).showTableColumns(targetTable.columns)
+    orderVerifier.verify(tableView).showTableColumns(targetTable.columns.toResultSetCol())
     orderVerifier.verify(tableView).updateRows(listOf(
       RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.StringValue("42")))))
     ))
 
-    orderVerifier.verify(tableView).showTableColumns(targetTableAfterAlterTable.columns)
+    orderVerifier.verify(tableView).showTableColumns(targetTableAfterAlterTable.columns.toResultSetCol())
     orderVerifier.verify(tableView).updateRows(listOf(
       RowDiffOperation.AddRow(SqliteRow(listOf(
         SqliteColumnValue("c1", SqliteValue.StringValue("42")),
@@ -1511,7 +1516,7 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(SqliteStatement("DROP TABLE t1")))
     tableProvider.table = null
 
-    tableView.listeners.first().updateCellInvoked(0, targetCol, SqliteValue.StringValue("test value"))
+    tableView.listeners.first().updateCellInvoked(0, targetCol.toResultSetCol(), SqliteValue.StringValue("test value"))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -1604,7 +1609,7 @@ class TableControllerTest : PlatformTestCase() {
     val newValue = SqliteValue.StringValue("new value")
 
     // Act
-    tableView.listeners.first().updateCellInvoked(1, targetCol, newValue)
+    tableView.listeners.first().updateCellInvoked(1, targetCol.toResultSetCol(), newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -1668,11 +1673,6 @@ class TableControllerTest : PlatformTestCase() {
     val targetTable = schema.tables.find { it.name == targetTableName }!!
     val targetCol = targetTable.columns.find { it.name == targetColumnName }!!
 
-    val originalResultSet = pumpEventsAndWaitForFuture(
-      customDatabaseConnection!!.execute(SqliteStatement(selectAllAndRowIdFromTable(targetTable)))
-    )
-    val targetRow = pumpEventsAndWaitForFuture(originalResultSet!!.getRowBatch(0, 1)).first()
-
     val newValue = SqliteValue.StringValue("test value")
 
     val databaseConnectionWrapper = DatabaseConnectionWrapper(customDatabaseConnection!!)
@@ -1692,7 +1692,7 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
-    tableView.listeners.first().updateCellInvoked(0, targetCol, newValue)
+    tableView.listeners.first().updateCellInvoked(0, targetCol.toResultSetCol(), newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -1704,6 +1704,14 @@ class TableControllerTest : PlatformTestCase() {
     assertEquals(SqliteValue.StringValue("test value"), value)
     val executedUpdateStatement = databaseConnectionWrapper.executedSqliteStatements.first { it.startsWith("UPDATE") }
     assertEquals(expectedSqliteStatement, executedUpdateStatement)
+  }
+
+  private fun SqliteColumn.toResultSetCol(): ResultSetSqliteColumn {
+    return ResultSetSqliteColumn(name, affinity, isNullable, inPrimaryKey)
+  }
+
+  private fun List<SqliteColumn>.toResultSetCol(): List<ResultSetSqliteColumn> {
+    return map { ResultSetSqliteColumn(it.name, it.affinity, it.isNullable, it.inPrimaryKey) }
   }
 
   private fun assertRowSequence(invocations: List<List<SqliteRow>>, expectedInvocations: List<List<SqliteValue>>) {

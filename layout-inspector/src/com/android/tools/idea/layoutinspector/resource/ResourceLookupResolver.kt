@@ -244,7 +244,7 @@ class ResourceLookupResolver(
    */
   private fun resolveValue(property: InspectorPropertyItem, resValue: ResourceValue): String? {
     if (property.type == COLOR) {
-      return resolver.resolveColor(resValue, project)?.let { colorToString(it) }
+      resolver.resolveColor(resValue, project)?.let { return colorToString(it) }
     }
     return toString(property, generateSequence(resValue) { dereference(it) }.take(MAX_RESOURCE_INDIRECTION).last())
   }

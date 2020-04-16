@@ -176,6 +176,11 @@ public class LayoutlibSceneManager extends SceneManager {
   private boolean useShrinkRendering = false;
 
   /**
+   * If true, the scene is interactive
+   */
+  private boolean isInteractive = false;
+
+  /**
    * If true, the render will paint the system decorations (status and navigation bards)
    */
   private boolean useShowDecorations;
@@ -196,6 +201,8 @@ public class LayoutlibSceneManager extends SceneManager {
    * re-inflate the model.
    */
   private final AtomicBoolean myForceInflate = new AtomicBoolean(false);
+
+  private final AtomicBoolean isDisposed = new AtomicBoolean(false);
 
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
@@ -305,20 +312,31 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @Override
   public void dispose() {
-    if (myAreListenersRegistered) {
-      NlModel model = getModel();
-      getDesignSurface().getSelectionModel().removeListener(mySelectionChangeListener);
-      model.getConfiguration().removeListener(myConfigurationChangeListener);
-      model.removeListener(myModelChangeListener);
-      model.removeListener(myModelChangeListener);
+    if (isDisposed.getAndSet(true)) {
+      return;
     }
-    myRenderListeners.clear();
 
-    stopProgressIndicator();
+    try {
+      if (myAreListenersRegistered) {
+        NlModel model = getModel();
+        getDesignSurface().getSelectionModel().removeListener(mySelectionChangeListener);
+        model.getConfiguration().removeListener(myConfigurationChangeListener);
+        model.removeListener(myModelChangeListener);
+      }
+      myRenderListeners.clear();
 
-    super.dispose();
-    // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
-    myRenderTaskDisposerExecutor.execute(this::disposeRenderTask);
+      stopProgressIndicator();
+    }
+    finally {
+      super.dispose();
+      if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+        // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
+        myRenderTaskDisposerExecutor.execute(this::disposeRenderTask);
+      }
+      else {
+        disposeRenderTask();
+      }
+    }
   }
 
   private void disposeRenderTask() {
@@ -480,7 +498,7 @@ public class LayoutlibSceneManager extends SceneManager {
     public void modelChanged(@NotNull NlModel model) {
       requestModelUpdate();
       ApplicationManager.getApplication().invokeLater(() -> {
-        if (!Disposer.isDisposed(LayoutlibSceneManager.this)) {
+        if (!isDisposed.get()) {
           mySelectionChangeListener
             .selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
         }
@@ -546,6 +564,11 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   @NotNull
   private CompletableFuture<Void> requestRender(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    if (isDisposed.get()) {
+      Logger.getInstance(LayoutlibSceneManager.class).warn("requestRender after LayoutlibSceneManager has been disposed");
+      return CompletableFuture.completedFuture(null);
+    }
+
     CompletableFuture<Void> callback = new CompletableFuture<>();
     synchronized (myRenderFutures) {
       myRenderFutures.add(callback);
@@ -627,6 +650,9 @@ public class LayoutlibSceneManager extends SceneManager {
    * Asynchronously inflates the model and updates the view hierarchy
    */
   protected void requestModelUpdate() {
+    if (isDisposed.get()) {
+      return;
+    }
     synchronized (myProgressLock) {
       if (myCurrentIndicator == null) {
         myCurrentIndicator = new AndroidPreviewProgressIndicator();
@@ -661,7 +687,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @NotNull
-  public MergingUpdateQueue getRenderingQueue() {
+  private MergingUpdateQueue getRenderingQueue() {
     synchronized (myRenderingQueueLock) {
       if (myRenderingQueue == null) {
         myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", RENDER_DELAY_MS, true, null, this, null,
@@ -715,13 +741,17 @@ public class LayoutlibSceneManager extends SceneManager {
   @Override
   @NotNull
   public CompletableFuture<Void> requestLayout(boolean animate) {
+    if (isDisposed.get()) {
+      Logger.getInstance(LayoutlibSceneManager.class).warn("requestLayout after LayoutlibSceneManager has been disposed");
+    }
+
     synchronized (myRenderingTaskLock) {
       if (myRenderTask == null) {
         return CompletableFuture.completedFuture(null);
       }
       return myRenderTask.layout()
         .thenAccept(result -> {
-          if (result != null) {
+          if (result != null && !isDisposed.get()) {
             updateHierarchy(result);
             notifyListenersModelLayoutComplete(animate);
           }
@@ -844,7 +874,7 @@ public class LayoutlibSceneManager extends SceneManager {
     Configuration configuration = getModel().getConfiguration();
 
     Project project = getModel().getProject();
-    if (project.isDisposed()) {
+    if (project.isDisposed() || isDisposed.get()) {
       return CompletableFuture.completedFuture(false);
     }
 
@@ -882,7 +912,9 @@ public class LayoutlibSceneManager extends SceneManager {
               Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
             }
 
-            if (result == null || !result.getRenderResult().isSuccess()) {
+            // If the result is not valid, we do not need the task. Also if the project was already disposed
+            // while we were creating the task, avoid adding it.
+            if (getModel().getModule().isDisposed() || result == null || !result.getRenderResult().isSuccess() || isDisposed.get()) {
               newTask.dispose();
             }
             else {
@@ -931,7 +963,9 @@ public class LayoutlibSceneManager extends SceneManager {
                 myRenderTask.dispose();
               } catch (Throwable t) {
                 Logger.getInstance(LayoutlibSceneManager.class).warn(t);
-              }            }
+              }
+              myRenderTask = null;
+            }
           }
           RenderResult result = RenderResult.createRenderTaskErrorResult(getModel().getFile(), logger);
           myRenderResultLock.writeLock().lock();
@@ -982,6 +1016,16 @@ public class LayoutlibSceneManager extends SceneManager {
       taskBuilder.disableToolsAttributes();
     }
 
+    // If two compose previews share the same ClassLoader they share the same compose framework. This way they share the state. In the
+    // interactive preview we would like to control the state of the framework and preview. Shared state makes control impossible.
+    // Therefore, for interactive (currently only compose) preview we want to create a dedicated ClassLoader so that the preview has its own
+    // compose framework. Having a dedicated ClassLoader also allows for clearing resources right after the preview no longer used. We could
+    // apply this approach to static previews as well but it might have negative impact if there are many of them, so applying to the
+    // interactive previews only.
+    if (isInteractive) {
+      taskBuilder.usePrivateClassLoader();
+    }
+
     return taskBuilder;
   }
 
@@ -990,6 +1034,9 @@ public class LayoutlibSceneManager extends SceneManager {
    * {@link ModelListener#modelDerivedDataChanged(NlModel)}.
    */
   protected CompletableFuture<Void> updateModel() {
+    if (isDisposed.get()) {
+      return CompletableFuture.completedFuture(null);
+    }
     return inflate(true)
       .whenCompleteAsync((result, exception) -> notifyListenersModelUpdateComplete(), PooledThreadExecutor.INSTANCE)
       .thenApply(result -> null);
@@ -1036,6 +1083,10 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   @NotNull
   protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    if (isDisposed.get()) {
+      return CompletableFuture.completedFuture(null);
+    }
+
     myIsCurrentlyRendering.set(true);
     try {
       DesignSurface surface = getDesignSurface();
@@ -1054,7 +1105,7 @@ public class LayoutlibSceneManager extends SceneManager {
           try {
             updateCachedRenderResult(result);
             // TODO(nro): this may not be ideal -- forcing direct results immediately
-            if (!Disposer.isDisposed(this)) {
+            if (!isDisposed.get()) {
               update();
             }
             // Downgrade the write lock to read lock
@@ -1073,7 +1124,7 @@ public class LayoutlibSceneManager extends SceneManager {
           }
 
           UIUtil.invokeLaterIfNeeded(() -> {
-            if (!Disposer.isDisposed(this)) {
+            if (!isDisposed.get()) {
               update();
             }
           });
@@ -1310,6 +1361,10 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   public void addRenderListener(@NotNull RenderListener listener) {
+    if (isDisposed.get()) {
+      Logger.getInstance(LayoutlibSceneManager.class).warn("addRenderListener after LayoutlibSceneManager has been disposed");
+    }
+
     myRenderListeners.add(listener);
   }
 
@@ -1330,6 +1385,10 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   @NotNull
   public CompletableFuture<Boolean> executeCallbacks() {
+    if (isDisposed.get()) {
+      Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
+    }
+
     synchronized (myRenderingTaskLock) {
       if (myRenderTask == null) {
         return CompletableFuture.completedFuture(false);
@@ -1348,6 +1407,10 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   public CompletableFuture<Void> triggerTouchEvent(
     @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y) {
+    if (isDisposed.get()) {
+      Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
+    }
+
     synchronized (myRenderingTaskLock) {
       if (myRenderTask == null) {
         return CompletableFuture.completedFuture(null);
@@ -1357,10 +1420,11 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Sets animated mode of the scene.
-   * @param animated true if the scene is animated, false otherwise.
+   * Sets interactive mode of the scene.
+   * @param interactive true if the scene is interactive, false otherwise.
    */
-  public void setAnimated(boolean animated) {
-    getSceneViews().forEach(sv -> sv.setAnimated(animated));
+  public void setInteractive(boolean interactive) {
+    isInteractive = interactive;
+    getSceneViews().forEach(sv -> sv.setAnimated(isInteractive));
   }
 }

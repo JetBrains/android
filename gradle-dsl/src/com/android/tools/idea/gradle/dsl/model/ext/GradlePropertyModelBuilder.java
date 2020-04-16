@@ -91,7 +91,6 @@ public class GradlePropertyModelBuilder {
   private GradleDslElement myDefault;
   @NotNull
   private PropertyType myType = REGULAR;
-  private boolean myIsMethod = false;
   @NotNull
   private List<PropertyTransform> myTransforms = new ArrayList<>();
 
@@ -113,7 +112,6 @@ public class GradlePropertyModelBuilder {
     myHolder = null;
     myName = element.getName();
     myElement = element;
-    myIsMethod = !myElement.shouldUseAssignment();
     ModelEffectDescription effect = element.getModelEffect();
     if (effect == null) {
       myProperty = null;
@@ -121,26 +119,6 @@ public class GradlePropertyModelBuilder {
     else {
       myProperty = effect.property;
     }
-  }
-
-  /**
-   * Sets whether or not the property model should be represented as a method call or an assignment statement. The
-   * difference is as follows:
-   * {@code true}  -> Method Call -> propertyName propertyValue
-   * {@code false} -> Assignment  -> propertyName = propertyValue
-   * <p>
-   * This is only applied to new elements that are created via this model. If an element already exists on file and does not
-   * use the form that is requested, changing its value may or may not cause the form to change. A form change will occur
-   * if the underlying {@link GradleDslElement} can't be reused i.e if an existing literal property is being set to a reference.
-   * <p>
-   * Defaults to {@code false}.
-   *
-   * @param bool whether to use the method call form.
-   * @return this model builder
-   */
-  public GradlePropertyModelBuilder asMethod(boolean bool) {
-    myIsMethod = bool;
-    return this;
   }
 
   /**
@@ -263,10 +241,6 @@ public class GradlePropertyModelBuilder {
 
   @NotNull
   private <T extends GradlePropertyModelImpl> T setUpModel(@NotNull T model) {
-    if (myIsMethod) {
-      model.markAsMethodCall();
-    }
-
     if (myDefault != null) {
       model.setDefaultElement(myDefault);
     }

@@ -26,14 +26,14 @@ import java.nio.file.Path
  */
 @ThreadSafe
 internal class SkinDefinitionCache {
-  /** Skin definition folders keyed by AVD folders. */
-  private val avdFolderToSkinFolder: MutableMap<Path, Path?> = ContainerUtil.createConcurrentWeakValueMap()
   /** Skin definitions keyed by skin definition folders. */
   private val folderToSkin: MutableMap<Path, SkinDefinition?> = ContainerUtil.createConcurrentWeakValueMap()
 
   @Slow
-  fun getSkinDefinition(avdFolder: Path): SkinDefinition? {
-    val skinFolder = avdFolderToSkinFolder.computeIfAbsent(avdFolder) { SkinDefinition.getSkinFolder(avdFolder) } ?: return null
+  fun getSkinDefinition(skinFolder: Path?): SkinDefinition? {
+    if (skinFolder == null) {
+      return null
+    }
     return folderToSkin.computeIfAbsent(skinFolder) { SkinDefinition.create(skinFolder) }
   }
 

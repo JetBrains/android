@@ -94,7 +94,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -584,13 +583,9 @@ public class AvdManagerConnection {
 
     commandLine.addParameters("-avd", info.getName());
     if (shouldBeLaunchedEmbedded(info)) {
-      int port = 8554 + grpcPortCounter.getAndIncrement() % 32;
-      commandLine.addParameters("-grpc", Integer.toString(port)); // TODO: Remove after ag/1245952 has been submitted.
       commandLine.addParameters("-no-window", "-gpu", "auto-no-window"); // Launch headless.
     }
   }
-
-  private static final AtomicInteger grpcPortCounter = new AtomicInteger();
 
   private static boolean shouldBeLaunchedEmbedded(@NotNull AvdInfo avd) {
     // In order for an AVD to be launched in a tool window the corresponding option should be

@@ -19,18 +19,21 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import icons.StudioIcons
-import org.jetbrains.annotations.TestOnly
+import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.Future
 
 val NO_PROCESS_ACTION = object : AnAction("No debuggable processes detected") {
@@ -57,12 +60,8 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
     }
   }
 
-  @TestOnly
-  fun updateDropDownActions(context: DataContext) {
-    updateActions(context)
-  }
-
-  override fun updateActions(context: DataContext): Boolean {
+  @VisibleForTesting
+  public override fun updateActions(context: DataContext): Boolean {
     removeAll()
 
     val serials = mutableSetOf<String>()
@@ -75,7 +74,7 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
           continue
         }
         val deviceName = buildDeviceName(serial, stream.device.model, stream.device.manufacturer)
-        add(DeviceAction(deviceName, stream, client))
+        add(DeviceAction(deviceName, stream, client, layoutInspector.layoutInspectorModel.project))
       }
     }
     if (childrenCount == 0) {
@@ -121,14 +120,31 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
   }
 
   @VisibleForTesting
-  class DeviceAction(deviceName: String, stream: Common.Stream, client: InspectorClient) : DropDownAction(deviceName, null, null) {
+  class DeviceAction(deviceName: String,
+                     stream: Common.Stream,
+                     client: InspectorClient,
+                     project: Project) : DropDownAction(deviceName, null, null) {
     override fun displayTextInToolbar() = true
 
     init {
-      val processes = client.getProcesses(stream).sortedWith(compareBy({ it.name }, { it.pid }))
-      for (process in processes) {
+      val allProcesses = client.getProcesses(stream)
+
+      // TODO: determine if it's still necessary to look up package ids by the other methods used in AndroidProcessChooserDialog
+      val facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
+      val applicationIds = facets.mapNotNull { AndroidModel.get(it) }.flatMap { it.allApplicationIds }
+      val processes = allProcesses.sortedWith(compareBy({ it.name }, { it.pid }))
+
+      val (projectProcesses, otherProcesses) = processes.partition { it.name in applicationIds }
+      for (process in projectProcesses) {
         add(ConnectAction(process, stream, client))
       }
+      if (projectProcesses.isNotEmpty() && otherProcesses.isNotEmpty()) {
+        add(Separator.getInstance())
+      }
+      for (process in otherProcesses) {
+        add(ConnectAction(process, stream, client))
+      }
+
       if (childrenCount == 0) {
         add(NO_PROCESS_ACTION)
       }
