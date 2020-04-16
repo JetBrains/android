@@ -20,10 +20,12 @@ import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVIT
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_MULTIPROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+
 /**
  * Tests for {@link GradleApplicationIdProvider}.
  */
-public class GradleApplicationIdProviderTest extends GradleApplicationIdProviderTestCase {
+public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
   public void testGetPackageName() throws Exception {
     loadProject(RUN_CONFIG_ACTIVITY);
     ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
