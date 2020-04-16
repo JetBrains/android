@@ -431,8 +431,7 @@ public class IdeSdks {
           }
           setJdkOfAndroidSdks(chosenJdk);
 
-          ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
-          Project[] openProjects = projectManager.getOpenProjects();
+          Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
           for (Project project : openProjects) {
             applyJdkToProject(project, chosenJdk);
           }
@@ -574,8 +573,7 @@ public class IdeSdks {
   }
 
   private static void afterAndroidSdkPathUpdate(@NotNull File androidSdkPath) {
-    ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
-    Project[] openProjects = projectManager.getOpenProjects();
+    Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
     if (openProjects.length == 0) {
       return;
     }
