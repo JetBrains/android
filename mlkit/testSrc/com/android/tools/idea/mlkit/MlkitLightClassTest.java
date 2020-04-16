@@ -132,7 +132,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "            TensorBuffer locations = ssdOutputs.getLocationsAsTensorBuffer();\n" +
       "            TensorBuffer classes = ssdOutputs.getClassesAsTensorBuffer();\n" +
       "            TensorBuffer scores = ssdOutputs.getScoresAsTensorBuffer();\n" +
-      "            TensorBuffer numberofdetections = ssdOutputs.getNumberofdetectionsAsTensorBuffer();\n" +
+      "            TensorBuffer numberofdetections = ssdOutputs.getNumberOfDetectionsAsTensorBuffer();\n" +
       "\n" +
       "            TensorBuffer stylearray = null;\n" +
       "            StyleTransferModel styleTransferModel = StyleTransferModel.newInstance(this);\n" +
@@ -290,7 +290,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "        val locations = ssdOutputs.locationsAsTensorBuffer\n" +
       "        val classes = ssdOutputs.classesAsTensorBuffer\n" +
       "        val scores = ssdOutputs.scoresAsTensorBuffer\n" +
-      "        val numberofdetections = ssdOutputs.numberofdetectionsAsTensorBuffer\n" +
+      "        val numberofdetections = ssdOutputs.numberOfDetectionsAsTensorBuffer\n" +
       "        Log.d(\"TAG\", \"Result\" + locations + classes + scores + numberofdetections)\n" +
       "\n" +
       "        val styleTransferModel = StyleTransferModel.newInstance(this)\n" +
