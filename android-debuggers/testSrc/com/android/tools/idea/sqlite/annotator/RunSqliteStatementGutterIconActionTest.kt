@@ -28,6 +28,7 @@ import com.android.tools.idea.sqlite.mocks.MockPopupChooserBuilder
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.toSqliteValues
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
@@ -103,7 +104,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     // Assert
-    verify(mockDatabaseInspectorProjectService).runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo"))
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabase1, SqliteStatement(SqliteStatementType.SELECT, "select * from Foo")
+    )
   }
 
   fun testRunSqliteStatementWhenDatabaseIsOpenKotlin() {
@@ -117,7 +120,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     // Assert
-    verify(mockDatabaseInspectorProjectService).runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo"))
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabase1, SqliteStatement(SqliteStatementType.SELECT, "select * from Foo")
+    )
   }
 
   fun testMultipleDatabaseShowsPopUp() {
@@ -142,7 +147,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockJBPopupFactory).createPopupChooserBuilder(databases.toList())
     verify(spyPopupChooserBuilder).createPopup()
     verify(spyPopupChooserBuilder.mockPopUp).show(any(RelativePoint::class.java))
-    verify(mockDatabaseInspectorProjectService).runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo"))
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabase1, SqliteStatement(SqliteStatementType.SELECT, "select * from Foo")
+    )
   }
 
   fun testSqlStatementWithNoPositionalParameters() {
@@ -156,8 +163,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     // Assert
-    verify(mockDatabaseInspectorProjectService)
-      .runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo where id = 42"))
+    verify(mockDatabaseInspectorProjectService).runSqliteStatement(
+      sqliteDatabase1, SqliteStatement(SqliteStatementType.SELECT, "select * from Foo where id = 42")
+    )
   }
 
   fun testSqlStatementContainsPositionalParameters() {
@@ -178,7 +186,12 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     // Assert
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
       sqliteDatabase1,
-      SqliteStatement("select * from Foo where id = ?", listOf("1").toSqliteValues(), "select * from Foo where id = '1'")
+      SqliteStatement(
+        SqliteStatementType.SELECT,
+        "select * from Foo where id = ?",
+        listOf("1").toSqliteValues(),
+        "select * from Foo where id = '1'"
+      )
     )
   }
 
@@ -203,6 +216,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
       .runSqliteStatement(
         sqliteDatabase1,
         SqliteStatement(
+          SqliteStatementType.SELECT,
           "select * from Foo where id = ? and name = ?",
           listOf("1", "name").toSqliteValues(),
           "select * from Foo where id = '1' and name = 'name'"
@@ -230,6 +244,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
       sqliteDatabase1,
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where id = ? and name = ?",
         listOf("1", "name").toSqliteValues(),
         "select * from Foo where id = '1' and name = 'name'"
@@ -256,6 +271,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
       sqliteDatabase1,
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where id > ?",
         listOf("1").toSqliteValues(),
         "select * from Foo where id > '1'")
@@ -281,6 +297,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
       sqliteDatabase1,
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where id = (? >> name)",
         listOf("1").toSqliteValues(),
         "select * from Foo where id = ('1' >> name)"
@@ -307,6 +324,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
       sqliteDatabase1,
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where id = ?",
         listOf("1").toSqliteValues(),
         "select * from Foo where id = '1'"
@@ -334,6 +352,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
       sqliteDatabase1,
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where id = ? and name = ?",
         listOf("1", "name").toSqliteValues(),
         "select * from Foo where id = '1' and name = 'name'"
@@ -360,6 +379,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
       sqliteDatabase1,
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where id = ?",
         listOf("1").toSqliteValues(),
         "select * from Foo where id = '1'"
@@ -386,6 +406,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
       sqliteDatabase1,
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where id = ?",
         listOf("1").toSqliteValues(),
         "select * from Foo where id = '1'"
@@ -412,6 +433,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
       sqliteDatabase1,
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where id = ?",
         listOf("1").toSqliteValues(),
         "select * from Foo where id = '1'"
@@ -438,6 +460,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
       sqliteDatabase1,
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where id = ?",
         listOf("1").toSqliteValues(),
         "select * from Foo where id = '1'"

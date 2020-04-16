@@ -93,6 +93,7 @@ data class ResultSetSqliteColumn(
 /**
  * Representation of a SQLite statement that may contain positional parameters.
  *
+ * @param statementType The type of the SQLite statement.
  * @param sqliteStatementText The text of the SQLite statement.
  * It can be a complete statement (eg: SELECT * FROM tab WHERE id = 1), or it can be
  * a statement with positional templates (eg: SELECT * FROM tab WHERE id = ?).
@@ -104,11 +105,15 @@ data class ResultSetSqliteColumn(
  * but positional templates have been replaced with the corresponding value in [parametersValues].
  */
 data class SqliteStatement(
+  val statementType: SqliteStatementType,
   val sqliteStatementText: String,
   val parametersValues: List<SqliteValue>,
   val sqliteStatementWithInlineParameters: String
 ) {
-  constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<SqliteValue>(), sqliteStatement)
+  constructor(
+    statementType: SqliteStatementType,
+    sqliteStatement: String
+  ) : this(statementType, sqliteStatement, emptyList<SqliteValue>(), sqliteStatement)
 }
 
 /**

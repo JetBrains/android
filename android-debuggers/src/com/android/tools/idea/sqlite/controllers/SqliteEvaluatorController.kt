@@ -23,6 +23,7 @@ import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.Futures
@@ -143,7 +144,7 @@ class SqliteEvaluatorController(
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
       )
 
-      evaluateSqlStatement(database, SqliteStatement(sqliteStatement))
+      evaluateSqlStatement(database, createSqliteStatement(project, sqliteStatement))
     }
   }
 
