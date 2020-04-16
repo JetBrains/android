@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.sqlLanguage
 
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.intellij.testFramework.LightPlatformTestCase
 import junit.framework.TestCase
 
@@ -193,5 +194,24 @@ class UtilsTest : LightPlatformTestCase() {
     // Assert
     assertEquals("select * from Foo where id = (? >> name)", parsedSqliteStatement.statementText)
     TestCase.assertEquals(listOf(SqliteParameter("id")), parsedSqliteStatement.parameters)
+  }
+
+  fun testGetSqliteStatementType() {
+    assertEquals(SqliteStatementType.SELECT, getSqliteStatementType(project, "SELECT * FROM tab"))
+    assertEquals(SqliteStatementType.SELECT, getSqliteStatementType(project, "/* comment */ SELECT * FROM tab"))
+    assertEquals(SqliteStatementType.SELECT, getSqliteStatementType(project, "SELECT /* comment */ * FROM tab"))
+    assertEquals(SqliteStatementType.EXPLAIN, getSqliteStatementType(project, "EXPLAIN SELECT * FROM tab"))
+    assertEquals(SqliteStatementType.EXPLAIN, getSqliteStatementType(project, "EXPLAIN /* comment */ SELECT * FROM tab"))
+    assertEquals(SqliteStatementType.EXPLAIN, getSqliteStatementType(project, "/* comment */ EXPLAIN SELECT * FROM tab"))
+    assertEquals(SqliteStatementType.UPDATE, getSqliteStatementType(project, "UPDATE tab SET name = 'name' WHERE id = 1"))
+    assertEquals(SqliteStatementType.UPDATE, getSqliteStatementType(
+      project, "UPDATE tab SET name = 'name' WHERE id IN (SELECT id FROM tab)"
+    ))
+    assertEquals(SqliteStatementType.DELETE, getSqliteStatementType(project, "DELETE FROM tab WHERE id > 0"))
+    assertEquals(SqliteStatementType.DELETE, getSqliteStatementType(
+      project, "DELETE FROM tab WHERE id IN (SELECT id FROM tab WHERE id > 42)"
+    ))
+    assertEquals(SqliteStatementType.INSERT, getSqliteStatementType(project, "INSERT INTO tab VALUES (42)"))
+    assertEquals(SqliteStatementType.UNKNOWN, getSqliteStatementType(project, "SELECT * FROM t1; EXPLAIN SELECT * FROM t1;"))
   }
 }

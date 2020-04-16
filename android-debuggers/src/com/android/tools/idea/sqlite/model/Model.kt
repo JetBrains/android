@@ -111,6 +111,13 @@ data class SqliteStatement(
   constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<SqliteValue>(), sqliteStatement)
 }
 
+/**
+ * The type of a [SqliteStatement].
+ */
+enum class SqliteStatementType {
+  SELECT, DELETE, INSERT, UPDATE, EXPLAIN, UNKNOWN
+}
+
 enum class RowIdName(val stringName: String) {
   ROWID("rowid"), OID("oid"), _ROWID_("_rowid_")
 }
