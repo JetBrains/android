@@ -20,15 +20,20 @@ import com.android.io.IAbstractFolder;
 import com.android.io.StreamException;
 import com.google.common.base.MoreObjects;
 import com.intellij.openapi.util.io.FileUtil;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.*;
 
 /**
  * @author Eugene.Kudelevsky
  */
-public class BufferingFileWrapper implements IAbstractFile {
+public final class BufferingFileWrapper implements IAbstractFile {
   private final File myFile;
 
   public BufferingFileWrapper(@NotNull File file) {
@@ -48,15 +53,10 @@ public class BufferingFileWrapper implements IAbstractFile {
   }
 
   private byte[] readFile() throws IOException {
-    DataInputStream is = new DataInputStream(new FileInputStream(myFile));
-    try {
+    try (DataInputStream is = new DataInputStream(new FileInputStream(myFile))) {
       byte[] data = new byte[(int)myFile.length()];
-      //noinspection ResultOfMethodCallIgnored
       is.readFully(data);
       return data;
-    }
-    finally {
-      is.close();
     }
   }
 
@@ -66,12 +66,12 @@ public class BufferingFileWrapper implements IAbstractFile {
   }
 
   @Override
-  public void setContents(InputStream source) throws StreamException {
+  public void setContents(InputStream source) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public OutputStream getOutputStream() throws StreamException {
+  public OutputStream getOutputStream() {
     throw new UnsupportedOperationException();
   }
 
