@@ -4,6 +4,8 @@ import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_V7;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_VIEW_HOLDER;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
+import static com.android.tools.idea.rendering.classloading.UtilKt.multiTransformOf;
 
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -18,6 +20,8 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.rendering.classloading.VersionClassTransform;
+import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
@@ -42,6 +46,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -49,6 +54,7 @@ import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * Render class loader responsible for loading classes in custom views and local and library classes
@@ -57,6 +63,27 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class ModuleClassLoader extends RenderClassLoader {
   private static final Logger LOG = Logger.getInstance(ModuleClassLoader.class);
+
+  /**
+   * Classes are rewritten by applying the following transformations:
+   * <ul>
+   *   <li>Updates the class file version with a version runnable in the current JDK
+   *   <li>Replaces onDraw, onMeasure and onLayout for custom views
+   * </ul>
+   * Note that it does not attempt to handle cases where class file constructs cannot
+   * be represented in the target version. This is intended for uses such as for example
+   * the Android R class, which is simple and can be converted to pretty much any class file
+   * version, which makes it possible to load it in an IDE layout render execution context
+   * even if it has been compiled for a later version.
+   * <p/>
+   * For custom views (classes that inherit from android.view.View or any widget in android.widget.*)
+   * the onDraw, onMeasure and onLayout methods are replaced with methods that capture any exceptions thrown.
+   * This way we avoid custom views breaking the rendering.
+   */
+  private static final Function<ClassVisitor, ClassVisitor> DEFAULT_TRANSFORMS = multiTransformOf(
+    visitor -> new ViewMethodWrapperTransform(visitor),
+    visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0)
+  );
 
   /** The base module to use as a render context; the class loader will consult the module dependencies and library dependencies
    * of this class as well to find classes */
@@ -80,7 +107,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module) {
-    super(parent);
+    super(parent, DEFAULT_TRANSFORMS);
     myModuleReference = new WeakReference<>(module);
     mAdditionalLibraries = getAdditionalLibraries();
 

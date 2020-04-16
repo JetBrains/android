@@ -16,20 +16,23 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
-import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 
-class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
-  val _columns = listOf(
-    SqliteColumn("id", SqliteAffinity.INTEGER, true, false),
-    SqliteColumn(RowIdName.ROWID.stringName, SqliteAffinity.INTEGER, true, false)
+class MockSqliteResultSet(
+  size: Int = 100,
+  columns: List<ResultSetSqliteColumn> = listOf(
+    ResultSetSqliteColumn("id", SqliteAffinity.INTEGER, true, false),
+    ResultSetSqliteColumn(RowIdName.ROWID.stringName, SqliteAffinity.INTEGER, true, false)
   )
+) : SqliteResultSet {
+  val _columns = columns
   val rows = mutableListOf<SqliteRow>()
 
   val invocations = mutableListOf<List<SqliteRow>>()
@@ -37,16 +40,12 @@ class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
   init {
     for (i in 0 until size) {
       rows.add(
-        SqliteRow(
-          listOf(
-            SqliteColumnValue(_columns[0].name, SqliteValue.fromAny(i)),
-            SqliteColumnValue(_columns[1].name, SqliteValue.fromAny(i)))
-        )
+        SqliteRow(_columns.map { SqliteColumnValue(it.name, SqliteValue.fromAny(i)) })
       )
     }
   }
 
-  override val columns: ListenableFuture<List<SqliteColumn>> get() = Futures.immediateFuture(_columns)
+  override val columns: ListenableFuture<List<ResultSetSqliteColumn>> get() = Futures.immediateFuture(_columns)
 
   override val totalRowCount: ListenableFuture<Int> get() = Futures.immediateFuture(rows.size)
 
@@ -65,14 +64,7 @@ class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
   }
 
   fun insertRowAtIndex(index: Int, value: Int) {
-    rows.add(
-      index,
-      SqliteRow(
-        listOf(
-          SqliteColumnValue(_columns[0].name, SqliteValue.fromAny(value)),
-          SqliteColumnValue(_columns[1].name, SqliteValue.fromAny(value)))
-      )
-    )
+    rows.add(index, SqliteRow(_columns.map { SqliteColumnValue(it.name, SqliteValue.fromAny(value)) }))
   }
 
   fun deleteRowAtIndex(index: Int) {

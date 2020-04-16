@@ -40,7 +40,7 @@ catch (e: NoSuchMethodException) {
  * [ClassVisitor] that catches the exceptions on certain View methods like onLayout, onMeasure or onDraw so they do not stop the
  * rendering of the whole view.
  */
-class ViewMethodWrapperTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM5, delegate) {
+class ViewMethodWrapperTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM7, delegate) {
   private var currentClassName: String? = null
 
   override fun visit(version: Int,

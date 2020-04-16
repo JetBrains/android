@@ -93,7 +93,9 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
                                                    @NotNull Set<String> applicationIds,
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull AndroidDebuggerState state,
-                                                   @NotNull String runConfigTypeId) {
+                                                   @NotNull String runConfigTypeId,
+                                                   @Nullable String packageNameOverride) {
+    // TODO(b/153668177): Note/Review: packageNameOverride is used in native debugger only.
     ConnectJavaDebuggerTask baseConnector = new ConnectJavaDebuggerTask(
       applicationIds, this, env.getProject(),
       facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);

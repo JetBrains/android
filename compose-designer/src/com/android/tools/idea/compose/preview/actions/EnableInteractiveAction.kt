@@ -37,7 +37,7 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
       val modelDataContext = dataContextProvider()
       val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return false
 
-      return manager.singlePreviewElementFqnFocus != null
+      return manager.interactivePreviewElementFqn != null
     }
 
   override fun isSelected(e: AnActionEvent): Boolean = isSelected
@@ -47,13 +47,7 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val composableFqn = modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT)?.composableMethodFqn ?: return
 
-    manager.singlePreviewElementFqnFocus = if (isSelected) {
-      composableFqn
-    }
-    else {
-      null
-    }
-    manager.isInteractive = isSelected
+    manager.interactivePreviewElementFqn = if (isSelected) composableFqn else null
   }
 
   override fun update(e: AnActionEvent) {

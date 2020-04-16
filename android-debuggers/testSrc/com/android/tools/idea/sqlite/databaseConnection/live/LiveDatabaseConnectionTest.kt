@@ -35,6 +35,7 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
+import junit.framework.TestCase
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -163,11 +164,11 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     assertEquals("column4", sqliteColumns[3].name)
     assertEquals("column5", sqliteColumns[4].name)
 
-    assertEquals(SqliteAffinity.TEXT, sqliteColumns[0].affinity)
-    assertEquals(SqliteAffinity.TEXT, sqliteColumns[1].affinity)
-    assertEquals(SqliteAffinity.TEXT, sqliteColumns[2].affinity)
-    assertEquals(SqliteAffinity.TEXT, sqliteColumns[3].affinity)
-    assertEquals(SqliteAffinity.TEXT, sqliteColumns[4].affinity)
+    assertNull(sqliteColumns[0].affinity)
+    assertNull(sqliteColumns[1].affinity)
+    assertNull(sqliteColumns[2].affinity)
+    assertNull(sqliteColumns[3].affinity)
+    assertNull(sqliteColumns[4].affinity)
 
     assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
     assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(1f.toString()))

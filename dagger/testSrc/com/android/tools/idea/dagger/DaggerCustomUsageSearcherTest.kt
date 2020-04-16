@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.parentOfType
 
@@ -496,6 +497,205 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyComponent (1 usage)
       |      getMyClass() (1 usage)
       |       6MyClass getMyClass();
+      """.trimMargin()
+    )
+  }
+
+  fun testUsagesForModules() {
+    val moduleFile = myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+        import dagger.Module;
+
+        @Module
+        class MyModule {}
+      """.trimIndent()
+    ).containingFile.virtualFile
+
+    // Java Component
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {}
+    """.trimIndent()
+    )
+
+    // Kotlin Component
+    myFixture.addFileToProject("test/MyComponentKt.kt",
+      //language=kotlin
+                               """
+      package test
+      import dagger.Component
+
+      @Component(modules = [MyModule::class])
+      interface MyComponentKt
+    """.trimIndent()
+    )
+
+    // Java Module
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+        import dagger.Module;
+
+        @Module(includes = { MyModule.class })
+        class MyModule2 {}
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(moduleFile)
+    val module = myFixture.moveCaret("class MyMod|ule {}").parentOfType<PsiClass>()!!
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(module)
+
+    assertThat(presentation).contains(
+      """
+      |  Dependency component(s) (2 usages)
+      |   ${myFixture.module.name} (2 usages)
+      |    test (2 usages)
+      |     MyComponent.java (1 usage)
+      |      5public interface MyComponent {}
+      |     MyComponentKt.kt (1 usage)
+      |      5interface MyComponentKt
+      |  Dependency modules(s) (1 usage)
+      |   ${myFixture.module.name} (1 usage)
+      |    test (1 usage)
+      |     MyModule2.java (1 usage)
+      |      5class MyModule2 {}
+      """.trimMargin()
+    )
+  }
+
+  fun testDependantComponentsForComponent() {
+    // Java Component
+    val componentFile = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component
+      public interface MyComponent {}
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    // Kotlin Component
+    myFixture.addFileToProject(
+      "test/MyDependantComponent.kt",
+      //language=kotlin
+      """
+      package test
+      import dagger.Component
+
+      @Component(dependencies = [MyComponent::class])
+      interface MyDependantComponent
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(componentFile)
+    val component = myFixture.moveCaret("MyCompon|ent {}").parentOfType<PsiClass>()!!
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
+
+    assertThat(presentation).contains(
+      """
+      |  Dependency component(s) (1 usage)
+      |   ${myFixture.module.name} (1 usage)
+      |    test (1 usage)
+      |     MyDependantComponent.kt (1 usage)
+      |      5interface MyDependantComponent
+      """.trimMargin()
+    )
+  }
+
+  fun testParentsForSubcomponent() {
+    // Java Subomponent
+    val subcomponentFile = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Subcomponent;
+
+      @Subcomponent
+      public interface MySubcomponent {
+        @Subcomponent.Builder
+          interface Builder {}
+      }
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+
+        import dagger.Module;
+
+        @Module(subcomponents = { MySubcomponent.class })
+        class MyModule { }
+      """.trimIndent()
+    )
+
+    // Java Component
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {}
+    """.trimIndent()
+    )
+
+    // Java Component
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component
+      public interface MyComponentWithBuilder {
+        MySubcomponent.Builder componentBuilder();
+      }
+    """.trimIndent()
+    )
+
+    // Kotlin Component
+    myFixture.addFileToProject(
+      "test/MyComponentKt.kt",
+      //language=kotlin
+      """
+      package test
+      import dagger.Component
+
+      @Component
+      interface MyComponentKt {
+         fun getSubcomponent():MySubcomponent
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(subcomponentFile)
+    val component = myFixture.moveCaret("MySubcompon|ent").parentOfType<PsiClass>()!!
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
+
+    assertThat(presentation).contains(
+      """
+      |  Dependency component(s) (3 usages)
+      |   ${myFixture.module.name} (3 usages)
+      |    test (3 usages)
+      |     MyComponent.java (1 usage)
+      |      5public interface MyComponent {}
+      |     MyComponentWithBuilder.java (1 usage)
+      |      5public interface MyComponentWithBuilder {
+      |     MyComponentKt.kt (1 usage)
+      |      5interface MyComponentKt {
       """.trimMargin()
     )
   }

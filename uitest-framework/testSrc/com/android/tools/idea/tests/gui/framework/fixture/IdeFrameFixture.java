@@ -364,6 +364,16 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public IdeFrameFixture invokeAndWaitForBuildAction(@NotNull String... menuPath) {
+    return invokeAndWaitForBuildAction(null, menuPath);
+  }
+
+  @NotNull
+  public IdeFrameFixture invokeAndWaitForBuildAction(@Nullable Wait wait, @NotNull String... menuPath) {
+    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath(menuPath));
+  }
+
+  @NotNull
   public IdeFrameFixture actAndWaitForBuildToFinish(@NotNull Consumer<IdeFrameFixture> actions) {
     return actAndWaitForBuildToFinish(null, actions);
   }
@@ -374,17 +384,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Project project = getProject();
     actions.accept(this);
 
-    waitForIdle();
-    GuiTests.waitForProjectIndexingToFinish(getProject());
-    GuiTests.waitForBackgroundTasks(robot());
-
     (wait != null ? wait : Wait.seconds(60))
       .expecting("build '" + project.getName() + "' to finish")
       .until(() -> myGradleProjectEventListener.getLastBuildTimestamp() > beforeStartedTimeStamp);
 
-    waitForIdle();
     GuiTests.waitForProjectIndexingToFinish(getProject());
     GuiTests.waitForBackgroundTasks(robot());
+    waitForIdle();
     return this;
   }
 
@@ -489,9 +495,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     IdeFrameFixture ideFixture = ideFrame.get();
     Project project = ideFixture.getProject();
 
-    waitForIdle();
+    // Wait for indexing to complete to add additional waiting time if indexing (up to 120 seconds). Otherwise, sync timeout may expire
+    // too soon.
     GuiTests.waitForProjectIndexingToFinish(ideFixture.getProject());
-    GuiTests.waitForBackgroundTasks(ideFixture.robot());
 
     (waitForSync != null ? waitForSync : Wait.seconds(60))
       .expecting("syncing project '" + project.getName() + "' to finish")
@@ -502,9 +508,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       fail("Sync failed. See logs.");
     }
 
-    waitForIdle();
     GuiTests.waitForProjectIndexingToFinish(ideFixture.getProject());
     GuiTests.waitForBackgroundTasks(ideFixture.robot());
+    waitForIdle();
     return ideFixture;
   }
 

@@ -20,8 +20,8 @@ import com.android.tools.idea.concurrency.executeAsync
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
-import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -47,7 +47,7 @@ class JdbcSqliteResultSet(
           val columnName = metaData.getColumnName(i)
 
           val keyColumnsNames = connection.getColumnNamesInPrimaryKey(tableName)
-          SqliteColumn(
+          ResultSetSqliteColumn(
             metaData.getColumnName(i),
             SqliteAffinity.fromJDBCType(JDBCType.valueOf(metaData.getColumnType(i))),
             metaData.isNullable(i) == 1,
@@ -100,7 +100,7 @@ class JdbcSqliteResultSet(
   }
 
   @WorkerThread
-  private fun createCurrentRow(resultSet: ResultSet, columns: List<SqliteColumn>): SqliteRow {
+  private fun createCurrentRow(resultSet: ResultSet, columns: List<ResultSetSqliteColumn>): SqliteRow {
     return SqliteRow(columns.mapIndexed { i, column -> SqliteColumnValue(column.name, SqliteValue.fromAny(resultSet.getObject(i + 1))) })
   }
 

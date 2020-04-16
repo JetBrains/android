@@ -21,8 +21,7 @@ import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
-import com.android.tools.idea.sqlite.model.SqliteAffinity
-import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
@@ -45,7 +44,7 @@ class LiveSqliteResultSet(
   private val taskExecutor: Executor
 ) : SqliteResultSet {
 
-  override val columns: ListenableFuture<List<SqliteColumn>> get() {
+  override val columns: ListenableFuture<List<ResultSetSqliteColumn>> get() {
     val queryCommand = buildQueryCommand(sqliteStatement, connectionId)
     val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
 
@@ -57,10 +56,7 @@ class LiveSqliteResultSet(
       }
 
       return@transform response.query.columnNamesList.map { columnName ->
-        // TODO(b/150937705): add support for primary keys
-        // TODO(b/150937705): add support for NOT NULL
-        // TODO(b/150937705): we need to get affinity info from the on device inspector.
-        SqliteColumn(columnName, SqliteAffinity.TEXT, false, false)
+        ResultSetSqliteColumn(columnName, null, null, null)
       }
     }.cancelOnDispose(this)
   }

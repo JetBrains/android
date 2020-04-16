@@ -22,6 +22,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.SystemIndependent
 import org.junit.AssumptionViolatedException
 import org.junit.Ignore
 import org.junit.runner.Description
@@ -33,15 +34,15 @@ import java.io.File
  * To use it, simply set the path to the target project using the provided [fixture] (see
  * [CodeInsightTestFixture.setTestDataPath]) and then [load] the project.
  */
-class AndroidGradleProjectRule : NamedExternalResource() {
+class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndependent String = "tools/adt/idea/android/testData") : NamedExternalResource() {
   /**
    * This rule is a thin wrapper around [AndroidGradleTestCase], which we delegate to to handle any
    * heavy lifting.
    */
   @Ignore // TestCase used here for its internal logic, not to run tests. Tests will be run by the class that uses this rule.
-  private class DelegateGradleTestCase : AndroidGradleTestCase() {
+  private inner class DelegateGradleTestCase : AndroidGradleTestCase() {
     val fixture: CodeInsightTestFixture get() = myFixture
-    val androidFacet: AndroidFacet get() = myAndroidFacet
+    override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = workspaceRelativeTestDataPath
 
     fun invokeTasks(project: Project, vararg tasks: String): GradleInvocationResult {
       return AndroidGradleTestCase.invokeGradleTasks(project, *tasks)

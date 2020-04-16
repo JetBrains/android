@@ -24,6 +24,8 @@ import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.PhysicalModelValue
+import com.android.emulator.control.SnapshotPackage
+import com.android.emulator.control.SnapshotServiceGrpc
 import com.android.emulator.control.VmRunState
 import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
@@ -53,9 +55,10 @@ import java.util.concurrent.atomic.AtomicReference
  */
 class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposable) : Disposable {
   private var channel: ManagedChannel? = null
-  @Volatile private var emulatorControllerInternal: EmulatorControllerGrpc.EmulatorControllerStub? = null
+  @Volatile private var emulatorControllerStub: EmulatorControllerGrpc.EmulatorControllerStub? = null
+  @Volatile private var snapshotServiceStub: SnapshotServiceGrpc.SnapshotServiceStub? = null
   @Volatile private var emulatorConfigInternal: EmulatorConfiguration? = null
-  @Volatile private var skinDefinitionInternal: SkinDefinition? = null
+  @Volatile internal var skinDefinition: SkinDefinition? = null
   private var stateInternal = AtomicReference(ConnectionState.NOT_INITIALIZED)
   private val connectionStateListeners: ConcurrentList<ConnectionStateListener> = ContainerUtil.createConcurrentList()
   private val connectivityStateWatcher = object : Runnable {
@@ -96,18 +99,18 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
   private var emulatorController: EmulatorControllerGrpc.EmulatorControllerStub
     get() {
-      return emulatorControllerInternal ?: throwNotYetConnected()
+      return emulatorControllerStub ?: throwNotYetConnected()
     }
     private inline set(stub) {
-      emulatorControllerInternal = stub
+      emulatorControllerStub = stub
     }
 
-  internal var skinDefinition: SkinDefinition?
+  private var snapshotService: SnapshotServiceGrpc.SnapshotServiceStub
     get() {
-      return skinDefinitionInternal ?: throwNotYetConnected()
+      return snapshotServiceStub ?: throwNotYetConnected()
     }
-    private inline set(value) {
-      skinDefinitionInternal = value
+    private inline set(stub) {
+      snapshotServiceStub = stub
     }
 
   init {
@@ -125,22 +128,41 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
-   * Establishes a connection to the Emulator. The process of establishing connection is asynchronous,
-   * but the synchronous part of this method also takes considerable time.
+   * Establishes a connection to the Emulator. The process of establishing a connection is partially
+   * asynchronous, but the synchronous part of this method also takes considerable time.
    */
   @Slow
   fun connect() {
+    val maxInboundMessageSize: Int
+    if (emulatorId.avdFolder != null) {
+      val config = EmulatorConfiguration.readAvdDefinition(emulatorId.avdId, emulatorId.avdFolder)
+      if (config == null) {
+        // The error has already been logged.
+        connectionState = ConnectionState.DISCONNECTED
+        return
+      }
+      emulatorConfig = config
+      skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(config.skinFolder)
+
+      // TODO: Change 4 to 3 after b/150494232 is fixed.
+      maxInboundMessageSize = config.displayWidth * config.displayWidth * 4 + 100
+    }
+    else {
+      maxInboundMessageSize = 20 * 1024 * 1024
+    }
+
     connectionState = ConnectionState.CONNECTING
     val channel = NettyChannelBuilder
       .forAddress("localhost", emulatorId.grpcPort)
       .usePlaintext() // TODO(sprigogin): Add proper authentication.
-      .maxInboundMessageSize(20 * 1024 * 1024)
+      .maxInboundMessageSize(maxInboundMessageSize)
       .compressorRegistry(CompressorRegistry.newEmptyInstance()) // Disable data compression.
       .decompressorRegistry(DecompressorRegistry.emptyInstance())
       .build()
-    emulatorController = EmulatorControllerGrpc.newStub(channel)
-    channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
     this.channel = channel
+    emulatorController = EmulatorControllerGrpc.newStub(channel)
+    snapshotService = SnapshotServiceGrpc.newStub(channel)
+    channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
     fetchConfiguration()
   }
 
@@ -227,18 +249,24 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   private fun fetchConfiguration() {
     val responseObserver = object : DummyStreamObserver<EmulatorStatus>() {
       override fun onNext(response: EmulatorStatus) {
-        val config = EmulatorConfiguration.fromHardwareConfig(response.hardwareConfig!!)
-        if (config == null) {
-          LOG.warn("Incomplete hardware configuration")
-          connectionState = ConnectionState.DISCONNECTED
+        // TODO: Simplify this code after b/152438029 is fixed.
+        if (emulatorConfigInternal == null) {
+          val config = EmulatorConfiguration.fromHardwareConfig(response.hardwareConfig!!)
+          if (config == null) {
+            LOG.warn("Incomplete hardware configuration")
+            connectionState = ConnectionState.DISCONNECTED
+          }
+          else {
+            emulatorConfig = config
+            // Asynchronously read skin definition.
+            ApplicationManager.getApplication().executeOnPooledThread {
+              skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(config.skinFolder)
+              connectionState = ConnectionState.CONNECTED
+            }
+          }
         }
         else {
-          emulatorConfig = config
-          // Asynchronously read skin definition.
-          ApplicationManager.getApplication().executeOnPooledThread {
-            skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(config.avdFolder)
-            connectionState = ConnectionState.CONNECTED
-          }
+          connectionState = ConnectionState.CONNECTED
         }
       }
 
@@ -251,6 +279,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       LOG.info("getStatus()")
     }
     emulatorController.getStatus(Empty.getDefaultInstance(), responseObserver)
+  }
+
+  fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getDummyObserver()) {
+    val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("saveSnapshot(${shortDebugString(snapshot)})")
+    }
+    snapshotService.saveSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getSaveSnapshotMethod()))
   }
 
   private fun throwNotYetConnected(): Nothing {

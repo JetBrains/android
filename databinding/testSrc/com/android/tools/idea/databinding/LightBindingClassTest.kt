@@ -701,6 +701,49 @@ class LightBindingClassTest {
   }
 
   @Test
+  fun bindingCacheReturnsConsistentValuesIfResourcesDontChange() {
+    val bindingCache = LayoutBindingModuleCache.getInstance(facet)
+
+    // We want to initialize resources but NOT add a data binding layout file yet. This will ensure
+    // we test the case where there are no layout resource files in the project yet.
+    fixture.addFileToProject(
+      "res/values/strings.xml",
+      // language=XML
+      """
+        <resources>
+          <string name="app_name">DummyAppName</string>
+        </resources>
+      """.trimIndent()
+    )
+
+    // language=XML
+    val dummyXml = """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout />
+      </layout>
+      """.trimIndent()
+
+    val noResourcesGroups = bindingCache.bindingLayoutGroups
+    assertThat(noResourcesGroups.size).isEqualTo(0)
+    assertThat(noResourcesGroups).isSameAs(bindingCache.bindingLayoutGroups)
+
+    fixture.addFileToProject("res/layout/activity_first.xml", dummyXml)
+
+    val oneResourceGroups = bindingCache.bindingLayoutGroups
+    assertThat(oneResourceGroups.size).isEqualTo(1)
+    assertThat(oneResourceGroups).isNotSameAs(noResourcesGroups)
+    assertThat(oneResourceGroups).isSameAs(bindingCache.bindingLayoutGroups)
+
+    fixture.addFileToProject("res/layout/activity_second.xml", dummyXml)
+    val twoResourcesGroups = bindingCache.bindingLayoutGroups
+    assertThat(twoResourcesGroups.size).isEqualTo(2)
+    assertThat(twoResourcesGroups).isNotSameAs(noResourcesGroups)
+    assertThat(twoResourcesGroups).isNotSameAs(oneResourceGroups)
+    assertThat(twoResourcesGroups).isSameAs(bindingCache.bindingLayoutGroups)
+  }
+
+  @Test
   fun bindingCacheRecoversAfterExitingDumbMode() {
     // language=XML
     val dummyXml = """

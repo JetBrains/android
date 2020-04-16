@@ -16,30 +16,29 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.StubTestAppInspectorClient
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
-import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.TEST_JAR
 import com.intellij.openapi.project.Project
-import org.mockito.Mockito.mock
 import javax.swing.JPanel
 
 /**
  * A dummy provider, of which we plan to create multiple instances of, to test that an app inspection view can own multiple tabs.
  */
-class StubTestAppInspectorTabProvider : AppInspectorTabProvider {
-  override val inspectorId = INSPECTOR_ID
+class StubTestAppInspectorTabProvider(override val inspectorId: String) : AppInspectorTabProvider {
   override val displayName = "TEST"
   override val inspectorAgentJar = TEST_JAR
 
-  override fun createTab(project: Project, messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
+  override fun createTab(
+    project: Project,
+    messenger: AppInspectorClient.CommandMessenger,
+    appInspectionCallbacks: AppInspectionCallbacks
+  ): AppInspectorTab {
     return object : AppInspectorTab {
       override val client: AppInspectorClient = StubTestAppInspectorClient(messenger)
       override val component = JPanel()
     }
   }
-}
-
-class StubTestAppInspectorClient(messenger: CommandMessenger) : AppInspectorClient(messenger) {
-  override val eventListener: EventListener = mock(EventListener::class.java)
 }

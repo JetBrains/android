@@ -18,12 +18,12 @@ package com.android.tools.idea.layoutinspector.legacydevice
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.PropertySetterRule
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
+import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Rule
@@ -34,7 +34,6 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
-@org.junit.Ignore("b/150701560")
 class LegacyClientTest {
   @get:Rule
   val adbRule = FakeAdbRule()
@@ -42,13 +41,16 @@ class LegacyClientTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
+
+  @get:Rule
+  val clientFactoryRule = PropertySetterRule(
+    { _, parentDisposable -> listOf(LegacyClient(parentDisposable)) },
+    InspectorClient.Companion::clientFactory)
+
   @Test
   fun testReloadAllWindows() {
     val inspector = LayoutInspector(InspectorModel(projectRule.project), projectRule.fixture.projectDisposable)
     val client = inspector.allClients.firstIsInstance<LegacyClient>()
-
-    // we don't need the default poller--stop it so it doesn't leak
-    TransportEventPoller.stopPoller(inspector.allClients.firstIsInstance<DefaultInspectorClient>().transportPoller)
 
     val loader = mock(LegacyTreeLoader::class.java)
     `when`(loader.getAllWindowIds(ArgumentMatchers.any(), eq(client))).thenReturn(listOf("window1", "window2", "window3"))
@@ -67,9 +69,6 @@ class LegacyClientTest {
   fun testReloadAllWindowsWithNone() {
     val inspector = LayoutInspector(InspectorModel(projectRule.project), projectRule.fixture.projectDisposable)
     val client = inspector.allClients.firstIsInstance<LegacyClient>()
-
-    // we don't need the default poller--stop it so it doesn't leak
-    TransportEventPoller.stopPoller(inspector.allClients.firstIsInstance<DefaultInspectorClient>().transportPoller)
 
     val loader = mock(LegacyTreeLoader::class.java)
     `when`(loader.getAllWindowIds(ArgumentMatchers.any(), eq(client))).thenReturn(emptyList())

@@ -18,6 +18,7 @@ package com.android.tools.idea.transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -25,17 +26,25 @@ import org.jetbrains.annotations.NotNull;
  */
 public class TransportClient {
 
+  private static final long SHUTDOWN_TIMEOUT_MS = 1000;
+
   @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myTransportStub;
+  @NotNull private final ManagedChannel myChannel;
 
   public TransportClient(String channelName) {
     // Optimization - In-process direct-executor channel which allows us to communicate between the client and transport-database without
     // going through the thread pool. This gives us a speed boost per grpc call plus the full caller's stack in transport-database.
-    ManagedChannel channel = InProcessChannelBuilder.forName(channelName).usePlaintext().directExecutor().build();
-    myTransportStub = TransportServiceGrpc.newBlockingStub(channel);
+    myChannel = InProcessChannelBuilder.forName(channelName).usePlaintext().directExecutor().build();
+    myTransportStub = TransportServiceGrpc.newBlockingStub(myChannel);
   }
 
   @NotNull
   public TransportServiceGrpc.TransportServiceBlockingStub getTransportStub() {
     return myTransportStub;
+  }
+
+  public void shutdown() throws InterruptedException {
+    myChannel.shutdown();
+    myChannel.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
   }
 }

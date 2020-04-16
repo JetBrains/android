@@ -35,14 +35,14 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.FieldObject;
-import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import com.android.tools.profilers.memory.adapters.ValueObject;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.instanceviewers.BitmapViewer;
 import com.android.tools.profilers.memory.instanceviewers.InstanceViewer;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -51,8 +51,10 @@ import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBEmptyBorder;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.ArrayList;
@@ -65,6 +67,7 @@ import java.util.function.LongFunction;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTree;
 import javax.swing.SortOrder;
@@ -124,10 +127,13 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     myAllocationStackTraceView = ideProfilerComponents.createStackView(stage.getAllocationStackTraceModel());
     myDeallocationStackTraceView = ideProfilerComponents.createStackView(stage.getDeallocationStackTraceModel());
 
-    myTitle.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, DEFAULT_BORDER_COLOR));
+    JPanel titleWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    titleWrapper.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, DEFAULT_BORDER_COLOR));
+    myTitle.setBorder(new JBEmptyBorder(4, 0, 4, 0));
+    titleWrapper.add(myTitle);
     myPanel.add(myTabsPanel, BorderLayout.CENTER);
     if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
-      myPanel.add(myTitle, BorderLayout.NORTH);
+      myPanel.add(titleWrapper, BorderLayout.NORTH);
     }
 
     myInstanceViewers.add(new BitmapViewer());

@@ -15,20 +15,24 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
+
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.UsageTracker;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AvdLaunchEvent;
+import com.google.wireless.android.sdk.stats.AvdLaunchEvent.AvdClass;
+import com.google.wireless.android.sdk.stats.AvdLaunchEvent.LaunchType;
 import com.google.wireless.android.sdk.stats.DeviceInfo;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessListener;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EmulatorRunner {
   private final GeneralCommandLine myCommandLine;
@@ -42,6 +46,10 @@ public class EmulatorRunner {
     AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
       .setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
       .setKind(AndroidStudioEvent.EventKind.DEPLOYMENT_TO_EMULATOR);
+
+    event.setAvdLaunchEvent(AvdLaunchEvent.newBuilder()
+                              .setLaunchType(getLaunchType(commandLine))
+                              .setAvdClass(getAvdClass(avdInfo)));
 
     if (avdInfo != null) {
       event.setDeviceInfo(DeviceInfo.newBuilder()
@@ -70,5 +78,31 @@ public class EmulatorRunner {
     else {
       myExtraListeners.add(listener);
     }
+  }
+
+  @NotNull
+  private static LaunchType getLaunchType(@NotNull GeneralCommandLine commandLine) {
+    return commandLine.getParametersList().getParameters().contains("-no-window") ? LaunchType.IN_TOOL_WINDOW : LaunchType.STANDALONE;
+  }
+
+  @NotNull
+  private static AvdClass getAvdClass(@Nullable AvdInfo avdInfo) {
+    if (avdInfo == null) {
+      return AvdClass.UNKNOWN_AVD_CLASS;
+    }
+    String tag = avdInfo.getProperty(AVD_INI_TAG_ID);
+    if ("android-tv".equals(tag)) {
+      return AvdClass.TV;
+    }
+    if ("android-automotive".equals(tag)) {
+      return AvdClass.AUTOMOTIVE;
+    }
+    if ("android-wear".equals(tag)) {
+      return AvdClass.WEARABLE;
+    }
+    if (avdInfo.getProperty("hw.displayRegion.0.1.width") != null) {
+      return AvdClass.FOLDABLE;
+    }
+    return AvdClass.GENERIC;
   }
 }

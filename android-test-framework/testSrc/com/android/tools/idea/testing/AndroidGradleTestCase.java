@@ -21,7 +21,9 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getSdk;
+import static com.android.testutils.TestUtils.getWorkspaceRoot;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertAbout;
@@ -30,7 +32,6 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
@@ -44,7 +45,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -79,6 +79,7 @@ import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.annotations.SystemIndependent;
 
 /**
@@ -92,7 +93,7 @@ import org.jetbrains.annotations.SystemIndependent;
  * also providing a more compositional approach - instead of your test class inheriting dozens and
  * dozens of methods you might not be familiar with, those methods will be constrained to the rule.
  */
-public abstract class AndroidGradleTestCase extends AndroidTestBase {
+public abstract class AndroidGradleTestCase extends AndroidTestBase implements GradleIntegrationTest {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);
 
   protected AndroidFacet myAndroidFacet;
@@ -158,7 +159,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   public void setUpFixture(IdeaProjectTestFixture projectFixture) throws Exception {
     JavaCodeInsightTestFixture fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectFixture);
     fixture.setUp();
-    fixture.setTestDataPath(getTestDataPath());
+    fixture.setTestDataPath(new File(getWorkspaceRoot(), getTestDataDirectoryWorkspaceRelativePath()).getCanonicalPath());
     ensureSdkManagerAvailable();
 
     Project project = fixture.getProject();
@@ -259,7 +260,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
                                    @Nullable String gradleVersion,
                                    @Nullable String gradlePluginVersion,
                                    @Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
-    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, getAdditionalRepos().toArray(new File[0]));
+    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion);
     importProject(issueFilter);
 
     prepareProjectForTest(getProject(), chosenModuleName);
@@ -268,6 +269,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   /**
    * @return a collection of absolute paths to additional local repositories required by the test.
    */
+  @Override
   public Collection<File> getAdditionalRepos() {
     return ImmutableList.of();
   }
@@ -285,37 +287,41 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   protected void patchPreparedProject(@NotNull File projectRoot,
                                       @Nullable String gradleVersion,
                                       @Nullable String gradlePluginVersion,
-                                      File... localRepos)
-    throws IOException {
+                                      File... localRepos) throws IOException {
     AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion, localRepos);
   }
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath) throws IOException {
-    return prepareProjectForImport(relativePath, null, null, getAdditionalRepos().toArray(new File[0]));
+    return prepareProjectForImport(relativePath, null, null);
   }
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @Nullable String gradleVersion,
-                                         @Nullable String gradlePluginVersion, File... localRepos) throws IOException {
+                                         @Nullable String gradlePluginVersion) throws IOException {
     File projectSourceRoot = resolveTestDataPath(relativePath);
     File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
 
-    AndroidGradleTests.validateGradleProjectSource(projectSourceRoot);
-    AndroidGradleTests.prepareProjectForImportCore(projectSourceRoot, projectRoot, file ->
-      patchPreparedProject(file, gradleVersion, gradlePluginVersion, localRepos)
-    );
+    prepareGradleProject(
+      projectSourceRoot,
+      projectRoot,
+      file -> patchPreparedProject(file, gradleVersion, gradlePluginVersion, getAdditionalRepos().toArray(new File[0])));
     return projectRoot;
   }
 
   @NotNull
-  public File resolveTestDataPath(@NotNull @SystemIndependent String relativePath) {
-    File root = new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
-    if (!root.exists()) {
-      root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
-    }
-    return root;
+  @Override
+  @SystemIndependent
+  public String getTestDataDirectoryWorkspaceRelativePath() {
+    return "tools/adt/idea/android/testData";
   }
+
+  @NotNull
+  @Override
+  public File resolveTestDataPath(@NotNull @SystemIndependent String relativePath) {
+    return new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
+  }
+
 
   protected void generateSources() throws InterruptedException {
     GradleInvocationResult result = invokeGradle(getProject(), GradleBuildInvoker::generateSources);
@@ -452,5 +458,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   protected TestGradleSyncListener requestSync(@NotNull GradleSyncInvoker.Request request) throws Exception {
     refreshProjectFiles();
     return AndroidGradleTests.syncProject(getProject(), request);
+  }
+
+  @Override
+  @SystemDependent
+  @NotNull
+  public String getBaseTestPath() {
+    return myFixture.getTempDirPath();
   }
 }

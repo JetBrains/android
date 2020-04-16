@@ -31,10 +31,22 @@ import java.awt.event.KeyListener;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.adtui.workbench.ToolWindowDefinition.ALLOW_ALL;
 import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE;
 
 class PalettePanelToolContent implements ToolContent<String> {
   public static final int MIN_TOOL_WIDTH = 310;
+
+  private final static ToolWindowDefinition<String> ourDefinition = new ToolWindowDefinition<>(
+    "Palette", AllIcons.Toolwindows.ToolWindowPalette, "PALETTE", Side.LEFT, Split.TOP, AutoHide.DOCKED,
+    MIN_TOOL_WIDTH, DEFAULT_MINIMUM_BUTTON_SIZE, ALLOW_ALL, PalettePanelToolContent::new);
+  private final static ToolWindowDefinition<String> ourOtherDefinition = new ToolWindowDefinition<>(
+    "Other", AllIcons.Toolwindows.ToolWindowHierarchy, "OTHER", Side.RIGHT, Split.BOTTOM, AutoHide.DOCKED,
+    MIN_TOOL_WIDTH, DEFAULT_MINIMUM_BUTTON_SIZE, ALLOW_ALL, PalettePanelToolContent::new);
+  private final static ToolWindowDefinition<String> ourThirdDefinition = new ToolWindowDefinition<>(
+    "Other", AllIcons.Toolwindows.ToolWindowAnt, "THIRD", Side.RIGHT, Split.TOP, AutoHide.DOCKED,
+    MIN_TOOL_WIDTH, DEFAULT_MINIMUM_BUTTON_SIZE, ALLOW_ALL, PalettePanelToolContent::new);
+
   private final AnAction myGearAction;
   private final AnAction myAdditionalAction;
   private final JComponent myComponent;
@@ -68,21 +80,15 @@ class PalettePanelToolContent implements ToolContent<String> {
   }
 
   public static ToolWindowDefinition<String> getDefinition() {
-    return new ToolWindowDefinition<>(
-      "Palette", AllIcons.Toolwindows.ToolWindowPalette, "PALETTE", Side.LEFT, Split.TOP, AutoHide.DOCKED,
-      MIN_TOOL_WIDTH, DEFAULT_MINIMUM_BUTTON_SIZE, PalettePanelToolContent::new);
+    return ourDefinition;
   }
 
   public static ToolWindowDefinition<String> getOtherDefinition() {
-    return new ToolWindowDefinition<>(
-      "Other", AllIcons.Toolwindows.ToolWindowHierarchy, "OTHER", Side.RIGHT, Split.BOTTOM, AutoHide.DOCKED,
-      MIN_TOOL_WIDTH, DEFAULT_MINIMUM_BUTTON_SIZE, PalettePanelToolContent::new);
+    return ourOtherDefinition;
   }
 
   public static ToolWindowDefinition<String> getThirdDefinition() {
-    return new ToolWindowDefinition<>(
-      "Other", AllIcons.Toolwindows.ToolWindowAnt, "THIRD", Side.RIGHT, Split.TOP, AutoHide.DOCKED,
-      MIN_TOOL_WIDTH, DEFAULT_MINIMUM_BUTTON_SIZE, PalettePanelToolContent::new);
+    return ourThirdDefinition;
   }
 
   public void restore() {

@@ -19,15 +19,18 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_AUTO_VERIFY;
 import static com.android.SdkConstants.TAG_DEEP_LINK;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.EnabledProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.NavEditorEvent;
@@ -64,6 +67,9 @@ public class AddDeeplinkDialog extends DialogWrapper {
   @NotNull private final NlComponent myParent;
 
   private final BindingsManager myBindings = new BindingsManager();
+  private final boolean myIsExtended;
+
+  private static final GradleVersion EXTENDED_VERSION = new GradleVersion(2, 3);
 
   public AddDeeplinkDialog(@Nullable NlComponent existing, @NotNull NlComponent parent) {
     super(false);
@@ -86,7 +92,9 @@ public class AddDeeplinkDialog extends DialogWrapper {
     myExistingComponent = existing;
     myParent = parent;
 
-    if (StudioFlags.NAV_DEEP_LINK_EXTENDED.get()) {
+    myIsExtended = isExtended(parent);
+
+    if (myIsExtended) {
       // Only enable the auto verify field if the uri is not empty
       ObservableBool isNotEmpty = new TextProperty(myUriField).isEmpty().not();
       myBindings.bind(new EnabledProperty(myAutoVerify), isNotEmpty);
@@ -122,7 +130,7 @@ public class AddDeeplinkDialog extends DialogWrapper {
     }
 
     if (uri.isEmpty() && mimeType.isEmpty() && myActionField.getText().isEmpty()) {
-      String text = StudioFlags.NAV_DEEP_LINK_EXTENDED.get()
+      String text = myIsExtended
                     ? "Uri, MIME type, and action cannot all be empty."
                     : "URI must be set!";
       return new ValidationInfo(text, myUriField);
@@ -190,5 +198,20 @@ public class AddDeeplinkDialog extends DialogWrapper {
       NavComponentHelperKt.setDeeplinkMimeTypeAndLog(realComponent, getMimeType(), NavEditorEvent.Source.PROPERTY_INSPECTOR);
       NavComponentHelperKt.setDeeplinkActionAndLog(realComponent, getAction(), NavEditorEvent.Source.PROPERTY_INSPECTOR);
     });
+  }
+
+  private static boolean isExtended(@NotNull NlComponent parent) {
+    if (StudioFlags.NAV_DEEP_LINK_EXTENDED.get()) {
+      return true;
+    }
+
+    GradleVersion version = NlDependencyManager
+      .getInstance().getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON, parent.getModel().getFacet());
+
+    if (version == null) {
+      return true;
+    }
+
+    return version.compareTo(EXTENDED_VERSION) >= 0;
   }
 }

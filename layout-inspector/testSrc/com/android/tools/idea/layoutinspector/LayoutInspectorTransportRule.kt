@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
@@ -47,6 +46,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.AgentData.Status.UNATTACHABLE
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -132,6 +132,9 @@ class LayoutInspectorTransportRule(
   private var inspectorClientFactory: () -> InspectorClient = {
     DefaultInspectorClient(inspectorModel, projectRule.fixture.projectDisposable, grpcServer.name, scheduler)
   }
+
+  private var originalClientFactory: ((InspectorModel, Disposable) -> List<InspectorClient>)? = null
+
   private val commandHandlers = mutableMapOf<
     LayoutInspectorProto.LayoutInspectorCommand.Type,
     (Commands.Command, MutableList<Common.Event>) -> Unit>()
@@ -337,9 +340,10 @@ class LayoutInspectorTransportRule(
   private fun before() {
     initialActions.forEach { it() }
     inspectorModel = InspectorModel(project)
+    originalClientFactory = InspectorClient.clientFactory
     inspectorClientFactory.let {
       inspectorClient = it()
-      InspectorClient.clientFactory = { _, _ -> inspectorClient }
+      InspectorClient.clientFactory = { _, _ -> listOf(inspectorClient) }
     }
     inspector = LayoutInspector(inspectorModel, project)
     inspector.currentClient = inspectorClient
@@ -349,10 +353,12 @@ class LayoutInspectorTransportRule(
   }
 
   private fun after() {
+    InspectorClient.clientFactory = originalClientFactory!!
     if (inspectorClient.isConnected) {
       val processDone = CountDownLatch(1)
       inspectorClient.registerProcessChanged { processDone.countDown() }
-      inspectorClient.disconnect()
+      inspectorClient.disconnect().get(10, TimeUnit.SECONDS)
+      grpcServer.channel.shutdown().awaitTermination(10, TimeUnit.SECONDS)
       assertThat(processDone.await(30, TimeUnit.SECONDS)).isTrue()
       if (inspectorClient is DefaultInspectorClient) {
         waitForUnsetSettings()

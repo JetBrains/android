@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering.classloading;
 
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
-import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.isValidClassFile;
 
 import com.android.SdkConstants;
@@ -44,32 +43,31 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor;
 public abstract class RenderClassLoader extends ClassLoader {
   protected static final Logger LOG = Logger.getInstance(RenderClassLoader.class);
 
-  /**
-   * Classes are rewritten by applying the following transformations:
-   * <ul>
-   *   <li>Updates the class file version with a version runnable in the current JDK
-   *   <li>Replaces onDraw, onMeasure and onLayout for custom views
-   * </ul>
-   * Note that it does not attempt to handle cases where class file constructs cannot
-   * be represented in the target version. This is intended for uses such as for example
-   * the Android R class, which is simple and can be converted to pretty much any class file
-   * version, which makes it possible to load it in an IDE layout render execution context
-   * even if it has been compiled for a later version.
-   * <p/>
-   * For custom views (classes that inherit from android.view.View or any widget in android.widget.*)
-   * the onDraw, onMeasure and onLayout methods are replaced with methods that capture any exceptions thrown.
-   * This way we avoid custom views breaking the rendering.
-   */
-  private static final Function<ClassVisitor, ClassVisitor> DEFAULT_TRANSFORMS = visitor ->
-    new ViewMethodWrapperTransform(new VersionClassTransform(visitor, getCurrentClassVersion(), 0));
-
+  private final Function<ClassVisitor, ClassVisitor> myTransformationProvider;
   private final Object myJarClassLoaderLock = new Object();
   @GuardedBy("myJarClassLoaderLock")
   private Supplier<UrlClassLoader> myJarClassLoader = Suppliers.memoize(() -> createJarClassLoader(getExternalJars()));
   protected boolean myInsideJarClassLoader;
 
-  public RenderClassLoader(@Nullable ClassLoader parent) {
+  /**
+   * Creates a new {@link RenderClassLoader}.
+   *
+   * @param parent the parent {@link ClassLoader}
+   * @param transformationProvider a {@link Function} that given a {@link ClassVisitor} returns a new one applying any desired
+   *                               transformation.
+   */
+  public RenderClassLoader(@Nullable ClassLoader parent, @NotNull Function<ClassVisitor, ClassVisitor> transformationProvider) {
     super(parent);
+    myTransformationProvider = transformationProvider;
+  }
+
+  /**
+   * Creates a new {@link RenderClassLoader} with no transformations.
+   *
+   * @param parent the parent {@link ClassLoader}.
+   */
+  public RenderClassLoader(@Nullable ClassLoader parent) {
+    this(parent, Function.identity());
   }
 
   protected abstract List<URL> getExternalJars();
@@ -112,7 +110,7 @@ public abstract class RenderClassLoader extends ClassLoader {
       if (!isValidClassFile(data)) {
         throw new ClassFormatError(name);
       }
-      byte[] rewritten = ClassConverter.rewriteClass(data, DEFAULT_TRANSFORMS);
+      byte[] rewritten = ClassConverter.rewriteClass(data, myTransformationProvider);
       return defineClassAndPackage(name, rewritten, 0, rewritten.length);
     }
     catch (IOException | ClassNotFoundException e) {
@@ -145,7 +143,7 @@ public abstract class RenderClassLoader extends ClassLoader {
       throw new ClassFormatError(fqcn);
     }
 
-    byte[] rewritten = ClassConverter.rewriteClass(data, DEFAULT_TRANSFORMS);
+    byte[] rewritten = ClassConverter.rewriteClass(data, myTransformationProvider);
     try {
       if (LOG.isDebugEnabled()) {
         LOG.debug(String.format("Defining class '%s' from disk file", anonymizeClassName(fqcn)));

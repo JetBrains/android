@@ -192,10 +192,6 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
         statementText = "val ${quotedName} = \"abc\""
         isVarOrProperty = true
       }
-      else if (element.elementType == PropertyType.DERIVED && element is GradleDslExpressionMap) {
-        // This is the case of derived Maps.
-        statementText = "\"${StringUtil.unquoteString(element.name)}\" to \"abc\""
-      }
     }
     else if (element is GradleDslExpressionList) {
       val parentDsl = element.parent
@@ -219,6 +215,10 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       }
       else if (element.name.isEmpty()) {
         statementText += "mapOf()"
+      }
+      else if (element.elementType == PropertyType.DERIVED && element.isLiteralMap) {
+        // This is the case of maps within other maps
+        statementText = "\"${StringUtil.unquoteString(element.name)}\" to \"abc\""
       }
       else {
         statementText += "(mapOf())"

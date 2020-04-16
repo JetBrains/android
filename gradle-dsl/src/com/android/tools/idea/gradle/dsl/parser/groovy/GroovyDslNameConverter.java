@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.convertToExternalTextValue;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.decodeStringLiteral;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getGradleNameForPsiElement;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getPsiElementFactory;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.gradleNameFor;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.quotePartsIfNecessary;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.isStringLiteral;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
@@ -38,16 +38,11 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.lexer.TokenSets;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 
@@ -55,12 +50,14 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
   @NotNull
   @Override
   public String psiToName(@NotNull PsiElement element) {
-    PsiElement child = element.getFirstChild();
-    if (child instanceof LeafPsiElement && child == element.getLastChild() &&
-        TokenSets.STRING_LITERAL_SET.contains(((LeafPsiElement) child).getElementType())) {
-      String text = element.getText();
-      // TODO(xof): the string unescaping here is even worse than usual
-      return GradleNameElement.escape(text.substring(1, text.length() - 1));
+    // TODO(xof): I think that this might be unnecessary once psiToName is implemented in terms of gradleNameFor()
+    //  because the treatment of GrReferenceExpressions may handle escapes in string identifiers
+    //  automatically.
+    if (isStringLiteral(element)) {
+      StringBuilder sb = new StringBuilder();
+      if (decodeStringLiteral(element, sb)) {
+        return GradleNameElement.escape(sb.toString());
+      }
     }
     // TODO(xof): the project-massaging in getGradleNameForPsiElement should be rewritten in gradleNameFor
     return getGradleNameForPsiElement(element);

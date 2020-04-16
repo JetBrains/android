@@ -26,7 +26,7 @@ import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -83,7 +83,7 @@ class TableController(
   /**
    * The list of columns currently shown in the view
    */
-  private var currentCols = emptyList<SqliteColumn>()
+  private var currentCols = emptyList<ResultSetSqliteColumn>()
 
   /**
    * The list of rows that is currently shown in the view.
@@ -254,7 +254,7 @@ class TableController(
   private fun isEditable() = tableSupplier() != null && !liveUpdatesEnabled
 
   private inner class TableViewListenerImpl : TableView.Listener {
-    override fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn) {
+    override fun toggleOrderByColumnInvoked(sqliteColumn: ResultSetSqliteColumn) {
       if (orderBy != null && orderBy!!.column == sqliteColumn) {
         orderBy = OrderBy(sqliteColumn, !orderBy!!.asc)
       } else {
@@ -344,7 +344,7 @@ class TableController(
       databaseInspectorAnalyticsTracker.trackLiveUpdatedToggled(liveUpdatesEnabled)
     }
 
-    override fun updateCellInvoked(targetRowIndex: Int, targetColumn: SqliteColumn, newValue: SqliteValue) {
+    override fun updateCellInvoked(targetRowIndex: Int, targetColumn: ResultSetSqliteColumn, newValue: SqliteValue) {
       val table = tableSupplier()
       if (table == null) {
         view.reportError("Can't update. Table not found.", null)
@@ -401,6 +401,6 @@ class TableController(
   }
 }
 
-data class OrderBy(val column: SqliteColumn, val asc: Boolean)
+data class OrderBy(val column: ResultSetSqliteColumn, val asc: Boolean)
 
 data class TableInfo(val database: SqliteDatabase, val tableName: String)

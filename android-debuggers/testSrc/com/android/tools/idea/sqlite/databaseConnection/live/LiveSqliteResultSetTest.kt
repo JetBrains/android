@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFut
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -35,6 +36,7 @@ import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import java.sql.ResultSet
 
 class LiveSqliteResultSetTest : LightPlatformTestCase() {
   private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
@@ -58,10 +60,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals(
-      listOf(
-        SqliteColumn("col1", SqliteAffinity.TEXT, false, false),
-        SqliteColumn("col2", SqliteAffinity.TEXT, false, false)
-      ),
+      listOf(ResultSetSqliteColumn("col1"), ResultSetSqliteColumn("col2")),
       columnsFromResultSet
     )
   }

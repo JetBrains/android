@@ -13,8 +13,10 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />

@@ -28,6 +28,8 @@ import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.Font
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JPanel
 import javax.swing.border.Border
@@ -57,7 +59,7 @@ class CollapsibleLabelPanel(
 
   private val expandAction = object : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
-      model.expanded = !model.expanded
+      toggle()
     }
   }
 
@@ -96,7 +98,18 @@ class CollapsibleLabelPanel(
       }
       add(buttons, BorderLayout.EAST)
     }
+    label.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(event: MouseEvent) {
+        if (event.clickCount > 1) {
+          toggle()
+        }
+      }
+    })
     valueChanged()
+  }
+
+  private fun toggle() {
+    model.expanded = !model.expanded
   }
 
   private fun valueChanged() {

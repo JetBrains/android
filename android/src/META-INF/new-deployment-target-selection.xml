@@ -32,6 +32,7 @@
     <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>
 
     <projectService serviceImplementation="com.android.tools.idea.run.deployment.AsyncDevicesGetter"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.deployment.ExecutionTargetService"/>
     <projectService serviceImplementation="com.android.tools.idea.run.deployment.SelectedDevicesService"/>
   </extensions>
 </idea-plugin>

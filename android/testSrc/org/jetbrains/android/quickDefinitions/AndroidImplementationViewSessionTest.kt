@@ -15,7 +15,9 @@
  */
 package org.jetbrains.android.quickDefinitions
 
+import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.ShowImplementationsTestUtil
@@ -197,6 +199,39 @@ class AndroidImplementationViewSessionTest : AndroidTestCase() {
     assertThat(implementations).hasLength(2)
     assertThat(implementations.map { (it as PsiImplementationViewElement).psiElement.toString() })
       .containsExactly("PsiBinaryFile:thumbnail.png", "PsiBinaryFile:thumbnail.png")
+  }
+
+  fun testNonTransitiveAarRClassReferenceKotlin() {
+    addAarDependency(myModule, "aarLib", "com.example.aarLib") { resDir ->
+      resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
+        """int color colorPrimary 0x7f010001"""
+      )
+      resDir.resolve("values/colors.xml").writeText(
+        // language=XML
+        """
+        <resources>
+          <color name="colorPrimary">#008577</color>
+        </resources>
+        """.trimIndent()
+      )
+    }
+
+    myFixture.configureFromExistingVirtualFile(myFixture.addFileToProject(
+      "src/p1/p2/MyActivity.kt",
+      //language=kotlin
+      """
+        package p1.p2
+
+        class MyActivity {
+          fun onCreate() {
+            com.example.aarLib.R.color.colorPrimary${caret}
+          }
+        }
+      """.trimIndent()).virtualFile)
+    val implementations = ShowImplementationsTestUtil.getImplementations()
+    assertThat(implementations).hasLength(1)
+    assertThat(implementations.map { ImplementationViewComponent.getNewText(it) })
+      .containsExactly("  <color name=\"colorPrimary\">#008577</color>")
   }
 
   private fun getImplementationsForCompletionObject(lookupElement: LookupElement): Array<ImplementationViewElement> {

@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.analytics
 
 import com.android.tools.idea.common.analytics.setApplicationId
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.run.ApkProvisionException
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import java.util.concurrent.Executor
@@ -43,6 +44,9 @@ class NavUsageTrackerImpl(
     }
     catch (e: RejectedExecutionException) {
       // We are hitting the throttling limit
+    }
+    catch (e: ApkProvisionException) {
+      // ApplicationId is unavailable.
     }
   }
 }

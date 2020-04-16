@@ -18,14 +18,11 @@ package com.android.tools.idea.gradle.dsl.parser.groovy;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.findLastPsiElementIn;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.getNextValidParent;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.removePsiIfInvalid;
-import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
-import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOLON;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOMMA;
 import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.addQuotes;
 import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.escapeStringCharacters;
-import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.removeQuotes;
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
@@ -60,6 +57,7 @@ import com.intellij.psi.impl.CheckUtil;
 import com.intellij.psi.impl.source.codeStyle.CodeEditUtil;
 import com.intellij.psi.impl.source.tree.ChangeUtil;
 import com.intellij.psi.impl.source.tree.TreeElement;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.util.IncorrectOperationException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -72,11 +70,12 @@ import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
-import org.jetbrains.plugins.groovy.lang.psi.GrNamedElement;
+import org.jetbrains.plugins.groovy.lang.lexer.TokenSets;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyTokenSets;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariableDeclaration;
@@ -94,6 +93,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrIndexProperty;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterList;
+import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
 
 public final class GroovyDslUtil {
   @Nullable
@@ -362,9 +362,9 @@ public final class GroovyDslUtil {
     CharSequence unsavedValueText = null;
     if (unsavedValue instanceof String) {
       String stringValue = (String)unsavedValue;
-      if (isQuotedString(stringValue)) {
+      if (StringUtil.isQuotedString(stringValue)) {
         // We need to escape the string without the quotes and then add them back.
-        String unquotedString = removeQuotes(stringValue);
+        String unquotedString = GrStringUtil.removeQuotes(stringValue);
         unsavedValueText = addQuotes(escapeString(unquotedString, true), true);
       }
       else {
@@ -454,6 +454,39 @@ public final class GroovyDslUtil {
     }
   }
 
+  // this is a bit like GrStringUtil.isStringLiteral() but does not rely on the element being a
+  // GrLiteral (because we deal with syntactical forms where the objects are lexically literals
+  // but not grammatical literals, such as the method call named by a string in
+  //   buildTypes {
+  //     'foo' {
+  //        ...
+  //     }
+  //   }
+  public static boolean isStringLiteral(@NotNull PsiElement element) {
+    ASTNode node = getFirstASTNode(element);
+    if (node == null) return false;
+    return TokenSets.STRING_LITERAL_SET.contains(node.getElementType());
+  }
+
+  public static boolean decodeStringLiteral(@NotNull PsiElement element, @NotNull StringBuilder sb) {
+    // extract the portion of text corresponding to the string contents
+    String contents = GrStringUtil.removeQuotes(element.getText());
+
+    // process escapes in the contents appropriately to the token type (like GrLiteralEscaper.decode(),
+    // but as described in the comment above isStringLiteral, we do not have a GrLiteral for all of our uses.)
+    final IElementType elementType = element.getFirstChild().getNode().getElementType();
+    if (GroovyTokenSets.STRING_LITERALS.contains(elementType) || elementType == GroovyTokenTypes.mGSTRING_CONTENT) {
+      return GrStringUtil.parseStringCharacters(contents, sb, null);
+    }
+    else if (elementType == GroovyTokenTypes.mREGEX_LITERAL || elementType == GroovyTokenTypes.mREGEX_CONTENT) {
+      return GrStringUtil.parseRegexCharacters(contents, sb, null, true);
+    }
+    else if (elementType == GroovyTokenTypes.mDOLLAR_SLASH_REGEX_LITERAL || elementType == GroovyTokenTypes.mDOLLAR_SLASH_REGEX_CONTENT) {
+      return GrStringUtil.parseRegexCharacters(contents, sb, null, false);
+    }
+    else return false;
+  }
+
   public static String gradleNameFor(GrExpression expression) {
     final boolean[] allValid = {true};
     StringBuilder result = new StringBuilder();
@@ -470,6 +503,24 @@ public final class GroovyDslUtil {
         if (name != null) {
           result.append(GradleNameElement.escape(name));
         }
+        else {
+          allValid[0] = false;
+        }
+      }
+
+      @Override
+      public void visitIndexProperty(@NotNull GrIndexProperty indexPropertyExpression) {
+        GrExpression invokedExpression = indexPropertyExpression.getInvokedExpression();
+        invokedExpression.accept(this);
+        result.append("[");
+        GrArgumentList argumentList = indexPropertyExpression.getArgumentList();
+        GroovyPsiElement[] arguments = argumentList.getAllArguments();
+        if (arguments.length != 1) {
+          allValid[0] = false;
+          return;
+        }
+        result.append(arguments[0].getText());
+        result.append("]");
       }
 
       @Override
@@ -741,8 +792,8 @@ public final class GroovyDslUtil {
 
   @NotNull
   static String ensureUnquotedText(@NotNull String str) {
-    if (isQuotedString(str)) {
-      str = unquoteString(str);
+    if (StringUtil.isQuotedString(str)) {
+      str = StringUtil.unquoteString(str);
     }
     return str;
   }

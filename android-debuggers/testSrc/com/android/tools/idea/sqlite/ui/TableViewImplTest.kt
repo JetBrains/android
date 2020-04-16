@@ -25,6 +25,7 @@ import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
@@ -101,7 +102,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   fun testColumnsFitParentIfSpaceIsAvailable() {
     // Prepare
     val treeWalker = TreeWalker(view.component)
-    val column = SqliteColumn("name", SqliteAffinity.NUMERIC, false, false)
+    val column = ResultSetSqliteColumn("name", SqliteAffinity.NUMERIC, false, false)
     val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
     val jbScrollPane = TreeWalker(table).ancestors().filterIsInstance<JBScrollPane>().first()
 
@@ -124,8 +125,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Prepare
     val treeWalker = TreeWalker(view.component)
 
-    val column = SqliteColumn("name", SqliteAffinity.NUMERIC, false, false)
-    val columns = mutableListOf<SqliteColumn>()
+    val column = ResultSetSqliteColumn("name", SqliteAffinity.NUMERIC, false, false)
+    val columns = mutableListOf<ResultSetSqliteColumn>()
     repeat(600 / COLUMN_DEFAULT_WIDTH) {
       columns.add(column)
     }
@@ -191,7 +192,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val mockListener = mock(TableView.Listener::class.java)
     view.addListener(mockListener)
 
-    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
     val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col.name, SqliteValue.StringValue("val")))))
 
@@ -225,7 +226,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val mockListener = mock(TableView.Listener::class.java)
     view.addListener(mockListener)
 
-    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
     val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val")))))
 
@@ -255,7 +256,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val treeWalker = TreeWalker(view.component)
     val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
 
-    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
     val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val")))))
 
@@ -274,7 +275,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val treeWalker = TreeWalker(view.component)
     val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
 
-    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
     val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val")))))
 
@@ -293,7 +294,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val treeWalker = TreeWalker(view.component)
     val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
 
-    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
     val rows = listOf(
       SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
@@ -318,7 +319,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val mockListener = mock(TableView.Listener::class.java)
     view.addListener(mockListener)
 
-    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
     val row = SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1"))))
     val rows = listOf(row)
@@ -340,7 +341,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val treeWalker = TreeWalker(view.component)
     val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
 
-    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
     val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))))
 
@@ -360,7 +361,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val treeWalker = TreeWalker(view.component)
     val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
 
-    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
     val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))))
 
@@ -380,7 +381,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val treeWalker = TreeWalker(view.component)
     val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
 
-    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
     val rowsToAdd = listOf(
       SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
@@ -409,7 +410,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val treeWalker = TreeWalker(view.component)
     val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
 
-    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
     val rowsToAdd = listOf(
       SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
@@ -604,8 +605,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Prepare
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
 
-    val col1 = SqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
-    val col2 = SqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
+    val col1 = ResultSetSqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
+    val col2 = ResultSetSqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col1, col2)
     val rows = listOf(
       SqliteRow(listOf(
@@ -644,8 +645,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Prepare
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
 
-    val col1 = SqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
-    val col2 = SqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
+    val col1 = ResultSetSqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
+    val col2 = ResultSetSqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col1, col2)
     val rows = listOf(
       SqliteRow(listOf(
@@ -679,7 +680,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testTableModelIsNotRecreatedIfColumnsAreNotDifferent() {
     // Prepare
-    val column = SqliteColumn("name", SqliteAffinity.NUMERIC, false, false)
+    val column = ResultSetSqliteColumn("name", SqliteAffinity.NUMERIC, false, false)
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
 
     view.startTableLoading()
@@ -699,8 +700,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testTableModelIsRecreatedIfColumnsAreDifferent() {
     // Prepare
-    val column1 = SqliteColumn("name1", SqliteAffinity.NUMERIC, false, false)
-    val column2 = SqliteColumn("name2", SqliteAffinity.NUMERIC, false, false)
+    val column1 = ResultSetSqliteColumn("name1", SqliteAffinity.NUMERIC, false, false)
+    val column2 = ResultSetSqliteColumn("name2", SqliteAffinity.NUMERIC, false, false)
     val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
 
     view.startTableLoading()

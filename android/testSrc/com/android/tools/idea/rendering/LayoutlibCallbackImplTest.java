@@ -77,7 +77,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
 
     LayoutlibCallbackImpl layoutlibCallback =
-      new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, myFacet, IRenderLogger.NULL_LOGGER, null, null, null);
+      new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, myFacet, IRenderLogger.NULL_LOGGER, null, null, null, false);
     ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
       ResourceNamespace.ANDROID, ResourceType.LAYOUT, "main", psiFile.getVirtualFile().getCanonicalPath()
     ));

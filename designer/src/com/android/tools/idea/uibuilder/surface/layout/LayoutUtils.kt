@@ -21,3 +21,8 @@ import java.awt.Insets
  * Returns the sum of both the top and bottom margins
  */
 val Insets.vertical: Int get() = top + bottom
+
+/**
+ * Returns the sum of both the left and right margins
+ */
+val Insets.horizontal: Int get() = left + right

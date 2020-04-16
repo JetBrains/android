@@ -23,6 +23,7 @@ import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.navigation.GotoRelatedItem
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.asJava.LightClassUtil
@@ -95,7 +96,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val consumerKtField = myFixture.elementAtCaret
 
     // Icons in kotlin-consumer file.
-    icons = myFixture.findAllGutters()
+    icons = myFixture.findGuttersAtCaret()
     assertThat(icons).isNotEmpty()
 
     gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
@@ -107,7 +108,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
     // Icons in provider file.
     myFixture.configureFromExistingVirtualFile(providerFile.virtualFile)
-    icons = myFixture.findAllGutters()
+    myFixture.moveCaret(" @Provides String pr|ovider()")
+    icons = myFixture.findGuttersAtCaret()
     assertThat(icons).isNotEmpty()
 
     gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
@@ -148,8 +150,9 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     )
 
     myFixture.configureFromExistingVirtualFile(providerFile)
+    myFixture.moveCaret("@Provides String pr|ovider")
 
-    val icons = myFixture.findAllGutters()
+    val icons = myFixture.findGuttersAtCaret()
     assertThat(icons).isNotEmpty()
 
     val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
@@ -158,4 +161,178 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(method.group).isEqualTo("Dependency components method(s)")
     assertThat(method.element?.text).isEqualTo("String getString();")
   }
+
+
+  fun testComponentForModules() {
+    // Provider
+    val moduleFile = myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        package test;
+        import dagger.Module;
+
+        @Module
+        class MyModule {
+        }
+      """.trimIndent()
+    ).virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {
+      }
+    """.trimIndent()
+    )
+
+    // Java Module
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+        import dagger.Module;
+
+        @Module(includes = { MyModule.class })
+        class MyModule2 {}
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(moduleFile)
+    myFixture.moveCaret("class MyMod|ule")
+
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isNotEmpty()
+
+    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    assertThat(gotoRelatedItems).hasSize(2)
+    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
+    assertThat(result).containsAllOf("Dependency component(s): MyComponent", "Dependency modules(s): MyModule2")
+  }
+
+  fun testDependantComponentsForComponent() {
+    // Java Component
+    val componentFile = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component
+      public interface MyComponent {}
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    // Kotlin Component
+    myFixture.addFileToProject(
+      "test/MyDependantComponent.kt",
+      //language=kotlin
+      """
+      package test
+      import dagger.Component
+
+      @Component(dependencies = [MyComponent::class])
+      interface MyDependantComponent
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(componentFile)
+    myFixture.moveCaret("public interface MyComp|onent {}")
+
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isNotEmpty()
+
+    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    assertThat(gotoRelatedItems).hasSize(1)
+    val method = gotoRelatedItems.first()
+    assertThat(method.group).isEqualTo("Dependency component(s)")
+    assertThat((method.element as PsiClass).name).isEqualTo("MyDependantComponent")
+  }
+
+  fun testParentsForSubcomponent() {
+    // Java Subomponent
+    val subcomponentFile = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Subcomponent;
+
+      @Subcomponent
+      public interface MySubcomponent {
+        @Subcomponent.Builder
+          interface Builder {}
+      }
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+
+        import dagger.Module;
+
+        @Module(subcomponents = { MySubcomponent.class })
+        class MyModule { }
+      """.trimIndent()
+    )
+
+    // Java Component
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {}
+    """.trimIndent()
+    )
+
+    // Java Component
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component
+      public interface MyComponentWithBuilder {
+        MySubcomponent.Builder componentBuilder();
+      }
+    """.trimIndent()
+    )
+
+    // Kotlin Component
+    myFixture.addFileToProject(
+      "test/MyComponentKt.kt",
+      //language=kotlin
+      """
+      package test
+      import dagger.Component
+
+      @Component
+      interface MyComponentKt {
+         fun getSubcomponent():MySubcomponent
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(subcomponentFile)
+    val component = myFixture.moveCaret("MySubcompon|ent").parentOfType<PsiClass>()!!
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isNotEmpty()
+
+    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    assertThat(gotoRelatedItems).hasSize(3)
+    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
+    assertThat(result).containsAllOf("Dependency component(s): MyComponent",
+                                     "Dependency component(s): MyComponentWithBuilder",
+                                     "Dependency component(s): MyComponentKt")
+  }
+
 }

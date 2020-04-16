@@ -42,11 +42,13 @@ class SchemaTreeCellRenderer : ColoredTreeCellRenderer() {
     row: Int,
     hasFocus: Boolean
   ) {
+    toolTipText = null
     if (value is DefaultMutableTreeNode) {
       when (val userObject = value.userObject) {
         is SqliteDatabase -> {
           icon = StudioIcons.DatabaseInspector.DATABASE
           append(userObject.name)
+          toolTipText = userObject.path
         }
 
         is SqliteTable -> {

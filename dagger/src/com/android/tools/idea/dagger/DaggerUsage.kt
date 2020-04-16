@@ -34,7 +34,9 @@ import org.jetbrains.kotlin.idea.util.module
 
 private val DEPENDENCY_PROVIDERS_USAGE_TYPE = UsageType(DEPENDENCY_PROVIDERS)
 private val DEPENDENCY_CONSUMERS_USAGE_TYPE = UsageType(DEPENDENCY_CONSUMERS)
-private val DEPENDENCY_COMPONENT_USAGE_TYPE = UsageType(DEPENDENCY_COMPONENT)
+private val DEPENDENCY_COMPONENT_METHOD_USAGE_TYPE = UsageType(DEPENDENCY_COMPONENT_METHODS)
+private val DEPENDENCY_COMPONENT_USAGE_TYPE = UsageType(DEPENDENCY_COMPONENTS)
+private val DEPENDENCY_MODULE_USAGE_TYPE = UsageType(DEPENDENCY_MODULES)
 
 /**
  * [UsageTypeProvider] that labels Dagger providers and consumers with the right description.
@@ -47,7 +49,11 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
       element?.module?.isDaggerPresent() != true -> null
       target.isDaggerConsumer && element.isDaggerProvider -> DEPENDENCY_PROVIDERS_USAGE_TYPE
       target.isDaggerProvider && element.isDaggerConsumer -> DEPENDENCY_CONSUMERS_USAGE_TYPE
-      target.isDaggerProvider && element.isDaggerComponentMethod -> DEPENDENCY_COMPONENT_USAGE_TYPE
+      target.isDaggerProvider && element.isDaggerComponentMethod -> DEPENDENCY_COMPONENT_METHOD_USAGE_TYPE
+      target.isDaggerModule && element.isDaggerComponent -> DEPENDENCY_COMPONENT_USAGE_TYPE
+      target.isDaggerModule && element.isDaggerModule -> DEPENDENCY_MODULE_USAGE_TYPE
+      target.isDaggerComponent && element.isDaggerComponent -> DEPENDENCY_COMPONENT_USAGE_TYPE
+      target.isDaggerSubcomponent && element.isDaggerComponent -> DEPENDENCY_COMPONENT_USAGE_TYPE
       else -> null
     }
   }
@@ -73,9 +79,38 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
         element.module?.isDaggerPresent() != true -> return@runReadAction
         element.isDaggerConsumer -> processCustomUsagesForConsumers(element, processor)
         element.isDaggerProvider -> processCustomUsagesForProvider(element, processor)
+        element.isDaggerModule -> processCustomUsagesForModule(element, processor)
+        element.isDaggerComponent -> processCustomUsagesForComponent(element, processor)
+        element.isDaggerSubcomponent -> processCustomUsagesForSubcomponent(element, processor)
         else -> return@runReadAction
       }
     }
+  }
+
+  /**
+   * Adds Component that are parents to [subcomponent].
+   */
+  private fun processCustomUsagesForSubcomponent(subcomponent: PsiElement, processor: Processor<Usage>) {
+    // subcomponent is always PsiClass or KtClass, see [isDaggerSubcomponent].
+    getDaggerParentComponentsForSubcomponent(subcomponent.toPsiClass()!!)
+      .forEach { processor.process(UsageInfo2UsageAdapter(UsageInfo(it))) }
+  }
+
+  /**
+   *  Adds Components that use a [component] in "dependencies" attr.
+   */
+  private fun processCustomUsagesForComponent(component: PsiElement, processor: Processor<Usage>) {
+    // component is always PsiClass or KtClass, see [isDaggerComponent].
+    getDependantComponentsForComponent(component.toPsiClass()!!).forEach { processor.process(UsageInfo2UsageAdapter(UsageInfo(it))) }
+  }
+
+  /**
+   * Adds Components and Subcomponents that uses a [module] in "modules" attr.
+   */
+  @WorkerThread
+  private fun processCustomUsagesForModule(module: PsiElement, processor: Processor<Usage>) {
+    // [module] is always PsiClass or KtClass, see [isDaggerModule].
+    getUsagesForDaggerModule(module.toPsiClass()!!).forEach { processor.process(UsageInfo2UsageAdapter(UsageInfo(it))) }
   }
 
   /**

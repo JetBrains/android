@@ -16,6 +16,7 @@
 package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
@@ -23,7 +24,6 @@ import com.intellij.facet.FacetConfiguration
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetType
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -201,10 +201,13 @@ class AndroidProjectRule private constructor(
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
     if (projectModuleBuilders != null) {
+      if (IdeSdks.getInstance().androidSdkPath != TestUtils.getSdk()) {
+        println("Tests: Replacing Android SDK from ${IdeSdks.getInstance().androidSdkPath} to ${TestUtils.getSdk()}")
+        AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk())
+      }
       invokeAndWaitIfNeeded {
         // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and cleaned after the test to behave
         // properly.
-        AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk())
         val basePath = File(fixture.tempDirPath)
         if (projectModuleBuilders.isNotEmpty()) {
           setupTestProjectFromAndroidModel(project, basePath, *projectModuleBuilders.toTypedArray())
@@ -291,13 +294,15 @@ class AndroidProjectRule private constructor(
 
   override fun after(description: Description) {
     runInEdtAndWait {
-      val facetManager = FacetManager.getInstance(module)
-      val facetModel = facetManager.createModifiableModel()
-      facets.forEach {
-        facetModel.removeFacet(it)
+      if (facets.isNotEmpty()) {
+        val facetManager = FacetManager.getInstance(module)
+        val facetModel = facetManager.createModifiableModel()
+        facets.forEach {
+          facetModel.removeFacet(it)
+        }
+        ApplicationManager.getApplication().runWriteAction { facetModel.commit() }
+        facets.clear()
       }
-      ApplicationManager.getApplication().runWriteAction { facetModel.commit() }
-      facets.clear()
       CodeStyleSettingsManager.getInstance(project).dropTemporarySettings()
     }
     fixture.tearDown()

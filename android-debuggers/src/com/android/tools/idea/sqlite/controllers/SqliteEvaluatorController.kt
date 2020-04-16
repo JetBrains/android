@@ -106,6 +106,10 @@ class SqliteEvaluatorController(
       .transformAsync(taskExecutor) { sqliteResultSet ->
         sqliteResultSet.totalRowCount
       }.transform(edtExecutor) { rowCount ->
+        if (currentTableController != null) {
+          Disposer.dispose(currentTableController!!)
+        }
+
         view.tableView.resetView()
         view.tableView.setEditable(false)
 

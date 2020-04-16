@@ -92,15 +92,9 @@ import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.font.TextAttribute;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -113,6 +107,7 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import kotlin.jvm.functions.Function0;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -166,14 +161,17 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     // In this case, myRangeSelectionComponent is null and we will not build the context menu.
     JPanel monitorUi = getStage().isMemoryCaptureOnly() ? null : buildMonitorUi();
     CapturePanel capturePanel = new CapturePanel(this);
-    LoadingPanel loadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
-    loadingPanel.setLoadingText("Fetching results");
+    Function0<LoadingPanel> makeLoadingPanel = () -> {
+      LoadingPanel loadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
+      loadingPanel.setLoadingText("Fetching results");
+      return loadingPanel;
+    };
     myLayout = getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() ?
-               new SeparateHeapDumpMemoryProfilerStageLayout(monitorUi, capturePanel, loadingPanel, stage,
+               new SeparateHeapDumpMemoryProfilerStageLayout(monitorUi, capturePanel, makeLoadingPanel, stage,
                                                              this::setUpToolbarForTimeline,
                                                              this::setUpToolbarForCapture,
                                                              this::setUpToolbarForLoading) :
-               new LegacyMemoryProfilerStageLayout(monitorUi, capturePanel, loadingPanel);
+               new LegacyMemoryProfilerStageLayout(monitorUi, capturePanel, makeLoadingPanel);
     getComponent().add(myLayout.getComponent(), BorderLayout.CENTER);
 
     myForceGarbageCollectionButton = new CommonButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
@@ -278,6 +276,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @Override
   public boolean isToolbarVisible() {
     return !getStage().isMemoryCaptureOnly();
+  }
+
+  @VisibleForTesting
+  MemoryProfilerStageLayout getLayout() {
+    return myLayout;
   }
 
   @VisibleForTesting
@@ -395,48 +398,16 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   private void setUpToolbarForCapture() {
-    myToolbar.removeAll();
-    long startMicros = (long)getStage().getTimeline().getDataRange().getMin();
-    long elapsedMicros = TimeUnit.NANOSECONDS.toMicros(myCaptureObject.getStartTimeNs()) - startMicros;
-    String timeString = TimeFormatter.getSimplifiedClockString(elapsedMicros);
-    myToolbar.add(makeNavigationButton("Heap dump: " + timeString, true, () -> {}));
-  }
-
-  private static JLabel makeNavigationButton(String label, boolean bold, Runnable action) {
-    JLabel btn = new JLabel(label);
-    Map<TextAttribute,Object> normalAttrs = new HashMap<>(btn.getFont().getAttributes());
-    if (bold) {
-      normalAttrs.put(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
+    CaptureObject capture = myCaptureObject;
+    if (capture != null) {
+      myToolbar.removeAll();
+      long startMicros = (long)getStage().getTimeline().getDataRange().getMin();
+      long elapsedMicros = TimeUnit.NANOSECONDS.toMicros(capture.getStartTimeNs()) - startMicros;
+      String timeString = TimeFormatter.getSimplifiedClockString(elapsedMicros);
+      JLabel heapDumpLabel = new JLabel(capture.getName() + ": " + timeString);
+      heapDumpLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
+      myToolbar.add(heapDumpLabel);
     }
-    Font normalFont = btn.getFont().deriveFont(normalAttrs);
-    Map<TextAttribute,Object> hoverAttrs = new HashMap<>(normalFont.getAttributes());
-    hoverAttrs.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
-    Font hoverFont = normalFont.deriveFont(hoverAttrs);
-    btn.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
-    btn.setFont(normalFont);
-    btn.addMouseListener(new MouseListener() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        action.run();
-      }
-
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        btn.setFont(hoverFont);
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-        btn.setFont(normalFont);
-      }
-
-      @Override
-      public void mousePressed(MouseEvent e) {}
-
-      @Override
-      public void mouseReleased(MouseEvent e) {}
-    });
-    return btn;
   }
 
   @VisibleForTesting
@@ -884,7 +855,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myAllocationButton.setEnabled(isAlive);
       myNativeAllocationButton.setEnabled(isAlive);
       myHeapDumpButton.setEnabled(isAlive);
-      myLayout.showCaptureUi(false);
+      myLayout.setShowingCaptureUi(false);
       return;
     }
 
@@ -896,7 +867,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myAllocationButton.setEnabled(false);
       myNativeAllocationButton.setEnabled(false);
       myHeapDumpButton.setEnabled(false);
-      myLayout.setShowingLoadingUi(true);
+      myLayout.setLoadingUiVisible(true);
     }
   }
 
@@ -914,12 +885,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       return;
     }
 
-    myLayout.showCaptureUi(true);
+    myLayout.setShowingCaptureUi(true);
   }
 
   private void stopLoadingUi() {
-    if (myCaptureObject != null && myLayout.isShowingLoadingUi()) {
-      myLayout.setShowingLoadingUi(false);
+    if (myCaptureObject != null && myLayout.isLoadingUiVisible()) {
+      myLayout.setLoadingUiVisible(false);
     }
   }
 

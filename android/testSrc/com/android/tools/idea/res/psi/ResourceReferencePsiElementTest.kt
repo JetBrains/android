@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.res.psi
 
+import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.res.ModuleRClass
+import com.android.tools.idea.res.TransitiveAarRClass
+import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
@@ -42,6 +46,57 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     myFixture.addFileToProject("res/values/colors.xml",
                                //language=XML
                                """<resources><color name="colorPrimary">#008577</color></resources>""")
+  }
+
+  fun testReferencesToAAR_equivalent() {
+    addAarDependency(myModule, "aarLib", "com.example.aarLib") { resDir ->
+      resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
+        """int color colorPrimary 0x7f010001"""
+      )
+      resDir.resolve("values/colors.xml").writeText(
+        // language=XML
+        """
+        <resources>
+          <color name="colorPrimary">#008577</color>
+        </resources>
+        """.trimIndent()
+      )
+    }
+
+    // All three references are to the same resource in a non-namespaced project
+    val file = myFixture.addFileToProject(
+      "/src/p1/p2/Foo.kt",
+      //language=kotlin
+      """
+       package p1.p2
+       class Foo {
+         fun example() {
+           R.color.colorPrimary${caret}
+           p1.p2.R.color.colorPrimary
+           com.example.aarLib.R.color.colorPrimary
+         }
+       }
+       """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    // Resource in ModuleRClass
+    val moduleRClassResource = myFixture.elementAtCaret
+    assertThat(moduleRClassResource.parent.parent).isInstanceOf(ModuleRClass::class.java)
+
+    // Resource in ModuleRClass
+    myFixture.moveCaret("p1.p2.R.color.color|Primary")
+    val qualifiedModuleRClassResource = myFixture.elementAtCaret
+    assertThat(qualifiedModuleRClassResource.parent.parent).isInstanceOf(ModuleRClass::class.java)
+
+    // Resource in TransitiveAaaRClass
+    myFixture.moveCaret("com.example.aarLib.R.color.color|Primary")
+    val transitiveAarRClassResource = myFixture.elementAtCaret
+    assertThat(transitiveAarRClassResource.parent.parent).isInstanceOf(TransitiveAarRClass::class.java)
+
+    assertThat(ResourceReferencePsiElement.create(moduleRClassResource)!!.isEquivalentTo(
+      ResourceReferencePsiElement.create(qualifiedModuleRClassResource)!!))
+    assertThat(ResourceReferencePsiElement.create(moduleRClassResource)!!.isEquivalentTo(
+      ResourceReferencePsiElement.create(transitiveAarRClassResource)!!))
   }
 
   fun testClsFieldImplKotlin() {
@@ -344,7 +399,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "button_text"))
   }
 
-  fun testElementRepresentationEquivalence() {
+  fun testElementRepresentation_equivalent() {
     val file = myFixture.addFileToProject(
       "/src/p1/p2/Foo.java",
       //language=java

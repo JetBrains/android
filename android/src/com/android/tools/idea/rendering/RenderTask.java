@@ -181,6 +181,7 @@ public class RenderTask {
    *
    * @param quality Factor from 0 to 1 used to downscale the rendered image. A lower value means smaller images used
    *                during rendering at the expense of quality. 1 means that downscaling is disabled.
+   * @param privateClassLoader if true, this task should have its own ModuleClassLoader, if false it can use a shared one for the module
    */
   RenderTask(@NotNull AndroidFacet facet,
              @NotNull RenderService renderService,
@@ -194,8 +195,9 @@ public class RenderTask {
              @Nullable ILayoutPullParserFactory parserFactory,
              boolean isSecurityManagerEnabled,
              float quality,
-             @NotNull AllocationStackTrace allocationStackTraceElement,
-             @NotNull Function<Module, MergedManifestSnapshot> manifestProvider) {
+             @NotNull StackTraceCapture stackTraceCaptureElement,
+             @NotNull Function<Module, MergedManifestSnapshot> manifestProvider,
+             boolean privateClassLoader) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -218,7 +220,8 @@ public class RenderTask {
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     Module module = facet.getModule();
     myLayoutlibCallback =
-        new LayoutlibCallbackImpl(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory);
+        new LayoutlibCallbackImpl(
+          this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory, privateClassLoader);
     if (ResourceIdManager.get(module).finalIdsUsed()) {
       myLayoutlibCallback.loadAndParseRClass();
     }
@@ -233,7 +236,7 @@ public class RenderTask {
     restoreDefaultQuality();
     myManifestProvider = manifestProvider;
 
-    allocationStackTraceElement.bind(this);
+    stackTraceCaptureElement.bind(this);
   }
 
   public void setQuality(float quality) {
@@ -356,6 +359,8 @@ public class RenderTask {
       assert false : "RenderTask was already disposed";
       return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
+
+    RenderTaskAllocationTrackerKt.captureDisposeStackTrace().bind(this);
 
     return ourDisposeService.submit(() -> {
       try {

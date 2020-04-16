@@ -25,7 +25,6 @@ import com.android.tools.idea.layoutinspector.properties.ResolutionStackItem
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ui.components.JBLabel
@@ -56,13 +55,9 @@ class ResolutionElementEditor(
   @VisibleForTesting
   val editorModel: PropertyEditorModel,
   editor: JComponent
-) : JPanel(BorderLayout()), PTableVariableHeightCellEditor {
+) : JPanel(BorderLayout()) {
 
   private val linkPanel = JPanel()
-
-  override var isCustomHeight = false
-
-  override var updateRowHeight = {}
 
   init {
     background = UIUtil.TRANSPARENT_COLOR
@@ -72,6 +67,14 @@ class ResolutionElementEditor(
     linkPanel.isVisible = false
     linkPanel.background = UIUtil.TRANSPARENT_COLOR
     editorModel.addListener(ValueChangedListener { updateFromModel() })
+    editor.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(event: MouseEvent) {
+        if (!event.isConsumed && event.clickCount > 1) {
+          editorModel.tableSupport?.toggleGroup()
+          event.consume()
+        }
+      }
+    })
     updateFromModel()
   }
 
@@ -82,7 +85,7 @@ class ResolutionElementEditor(
     val classLocation = (property as? InspectorGroupPropertyItem)?.classLocation
     val hideLinkPanel = (locations.isEmpty() && classLocation == null) || (property is PTableGroupItem && !editorModel.isExpandedTableItem)
     linkPanel.isVisible = !hideLinkPanel
-    isCustomHeight = !hideLinkPanel
+    editorModel.isCustomHeight = !hideLinkPanel
     background = if (editorModel.isUsedInRendererWithSelection) UIUtil.getTableBackground(true, true) else UIUtil.TRANSPARENT_COLOR
     if (!hideLinkPanel) {
       linkPanel.removeAll()
@@ -92,7 +95,7 @@ class ResolutionElementEditor(
       when (locations.size) {
         0 -> {}
         1 -> linkPanel.add(SourceLocationLink(locations.first(), isSelected, isOverridden))
-        else -> linkPanel.add(ExpansionPanel(model, this, property, locations, isSelected, isOverridden))
+        else -> linkPanel.add(ExpansionPanel(model, editorModel, property, locations, isSelected, isOverridden))
       }
     }
   }
@@ -102,7 +105,7 @@ class ResolutionElementEditor(
    */
   private class ExpansionPanel(
     private val model: ResolutionStackModel,
-    private val editor: PTableVariableHeightCellEditor,
+    private val editorModel: PropertyEditorModel,
     private val property: InspectorPropertyItem,
     locations: List<SourceLocation>,
     private val isSelected: Boolean,
@@ -139,7 +142,7 @@ class ResolutionElementEditor(
       expandLabel.border = JBUI.Borders.empty(LINK_BORDER)
       expandLabel.isFocusable = true
       expandLabel.addMouseListener(object : MouseAdapter() {
-        override fun mousePressed(event: MouseEvent?) {
+        override fun mousePressed(event: MouseEvent) {
           toggle()
         }
       })
@@ -161,7 +164,7 @@ class ResolutionElementEditor(
       val isExpanded = model.isExpanded(property)
       expandLabel.icon = UIUtil.getTreeNodeIcon(isExpanded, isSelected, isSelected)
       extraPanel.isVisible = isExpanded
-      editor.updateRowHeight()
+      editorModel.tableSupport?.updateRowHeight(true)
     }
 
     private fun open() {
@@ -219,7 +222,7 @@ class ResolutionElementEditor(
       registerActionKey({ activateLink() }, KeyStrokes.ENTER, "enter")
 
       addMouseListener(object : MouseAdapter() {
-        override fun mousePressed(event: MouseEvent?) {
+        override fun mousePressed(event: MouseEvent) {
           activateLink()
         }
       })

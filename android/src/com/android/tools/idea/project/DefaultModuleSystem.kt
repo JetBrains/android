@@ -42,10 +42,13 @@ import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toPathString
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
@@ -206,6 +209,11 @@ class DefaultModuleSystem(override val module: Module) :
     }
 
     return rawPackageName ?: getPackageNameByParsingPrimaryManifest(facet)
+  }
+
+  override fun getApplicationIdProvider(runConfiguration: RunConfiguration?): ApplicationIdProvider {
+    return NonGradleApplicationIdProvider(
+      AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"))
   }
 
   private fun getPackageNameByParsingPrimaryManifest(facet: AndroidFacet): String? {

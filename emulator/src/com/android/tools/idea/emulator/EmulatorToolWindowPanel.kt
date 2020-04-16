@@ -28,6 +28,7 @@ import com.intellij.openapi.wm.IdeGlassPane
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
 import com.intellij.ui.SideBorder
+import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollBar
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
@@ -63,6 +64,7 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
   private val scrollPane: JScrollPane
   private val layeredPane: JLayeredPane
   private val zoomControlsLayerPane: JPanel
+  private var loadingPanel: JBLoadingPanel? = null
   private var contentDisposable: Disposable? = null
   private var floatingToolbar: JComponent? = null
 
@@ -105,14 +107,13 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
     layeredPane = JLayeredPane()
     layeredPane.layout = LayeredPaneLayoutManager()
     layeredPane.isFocusable = true
-    layeredPane.setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
     layeredPane.setLayer(zoomControlsLayerPane, JLayeredPane.PALETTE_LAYER)
+    layeredPane.setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
 
     layeredPane.add(zoomControlsLayerPane, BorderLayout.CENTER)
     layeredPane.add(scrollPane, BorderLayout.CENTER)
 
     addToolbars()
-    addToCenter(layeredPane)
   }
 
   private fun addToolbars() {
@@ -146,16 +147,24 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
   fun createContent(cropSkin: Boolean) {
     try {
       val disposable = Disposer.newDisposable()
-      val toolbar = EmulatorZoomToolbar.createToolbar(this, disposable)
       contentDisposable = disposable
+
+      val toolbar = EmulatorZoomToolbar.createToolbar(this, disposable)
       toolbar.isVisible = zoomToolbarIsVisible
       floatingToolbar = toolbar
       zoomControlsLayerPane.add(toolbar, BorderLayout.EAST)
-      emulatorView = EmulatorView(emulator, cropSkin)
+
+      emulatorView = EmulatorView(emulator, disposable, cropSkin)
       scrollPane.setViewportView(emulatorView)
       mainToolbar.setTargetComponent(emulatorView)
       secondaryToolbar.setTargetComponent(emulatorView)
-      layeredPane.repaint()
+
+      val loadingPanel = JBLoadingPanel(BorderLayout(), disposable)
+      this.loadingPanel = loadingPanel
+      loadingPanel.add(layeredPane, BorderLayout.CENTER)
+      addToCenter(loadingPanel)
+
+      loadingPanel.repaint()
     }
     catch (e: Exception) {
       val label = "Unable to load emulator view: $e"
@@ -164,24 +173,42 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
   }
 
   fun destroyContent() {
-    emulatorView = null
-    floatingToolbar = null
     contentDisposable?.let { Disposer.dispose(it) }
+    contentDisposable = null
+
     zoomControlsLayerPane.removeAll()
+    floatingToolbar = null
+
+    emulatorView = null
     mainToolbar.setTargetComponent(null)
     secondaryToolbar.setTargetComponent(null)
     scrollPane.setViewportView(null)
+
+    loadingPanel = null
+    removeAll()
   }
 
   override fun getData(dataId: String): Any? {
     return when (dataId) {
       EMULATOR_CONTROLLER_KEY.name -> emulator
       EMULATOR_VIEW_KEY.name, ZOOMABLE_KEY.name -> emulatorView
+      EMULATOR_TOOL_WINDOW_PANEL_KEY.name -> this
       else -> null
     }
   }
 
-  private fun createToolbar(toolbarId: String, horizontal: Boolean): ActionToolbar {
+  fun showLongRunningOperationIndicator(text: String) {
+    loadingPanel?.apply {
+      setLoadingText(text)
+      startLoading()
+    }
+  }
+
+  fun hideLongRunningOperationIndicator() {
+    loadingPanel?.stopLoading()
+  }
+
+  private fun createToolbar(toolbarId: String, @Suppress("SameParameterValue") horizontal: Boolean): ActionToolbar {
     val actions = listOf(CustomActionsSchema.getInstance().getCorrectedAction(toolbarId)!!)
     return ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
   }

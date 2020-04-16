@@ -26,33 +26,49 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.ModelMetadata
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.ByteBuffer
 
+// The max file size that we're allowed to calculate the file hash and set up hasMetadata field in logging.
+private const val MAX_SUPPORTED_FILE_SIZE = 1024 * 1024 * 200 // 200 MB
+private val MODEL_METADATA_KEY = Key.create<ModelMetadata>("model_metadata")
+
 fun logEvent(eventType: EventType, modelFile: VirtualFile) {
-  UsageTracker.log(
-    AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.ML_MODEL_BINDING)
-      .setMlModelBindingEvent(
-        MlModelBindingEvent.newBuilder()
-          .setEventType(eventType)
-          .addModelMetadatas(getModelMetadata(modelFile)))
-  )
+  ApplicationManager.getApplication().executeOnPooledThread(Runnable {
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.ML_MODEL_BINDING)
+        .setMlModelBindingEvent(
+          MlModelBindingEvent.newBuilder()
+            .setEventType(eventType)
+            .addModelMetadatas(getModelMetadata(modelFile))))
+  })
 }
 
 private fun getModelMetadata(modelFile: VirtualFile): ModelMetadata {
-  val metadataBuilder = ModelMetadata.newBuilder().setFileSize(modelFile.length)
-  try {
-    val bytes = modelFile.contentsToByteArray()
-    // TODO(b/153499565): Sync file hash calculation with MLKit swappable model feature.
-    metadataBuilder.fileHash = Hashing.sha256().hashBytes(bytes).toString()
-    val modelInfo = ModelInfo.buildFrom(MetadataExtractor(ByteBuffer.wrap(bytes)))
-    metadataBuilder.isValidModel = true
-    metadataBuilder.hasMetadata = modelInfo.isMetadataExisted
-  }
-  catch (e: Exception) {
-    metadataBuilder.isValidModel = false
+  val modelMetadata = modelFile.getUserData(MODEL_METADATA_KEY)
+  if (modelMetadata != null) {
+    return modelMetadata
   }
 
-  return metadataBuilder.build()
+  val metadataBuilder = ModelMetadata.newBuilder().setFileSize(modelFile.length)
+  if (modelFile.length < MAX_SUPPORTED_FILE_SIZE) {
+    try {
+      val bytes = VfsUtilCore.virtualToIoFile(modelFile).readBytes()
+      metadataBuilder.fileHash = Hashing.sha256().hashBytes(bytes).toString()
+      val modelInfo = ModelInfo.buildFrom(MetadataExtractor(ByteBuffer.wrap(bytes)))
+      metadataBuilder.isValidModel = true
+      metadataBuilder.hasMetadata = modelInfo.isMetadataExisted
+    }
+    catch (e: Exception) {
+      metadataBuilder.isValidModel = false
+    }
+  }
+
+  val metadata = metadataBuilder.build()
+  modelFile.putUserData(MODEL_METADATA_KEY, metadata)
+  return metadata
 }

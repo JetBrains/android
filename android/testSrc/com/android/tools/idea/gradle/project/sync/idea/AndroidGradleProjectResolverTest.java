@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
@@ -48,13 +49,16 @@ import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaProjectStub;
 import com.google.common.collect.ImmutableList;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.TaskData;
+import com.intellij.openapi.externalSystem.service.project.manage.AbstractModuleDataService;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.util.containers.ContainerUtil;
@@ -337,6 +341,18 @@ public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
     IdeVariant variant = androidModuleModel.findVariantByName("debug");
     assertThat(variant.getAndroidTestArtifact().getGeneratedSourceFolders()).contains(androidTestGeneratedSourceFile);
     assertThat(variant.getUnitTestArtifact().getGeneratedSourceFolders()).contains(unitTestGeneratedSourceFile);
+  }
+
+  public void testCorrectGroupName() {
+    // Ensure AbstractModuleDataService is initialised.
+    new AbstractModuleDataService<ModuleData>() {
+      @NotNull
+      @Override
+      public Key<ModuleData> getTargetDataKey() {
+        return null;
+      }
+    };
+    assertThat(NotificationGroup.findRegisteredGroup(BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME)).isNotNull();
   }
 
   @NotNull

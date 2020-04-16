@@ -61,7 +61,7 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
       val rowY = requiredHeight
       var currentHeight = 0
       for (view in row) {
-        rowX += view.sizeFunc().width + horizontalViewDelta
+        rowX += view.sizeFunc().width + horizontalViewDelta + view.margin.horizontal
         currentHeight = max(currentHeight, rowY + verticalViewDelta + view.sizeFunc().height + view.margin.vertical)
       }
       requiredWidth = max(requiredWidth, max(rowX - horizontalViewDelta, 0))
@@ -88,17 +88,19 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
     val sortedContent = content.sortByPosition()
 
     val firstView = sortedContent[0]
-    var nextX = startX + firstView.widthFunc() + horizontalViewDelta
+    var nextX = startX + firstView.widthFunc() + firstView.margin.horizontal + horizontalViewDelta
 
     var columnList = mutableListOf(firstView)
     for (view in sortedContent.drop(1)) {
-      if (nextX + view.widthFunc() > availableWidth) {
-        nextX = horizontalPadding + view.widthFunc() + horizontalViewDelta
+      // The full width is the view width + any horizontal margins
+      val totalWidth = view.widthFunc() + view.margin.horizontal
+      if (nextX + totalWidth > availableWidth) {
+        nextX = horizontalPadding + totalWidth + horizontalViewDelta
         gridList.add(columnList)
         columnList = mutableListOf(view)
       }
       else {
-        nextX += view.widthFunc() + horizontalViewDelta
+        nextX += totalWidth + horizontalViewDelta
         columnList.add(view)
       }
     }
@@ -134,8 +136,8 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
     var maxBottomInRow = 0
     for (row in grid) {
       for (view in row) {
-        view.setLocation(nextX, nextY)
-        nextX += view.scaledContentSize.width + horizontalViewDelta
+        view.setLocation(nextX + view.margin.left, nextY)
+        nextX += view.scaledContentSize.width + horizontalViewDelta + view.margin.horizontal
         maxBottomInRow = max(maxBottomInRow, nextY + view.margin.vertical + view.scaledContentSize.height)
       }
       nextX = startX
