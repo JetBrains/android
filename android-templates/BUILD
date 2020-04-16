@@ -4,7 +4,10 @@ load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.templates.tests",
-    exec_properties = LARGE_MACHINE,
+    # During the transition to windows 2019, we don't have enough worker pools to have
+    # separate large machines. Disable for now.
+    # See 151856181
+    #    exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.templates.tests.iml"],
     test_class = "com.android.tools.idea.templates.TemplateTestSuite",
     test_data = [
