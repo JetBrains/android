@@ -24,6 +24,7 @@ import com.android.tools.idea.templates.getDummyModuleTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.template.Recipe
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -81,8 +82,8 @@ class BuildFeatureOffNotificationProvider : EditorNotifications.Provider<EditorN
       dryRun = false,
       moduleRoot = null
     )
-    // TODO(b/153163381): Add loggingEvent.
-    addBuildFeatureRecipe.render(renderingContext, DefaultRecipeExecutor(renderingContext), loggingEvent = null)
+    addBuildFeatureRecipe.render(
+      renderingContext, DefaultRecipeExecutor(renderingContext), TemplateRenderer.ML_MODEL_BINDING_FEATURE_OFF_NOTIFICATION)
   }
 
   companion object {
