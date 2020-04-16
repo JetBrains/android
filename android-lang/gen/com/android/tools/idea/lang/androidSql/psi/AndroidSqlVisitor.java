@@ -187,6 +187,10 @@ public class AndroidSqlVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
+  public void visitExplainPrefix(@NotNull AndroidSqlExplainPrefix o) {
+    visitPsiElement(o);
+  }
+
   public void visitExpression(@NotNull AndroidSqlExpression o) {
     visitPsiElement(o);
   }
