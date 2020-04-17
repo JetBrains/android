@@ -20,6 +20,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.isDeviceMatch
@@ -72,7 +73,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.awt.Component
 import java.awt.event.ActionEvent
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -213,6 +213,18 @@ class DefaultInspectorClient(
       }
     }
     ProjectManager.getInstance().addProjectManagerListener(project, projectManagerListener)
+  }
+
+  override fun execute(commandType: LayoutInspectorCommand.Type) {
+    if (commandType == LayoutInspectorCommand.Type.START) {
+      execute(LayoutInspectorCommand.newBuilder().apply {
+        type = commandType
+        composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
+      }.build())
+    }
+    else {
+      super.execute(commandType)
+    }
   }
 
   @Slow
