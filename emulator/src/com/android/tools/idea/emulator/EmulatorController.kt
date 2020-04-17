@@ -38,16 +38,19 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ConcurrentList
 import com.intellij.util.containers.ContainerUtil
+import io.grpc.CallCredentials
 import io.grpc.CompressorRegistry
 import io.grpc.ConnectivityState
 import io.grpc.DecompressorRegistry
 import io.grpc.ManagedChannel
+import io.grpc.Metadata
 import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.netty.NettyChannelBuilder
 import io.grpc.stub.ClientCalls
 import io.grpc.stub.StreamObserver
+import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -154,14 +157,24 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     connectionState = ConnectionState.CONNECTING
     val channel = NettyChannelBuilder
       .forAddress("localhost", emulatorId.grpcPort)
-      .usePlaintext() // TODO(sprigogin): Add proper authentication.
+      .usePlaintext() // TODO: Add support for TLS encryption.
       .maxInboundMessageSize(maxInboundMessageSize)
       .compressorRegistry(CompressorRegistry.newEmptyInstance()) // Disable data compression.
       .decompressorRegistry(DecompressorRegistry.emptyInstance())
       .build()
     this.channel = channel
-    emulatorController = EmulatorControllerGrpc.newStub(channel)
-    snapshotService = SnapshotServiceGrpc.newStub(channel)
+
+    val token = emulatorId.grpcToken
+    if (token == null) {
+      emulatorController = EmulatorControllerGrpc.newStub(channel)
+      snapshotService = SnapshotServiceGrpc.newStub(channel)
+    }
+    else {
+      val credentials = TokenCallCredentials(token)
+      emulatorController = EmulatorControllerGrpc.newStub(channel).withCallCredentials(credentials)
+      snapshotService = SnapshotServiceGrpc.newStub(channel).withCallCredentials(credentials)
+    }
+
     channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
     fetchConfiguration()
   }
@@ -278,7 +291,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("getStatus()")
     }
-    emulatorController.getStatus(Empty.getDefaultInstance(), responseObserver)
+    emulatorController.getStatus(Empty.getDefaultInstance(),
+                                 DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetStatusMethod()))
   }
 
   fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getDummyObserver()) {
@@ -357,11 +371,33 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState)
   }
 
+  private class TokenCallCredentials(private val token: String) : CallCredentials() {
+
+    override fun applyRequestMetadata(requestInfo: RequestInfo, executor: Executor, applier: MetadataApplier) {
+      executor.execute {
+        try {
+          val headers = Metadata()
+          headers.put(AUTHORIZATION_METADATA_KEY, "Bearer $token")
+          applier.apply(headers)
+        }
+        catch (e: Throwable) {
+          applier.fail(Status.UNAUTHENTICATED.withCause(e))
+        }
+      }
+    }
+
+    override fun thisUsesUnstableApi() {
+    }
+  }
+
   companion object {
+    @JvmStatic
+    private val AUTHORIZATION_METADATA_KEY = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
     @JvmStatic
     private val LOG = Logger.getInstance(EmulatorController::class.java)
     @JvmStatic
     private val DUMMY_OBSERVER = DummyStreamObserver<Any>()
+
     @JvmStatic
     @Suppress("UNCHECKED_CAST")
     fun <T> getDummyObserver(): StreamObserver<T> {

@@ -272,6 +272,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private fun readEmulatorInfo(file: Path): EmulatorId? {
     var grpcPort = 0
     var grpcCertificate: String? = null
+    var grpcToken: String? = null
     var avdId: String? = null
     var avdName: String? = null
     var avdFolder: Path? = null
@@ -286,6 +287,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
           }
           line.startsWith("grpc.certificate=") -> {
             grpcCertificate = line.substring("grpc.certificate=".length)
+          }
+          line.startsWith("grpc.token=") -> {
+            grpcToken = line.substring("grpc.token=".length)
           }
           line.startsWith("avd.id=") -> {
             avdId = line.substring("add.id=".length)
@@ -311,12 +315,14 @@ class RunningEmulatorCatalog : Disposable.Parent {
     catch (ignore: IOException) {
     }
 
-    return if (grpcPort > 0 && grpcCertificate != null && avdId != null && avdName != null && serialPort != 0 && adbPort != 0) {
-      EmulatorId(grpcPort, grpcCertificate, avdId, avdName, avdFolder, serialPort, adbPort, commandLine, file.fileName.toString())
+    if (grpcPort <= 0 || avdId == null || avdName == null || serialPort <= 0 && adbPort <= 0) {
+      return null
     }
-    else {
-      null
-    }
+
+    return EmulatorId(grpcPort = grpcPort, grpcCertificate = grpcCertificate, grpcToken = grpcToken,
+                      avdId = avdId, avdName = avdName, avdFolder = avdFolder,
+                      serialPort = serialPort, adbPort = adbPort, commandLine = commandLine,
+                      registrationFileName = file.fileName.toString())
   }
 
   override fun beforeTreeDispose() {

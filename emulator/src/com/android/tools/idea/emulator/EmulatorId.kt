@@ -21,8 +21,10 @@ import java.nio.file.Path
  * Identifying information for a running Emulator.
  */
 // TODO: Don't accept null avdFolder and empty commandLine once b/152438029 is fixed.
-data class EmulatorId(val grpcPort: Int, val grpcCertificate: String, val avdId: String, val avdName: String, val avdFolder: Path?,
-                      val serialPort: Int, val adbPort: Int, val commandLine: List<String>, val registrationFileName: String) {
+data class EmulatorId(val grpcPort: Int, val grpcCertificate: String?, val grpcToken: String?,
+                      val avdId: String, val avdName: String, val avdFolder: Path?,
+                      val serialPort: Int, val adbPort: Int, val commandLine: List<String>,
+                      val registrationFileName: String) {
   override fun toString(): String {
     return "$avdId @ $grpcPort"
   }
