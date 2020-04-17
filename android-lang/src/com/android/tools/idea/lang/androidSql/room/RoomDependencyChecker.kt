@@ -29,13 +29,15 @@ private val LOG = Logger.getInstance(RoomDependencyChecker::class.java)
 /**
  * Checks if project uses Room (any module depends on Room)
  */
-class RoomDependencyChecker(val project: Project, private val cachedValuesManager: CachedValuesManager) {
+class RoomDependencyChecker(val project: Project) {
   companion object {
     fun getInstance(project: Project): RoomDependencyChecker = ServiceManager.getService(project, RoomDependencyChecker::class.java)!!
   }
 
-  fun isRoomPresent(): Boolean = cachedValuesManager.getCachedValue(project) {
-    CachedValueProvider.Result(calculateIsRoomPresent(), ProjectRootModificationTracker.getInstance(project))
+  fun isRoomPresent(): Boolean {
+    return CachedValuesManager.getManager(project).getCachedValue(project) {
+      CachedValueProvider.Result(calculateIsRoomPresent(), ProjectRootModificationTracker.getInstance(project))
+    }
   }
 
   private fun calculateIsRoomPresent(): Boolean {
