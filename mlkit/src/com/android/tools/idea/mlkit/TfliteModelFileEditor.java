@@ -20,8 +20,10 @@ import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.ModelInfo;
+import com.android.tools.mlkit.ModelVerifier;
 import com.android.tools.mlkit.TensorInfo;
 import com.android.tools.mlkit.exception.TfliteModelException;
+import com.android.tools.mlkit.exception.UnsupportedTfliteMetadataException;
 import com.android.utils.StringHelper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -156,8 +158,23 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
 
     JPanel contentPanel = createPanelWithYAxisBoxLayout(Borders.empty(20));
+    ByteBuffer byteBuffer = null;
+
     try {
-      ModelInfo modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath())));
+      byteBuffer = ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath()));
+      ModelVerifier.verifyModel(byteBuffer);
+    }
+    catch (TfliteModelException e) {
+      if (!(e instanceof UnsupportedTfliteMetadataException)) {
+        return createWarningMessagePanel("Invalid TensorFlow Lite Model: " + e.getMessage());
+      }
+    } catch (IOException e) {
+      Logger.getInstance(TfliteModelFileEditor.class).error(e);
+      return createWarningMessagePanel("Something goes wrong while reading model file.");
+    }
+
+    if (byteBuffer != null) {
+      ModelInfo modelInfo = ModelInfo.buildWithoutVerification(byteBuffer);
       if (modelInfo.isMetadataExisted()) {
         contentPanel.add(createModelSection(modelInfo));
         contentPanel.add(createTensorsSection(modelInfo));
@@ -173,13 +190,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
           contentPanel.add(createSampleCodeSection(modelClass, modelInfo));
         }
       }
-    }
-    catch (IOException e) {
-      Logger.getInstance(TfliteModelFileEditor.class).error(e);
-    }
-    catch (TfliteModelException e) {
-      Logger.getInstance(TfliteModelFileEditor.class).warn(e);
-      // TODO(deanzhou): show warning message in panel
     }
 
     return contentPanel;
@@ -421,7 +431,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       TensorInfo.ImageProperties imageProperties = tensorInfo.getImageProperties();
       if (imageProperties != null && imageProperties.colorSpaceType == TensorInfo.ImageProperties.ColorSpaceType.RGB) {
         return TensorInfo.ContentType.IMAGE;
-      } else {
+      }
+      else {
         return TensorInfo.ContentType.FEATURE;
       }
     }
