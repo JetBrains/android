@@ -33,7 +33,11 @@ open class MockDatabaseInspectorController(val model: DatabaseInspectorControlle
   override fun setUp() { }
 
   override suspend fun addSqliteDatabase(deferredDatabase: Deferred<SqliteDatabase>) = withContext(uiThread) {
-    model.add(deferredDatabase.await(), SqliteSchema(emptyList()))
+    addSqliteDatabase(deferredDatabase.await())
+  }
+
+  override suspend fun addSqliteDatabase(database: SqliteDatabase) = withContext(uiThread) {
+    model.add(database, SqliteSchema(emptyList()))
   }
 
   override suspend fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {}

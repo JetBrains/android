@@ -16,17 +16,18 @@
 package com.android.tools.idea.sqlite
 
 import com.android.testutils.MockitoKt.any
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.device.fs.DownloadedFileData
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorController
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
+import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
@@ -134,16 +135,18 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     val fileDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(sqliteFile1))
     databaseToClose = fileDatabase
 
+    val connection1 = mock(DatabaseConnection::class.java)
+    `when`(connection1.close()).thenReturn(Futures.immediateFuture(Unit))
+
+    val connection2 = mock(DatabaseConnection::class.java)
+    `when`(connection2.close()).thenReturn(Futures.immediateFuture(Unit))
+
     pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(
-      mock(AppInspectorClient.CommandMessenger::class.java),
-      1,
-      "db1"
+      LiveSqliteDatabase("db1", connection1)
     ))
 
     pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(
-      mock(AppInspectorClient.CommandMessenger::class.java),
-      2,
-      "db2"
+      LiveSqliteDatabase("db2", connection2)
     ))
 
     // Act

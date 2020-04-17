@@ -84,7 +84,7 @@ internal fun List<SqliteInspectorProtocol.Table>.toSqliteSchema(): SqliteSchema 
  *
  * Asynchronous errors are delivered to DatabaseInspectorProjectService that takes care of showing them.
  */
-internal fun handleError(project: Project, errorContent: SqliteInspectorProtocol.ErrorContent, logger: Logger): Nothing {
+internal fun handleError(project: Project, errorContent: SqliteInspectorProtocol.ErrorContent, logger: Logger) {
   val analyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
   when(errorContent.recoverability.oneOfCase) {
     SqliteInspectorProtocol.ErrorRecoverability.OneOfCase.IS_RECOVERABLE -> {
@@ -104,9 +104,6 @@ internal fun handleError(project: Project, errorContent: SqliteInspectorProtocol
     }
     null -> { }
   }
-
-  val message = getErrorMessage(errorContent)
-  throw LiveInspectorException(message, errorContent.stackTrace)
 }
 
 internal fun getErrorMessage(errorContent: SqliteInspectorProtocol.ErrorContent): String {

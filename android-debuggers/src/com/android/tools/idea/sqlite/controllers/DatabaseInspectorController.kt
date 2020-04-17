@@ -107,6 +107,10 @@ class DatabaseInspectorControllerImpl(
       view.reportError("Error getting database", e)
       throw e
     }
+    addSqliteDatabase(database)
+  }
+
+  override suspend fun addSqliteDatabase(database: SqliteDatabase) = withContext(uiThread) {
     Disposer.register(this@DatabaseInspectorControllerImpl, database.databaseConnection)
     addNewDatabase(database, readDatabaseSchema(database))
   }
@@ -405,6 +409,11 @@ interface DatabaseInspectorController : Disposable {
    * A loading UI is displayed while waiting for [deferredDatabase] to be ready.
    */
   suspend fun addSqliteDatabase(deferredDatabase: Deferred<SqliteDatabase>)
+
+  /**
+   * Adds a database that is immediately ready
+   */
+  suspend fun addSqliteDatabase(database: SqliteDatabase)
 
   suspend fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement)
   suspend fun closeDatabase(database: SqliteDatabase)

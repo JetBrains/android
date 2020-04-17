@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection.live
 
-import androidx.sqlite.inspection.SqliteInspectorProtocol
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -25,8 +23,6 @@ import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.project.Project
 import java.util.concurrent.Executor
 
 /**
@@ -37,25 +33,18 @@ import java.util.concurrent.Executor
  * @param taskExecutor Used to execute IO operation on a background thread.
  */
 class LiveSqliteResultSet(
-  private val project: Project,
   private val sqliteStatement: SqliteStatement,
-  private val messenger: AppInspectorClient.CommandMessenger,
+  private val messenger: DatabaseInspectorMessenger,
   private val connectionId: Int,
   private val taskExecutor: Executor
 ) : SqliteResultSet {
 
   override val columns: ListenableFuture<List<ResultSetSqliteColumn>> get() {
     val queryCommand = buildQueryCommand(sqliteStatement, connectionId)
-    val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
+    val responseFuture = messenger.sendCommand(queryCommand)
 
-    return responseFuture.transform(taskExecutor) {
-      val response = SqliteInspectorProtocol.Response.parseFrom(it)
-
-      if (response.hasErrorOccurred()) {
-        handleError(project, response.errorOccurred.content, logger<LiveSqliteResultSet>())
-      }
-
-      return@transform response.query.columnNamesList.map { columnName ->
+    return responseFuture.transform(taskExecutor) { response ->
+      response.query.columnNamesList.map { columnName ->
         ResultSetSqliteColumn(columnName, null, null, null)
       }
     }.cancelOnDispose(this)
@@ -63,15 +52,9 @@ class LiveSqliteResultSet(
 
   override val totalRowCount: ListenableFuture<Int> get() {
     val queryCommand = buildQueryCommand(sqliteStatement.toRowCountStatement(), connectionId)
-    val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
+    val responseFuture = messenger.sendCommand(queryCommand)
 
-    return responseFuture.transform(taskExecutor) {
-      val response = SqliteInspectorProtocol.Response.parseFrom(it)
-
-      if (response.hasErrorOccurred()) {
-        handleError(project, response.errorOccurred.content, logger<LiveSqliteResultSet>())
-      }
-
+    return responseFuture.transform(taskExecutor) { response ->
       response.query.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.intValue ?: 0
     }.cancelOnDispose(this)
   }
@@ -80,15 +63,9 @@ class LiveSqliteResultSet(
     checkOffsetAndSize(rowOffset, rowBatchSize)
 
     val queryCommand = buildQueryCommand(sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize), connectionId)
-    val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
+    val responseFuture = messenger.sendCommand(queryCommand)
 
-    return responseFuture.transform(taskExecutor) { byteArray ->
-      val response = SqliteInspectorProtocol.Response.parseFrom(byteArray)
-
-      if (response.hasErrorOccurred()) {
-        handleError(project, response.errorOccurred.content, logger<LiveSqliteResultSet>())
-      }
-
+    return responseFuture.transform(taskExecutor) { response ->
       val columnNames = response.query.columnNamesList
       val rows = response.query.rowsList.map {
         val sqliteColumnValues = it.valuesList.mapIndexed { index, cellValue -> cellValue.toSqliteColumnValue(columnNames[index]) }
