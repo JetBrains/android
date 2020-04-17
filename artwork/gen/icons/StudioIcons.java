@@ -110,6 +110,7 @@ public class StudioIcons {
   public static class DatabaseInspector {
     public static final Icon COLUMN = load("/studio/icons/database-inspector/column.svg"); // 16x16
     public static final Icon DATABASE = load("/studio/icons/database-inspector/database.svg"); // 16x16
+    public static final Icon NEW_QUERY = load("/studio/icons/database-inspector/new-query.svg"); // 16x16
     public static final Icon PRIMARY_KEY = load("/studio/icons/database-inspector/primary-key.svg"); // 16x16
     public static final Icon SCHEMA = load("/studio/icons/database-inspector/schema.svg"); // 16x16
     public static final Icon TABLE = load("/studio/icons/database-inspector/table.svg"); // 16x16

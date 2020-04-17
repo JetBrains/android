@@ -29,6 +29,7 @@ import com.intellij.ui.SideBorder
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
+import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.event.InputEvent
@@ -44,8 +45,8 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private val rootPanel = JPanel(BorderLayout())
   private val tree = Tree()
 
-  private val refreshSchemaButton = CommonButton("Refresh schema", AllIcons.Actions.Refresh)
-  private val runSqlButton = CommonButton("Run SQL", AllIcons.RunConfigurations.TestState.Run)
+  private val refreshSchemaButton = CommonButton("Refresh Schema", AllIcons.Actions.Refresh)
+  private val runSqlButton = CommonButton("Run Query", StudioIcons.DatabaseInspector.NEW_QUERY)
 
   val component = rootPanel
 
