@@ -20,20 +20,16 @@ import com.android.build.attribution.analyzers.BuildEventsAnalyzersWrapper
 import com.android.build.attribution.data.TaskContainer
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.build.BuildContentManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
 import java.time.Duration
 
-class BuildAttributionManagerImpl(
-  private val myProject: Project,
-  private val myBuildContentManager: BuildContentManager
-) : BuildAttributionManager {
+class BuildAttributionManagerImpl(project: Project) : BuildAttributionManager {
   private val taskContainer = TaskContainer()
   @get:VisibleForTesting
-  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(myProject), taskContainer)
+  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(project), taskContainer)
   private val analyzersWrapper = BuildEventsAnalyzersWrapper(analyzersProxy.getBuildEventsAnalyzers(),
                                                              analyzersProxy.getBuildAttributionReportAnalyzers())
 
