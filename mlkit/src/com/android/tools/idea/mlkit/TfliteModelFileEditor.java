@@ -74,6 +74,7 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -81,6 +82,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -110,7 +112,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static final String NAME = "TFLite Model File";
   private static final ImmutableList<String> TENSOR_TABLE_HEADER =
     ImmutableList.of("Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max");
-  private static final int MAX_LINE_LENGTH = 100;
+  private static final int MAX_LINE_LENGTH = 80;
 
   private final Project myProject;
   private final VirtualFile myFile;
@@ -397,8 +399,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     List<List<String>> tableData = new ArrayList<>();
     for (TensorInfo tensorInfo : tensorInfoList) {
       MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
-      String meanStdColumn = params != null ? Arrays.toString(params.getMean()) + " / " + Arrays.toString(params.getStd()) : "";
-      String minMaxColumn = isValidMinMaxColumn(params) ? Arrays.toString(params.getMin()) + " / " + Arrays.toString(params.getMax()) : "";
+      String meanStdColumn =
+        params != null ? convertFloatArrayToString(params.getMean()) + " / " + convertFloatArrayToString(params.getStd()) : "";
+      String minMaxColumn = isValidMinMaxColumn(params)
+                            ? convertFloatArrayToString(params.getMin()) + " / " + convertFloatArrayToString(params.getMax())
+                            : "";
       tableData.add(
         Lists.newArrayList(
           Strings.nullToEmpty(tensorInfo.getName()),
@@ -722,6 +727,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
     result.append(tmp);
     return result.toString().trim();
+  }
+
+  @NotNull
+  private static String convertFloatArrayToString(@NotNull float[] values) {
+    DecimalFormat decimalFormat = new DecimalFormat("#.###");
+    return IntStream.range(0, values.length).mapToObj(i -> decimalFormat.format(values[i])).collect(Collectors.joining(", ", "[", "]"));
   }
 
   private static boolean isCellContentTypeHtml(TableModel tableModel, int rowIndex, int columnIndex) {
