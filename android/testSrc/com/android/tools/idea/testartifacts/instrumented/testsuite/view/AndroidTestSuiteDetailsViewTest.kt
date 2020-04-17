@@ -81,6 +81,7 @@ class AndroidTestSuiteDetailsViewTest {
       override fun getTestResultSummary(): AndroidTestCaseResult = testCaseResult
       override fun getLogcat(device: AndroidDevice): String = ""
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
+      override fun getBenchmark(device: AndroidDevice): String = ""
     }
   }
 }

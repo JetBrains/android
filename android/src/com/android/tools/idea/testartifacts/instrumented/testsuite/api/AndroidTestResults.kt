@@ -47,4 +47,9 @@ interface AndroidTestResults {
    * Returns an error stack trace or empty if a test passes.
    */
   fun getErrorStackTrace(device: AndroidDevice): String
+
+  /**
+   * Returns a benchmark test results.
+   */
+  fun getBenchmark(device: AndroidDevice): String
 }

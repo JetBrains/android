@@ -158,6 +158,7 @@ public class AndroidTestSuiteDetailsView {
         myContentView.setAndroidTestCaseResult(resultForSelectedDevice);
         myContentView.setLogcat(myTestResults.getLogcat(mySelectedDevice));
         myContentView.setErrorStackTrace(myTestResults.getErrorStackTrace(mySelectedDevice));
+        myContentView.setBenchmarkText(myTestResults.getBenchmark(mySelectedDevice));
       }
     }
   }

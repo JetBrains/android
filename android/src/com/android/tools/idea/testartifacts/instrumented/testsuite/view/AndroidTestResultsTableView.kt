@@ -393,6 +393,11 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
   override fun getErrorStackTrace(device: AndroidDevice): String = myTestCases[device.id]?.errorStackTrace ?: ""
 
   /**
+   * Returns a benchmark result for a given [device].
+   */
+  override fun getBenchmark(device: AndroidDevice): String = myTestCases[device.id]?.benchmark ?: ""
+
+  /**
    * Returns a one liner test result summary string.
    */
   fun getTestResultSummaryText(): String {

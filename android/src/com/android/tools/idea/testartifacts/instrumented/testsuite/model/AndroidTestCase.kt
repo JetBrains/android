@@ -24,12 +24,14 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.model
  * @param result a result of this test case. Null when the test case execution hasn't finished yet.
  * @param logcat a logcat message emitted during this test case.
  * @param errorStackTrace an error stack trace. Empty if a test passes.
+ * @param benchmark an output from AndroidX Benchmark library.
  */
 data class AndroidTestCase(val id: String,
                            val name: String,
                            var result: AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED,
                            var logcat: String = "",
-                           var errorStackTrace: String = "")
+                           var errorStackTrace: String = "",
+                           var benchmark: String = "")
 
 /**
  * A result of a test case execution.

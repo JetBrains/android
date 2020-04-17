@@ -283,6 +283,7 @@ class AndroidTestResultsTableViewTest {
       override fun getTestResultSummary(): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
       override fun getLogcat(device: AndroidDevice): String = ""
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
+      override fun getBenchmark(device: AndroidDevice): String = ""
     }
   }
 

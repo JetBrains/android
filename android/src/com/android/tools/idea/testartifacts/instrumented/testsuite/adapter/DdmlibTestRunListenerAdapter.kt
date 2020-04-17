@@ -116,6 +116,7 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
       testCase.result = AndroidTestCaseResult.PASSED
     }
     testCase.logcat = testMetrics.getOrDefault(DDMLIB_LOGCAT, "")
+    testCase.benchmark = testMetrics.getOrDefault("android.studio.display.benchmark", "")
     listener.onTestCaseFinished(myDevice, myTestSuite, testCase)
   }
 

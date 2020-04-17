@@ -168,11 +168,15 @@ class DdmlibTestRunListenerAdapterTest {
       any(AndroidTestSuite::class.java),
       testCase.capture() ?: AndroidTestCase("", ""))  // Workaround for https://github.com/mockito/mockito/issues/1255
 
-    adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1"), mutableMapOf(DDMLIB_LOGCAT to "test logcat message"))
+    adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1"),
+                      mutableMapOf(
+                        DDMLIB_LOGCAT to "test logcat message",
+                        "android.studio.display.benchmark" to "test benchmark output message"))
     adapter.testRunEnded(/*elapsedTime=*/1000, mutableMapOf())
 
     assertThat(testCase.value.result).isEqualTo(AndroidTestCaseResult.PASSED)
     assertThat(testCase.value.logcat).isEqualTo("test logcat message")
+    assertThat(testCase.value.benchmark).isEqualTo("test benchmark output message")
     assertThat(testSuite.value.result).isEqualTo(AndroidTestSuiteResult.PASSED)
   }
 
