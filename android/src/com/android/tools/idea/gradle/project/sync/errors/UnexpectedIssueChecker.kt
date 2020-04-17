@@ -28,6 +28,7 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.io.File
 import java.util.concurrent.CompletableFuture
 
@@ -35,7 +36,7 @@ class UnexpectedIssueChecker: GradleIssueChecker {
   private val UNEXPECTED_ERROR_FILE_BUG = "This is an unexpected error. Please file a bug containing the idea.log file."
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message= issueData.error.message ?: return null
+    val message= GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (message.isEmpty() || !message.contains(UNEXPECTED_ERROR_FILE_BUG)) return null
 
     // Log metrics.

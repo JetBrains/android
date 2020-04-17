@@ -26,6 +26,7 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.regex.Pattern
 
 class OldAndroidPluginIssueChecker: GradleIssueChecker {
@@ -33,7 +34,7 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
     "The android gradle plugin version .+ is too old, please update to the latest version.")
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
+    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (message.isEmpty() || !(message.startsWith("Plugin is too old, please update to a more recent version") ||
         PATTERN.matcher(message.lines()[0]).matches())) return null
 

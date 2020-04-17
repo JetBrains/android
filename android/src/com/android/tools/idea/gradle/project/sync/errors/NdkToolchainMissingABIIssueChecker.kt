@@ -28,13 +28,14 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 class NdkToolchainMissingABIIssueChecker: GradleIssueChecker {
   private val ERROR_MESSAGE = "No toolchains found in the NDK toolchains folder for ABI with prefix: "
   private val VALID_ABIS = listOf("mips64el-linux-android", "mipsel-linux-android")
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
+    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (!message.startsWith(ERROR_MESSAGE)) return null
     val description = MessageComposer(message)
     val valid = VALID_ABIS.stream().anyMatch { message.endsWith(it) }

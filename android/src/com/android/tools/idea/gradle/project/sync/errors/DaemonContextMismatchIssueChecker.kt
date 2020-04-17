@@ -24,12 +24,13 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 class DaemonContextMismatchIssueChecker : GradleIssueChecker {
   private val JAVA_HOME = "javaHome="
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
+    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     val messageLines = message.lines()
     if (messageLines[0].isEmpty() ||
         !messageLines[0].contains("The newly created daemon process has a different context than expected.") ||

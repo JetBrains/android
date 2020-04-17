@@ -26,13 +26,15 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.net.UnknownHostException
 
 class UnknownHostIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
-    if (message.isEmpty() || issueData.error !is UnknownHostException) return null
+    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val message = rootCause.message ?: return null
+    if (message.isEmpty() || rootCause !is UnknownHostException) return null
 
     // Log metrics.
     invokeLater {

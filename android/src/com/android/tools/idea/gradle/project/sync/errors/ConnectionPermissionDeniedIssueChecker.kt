@@ -20,22 +20,21 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
-import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import java.net.SocketException
-import java.util.concurrent.CompletableFuture
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CONNECTION_DENIED
 import com.intellij.openapi.application.invokeLater
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 
 class ConnectionPermissionDeniedIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
-    if (issueData.error !is SocketException || message.isEmpty() || !message.contains("Permission denied: connect")) return null
+    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val message = rootCause.message ?: return null
+    if (rootCause !is SocketException || message.isEmpty() || !message.contains("Permission denied: connect")) return null
 
     // Log metrics.
     invokeLater {

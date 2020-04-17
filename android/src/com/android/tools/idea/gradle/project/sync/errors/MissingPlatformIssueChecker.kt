@@ -31,17 +31,16 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.facet.FacetManager
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.roots.ui.configuration.FacetsProvider
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.concurrent.CompletableFuture
 import java.util.regex.Pattern
 
@@ -54,10 +53,11 @@ private val MISSING_PLATFORM_PATTERNS = listOf(
 class MissingPlatformIssueChecker: GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
+    val rootCause  = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val message = rootCause.message ?: return null
     val missingPlatform = getMissingPlatform(message)
     if (message.isEmpty() || missingPlatform == null ||
-        (issueData.error !is IllegalStateException) && (issueData.error !is ExternalSystemException)) return null
+        (rootCause !is IllegalStateException) && (rootCause !is ExternalSystemException)) return null
 
     // Log metrics.
     invokeLater {
