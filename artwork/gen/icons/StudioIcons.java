@@ -342,7 +342,11 @@ public class StudioIcons {
       public static final Icon FAVORITES_SELECTED = load("/studio/icons/layout-editor/properties/favorites-selected.svg"); // 16x16
       public static final Icon FAVORITES = load("/studio/icons/layout-editor/properties/favorites.svg"); // 16x16
       public static final Icon FLAG = load("/studio/icons/layout-editor/properties/flag.svg"); // 14x14
+      public static final Icon GONE_TOOLS_ATTRIBUTE = load("/studio/icons/layout-editor/properties/gone-tools-attribute.svg"); // 16x16
+      public static final Icon GONE = load("/studio/icons/layout-editor/properties/gone.svg"); // 16x16
       public static final Icon IMAGE_PICKER = load("/studio/icons/layout-editor/properties/image-picker.svg"); // 16x16
+      public static final Icon INVISIBLE_TOOLS_ATTRIBUTE = load("/studio/icons/layout-editor/properties/invisible-tools-attribute.svg"); // 16x16
+      public static final Icon INVISIBLE = load("/studio/icons/layout-editor/properties/invisible.svg"); // 16x16
       public static final Icon MODIFY_NAV = load("/studio/icons/layout-editor/properties/modify-nav.svg"); // 16x16
       public static final Icon MODIFY_TEXT = load("/studio/icons/layout-editor/properties/modify-text.svg"); // 16x16
       public static final Icon MODIFY_THEME = load("/studio/icons/layout-editor/properties/modify-theme.svg"); // 16x16
@@ -356,6 +360,8 @@ public class StudioIcons {
       public static final Icon TEXT_STYLE_UPPERCASE = load("/studio/icons/layout-editor/properties/text-style-uppercase.svg"); // 16x16
       public static final Icon TOGGLE_PROPERTIES = load("/studio/icons/layout-editor/properties/toggle-properties.svg"); // 16x16
       public static final Icon TOOLS_ATTRIBUTE = load("/studio/icons/layout-editor/properties/tools-attribute.svg"); // 12x12
+      public static final Icon VISIBLE_TOOLS_ATTRIBUTE = load("/studio/icons/layout-editor/properties/visible-tools-attribute.svg"); // 16x16
+      public static final Icon VISIBLE = load("/studio/icons/layout-editor/properties/visible.svg"); // 16x16
     }
 
     public static class Toolbar {
