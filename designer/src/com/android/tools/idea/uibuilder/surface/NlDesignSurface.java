@@ -121,7 +121,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       Dimension extentSize = myDesignSurface.getExtentSize();
       int availableWidth = extentSize.width;
       int availableHeight = extentSize.height;
-      Dimension dimension = myLayoutManager.getRequiredSize(myDesignSurface.getSceneViews(), availableWidth, availableHeight, null);
+      Dimension dimension = myLayoutManager.getRequiredSize(myDesignSurface.getPositionableContent(), availableWidth, availableHeight, null);
 
       if (dimension.width >= 0 && dimension.height >= 0) {
         dimension.setSize(dimension.width + 2 * DEFAULT_SCREEN_OFFSET_X, dimension.height + 2 * DEFAULT_SCREEN_OFFSET_Y);

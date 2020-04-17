@@ -213,6 +213,15 @@ class SceneViewPeerPanel(val sceneView: SceneView, private val sceneViewToolbar:
 internal class SceneViewPanel(private val interactionLayersProvider: () -> List<Layer>,
                               val layoutManager: PositionableContentLayoutManager) :
   JPanel(layoutManager) {
+
+  /**
+   * Returns the components of this panel that are [PositionableContent]
+   */
+  val positionableContent: Collection<PositionableContent>
+    get() = components.filterIsInstance<SceneViewPeerPanel>()
+      .map { it.positionableAdapter }
+      .toList()
+
   override fun paintComponent(graphics: Graphics) {
     super.paintComponent(graphics)
     val sceneViewPeerPanels = components.filterIsInstance<SceneViewPeerPanel>()
