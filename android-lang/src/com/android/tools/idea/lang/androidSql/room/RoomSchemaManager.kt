@@ -55,7 +55,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 private val LOG = Logger.getInstance(RoomSchemaManager::class.java)
 
 /** Utility for constructing a [RoomSchema] using IDE indices. */
-class RoomSchemaManager(val module: Module, private val cachedValuesManager: CachedValuesManager) {
+class RoomSchemaManager(val module: Module) {
   companion object {
     fun getInstance(module: Module): RoomSchemaManager = module.getService(RoomSchemaManager::class.java)!!
   }
@@ -63,7 +63,7 @@ class RoomSchemaManager(val module: Module, private val cachedValuesManager: Cac
   private val schemas = ScopeType.values().associate { it to createCachedValue(it) }
 
   private fun createCachedValue(scope: ScopeType): CachedValue<RoomSchema> {
-    return cachedValuesManager.createCachedValue {
+    return CachedValuesManager.getManager(module.project).createCachedValue {
       CachedValueProvider.Result(buildSchema(module, scope), PsiModificationTracker.MODIFICATION_COUNT)
     }
   }
