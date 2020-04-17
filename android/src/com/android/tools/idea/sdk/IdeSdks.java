@@ -604,7 +604,12 @@ public class IdeSdks {
   }
 
   public static void updateWelcomeRunAndroidSdkAction() {
-    AnAction sdkManagerAction = ActionManager.getInstance().getAction("WelcomeScreen.RunAndroidSdkManager");
+    ActionManager actionManager = ApplicationManager.getApplication().getServiceIfCreated(ActionManager.class);
+    if (actionManager == null) {
+      return;
+    }
+
+    AnAction sdkManagerAction = actionManager.getAction("WelcomeScreen.RunAndroidSdkManager");
     if (sdkManagerAction != null) {
       sdkManagerAction.update(AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, dataId -> null));
     }
