@@ -247,6 +247,15 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     outputTensorTable.setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY));
     sectionContentPanel.add(outputTensorTable);
 
+    // Align column width between tensor tables.
+    for (int c = 0; c < TENSOR_TABLE_HEADER.size(); c++) {
+      TableColumn inputTensorTableColumn = inputTensorTable.getColumnModel().getColumn(c);
+      TableColumn outputTensorTableColumn = outputTensorTable.getColumnModel().getColumn(c);
+      int newColumnWidth = Math.max(inputTensorTableColumn.getPreferredWidth(), outputTensorTableColumn.getPreferredWidth());
+      inputTensorTableColumn.setPreferredWidth(newColumnWidth);
+      outputTensorTableColumn.setPreferredWidth(newColumnWidth);
+    }
+
     sectionPanel.add(sectionContentPanel);
 
     return sectionPanel;
