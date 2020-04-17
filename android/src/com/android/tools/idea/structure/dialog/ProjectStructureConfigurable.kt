@@ -383,7 +383,7 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
   }
 
   override fun reset() {
-    val token = HeavyProcessLatch.INSTANCE.processStarted("Resetting Project Structure", HeavyProcessLatch.Type.Reset)
+    val token = HeavyProcessLatch.INSTANCE.processStarted("Resetting Project Structure")
     try {
       val configurables = myConfigurables.keys
 
