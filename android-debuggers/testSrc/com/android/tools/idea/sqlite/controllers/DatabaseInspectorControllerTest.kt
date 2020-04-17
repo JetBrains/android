@@ -72,6 +72,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import org.mockito.InOrder
+import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
@@ -1031,5 +1032,59 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     assertEquals(listOf(sqliteDatabase1, sqliteDatabase2), model.getOpenDatabases())
 
     Disposer.dispose(databaseInspectorController)
+  }
+
+  fun testTabsAreRestored() {
+    // Prepare
+    val table1 = SqliteTable("table1", emptyList(), null, false)
+    val table2 = SqliteTable("table2", emptyList(), null, false)
+    val schema = SqliteSchema(listOf(table1, table2, testSqliteTable))
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, table1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, table2)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    val savedState = sqliteController.saveState()
+    runDispatching {
+      sqliteController.closeDatabase(sqliteDatabase1)
+    }
+
+    // Assert that tabs closed
+    verify(mockSqliteView).closeTab(eq(TabId.TableTab(sqliteDatabase1, testSqliteTable.name)))
+    verify(mockSqliteView).closeTab(eq(TabId.TableTab(sqliteDatabase1, table1.name)))
+    verify(mockSqliteView).closeTab(eq(TabId.TableTab(sqliteDatabase1, table2.name)))
+    Mockito.reset(mockSqliteView)
+
+    // Act: restore state and re-add db
+    sqliteController.restoreSavedState(savedState)
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+
+    // Assert that tabs are readded
+    verify(mockSqliteView)
+      .openTab(
+        eq(TabId.TableTab(sqliteDatabase1, testSqliteTable.name)),
+        eq(testSqliteTable.name), any(JComponent::class.java)
+      )
+
+    verify(mockSqliteView)
+      .openTab(
+        eq(TabId.TableTab(sqliteDatabase1, table1.name)),
+        eq(table1.name), any(JComponent::class.java)
+      )
+
+    verify(mockSqliteView)
+      .openTab(
+        eq(TabId.TableTab(sqliteDatabase1, table2.name)),
+        eq(table2.name), any(JComponent::class.java)
+      )
   }
 }
