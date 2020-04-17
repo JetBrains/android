@@ -34,7 +34,7 @@ import java.io.IOException
 class ProjectBuildModelTest : GradleFileModelTestCase() {
   @Test
   fun testAppliedFilesShared() {
-    writeToNewProjectFile("b", TestFile.APPLIED_FILES_SHARED_APPLIED)
+    val b = writeToNewProjectFile("b", TestFile.APPLIED_FILES_SHARED_APPLIED)
     writeToBuildFile(TestFile.APPLIED_FILES_SHARED)
     writeToSubModuleBuildFile(TestFile.APPLIED_FILES_SHARED_SUB)
     writeToSettingsFile(subModuleSettingsText)
@@ -62,7 +62,12 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
     assertFalse(parentBuildModel.isModified)
     assertTrue(childBuildModel.isModified)
+
     applyChangesAndReparse(projectModel)
+    verifyFileContents(myBuildFile, TestFile.APPLIED_FILES_SHARED)
+    verifyFileContents(mySubModuleBuildFile, TestFile.APPLIED_FILES_SHARED_SUB_EXPECTED)
+    verifyFileContents(myProjectBasePath.findChild(b)!!, TestFile.APPLIED_FILES_SHARED_APPLIED_EXPECTED)
+
     assertFalse(parentBuildModel.isModified)
     assertFalse(childBuildModel.isModified)
 
@@ -132,6 +137,8 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(projectModel)
+    verifyFileContents(myBuildFile, TestFile.MULTIPLE_MODELS_PERSIST_CHANGES_EXPECTED)
+    verifyFileContents(mySubModuleBuildFile, TestFile.MULTIPLE_MODELS_PERSIST_CHANGES_SUB_EXPECTED)
 
     run {
       val parentPropertyModel = parentModelTwo.ext().findProperty("prop")
@@ -203,6 +210,8 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(projectModel)
+    verifyFileContents(myBuildFile, TestFile.SETTINGS_FILE_UPDATES_CORRECTLY_EXPECTED)
+    verifyFileContents(mySettingsFile, TestFile.SETTINGS_FILE_UPDATES_CORRECTLY_SETTINGS_EXPECTED)
 
     run {
       val paths = settingsModel.modulePaths()
@@ -238,7 +247,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     val pbm = projectBuildModel
     val buildModel = pbm.getModuleBuildModel(myBuildFile)
     assertNotNull(buildModel)
-    verifyPropertyModel(buildModel.android().compileSdkVersion(), STRING_TYPE, "28", STRING, REGULAR, 0)
+    verifyPropertyModel(buildModel.android().compileSdkVersion(), INTEGER_TYPE, 28, INTEGER, REGULAR, 0)
   }
 
   @Test
@@ -252,7 +261,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     val buildModel = pbm.getModuleBuildModel(myModule)
 
     val pluginModel = buildModel!!.buildscript().dependencies().artifacts()[0].completeModel()
-    assertEquals("com.android.tools.build:gradle:${'$'}version", pluginModel.forceString())
+    assertEquals("com.android.tools.build:gradle:1.2.3", pluginModel.forceString())
   }
 
   @Test
@@ -279,14 +288,20 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),
+    APPLIED_FILES_SHARED_APPLIED_EXPECTED("appliedFilesSharedAppliedExpected"),
     APPLIED_FILES_SHARED_SUB("appliedFilesShared_sub"),
+    APPLIED_FILES_SHARED_SUB_EXPECTED("appliedFilesShared_subExpected"),
     APPLY_NO_ROOT_BUILD_FILE("applyNoRootBuildFile"),
     APPLY_NO_ROOT_BUILD_FILE_EXPECTED("applyNoRootBuildFileExpected"),
     MULTIPLE_MODELS_PERSIST_CHANGES("multipleModelsPersistChanges"),
     MULTIPLE_MODELS_PERSIST_CHANGES_SUB("multipleModelsPersistChanges_sub"),
+    MULTIPLE_MODELS_PERSIST_CHANGES_EXPECTED("multipleModelsPersistChangesExpected"),
+    MULTIPLE_MODELS_PERSIST_CHANGES_SUB_EXPECTED("multipleModelsPersistChanges_subExpected"),
     SETTINGS_FILE_UPDATES_CORRECTLY("settingsFileUpdatesCorrectly"),
+    SETTINGS_FILE_UPDATES_CORRECTLY_EXPECTED("settingsFileUpdatesCorrectlyExpected"),
     SETTINGS_FILE_UPDATES_CORRECTLY_SUB("settingsFileUpdatesCorrectly_sub"),
     SETTINGS_FILE_UPDATES_CORRECTLY_OTHER_SUB("settingsFileUpdatesCorrectlyOther_sub"),
+    SETTINGS_FILE_UPDATES_CORRECTLY_SETTINGS_EXPECTED("settingsFileUpdatesCorrectlySettingsExpected"),
     PROJECT_MODELS_SAVES_FILES("projectModelSavesFiles"),
     PROJECT_MODELS_SAVES_FILES_SUB("projectModelSavesFiles_sub"),
     PROJECT_MODELS_SAVES_FILES_EXPECTED("projectModelSavesFilesExpected"),
