@@ -65,6 +65,7 @@ import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -277,7 +278,10 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     header.setBorder(Borders.empty(24, 0, 16, 0));
     sectionPanel.add(header);
 
-    JPanel codePaneContainer = createPanelWithYAxisBoxLayout(Borders.emptyLeft(20));
+    JPanel codePaneContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    codePaneContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
+    codePaneContainer.setBackground(UIUtil.getTextFieldBackground());
+    codePaneContainer.setBorder(Borders.emptyLeft(20));
     sectionPanel.add(codePaneContainer);
 
     JBTabbedPane tabbedCodePane = new JBTabbedPane();
