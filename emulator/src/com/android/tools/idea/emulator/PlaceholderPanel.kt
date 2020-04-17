@@ -176,26 +176,22 @@ internal class PlaceholderPanel(project: Project): BorderLayoutPanel(), Disposab
   override fun dispose() {
   }
 
-  companion object {
-    private const val MIN_REQUIRED_EMULATOR_VERSION = "30.0.9"
+  /**
+   * Interpolates between two colors.
+   */
+  private fun interpolate(start: Color, end: Color, @Suppress("SameParameterValue") fraction: Double): Color {
+    return Color(interpolate(start.red, end.red, fraction).coerceIn(0, 255),
+                 interpolate(start.green, end.green, fraction).coerceIn(0, 255),
+                 interpolate(start.blue, end.blue, fraction).coerceIn(0, 255),
+                 interpolate(start.alpha, end.alpha, fraction).coerceIn(0, 255))
+  }
 
-    /**
-     * Interpolates between two colors.
-     */
-    @JvmStatic
-    private fun interpolate(start: Color, end: Color, @Suppress("SameParameterValue") fraction: Double): Color {
-      return Color(interpolate(start.red, end.red, fraction).coerceIn(0, 255),
-                   interpolate(start.green, end.green, fraction).coerceIn(0, 255),
-                   interpolate(start.blue, end.blue, fraction).coerceIn(0, 255),
-                   interpolate(start.alpha, end.alpha, fraction).coerceIn(0, 255))
-    }
-
-    /**
-     * Interpolates between two integers.
-     */
-    @JvmStatic
-    private fun interpolate(start: Int, end: Int, fraction: Double): Int {
-      return start + ((end - start) * fraction).roundToInt()
-    }
+  /**
+   * Interpolates between two integers.
+   */
+  private fun interpolate(start: Int, end: Int, fraction: Double): Int {
+    return start + ((end - start) * fraction).roundToInt()
   }
 }
+
+private const val MIN_REQUIRED_EMULATOR_VERSION = "30.0.9"
