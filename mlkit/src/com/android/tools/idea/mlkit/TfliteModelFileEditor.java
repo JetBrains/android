@@ -184,8 +184,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       }
       if (myModule != null && myIsSampleCodeSectionVisible) {
         PsiClass modelClass = MlkitModuleService.getInstance(myModule)
-          .getOrCreateLightModelClass(
-            new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
+          .getOrCreateLightModelClass(new MlModelMetadata(myFile.getUrl()));
         if (modelClass != null) {
           contentPanel.add(createSampleCodeSection(modelClass, modelInfo));
         }
