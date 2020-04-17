@@ -27,9 +27,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.indexing.FileBasedIndex;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -60,13 +58,8 @@ public class MlkitClassFinder extends PsiElementFinder {
       return PsiClass.EMPTY_ARRAY;
     }
 
-    Map<VirtualFile, MlModelMetadata> modelFileMap = new HashMap<>();
-    String className = computeDataKey(qualifiedName);
-    FileBasedIndex.getInstance().processValues(MlModelFileIndex.INDEX_ID, className, null, (file, value) -> {
-      modelFileMap.put(file, value);
-      return true;
-    }, scope.intersectWith(MlModelFilesSearchScope.inProject(myProject)));
-
+    String className = computeClassName(qualifiedName);
+    Map<VirtualFile, MlModelMetadata> modelFileMap = MlkitUtils.getModelFileMapFromIndex(className, myProject, scope);
     List<PsiClass> lightClassList = new ArrayList<>();
     for (PsiClass lightModelClass : MlkitUtils.getLightModelClasses(myProject, modelFileMap)) {
       if (qualifiedName.equals(lightModelClass.getQualifiedName())) {
@@ -85,8 +78,8 @@ public class MlkitClassFinder extends PsiElementFinder {
   }
 
   @NotNull
-  private static String computeDataKey(@NotNull String qualifiedName) {
-    // If it might inner class, then find second last element which matches data key.
+  private static String computeClassName(@NotNull String qualifiedName) {
+    // If it is inner class, then find second last element which matches data key.
     if (LightModelClass.getInnerClassNames().stream().anyMatch(value -> qualifiedName.endsWith(value))) {
       String[] candidates = qualifiedName.split("\\.");
       if (candidates.length >= 2) {

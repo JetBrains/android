@@ -93,10 +93,10 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testHighlighting_java() {
-    VirtualFile mobilenetModelFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/mobilenet_model.tflite");
+    myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/mobilenet_model.tflite");
+    myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/sub/mobilenet_model.tflite");
+    myFixture.copyFileToProject("style_transfer_quant_metadata.tflite", "/ml/style_transfer_model.tflite");
     VirtualFile ssdModelFile = myFixture.copyFileToProject("ssd_mobilenet_odt_metadata.tflite", "/ml/ssd_model.tflite");
-    VirtualFile styleTransferModelFile =
-      myFixture.copyFileToProject("style_transfer_quant_metadata.tflite", "/ml/style_transfer_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, ssdModelFile.getParent());
 
     PsiFile activityFile = myFixture.addFileToProject(
@@ -114,6 +114,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
       "import java.io.IOException;\n" +
       "import p1.p2.ml.MobilenetModel;\n" +
+      "import p1.p2.ml.MobilenetModel219;\n" +
       "import p1.p2.ml.SsdModel;\n" +
       "import p1.p2.ml.StyleTransferModel;\n" +
       "\n" +
@@ -126,6 +127,10 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "            TensorImage image = null;\n" +
       "            MobilenetModel.Outputs mobilenetOutputs = mobilenetModel.process(image);\n" +
       "            TensorLabel tensorLabel = mobilenetOutputs.getProbabilityAsTensorLabel();\n" +
+      "\n" +
+      "            MobilenetModel219 mobilenetModel219 = MobilenetModel219.newInstance(this);\n" +
+      "            MobilenetModel219.Outputs mobilenetOutputs2 = mobilenetModel219.process(image);\n" +
+      "            TensorLabel tensorLabel2 = mobilenetOutputs2.getProbabilityAsTensorLabel();\n" +
       "\n" +
       "            SsdModel ssdModel = SsdModel.newInstance(this);\n" +
       "            SsdModel.Outputs ssdOutputs = ssdModel.process(image);\n" +
