@@ -23,14 +23,6 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ArrayUtil.toStringArray;
 
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.MISSING_DEPENDENCIES;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.android.tools.idea.project.messages.MessageType.WARNING;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -40,13 +32,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.ArrayUtilRt;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -75,6 +61,11 @@ public final class DependencySetupIssues {
     return ServiceManager.getService(project, DependencySetupIssues.class);
   }
 
+  public DependencySetupIssues(@NotNull Project project) {
+    mySyncMessages = GradleSyncMessages.getInstance(project);
+  }
+
+  @NonInjectable
   public DependencySetupIssues(@NotNull GradleSyncMessages syncMessages) {
     mySyncMessages = syncMessages;
   }

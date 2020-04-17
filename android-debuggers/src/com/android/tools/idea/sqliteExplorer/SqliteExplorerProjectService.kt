@@ -73,13 +73,11 @@ interface SqliteExplorerProjectService {
   fun getOpenDatabases(): Set<SqliteDatabase>
 }
 
-class SqliteExplorerProjectServiceImpl(
-  private val project: Project,
-  private val toolWindowManager: ToolWindowManager
-) : SqliteExplorerProjectService {
+class SqliteExplorerProjectServiceImpl(private val project: Project) : SqliteExplorerProjectService {
   private val controller: SqliteController
 
-  override val sqliteInspectorComponent get() = controller.sqliteView.component
+  override val sqliteInspectorComponent
+    get() = controller.sqliteView.component
 
   init {
     val sqliteView: SqliteView = invokeAndWaitIfNeeded { SqliteViewImpl(project, project) }
@@ -97,7 +95,7 @@ class SqliteExplorerProjectServiceImpl(
 
   @AnyThread
   override fun openSqliteDatabase(file: VirtualFile) {
-    toolWindowManager.getToolWindow(SqliteExplorerToolWindowFactory.TOOL_WINDOW_ID)?.show { controller.openSqliteDatabase(file) }
+    ToolWindowManager.getInstance(project).getToolWindow(SqliteExplorerToolWindowFactory.TOOL_WINDOW_ID)?.show { controller.openSqliteDatabase(file) }
   }
 
   @UiThread
