@@ -66,6 +66,7 @@ import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
@@ -218,9 +219,10 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     sectionPanel.add(createSectionHeader("Model"));
 
     JBTable modelTable = createTable(getModelTableData(modelInfo), Collections.emptyList());
-    JPanel modelTablePanel = createPanelWithYAxisBoxLayout(Borders.emptyLeft(20));
+    JPanel modelTablePanel = createPanelWithFlowLayout(Borders.emptyLeft(20));
     modelTablePanel.add(modelTable);
     sectionPanel.add(modelTablePanel);
+    sectionPanel.setMaximumSize(sectionPanel.getPreferredSize());
 
     return sectionPanel;
   }
@@ -277,13 +279,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
 
     JComponent header = createSectionHeader("Sample Code");
-    header.setBorder(Borders.empty(24, 0, 16, 0));
     sectionPanel.add(header);
 
-    JPanel codePaneContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    codePaneContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
-    codePaneContainer.setBackground(UIUtil.getTextFieldBackground());
-    codePaneContainer.setBorder(Borders.emptyLeft(20));
+    JPanel codePaneContainer = createPanelWithFlowLayout(Borders.empty(8, 20, 0, 0));
     sectionPanel.add(codePaneContainer);
 
     JBTabbedPane tabbedCodePane = new JBTabbedPane();
@@ -358,18 +356,23 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       }
     });
 
-    // Sets up appropriate column width.
+    // Sets up column width and row height to fit into content.
     TableCellRenderer headerCellRenderer = table.getTableHeader().getDefaultRenderer();
+    int[] rowHeights = new int[table.getRowCount()];
     for (int c = 0; c < table.getColumnCount(); c++) {
       TableColumn column = table.getColumnModel().getColumn(c);
       int cellWidth =
         headerCellRenderer.getTableCellRendererComponent(table, column.getHeaderValue(), false, false, 0, c).getPreferredSize().width;
       for (int r = 0; r < table.getRowCount(); r++) {
         TableCellRenderer cellRenderer = table.getCellRenderer(r, c);
-        Component component = table.prepareRenderer(cellRenderer, r, c);
-        cellWidth = Math.max(cellWidth, component.getPreferredSize().width);
+        Dimension preferredSize = table.prepareRenderer(cellRenderer, r, c).getPreferredSize();
+        cellWidth = Math.max(cellWidth, preferredSize.width);
+        rowHeights[r] = Math.max(rowHeights[r], preferredSize.height);
       }
       column.setPreferredWidth(cellWidth + 10);
+    }
+    for (int r = 0; r < table.getRowCount(); r++) {
+      table.setRowHeight(r, rowHeights[r]);
     }
 
     return table;
@@ -694,6 +697,15 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
+  private static JPanel createPanelWithFlowLayout(@NotNull Border border) {
+    JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.setBackground(UIUtil.getTextFieldBackground());
+    panel.setBorder(border);
+    return panel;
+  }
+
+  @NotNull
   private static String breakIntoMultipleLines(@NotNull String text) {
     String[] words = text.split(" ");
     StringBuilder result = new StringBuilder();
@@ -811,7 +823,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         myTextPane.setBorder(Borders.empty(8, 8, 8, 0));
       }
       else {
-        myTextPane.setBorder(Borders.empty(4, 0));
+        myTextPane.setBorder(Borders.empty(8, 0, 8, 40));
       }
     }
   }
