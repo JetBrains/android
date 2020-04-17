@@ -26,6 +26,7 @@ import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorControllerImpl
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactory
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactoryImpl
@@ -96,12 +97,6 @@ interface DatabaseInspectorProjectService {
   fun openSqliteDatabase(sqliteDatabase: SqliteDatabase) : ListenableFuture<Unit>
 
   /**
-   * Closes all open live databases in [DatabaseInspectorController].
-   */
-  @AnyThread
-  fun closeAllLiveDatabase()
-
-  /**
    * Runs the query passed as argument in the Sqlite Inspector.
    */
   @UiThread
@@ -143,6 +138,21 @@ interface DatabaseInspectorProjectService {
    */
   @AnyThread
   fun databasePossiblyChanged()
+
+  /**
+   * Called when Database Inspector is connected to new process.
+   *
+   * @param previousState state of UI from previous session if available
+   */
+  @UiThread
+  fun startAppInspectionSession(previousState: SavedUiState?)
+
+  /**
+   * Called when Database Inspector is disconnected from app.
+   * @return an object that describes state of UI on this moment. This object can be passed later in [startAppInspectionSession]
+   */
+  @UiThread
+  fun stopAppInspectionSession(): SavedUiState
 }
 
 class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
@@ -250,13 +260,21 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     controller.addSqliteDatabase(database)
   }
 
-  @AnyThread
-  override fun closeAllLiveDatabase() {
+  @UiThread
+  override fun startAppInspectionSession(previousState: SavedUiState?) {
+      controller.restoreSavedState(previousState)
+  }
+
+  @UiThread
+  override fun stopAppInspectionSession(): SavedUiState {
+    val savedState = controller.saveState()
+
     projectScope.launch(uiThread) {
       model.getOpenDatabases().filterIsInstance<LiveSqliteDatabase>().forEach {
         controller.closeDatabase(it)
       }
     }
+    return savedState
   }
 
   @UiThread

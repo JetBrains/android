@@ -24,10 +24,11 @@ import com.android.tools.idea.sqlite.databaseConnection.live.DatabaseInspectorMe
 import com.android.tools.idea.sqlite.databaseConnection.live.ErrorsSideChannel
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
 import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.ide.PooledThreadExecutor
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
+import com.intellij.util.concurrency.EdtExecutorService
 import javax.swing.JComponent
 
 class DatabaseInspectorTabProvider : AppInspectorTabProvider {
@@ -38,6 +39,8 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
     developmentDirectory = "../../prebuilts/tools/common/app-inspection/androidx/sqlite/",
     releaseDirectory = "plugins/android/resources/app-inspection/"
   )
+
+  private var savedState: SavedUiState? = null
 
   override fun isApplicable(): Boolean {
     return DatabaseInspectorFlagController.isFeatureEnabled
@@ -66,12 +69,13 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       init {
         databaseInspectorProjectService.toolWindow = appInspectionCallbacks
+        databaseInspectorProjectService.startAppInspectionSession(savedState)
         client.startTrackingDatabaseConnections()
         client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
           override fun onDispose() {
-            databaseInspectorProjectService.closeAllLiveDatabase()
+            savedState = databaseInspectorProjectService.stopAppInspectionSession()
           }
-        }, MoreExecutors.directExecutor())
+        }, EdtExecutorService.getInstance())
       }
     }
   }

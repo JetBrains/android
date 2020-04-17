@@ -151,7 +151,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
     // Act
     runDispatching {
-      databaseInspectorProjectService.closeAllLiveDatabase()
+      databaseInspectorProjectService.stopAppInspectionSession()
     }
 
     // Assert
