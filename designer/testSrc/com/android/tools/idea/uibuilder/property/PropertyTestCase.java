@@ -125,7 +125,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myFragment = myComponentMap.get("fragmentTag");
     myDesignSurface = (NlDesignSurface)myModel.getSurface();
     Disposer.register(getProject(), myDesignSurface);
-    ScreenView view = new ScreenView(myDesignSurface, myDesignSurface.getSceneManager());
+    ScreenView view = ScreenView.newBuilder(myDesignSurface, myDesignSurface.getSceneManager()).build();
     when(myDesignSurface.getFocusedSceneView()).thenReturn(view);
     myPropertiesManager = new NlPropertiesManager(myFacet, myDesignSurface, getProject());
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();

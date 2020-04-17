@@ -17,14 +17,18 @@ package com.android.tools.idea.uibuilder.surface;
 
 import static com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS;
 
+import com.android.tools.idea.common.scene.draw.ColorSet;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.collect.ImmutableList;
 import java.awt.Dimension;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +37,118 @@ import org.jetbrains.annotations.Nullable;
  * This is actually painted by {@link ScreenViewLayer}.
  */
 public class ScreenView extends ScreenViewBase {
+  /**
+   * Default {@link Layer} provider to be used if no other is supplied.
+   */
+  private static final Function<ScreenView, ImmutableList<Layer>> DEFAULT_LAYERS_PROVIDER = (screenView) -> {
+    ImmutableList.Builder<Layer> builder = ImmutableList.builder();
+
+    if (screenView.hasBorderLayer()) {
+      builder.add(new BorderLayer(screenView));
+    }
+    builder.add(new ScreenViewLayer(screenView));
+
+    DesignSurface surface = screenView.getSurface();
+    SceneLayer sceneLayer = new SceneLayer(surface, screenView, false);
+    sceneLayer.setAlwaysShowSelection(true);
+    builder.add(sceneLayer);
+    if (screenView.myIsResizeable && screenView.getSceneManager().getModel().getType().isEditable()) {
+      builder.add(new CanvasResizeLayer(surface, screenView));
+    }
+
+    if (NELE_RENDER_DIAGNOSTICS.get()) {
+      builder.add(new DiagnosticsLayer(surface));
+    }
+
+    return builder.build();
+  };
+
+  /**
+   * A {@link ScreenView} builder.
+   */
+  public static class Builder {
+    @NotNull final NlDesignSurface surface;
+    @NotNull final LayoutlibSceneManager manager;
+    boolean useImageSize = false;
+    boolean isResizeable = false;
+    boolean hasBorderLayer;
+    @Nullable ColorSet colorSet = null;
+    @NotNull Function<ScreenView, ImmutableList<Layer>> layersProvider = DEFAULT_LAYERS_PROVIDER;
+
+    private Builder(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
+      this.surface = surface;
+      this.manager = manager;
+      hasBorderLayer = manager.getModel().getType() instanceof LayoutEditorFileType;
+    }
+
+    /**
+     * If called, the {@link ScreenView} will use the result rendered image (if available) to determine its size instead of the
+     * device configuration.
+     */
+    @NotNull
+    public Builder useImageSize() {
+      useImageSize = true;
+      return this;
+    }
+
+    /**
+     * If called, the {@link ScreenView} will display the resize layer.
+     */
+    @NotNull
+    public Builder resizeable() {
+      isResizeable = true;
+      return this;
+    }
+
+    /**
+     * Sets a non-default {@link ColorSet} for the {@link ScreenView}
+     */
+    @NotNull
+    public Builder withColorSet(@NotNull ColorSet colorSet) {
+      this.colorSet = colorSet;
+      return this;
+    }
+
+    /**
+     * Sets a new provider that will determine the {@link Layer}s to be used.
+     */
+    @NotNull
+    public Builder withLayersProvider(@NotNull Function<ScreenView, ImmutableList<Layer>> layersProvider) {
+      this.layersProvider = layersProvider;
+      return this;
+    }
+
+    /**
+     * Disables the visible border.
+     */
+    @NotNull
+    public Builder disableBorder() {
+      hasBorderLayer = false;
+      return this;
+    }
+
+    @NotNull
+    public ScreenView build() {
+      return new ScreenView(
+        surface,
+        manager,
+        useImageSize,
+        isResizeable,
+        hasBorderLayer,
+        colorSet == null ? new AndroidColorSet() : colorSet,
+        layersProvider);
+    }
+  }
+
+  /**
+   * Returns a new {@link ScreenView.Builder}
+   * @param surface The {@link NlDesignSurface}.
+   * @param manager The {@link LayoutlibSceneManager}.
+   */
+  @NotNull
+  public static Builder newBuilder(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
+    return new Builder(surface, manager);
+  }
 
   /**
    * Whether this {@link ScreenView} has a {@link BorderLayer}, which should only happen if the file type is a subclass of
@@ -40,30 +156,53 @@ public class ScreenView extends ScreenViewBase {
    */
   private final boolean myHasBorderLayer;
 
+  /**
+   * If true, {@link #getContentSize(Dimension)} will use the rendered image size (if available) instead of the device size.
+   */
   private final boolean myUseImageSize;
 
+  /**
+   * If true, this ScreenView will incorporate the {@link CanvasResizeInteraction.ResizeLayer}.
+   */
   private final boolean myIsResizeable;
+
+  /**
+   * The {@link ColorSet} to use for this view.
+   */
+  @NotNull private final ColorSet myColorSet;
+
+  /**
+   * A {@link Layer} provider for this view.
+   */
+  @NotNull private final Function<ScreenView, ImmutableList<Layer>> myLayersProvider;
 
 
   /**
    * Creates a new {@link ScreenView}.
-   * @param surface The {@link NlDesignSurface}.
-   * @param manager The {@link LayoutlibSceneManager}.
-   * @param useImageSize If true, the ScreenView will be sized as the render image result instead of using the device
-   *                     configuration.
-   * @param isResizeable If true, this ScreenView canvas will allow to be resized for files that support it. When false, the resizing
-   *                     target will not be displayed even if the file does support it.
    */
-  // TODO(b/139046812): Replace this with a builder
-  public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager, boolean useImageSize, boolean isResizeable) {
+  private ScreenView(
+    @NotNull NlDesignSurface surface,
+    @NotNull LayoutlibSceneManager manager,
+    boolean useImageSize,
+    boolean isResizeable,
+    boolean hasBorderLayer,
+    @NotNull ColorSet colorSet,
+    @NotNull Function<ScreenView, ImmutableList<Layer>> layersProvider) {
     super(surface, manager);
-    myHasBorderLayer = manager.getModel().getType() instanceof LayoutEditorFileType;
-    this.myUseImageSize = useImageSize;
-    this.myIsResizeable = isResizeable;
+    myHasBorderLayer = hasBorderLayer;
+    myUseImageSize = useImageSize;
+    myIsResizeable = isResizeable;
+    myColorSet = colorSet;
+    myLayersProvider = layersProvider;
   }
 
-  public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
-    this(surface, manager, false, true);
+  /**
+   * This is a legacy constructor used by {@link com.android.tools.idea.uibuilder.menu.NavigationViewSceneView}.
+   * @deprecated Use the {@link #newBuilder(NlDesignSurface, LayoutlibSceneManager)} instead.
+   */
+  @Deprecated
+  protected ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
+    this(surface, manager, false, true, false, new AndroidColorSet(), DEFAULT_LAYERS_PROVIDER);
   }
 
   @NotNull
@@ -87,24 +226,7 @@ public class ScreenView extends ScreenViewBase {
   @NotNull
   @Override
   protected ImmutableList<Layer> createLayers() {
-    ImmutableList.Builder<Layer> builder = ImmutableList.builder();
-
-    if (myHasBorderLayer) {
-      builder.add(new BorderLayer(this));
-    }
-    builder.add(new ScreenViewLayer(this));
-
-    SceneLayer sceneLayer = new SceneLayer(getSurface(), this, false);
-    sceneLayer.setAlwaysShowSelection(true);
-    builder.add(sceneLayer);
-    if (myIsResizeable && getSceneManager().getModel().getType().isEditable()) {
-      builder.add(new CanvasResizeLayer(getSurface(), this));
-    }
-
-    if (NELE_RENDER_DIAGNOSTICS.get()) {
-      builder.add(new DiagnosticsLayer(getSurface()));
-    }
-    return builder.build();
+    return myLayersProvider.apply(this);
   }
 
   public boolean hasBorderLayer() {
@@ -126,5 +248,11 @@ public class ScreenView extends ScreenViewBase {
   public boolean hasContent() {
     RenderResult result = getSceneManager().getRenderResult();
     return result != null && !isErrorResult(result);
+  }
+
+  @Override
+  @NotNull
+  public ColorSet getColorSet() {
+    return myColorSet;
   }
 }

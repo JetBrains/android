@@ -428,7 +428,7 @@ public class LayoutlibSceneManager extends SceneManager {
       sceneView = new NavigationViewSceneView(getDesignSurface(), this);
     }
     else {
-      sceneView = new ScreenView(getDesignSurface(), this);
+      sceneView = ScreenView.newBuilder(getDesignSurface(), this).build();
     }
 
     getDesignSurface().updateErrorDisplay();

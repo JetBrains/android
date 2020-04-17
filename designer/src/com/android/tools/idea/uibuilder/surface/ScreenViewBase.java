@@ -41,7 +41,6 @@ import org.jetbrains.annotations.Nullable;
  */
 abstract class ScreenViewBase extends SceneView {
 
-  private final ColorSet myColorSet = new AndroidColorSet();
   protected boolean myIsSecondary;
 
   // Use cached to avoid deriving same font multiple times.
@@ -107,12 +106,6 @@ abstract class ScreenViewBase extends SceneView {
   @Override
   public NlDesignSurface getSurface() {
     return (NlDesignSurface)super.getSurface();
-  }
-
-  @Override
-  @NotNull
-  public ColorSet getColorSet() {
-    return myColorSet;
   }
 
   @Nullable
