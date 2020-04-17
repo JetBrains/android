@@ -15,45 +15,31 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-import static java.lang.System.currentTimeMillis;
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
-import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
-import com.intellij.build.DefaultBuildDescriptor;
-import com.intellij.build.SyncViewManager;
-import com.intellij.build.events.EventResult;
-import com.intellij.build.events.Failure;
-import com.intellij.build.events.impl.FailureResultImpl;
-import com.intellij.build.events.impl.FinishBuildEventImpl;
-import com.intellij.build.events.impl.StartBuildEventImpl;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -75,21 +61,14 @@ public class GradleSyncInvoker {
   private static final Logger LOG = Logger.getInstance(GradleSyncInvoker.class);
 
   @NotNull private final FileDocumentManager myFileDocumentManager;
-  @NotNull private final PreSyncProjectCleanUp myPreSyncProjectCleanUp;
 
   @NotNull
   public static GradleSyncInvoker getInstance() {
     return ServiceManager.getService(GradleSyncInvoker.class);
   }
 
-  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager) {
-    this(fileDocumentManager, new PreSyncProjectCleanUp());
-  }
-
-  private GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
-                            @NotNull PreSyncProjectCleanUp preSyncProjectCleanUp) {
+  private GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager) {
     myFileDocumentManager = fileDocumentManager;
-    myPreSyncProjectCleanUp = preSyncProjectCleanUp;
   }
 
   /**
@@ -192,13 +171,9 @@ public class GradleSyncInvoker {
   }
 
   @WorkerThread
-  private void sync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
+  private static void sync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeAllMessages());
 
-    // Do clean up tasks before calling sync started.
-    // During clean up, we might change some gradle files, for example, gradle property files based on http settings, gradle wrappers and etc.
-    // And any changes to gradle files after sync started will result in another sync needed.
-    myPreSyncProjectCleanUp.cleanUp(project);
 
     if (!GradleSyncState.getInstance(project).syncStarted(request)) {
       return;
