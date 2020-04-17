@@ -34,6 +34,7 @@ import java.util.List;
  * A SceneView for <a href="https://developer.android.com/reference/android/support/design/widget/NavigationView.html">NavigationView</a>
  * menus.
  */
+// TODO(b/139046812): Remove this subclass and use ScreenView builder.
 public final class NavigationViewSceneView extends ScreenView {
   public static final String SHOW_IN_ATTRIBUTE_VALUE = "navigation_view";
 
