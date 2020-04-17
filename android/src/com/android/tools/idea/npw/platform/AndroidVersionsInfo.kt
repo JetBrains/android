@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.platform
 import com.android.SdkConstants.CPU_ARCH_INTEL_ATOM
 import com.android.repository.api.ProgressIndicator
 import com.android.repository.api.RepoManager
-import com.android.repository.api.RepoManager.RepoLoadedCallback
+import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.api.RepoPackage
 import com.android.repository.api.UpdatablePackage
 import com.android.repository.impl.meta.RepositoryPackages
@@ -161,7 +161,7 @@ class AndroidVersionsInfo {
 
     val runCallbacks = Runnable { itemsLoadedCallback.accept(versionItemList) }
 
-    val onComplete = RepoLoadedCallback { packages: RepositoryPackages ->
+    val onComplete = RepoLoadedListener { packages: RepositoryPackages ->
       invokeLater {
         addPackages(packages.newPkgs)
         addOfflineLevels()
@@ -170,7 +170,7 @@ class AndroidVersionsInfo {
     }
 
     // We need to pick up addons that don't have a target created due to the base platform not being installed.
-    val onLocalComplete = RepoLoadedCallback { packages: RepositoryPackages ->
+    val onLocalComplete = RepoLoadedListener { packages: RepositoryPackages ->
       invokeLater {
         addPackages(packages.localPackages.values)
       }

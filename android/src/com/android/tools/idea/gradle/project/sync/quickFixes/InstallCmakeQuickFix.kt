@@ -54,7 +54,7 @@ public class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix 
     val sdkManager = sdkHandler.getSdkManager(progressIndicator)
     val progressRunner = StudioProgressRunner(false, false, "Loading Remote SDK", project)
 
-    val onComplete = RepoManager.RepoLoadedCallback { packages: RepositoryPackages ->
+    val onComplete = RepoManager.RepoLoadedListener { packages: RepositoryPackages ->
       invokeLater(ModalityState.any()) {
         val cmakePackages = packages.getRemotePackagesForPrefix(SdkConstants.FD_CMAKE)
         val cmakePackage = if (myCmakeVersion == null) {

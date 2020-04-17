@@ -19,7 +19,7 @@ import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.adtui.validation.Validator.Severity.OK;
 
 import com.android.repository.api.Downloader;
-import com.android.repository.api.RepoManager.RepoLoadedCallback;
+import com.android.repository.api.RepoManager.RepoLoadedListener;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.RepositorySource;
 import com.android.repository.api.SettingsController;
@@ -210,17 +210,17 @@ public class SdkUpdaterConfigPanel implements Disposable {
   private final BindingsManager myBindingsManager = new BindingsManager();
 
   /**
-   * {@link RepoLoadedCallback} that runs when we've finished reloading our local packages.
+   * {@link RepoLoadedListener} that runs when we've finished reloading our local packages.
    */
-  private final RepoLoadedCallback myLocalUpdater = packages -> ApplicationManager.getApplication().invokeLater(
+  private final RepoLoadedListener myLocalUpdater = packages -> ApplicationManager.getApplication().invokeLater(
     () -> loadPackages(packages), ModalityState.any());
 
   /**
-   * {@link RepoLoadedCallback} that runs when we've completely finished reloading our packages.
+   * {@link RepoLoadedListener} that runs when we've completely finished reloading our packages.
    */
-  private final RepoLoadedCallback myRemoteUpdater = new RepoLoadedCallback() {
+  private final RepoLoadedListener myRemoteUpdater = new RepoLoadedListener() {
     @Override
-    public void doRun(@NotNull final RepositoryPackages packages) {
+    public void loaded(@NotNull final RepositoryPackages packages) {
       ApplicationManager.getApplication().invokeLater(() -> {
         loadPackages(packages);
         myPlatformComponentsPanel.finishLoading();
