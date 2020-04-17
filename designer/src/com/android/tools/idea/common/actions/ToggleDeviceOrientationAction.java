@@ -37,12 +37,12 @@ public class ToggleDeviceOrientationAction extends AnAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    e.getPresentation().setEnabled(e.getData(DesignerDataKeys.DESIGN_EDITOR) != null);
+    e.getPresentation().setEnabled(e.getData(DesignerDataKeys.DESIGN_SURFACE) != null);
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    DesignSurface surface = e.getRequiredData(DesignerDataKeys.DESIGN_EDITOR).getSurface();
+    DesignSurface surface = e.getRequiredData(DesignerDataKeys.DESIGN_SURFACE);
     surface.getConfigurations()
       .forEach(configuration -> {
         configuration.getDeviceState();

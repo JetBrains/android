@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
@@ -923,7 +924,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   public Object getData(@NotNull String dataId) {
-    if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId)) {
+    if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId) ) {
+      return this;
+    }
+    else if (DESIGN_SURFACE.is(dataId)) {
       return this;
     }
     return super.getData(dataId);

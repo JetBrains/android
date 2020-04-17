@@ -17,7 +17,6 @@ package com.android.tools.idea.common.actions;
 
 import com.android.tools.idea.actions.DesignerActions;
 import com.android.tools.idea.actions.DesignerDataKeys;
-import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -26,9 +25,8 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.util.IconUtil;
 import icons.StudioIcons;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 /**
  * Action which shows the current number of warnings in the layout and when clicked, shows them.
@@ -43,22 +41,22 @@ public class IssueNotificationAction extends ToggleAction {
 
   @NotNull
   public static IssueNotificationAction getInstance() {
-    return (IssueNotificationAction) ActionManager.getInstance().getAction(DesignerActions.ACTION_TOGGLE_ISSUE_PANEL);
+    return (IssueNotificationAction)ActionManager.getInstance().getAction(DesignerActions.ACTION_TOGGLE_ISSUE_PANEL);
   }
 
   @Override
   public void update(@NotNull AnActionEvent event) {
     super.update(event);
-    DesignerEditorPanel editorPanel = event.getData(DesignerDataKeys.DESIGN_EDITOR);
+    DesignSurface surface = event.getData(DesignerDataKeys.DESIGN_SURFACE);
     Presentation presentation = event.getPresentation();
-    if (editorPanel == null) {
+    if (surface == null) {
       event.getPresentation().setEnabled(false);
       presentation.setDescription("Toggle visibility of issue panel");
       presentation.setIcon(DISABLED_ICON);
     }
     else {
       event.getPresentation().setEnabled(true);
-      IssueModel issueModel = editorPanel.getSurface().getIssueModel();
+      IssueModel issueModel = surface.getIssueModel();
       int markerCount = issueModel.getIssueCount();
       presentation.setDescription(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
       presentation.setIcon(getIssueTypeIcon(issueModel));
@@ -67,15 +65,14 @@ public class IssueNotificationAction extends ToggleAction {
 
   @Override
   public boolean isSelected(@NotNull AnActionEvent e) {
-    DesignerEditorPanel editorPanel = e.getData(DesignerDataKeys.DESIGN_EDITOR);
-    return editorPanel != null && !editorPanel.getSurface().getIssuePanel().isMinimized();
+    DesignSurface surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
+    return surface != null && !surface.getIssuePanel().isMinimized();
   }
 
   @Override
   public void setSelected(@NotNull AnActionEvent e, boolean state) {
-    DesignerEditorPanel editorPanel = e.getData(DesignerDataKeys.DESIGN_EDITOR);
-    if (editorPanel != null) {
-      DesignSurface surface = editorPanel.getSurface();
+    DesignSurface surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
+    if (surface != null) {
       surface.getAnalyticsManager().trackShowIssuePanel();
       surface.setShowIssuePanel(state);
     }

@@ -17,8 +17,7 @@
 
 package com.android.tools.idea.actions
 
-import com.android.tools.idea.common.editor.DesignerEditorPanel
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.DataKey
 
 /**
@@ -27,4 +26,4 @@ import com.intellij.openapi.actionSystem.DataKey
  * search the widget.
  */
 @JvmField
-val DESIGN_EDITOR: DataKey<DesignerEditorPanel> = DataKey.create(DesignerEditorPanel::class.qualifiedName!!)
+val DESIGN_SURFACE: DataKey<DesignSurface> = DataKey.create(DesignSurface::class.qualifiedName!!)
