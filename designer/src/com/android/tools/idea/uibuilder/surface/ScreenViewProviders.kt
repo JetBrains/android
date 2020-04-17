@@ -26,6 +26,9 @@ import com.android.tools.idea.uibuilder.visual.ColorBlindModeScreenViewLayer
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.collect.ImmutableList
 
+/**
+ * Default provider that provider the [ScreenView] design surface only.
+ */
 internal fun defaultProvider(surface: NlDesignSurface,
                              manager: LayoutlibSceneManager,
                              @Suppress("UNUSED_PARAMETER") isSecondary: Boolean): ScreenView =

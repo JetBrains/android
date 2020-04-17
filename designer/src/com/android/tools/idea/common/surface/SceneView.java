@@ -37,6 +37,7 @@ import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
@@ -48,6 +49,61 @@ import org.jetbrains.annotations.Nullable;
  * View of a {@link Scene} used in a {@link DesignSurface}.
  */
 public abstract class SceneView extends PositionableContent {
+  /**
+   * Policy for determining the {@link Shape} of a {@link SceneView}.
+   */
+  public interface ShapePolicy {
+    @Nullable Shape getShape(@NotNull SceneView sceneView);
+  }
+
+  /**
+   * A {@link ShapePolicy} that uses the device configuration shape.
+   */
+  public static final ShapePolicy DEVICE_CONFIGURATION_SHAPE_POLICY = new ShapePolicy() {
+    @Nullable
+    @Override
+    public Shape getShape(@NotNull SceneView sceneView) {
+      Device device = sceneView.getConfiguration().getDevice();
+      if (device == null) {
+        return null;
+      }
+
+      Screen screen = device.getDefaultHardware().getScreen();
+      if (screen.getScreenRound() != ScreenRound.ROUND) {
+        return null;
+      }
+
+      Dimension size = sceneView.getScaledContentSize();
+
+      int chin = screen.getChin();
+      int originX = sceneView.getX();
+      int originY = sceneView.getY();
+      if (chin == 0) {
+        // Plain circle
+        return new Ellipse2D.Double(originX, originY, size.width, size.height);
+      }
+      else {
+        int height = size.height * chin / screen.getYDimension();
+        Area a1 = new Area(new Ellipse2D.Double(originX, originY, size.width, size.height + height));
+        Area a2 = new Area(new Rectangle2D.Double(originX, originY + 2 * (size.height + height) - height, size.width, height));
+        a1.subtract(a2);
+        return a1;
+      }
+    }
+  };
+
+  /**
+   * A {@link ShapePolicy} that a square size. The size is determined from the rendered size.
+   */
+  public static final ShapePolicy SQUARE_SHAPE_POLICY = new ShapePolicy() {
+    @NotNull
+    @Override
+    public Shape getShape(@NotNull SceneView sceneView) {
+      Dimension size = sceneView.getScaledContentSize();
+      return new Rectangle(sceneView.getX(), sceneView.getY(), size.width, size.height);
+    }
+  };
+
   protected static final Insets NO_MARGIN = JBUI.emptyInsets();
 
   @NotNull private final DesignSurface mySurface;
@@ -58,15 +114,17 @@ public abstract class SceneView extends PositionableContent {
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
   private boolean myAnimated = false;
+  @NotNull private final ShapePolicy myShapePolicy;
 
   /**
    * A {@link SceneContext} which offers the rendering and/or picking information for this {@link SceneView}
    */
   @NotNull private final SceneContext myContext = new SceneViewTransform();
 
-  public SceneView(@NotNull DesignSurface surface, @NotNull SceneManager manager) {
+  public SceneView(@NotNull DesignSurface surface, @NotNull SceneManager manager, @NotNull ShapePolicy shapePolicy) {
     mySurface = surface;
     myManager = manager;
+    myShapePolicy = shapePolicy;
   }
 
   @NotNull
@@ -154,32 +212,7 @@ public abstract class SceneView extends PositionableContent {
    */
   @Nullable
   public Shape getScreenShape() {
-    Device device = getConfiguration().getDevice();
-    if (device == null) {
-      return null;
-    }
-
-    Screen screen = device.getDefaultHardware().getScreen();
-    if (screen.getScreenRound() != ScreenRound.ROUND) {
-      return null;
-    }
-
-    Dimension size = getScaledContentSize();
-
-    int chin = screen.getChin();
-    int originX = getX();
-    int originY = getY();
-    if (chin == 0) {
-      // Plain circle
-      return new Ellipse2D.Double(originX, originY, size.width, size.height);
-    }
-    else {
-      int height = size.height * chin / screen.getYDimension();
-      Area a1 = new Area(new Ellipse2D.Double(originX, originY, size.width, size.height + height));
-      Area a2 = new Area(new Rectangle2D.Double(originX, originY + 2 * (size.height + height) - height, size.width, height));
-      a1.subtract(a2);
-      return a1;
-    }
+    return myShapePolicy.getShape(this);
   }
 
   @NotNull

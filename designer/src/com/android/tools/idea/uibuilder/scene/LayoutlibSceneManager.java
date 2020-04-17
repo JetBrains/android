@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.scene;
 import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.resources.Density.DEFAULT_DENSITY;
+import static com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
@@ -67,6 +68,7 @@ import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
@@ -425,7 +427,11 @@ public class LayoutlibSceneManager extends SceneManager {
 
     // TODO See if there's a better way to trigger the NavigationViewSceneView. Perhaps examine the view objects?
     if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE)) {
-      sceneView = new NavigationViewSceneView(getDesignSurface(), this);
+      sceneView = ScreenView.newBuilder(getDesignSurface(), this)
+        .withLayersProvider((sv) -> ImmutableList.of(new ScreenViewLayer(sv)))
+        .withContentSizePolicy(NavigationViewSceneView.CONTENT_SIZE_POLICY)
+        .withShapePolicy(SQUARE_SHAPE_POLICY)
+        .build();
     }
     else {
       sceneView = ScreenView.newBuilder(getDesignSurface(), this).build();

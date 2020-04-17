@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.testutils.VirtualTimeScheduler;
@@ -25,6 +26,7 @@ import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -91,7 +93,7 @@ public class ScreenViewLayerTest {
 
   @NotNull
   private static RenderResult createRenderResultMock(@NotNull ImagePool.Image resultImage) {
-    RenderResult result = Mockito.mock(RenderResult.class);
+    RenderResult result = mock(RenderResult.class);
     when(result.getRenderedImage()).thenReturn(resultImage);
     when(result.hasImage()).thenReturn(true);
 
@@ -102,15 +104,19 @@ public class ScreenViewLayerTest {
   private ScreenView createScreenViewMock(@NotNull Ref<Rectangle> screenViewLayerSize,
                                           @NotNull RenderResult firstResult,
                                           @NotNull RenderResult ...otherResults) {
-    ScreenView screenView = Mockito.mock(ScreenView.class, RETURNS_DEEP_STUBS);
+    LayoutlibSceneManager sceneManager = mock(LayoutlibSceneManager.class, RETURNS_DEEP_STUBS);
+    ScreenView screenView = Mockito.spy(
+      new ScreenView(mock(NlDesignSurface.class), sceneManager, new ScreenView.ContentSizePolicy() {
+        @Override
+        public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
+        }
+      }));
     when(screenView.getScreenShape()).thenAnswer(new Answer<Shape>() {
       @Override
       public Shape answer(InvocationOnMock invocation) {
         return screenViewLayerSize.get();
       }
     });
-    when(screenView.getX()).thenReturn(0);
-    when(screenView.getY()).thenReturn(0);
     when(screenView.getScale()).thenReturn(1.);
     when(screenView.getContentSize(any(Dimension.class))).thenAnswer(new Answer<Dimension>() {
       @Override

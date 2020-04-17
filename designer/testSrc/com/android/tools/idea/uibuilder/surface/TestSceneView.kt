@@ -26,7 +26,7 @@ import java.awt.Dimension
 import java.awt.Insets
 
 class TestSceneView(private val width: Int, private val height: Int, override val margin: Insets = NO_MARGIN)
-  : SceneView(Mockito.mock(DesignSurface::class.java), Mockito.mock(SceneManager::class.java)) {
+  : SceneView(Mockito.mock(DesignSurface::class.java), Mockito.mock(SceneManager::class.java), SQUARE_SHAPE_POLICY) {
 
   override fun createLayers(): ImmutableList<Layer> = ImmutableList.of()
 
