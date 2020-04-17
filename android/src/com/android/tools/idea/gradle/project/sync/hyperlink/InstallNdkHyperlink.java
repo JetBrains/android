@@ -87,7 +87,7 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
     RepoManager sdkManager = sdkHandler.getSdkManager(progressIndicator);
 
     StudioProgressRunner progressRunner = new StudioProgressRunner(false, false, "Loading Remote SDK", project);
-    RepoManager.RepoLoadedCallback onComplete = packages ->
+    RepoManager.RepoLoadedListener onComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
 
         String ndkPath = null;

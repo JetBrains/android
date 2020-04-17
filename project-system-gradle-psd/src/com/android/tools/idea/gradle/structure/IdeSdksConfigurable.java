@@ -188,7 +188,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
     RepoManager repoManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(logger);
     StudioProgressRunner runner = new StudioProgressRunner(false, false, "Loading Remote SDK", project);
-    RepoManager.RepoLoadedCallback onComplete = packages ->
+    RepoManager.RepoLoadedListener onComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
         if (packages.getRemotePackages().get(FD_NDK) != null) {
           layout.show(myNdkDownloadPanel, "link");

@@ -16,22 +16,17 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.repository.api.RepoManager
-import com.android.repository.api.RepoManager.RepoLoadedCallback
-import com.android.repository.impl.meta.RepositoryPackages
+import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.io.FileOpUtils
-import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.progress.StudioProgressRunner
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
-import com.android.tools.idea.welcome.install.ComponentCategory
 import com.android.tools.idea.welcome.install.ComponentInstaller
 import com.android.tools.idea.welcome.install.ComponentTreeNode
-import com.android.tools.idea.wizard.WizardConstants
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.android.tools.idea.wizard.model.WizardModel
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.Splitter
@@ -247,7 +242,7 @@ class SdkComponentsStep(
       contentPanel.startLoading()
       localHandler.getSdkManager(progress)
         .load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(
-          RepoLoadedCallback {
+          RepoLoadedListener {
             componentInstaller = ComponentInstaller(localHandler)
             model.componentTree.updateState(localHandler)
             contentPanel.stopLoading()
