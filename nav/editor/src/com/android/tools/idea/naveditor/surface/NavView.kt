@@ -28,7 +28,7 @@ import java.awt.Dimension
 /**
  * View of a navigation editor [Scene], as part of a [NavDesignSurface].
  */
-class NavView(surface: NavDesignSurface, sceneManager: SceneManager) : SceneView(surface, sceneManager) {
+class NavView(surface: NavDesignSurface, sceneManager: SceneManager) : SceneView(surface, sceneManager, SQUARE_SHAPE_POLICY) {
   override fun createLayers(): ImmutableList<Layer> = ImmutableList.of(SceneLayer(surface, this, true))
   override fun getContentTranslationX() = -Coordinates.getSwingDimension(this, sceneManager.scene.root?.drawX ?: 0)
   override fun getContentTranslationY() = -Coordinates.getSwingDimension(this, sceneManager.scene.root?.drawY ?: 0)

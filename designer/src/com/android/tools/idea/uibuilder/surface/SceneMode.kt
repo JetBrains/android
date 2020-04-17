@@ -28,10 +28,19 @@ enum class SceneMode(val displayName: String,
   BLUEPRINT("Blueprint", ::blueprintProvider),
   RENDER_AND_BLUEPRINT("Design + Blueprint", ::defaultProvider, ::blueprintProvider),
   COMPOSE("Compose",
-          { surface, manager, _ -> ScreenView.newBuilder(surface, manager).useImageSize().build() },
+          { surface, manager, _ ->
+            ScreenView.newBuilder(surface, manager)
+              .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
+              .build()
+          },
           visibleToUser = false),
   RESIZABLE_PREVIEW("Preview",
-                    { surface, manager, _ -> ScreenView.newBuilder(surface, manager).useImageSize().resizeable().build() },
+                    { surface, manager, _ ->
+                      ScreenView.newBuilder(surface, manager)
+                        .resizeable()
+                        .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
+                        .build()
+                    },
                     visibleToUser = false),
   VISUALIZATION("Visualization", ::visualizationProvider, visibleToUser = false),
   COLOR_BLIND("Color Blind Mode", ::colorBlindProvider, visibleToUser = false);

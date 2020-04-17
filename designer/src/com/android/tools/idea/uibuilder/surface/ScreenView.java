@@ -17,10 +17,15 @@ package com.android.tools.idea.uibuilder.surface;
 
 import static com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
+import com.android.ide.common.rendering.api.HardwareConfig;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.State;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
@@ -31,12 +36,68 @@ import java.awt.Dimension;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * View of a device/screen/layout.
  * This is actually painted by {@link ScreenViewLayer}.
  */
 public class ScreenView extends ScreenViewBase {
+  /**
+   * Policy for determining the content size of a {@link ScreenView}.
+   */
+  public interface ContentSizePolicy {
+    /**
+     * Called by the {@link ScreenView} when it needs to be measured.
+     * @param screenView The {@link ScreenView} to measure.
+     * @param outDimension A {@link Dimension} to return the size.
+     */
+    void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension);
+  }
+
+  /**
+   * {@link ContentSizePolicy} that uses the device configuration size.
+   */
+  public static final ContentSizePolicy DEVICE_CONTENT_SIZE_POLICY = new ContentSizePolicy() {
+    @Override
+    public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
+      Configuration configuration = screenView.getConfiguration();
+      Device device = configuration.getCachedDevice();
+      State state = configuration.getDeviceState();
+      if (device != null && state != null) {
+        HardwareConfig config =
+          new HardwareConfigHelper(device).setOrientation(state.getOrientation()).getConfig();
+
+        outDimension.setSize(config.getScreenWidth(), config.getScreenHeight());
+      }
+    }
+  };
+
+  /**
+   * {@link ImageContentSizePolicy} that obtains the size from the image render result if available.
+   * If not available, it obtains the size from the given delegate.
+   */
+  public static final class ImageContentSizePolicy implements ContentSizePolicy {
+    @NotNull private final ContentSizePolicy mySizePolicyDelegate;
+
+    public ImageContentSizePolicy(@NotNull ContentSizePolicy delegate) {
+      mySizePolicyDelegate = delegate;
+    }
+
+    @Override
+    public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
+      RenderResult result = screenView.getSceneManager().getRenderResult();
+      if (result != null && result.hasImage()) {
+        ImagePool.Image image = result.getRenderedImage();
+        outDimension.setSize(image.getWidth(), image.getHeight());
+
+        return;
+      }
+
+      mySizePolicyDelegate.measure(screenView, outDimension);
+    }
+  }
+
   /**
    * Default {@link Layer} provider to be used if no other is supplied.
    */
@@ -67,28 +128,19 @@ public class ScreenView extends ScreenViewBase {
    * A {@link ScreenView} builder.
    */
   public static class Builder {
-    @NotNull final NlDesignSurface surface;
-    @NotNull final LayoutlibSceneManager manager;
-    boolean useImageSize = false;
+    @NotNull final NlDesignSurface mySurface;
+    @NotNull final LayoutlibSceneManager myManager;
     boolean isResizeable = false;
     boolean hasBorderLayer;
-    @Nullable ColorSet colorSet = null;
-    @NotNull Function<ScreenView, ImmutableList<Layer>> layersProvider = DEFAULT_LAYERS_PROVIDER;
+    @Nullable ColorSet myColorSet = null;
+    @NotNull Function<ScreenView, ImmutableList<Layer>> myLayersProvider = DEFAULT_LAYERS_PROVIDER;
+    @NotNull private ContentSizePolicy myContentSizePolicy = DEVICE_CONTENT_SIZE_POLICY;
+    @NotNull private ShapePolicy myShapePolicy = DEVICE_CONFIGURATION_SHAPE_POLICY;
 
     private Builder(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
-      this.surface = surface;
-      this.manager = manager;
+      this.mySurface = surface;
+      this.myManager = manager;
       hasBorderLayer = manager.getModel().getType() instanceof LayoutEditorFileType;
-    }
-
-    /**
-     * If called, the {@link ScreenView} will use the result rendered image (if available) to determine its size instead of the
-     * device configuration.
-     */
-    @NotNull
-    public Builder useImageSize() {
-      useImageSize = true;
-      return this;
     }
 
     /**
@@ -105,7 +157,7 @@ public class ScreenView extends ScreenViewBase {
      */
     @NotNull
     public Builder withColorSet(@NotNull ColorSet colorSet) {
-      this.colorSet = colorSet;
+      this.myColorSet = colorSet;
       return this;
     }
 
@@ -114,7 +166,35 @@ public class ScreenView extends ScreenViewBase {
      */
     @NotNull
     public Builder withLayersProvider(@NotNull Function<ScreenView, ImmutableList<Layer>> layersProvider) {
-      this.layersProvider = layersProvider;
+      this.myLayersProvider = layersProvider;
+      return this;
+    }
+
+    /**
+     * Sets a new {@link ContentSizePolicy}.
+     */
+    @NotNull
+    public Builder withContentSizePolicy(@NotNull ContentSizePolicy contentSizePolicy) {
+      this.myContentSizePolicy = contentSizePolicy;
+      return this;
+    }
+
+    /**
+     * Sets a new {@link ContentSizePolicy}.
+     */
+    @NotNull
+    public Builder withShapePolicy(@NotNull ShapePolicy shapePolicy) {
+      this.myShapePolicy = shapePolicy;
+      return this;
+    }
+
+    /**
+     * Sets a new {@link ContentSizePolicy}. The method receives the current policy and returns a new one that can wrap it.
+     * Use this method if you want to decorate the current policy and not simply replace it.
+     */
+    @NotNull
+    public Builder decorateContentSizePolicy(@NotNull Function<ContentSizePolicy, ContentSizePolicy> contentSizePolicyProvider) {
+      this.myContentSizePolicy = contentSizePolicyProvider.apply(myContentSizePolicy);
       return this;
     }
 
@@ -130,13 +210,14 @@ public class ScreenView extends ScreenViewBase {
     @NotNull
     public ScreenView build() {
       return new ScreenView(
-        surface,
-        manager,
-        useImageSize,
+        mySurface,
+        myManager,
+        myShapePolicy,
         isResizeable,
         hasBorderLayer,
-        colorSet == null ? new AndroidColorSet() : colorSet,
-        layersProvider);
+        myColorSet == null ? new AndroidColorSet() : myColorSet,
+        myLayersProvider,
+        myContentSizePolicy);
     }
   }
 
@@ -157,11 +238,6 @@ public class ScreenView extends ScreenViewBase {
   private final boolean myHasBorderLayer;
 
   /**
-   * If true, {@link #getContentSize(Dimension)} will use the rendered image size (if available) instead of the device size.
-   */
-  private final boolean myUseImageSize;
-
-  /**
    * If true, this ScreenView will incorporate the {@link CanvasResizeInteraction.ResizeLayer}.
    */
   private final boolean myIsResizeable;
@@ -176,6 +252,7 @@ public class ScreenView extends ScreenViewBase {
    */
   @NotNull private final Function<ScreenView, ImmutableList<Layer>> myLayersProvider;
 
+  @NotNull private final ContentSizePolicy myContentSizePolicy;
 
   /**
    * Creates a new {@link ScreenView}.
@@ -183,44 +260,45 @@ public class ScreenView extends ScreenViewBase {
   private ScreenView(
     @NotNull NlDesignSurface surface,
     @NotNull LayoutlibSceneManager manager,
-    boolean useImageSize,
+    @NotNull ShapePolicy shapePolicy,
     boolean isResizeable,
     boolean hasBorderLayer,
     @NotNull ColorSet colorSet,
-    @NotNull Function<ScreenView, ImmutableList<Layer>> layersProvider) {
-    super(surface, manager);
+    @NotNull Function<ScreenView, ImmutableList<Layer>> layersProvider,
+    @NotNull ContentSizePolicy contentSizePolicy) {
+    super(surface, manager, shapePolicy);
     myHasBorderLayer = hasBorderLayer;
-    myUseImageSize = useImageSize;
     myIsResizeable = isResizeable;
     myColorSet = colorSet;
     myLayersProvider = layersProvider;
+    myContentSizePolicy = contentSizePolicy;
   }
 
   /**
-   * This is a legacy constructor used by {@link com.android.tools.idea.uibuilder.menu.NavigationViewSceneView}.
-   * @deprecated Use the {@link #newBuilder(NlDesignSurface, LayoutlibSceneManager)} instead.
+   * Used for testing only.
    */
-  @Deprecated
-  protected ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
-    this(surface, manager, false, true, false, new AndroidColorSet(), DEFAULT_LAYERS_PROVIDER);
+  @TestOnly
+  public ScreenView(@NotNull NlDesignSurface surface,
+                    @NotNull LayoutlibSceneManager manager,
+                    @NotNull ContentSizePolicy contentSizePolicy) {
+    this(surface, manager, SQUARE_SHAPE_POLICY, true, false, new AndroidColorSet(), DEFAULT_LAYERS_PROVIDER, contentSizePolicy);
   }
 
-  @NotNull
+  /**
+   * Returns the current preferred size for the view.
+   *
+   * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
+   *                  returned.
+   */
   @Override
+  @NotNull
   public Dimension getContentSize(@Nullable Dimension dimension) {
-    if (myUseImageSize) {
-      RenderResult result = getSceneManager().getRenderResult();
-      if (result != null && result.hasImage()) {
-        if (dimension == null) {
-          dimension = new Dimension();
-        }
-        ImagePool.Image image = result.getRenderedImage();
-        dimension.setSize(image.getWidth(), image.getHeight());
-
-        return dimension;
-      }
+    if (dimension == null) {
+      dimension = new Dimension();
     }
-    return super.getContentSize(dimension);
+
+    myContentSizePolicy.measure(this, dimension);
+    return dimension;
   }
 
   @NotNull
