@@ -103,6 +103,28 @@ class DetailsViewContentViewTest {
     assertThat(view.myLogsView.text).isEqualTo("test logcat message 2\n")
   }
 
+  @Test
+  fun benchmarkTab() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+
+    view.setBenchmarkText("test benchmark message")
+    view.myBenchmarkView.waitAllRequests()
+
+    assertThat(view.myBenchmarkView.text).isEqualTo("test benchmark message")
+    assertThat(view.myBenchmarkTab.isHidden).isFalse()
+  }
+
+  @Test
+  fun benchmarkTabIsHiddenIfNoOutput() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+
+    view.setBenchmarkText("")
+    view.myBenchmarkView.waitAllRequests()
+
+    assertThat(view.myBenchmarkView.text).isEqualTo("")
+    assertThat(view.myBenchmarkTab.isHidden).isTrue()
+  }
+
   private fun device(id: String, name: String): AndroidDevice {
     return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
   }

@@ -57,6 +57,10 @@ public class DetailsViewContentView {
   @NotNull private String myErrorStackTrace = "";
 
   @VisibleForTesting final ConsoleViewImpl myLogsView;
+
+  @VisibleForTesting final TabInfo myBenchmarkTab;
+  @VisibleForTesting final ConsoleViewImpl myBenchmarkView;
+
   @VisibleForTesting final AndroidDeviceInfoTableView myDeviceInfoTableView;
 
   public DetailsViewContentView(@NotNull Disposable parentDisposable,
@@ -71,6 +75,14 @@ public class DetailsViewContentView {
     TabInfo logsTab = new TabInfo(myLogsView.getComponent());
     logsTab.setText("Logs");
     tabs.addTab(logsTab);
+
+    // Create benchmark tab.
+    myBenchmarkView = new ConsoleViewImpl(project, /*viewer=*/true);
+    Disposer.register(parentDisposable, myBenchmarkView);
+    myBenchmarkTab = new TabInfo(myBenchmarkView.getComponent());
+    myBenchmarkTab.setText("Benchmark");
+    myBenchmarkTab.setHidden(true);
+    tabs.addTab(myBenchmarkTab);
 
     // Device info tab.
     myDeviceInfoTableView = new AndroidDeviceInfoTableView();
@@ -114,6 +126,12 @@ public class DetailsViewContentView {
     myErrorStackTrace = errorStackTrace;
     refreshTestResultLabel();
     refreshLogsView();
+  }
+
+  public void setBenchmarkText(@NotNull String benchmarkText) {
+    myBenchmarkView.clear();
+    myBenchmarkView.print(benchmarkText, ConsoleViewContentType.NORMAL_OUTPUT);
+    myBenchmarkTab.setHidden(StringUtil.isEmpty(benchmarkText));
   }
 
   private void refreshTestResultLabel() {
