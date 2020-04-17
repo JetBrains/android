@@ -302,7 +302,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
   }
 
   private fun createLiveSqliteResultSet(statement: SqliteStatement, messenger: AppInspectorClient.CommandMessenger): LiveSqliteResultSet {
-    val liveSqliteResultSet = LiveSqliteResultSet(project, statement, messenger, 0, taskExecutor)
+    val liveSqliteResultSet = LiveSqliteResultSet(statement, DatabaseInspectorMessenger(messenger, taskExecutor), 0, taskExecutor)
     Disposer.register(testRootDisposable, liveSqliteResultSet)
     return liveSqliteResultSet
   }

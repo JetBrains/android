@@ -26,6 +26,7 @@ import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFut
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
+import com.android.tools.idea.sqlite.createErrorSideChannel
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -35,7 +36,6 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
-import junit.framework.TestCase
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -91,7 +91,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(schemaResponse.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger)
 
     // Act
     val sqliteSchema = pumpEventsAndWaitForFuture(liveDatabaseConnection.readSchema())
@@ -146,7 +146,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger)
 
     // Act
     val resultSet = pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(SqliteStatement("fake query")))!!
@@ -189,7 +189,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger)
 
     // Act
     pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(sqliteStatement))!!
@@ -215,7 +215,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger)
 
     // Act
     val resultSet = pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(SqliteStatement("fake query")))!!
@@ -245,7 +245,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger)
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
@@ -274,7 +274,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger)
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
@@ -303,7 +303,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger)
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
@@ -335,7 +335,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger)
 
     // Act / Assert
     pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
@@ -364,7 +364,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger)
 
     // Act / Assert
     pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
@@ -393,7 +393,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    liveDatabaseConnection = LiveDatabaseConnection(project, mockMessenger, 1, taskExecutor)
+    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger)
 
     // Act / Assert
     pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
@@ -401,4 +401,8 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
     verify(mockTrackerService, times(2)).trackErrorOccurred(AppInspectionEvent.DatabaseInspectorEvent.ErrorKind.IS_RECOVERABLE_UNKNOWN)
   }
+
+  fun LiveDatabaseConnection(messenger: AppInspectorClient.CommandMessenger) = LiveDatabaseConnection(
+    DatabaseInspectorMessenger(messenger, taskExecutor, createErrorSideChannel(project)), 1, taskExecutor
+  )
 }

@@ -19,7 +19,6 @@ package com.android.tools.idea.sqlite
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.transform
@@ -92,15 +91,10 @@ interface DatabaseInspectorProjectService {
   fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabase>
 
   /**
-   * Creates a [com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection]
-   * and shows the database content in the Database Inspector.
-   *
-   * @param id Unique identifier of a connection to a database.
-   * @param path Path of the database on device. It can be the string ":memory:" in case of in-memory databases.
-   * @param messenger The [AppInspectorClient.CommandMessenger] used to send messages between studio and an on-device inspector.
+   * Shows the given [sqliteDatabase] in the inspector
    */
   @AnyThread
-  fun openSqliteDatabase(messenger: AppInspectorClient.CommandMessenger, id: Int, path: String): ListenableFuture<SqliteDatabase>
+  fun openSqliteDatabase(sqliteDatabase: SqliteDatabase) : ListenableFuture<Unit>
 
   /**
    * Closes all open live databases in [DatabaseInspectorController].
@@ -253,21 +247,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   @AnyThread
-  override fun openSqliteDatabase(
-    messenger: AppInspectorClient.CommandMessenger,
-    id: Int,
-    path: String
-  ): ListenableFuture<SqliteDatabase> = projectScope.future {
-    val database = async {
-      val connection = databaseConnectionFactory.getLiveDatabaseConnection(project, messenger, id, taskExecutor).await()
-      LiveSqliteDatabase(path, connection)
-    }
-
-    withContext(uiThread) {
-      controller.addSqliteDatabase(database)
-    }
-
-    database.await()
+  override fun openSqliteDatabase(database: SqliteDatabase): ListenableFuture<Unit> = projectScope.future {
+    controller.addSqliteDatabase(database)
   }
 
   @AnyThread

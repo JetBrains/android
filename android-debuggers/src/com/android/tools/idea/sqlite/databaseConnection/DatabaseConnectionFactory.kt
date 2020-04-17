@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection
 
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.executeAsync
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.JdbcDatabaseConnection
-import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
-import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.ide.PooledThreadExecutor
 import java.sql.DriverManager
@@ -35,19 +31,6 @@ interface DatabaseConnectionFactory {
    * @param executor An executor for long-running and/or IO-bound tasks, such as [PooledThreadExecutor].
    */
   fun getDatabaseConnection(sqliteFile: VirtualFile, executor: Executor): ListenableFuture<DatabaseConnection>
-
-  /**
-   * Returns a [DatabaseConnection] ready to be used, associated with a live connection to an on-device inspector.
-   * @param id The id of the connection.
-   * @param databaseInspectorClient The [AppInspectorClient] used to send messages between studio and an on-device inspector.
-   * @param executor An executor for long-running and/or IO-bound tasks, such as [PooledThreadExecutor].
-   */
-  fun getLiveDatabaseConnection(
-    project: Project,
-    messenger: AppInspectorClient.CommandMessenger,
-    id: Int,
-    executor: Executor
-  ): ListenableFuture<DatabaseConnection>
 }
 
 class DatabaseConnectionFactoryImpl : DatabaseConnectionFactory {
@@ -70,14 +53,5 @@ class DatabaseConnectionFactoryImpl : DatabaseConnectionFactory {
         throw Exception("Error opening Sqlite database file \"${sqliteFile.path}\"", e)
       }
     }
-  }
-
-  override fun getLiveDatabaseConnection(
-    project: Project,
-    messenger: AppInspectorClient.CommandMessenger,
-    id: Int,
-    executor: Executor
-  ): ListenableFuture<DatabaseConnection> {
-    return Futures.immediateFuture(LiveDatabaseConnection(project, messenger, id, executor))
   }
 }
