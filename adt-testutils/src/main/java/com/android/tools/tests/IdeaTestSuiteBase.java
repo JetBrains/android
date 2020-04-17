@@ -39,8 +39,7 @@ public class IdeaTestSuiteBase {
 
   static {
     try {
-      String[] roots = Arrays.stream(File.listRoots()).map(file -> file.getPath()).toArray(String[]::new);
-      VfsRootAccess.allowRootAccess(roots);  // Bazel tests are sandboxed so we disable VfsRoot checks.
+      System.setProperty("NO_FS_ROOTS_ACCESS_CHECK", "true"); // Bazel tests are sandboxed so we disable VfsRoot checks.
       BazelRunfilesManifestProcessor.setUpRunfiles();
       setProperties();
       setupKotlinPlugin();
