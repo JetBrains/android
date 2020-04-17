@@ -287,6 +287,7 @@ public class StudioIcons {
       public static final Icon PASSWORD_NUMERIC_TEXTFIELD = load("/studio/icons/layout-editor/palette/password-numeric-textfield.svg"); // 16x16
       public static final Icon PASSWORD_TEXTFIELD = load("/studio/icons/layout-editor/palette/password-textfield.svg"); // 16x16
       public static final Icon PHONE_TEXTFIELD = load("/studio/icons/layout-editor/palette/phone-textfield.svg"); // 16x16
+      public static final Icon PLACEHOLDER = load("/studio/icons/layout-editor/palette/placeholder.svg"); // 16x16
       public static final Icon POSTAL_ADDRESS_TEXTFIELD = load("/studio/icons/layout-editor/palette/postal-address-textfield.svg"); // 16x16
       public static final Icon PROGRESS_BAR_HORIZONTAL = load("/studio/icons/layout-editor/palette/progress-bar-horizontal.svg"); // 16x16
       public static final Icon PROGRESS_BAR = load("/studio/icons/layout-editor/palette/progress-bar.svg"); // 16x16
