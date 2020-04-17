@@ -41,6 +41,6 @@ class MigrateToAppCompatUsageViewDescriptor implements UsageViewDescriptor {
 
   @Override
   public String getCodeReferencesText(int usagesCount, int filesCount) {
-    return JavaRefactoringBundle.message("occurences.to.be.migrated", UsageViewBundle.getReferencesString(usagesCount, filesCount));
+    return JavaRefactoringBundle.message("occurrences.to.be.migrated", UsageViewBundle.getReferencesString(usagesCount, filesCount));
   }
 }
