@@ -229,9 +229,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @NotNull
   private static JComponent createTensorsSection(@NotNull ModelInfo modelInfo) {
-    JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
-    sectionPanel.add(createSectionHeader("Tensors"));
-
     JPanel sectionContentPanel = createPanelWithYAxisBoxLayout(Borders.emptyLeft(20));
 
     JBLabel inputsLabel = new JBLabel("Inputs");
@@ -261,7 +258,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       outputTensorTableColumn.setPreferredWidth(newColumnWidth);
     }
 
-    sectionPanel.add(sectionContentPanel);
+    JPanel sectionContentPanelContainer = createPanelWithFlowLayout(Borders.empty());
+    sectionContentPanelContainer.add(sectionContentPanel);
+    sectionContentPanelContainer.setMaximumSize(sectionContentPanelContainer.getPreferredSize());
+
+    JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
+    sectionPanel.add(createSectionHeader("Tensors"));
+    sectionPanel.add(sectionContentPanelContainer);
 
     return sectionPanel;
   }
