@@ -99,6 +99,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationsConfiguration;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -713,6 +714,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     validateGradleWrapper(resolverCtx.getProjectPath());
 
     displayInternalWarningIfForcedUpgradesAreDisabled();
+
+    Project project = myProjectFinder.findProject(resolverCtx);
+    if (project != null) {
+      ApplicationManager.getApplication().invokeAndWait(() -> {
+        HttpProxySettingsCleanUp.cleanUp(project);
+      });
+    }
   }
 
   @Override

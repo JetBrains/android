@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.cleanup;
+package com.android.tools.idea.gradle.project.sync.idea;
 
 import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -34,9 +34,8 @@ import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 
 // See https://code.google.com/p/android/issues/detail?id=169743
-class HttpProxySettingsCleanUpTask extends AndroidStudioCleanUpTask {
-  @Override
-  void doCleanUp(@NotNull Project project) {
+public class HttpProxySettingsCleanUp {
+  public static void cleanUp(@NotNull Project project) {
     HttpConfigurable ideHttpProxySettings = HttpConfigurable.getInstance();
     boolean usingProxy = (ideHttpProxySettings.USE_HTTP_PROXY && isNotEmpty(ideHttpProxySettings.PROXY_HOST))
                          || ideHttpProxySettings.USE_PROXY_PAC;
@@ -48,7 +47,7 @@ class HttpProxySettingsCleanUpTask extends AndroidStudioCleanUpTask {
       properties = new GradleProperties(getUserGradlePropertiesFile());
     }
     catch (IOException e) {
-      getLogger().info("Failed to read gradle.properties file", e);
+      Logger.getInstance(HttpProxySettingsCleanUp.class).info("Failed to read gradle.properties file", e);
       // Let sync continue, even though it may fail.
       return;
     }
@@ -95,14 +94,9 @@ class HttpProxySettingsCleanUpTask extends AndroidStudioCleanUpTask {
           AndroidNotification notification = AndroidNotification.getInstance(project);
           notification.showBalloon("Proxy Settings", errMsg, ERROR);
 
-          getLogger().info("Failed to save changes to gradle.properties file", root);
+          Logger.getInstance(HttpProxySettingsCleanUp.class).info("Failed to save changes to gradle.properties file", root);
         }
       }
     }
-  }
-
-  @NotNull
-  private Logger getLogger() {
-    return Logger.getInstance(getClass());
   }
 }
