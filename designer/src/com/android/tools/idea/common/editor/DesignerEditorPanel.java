@@ -418,8 +418,8 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     public Object getData(@NotNull String dataId) {
       // This class is the parent of ActionToolBar, DesignSurface, and Accessory Panel. The data of editor actions should be provided here.
       // For example, the refresh action can be performed when focusing ActionToolBar or DesignSurface.
-      if (DesignerDataKeys.DESIGN_EDITOR.is(dataId)) {
-        return DesignerEditorPanel.this;
+      if (DesignerDataKeys.DESIGN_SURFACE.is(dataId)) {
+        return getSurface();
       }
       else if (NlActionManager.LAYOUT_EDITOR.is(dataId)) {
         DesignSurface surface = getSurface();
