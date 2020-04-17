@@ -24,7 +24,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -51,21 +50,14 @@ public class MlModelMetadata {
       // Load model as ByteBuffer
       VirtualFile modelFile = VirtualFileManager.getInstance().findFileByUrl(modelFileUrl);
       if (modelFile != null) {
-        byte[] data = modelFile.contentsToByteArray();
-        byteBuffer = ByteBuffer.wrap(data);
-      }
-    }
-    catch (IOException e) {
-      LOG.error("IO Exception when loading model: " + modelFileUrl, e);
-    }
-
-    try {
-      if (byteBuffer != null) {
-        myModelData = ModelInfo.buildFrom(new MetadataExtractor(byteBuffer));
+        myModelData = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(modelFile.contentsToByteArray())));
       }
     }
     catch (ModelParsingException e) {
       LOG.warn("Metadata is invalid in model: " + modelFileUrl, e);
+    }
+    catch (IOException e) {
+      LOG.warn("IO Exception when loading model: " + modelFileUrl, e);
     }
   }
 
