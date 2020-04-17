@@ -59,6 +59,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.JBUI.Borders;
 import com.intellij.util.ui.StartupUiUtil;
@@ -96,6 +97,7 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.KotlinFileType;
@@ -707,12 +709,22 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return result.toString().trim();
   }
 
+  private static boolean isCellContentTypeHtml(TableModel tableModel, int rowIndex, int columnIndex) {
+    return ((String)tableModel.getValueAt(rowIndex, columnIndex)).startsWith("<html>");
+  }
+
   private static class MetadataTableModel extends AbstractTableModel {
     private final List<List<String>> myRowDataList;
     private final List<String> myHeaderData;
 
     private MetadataTableModel(@NotNull List<List<String>> rowDataList, @NotNull List<String> headerData) {
-      myRowDataList = ContainerUtil.map(rowDataList, row -> ContainerUtil.map(row, cellValue -> breakIntoMultipleLines(cellValue)));
+      myRowDataList = ContainerUtil.map(rowDataList, row -> ContainerUtil.map(row, cellValue -> {
+        String newCellValue = breakIntoMultipleLines(cellValue);
+        if (URLUtil.URL_PATTERN.matcher(newCellValue).find()) {
+          newCellValue = HtmlUtils.plainTextToHtml(newCellValue);
+        }
+        return newCellValue;
+      }));
       myHeaderData = headerData;
     }
 
@@ -745,7 +757,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     public boolean isCellEditable(int rowIndex, int columnIndex) {
       // HACK We're relying on cell editor components (as opposed to cell renderer components) in order to receive events so we can linkify
       // urls and make them clickable. We're not using those editors to actually edit the table model values.
-      return getValueAt(rowIndex, columnIndex).startsWith("<html>");
+      return isCellContentTypeHtml(this, rowIndex, columnIndex);
     }
 
     private boolean hasHeader() {
@@ -793,8 +805,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
 
     private void configureTextPane(@NotNull JTable table, int row, int column) {
-      // TODO(b/153093288): add html wrapping function and set content type "text/html" properly.
-      myTextPane.setContentType("text/plain");
+      myTextPane.setContentType(isCellContentTypeHtml(table.getModel(), row, column) ? "text/html" : "text/plain");
       myTextPane.setText((String)table.getValueAt(row, column));
       if (((MetadataTableModel)table.getModel()).hasHeader()) {
         myTextPane.setBorder(Borders.empty(8, 8, 8, 0));
