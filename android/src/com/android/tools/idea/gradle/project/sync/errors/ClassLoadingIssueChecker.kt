@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
-import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink
 import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenProjectStructureQuickfix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
@@ -45,15 +43,16 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.METHOD_NOT_FOUND
 import com.intellij.openapi.application.ApplicationManager
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 class ClassLoadingIssueChecker: GradleIssueChecker {
   private val CLASS_NOT_FOUND_PATTERN = Pattern.compile("(.+) not found.")
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val exception = issueData.error
-    val message = issueData.error.message ?: ""
+    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val message = rootCause.message ?: ""
 
-    var description = MessageComposer(getExceptionMessage(exception, message, issueData.projectPath) ?: return null)
+    var description = MessageComposer(getExceptionMessage(rootCause, message, issueData.projectPath) ?: return null)
 
     val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
     val stopGradleDaemonQuickFix = StopGradleDaemonQuickFix()

@@ -26,10 +26,12 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CACHED_DEPENDENCY_NOT_FOUND
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getRootCauseAndLocation
 
 class CachedDependencyNotFoundIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
+    val rootCause = getRootCauseAndLocation(issueData.error).first
+    val message = rootCause.message ?: return null
     if (!message.startsWith("No cached version of ") || !message.contains("available for offline mode.")) return null
 
     // Log metrics.

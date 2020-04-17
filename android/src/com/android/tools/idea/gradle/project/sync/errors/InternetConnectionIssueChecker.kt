@@ -24,10 +24,11 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 class InternetConnectionIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
+    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (!message.startsWith("Could not GET ") &&
         !message.startsWith("Could not HEAD ") &&
         !message.startsWith("Network is unreachable")) return null
