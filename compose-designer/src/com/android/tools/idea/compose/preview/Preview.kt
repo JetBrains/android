@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import asLogString
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.ActionsToolbar
@@ -604,7 +605,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                   | ${result}
                   | hasErrors=${logger.hasErrors()}
                   | missingClasses=${logger.missingClasses}
-                  | messages=${logger.messages}
+                  | messages=${logger.messages.asLogString()}
                   | exceptions=${logger.brokenClasses.values + logger.classesWithIncorrectFormat.values}
                 """.trimMargin())
           }
