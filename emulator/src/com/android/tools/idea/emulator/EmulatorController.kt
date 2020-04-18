@@ -33,7 +33,6 @@ import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOL
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ConcurrentList
@@ -137,22 +136,17 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   @Slow
   fun connect() {
     val maxInboundMessageSize: Int
-    if (emulatorId.avdFolder != null) {
-      val config = EmulatorConfiguration.readAvdDefinition(emulatorId.avdId, emulatorId.avdFolder)
-      if (config == null) {
-        // The error has already been logged.
-        connectionState = ConnectionState.DISCONNECTED
-        return
-      }
-      emulatorConfig = config
-      skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(config.skinFolder)
+    val config = EmulatorConfiguration.readAvdDefinition(emulatorId.avdId, emulatorId.avdFolder)
+    if (config == null) {
+      // The error has already been logged.
+      connectionState = ConnectionState.DISCONNECTED
+      return
+    }
+    emulatorConfig = config
+    skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(config.skinFolder)
 
-      // TODO: Change 4 to 3 after b/150494232 is fixed.
-      maxInboundMessageSize = config.displayWidth * config.displayWidth * 4 + 100
-    }
-    else {
-      maxInboundMessageSize = 20 * 1024 * 1024
-    }
+    // TODO: Change 4 to 3 after b/150494232 is fixed.
+    maxInboundMessageSize = config.displayWidth * config.displayWidth * 4 + 100
 
     connectionState = ConnectionState.CONNECTING
     val channel = NettyChannelBuilder
@@ -262,25 +256,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   private fun fetchConfiguration() {
     val responseObserver = object : DummyStreamObserver<EmulatorStatus>() {
       override fun onNext(response: EmulatorStatus) {
-        // TODO: Simplify this code after b/152438029 is fixed.
-        if (emulatorConfigInternal == null) {
-          val config = EmulatorConfiguration.fromHardwareConfig(response.hardwareConfig!!)
-          if (config == null) {
-            LOG.warn("Incomplete hardware configuration")
-            connectionState = ConnectionState.DISCONNECTED
-          }
-          else {
-            emulatorConfig = config
-            // Asynchronously read skin definition.
-            ApplicationManager.getApplication().executeOnPooledThread {
-              skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(config.skinFolder)
-              connectionState = ConnectionState.CONNECTED
-            }
-          }
-        }
-        else {
-          connectionState = ConnectionState.CONNECTED
-        }
+        connectionState = ConnectionState.CONNECTED
       }
 
       override fun onError(t: Throwable) {
