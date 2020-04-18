@@ -11,17 +11,10 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtil;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.gradle.run.PostBuildModel;
-import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
@@ -61,7 +54,6 @@ import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.util.xmlb.annotations.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -189,7 +181,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));
 
-    errors.addAll(getApkProvider(facet, getApplicationIdProvider(facet), new ArrayList<>()).validate());
+    errors.addAll(getApkProvider(facet, getApplicationIdProvider(facet), null).validate());
 
     errors.addAll(checkConfiguration(facet));
     AndroidDebuggerState androidDebuggerState = myAndroidDebuggerContext.getAndroidDebuggerState();
@@ -324,7 +316,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       launchOptions.addExtraOptions(((LaunchOptionsProvider)executor).getLaunchOptions());
     }
 
-    ApkProvider apkProvider = getApkProvider(facet, applicationIdProvider, deviceFutures.getDevices());
+    AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(deviceFutures.getDevices(),
+                                                                          MakeBeforeRunTaskProvider.DEVICE_SPEC_TIMEOUT_SECONDS,
+                                                                          TimeUnit.SECONDS);
+    ApkProvider apkProvider = getApkProvider(facet, applicationIdProvider, targetDeviceSpec);
     AndroidLaunchTasksProvider launchTasksProvider =
       new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions.build());
 
@@ -411,8 +406,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet,
-                                                @NotNull ApplicationIdProvider applicationIdProvider,
-                                                @NotNull List<AndroidDevice> targetDevices);
+                                                @NotNull ApplicationIdProvider applicationIdProvider, AndroidDeviceSpec targetDeviceSpec);
 
   @NotNull
   protected abstract ConsoleProvider getConsoleProvider();
@@ -428,11 +422,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   protected ApkProvider createGradleApkProvider(@NotNull AndroidFacet facet,
                                                 @NotNull ApplicationIdProvider applicationIdProvider,
                                                 boolean test,
-                                                @NotNull List<AndroidDevice> targetDevices) {
+                                                @Nullable AndroidDeviceSpec targetDeviceSpec) {
     Computable<GradleApkProvider.OutputKind> outputKindProvider = () -> {
-      AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(targetDevices,
-                                                                            MakeBeforeRunTaskProvider.DEVICE_SPEC_TIMEOUT_SECONDS,
-                                                                            TimeUnit.SECONDS);
       if (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.getModule(), this, targetDeviceSpec)) {
         return GradleApkProvider.OutputKind.AppBundleOutputModel;
       }

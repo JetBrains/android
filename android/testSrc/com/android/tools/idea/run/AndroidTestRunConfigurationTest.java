@@ -29,11 +29,13 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.Futures;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,7 +73,7 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     AndroidDevice device = createMockDevice("test", 19);
     devices.add(device);
 
-    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, new MyApplicationIdProvider(), devices);
+    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, new MyApplicationIdProvider(), deviceSpec(devices));
     assertThat(provider).isNotNull();
     assertThat(provider).isInstanceOf(GradleApkProvider.class);
     assertThat(((GradleApkProvider)provider).isTest()).isTrue();
@@ -89,7 +91,7 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     AndroidDevice device = createMockDevice("test", 24);
     devices.add(device);
 
-    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, new MyApplicationIdProvider(), devices);
+    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, new MyApplicationIdProvider(), deviceSpec(devices));
     assertThat(provider).isNotNull();
     assertThat(provider).isInstanceOf(GradleApkProvider.class);
     assertThat(((GradleApkProvider)provider).isTest()).isTrue();
@@ -107,7 +109,7 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     AndroidDevice device = createMockDevice("test", 24);
     devices.add(device);
 
-    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, new MyApplicationIdProvider(), devices);
+    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, new MyApplicationIdProvider(), deviceSpec(devices));
     assertThat(provider).isNotNull();
     assertThat(provider).isInstanceOf(GradleApkProvider.class);
     assertThat(((GradleApkProvider)provider).isTest()).isTrue();
@@ -152,5 +154,9 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     public String getTestPackageName() {
       return TEST_APP_CLASS_NAME + ".test";
     }
+  }
+
+  private static AndroidDeviceSpec deviceSpec(List<AndroidDevice> devices) {
+    return AndroidDeviceSpecUtil.createSpec(devices, 1, TimeUnit.SECONDS);
   }
 }
