@@ -64,7 +64,6 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Ordering;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.ModuleRunProfile;
@@ -80,7 +79,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.ThreeState;
-import com.intellij.util.containers.ContainerUtil;
 import icons.AndroidIcons;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -117,7 +115,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeRunTask> {
   @NotNull public static final Key<MakeBeforeRunTask> ID = Key.create("Android.Gradle.BeforeRunTask");
-  private static int DEVICE_SPEC_TIMEOUT_SECONDS = 10;
+  public static int DEVICE_SPEC_TIMEOUT_SECONDS = 10;
 
   public static final String TASK_NAME = "Gradle-aware Make";
 
@@ -375,12 +373,15 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // the android run config context
     DeviceFutures deviceFutures = env.getCopyableUserData(DeviceFutures.KEY);
     List<AndroidDevice> targetDevices = deviceFutures == null ? emptyList() : deviceFutures.getDevices();
+    @Nullable AndroidDeviceSpec targetDeviceSpec =
+      AndroidDeviceSpecUtil.createSpec(targetDevices, DEVICE_SPEC_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
     // NOTE: DeviceFutures.KEY is configured by AndroidRunConfigurationBase and its descendants only and therefore
     //       when it is not null it is safe to assume that configuration is an instance of AndroidRunConfigurationBase.
     List<String> cmdLineArgs;
     try {
       cmdLineArgs = deviceFutures != null
-                    ? getCommonArguments(modules, (AndroidRunConfigurationBase)configuration, targetDevices)
+                    ? getCommonArguments(modules, (AndroidRunConfigurationBase)configuration, targetDeviceSpec)
                     : emptyList();
     }
     catch (Exception e) {
@@ -388,7 +389,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return false;
     }
 
-    BeforeRunBuilder builder = createBuilder(modules, configuration, targetDevices, task.getGoal());
+    BeforeRunBuilder builder = createBuilder(modules, configuration, targetDeviceSpec, task.getGoal());
 
     GradleTaskRunner.DefaultGradleTaskRunner runner = myTaskRunnerFactory.createTaskRunner(configuration);
     BuildSettings.getInstance(myProject).setRunConfigurationTypeId(configuration.getType().getId());
@@ -431,29 +432,26 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @NotNull
   private static List<String> getCommonArguments(@NotNull Module[] modules,
                                                  @NotNull AndroidRunConfigurationBase configuration,
-                                                 @NotNull List<AndroidDevice> targetDevices) throws IOException {
+                                                 @Nullable AndroidDeviceSpec targetDeviceSpec) throws IOException {
     List<String> cmdLineArgs = new ArrayList<>();
-    cmdLineArgs.addAll(getDeviceSpecificArguments(modules, configuration, targetDevices));
-    cmdLineArgs.addAll(getProfilingOptions(configuration, targetDevices));
+    cmdLineArgs.addAll(getDeviceSpecificArguments(modules, configuration, targetDeviceSpec));
+    cmdLineArgs.addAll(getProfilingOptions(configuration, targetDeviceSpec));
     return cmdLineArgs;
   }
 
   @NotNull
   public static List<String> getDeviceSpecificArguments(@NotNull Module[] modules,
                                                         @NotNull AndroidRunConfigurationBase configuration,
-                                                        @NotNull List<AndroidDevice> devices) {
-    boolean collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, devices);
-    AndroidDeviceSpec deviceSpec = AndroidDeviceSpecUtil.createSpec(devices,
-                                                                    DEVICE_SPEC_TIMEOUT_SECONDS,
-                                                                    TimeUnit.SECONDS);
+                                                        @Nullable AndroidDeviceSpec deviceSpec) {
     if (deviceSpec == null) {
       return emptyList();
     }
 
     List<String> properties = new ArrayList<>(3);
-    if (useSelectApksFromBundleBuilder(modules, configuration, devices)) {
+    if (useSelectApksFromBundleBuilder(modules, configuration, deviceSpec)) {
       // For the bundle tool, we create a temporary json file with the device spec and
       // pass the file path to the gradle task.
+      boolean collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, deviceSpec);
       File deviceSpecFile = AndroidDeviceSpecUtil.writeToJsonTempFile(deviceSpec, collectListOfLanguages);
       properties.add(createProjectProperty(PROPERTY_APK_SELECT_CONFIG, deviceSpecFile.getAbsolutePath()));
       if (configuration instanceof AndroidRunConfiguration) {
@@ -510,15 +508,16 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @NotNull
-  private static List<String> getProfilingOptions(@NotNull AndroidRunConfigurationBase configuration, @NotNull List<AndroidDevice> devices)
+  private static List<String> getProfilingOptions(@NotNull AndroidRunConfigurationBase configuration,
+                                                  @Nullable AndroidDeviceSpec targetDeviceSpec)
     throws IOException {
-    if (devices.isEmpty()) {
+    if (targetDeviceSpec == null) {
       return emptyList();
     }
 
     // Find the minimum API version in case both a pre-O and post-O devices are selected.
     // TODO: if a post-O app happened to be transformed, the agent needs to account for that.
-    int minFeatureLevel = Ordering.natural().min(ContainerUtil.map(devices, AndroidDevice::getVersion)).getFeatureLevel();
+    int minFeatureLevel = targetDeviceSpec.getFeatureLevel();
     List<String> arguments = new LinkedList<>();
     ProfilerState state = configuration.getProfilerState();
     if (state.ADVANCED_PROFILING_ENABLED && minFeatureLevel >= AndroidVersion.VersionCodes.LOLLIPOP &&
@@ -542,7 +541,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @NotNull
   private static BeforeRunBuilder createBuilder(@NotNull Module[] modules,
                                                 @NotNull RunConfiguration configuration,
-                                                @NotNull List<AndroidDevice> targetDevices,
+                                                @Nullable AndroidDeviceSpec targetDeviceSpec,
                                                 @Nullable String userGoal) {
     if (modules.length == 0) {
       throw new IllegalStateException("Unable to determine list of modules to build");
@@ -574,7 +573,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     //       since testCompileType != TestCompileType.UNIT_TESTS it is safe to assume that configuration is
     //       AndroidRunConfigurationBase.
     if (configuration instanceof AndroidRunConfigurationBase
-        && useSelectApksFromBundleBuilder(modules, (AndroidRunConfigurationBase)configuration, targetDevices)) {
+        && useSelectApksFromBundleBuilder(modules, (AndroidRunConfigurationBase)configuration, targetDeviceSpec)) {
       return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType),
                                       BuildMode.APK_FROM_BUNDLE);
     }
@@ -583,16 +582,17 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   private static boolean useSelectApksFromBundleBuilder(@NotNull Module[] modules,
                                                         @NotNull AndroidRunConfigurationBase configuration,
-                                                        @NotNull List<AndroidDevice> targetDevices) {
-    return Arrays.stream(modules).anyMatch(module -> DynamicAppUtils.useSelectApksFromBundleBuilder(module, configuration, targetDevices));
+                                                        @Nullable AndroidDeviceSpec targetDeviceSpec) {
+    return Arrays.stream(modules)
+      .anyMatch(module -> DynamicAppUtils.useSelectApksFromBundleBuilder(module, configuration, targetDeviceSpec));
   }
 
   private static boolean shouldCollectListOfLanguages(@NotNull Module[] modules,
                                                       @NotNull AndroidRunConfigurationBase configuration,
-                                                      @NotNull List<AndroidDevice> targetDevices) {
+                                                      @Nullable AndroidDeviceSpec targetDeviceSpec) {
     // We should collect the list of languages only if *all* devices are verify the condition, otherwise we would
     // end up deploying language split APKs to devices that don't support them.
-    return Arrays.stream(modules).allMatch(module -> DynamicAppUtils.shouldCollectListOfLanguages(module, configuration, targetDevices));
+    return Arrays.stream(modules).allMatch(module -> DynamicAppUtils.shouldCollectListOfLanguages(module, configuration, targetDeviceSpec));
   }
 
   @NotNull

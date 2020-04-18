@@ -12,6 +12,8 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtil;
+import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
@@ -63,6 +65,7 @@ import com.intellij.util.xmlb.annotations.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.jdom.Element;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -427,7 +430,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                 boolean test,
                                                 @NotNull List<AndroidDevice> targetDevices) {
     Computable<GradleApkProvider.OutputKind> outputKindProvider = () -> {
-      if (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.getModule(), this, targetDevices)) {
+      AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(targetDevices,
+                                                                            MakeBeforeRunTaskProvider.DEVICE_SPEC_TIMEOUT_SECONDS,
+                                                                            TimeUnit.SECONDS);
+      if (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.getModule(), this, targetDeviceSpec)) {
         return GradleApkProvider.OutputKind.AppBundleOutputModel;
       }
       else {

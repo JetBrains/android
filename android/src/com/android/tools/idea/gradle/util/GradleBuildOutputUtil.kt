@@ -126,7 +126,7 @@ fun getOutputFileOrFolderFromListingFile(listingFile: String): File? {
 }
 
 private fun getOutputType(module: Module, configuration: AndroidRunConfigurationBase): OutputType {
-  return if (useSelectApksFromBundleBuilder(module, configuration, listOf())) {
+  return if (useSelectApksFromBundleBuilder(module, configuration, null)) {
     OutputType.ApkFromBundle
   }
   else {
