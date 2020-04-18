@@ -24,7 +24,6 @@ import com.google.gson.stream.JsonWriter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
-import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer
 import java.time.Duration
@@ -47,7 +46,6 @@ interface AndroidDeviceSpec {
  * of installed languages using the [getLanguages] method. The [timeout] and [unit]
  * parameters are used in that case to ensure each request has a timeout.
  */
-@Throws(IOException::class)
 fun createSpec(devices: List<AndroidDevice>, fetchLanguages: Boolean, timeout: Long, unit: TimeUnit): AndroidDeviceSpec? {
   if (devices.isEmpty()) {
     return null
@@ -102,7 +100,6 @@ fun createSpec(devices: List<AndroidDevice>, fetchLanguages: Boolean, timeout: L
  * i.e. to avoid issuing an ADB call every time, but we first need to define a
  * reasonable cache validation policy, which is not trivial. See b/78452155.
  */
-@Throws(IOException::class)
 private fun combineDeviceLanguages(devices: List<AndroidDevice>,
                                    timeout: Long, unit: TimeUnit): SortedSet<String> {
   return try {
@@ -121,7 +118,7 @@ private fun combineDeviceLanguages(devices: List<AndroidDevice>,
     }
   }
   catch (e: Exception) {
-    throw IOException("Error retrieving list of installed languages on device", e)
+    throw RuntimeException("Error retrieving list of installed languages on device", e)
   }
 }
 
@@ -148,7 +145,6 @@ private fun combineDeviceLanguages(devices: List<AndroidDevice>,
  *   uint32 sdk_version = 6;
  * }
  */
-@Throws(IOException::class)
 private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
   JsonWriter(out).use { writer ->
     writer.beginObject()
@@ -183,7 +179,6 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
 private val log: Logger
   get() = Logger.getInstance(AndroidDeviceSpec::class.java)
 
-@Throws(IOException::class)
 fun AndroidDeviceSpec.writeToJsonTempFile(writeLanguages: Boolean): File {
   val jsonString = StringWriter().use {
     writeJson(writeLanguages, it)
