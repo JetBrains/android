@@ -26,7 +26,7 @@ import java.awt.Insets
 internal fun Collection<PositionableContent>.sortByPosition() = sortedWith(compareBy({ it.y }, { it.x }))
 
 /**
- * Class that provides an interface for content that can be positioned on the [D]
+ * Class that provides an interface for content that can be positioned on the [DesignSurface]
  */
 abstract class PositionableContent {
   val contentSize: Dimension

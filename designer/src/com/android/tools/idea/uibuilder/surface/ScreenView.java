@@ -110,4 +110,21 @@ public class ScreenView extends ScreenViewBase {
   public boolean hasBorderLayer() {
     return myHasBorderLayer;
   }
+
+  /**
+   * Returns if the given {@link RenderResult} is for an error in Layoutlib.
+   */
+  private static boolean isErrorResult(@NotNull RenderResult result) {
+    // If the RenderResult does not have an image, then we probably have an error. If we do, Layoutlib will
+    // sometimes return images of 1x1 when exceptions happen. Try to determine if that's the case here.
+    return result.getLogger().hasErrors() &&
+           (!result.hasImage() ||
+            result.getRenderedImage().getWidth() * result.getRenderedImage().getHeight() < 2);
+  }
+
+  @Override
+  public boolean hasContent() {
+    RenderResult result = getSceneManager().getRenderResult();
+    return result != null && !isErrorResult(result);
+  }
 }
