@@ -443,9 +443,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
                                                         @NotNull List<AndroidDevice> devices) {
     boolean collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, devices);
     AndroidDeviceSpec deviceSpec = AndroidDeviceSpecUtil.createSpec(devices,
-                                                            collectListOfLanguages,
-                                                            DEVICE_SPEC_TIMEOUT_SECONDS,
-                                                            TimeUnit.SECONDS);
+                                                                    DEVICE_SPEC_TIMEOUT_SECONDS,
+                                                                    TimeUnit.SECONDS);
     if (deviceSpec == null) {
       return emptyList();
     }
