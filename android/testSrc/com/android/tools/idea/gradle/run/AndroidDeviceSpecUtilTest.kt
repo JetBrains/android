@@ -43,6 +43,8 @@ class AndroidDeviceSpecUtilTest {
   private lateinit var myDevice2: AndroidDevice
   @Mock
   private lateinit var myDevice3: AndroidDevice
+  @Mock
+  private lateinit var myDevice4: AndroidDevice
 
   @Mock
   private lateinit var myLaunchedDevice1: IDevice
@@ -50,6 +52,8 @@ class AndroidDeviceSpecUtilTest {
   private lateinit var myLaunchedDevice2: IDevice
   @Mock
   private lateinit var myLaunchedDevice3: IDevice
+  @Mock
+  private lateinit var myLaunchedDevice4: IDevice
 
   private var myFile: File? = null
 
@@ -77,6 +81,12 @@ class AndroidDeviceSpecUtilTest {
     `when`(myDevice3.abis).thenReturn(arrayListOf(Abi.MIPS))
     `when`(myDevice3.launchedDevice).thenReturn(Futures.immediateFuture(myLaunchedDevice3))
 
+    `when`(myDevice4.version).thenReturn(AndroidVersion(16, "codename"))
+    `when`(myLaunchedDevice4.version).thenReturn(AndroidVersion(16, "codename"))
+    `when`(myDevice4.density).thenReturn(Density.DPI_260.dpiValue)
+    `when`(myDevice4.abis).thenReturn(arrayListOf(Abi.MIPS))
+    `when`(myDevice4.launchedDevice).thenReturn(Futures.immediateFuture(myLaunchedDevice4))
+
   }
 
   private fun setupDeviceConfig(device: IDevice, config: String) {
@@ -100,6 +110,16 @@ class AndroidDeviceSpecUtilTest {
   fun createReturnsNullWhenEmptyList() {
     val spec = createSpec(ArrayList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     assertThat(spec).isNull()
+  }
+
+  @Test
+  fun featureLevelCorrect() {
+    assertThat(myDevice2.version.featureLevel).isEqualTo(22)
+    assertThat(myDevice3.version.featureLevel).isEqualTo(16)
+    assertThat(myDevice4.version.featureLevel).isEqualTo(17)
+
+    assertThat(createSpec(listOf(myDevice2, myDevice4), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.featureLevel).isEqualTo(17)
+    assertThat(createSpec(listOf(myDevice3, myDevice4), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.featureLevel).isEqualTo(16)
   }
 
   @Test
