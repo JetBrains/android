@@ -29,6 +29,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.io.File
 
 /**
  * Unit tests for [DetailsViewContentView].
@@ -44,6 +45,23 @@ class DetailsViewContentViewTest {
     .outerRule(projectRule)
     .around(EdtRule())
     .around(disposableRule)
+
+  @Test
+  fun testNoRetentionView() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+    view.setAndroidTestCaseResult(AndroidTestCaseResult.PASSED)
+    view.setAndroidDevice(device("device id", "device name"))
+    assertThat(view.myRetentionTab.isHidden).isTrue()
+  }
+
+  @Test
+  fun testWithRetentionView() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project)
+    view.setAndroidTestCaseResult(AndroidTestCaseResult.FAILED)
+    view.setAndroidDevice(device("device id", "device name"))
+    view.setRetentionSnapshot(File("foo"))
+    assertThat(view.myRetentionTab.isHidden).isFalse()
+  }
 
   @Test
   fun testResultLabelOnPassing() {

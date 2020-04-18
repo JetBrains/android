@@ -35,6 +35,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Locale;
 import javax.swing.JPanel;
@@ -55,6 +56,7 @@ public class DetailsViewContentView {
   @Nullable private AndroidTestCaseResult myAndroidTestCaseResult;
   @NotNull private String myLogcat = "";
   @NotNull private String myErrorStackTrace = "";
+  @Nullable private File myRetentionSnapshot = null;
 
   @VisibleForTesting final ConsoleViewImpl myLogsView;
 
@@ -62,6 +64,8 @@ public class DetailsViewContentView {
   @VisibleForTesting final ConsoleViewImpl myBenchmarkView;
 
   @VisibleForTesting final AndroidDeviceInfoTableView myDeviceInfoTableView;
+  @VisibleForTesting final RetentionView myRetentionView;
+  @VisibleForTesting final TabInfo myRetentionTab;
 
   public DetailsViewContentView(@NotNull Disposable parentDisposable,
                                 @NotNull Project project) {
@@ -89,6 +93,13 @@ public class DetailsViewContentView {
     TabInfo deviceInfoTab = new TabInfo(myDeviceInfoTableView.getComponent());
     deviceInfoTab.setText("Device Info");
     tabs.addTab(deviceInfoTab);
+
+    // Android Test Retention tab.
+    myRetentionView = new RetentionView();
+    myRetentionTab = new TabInfo(myRetentionView.getRootPanel());
+    myRetentionTab.setText("Retention");
+    tabs.addTab(myRetentionTab);
+    myRetentionTab.setHidden(true);
 
     // Wrap JBTabs to draw a border on top.
     JPanel tabsWrapper = new JPanel(new BorderLayout());
@@ -132,6 +143,15 @@ public class DetailsViewContentView {
     myBenchmarkView.clear();
     myBenchmarkView.print(benchmarkText, ConsoleViewContentType.NORMAL_OUTPUT);
     myBenchmarkTab.setHidden(StringUtil.isEmpty(benchmarkText));
+  }
+
+  public void setRetentionSnapshot(@Nullable File rententionSnapshot) {
+    myRetentionSnapshot = rententionSnapshot;
+    refreshRetentionView();
+  }
+
+  private void refreshRetentionView() {
+    myRetentionTab.setHidden(myRetentionSnapshot == null);
   }
 
   private void refreshTestResultLabel() {

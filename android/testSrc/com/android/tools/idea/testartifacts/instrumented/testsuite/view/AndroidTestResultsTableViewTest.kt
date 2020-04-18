@@ -42,6 +42,7 @@ import org.mockito.MockitoAnnotations
 import javax.swing.DefaultRowSorter
 import javax.swing.RowSorter
 import javax.swing.SortOrder
+import java.io.File
 
 /**
  * Unit tests for [AndroidTestResultsTableView].
@@ -52,12 +53,14 @@ class AndroidTestResultsTableViewTest {
 
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
-  @get:Rule val rules: RuleChain = RuleChain
+  @get:Rule
+  val rules: RuleChain = RuleChain
     .outerRule(projectRule)
     .around(EdtRule())
     .around(disposableRule)
 
-  @Mock lateinit var mockListener: AndroidTestResultsTableListener
+  @Mock
+  lateinit var mockListener: AndroidTestResultsTableListener
 
   @Before
   fun setup() {
@@ -132,6 +135,23 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.PASSED)
     assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
     assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device2)).isNull()
+  }
+
+  @Test
+  fun addTestResultsWithRetention() {
+    val table = AndroidTestResultsTableView(mockListener)
+    val device1 = device("deviceId1", "deviceName1")
+    val retentionFilePath = "foo"
+    val testcase1OnDevice1 = AndroidTestCase(id = "testid1",
+                                             name = "testname1",
+                                             result = AndroidTestCaseResult.FAILED,
+                                             retentionSnapshot = File(retentionFilePath))
+
+    table.addDevice(device1)
+    table.addTestCase(device1, testcase1OnDevice1)
+
+    assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getModelForTesting().getItem(0).getRetentionSnapshot(device1)!!.path).isEqualTo(retentionFilePath)
   }
 
   @Test
@@ -277,13 +297,14 @@ class AndroidTestResultsTableViewTest {
   // ArgumentMatchers.argThat returns null for interface types.
   private fun argThat(matcher: (AndroidTestResults) -> Boolean): AndroidTestResults {
     ArgumentMatchers.argThat(matcher)
-    return object:AndroidTestResults {
+    return object : AndroidTestResults {
       override val testCaseName: String = ""
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
       override fun getTestResultSummary(): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
       override fun getLogcat(device: AndroidDevice): String = ""
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
       override fun getBenchmark(device: AndroidDevice): String = ""
+      override fun getRetentionSnapshot(device: AndroidDevice): File? = null
     }
   }
 

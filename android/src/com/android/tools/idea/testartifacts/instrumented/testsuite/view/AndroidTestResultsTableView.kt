@@ -34,6 +34,7 @@ import com.intellij.util.ui.ListTableModel
 import java.awt.Color
 import java.awt.Component
 import java.util.Comparator
+import java.io.File
 import javax.swing.Icon
 import javax.swing.JTable
 import javax.swing.ListSelectionModel
@@ -404,6 +405,11 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
    * Returns a benchmark result for a given [device].
    */
   override fun getBenchmark(device: AndroidDevice): String = myTestCases[device.id]?.benchmark ?: ""
+
+  /**
+   * Returns the snapshot artifact from Android Test Retention if available.
+   */
+  override fun getRetentionSnapshot(device: AndroidDevice): File? = myTestCases[device.id]?.retentionSnapshot
 
   /**
    * Returns a one liner test result summary string.

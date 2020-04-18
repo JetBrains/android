@@ -22,6 +22,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.google.protobuf.InvalidProtocolBufferException
+import com.google.test.platform.core.proto.PathProto
+import com.google.test.platform.core.proto.TestArtifactProto
 import com.google.test.platform.core.proto.TestCaseProto
 import com.google.test.platform.core.proto.TestResultProto
 import com.google.test.platform.core.proto.TestStatusProto
@@ -82,13 +84,12 @@ class UtpTestResultAdapterTest {
     verifyInOrder.verify(mockListener).onTestSuiteScheduled(any())
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
-    // Use ?: mockAndroidTestCase to workaround kotlin mockito non-nullable compatibility issue
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.PASSED
+      it!!.result == AndroidTestCaseResult.PASSED && it!!.retentionSnapshot == null
     } ?: mockAndroidTestCase)
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.PASSED
+      it!!.result == AndroidTestCaseResult.PASSED && it!!.retentionSnapshot == null
     } ?: mockAndroidTestCase)
     verifyInOrder.verify(mockListener).onTestSuiteFinished(any(), argThat {
       it!!.result == AndroidTestSuiteResult.PASSED
@@ -120,13 +121,41 @@ class UtpTestResultAdapterTest {
     verifyInOrder.verify(mockListener).onTestSuiteScheduled(any())
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
-    // Use ?: mockAndroidTestCase to workaround kotlin mockito non-nullable compatibility issue
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
       it!!.result == AndroidTestCaseResult.PASSED
     } ?: mockAndroidTestCase)
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.FAILED
+      it!!.result == AndroidTestCaseResult.FAILED && it!!.retentionSnapshot == null
+    } ?: mockAndroidTestCase)
+    verifyInOrder.verify(mockListener).onTestSuiteFinished(any(), argThat {
+      it!!.result == AndroidTestSuiteResult.FAILED
+    } ?: mockAndroidTestSuite)
+  }
+
+  @Test
+  fun importFailedTestResultWithoutSnapshot() {
+    val unrelatedArtifact = "foo"
+    val protobuf = TestSuiteResultProto.TestSuiteResult.newBuilder()
+      .addTestResult(
+        TestResultProto.TestResult.newBuilder()
+          .setTestCase(TestCaseProto.TestCase.newBuilder()
+                         .setTestClass("ExampleInstrumentedTest")
+                         .setTestPackage
+                         ("com.example.application")
+                         .setTestMethod("useAppContext"))
+          .setTestStatus(TestStatusProto.TestStatus.FAILED)
+          .addOutputArtifact(TestArtifactProto.Artifact.newBuilder()
+                               .setSourcePath(PathProto.Path.newBuilder()
+                                                .setPath(unrelatedArtifact)))
+      ).build()
+    utpTestResultAdapter.importResult(protobuf.toByteArray().inputStream())
+    val verifyInOrder = inOrder(mockListener)
+    verifyInOrder.verify(mockListener).onTestSuiteScheduled(any())
+    verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
+    verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
+    verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
+      it!!.result == AndroidTestCaseResult.FAILED && it!!.retentionSnapshot == null
     } ?: mockAndroidTestCase)
     verifyInOrder.verify(mockListener).onTestSuiteFinished(any(), argThat {
       it!!.result == AndroidTestSuiteResult.FAILED
@@ -149,9 +178,8 @@ class UtpTestResultAdapterTest {
     verifyInOrder.verify(mockListener).onTestSuiteScheduled(any())
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
-    // Use ?: mockAndroidTestCase to workaround kotlin mockito non-nullable compatibility issue
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.SKIPPED
+      it!!.result == AndroidTestCaseResult.SKIPPED && it!!.retentionSnapshot == null
     } ?: mockAndroidTestCase)
     verifyInOrder.verify(mockListener).onTestSuiteFinished(any(), argThat {
       it!!.result == AndroidTestSuiteResult.PASSED
