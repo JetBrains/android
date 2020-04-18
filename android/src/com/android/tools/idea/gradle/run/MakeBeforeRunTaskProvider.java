@@ -524,7 +524,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();
     if (state.ADVANCED_PROFILING_ENABLED && minVersion.getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP &&
         minVersion.getFeatureLevel() < AndroidVersion.VersionCodes.O) {
-      File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform(minVersion);
+      File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform();
       arguments.add(createProjectProperty(ANDROID_ADVANCED_PROFILING_TRANSFORMS, file.getAbsolutePath()));
 
       Properties profilerProperties = state.toProperties();
