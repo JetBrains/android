@@ -119,12 +119,6 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
 
   @Override
   @NotNull
-  public Map<String, ClassField> getBuildConfigFields() {
-    return Collections.emptyMap();
-  }
-
-  @Override
-  @NotNull
   public Map<String, ClassField> getResValues() {
     return Collections.emptyMap();
   }
