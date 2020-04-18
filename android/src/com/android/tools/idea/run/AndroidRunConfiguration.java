@@ -185,9 +185,9 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @NotNull
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
                                        @NotNull ApplicationIdProvider applicationIdProvider,
-                                       @NotNull List<AndroidDevice> targetDevices) {
+                                       @Nullable AndroidDeviceSpec targetDeviceSpec) {
     if (AndroidModel.get(facet) != null && AndroidModel.get(facet) instanceof AndroidModuleModel) {
-      return createGradleApkProvider(facet, applicationIdProvider, false, targetDevices);
+      return createGradleApkProvider(facet, applicationIdProvider, false, targetDeviceSpec);
     }
     ApkFacet apkFacet = ApkFacet.getInstance(facet.getModule());
     if (apkFacet != null) {
