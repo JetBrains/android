@@ -46,7 +46,7 @@ interface AndroidDeviceSpec {
  * of installed languages using the [getLanguages] method. The [timeout] and [unit]
  * parameters are used in that case to ensure each request has a timeout.
  */
-fun createSpec(devices: List<AndroidDevice>, fetchLanguages: Boolean, timeout: Long, unit: TimeUnit): AndroidDeviceSpec? {
+fun createSpec(devices: List<AndroidDevice>, timeout: Long, unit: TimeUnit): AndroidDeviceSpec? {
   if (devices.isEmpty()) {
     return null
   }
@@ -77,19 +77,13 @@ fun createSpec(devices: List<AndroidDevice>, fetchLanguages: Boolean, timeout: L
       buildAbis.addAll(abis)
     }
   }
-  val languages = if (fetchLanguages) {
-    combineDeviceLanguages(devices, timeout, unit)
-  }
-  else {
-    Collections.emptySortedSet()
-  }
 
   return object : AndroidDeviceSpec {
     override val apiLevel: Int = apiLevel
     override val apiCodeName: String? = apiCodeName
     override val buildDensity: Density? = buildDensity
-    override val buildAbis: ArrayList<String> = buildAbis
-    override val languages: SortedSet<String> = languages
+    override val buildAbis: List<String> = buildAbis
+    override val languages: SortedSet<String> by lazy { combineDeviceLanguages(devices, timeout, unit) }
   }
 }
 
@@ -121,7 +115,6 @@ private fun combineDeviceLanguages(devices: List<AndroidDevice>,
     throw RuntimeException("Error retrieving list of installed languages on device", e)
   }
 }
-
 
 /**
  * message DeviceSpec {

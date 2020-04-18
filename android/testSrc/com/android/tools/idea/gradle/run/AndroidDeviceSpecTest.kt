@@ -98,7 +98,7 @@ class AndroidDeviceSpecTest {
 
   @Test
   fun createReturnsNullWhenEmptyList() {
-    val spec = createSpec(ArrayList(), false, MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+    val spec = createSpec(ArrayList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     assertThat(spec).isNull()
   }
 
@@ -146,7 +146,7 @@ class AndroidDeviceSpecTest {
   }
 
   private fun createJsonFile(fetchLanguages: Boolean, vararg devices: AndroidDevice): File {
-    val spec = createSpec(devices.asList(), fetchLanguages, MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+    val spec = createSpec(devices.asList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     return spec!!.writeToJsonTempFile(fetchLanguages)
   }
 }
