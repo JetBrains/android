@@ -70,6 +70,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
@@ -199,10 +200,10 @@ final class MemoryClassifierView extends AspectObserver {
 
     Function<MemoryObjectTreeNode<ClassifierSet>, String> textGetter = node ->
       NumberFormatter.formatInteger(prop.applyAsLong(node.getAdapter()));
-    final ColoredTreeCellRenderer renderer;
+    final Supplier<ColoredTreeCellRenderer> renderer;
     if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
       // Progress-bar style background that reflects percentage contribution
-      renderer = new PercentColumnRenderer<>(
+      renderer = () -> new PercentColumnRenderer<>(
         textGetter, v -> null, SwingConstants.RIGHT,
         node -> {
           MemoryObjectTreeNode<ClassifierSet> parent = node.myParent;
@@ -222,12 +223,12 @@ final class MemoryClassifierView extends AspectObserver {
     }
     else {
       // Legacy renderer
-      renderer = new SimpleColumnRenderer<>(textGetter, v -> null, SwingConstants.RIGHT);
+      renderer = () -> new SimpleColumnRenderer<>(textGetter, v -> null, SwingConstants.RIGHT);
     }
 
     return new AttributeColumn<>(
       name,
-      () -> renderer,
+      renderer,
       SwingConstants.RIGHT,
       SimpleColumnRenderer.DEFAULT_COLUMN_WIDTH,
       SortOrder.DESCENDING,
@@ -284,6 +285,7 @@ final class MemoryClassifierView extends AspectObserver {
     myTree = null;
     myTreeRoot = null;
     myTreeModel = null;
+    myTableColumnModel = null;
     myPanel.removeAll();
     myStage.selectClassSet(null);
   }
