@@ -19,8 +19,8 @@ import com.android.tools.idea.mlkit.lightpsi.ClassNames;
 import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.ModelInfo;
-import com.android.tools.mlkit.ModelParsingException;
 import com.android.tools.mlkit.TensorInfo;
+import com.android.tools.mlkit.exception.TfliteModelException;
 import com.android.utils.StringHelper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -150,7 +150,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private JComponent createContentPanel() {
     JPanel contentPanel = createPanelWithYAxisBoxLayout(Borders.empty(20));
     try {
-      ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(myFile.contentsToByteArray())));
+      ModelInfo modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(myFile.contentsToByteArray()));
       if (modelInfo.isMetadataExisted()) {
         contentPanel.add(createModelSection(modelInfo));
         contentPanel.add(createTensorsSection(modelInfo));
@@ -173,7 +173,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
     }
-    catch (ModelParsingException e) {
+    catch (TfliteModelException e) {
       Logger.getInstance(TfliteModelFileEditor.class).warn(e);
       // TODO(deanzhou): show warning message in panel
     }

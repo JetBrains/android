@@ -59,7 +59,7 @@ private fun getModelMetadata(modelFile: VirtualFile): ModelMetadata {
     try {
       val bytes = VfsUtilCore.virtualToIoFile(modelFile).readBytes()
       metadataBuilder.fileHash = Hashing.sha256().hashBytes(bytes).toString()
-      val modelInfo = ModelInfo.buildFrom(MetadataExtractor(ByteBuffer.wrap(bytes)))
+      val modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(bytes))
       metadataBuilder.isValidModel = true
       metadataBuilder.hasMetadata = modelInfo.isMetadataExisted
     }
