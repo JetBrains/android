@@ -45,6 +45,7 @@ fun createSpec(devices: List<AndroidDevice>, timeout: Long, unit: TimeUnit): And
   }
 
   val apiLevel: Int
+  val featureLevel: Int
   var apiCodeName: String? = null
   var buildDensity: Density? = null
   val buildAbis: ArrayList<String> = ArrayList()
@@ -52,6 +53,7 @@ fun createSpec(devices: List<AndroidDevice>, timeout: Long, unit: TimeUnit): And
   // Find the minimum value of the build API level and pass it to Gradle as a property
   val minVersion = devices.map { it.version }.minWith(Ordering.natural())!!
   apiLevel = minVersion.apiLevel
+  featureLevel = minVersion.featureLevel
   if (minVersion.codename != null) {
     apiCodeName = minVersion.codename
   }
@@ -73,6 +75,7 @@ fun createSpec(devices: List<AndroidDevice>, timeout: Long, unit: TimeUnit): And
 
   return object : AndroidDeviceSpec {
     override val apiLevel: Int = apiLevel
+    override val featureLevel: Int = featureLevel
     override val apiCodeName: String? = apiCodeName
     override val buildDensity: Density? = buildDensity
     override val buildAbis: List<String> = buildAbis

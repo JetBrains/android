@@ -22,6 +22,7 @@ import com.android.resources.Density
  */
 interface AndroidDeviceSpec {
   val apiLevel: Int
+  val featureLevel: Int
   val apiCodeName: String?
   val buildDensity: Density?
   val buildAbis: Collection<String>
