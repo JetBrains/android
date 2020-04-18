@@ -123,7 +123,7 @@ class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRender
 
   /**
    * Make a function that returns a text representation for a node's integer-property,
-   * defaulting to the empty string if the node doesn't belong to the right subclass or
+   * defaulting to "-" if the node doesn't belong to the right subclass or
    * the property fails the predicate
    */
   public static <T extends MemoryObject> Function<MemoryObjectTreeNode<MemoryObject>, String>
@@ -131,7 +131,7 @@ class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRender
                                 ToLongFunction<T> prop,
                                 LongPredicate pred,
                                 LongFunction<String> formatter) {
-    return makeConditionalGetter(subclass, prop, pred, formatter, "");
+    return makeConditionalGetter(subclass, prop, pred, formatter, "-");
   }
 
   /**
