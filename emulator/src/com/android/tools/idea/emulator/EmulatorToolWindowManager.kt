@@ -92,22 +92,29 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
 
   init {
+    Disposer.register(project, Disposable {
+      destroyContent(getToolWindow())
+    })
+
     // Lazily initialize content since we can only have one frame.
     val messageBusConnection = project.messageBus.connect(project)
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
       @UiThread
       override fun stateChanged() {
-        ToolWindowManager.getInstance(project).invokeLater(Runnable {
-          // We need to query the tool window again, because it might have been unregistered when closing the project.
-          val toolWindow = getToolWindow()
+        if (!project.isDisposedOrDisposeInProgress) {
+          ToolWindowManager.getInstance(project).invokeLater(Runnable {
+            if (!project.isDisposed) {
+              val toolWindow = getToolWindow()
 
-          if (toolWindow.isVisible) {
-            createContent(toolWindow)
-          }
-          else {
-            destroyContent(toolWindow)
-          }
-        })
+              if (toolWindow.isVisible) {
+                createContent(toolWindow)
+              }
+              else {
+                destroyContent(toolWindow)
+              }
+            }
+          })
+        }
       }
     })
 
@@ -125,10 +132,6 @@ internal class EmulatorToolWindowManager private constructor(private val project
                                        onDeploymentToEmulator(device)
                                      }
                                    })
-
-    Disposer.register(project, Disposable {
-      destroyContent(getToolWindow())
-    })
   }
 
   @AnyThread
