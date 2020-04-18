@@ -143,7 +143,7 @@ data class AndroidDeviceSpec(
    * }
    */
   @Throws(IOException::class)
-  private fun writeJson(out: Writer) {
+  private fun writeJson(writeLanguages: Boolean, out: Writer) {
     JsonWriter(out).use { writer ->
       writer.beginObject()
       writer.name("sdk_version").value(apiLevel.toLong())
@@ -160,13 +160,15 @@ data class AndroidDeviceSpec(
         }
         writer.endArray()
       }
-      if (!languages.isEmpty()) {
-        writer.name("supported_locales")
-        writer.beginArray()
-        languages.forEach {
-          writer.value(it)
+      if (writeLanguages) {
+        if (!languages.isEmpty()) {
+          writer.name("supported_locales")
+          writer.beginArray()
+          languages.forEach {
+            writer.value(it)
+          }
+          writer.endArray()
         }
-        writer.endArray()
       }
       writer.endObject()
     }
@@ -176,9 +178,9 @@ data class AndroidDeviceSpec(
     get() = Logger.getInstance(AndroidDeviceSpec::class.java)
 
   @Throws(IOException::class)
-  fun writeToJsonTempFile(): File {
+  fun writeToJsonTempFile(writeLanguages: Boolean): File {
     val jsonString = StringWriter().use {
-      writeJson(it)
+      writeJson(writeLanguages, it)
       it.flush()
       it.toString()
     }
