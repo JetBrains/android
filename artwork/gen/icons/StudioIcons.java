@@ -33,6 +33,7 @@ public class StudioIcons {
     public static final Icon DEVICE_WEAR = load("/studio/icons/avd/device-wear.svg"); // 16x16
     public static final Icon EDIT = load("/studio/icons/avd/edit.svg"); // 16x16
     public static final Icon LANDSCAPE = load("/studio/icons/avd/landscape.svg"); // 48x48
+    public static final Icon PAIR_OVER_WIFI = load("/studio/icons/avd/pair-over-wifi.svg"); // 16x16
     public static final Icon PORTRAIT = load("/studio/icons/avd/portrait.svg"); // 48x48
     public static final Icon RUN = load("/studio/icons/avd/run.svg"); // 16x16
   }
