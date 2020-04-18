@@ -315,7 +315,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
     catch (ignore: IOException) {
     }
 
-    if (grpcPort <= 0 || avdId == null || avdName == null || serialPort <= 0 && adbPort <= 0) {
+    if (grpcPort <= 0 || avdId == null || avdName == null || avdFolder == null ||
+        serialPort <= 0 && adbPort <= 0 || commandLine.isEmpty()) {
       return null
     }
 
