@@ -147,6 +147,6 @@ class AndroidDeviceSpecTest {
 
   private fun createJsonFile(fetchLanguages: Boolean, vararg devices: AndroidDevice): File {
     val spec = AndroidDeviceSpec.create(devices.asList(), fetchLanguages, MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
-    return spec!!.writeToJsonTempFile()
+    return spec!!.writeToJsonTempFile(fetchLanguages)
   }
 }

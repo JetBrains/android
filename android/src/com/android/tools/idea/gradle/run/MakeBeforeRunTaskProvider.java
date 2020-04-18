@@ -441,8 +441,9 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   public static List<String> getDeviceSpecificArguments(@NotNull Module[] modules,
                                                         @NotNull AndroidRunConfigurationBase configuration,
                                                         @NotNull List<AndroidDevice> devices) throws IOException {
+    boolean collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, devices);
     AndroidDeviceSpec deviceSpec = AndroidDeviceSpec.create(devices,
-                                                            shouldCollectListOfLanguages(modules, configuration, devices),
+                                                            collectListOfLanguages,
                                                             DEVICE_SPEC_TIMEOUT_SECONDS,
                                                             TimeUnit.SECONDS);
     if (deviceSpec == null) {
@@ -453,7 +454,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     if (useSelectApksFromBundleBuilder(modules, configuration, devices)) {
       // For the bundle tool, we create a temporary json file with the device spec and
       // pass the file path to the gradle task.
-      File deviceSpecFile = deviceSpec.writeToJsonTempFile();
+      File deviceSpecFile = deviceSpec.writeToJsonTempFile(collectListOfLanguages);
       properties.add(createProjectProperty(PROPERTY_APK_SELECT_CONFIG, deviceSpecFile.getAbsolutePath()));
       if (configuration instanceof AndroidRunConfiguration) {
         AndroidRunConfiguration androidRunConfiguration = (AndroidRunConfiguration)configuration;
