@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.run
 import com.android.ide.common.util.getLanguages
 import com.android.resources.Density
 import com.android.tools.idea.run.AndroidDevice
+import com.android.tools.idea.run.AndroidDeviceSpec
 import com.google.common.collect.Ordering
 import com.google.gson.stream.JsonWriter
 import com.intellij.openapi.diagnostic.Logger
@@ -29,14 +30,6 @@ import java.io.Writer
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.TimeUnit
-
-interface AndroidDeviceSpec {
-  val apiLevel: Int
-  val apiCodeName: String?
-  val buildDensity: Density?
-  val buildAbis: Collection<String>
-  val languages: Collection<String>
-}
 
 /**
  * Creates an [AndroidDeviceSpec] instance from a list of [devices][AndroidDevice], or `null` if the list of
