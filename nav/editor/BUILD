@@ -140,5 +140,6 @@ iml_module(
         "//tools/idea/platform/core-api:intellij.platform.core[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/idea/platform/core-impl:intellij.platform.core.impl[module]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
     ],
 )
