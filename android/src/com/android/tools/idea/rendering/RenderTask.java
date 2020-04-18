@@ -938,14 +938,8 @@ public class RenderTask {
           }
           return result;
         }).whenComplete((result, ex) -> {
-          // After render clean-up. Dispose the GapWorker cache and the Choreographer queued tasks.
+          // After render clean-up. Dispose the GapWorker cache.
           clearGapWorkerCache();
-          // TODO(b/146552571): Fix this by properly managing the session
-          if (!StudioFlags.COMPOSE_ANIMATED_PREVIEW.get()) {
-            RenderService.runAsyncRenderAction(() -> {
-              android.view.Choreographer.releaseInstance();
-            });
-          }
         });
       }
       catch (Exception e) {
