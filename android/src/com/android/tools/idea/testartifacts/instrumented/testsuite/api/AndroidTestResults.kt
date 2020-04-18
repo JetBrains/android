@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import java.io.File
 
 /**
  * An interface to access to instrumentation test results of a single test case executed
@@ -52,4 +53,8 @@ interface AndroidTestResults {
    * Returns a benchmark test results.
    */
   fun getBenchmark(device: AndroidDevice): String
+  /**
+   * Returns the snapshot artifact from Android Test Retention if available.
+   */
+  fun getRetentionSnapshot(device: AndroidDevice): File?
 }

@@ -26,6 +26,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.google.test.platform.core.proto.TestStatusProto
 import com.google.test.platform.core.proto.TestSuiteResultProto
+import java.io.File
 import java.io.InputStream
 
 /**
@@ -58,11 +59,23 @@ class UtpTestResultAdapter(private val listener: AndroidTestResultListener) {
     for (testResultProto in resultProto.testResultList) {
       val testCaseProto = testResultProto.testCase
       val fullName = "${testCaseProto.testPackage}:${testCaseProto.testClass}#${testCaseProto.testMethod}"
-      val testCase = AndroidTestCase(fullName, testCaseProto.testMethod, when (testResultProto.testStatus) {
-        TestStatusProto.TestStatus.PASSED -> AndroidTestCaseResult.PASSED
-        TestStatusProto.TestStatus.FAILED -> AndroidTestCaseResult.FAILED
-        else -> AndroidTestCaseResult.SKIPPED
-      })
+      val iceboxArtifactRegrex = "snapshot-.*-.*-snapshot.tar.gz".toRegex()
+      val iceboxArtifact = testResultProto.outputArtifactList.find {
+        iceboxArtifactRegrex.matches(File(it.sourcePath?.path).name)
+      }
+      val iceboxArtifactPath = iceboxArtifact?.sourcePath?.path
+      val testCase = AndroidTestCase(id = fullName,
+                                     name = testCaseProto.testMethod,
+                                     retentionSnapshot = if (iceboxArtifactPath != null) {
+                                       File(iceboxArtifactPath)
+                                     } else {
+                                       null
+                                     },
+                                     result = when (testResultProto.testStatus) {
+                                       TestStatusProto.TestStatus.PASSED -> AndroidTestCaseResult.PASSED
+                                       TestStatusProto.TestStatus.FAILED -> AndroidTestCaseResult.FAILED
+                                       else -> AndroidTestCaseResult.SKIPPED
+                                     })
       if (testResultProto.testStatus == TestStatusProto.TestStatus.FAILED) {
         testSuiteResult = AndroidTestSuiteResult.FAILED
       }

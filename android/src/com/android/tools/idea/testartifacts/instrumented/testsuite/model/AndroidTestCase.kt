@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model
 
+import java.io.File
+
 
 /**
  * Encapsulates an Android test case metadata to be displayed in Android test suite view.
@@ -25,13 +27,15 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.model
  * @param logcat a logcat message emitted during this test case.
  * @param errorStackTrace an error stack trace. Empty if a test passes.
  * @param benchmark an output from AndroidX Benchmark library.
+ * @param retentionSnapshot an Android Test Retention snapshot artifact.
  */
 data class AndroidTestCase(val id: String,
                            val name: String,
                            var result: AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED,
                            var logcat: String = "",
                            var errorStackTrace: String = "",
-                           var benchmark: String = "")
+                           var benchmark: String = "",
+                           var retentionSnapshot: File? = null)
 
 /**
  * A result of a test case execution.

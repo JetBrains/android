@@ -160,6 +160,7 @@ public class AndroidTestSuiteDetailsView {
         myContentView.setLogcat(myTestResults.getLogcat(mySelectedDevice));
         myContentView.setErrorStackTrace(myTestResults.getErrorStackTrace(mySelectedDevice));
         myContentView.setBenchmarkText(myTestResults.getBenchmark(mySelectedDevice));
+        myContentView.setRetentionSnapshot(myTestResults.getRetentionSnapshot(mySelectedDevice));
       }
     }
   }
