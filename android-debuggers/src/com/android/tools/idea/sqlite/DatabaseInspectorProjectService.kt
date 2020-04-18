@@ -56,7 +56,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
-import java.util.TreeMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executor
 import java.util.concurrent.locks.ReentrantLock
@@ -295,25 +294,20 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     projectScope.launch(uiThread) { controller.databasePossiblyChanged() }
   }
 
-  private class ModelImpl : DatabaseInspectorController.Model {
+  class ModelImpl : DatabaseInspectorController.Model {
 
     private val lock = ReentrantLock()
 
     private val listeners = CopyOnWriteArrayList<DatabaseInspectorController.Model.Listener>()
 
     @GuardedBy("lock")
-    private val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(
-      Comparator.comparing { database: SqliteDatabase -> database.name }
-    )
+    private val openDatabases = mutableMapOf<SqliteDatabase, SqliteSchema>()
 
     @AnyThread
     override fun getOpenDatabases() = lock.withLock { openDatabases.keys.toList() }
 
     @AnyThread
     override fun getDatabaseSchema(database: SqliteDatabase) = lock.withLock { openDatabases[database] }
-
-    @AnyThread
-    override fun getSortedIndexOf(database: SqliteDatabase) = lock.withLock { openDatabases.headMap(database).size }
 
     @AnyThread
     override fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
