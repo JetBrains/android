@@ -440,7 +440,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @NotNull
   public static List<String> getDeviceSpecificArguments(@NotNull Module[] modules,
                                                         @NotNull AndroidRunConfigurationBase configuration,
-                                                        @NotNull List<AndroidDevice> devices) throws IOException {
+                                                        @NotNull List<AndroidDevice> devices) {
     boolean collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, devices);
     AndroidDeviceSpec deviceSpec = AndroidDeviceSpecUtil.createSpec(devices,
                                                             collectListOfLanguages,
