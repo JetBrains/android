@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit
 
 const val MAX_TIMEOUT_MILLISECONDS: Long = 50_000
 
-class AndroidDeviceSpecTest {
+class AndroidDeviceSpecUtilTest {
   @Mock
   private lateinit var myDevice1: AndroidDevice
   @Mock

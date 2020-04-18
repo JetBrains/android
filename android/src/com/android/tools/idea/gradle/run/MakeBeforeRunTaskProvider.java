@@ -50,6 +50,7 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidDeviceSpec;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
