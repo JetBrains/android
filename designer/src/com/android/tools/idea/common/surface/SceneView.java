@@ -292,6 +292,14 @@ public abstract class SceneView extends PositionableContent {
     }
   }
 
+  /**
+   * Returns whether this {@link SceneView} has content. Some {@link SceneView} might not have the content available while it's rendering
+   * or if there's been a failure.
+   */
+  public boolean hasContent() {
+    return true;
+  }
+
   public void dispose() {
     synchronized (myLayersCacheLock) {
       if (myLayersCache != null) {
