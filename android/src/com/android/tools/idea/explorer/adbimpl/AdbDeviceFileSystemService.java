@@ -28,6 +28,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -48,7 +49,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
  * long running operations either raise events or return a Future.
  */
 @UiThread
-public final class AdbDeviceFileSystemService implements DeviceFileSystemService<AdbDeviceFileSystem> {
+public final class AdbDeviceFileSystemService implements Disposable, DeviceFileSystemService<AdbDeviceFileSystem> {
   @NotNull
   public static AdbDeviceFileSystemService getInstance(Project project) {
     return ServiceManager.getService(project, AdbDeviceFileSystemService.class);
@@ -70,6 +71,11 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
   public AdbDeviceFileSystemService() {
     myEdtExecutor = new FutureCallbackExecutor(EdtExecutorService.getInstance());
     myTaskExecutor = new FutureCallbackExecutor(PooledThreadExecutor.INSTANCE);
+  }
+
+  @Override
+  public void dispose() {
+    myListeners.clear();
   }
 
   public enum State {
