@@ -31,9 +31,8 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.ModelInfo;
-import com.android.tools.mlkit.ModelParsingException;
+import com.android.tools.mlkit.exception.TfliteModelException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
@@ -211,10 +210,10 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
         if (bytes == null) {
           return false;
         }
-        ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(bytes)));
+        ModelInfo.buildFrom(ByteBuffer.wrap(bytes));
       }
     }
-    catch (IOException | ModelParsingException | RuntimeException e) {
+    catch (IOException | TfliteModelException | RuntimeException e) {
       Logger.getInstance(ChooseMlModelStep.class).warn("Exception when parsing TensorFlow Lite model: " + file.getName(), e);
       return false;
     }

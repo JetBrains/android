@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.mlkit;
 
-import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.ModelInfo;
-import com.android.tools.mlkit.ModelParsingException;
 import com.android.tools.mlkit.TensorInfo;
+import com.android.tools.mlkit.exception.TfliteModelException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -45,16 +44,15 @@ public class MlModelMetadata {
     myModelFileUrl = modelFileUrl;
     myClassName = className;
 
-    ByteBuffer byteBuffer = null;
     try {
       // Load model as ByteBuffer
       VirtualFile modelFile = VirtualFileManager.getInstance().findFileByUrl(modelFileUrl);
       if (modelFile != null) {
-        myModelData = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(modelFile.contentsToByteArray())));
+        myModelData = ModelInfo.buildFrom(ByteBuffer.wrap(modelFile.contentsToByteArray()));
       }
     }
-    catch (ModelParsingException e) {
-      LOG.warn("Metadata is invalid in model: " + modelFileUrl, e);
+    catch (TfliteModelException e) {
+      LOG.warn("Failed to get model info from model:: " + modelFileUrl, e);
     }
     catch (IOException e) {
       LOG.warn("IO Exception when loading model: " + modelFileUrl, e);
