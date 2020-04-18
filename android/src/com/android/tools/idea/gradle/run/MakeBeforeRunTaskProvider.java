@@ -518,12 +518,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     // Find the minimum API version in case both a pre-O and post-O devices are selected.
     // TODO: if a post-O app happened to be transformed, the agent needs to account for that.
-    List<AndroidVersion> versionLists = ContainerUtil.map(devices, AndroidDevice::getVersion);
-    AndroidVersion minVersion = Ordering.natural().min(versionLists);
+    int minFeatureLevel = Ordering.natural().min(ContainerUtil.map(devices, AndroidDevice::getVersion)).getFeatureLevel();
     List<String> arguments = new LinkedList<>();
-    ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();
-    if (state.ADVANCED_PROFILING_ENABLED && minVersion.getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP &&
-        minVersion.getFeatureLevel() < AndroidVersion.VersionCodes.O) {
+    ProfilerState state = configuration.getProfilerState();
+    if (state.ADVANCED_PROFILING_ENABLED && minFeatureLevel >= AndroidVersion.VersionCodes.LOLLIPOP &&
+        minFeatureLevel < AndroidVersion.VersionCodes.O) {
       File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform();
       arguments.add(createProjectProperty(ANDROID_ADVANCED_PROFILING_TRANSFORMS, file.getAbsolutePath()));
 
