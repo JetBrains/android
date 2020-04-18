@@ -20,15 +20,12 @@ import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.intellij.openapi.application.ApplicationManager
-import java.util.TreeMap
 
 @UiThread
 open class MockDatabaseInspectorModel : DatabaseInspectorController.Model {
   private val listeners = mutableListOf<DatabaseInspectorController.Model.Listener>()
 
-  private val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(
-    Comparator.comparing { database: SqliteDatabase -> database.name }
-  )
+  private val openDatabases = mutableMapOf<SqliteDatabase, SqliteSchema>()
 
   override fun getOpenDatabases(): List<SqliteDatabase> {
     ApplicationManager.getApplication().assertIsDispatchThread()
@@ -38,11 +35,6 @@ open class MockDatabaseInspectorModel : DatabaseInspectorController.Model {
   override fun getDatabaseSchema(database: SqliteDatabase): SqliteSchema? {
     ApplicationManager.getApplication().assertIsDispatchThread()
     return openDatabases[database]
-  }
-
-  override fun getSortedIndexOf(database: SqliteDatabase): Int {
-    ApplicationManager.getApplication().assertIsDispatchThread()
-    return openDatabases.headMap(database).size
   }
 
   override fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema) {

@@ -137,7 +137,7 @@ class DatabaseInspectorControllerImpl(
 
     tabsToClose.forEach { closeTab(it) }
 
-    val index = model.getSortedIndexOf(database)
+    val index = model.getOpenDatabases().sortedBy { it.name }.indexOf(database)
     resultSetControllers.values
       .asSequence()
       .filterIsInstance<SqliteEvaluatorController>()
@@ -189,7 +189,7 @@ class DatabaseInspectorControllerImpl(
   }
 
   private fun addNewDatabase(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
-    val index = model.getSortedIndexOf(database)
+    val index = (model.getOpenDatabases() + database).sortedBy { it.name }.indexOf(database)
     view.addDatabaseSchema(database, sqliteSchema, index)
 
     resultSetControllers.values
@@ -259,7 +259,7 @@ class DatabaseInspectorControllerImpl(
     } catch (e: Exception) {
       view.removeDatabaseSchema(database)
 
-      val index = model.getSortedIndexOf(database)
+      val index = model.getOpenDatabases().sortedBy { it.name }.indexOf(database)
       view.addDatabaseSchema(database, newSchema, index)
     }
   }
@@ -292,7 +292,7 @@ class DatabaseInspectorControllerImpl(
 
     resultSetControllers[tabId] = sqliteEvaluatorController
 
-    model.getOpenDatabases().forEachIndexed { index, sqliteDatabase ->
+    model.getOpenDatabases().sortedBy { it.name }.forEachIndexed { index, sqliteDatabase ->
       sqliteEvaluatorController.addDatabase(sqliteDatabase, index)
     }
 
@@ -437,16 +437,11 @@ interface DatabaseInspectorController : Disposable {
    * Implementations of this interface can be accessed from different threads, therefore should be thread-safe.
    */
   interface Model {
-    /**
-     * A list of open databases sorted in alphabetical order by the name of the database.
-     */
     @AnyThread
     fun getOpenDatabases(): List<SqliteDatabase>
     @AnyThread
     fun getDatabaseSchema(database: SqliteDatabase): SqliteSchema?
 
-    @AnyThread
-    fun getSortedIndexOf(database: SqliteDatabase): Int
     @AnyThread
     fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema)
     @AnyThread

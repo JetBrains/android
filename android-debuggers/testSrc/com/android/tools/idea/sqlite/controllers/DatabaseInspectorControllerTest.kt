@@ -23,6 +23,7 @@ import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
@@ -992,5 +993,38 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(mockViewFactory.tableView, times(4)).updateRows(emptyList())
     // invocation by setUp
     verify(mockViewFactory.tableView, times(2)).startTableLoading()
+  }
+
+  fun testOpenDatabasesWithSameName() {
+    // Prepare
+    val model = DatabaseInspectorProjectServiceImpl.ModelImpl()
+    val databaseInspectorController = DatabaseInspectorControllerImpl(
+      project,
+      model,
+      mockViewFactory,
+      edtExecutor,
+      taskExecutor
+    )
+    databaseInspectorController.setUp()
+
+    val sqliteSchema = SqliteSchema(listOf(SqliteTable("t1", emptyList(), null, false)))
+    val databaseConnection1 = mock(DatabaseConnection::class.java)
+    val databaseConnection2 = mock(DatabaseConnection::class.java)
+    `when`(databaseConnection1.readSchema()).thenReturn(Futures.immediateFuture(sqliteSchema))
+    `when`(databaseConnection2.readSchema()).thenReturn(Futures.immediateFuture(sqliteSchema))
+
+    val sqliteDatabase1 = LiveSqliteDatabase("my/db", databaseConnection1)
+    val sqliteDatabase2 = LiveSqliteDatabase("my/db", databaseConnection2)
+
+    // Act
+    runDispatching {
+      databaseInspectorController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+      databaseInspectorController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
+    }
+
+    // Assert
+    assertEquals(listOf(sqliteDatabase1, sqliteDatabase2), model.getOpenDatabases())
+
+    Disposer.dispose(databaseInspectorController)
   }
 }
