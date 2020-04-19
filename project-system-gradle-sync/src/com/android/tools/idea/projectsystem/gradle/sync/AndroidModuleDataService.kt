@@ -18,7 +18,6 @@ package com.android.tools.idea.projectsystem.gradle.sync
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
-import com.android.tools.idea.gradle.project.RunConfigurationChecker
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext
@@ -37,6 +36,7 @@ import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModu
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.run.RunConfigurationChecker
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration
