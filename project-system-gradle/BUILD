@@ -59,11 +59,13 @@ iml_module(
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/idea/java/execution/impl:intellij.java.execution.impl[module]",
         "//tools/idea/plugins/junit:intellij.junit[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer[module]",
     ],
 )
 
