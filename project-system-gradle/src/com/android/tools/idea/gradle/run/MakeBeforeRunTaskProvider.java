@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,8 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidDeviceSpec;
 import com.android.tools.idea.run.AndroidRunConfiguration;
@@ -185,7 +187,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   public boolean configurationTypeIsSupported(@NotNull RunConfiguration runConfiguration) {
-    if (myAndroidProjectInfo.isApkProject()) {
+    if (!(ProjectSystemUtil.getProjectSystem(runConfiguration.getProject()) instanceof GradleProjectSystem)) {
       return false;
     }
     return runConfiguration instanceof PreferGradleMake || isUnitTestConfiguration(runConfiguration);

@@ -30,6 +30,9 @@ import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestUtilsKt;
+import com.android.tools.idea.testing.AndroidModuleModelBuilder;
+import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.ProjectFiles;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -46,6 +49,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import java.io.File;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -126,11 +130,13 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     assertFalse(gradleProjectInfo.isNewProject());
   }
 
-  public void testOnSuccessJUnitRunConfigurationSetup() {
-    IdeComponents ideComponents = new IdeComponents(getProject());
+  public void testOnSuccessJUnitRunConfigurationSetup() throws Exception {
+    AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel(
+      getProject(),
+      new File(getProject().getBasePath()),
+      new AndroidModuleModelBuilder(":", "debug", new AndroidProjectBuilder()));
+
     RunManagerEx runManager = RunManagerImpl.getInstanceImpl(getProject());
-    GradleProjectInfo gradleProjectInfo = mock(GradleProjectInfo.class);
-    ideComponents.replaceProjectService(GradleProjectInfo.class, gradleProjectInfo);
 
     new AndroidModuleDataService().onSuccessImport(
       ImmutableList.of(), null, getProject(), mock(IdeModifiableModelsProvider.class)
@@ -159,8 +165,5 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
       ImmutableList.of(), null, getProject(), mock(IdeModifiableModelsProvider.class)
     );
     assertSize(2, runManager.getBeforeRunTasks(runConfiguration));
-
-    verify(gradleProjectInfo, times(2)).setNewProject(false);
-    verify(gradleProjectInfo, times(2)).setImportedProject(false);
   }
 }

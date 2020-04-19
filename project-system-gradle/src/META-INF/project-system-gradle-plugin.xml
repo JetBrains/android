@@ -21,6 +21,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceInterface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider"
                         serviceImplementation="com.android.tools.idea.projectsystem.gradle.GradleModelSource"/>
+    <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
   </extensions>
   <actions>
     <group id="Internal.Android.Gradle">
