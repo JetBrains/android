@@ -843,41 +843,35 @@ class NavSceneTest : NavTestCase() {
       }
     }
 
-    val list = DisplayList()
-    val surface = model.surface
-    val scene = surface.scene!!
+    val scene = model.surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
-    moveComponentTo(scene.getSceneComponent("fragment2")!!, 380, 20)
-    moveComponentTo(scene.getSceneComponent("nav1")!!, 20, 80)
-    moveComponentTo(scene.getSceneComponent("nav2")!!, 20, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 500, 20)
+    moveComponentTo(scene.getSceneComponent("nav1")!!, 200, 500)
+    moveComponentTo(scene.getSceneComponent("nav2")!!, 500, 500)
     scene.sceneManager.layout(false)
 
     scene.layout(0, SceneContext.get())
-    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals(
-      "Clip,0,0,1057,928\n" +
-      "DrawAction,400.0x430.0x70.0x19.0,490.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawAction,400.0x430.0x70.0x19.0,400.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawAction,490.0x400.0x76.5x128.0,580.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawAction,490.0x400.0x76.5x128.0,400.0x430.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
-      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "DrawHeader,580.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
-      "DrawFragment,580.0x400.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "DrawHeader,400.0x419.0x70.0x11.0,0.5,nav1,false,false\n" +
-      "DrawNestedGraph,400.0x430.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
-      "\n" +
-      "DrawHeader,400.0x389.0x70.0x11.0,0.5,nav2,false,false\n" +
-      "DrawNestedGraph,400.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(550f, 389f, 76.5f, 11f), 0.5, "fragment2")
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(550f, 400f, 76.5f, 128f), 0.5)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 629f, 76.5f, 11f), 0.5, "nav1")
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(400f, 640f, 70f, 19f), 0.5,
+                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(550f, 629f, 76.5f, 11f), 0.5, "nav2")
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(550f, 640f, 70f, 19f), 0.5,
+                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+    }
   }
 
   fun testEmptyDesigner() {
