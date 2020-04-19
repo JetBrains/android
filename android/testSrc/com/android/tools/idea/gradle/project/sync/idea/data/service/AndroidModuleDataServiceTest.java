@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
@@ -129,13 +128,9 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
 
   public void testOnSuccessJUnitRunConfigurationSetup() {
     IdeComponents ideComponents = new IdeComponents(getProject());
-    IdeInfo ideInfo = mock(IdeInfo.class);
     RunManagerEx runManager = RunManagerImpl.getInstanceImpl(getProject());
     GradleProjectInfo gradleProjectInfo = mock(GradleProjectInfo.class);
-    ideComponents.replaceApplicationService(IdeInfo.class, ideInfo);
     ideComponents.replaceProjectService(GradleProjectInfo.class, gradleProjectInfo);
-
-    when(ideInfo.isAndroidStudio()).thenReturn(true);
 
     new AndroidModuleDataService().onSuccessImport(
       ImmutableList.of(), null, getProject(), mock(IdeModifiableModelsProvider.class)

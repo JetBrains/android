@@ -52,7 +52,7 @@ public class AndroidJUnitConfigurationConverter extends ProjectConverter {
     return new ConversionProcessor<RunManagerSettings>() {
       @Override
       public boolean isConversionNeeded(RunManagerSettings settings) {
-        return IdeInfo.getInstance().isAndroidStudio() && !getConfigurationsToConvert(settings).isEmpty();
+        return !getConfigurationsToConvert(settings).isEmpty();
       }
 
       @Override
