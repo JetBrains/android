@@ -308,6 +308,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
                                                        /*onePixelDividers=*/true);
     myComponentsSplitter.setOpaque(false);
     myComponentsSplitter.setMinSize(MIN_COMPONENT_HEIGHT_IN_SPLITTER);
+    myComponentsSplitter.setHonorComponentsMinimumSize(true);
     Disposer.register(this, myComponentsSplitter);
     myComponentsSplitter.setFirstComponent(myRootPanel);
 

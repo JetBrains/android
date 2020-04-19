@@ -92,6 +92,7 @@ public class AndroidTestSuiteDetailsView {
     ThreeComponentsSplitter componentsSplitter = new ThreeComponentsSplitter(/*vertical=*/false, /*onePixelDividers=*/true);
     componentsSplitter.setOpaque(false);
     componentsSplitter.setMinSize(MIN_DEVICE_LIST_WIDTH);
+    componentsSplitter.setHonorComponentsMinimumSize(true);
     Disposer.register(parentDisposable, componentsSplitter);
 
     myDeviceSelectorListView = new DetailsViewDeviceSelectorListView(
