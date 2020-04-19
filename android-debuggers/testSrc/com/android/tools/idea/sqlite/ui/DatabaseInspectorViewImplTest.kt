@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -35,6 +36,7 @@ import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.ui.treeStructure.Tree
 import org.mockito.Mockito.mock
 import java.awt.Dimension
+import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
 
 class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
@@ -242,7 +244,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     assertNull(tree.model.root)
   }
 
-  fun testEmptyStateIsHiddenAfterOpeningADatabase() {
+  fun testTreeEmptyStateIsHiddenAfterOpeningADatabase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
     val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
@@ -251,18 +253,60 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     view.addDatabaseSchema(database, SqliteSchema(emptyList()), 0)
 
     // Assert
-    val emptyStateRightPanelAfterAddingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
-    val tabsPanelAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
+    val emptyStateRightPanelAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
+    val tabsPanelAfterAddingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
     val syncSchemaButtonAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
     val runSqlButtonAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
     val treeRootAfterAddingDb = tree.model.root
 
-    assertNull(emptyStateRightPanelAfterAddingDb)
-    assertNotNull(tabsPanelAfterAddingDb)
+    assertNull(tabsPanelAfterAddingDb)
     // tree.emptyText is shown when the root is null
     assertNotNull(treeRootAfterAddingDb)
     assertTrue(syncSchemaButtonAfterAddingDb.isEnabled)
     assertTrue(runSqlButtonAfterAddingDb.isEnabled)
+  }
+
+  fun testRightPanelEmptyStateIsHiddenAfterOpeningATab() {
+    // Prepare
+    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+
+    // Act
+    view.addDatabaseSchema(database, SqliteSchema(emptyList()), 0)
+    view.openTab(TabId.AdHocQueryTab(), "new tab", JPanel())
+
+    // Assert
+    val emptyStateRightPanelAfterAddingTab = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
+    val tabsPanelAfterAddingTab = TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
+
+    assertNull(emptyStateRightPanelAfterAddingTab)
+    assertNotNull(tabsPanelAfterAddingTab)
+  }
+
+  fun testRightPanelEmptyStateIsShownAfterAllTabsAreClosed() {
+    // Prepare
+    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+    val tabId = TabId.AdHocQueryTab()
+
+    // Act
+    view.addDatabaseSchema(database, SqliteSchema(emptyList()), 0)
+    view.openTab(tabId, "new tab", JPanel())
+
+    // Assert
+    val emptyStateRightPanelAfterAddingTab = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
+    val tabsPanelAfterAddingTab = TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
+
+    assertNull(emptyStateRightPanelAfterAddingTab)
+    assertNotNull(tabsPanelAfterAddingTab)
+
+    // Act
+    view.closeTab(tabId)
+
+    // Assert
+    val emptyStateRightPanelAfterRemovingTab = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
+    val tabsPanelAfterRemovingTab = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
+
+    assertNotNull(emptyStateRightPanelAfterRemovingTab)
+    assertNull(tabsPanelAfterRemovingTab)
   }
 
   fun testEmptyStateIsShownAfterOpenDatabasesAreRemoved() {
