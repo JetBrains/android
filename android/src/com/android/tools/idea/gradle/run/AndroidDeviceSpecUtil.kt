@@ -28,8 +28,13 @@ import java.io.File
 import java.io.StringWriter
 import java.io.Writer
 import java.time.Duration
-import java.util.*
+import java.util.ArrayList
+import java.util.Collections
+import java.util.SortedSet
 import java.util.concurrent.TimeUnit
+
+const val DEVICE_SPEC_TIMEOUT_SECONDS = 10L
+
 
 /**
  * Creates an [AndroidDeviceSpec] instance from a list of [devices][AndroidDevice], or `null` if the list of
@@ -39,7 +44,12 @@ import java.util.concurrent.TimeUnit
  * of installed languages using the [getLanguages] method. The [timeout] and [unit]
  * parameters are used in that case to ensure each request has a timeout.
  */
-fun createSpec(devices: List<AndroidDevice>, timeout: Long, unit: TimeUnit): AndroidDeviceSpec? {
+@JvmOverloads
+fun createSpec(
+  devices: List<AndroidDevice>,
+  timeout: Long = DEVICE_SPEC_TIMEOUT_SECONDS,
+  unit: TimeUnit = TimeUnit.SECONDS
+): AndroidDeviceSpec? {
   if (devices.isEmpty()) {
     return null
   }

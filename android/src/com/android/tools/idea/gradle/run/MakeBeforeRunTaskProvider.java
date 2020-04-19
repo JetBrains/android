@@ -115,7 +115,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeRunTask> {
   @NotNull public static final Key<MakeBeforeRunTask> ID = Key.create("Android.Gradle.BeforeRunTask");
-  public static int DEVICE_SPEC_TIMEOUT_SECONDS = 10;
 
   public static final String TASK_NAME = "Gradle-aware Make";
 
@@ -373,8 +372,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // the android run config context
     DeviceFutures deviceFutures = env.getCopyableUserData(DeviceFutures.KEY);
     List<AndroidDevice> targetDevices = deviceFutures == null ? emptyList() : deviceFutures.getDevices();
-    @Nullable AndroidDeviceSpec targetDeviceSpec =
-      AndroidDeviceSpecUtil.createSpec(targetDevices, DEVICE_SPEC_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    @Nullable AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(targetDevices);
 
     // NOTE: DeviceFutures.KEY is configured by AndroidRunConfigurationBase and its descendants only and therefore
     //       when it is not null it is safe to assume that configuration is an instance of AndroidRunConfigurationBase.
