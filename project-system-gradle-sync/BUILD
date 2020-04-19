@@ -48,6 +48,7 @@ iml_module(
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
         "//tools/idea/plugins/junit:intellij.junit[module]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
     ],
 )
 
@@ -118,5 +119,6 @@ iml_module(
         "//tools/idea/java/execution/impl:intellij.java.execution.impl[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
     ],
 )
