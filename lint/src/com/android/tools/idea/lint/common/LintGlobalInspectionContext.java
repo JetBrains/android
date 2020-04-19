@@ -328,7 +328,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
   }
 
   @Override
-  public void performPostRunActivities(@NotNull List<InspectionToolWrapper> inspections, @NotNull final GlobalInspectionContext context) {
+  public void performPostRunActivities(@NotNull List<InspectionToolWrapper<?, ?>> inspections, @NotNull final GlobalInspectionContext context) {
     if (myBaseline != null) {
       // Close the baseline; we need to hold a read lock such that line numbers can be computed from PSI file contents
       if (myBaseline.getWriteOnClose()) {
