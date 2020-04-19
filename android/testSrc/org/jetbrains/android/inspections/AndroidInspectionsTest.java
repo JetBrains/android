@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections;
 
 import com.intellij.analysis.AnalysisScope;
@@ -7,11 +8,12 @@ import com.intellij.codeInspection.deadCode.UnusedDeclarationInspectionBase;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationPresentation;
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.reference.EntryPoint;
+import com.intellij.openapi.extensions.DefaultPluginDescriptor;
+import com.intellij.openapi.extensions.PluginId;
+import java.io.IOException;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 /**
  * @author Eugene.Kudelevsky
@@ -29,12 +31,10 @@ public class AndroidInspectionsTest extends AndroidTestCase {
   }
 
   private static GlobalInspectionToolWrapper getUnusedDeclarationWrapper() {
-    final InspectionEP ep = new InspectionEP();
+    InspectionEP ep = new InspectionEP(UnusedDeclarationInspection.class.getName(), new DefaultPluginDescriptor(PluginId.getId("AndroidInspectionsTest"), AndroidInspectionsTest.class.getClassLoader()));
     ep.presentation = UnusedDeclarationPresentation.class.getName();
-    ep.implementationClass = UnusedDeclarationInspection.class.getName();
     ep.shortName = UnusedDeclarationInspectionBase.SHORT_NAME;
-    UnusedDeclarationInspection tool = new UnusedDeclarationInspection(true);
-    return new GlobalInspectionToolWrapper(tool, ep);
+    return new GlobalInspectionToolWrapper(new UnusedDeclarationInspection(true), ep);
   }
 
   public void testActivityInstantiated1() throws Throwable {
