@@ -7,6 +7,9 @@ import com.intellij.codeInspection.deadCode.UnusedDeclarationInspectionBase;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationPresentation;
 import com.intellij.codeInspection.ex.EntryPointsManagerBase;
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
+import com.intellij.codeInspection.reference.EntryPoint;
+import com.intellij.openapi.extensions.DefaultPluginDescriptor;
+import com.intellij.openapi.extensions.PluginId;
 import java.io.IOException;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NonNls;
@@ -22,9 +25,8 @@ public class AndroidInspectionsTest extends AndroidTestCase {
   }
 
   private static GlobalInspectionToolWrapper getUnusedDeclarationWrapper() {
-    final InspectionEP ep = new InspectionEP();
+    InspectionEP ep = new InspectionEP(UnusedDeclarationInspection.class.getName(), new DefaultPluginDescriptor(PluginId.getId("AndroidInspectionsTest"), AndroidInspectionsTest.class.getClassLoader()));
     ep.presentation = UnusedDeclarationPresentation.class.getName();
-    ep.implementationClass = UnusedDeclarationInspection.class.getName();
     ep.shortName = UnusedDeclarationInspectionBase.SHORT_NAME;
     UnusedDeclarationInspection tool = new UnusedDeclarationInspection(true);
     return new GlobalInspectionToolWrapper(tool, ep);
