@@ -124,9 +124,6 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   }
 
   public void testReportWithConstraintLayout() throws Exception {
-    IdeInfo ideInfo = myIdeComponents.mockApplicationService(IdeInfo.class);
-    when(ideInfo.isAndroidStudio()).thenReturn(true);
-
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 

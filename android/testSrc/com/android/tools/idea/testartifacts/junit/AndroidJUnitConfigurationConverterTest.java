@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.conversion.ConversionProcessor;
 import com.intellij.conversion.RunManagerSettings;
 import com.intellij.testFramework.PlatformTestCase;
@@ -32,22 +30,13 @@ import java.util.LinkedList;
 import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverter.*;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_OLD_TESTS;
 import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link AndroidJUnitConfigurationConverter}.
  */
 public class AndroidJUnitConfigurationConverterTest extends PlatformTestCase {
-  private IdeInfo mockIdeInfo;
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    mockIdeInfo = new IdeComponents(myProject).mockApplicationService(IdeInfo.class);
-  }
 
   public void testConfigurationsAreConvertedInStudio() throws Exception {
-    when(mockIdeInfo.isAndroidStudio()).thenReturn(true);
 
     ConversionProcessor<RunManagerSettings> converter = new AndroidJUnitConfigurationConverter().createRunConfigurationsConverter();
     RunManagerSettings runManagerSettings = getStubRunManagerSettings();
@@ -60,15 +49,6 @@ public class AndroidJUnitConfigurationConverterTest extends PlatformTestCase {
     converter.process(runManagerSettings);
     assertEmpty(getJUnitConfigurations(runConfigurations));
     assertSize(2, getAndroidJUnitConfigurations(runConfigurations));
-  }
-
-  public void testConfigurationsAreNotConvertedInIdea() {
-    when(mockIdeInfo.isAndroidStudio()).thenReturn(false);
-
-    ConversionProcessor<RunManagerSettings> converter = new AndroidJUnitConfigurationConverter().createRunConfigurationsConverter();
-    RunManagerSettings runManagerSettings = getStubRunManagerSettings();
-
-    assertFalse(converter.isConversionNeeded(runManagerSettings));
   }
 
   @NotNull
