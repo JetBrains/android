@@ -12,7 +12,6 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtil;
-import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -55,7 +54,6 @@ import com.intellij.openapi.util.WriteExternalException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import org.jdom.Element;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -320,9 +318,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       launchOptions.addExtraOptions(((LaunchOptionsProvider)executor).getLaunchOptions());
     }
 
-    AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(deviceFutures.getDevices(),
-                                                                          MakeBeforeRunTaskProvider.DEVICE_SPEC_TIMEOUT_SECONDS,
-                                                                          TimeUnit.SECONDS);
+    AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(deviceFutures.getDevices());
     ApkProvider apkProvider = getApkProvider(facet, targetDeviceSpec);
     if (apkProvider == null) return null;
     AndroidLaunchTasksProvider launchTasksProvider =
