@@ -31,7 +31,7 @@ fun RecipeExecutor.generateWearModule(
     data, appTitle, useKts,
     generateManifest(data.packageName, !data.isLibrary, "@android:style/Theme.DeviceDefault", usesFeatureBlock, false),
     iconsGenerationStyle = IconsGenerationStyle.MIPMAP_SQUARE_ONLY,
-    stylesXml = null, colorsXml = null
+    themesXml = null, colorsXml = null
   )
 
   addDependency("com.google.android.support:wearable:+")

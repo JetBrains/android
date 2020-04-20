@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.module.recipes.androidModule.res.values
+package com.android.tools.idea.npw.module.recipes.androidModule.res.values_night
 
-const val DARK_ACTION_BAR_MATERIAL_COMPONENTS = "Theme.MaterialComponents.DayNight.DarkActionBar"
-const val DARK_ACTION_BAR_APPCOMPAT = "Theme.AppCompat.Light.DarkActionBar"
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values.DARK_ACTION_BAR_APPCOMPAT
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values.DARK_ACTION_BAR_MATERIAL_COMPONENTS
 
-// TODO: Check if App can be replaced with an actual app name
-fun androidModuleStyles(useAndroidX: Boolean): String {
+fun androidModuleThemes(useAndroidX: Boolean): String {
   val parent = if (useAndroidX) DARK_ACTION_BAR_MATERIAL_COMPONENTS else DARK_ACTION_BAR_APPCOMPAT
   return """
 <resources>
-  <!-- Base application theme. -->
+  <!-- Application theme for dark theme. -->
   <style name="Theme.App" parent="$parent">
       <!-- Customize your theme here. -->
-      <item name="colorPrimary">@color/purple500</item>
+      <item name="colorPrimary">@color/purple200</item>
       <item name="colorPrimaryDark">@color/purple700</item>
       <item name="colorAccent">@color/teal200</item>
   </style>

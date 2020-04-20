@@ -25,7 +25,7 @@ import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androi
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
-import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStyles
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
 
 enum class IconsGenerationStyle {
   ALL,
@@ -42,8 +42,8 @@ fun RecipeExecutor.generateCommonModule(
   generateTests: Boolean = false,
   includeCppSupport: Boolean = false,
   iconsGenerationStyle: IconsGenerationStyle = IconsGenerationStyle.ALL,
-  stylesXml: String? = androidModuleStyles(data.projectTemplateData.androidXSupport),
-  stylesXmlNight: String? = null,
+  themesXml: String? = androidModuleThemes(data.projectTemplateData.androidXSupport),
+  themesXmlNight: String? = null,
   colorsXml: String? = androidModuleColors(),
   cppFlags: String = "",
   addLintOptions: Boolean = false
@@ -107,15 +107,15 @@ fun RecipeExecutor.generateCommonModule(
     }
     with(resOut.resolve(SdkConstants.FD_RES_VALUES)) {
       save(androidModuleStrings(appTitle!!), resolve("strings.xml"))
-      if (stylesXml != null) {
-        save(stylesXml, resolve("styles.xml"))
+      if (themesXml != null) {
+        save(themesXml, resolve("themes.xml"))
       }
       if (colorsXml != null) {
         save(colorsXml, resolve("colors.xml"))
       }
     }
-    stylesXmlNight?.let {
-      save(it, resOut.resolve(SdkConstants.FD_RES_VALUES_NIGHT).resolve("styles.xml"))
+    themesXmlNight?.let {
+      save(it, resOut.resolve(SdkConstants.FD_RES_VALUES_NIGHT).resolve("themes.xml"))
     }
   }
 
