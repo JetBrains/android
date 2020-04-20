@@ -211,7 +211,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
     assertThat(gotoRelatedItems).hasSize(2)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
-    assertThat(result).containsAllOf("Dependency component(s): MyComponent", "Dependency modules(s): MyModule2")
+    assertThat(result).containsAllOf("Dependency component(s): MyComponent", "Dependency module(s): MyModule2")
   }
 
   fun testDependantComponentsForComponent() {

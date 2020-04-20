@@ -562,7 +562,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |      5public interface MyComponent {}
       |     MyComponentKt.kt (1 usage)
       |      5interface MyComponentKt
-      |  Dependency modules(s) (1 usage)
+      |  Dependency module(s) (1 usage)
       |   ${myFixture.module.name} (1 usage)
       |    test (1 usage)
       |     MyModule2.java (1 usage)
