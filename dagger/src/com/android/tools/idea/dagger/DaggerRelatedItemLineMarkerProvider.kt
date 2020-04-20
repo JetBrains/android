@@ -38,7 +38,7 @@ internal const val DEPENDENCY_CONSUMERS = "Dependency consumer(s)"
 internal const val DEPENDENCY_COMPONENT_METHODS = "Dependency components method(s)"
 internal const val DEPENDENCY_COMPONENTS = "Dependency component(s)"
 internal const val SUBCOMPONENTS = "Subcomponent(s)"
-internal const val DEPENDENCY_MODULES = "Dependency modules(s)"
+internal const val DEPENDENCY_MODULES = "Dependency module(s)"
 
 /**
  * Provides [RelatedItemLineMarkerInfo] for Dagger consumers/providers.
