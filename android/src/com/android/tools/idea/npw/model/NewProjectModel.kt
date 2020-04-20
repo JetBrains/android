@@ -238,10 +238,10 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         try {
           val gradleDistFile = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION)
           if (gradleDistFile == null) {
-            GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(GRADLE_LATEST_VERSION)
+            GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(GRADLE_LATEST_VERSION)
           }
           else {
-            GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(gradleDistFile)
+            GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(gradleDistFile)
           }
         }
         catch (e: IOException) {

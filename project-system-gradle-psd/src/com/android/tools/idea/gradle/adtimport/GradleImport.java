@@ -878,7 +878,7 @@ public class GradleImport {
     if (!myCreateGradleWrapper) {
       return;
     }
-    GradleWrapper.create(destDir, GRADLE_LATEST_VERSION);
+    GradleWrapper.create(destDir, GRADLE_LATEST_VERSION, null);
     File gradlewDest = new File(destDir, FN_GRADLE_WRAPPER_UNIX);
     if (!gradlewDest.canExecute()) {
       reportWarning((ImportModule)null, gradlewDest, "Gradle wrapper script is not executable");

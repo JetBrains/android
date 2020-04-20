@@ -39,7 +39,7 @@ public class CreateGradleWrapperHyperlink extends NotificationHyperlink {
   protected void execute(@NotNull Project project) {
     File projectDirPath = getBaseDirPath(project);
     try {
-      GradleWrapper.create(projectDirPath);
+      GradleWrapper.create(projectDirPath, project);
       GradleProjectSettings settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
       if (settings != null) {
         settings.setDistributionType(DEFAULT_WRAPPED);

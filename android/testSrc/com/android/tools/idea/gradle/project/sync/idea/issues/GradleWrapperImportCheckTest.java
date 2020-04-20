@@ -56,7 +56,7 @@ public class GradleWrapperImportCheckTest extends AndroidGradleTestCase {
   }
 
   private void verifyDoCheck(@NotNull String distribution, @Nullable String checksum, boolean successful) throws IOException {
-    GradleWrapper gradleWrapper = GradleWrapper.create(getBaseDirPath(getProject()));
+    GradleWrapper gradleWrapper = GradleWrapper.create(getBaseDirPath(getProject()), null);
     assertNotNull(gradleWrapper);
     File propertiesFilePath = gradleWrapper.getPropertiesFilePath();
     Properties properties = gradleWrapper.getProperties();
