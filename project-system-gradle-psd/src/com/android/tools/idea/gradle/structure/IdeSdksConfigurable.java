@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.structure;
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.android.tools.idea.gradle.structure.NdkProjectStructureUtilKt.supportsSideBySideNdk;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
@@ -153,13 +154,17 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
     myDetailsComponent = new DetailsComponent(false /* no details */, false /* with border */);
     myDetailsComponent.setContent(myWholePanel);
+    Boolean supportsSideBySideNdk = supportsSideBySideNdk(project);
+    myNdkLocationComboBox.setEnabled(!supportsSideBySideNdk);
 
     // We can't update The IDE-level ndk directory. Due to that disabling the ndk directory option in the default Project Structure dialog.
-    if (myProject == null || myProject.isDefault()) {
+    if (!supportsSideBySideNdk && (myProject == null || myProject.isDefault())) {
       myNdkLocationComboBox.setEnabled(false);
     }
 
-    adjustNdkQuickFixVisibility();
+    if (!supportsSideBySideNdk) {
+      adjustNdkQuickFixVisibility();
+    }
 
     FocusListener historyUpdater = new FocusAdapter() {
       @Override
@@ -176,7 +181,9 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
     addHistoryUpdater("mySdkLocationTextField", mySdkLocationTextField.getTextField(), historyUpdater);
     addHistoryUpdater("myJdkLocationComboBox", myJdkLocationComboBox.getComboBox(), historyUpdater);
-    addHistoryUpdater("myNdkLocationComboBox", myNdkLocationComboBox.getComboBox(), historyUpdater);
+    if (!supportsSideBySideNdk) {
+      addHistoryUpdater("myNdkLocationComboBox", myNdkLocationComboBox.getComboBox(), historyUpdater);
+    }
   }
 
   private void maybeLoadSdks(@Nullable Project project) {
