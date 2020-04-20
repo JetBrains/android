@@ -310,6 +310,39 @@ internal fun getDaggerParentComponentsForSubcomponent(subcomponent: PsiClass): C
 }
 
 /**
+ * Returns subcomponents of a [component].
+ *
+ * A subcomponents can be associated with a [component] in two ways:
+ * 1. Component's methods that return the class annotated [DAGGER_SUBCOMPONENT_ANNOTATION] or [DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION] or
+ * [DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION]
+ * 2. Classes from [SUBCOMPONENTS_ATTR_NAME] attribute of a @Module that a [component] installs.
+ *
+ * See [Dagger doc](https://dagger.dev/subcomponents.html).
+ */
+internal fun getSubcomponents(component: PsiClass): Collection<PsiClass> {
+  val modules = component.getAnnotation(DAGGER_COMPONENT_ANNOTATION)?.getClassesFromAttribute(MODULES_ATTR_NAME)
+  val subcomponentFromModules = modules?.flatMap {
+    it.getAnnotation(DAGGER_MODULE_ANNOTATION)?.getClassesFromAttribute(SUBCOMPONENTS_ATTR_NAME) ?: emptyList()
+  } ?: emptyList()
+
+  val subcomponentFromMethods: Collection<PsiClass> = component.methods.mapNotNull {
+    val returnClazz = (it.returnType as? PsiClassType)?.resolve() ?: return@mapNotNull null
+
+    if (returnClazz.hasAnnotation(DAGGER_SUBCOMPONENT_ANNOTATION) ||
+        returnClazz.hasAnnotation(DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION) ||
+        returnClazz.hasAnnotation(DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION)
+    ) {
+      returnClazz
+    }
+    else {
+      null
+    }
+  }
+
+  return subcomponentFromModules + subcomponentFromMethods
+}
+
+/**
  * Returns classes annotated [DAGGER_MODULE_ANNOTATION] that in [SUBCOMPONENTS_ATTR_NAME] attribute have subcomponents class.
  */
 private fun getDaggerModulesForSubcomponent(subcomponent: PsiClass): Collection<PsiClass> {
@@ -360,6 +393,12 @@ fun getDependantComponentsForComponent(component: PsiClass): Collection<PsiClass
   return components.filter {
     it.getAnnotation(DAGGER_COMPONENT_ANNOTATION)?.isClassPresentedInAttribute(DEPENDENCIES_ATTR_NAME, component.qualifiedName!!) == true
   }
+}
+
+private fun PsiAnnotation.getClassesFromAttribute(attrName: String): Collection<PsiClass> {
+  val attr = findAttributeValue(attrName) as? PsiArrayInitializerMemberValue ?: return emptyList()
+  val classes = attr.initializers
+  return classes.mapNotNull { ((it as? PsiClassObjectAccessExpression)?.operand?.type as? PsiClassType)?.resolve() }
 }
 
 /**

@@ -36,6 +36,7 @@ private val DEPENDENCY_PROVIDERS_USAGE_TYPE = UsageType(DEPENDENCY_PROVIDERS)
 private val DEPENDENCY_CONSUMERS_USAGE_TYPE = UsageType(DEPENDENCY_CONSUMERS)
 private val DEPENDENCY_COMPONENT_METHOD_USAGE_TYPE = UsageType(DEPENDENCY_COMPONENT_METHODS)
 private val DEPENDENCY_COMPONENT_USAGE_TYPE = UsageType(DEPENDENCY_COMPONENTS)
+private val SUBCOMPONENT_USAGE_TYPE = UsageType(SUBCOMPONENTS)
 private val DEPENDENCY_MODULE_USAGE_TYPE = UsageType(DEPENDENCY_MODULES)
 
 /**
@@ -54,6 +55,7 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
       target.isDaggerModule && element.isDaggerModule -> DEPENDENCY_MODULE_USAGE_TYPE
       target.isDaggerComponent && element.isDaggerComponent -> DEPENDENCY_COMPONENT_USAGE_TYPE
       target.isDaggerSubcomponent && element.isDaggerComponent -> DEPENDENCY_COMPONENT_USAGE_TYPE
+      target.isDaggerComponent && element.isDaggerSubcomponent -> SUBCOMPONENT_USAGE_TYPE
       else -> null
     }
   }
@@ -102,6 +104,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
   private fun processCustomUsagesForComponent(component: PsiElement, processor: Processor<Usage>) {
     // component is always PsiClass or KtClass, see [isDaggerComponent].
     getDependantComponentsForComponent(component.toPsiClass()!!).forEach { processor.process(UsageInfo2UsageAdapter(UsageInfo(it))) }
+    getSubcomponents(component.toPsiClass()!!).forEach { processor.process(UsageInfo2UsageAdapter(UsageInfo(it))) }
   }
 
   /**
