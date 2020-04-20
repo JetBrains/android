@@ -405,7 +405,6 @@ class DefaultInspectorClient(
           selectedProcess != Common.Process.getDefaultInstance()) {
         didDisconnect = true
         setDebugViewAttributes(selectedStream, false)
-        client.shutdown()
         selectedStream = Common.Stream.getDefaultInstance()
         selectedProcess = Common.Process.getDefaultInstance()
         isConnected = false
