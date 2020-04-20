@@ -231,7 +231,7 @@ plugins {
 }
 """
 
-fun basicStylesXml(parent: String) = """
+fun basicThemesXml(parent: String) = """
 <resources>
     <style name="Theme.App" parent="$parent" />
 </resources>
