@@ -16,12 +16,10 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.testutils.MockitoKt.any
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionNotificationFactory
-import com.android.tools.idea.appinspection.ide.ui.AppInspectionProcessesComboBox
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
@@ -143,8 +141,8 @@ class AppInspectionViewTest {
         }
       }
     })
-    val comboBox = TreeWalker(inspectionView.component).descendants().filterIsInstance<AppInspectionProcessesComboBox>().first()
-    comboBox.selectedIndex = (comboBox.selectedIndex + 1) % comboBox.itemCount
+    val model = inspectionView.processModel
+    model.selectedProcess = model.processes.first { it != model.selectedProcess }
 
     inspectorDisposedLatch.await()
   }
