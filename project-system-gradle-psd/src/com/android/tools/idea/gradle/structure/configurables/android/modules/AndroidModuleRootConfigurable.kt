@@ -61,6 +61,7 @@ fun androidModulePropertiesModel(context: PsContext, module: PsAndroidModule) =
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_COMPILE_SDK_VERSION),
       uiProperty(AndroidModuleDescriptors.buildToolsVersion, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_BUILD_TOLS_VERSION),
+      uiProperty(AndroidModuleDescriptors.ndkVersion, ::simplePropertyEditor, null),
       uiProperty(AndroidModuleDescriptors.sourceCompatibility, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_SOURCE_COMPATIBILITY),
       uiProperty(AndroidModuleDescriptors.targetCompatibility, ::simplePropertyEditor,

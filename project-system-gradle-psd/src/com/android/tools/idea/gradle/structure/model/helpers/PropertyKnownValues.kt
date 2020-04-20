@@ -61,6 +61,9 @@ fun installedSdksAsInts(model: Any?): ListenableFuture<List<ValueDescriptor<Int>
 fun installedBuildTools(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().buildTools)
 
+fun installedNdks(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
+  immediateFuture(installedEnvironments().ndks)
+
 fun installedCompiledApis(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().compiledApis)
 
