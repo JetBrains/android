@@ -700,6 +700,79 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
   }
 
+  fun testSubcomponentForComponent() {
+    // Java Subcomponent
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Subcomponent;
+
+      @Subcomponent
+      public interface MySubcomponent {
+        @Subcomponent.Builder
+          interface Builder {}
+      }
+    """.trimIndent()
+    )
+
+    // Kotlin Subcomponent
+    myFixture.addFileToProject(
+      "test/MySubcomponent2.kt",
+      //language=kotlin
+      """
+      package test
+      import dagger.Subcomponent
+
+      @Subcomponent
+      interface MySubcomponent2
+    """.trimIndent()
+    )
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+
+        import dagger.Module;
+
+        @Module(subcomponents = { MySubcomponent.class })
+        class MyModule { }
+      """.trimIndent()
+    )
+
+    // Java Component
+    val file = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {
+        MySubcomponent2 getSubcomponent();
+      }
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    myFixture.configureFromExistingVirtualFile(file)
+    val component = myFixture.moveCaret("MyCompon|ent").parentOfType<PsiClass>()!!
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
+
+    assertThat(presentation).contains(
+      """
+      | Found usages (2 usages)
+      |  Subcomponent(s) (2 usages)
+      |   ${myFixture.module.name} (2 usages)
+      |    test (2 usages)
+      |     MySubcomponent.java (1 usage)
+      |      5public interface MySubcomponent {
+      |     MySubcomponent2.kt (1 usage)
+      |      5interface MySubcomponent2
+      """.trimMargin()
+    )
+  }
+
   // TODO(b/150134125): uncomment
   //fun testProvidersKotlin() {
   //  myFixture.addClass(

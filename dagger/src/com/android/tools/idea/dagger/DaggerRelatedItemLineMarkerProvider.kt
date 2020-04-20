@@ -37,6 +37,7 @@ internal const val DEPENDENCY_PROVIDERS = "Dependency provider(s)"
 internal const val DEPENDENCY_CONSUMERS = "Dependency consumer(s)"
 internal const val DEPENDENCY_COMPONENT_METHODS = "Dependency components method(s)"
 internal const val DEPENDENCY_COMPONENTS = "Dependency component(s)"
+internal const val SUBCOMPONENTS = "Subcomponent(s)"
 internal const val DEPENDENCY_MODULES = "Dependency modules(s)"
 
 /**
@@ -97,8 +98,9 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
   private fun getIconAndGoToItemsForComponent(component: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
       // component is always PsiClass or KtClass, see [isDaggerComponent].
-      override fun compute() = getDependantComponentsForComponent(component.toPsiClass()!!).map {
-        GotoRelatedItem(it, DEPENDENCY_COMPONENTS)
+      override fun compute(): List<GotoRelatedItem> {
+        return getDependantComponentsForComponent(component.toPsiClass()!!).map { GotoRelatedItem(it, DEPENDENCY_COMPONENTS) } +
+               getSubcomponents(component.toPsiClass()!!).map { GotoRelatedItem(it, SUBCOMPONENTS) }
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
