@@ -233,8 +233,9 @@ class AppInspectionDiscoveryHost(
    */
   private fun removeProcess(streamId: Long, processId: Int) {
     synchronized(processData) {
-      processData.processesMap.remove(StreamProcessIdPair(streamId, processId))?.let {
-        processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessDisconnected(it) } }
+      processData.processesMap.remove(StreamProcessIdPair(streamId, processId))?.let { descriptor ->
+        discovery.removeProcess(descriptor)
+        processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessDisconnected(descriptor) } }
       }
     }
   }
@@ -272,10 +273,7 @@ class AppInspectionDiscovery internal constructor(
     return targets.computeIfAbsent(processDescriptor) {
       val transport =
         AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, executor, streamChannel)
-      attachAppInspectionTarget(transport, jarCopier).transform { target ->
-        target.addTargetTerminatedListener(executor) { targets.remove(it) }
-        target
-      }
+      attachAppInspectionTarget(transport, jarCopier)
     }.also {
       it.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<AppInspectionTarget> {
         override fun onSuccess(result: AppInspectionTarget?) {}
@@ -316,6 +314,21 @@ class AppInspectionDiscovery internal constructor(
             clients.remove(launchParameters)
           }
         })
+      }
+    }
+  }
+
+  /**
+   * Called when a process has terminated. This will clean up [AppInspectionTarget] and all clients associated with the process.
+   *
+   * Note: this does not try to dispose clients because it's too late.
+   */
+  internal fun removeProcess(process: ProcessDescriptor) {
+    synchronized(lock) {
+      targets.remove(process)?.let {
+        clients.keys.removeAll { launchParam ->
+          launchParam.processDescriptor == process
+        }
       }
     }
   }
