@@ -4,7 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/motionLayout"
     android:layout_height="match_parent"
-    android:layout_width="match_parent" app:layoutDescription="@xml/motionLayoutWithoutLayoutDescription_scene">
+    android:layout_width="match_parent"
+    app:layoutDescription="@xml/motionLayoutWithoutLayoutDescription_scene">
 
   <TextView
       android:id="@+id/textView"

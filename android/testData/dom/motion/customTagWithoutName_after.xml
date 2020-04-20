@@ -4,7 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
   <ConstraintSet android:id="@+id/start">
     <Constraint android:id="@+id/widget">
-      <CustomAttribute app:customFloatValue=".5" app:attributeName="TODO"/>
+      <CustomAttribute app:customFloatValue=".5"
+          app:attributeName="TODO" />
     </Constraint>
   </ConstraintSet>
 </MotionScene>
