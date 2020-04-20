@@ -74,7 +74,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <T> the type of data that is being edited by the associated {@link WorkBench}
  */
-final class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
+class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   static final String TOOL_WINDOW_PROPERTY_PREFIX = "ATTACHED_TOOL_WINDOW.";
   static final String TOOL_WINDOW_TOOLBAR_PLACE = "TOOL_WINDOW_TOOLBAR";
   static final String LABEL_HEADER = "LABEL";

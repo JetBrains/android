@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param <T> Specifies the type of data controlled by the {@link WorkBench}.
  */
-final class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
+class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
   private final ToolContent<T> myContent;
   private final ToolWindowEx myToolWindow;
   private AttachedToolWindow<T> myCorrespondingToolWindow;

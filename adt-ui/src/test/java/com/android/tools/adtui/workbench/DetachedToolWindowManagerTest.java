@@ -87,10 +87,12 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     myManager = new DetachedToolWindowManager(myProject);
     myManager.initComponent();
     myManager.setDetachedToolWindowFactory(myDetachedToolWindowFactory);
-    assert myManager.getComponentName().equals("DetachedToolWindowManager");
+    assert myManager.getComponentName().equals("com.android.tools.adtui.workbench.DetachedToolWindowManager") : myManager.getComponentName();
     myListener = myManager.getFileEditorManagerListener();
 
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[0]);
+    when(myEditorManager.getAllEditors()).thenReturn(new FileEditor[0]);
+    when(myEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
     myManager.projectOpened();
     //noinspection unchecked
     when(myFileEditor1.getComponent()).thenReturn(new JPanel());
