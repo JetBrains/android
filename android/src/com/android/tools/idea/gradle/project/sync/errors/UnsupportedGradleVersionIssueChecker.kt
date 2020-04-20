@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQ
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
-import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.FilePosition
@@ -33,17 +32,17 @@ import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.pom.Navigatable
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getRootCauseAndLocation
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION
 import org.jetbrains.plugins.gradle.settings.DistributionType
 import java.util.concurrent.CompletableFuture
@@ -54,23 +53,23 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
   private val UNSUPPORTED_GRADLE_VERSION_PATTERN_2 = Pattern.compile("Gradle version (.*) is required.*?")
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
-    val error = issueData.error
-    if (error !is UnsupportedVersionException &&
-        !(error is UnsupportedMethodException && (message.isNotEmpty() && message.contains("GradleProject.getBuildScript"))) &&
-        !(error is ClassNotFoundException && (message.isNotEmpty() && message.contains(ToolingModelBuilderRegistry::class.java.name))))
-      return null
+    val error = getRootCauseAndLocation(issueData.error).first
+
+    val isOldGradleError = when (error) {
+      is UnsupportedVersionException -> true
+      is UnsupportedMethodException -> error.message?.contains("GradleProject.getBuildScript") ?: false
+      is ClassNotFoundException -> error.message?.contains(ToolingModelBuilderRegistry::class.java.name) ?: false
+      else -> false
+    }
+    // If formatMessage returns null then we can't handle this error
+    val message = formatMessage(error.message) ?:
+                  if (isOldGradleError) "The project is using an unsupported version of Gradle.\n$FIX_GRADLE_VERSION" else return null
 
     // Log metrics.
     invokeLater {
       SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION)
     }
-    val description = if (message.isNotEmpty()) {
-      MessageComposer(formatMessage(message))
-    }
-    else {
-      MessageComposer("The project is using an unsupported version of Gradle.\n$FIX_GRADLE_VERSION")
-    }
+    val description = MessageComposer(message)
 
     // Get QuickFixes.
     val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectPath)
@@ -99,11 +98,12 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
       override val title = "Gradle Sync issues."
       override val description = description.buildMessage()
       override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project) = null
+      override fun getNavigatable(project: Project): Navigatable? = null
     }
   }
 
-  private fun formatMessage(message: String) : String {
+  private fun formatMessage(message: String?) : String? {
+    if (message == null) return null
     val formattedMsg = StringBuilder()
     if (UNSUPPORTED_GRADLE_VERSION_PATTERN_1.matcher(message).matches() ||
         UNSUPPORTED_GRADLE_VERSION_PATTERN_2.matcher(message).matches()) {
@@ -114,8 +114,9 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
       else formattedMsg.append(message)
       if (formattedMsg.isNotEmpty() && !formattedMsg.endsWith('.')) formattedMsg.append('.')
       formattedMsg.append("\n\nPlease fix the project's Gradle settings.")
+      return formattedMsg.toString()
     }
-    return formattedMsg.toString()
+    return null
   }
 
   private fun getSupportedGradleVersion(message: String): String? {
