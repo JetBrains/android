@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  * This class is responsible for switching the content to the content of the currently
  * active {@link WorkBench}.
  */
-public final class DetachedToolWindowManager implements ProjectComponent {
+public class DetachedToolWindowManager implements ProjectComponent {
   private final Project myProject;
   private final MyFileEditorManagerListener myEditorManagerListener;
   private final Map<FileEditor, WorkBench> myWorkBenchMap;

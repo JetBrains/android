@@ -43,9 +43,11 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.InternalDecorator;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.ui.SearchTextField;
 import java.awt.Component;
 import java.awt.Container;
@@ -88,8 +90,8 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     initMocks(this);
     SearchTextField.FindAction globalFindAction = new SearchTextField.FindAction();
     globalFindAction.registerCustomShortcutSet(new CustomShortcutSet(myCommandF), null);
-    registerApplicationComponentImplementation(ActionManager.class, myActionManager);
-    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), ActionManager.class, myActionManager, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), PropertiesComponent.class, new PropertiesComponentMock(), getTestRootDisposable());
     when(myActionManager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)).thenReturn(new SomeAction("Docked"));
     when(myActionManager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)).thenReturn(new SomeAction("Floating"));
     when(myActionManager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)).thenReturn(new SomeAction("Split"));
@@ -107,15 +109,14 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     when(myWorkBench.getContext()).thenReturn("");
 
     myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, false);
+    Disposer.register(getTestRootDisposable(), myToolWindow);
+
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      if (myToolWindow != null) {
-        Disposer.dispose(myToolWindow);
-      }
       KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
     }
     catch (Throwable e) {
@@ -245,6 +246,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     // Change the workbench context to ensure we're getting a different property, and reset the tool window
     when(myWorkBench.getContext()).thenReturn("testMinimizeDefaultSetInConstructor");
     myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, true);
+    Disposer.register(getTestRootDisposable(), myToolWindow);
     assertThat(myToolWindow.isMinimized()).isTrue();
   }
 

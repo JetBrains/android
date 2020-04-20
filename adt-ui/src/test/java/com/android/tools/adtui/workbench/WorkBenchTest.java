@@ -20,10 +20,12 @@ import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -72,8 +74,8 @@ public class WorkBenchTest extends WorkBenchTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    registerApplicationComponent(WorkBenchManager.class, myWorkBenchManager);
-    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
+    ServiceContainerUtil.registerServiceInstance(ApplicationManager.getApplication(), WorkBenchManager.class, myWorkBenchManager);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), PropertiesComponent.class, new PropertiesComponentMock(), getTestRootDisposable());
     registerProjectComponentImplementation(FileEditorManager.class, myFileEditorManager);
     myContent = new JPanel();
     myContent.setPreferredSize(new Dimension(500, 400));
