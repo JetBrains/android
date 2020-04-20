@@ -336,6 +336,78 @@ public class MlkitLightClassTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
+  public void testHighlighting_modelFileOverwriting() {
+    String targetModelFilePath = "/ml/my_model.tflite";
+    VirtualFile modelFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", targetModelFilePath);
+    PsiTestUtil.addSourceContentToRoots(myModule, modelFile.getParent());
+
+    PsiFile activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.java",
+      // language=java
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import java.lang.String;\n" +
+      "import java.util.Map;\n" +
+      "import org.tensorflow.lite.support.image.TensorImage;\n" +
+      "import org.tensorflow.lite.support.label.TensorLabel;\n" +
+      "import java.io.IOException;\n" +
+      "import p1.p2.ml.MyModel;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        try {\n" +
+      "            MyModel myModel = MyModel.newInstance(this);\n" +
+      "            TensorImage image = null;\n" +
+      "            MyModel.Outputs outputs = myModel.process(image);\n" +
+      "            TensorLabel tensorLabel = outputs.getProbabilityAsTensorLabel();\n" +
+      "        } catch (IOException e) {};\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    myFixture.checkHighlighting();
+
+    // Overwrites the target model file and then verify the light class gets upated.
+    myFixture.copyFileToProject("style_transfer_quant_metadata.tflite", targetModelFilePath);
+
+    activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity2.java",
+      // language=java
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import java.lang.String;\n" +
+      "import java.util.Map;\n" +
+      "import org.tensorflow.lite.support.image.TensorImage;\n" +
+      "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
+      "import java.io.IOException;\n" +
+      "import p1.p2.ml.MyModel;\n" +
+      "\n" +
+      "public class MainActivity2 extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        try {\n" +
+      "            TensorImage image = null;\n" +
+      "            TensorBuffer stylearray = null;\n" +
+      "            MyModel myModel = MyModel.newInstance(this);\n" +
+      "            MyModel.Outputs outputs = myModel.process(image, stylearray);\n" +
+      "            TensorImage styledimage = outputs.getStyledImageAsTensorImage();\n" +
+      "        } catch (IOException e) {};\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    myFixture.checkHighlighting();
+  }
+
   public void testLightModelClassNavigation() {
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());

@@ -31,6 +31,7 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.exception.TfliteModelException;
 import com.intellij.openapi.diagnostic.Logger;
@@ -64,8 +65,6 @@ import org.jetbrains.annotations.Nullable;
  * necessary deps to use this ml model.
  */
 public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
-
-  private static final long TFLITE_VALIDATION_THRESHOLD_BYTES = 300 * 1024 * 1024;
 
   private final BindingsManager myBindings = new BindingsManager();
 
@@ -121,6 +120,11 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
+  @Override
+  public void dispose() {
+    myBindings.releaseAll();
+  }
+
   @NotNull
   public String getInformationText() {
     StringBuilder stringBuilder = new StringBuilder();
@@ -133,7 +137,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     }
 
     for (GradleCoordinate dep : MlkitUtils.getMissingDependencies(module)) {
-      stringBuilder.append(dep + "\n");
+      stringBuilder.append(dep).append("\n");
     }
 
     return stringBuilder.toString();
@@ -154,11 +158,13 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
 
   @NotNull
   private Validator.Result checkPath(@NotNull File file) {
-    //TODO(jackqdyulei): check whether destination already contains this file.
     if (!file.isFile()) {
       return new Validator.Result(Validator.Severity.ERROR, "Please select a TensorFlow Lite model file to import.");
     }
-    else if (!isTooLargeForTfliteValidation(file) && !isValidTfliteModel(file)) {
+    else if (file.length() > MlConstants.MAX_SUPPORTED_MODEL_FILE_SIZE_IN_BYTES) {
+      return new Validator.Result(Validator.Severity.ERROR, "This file is over the maximum supported size 200 MB.");
+    }
+    else if (!isValidTfliteModel(file)) {
       return new Validator.Result(Validator.Severity.ERROR, "This file is not a valid TensorFlow Lite model file.");
     }
     else {
@@ -169,10 +175,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
       }
 
       if (virtualFile != null && SingleRootFileViewProvider.isTooLargeForContentLoading(virtualFile)) {
-        String message = isTooLargeForTfliteValidation(file)
-          ? "This file is too large so TensorFlow Lite validator is skipped."
-          : "This file is larger than 20 MB so the model binding feature may not work properly.";
-        return new Validator.Result(Validator.Severity.WARNING, message);
+        return new Validator.Result(Validator.Severity.WARNING, "This file is larger than 20 MB and may be a performance impact.");
       }
     }
     return Validator.Result.OK;
@@ -187,10 +190,6 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     }
 
     return directory.findChild(fileName);
-  }
-
-  private static boolean isTooLargeForTfliteValidation(@NotNull File file) {
-    return file.length() > TFLITE_VALIDATION_THRESHOLD_BYTES;
   }
 
   private static boolean isValidTfliteModel(@NotNull File file) {
