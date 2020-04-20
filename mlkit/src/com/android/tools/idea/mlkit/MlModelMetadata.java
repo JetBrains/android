@@ -19,10 +19,12 @@ import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.android.tools.mlkit.exception.TfliteModelException;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -45,10 +47,9 @@ public class MlModelMetadata {
     myClassName = className;
 
     try {
-      // Load model as ByteBuffer
       VirtualFile modelFile = VirtualFileManager.getInstance().findFileByUrl(modelFileUrl);
-      if (modelFile != null) {
-        myModelData = ModelInfo.buildFrom(ByteBuffer.wrap(modelFile.contentsToByteArray()));
+      if (modelFile != null && modelFile.getLength() > 0) {
+        myModelData = ModelInfo.buildFrom(ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(modelFile).toPath())));
       }
     }
     catch (TfliteModelException e) {
@@ -65,20 +66,12 @@ public class MlModelMetadata {
 
   @NotNull
   public List<TensorInfo> getInputTensorInfos() {
-    if (isValidModel()) {
-      return myModelData.getInputs();
-    }
-
-    return Collections.emptyList();
+    return myModelData != null ? myModelData.getInputs() : Collections.emptyList();
   }
 
   @NotNull
   public List<TensorInfo> getOutputTensorInfos() {
-    if (isValidModel()) {
-      return myModelData.getOutputs();
-    }
-
-    return Collections.emptyList();
+    return myModelData != null ? myModelData.getOutputs() : Collections.emptyList();
   }
 
   @Override

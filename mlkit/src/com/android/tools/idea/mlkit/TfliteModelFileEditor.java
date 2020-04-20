@@ -17,6 +17,7 @@ package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.mlkit.lightpsi.ClassNames;
 import com.android.tools.mlkit.MetadataExtractor;
+import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.TensorInfo;
@@ -40,7 +41,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
-import com.intellij.openapi.util.io.FileTooBigException;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -74,6 +74,7 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -148,9 +149,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @NotNull
   private JComponent createContentPanel() {
+    if (myFile.getLength() > MlConstants.MAX_SUPPORTED_MODEL_FILE_SIZE_IN_BYTES) {
+      return createWarningMessagePanel("This file is over the maximum supported size 200 MB.");
+    }
+
     JPanel contentPanel = createPanelWithYAxisBoxLayout(Borders.empty(20));
     try {
-      ModelInfo modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(myFile.contentsToByteArray()));
+      ModelInfo modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath())));
       if (modelInfo.isMetadataExisted()) {
         contentPanel.add(createModelSection(modelInfo));
         contentPanel.add(createTensorsSection(modelInfo));
@@ -166,9 +171,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
           contentPanel.add(createSampleCodeSection(modelClass, modelInfo));
         }
       }
-    }
-    catch (FileTooBigException e) {
-      contentPanel.add(createFileTooBigPane());
     }
     catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
@@ -316,19 +318,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private static JEditorPane createFileTooBigPane() {
-    JEditorPane editorPane = new JEditorPane();
-    editorPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
-    editorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-    editorPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    editorPane.setBackground(UIUtil.getTextFieldBackground());
-    editorPane.setContentType("text/html");
-    editorPane.setEditable(false);
-    editorPane.setText(
-      "<html>Model file is larger than 20 MB, please check " +
-      "<a href=\"https://developer.android.com/studio/write/mlmodelbinding\">our documentation</a> " +
-      "for a workaround.</html>");
-    return editorPane;
+  private static JComponent createWarningMessagePanel(@NotNull String message) {
+    JLabel messageLabel = new JLabel(message);
+    messageLabel.setBackground(UIUtil.getTextFieldBackground());
+    messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    messageLabel.setVerticalAlignment(SwingConstants.CENTER);
+    return messageLabel;
   }
 
   @NotNull
