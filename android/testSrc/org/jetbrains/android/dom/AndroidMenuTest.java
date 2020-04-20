@@ -103,7 +103,7 @@ public class AndroidMenuTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     final AndroidCreateOnClickHandlerAction action = new AndroidCreateOnClickHandlerAction();
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
-    WriteCommandAction.runWriteCommandAction(null, () -> action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
+    myFixture.launchAction(action);
 
     myFixture.checkResultByFile(myTestFolder + "/onClickIntention.xml");
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", myTestFolder + "/OnClickActivity_after.java", false);
@@ -116,7 +116,7 @@ public class AndroidMenuTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     final AndroidCreateOnClickHandlerAction action = new AndroidCreateOnClickHandlerAction();
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
-    WriteCommandAction.runWriteCommandAction(null, () -> action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
+    myFixture.launchAction(action);
 
     myFixture.checkResultByFile(myTestFolder + "/onClickIntention.xml");
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", myTestFolder + "/OnClickActivityAbs_after.java", false);
@@ -140,7 +140,7 @@ public class AndroidMenuTest extends AndroidDomTestCase {
     assertEquals(1, actions.size());
 
     final IntentionAction action = actions.get(0);
-    WriteCommandAction.runWriteCommandAction(null, () -> action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
+    myFixture.launchAction(action);
 
     myFixture.checkResultByFile(myTestFolder + "/onClickIntention.xml");
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", myTestFolder + "/OnClickActivity1_after.java", false);
