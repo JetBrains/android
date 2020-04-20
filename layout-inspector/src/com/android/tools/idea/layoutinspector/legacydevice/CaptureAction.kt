@@ -19,17 +19,18 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.ApplicationManager
 import icons.StudioIcons
 
 /**
  * Action to refresh the layout from a pre-api 29 device.
  */
 class CaptureAction(
-  private val client: () -> InspectorClient, private val model: InspectorModel
+  private val client: () -> InspectorClient
 ) : AnAction(StudioIcons.LayoutEditor.Toolbar.REFRESH) {
   override fun actionPerformed(e: AnActionEvent) {
     val currentClient = client() as? LegacyClient ?: return
-    currentClient.reloadAllWindows()
+    ApplicationManager.getApplication().executeOnPooledThread { currentClient.reloadAllWindows() }
   }
 
   override fun update(e: AnActionEvent) {
