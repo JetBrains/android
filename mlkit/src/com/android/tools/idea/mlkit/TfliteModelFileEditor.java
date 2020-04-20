@@ -58,6 +58,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.LineSeparator;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.JBUI;
@@ -114,6 +115,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static final ImmutableList<String> TENSOR_TABLE_HEADER =
     ImmutableList.of("Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max");
   private static final int MAX_LINE_LENGTH = 80;
+  private static final String LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().getSeparatorString();
 
   private final Project myProject;
   private final VirtualFile myFile;
@@ -451,22 +453,29 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static String buildSampleCodeInJava(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
     StringBuilder codeBuilder = new StringBuilder();
     String modelClassName = modelClass.getName();
-    codeBuilder.append("try {\n");
-    codeBuilder.append(String.format("  %s model = %s.newInstance(context);\n\n", modelClassName, modelClassName));
+    codeBuilder.append("try {").append(LINE_SEPARATOR);
+    codeBuilder
+      .append(String.format("  %s model = %s.newInstance(context);", modelClassName, modelClassName))
+      .append(LINE_SEPARATOR)
+      .append(LINE_SEPARATOR);
 
     PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
     if (processMethod.getReturnType() != null) {
-      codeBuilder.append(buildTensorInputSampleCode(processMethod, modelInfo));
+      codeBuilder.append(buildTensorInputSampleCodeInJava(processMethod, modelInfo));
       String parameterNames = Arrays.stream(processMethod.getParameterList().getParameters())
         .map(PsiParameter::getName)
         .collect(Collectors.joining(", "));
-      codeBuilder.append(String.format(
-        "  %s.%s outputs = model.%s(%s);\n\n",
-        modelClassName,
-        processMethod.getReturnType().getPresentableText(),
-        processMethod.getName(),
-        parameterNames
-      ));
+      codeBuilder
+        .append("  // Runs model inference and gets result.")
+        .append(LINE_SEPARATOR)
+        .append(String.format(
+          "  %s.%s outputs = model.%s(%s);",
+          modelClassName,
+          processMethod.getReturnType().getPresentableText(),
+          processMethod.getName(),
+          parameterNames
+        ))
+        .append(LINE_SEPARATOR);
     }
 
     PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
@@ -476,30 +485,40 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         String tensorName = outputTensorNameIterator.next();
         codeBuilder.append(
           String.format(
-            "  %s %s = outputs.%s();\n",
+            "  %s %s = outputs.%s();",
             Objects.requireNonNull(psiMethod.getReturnType()).getPresentableText(),
             tensorName,
-            psiMethod.getName()));
+            psiMethod.getName()))
+          .append(LINE_SEPARATOR);
         switch (psiMethod.getReturnType().getCanonicalText()) {
           case ClassNames.TENSOR_LABEL:
-            codeBuilder.append(String.format("  Map<String, Float> %sMap = %s.getMapWithFloatValue();\n", tensorName, tensorName));
+            codeBuilder
+              .append(String.format("  Map<String, Float> %sMap = %s.getMapWithFloatValue();", tensorName, tensorName))
+              .append(LINE_SEPARATOR);
             break;
           case ClassNames.TENSOR_IMAGE:
-            codeBuilder.append(String.format("  Bitmap %sBitmap = %s.getBitmap();\n", tensorName, tensorName));
+            codeBuilder.append(String.format("  Bitmap %sBitmap = %s.getBitmap();", tensorName, tensorName)).append(LINE_SEPARATOR);
             break;
         }
       }
     }
 
-    codeBuilder.append("} catch (IOException e) {\n  // TODO Handle the exception\n}");
+    codeBuilder
+      .append("} catch (IOException e) {")
+      .append(LINE_SEPARATOR)
+      .append("  // TODO Handle the exception")
+      .append(LINE_SEPARATOR)
+      .append("}");
 
     return codeBuilder.toString();
   }
 
   @NotNull
   private static String buildSampleCodeInKotlin(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
-    StringBuilder codeBuilder = new StringBuilder();
-    codeBuilder.append(String.format("val model = %s.newInstance(context)\n\n", modelClass.getName()));
+    StringBuilder codeBuilder = new StringBuilder()
+      .append(String.format("val model = %s.newInstance(context)", modelClass.getName()))
+      .append(LINE_SEPARATOR)
+      .append(LINE_SEPARATOR);
 
     PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
     if (processMethod.getReturnType() != null) {
@@ -507,7 +526,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       String parameterNames = Arrays.stream(processMethod.getParameterList().getParameters())
         .map(PsiParameter::getName)
         .collect(Collectors.joining(", "));
-      codeBuilder.append(String.format("val outputs = model.%s(%s)\n\n", processMethod.getName(), parameterNames));
+      codeBuilder
+        .append("// Runs model inference and gets result.")
+        .append(LINE_SEPARATOR)
+        .append(String.format("val outputs = model.%s(%s)", processMethod.getName(), parameterNames))
+        .append(LINE_SEPARATOR);
     }
 
     PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
@@ -515,13 +538,15 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getName).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
         String tensorName = outputTensorNameIterator.next();
-        codeBuilder.append(String.format("val %s = outputs.%s\n", tensorName, convertToKotlinPropertyName(psiMethod.getName())));
+        codeBuilder
+          .append(String.format("val %s = outputs.%s", tensorName, convertToKotlinPropertyName(psiMethod.getName())))
+          .append(LINE_SEPARATOR);
         switch (psiMethod.getReturnType().getCanonicalText()) {
           case ClassNames.TENSOR_LABEL:
-            codeBuilder.append(String.format("val %sMap = %s.mapWithFloatValue\n", tensorName, tensorName));
+            codeBuilder.append(String.format("val %sMap = %s.mapWithFloatValue", tensorName, tensorName)).append(LINE_SEPARATOR);
             break;
           case ClassNames.TENSOR_IMAGE:
-            codeBuilder.append(String.format("val %sBitmap = %s.bitmap\n", tensorName, tensorName));
+            codeBuilder.append(String.format("val %sBitmap = %s.bitmap", tensorName, tensorName)).append(LINE_SEPARATOR);
             break;
         }
       }
@@ -540,57 +565,67 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private static String buildTensorInputSampleCode(@NotNull PsiMethod processMethod, @NotNull ModelInfo modelInfo) {
-    StringBuilder codeBuilder = new StringBuilder();
+  private static String buildTensorInputSampleCodeInJava(@NotNull PsiMethod processMethod, @NotNull ModelInfo modelInfo) {
+    StringBuilder codeBuilder = new StringBuilder("  // Creates inputs for reference.").append(LINE_SEPARATOR);
     int index = 0;
     for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
       TensorInfo tensorInfo = modelInfo.getInputs().get(index++);
       switch (parameter.getType().getCanonicalText()) {
         case ClassNames.TENSOR_IMAGE:
           codeBuilder
-            .append(String.format("  TensorImage %s = new TensorImage();\n", parameter.getName()))
-            .append(String.format("  %s.load(bitmap);\n", parameter.getName()));
+            .append(String.format("  TensorImage %s = new TensorImage();", parameter.getName()))
+            .append(LINE_SEPARATOR)
+            .append(String.format("  %s.load(bitmap);", parameter.getName()))
+            .append(LINE_SEPARATOR);
           break;
         case ClassNames.TENSOR_BUFFER:
           codeBuilder
             .append(
               String.format(
-                "  TensorBuffer %s = TensorBuffer.createFixedSize(%s, %s);\n",
+                "  TensorBuffer %s = TensorBuffer.createFixedSize(%s, %s);",
                 parameter.getName(),
                 buildIntArrayInJava(tensorInfo.getShape()),
                 buildDataType(tensorInfo.getDataType())))
-            .append(String.format("  %s.loadBuffer(byteBuffer);\n", parameter.getName()));
+            .append(LINE_SEPARATOR)
+            .append(String.format("  %s.loadBuffer(byteBuffer);", parameter.getName()))
+            .append(LINE_SEPARATOR);
           break;
       }
     }
+    codeBuilder.append(LINE_SEPARATOR);
 
     return codeBuilder.toString();
   }
 
   @NotNull
   private static String buildTensorInputSampleCodeInKotlin(@NotNull PsiMethod processMethod, @NotNull ModelInfo modelInfo) {
-    StringBuilder codeBuilder = new StringBuilder();
+    StringBuilder codeBuilder = new StringBuilder("// Creates inputs for reference.").append(LINE_SEPARATOR);
     Iterator<TensorInfo> tensorInfoIterator = modelInfo.getInputs().iterator();
     for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
       TensorInfo tensorInfo = tensorInfoIterator.next();
       switch (parameter.getType().getCanonicalText()) {
         case ClassNames.TENSOR_IMAGE:
           codeBuilder
-            .append(String.format("val %s = TensorImage()\n", parameter.getName()))
-            .append(String.format("%s.load(bitmap)\n", parameter.getName()));
+            .append(String.format("val %s = TensorImage()", parameter.getName()))
+            .append(LINE_SEPARATOR)
+            .append(String.format("%s.load(bitmap)", parameter.getName()))
+            .append(LINE_SEPARATOR);
           break;
         case ClassNames.TENSOR_BUFFER:
           codeBuilder
             .append(
               String.format(
-                "val %s = TensorBuffer.createFixedSize(%s, %s)\n",
+                "val %s = TensorBuffer.createFixedSize(%s, %s)",
                 parameter.getName(),
                 buildIntArrayInKotlin(tensorInfo.getShape()),
                 buildDataType(tensorInfo.getDataType())))
-            .append(String.format("%s.loadBuffer(byteBuffer)\n", parameter.getName()));
+            .append(LINE_SEPARATOR)
+            .append(String.format("%s.loadBuffer(byteBuffer)", parameter.getName()))
+            .append(LINE_SEPARATOR);
           break;
       }
     }
+    codeBuilder.append(LINE_SEPARATOR);
 
     return codeBuilder.toString();
   }
@@ -731,7 +766,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     for (String word : words) {
       tmp.append(word).append(" ");
       if (tmp.length() > MAX_LINE_LENGTH) {
-        result.append(tmp).append("\n");
+        result.append(tmp).append(LINE_SEPARATOR);
         tmp.setLength(0);
       }
     }
