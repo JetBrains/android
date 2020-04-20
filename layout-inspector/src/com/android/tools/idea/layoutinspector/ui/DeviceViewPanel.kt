@@ -299,7 +299,7 @@ class DeviceViewPanel(
     leftGroup.add(AlphaSliderAction)
     leftGroup.add(Separator.getInstance())
     leftGroup.add(PauseLayoutInspectorAction(layoutInspector::currentClient))
-    leftGroup.add(CaptureAction(layoutInspector::currentClient, layoutInspector.layoutInspectorModel))
+    leftGroup.add(CaptureAction(layoutInspector::currentClient))
     leftGroup.add(Separator.getInstance())
     leftGroup.add(LayerSpacingSliderAction)
     val actionToolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true)
