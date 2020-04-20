@@ -140,7 +140,10 @@ class TransportStreamChannel(val stream: Common.Stream, val poller: TransportPol
    */
   fun registerStreamEventListener(streamEventListener: TransportStreamEventListener) {
     synchronized(listenersLock) {
-      if (isClosed) throw IllegalStateException("Stream channel is closed.")
+      if (isClosed) {
+        // It is expected we will hit this case due to timing/race, so we do nothing and quietly return.
+        return
+      }
       StreamEventPollingTask(stream.streamId, streamEventListener)
         .also {
           poller.registerPollingTask(it)
