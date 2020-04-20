@@ -27,7 +27,6 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.lang.documentation.ExternalDocumentationProvider;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -47,8 +46,8 @@ import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
-import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -331,8 +330,7 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
     assertEquals(1, actions.size());
     IntentionAction action = actions.get(0);
     assertInstanceOf(action, AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
-    WriteCommandAction.runWriteCommandAction(
-      null, () -> ((AndroidMissingOnClickHandlerInspection.MyQuickFix)action).doApplyFix(getProject()));
+    myFixture.launchAction(action);
     myFixture.checkResultByFile(myTestFolder + "/onClickIntention.xml");
   }
 }
