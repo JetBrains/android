@@ -27,6 +27,7 @@ import com.intellij.execution.filters.OpenFileHyperlinkInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import org.apache.commons.lang.RandomStringUtils
 import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers
@@ -48,6 +49,61 @@ class GenericFileFilterTest {
         `when`(this.path).thenReturn(pathString)
       }
     }
+  }
+
+  @Test
+  fun `lonely slashes are not highlighted`() {
+    `when`(localFileSystem.findFileByPathIfCached(ArgumentMatchers.argThat {arg ->
+      !setOf(
+        "/", "\\"
+      ).contains(arg)}))
+      .thenReturn(null)
+    getFilterResultAndCheckHighlightPositions("hello / world, hello \\ world", false)
+      .checkFileLinks()
+  }
+
+  @Test
+  fun `short names are highlighted`() {
+    `when`(localFileSystem.findFileByPathIfCached(ArgumentMatchers.argThat {arg ->
+      !setOf(
+        "/", "/a", "C:\\", "C:\\b"
+      ).contains(arg)}))
+      .thenReturn(null)
+    getFilterResultAndCheckHighlightPositions("hello /a world, hello C:\\ C:\\b world C:\\d", false)
+      .checkFileLinks("/a", "C:\\", "C:\\b")
+  }
+
+  @Test
+  fun `honor FILENAME_MAX for performance reasons`() {
+    val longString = RandomStringUtils.randomAlphanumeric(GenericFileFilter.FILENAME_MAX + 1)
+    `when`(localFileSystem.findFileByPathIfCached(eq("/$longString"))).thenThrow(AssertionError("Should not be queried"))
+
+    getFilterResultAndCheckHighlightPositions("/$longString /path/to/file", checkHighlights = false)
+      .checkFileLinks("/path/to/file")
+  }
+
+  @Test
+  fun `honor FILENAME_MAX for performance reasons (with spaces)`() {
+    val p1 = RandomStringUtils.randomAlphanumeric(GenericFileFilter.FILENAME_MAX / 2 + 1)
+    val p2 = RandomStringUtils.randomAlphanumeric(GenericFileFilter.FILENAME_MAX / 2 + 1)
+    assert(p1.length + p2.length > GenericFileFilter.FILENAME_MAX)
+
+    `when`(localFileSystem.findFileByPathIfCached(eq("/$p1"))).thenReturn(null)
+    `when`(localFileSystem.findFileByPathIfCached(eq("/$p1 $p2"))).thenThrow(AssertionError("Should not be queried"))
+    getFilterResultAndCheckHighlightPositions(
+      "/$p1 $p2 /path/to/file", checkHighlights = false)
+      .checkFileLinks("/path/to/file")
+  }
+
+  @Test
+  fun `nonexisting paths cancel early`() {
+    `when`(localFileSystem.findFileByPathIfCached(eq("/is"))).thenReturn(null)
+    `when`(localFileSystem.findFileByPathIfCached(eq("/is/not"))).thenThrow(AssertionError("Should not be queried"))
+    `when`(localFileSystem.findFileByPathIfCached(eq("/is/not/a"))).thenThrow(AssertionError("Should not be queried"))
+    `when`(localFileSystem.findFileByPathIfCached(eq("/is/not/a path"))).thenThrow(AssertionError("Should not be queried"))
+    getFilterResultAndCheckHighlightPositions(
+      "This /is/not/a path /path/to/file", checkHighlights = false)
+      .checkFileLinks("/path/to/file")
   }
 
   @Test
@@ -174,11 +230,13 @@ class GenericFileFilterTest {
 
   @Test
   fun `real world case 1`() {
-    `when`(localFileSystem.findFileByPathIfCached(ArgumentMatchers.argThat {
-      it !in setOf(
+    `when`(localFileSystem.findFileByPathIfCached(ArgumentMatchers.argThat {arg ->
+      !listOf(
         "/usr/local/google/home/tgeng/x/test-projects/SimpleJni1/app/src/main/cpp/native-lib.cpp",
         "/usr/local/google/home/tgeng/Android/Sdk/ndk/19.2.5345600/toolchains/llvm/prebuilt/linux-x86_64"
-      )
+      ).any {
+        arg == it || it.startsWith("$arg/")
+      }
     })).thenReturn(null)
     getFilterResultAndCheckHighlightPositions("""
       | FAILURE: Build failed with an exception.
