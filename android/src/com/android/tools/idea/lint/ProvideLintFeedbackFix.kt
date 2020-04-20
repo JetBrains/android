@@ -17,17 +17,19 @@ package com.android.tools.idea.lint
 
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
+import com.intellij.codeInspection.util.IntentionFamilyName
+import com.intellij.codeInspection.util.IntentionName
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
 
 class ProvideLintFeedbackFix(private val myIssue: String) : LocalQuickFix {
-  override fun getName(): @NlsContexts.ListItem String {
+  override fun getName(): @IntentionName String {
     return "Provide feedback on this warning"
   }
 
-  override fun getFamilyName(): @NlsContexts.ListItem String {
+  override fun getFamilyName(): @IntentionFamilyName String {
     // Don't want to collapse these across issue types so ensure that the message is unique for each
     return "Provide feedback on issues of type $myIssue"
   }
