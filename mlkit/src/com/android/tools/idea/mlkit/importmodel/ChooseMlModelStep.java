@@ -43,7 +43,9 @@ import com.intellij.openapi.util.io.FileTooBigException;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.SingleRootFileViewProvider;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
+import icons.StudioIcons;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -75,6 +77,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   private ComboBox<NamedModuleTemplate> myFlavorBox;
   private JCheckBox myAutoCheckBox;
   private JTextArea myInfoTextArea;
+  private HyperlinkLabel myLearnMoreLabel;
 
   public ChooseMlModelStep(@NotNull MlWizardModel model,
                            @NotNull List<NamedModuleTemplate> moduleTemplates,
@@ -86,10 +89,12 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
                                             "Select existing TensorFlow Lite model to import to ml folder",
                                             project,
                                             FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor());
-
     for (NamedModuleTemplate namedModuleTemplate : moduleTemplates) {
       myFlavorBox.addItem(namedModuleTemplate);
     }
+    myLearnMoreLabel.setIcon(StudioIcons.Common.INFO);
+    myLearnMoreLabel.setHyperlinkText("This will ensure new ML Model Binding feature works correctly ", "Learn more", "");
+    myLearnMoreLabel.setHyperlinkTarget("https://developer.android.com/studio/write/mlmodelbinding");
 
     myBindings.bindTwoWay(new TextProperty(myModelLocation.getTextField()), model.sourceLocation);
     myBindings.bindTwoWay(new SelectedProperty(myAutoCheckBox), model.autoUpdateBuildFile);
@@ -102,6 +107,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     if (text.isEmpty()) {
       myAutoCheckBox.setVisible(false);
       model.autoUpdateBuildFile.set(false);
+      myLearnMoreLabel.setVisible(false);
     }
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
