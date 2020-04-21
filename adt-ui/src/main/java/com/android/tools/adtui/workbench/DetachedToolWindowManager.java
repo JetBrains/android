@@ -17,8 +17,8 @@ package com.android.tools.adtui.workbench;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ToggleDistractionFreeModeAction;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  * This class is responsible for switching the content to the content of the currently
  * active {@link WorkBench}.
  */
-public class DetachedToolWindowManager implements ProjectComponent {
+public class DetachedToolWindowManager implements Disposable {
   private final Project myProject;
   private final MyFileEditorManagerListener myEditorManagerListener;
   private final Map<FileEditor, WorkBench> myWorkBenchMap;
@@ -53,7 +53,7 @@ public class DetachedToolWindowManager implements ProjectComponent {
   private FileEditor myLastSelectedEditor;
 
   public static DetachedToolWindowManager getInstance(@NotNull Project project) {
-    return project.getComponent(DetachedToolWindowManager.class);
+    return project.getService(DetachedToolWindowManager.class);
   }
 
   @VisibleForTesting
@@ -63,6 +63,7 @@ public class DetachedToolWindowManager implements ProjectComponent {
     myWorkBenchMap = new IdentityHashMap<>(13);
     myToolWindowMap = new HashMap<>(8);
     myDetachedToolWindowFactory = DetachedToolWindow::new;
+    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myEditorManagerListener);
   }
 
   @VisibleForTesting
@@ -91,12 +92,7 @@ public class DetachedToolWindowManager implements ProjectComponent {
   }
 
   @Override
-  public void projectOpened() {
-    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myEditorManagerListener);
-  }
-
-  @Override
-  public void projectClosed() {
+  public void dispose() {
     for (DetachedToolWindow detachedToolWindow : myToolWindowMap.values()) {
       detachedToolWindow.updateSettingsInAttachedToolWindow();
     }

@@ -16,11 +16,6 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.adtui.workbench.WorkBenchManager" />
+    <projectService serviceImplementation="com.android.tools.adtui.workbench.DetachedToolWindowManager" />
   </extensions>
-
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.adtui.workbench.DetachedToolWindowManager</implementation-class>
-    </component>
-  </project-components>
 </idea-plugin>
