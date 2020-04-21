@@ -41,7 +41,7 @@ class BuildAttributionUiAnalytics(private val project: Project) {
 
   private var buildAttributionReportSessionId: String? = null
 
-  private val pagesVisited = mutableMapOf<String, BuildAttributionUiEvent.Page>()
+  private val pagesVisited = mutableMapOf<AnalyticsPageId, BuildAttributionUiEvent.Page>()
   private val pagesCountByType = mutableMapOf<BuildAttributionUiEvent.Page.PageType, Int>()
 
   init {
@@ -113,8 +113,8 @@ class BuildAttributionUiAnalytics(private val project: Project) {
    * Called when tree selection changes and new page is shown to the user.
    * If [registerNodeLinkClick] was called just before this call then this event will be reported as PAGE_CHANGE_LINK_CLICK.
    */
+  @Deprecated("Left to support older version", replaceWith = ReplaceWith("pageChange(pageId, eventType)"))
   fun pageChange(selectedNodeId: String, pageType: BuildAttributionUiEvent.Page.PageType) {
-    val newPage = toPage(selectedNodeId, pageType)
     val eventType = if (nodeLinkClickRegistered) {
       BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK
     }
@@ -123,6 +123,16 @@ class BuildAttributionUiAnalytics(private val project: Project) {
       // Report both cases as TREE_CLICK for now.
       BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK
     }
+    pageChange(AnalyticsPageId(pageType, selectedNodeId), eventType)
+  }
+
+  /**
+   * Called when page selection changes and new page is shown to the user.
+   * Called from the action handler which should be aware of and provide in the parameters
+   * what page user is navigation to and what method is used.
+   */
+  fun pageChange(pageId: AnalyticsPageId, eventType: BuildAttributionUiEvent.EventType) {
+    val newPage = toPage(pageId)
     val uiEvent = newUiEventBuilderWithPage().setEventType(eventType).setTargetPage(newPage)
     doLog(uiEvent)
 
@@ -148,13 +158,13 @@ class BuildAttributionUiAnalytics(private val project: Project) {
 
   private fun newUiEventBuilderWithPage() = newUiEventBuilder().setCurrentPage(currentPage)
 
-  private fun registerPage(pageType: BuildAttributionUiEvent.Page.PageType): BuildAttributionUiEvent.Page {
-    val newPageEntryIndex = pagesCountByType.compute(pageType) { _, count -> count?.inc() ?: 1 }!!
-    return BuildAttributionUiEvent.Page.newBuilder().setPageType(pageType).setPageEntryIndex(newPageEntryIndex).build()
+  private fun registerPage(pageId: AnalyticsPageId): BuildAttributionUiEvent.Page {
+    val newPageEntryIndex = pagesCountByType.compute(pageId.pageType) { _, count -> count?.inc() ?: 1 }!!
+    return BuildAttributionUiEvent.Page.newBuilder().setPageType(pageId.pageType).setPageEntryIndex(newPageEntryIndex).build()
   }
 
-  private fun toPage(selectedNodeId: String, pageType: BuildAttributionUiEvent.Page.PageType): BuildAttributionUiEvent.Page =
-    pagesVisited.computeIfAbsent(selectedNodeId) { registerPage(pageType) }
+  private fun toPage(pageId: AnalyticsPageId): BuildAttributionUiEvent.Page =
+    pagesVisited.computeIfAbsent(pageId) { registerPage(it) }
 
   private fun doLog(uiEvent: BuildAttributionUiEvent.Builder) {
     UsageTracker.log(
@@ -171,8 +181,8 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   /**
    * Called instead of [pageChange] when it is a first page opened by default.
    */
-  fun initFirstPage(selectedNodeId: String, pageType: BuildAttributionUiEvent.Page.PageType) {
-    currentPage = toPage(selectedNodeId, pageType)
+  fun initFirstPage(pageId: AnalyticsPageId) {
+    currentPage = toPage(pageId)
   }
 
   /**
@@ -186,4 +196,9 @@ class BuildAttributionUiAnalytics(private val project: Project) {
     currentPage = unknownPage
     buildAttributionReportSessionId = buildSessionId
   }
+
+  data class AnalyticsPageId(
+    val pageType: BuildAttributionUiEvent.Page.PageType,
+    val pageId: String
+  )
 }

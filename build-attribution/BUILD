@@ -126,5 +126,6 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/idea/platform/core-impl:intellij.platform.core.impl[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
     ],
 )
