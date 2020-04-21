@@ -29,6 +29,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
@@ -85,15 +86,12 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
       .thenReturn(myDetachedToolWindow1, myDetachedToolWindow2, null);
 
     myManager = new DetachedToolWindowManager(myProject);
-    myManager.initComponent();
     myManager.setDetachedToolWindowFactory(myDetachedToolWindowFactory);
-    assert myManager.getComponentName().equals("com.android.tools.adtui.workbench.DetachedToolWindowManager") : myManager.getComponentName();
     myListener = myManager.getFileEditorManagerListener();
 
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[0]);
     when(myEditorManager.getAllEditors()).thenReturn(new FileEditor[0]);
     when(myEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
-    myManager.projectOpened();
     //noinspection unchecked
     when(myFileEditor1.getComponent()).thenReturn(new JPanel());
     when(myFileEditor2.getComponent()).thenReturn(new JPanel());
@@ -120,7 +118,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1);
     myManager.restoreDefaultLayout();
     UIUtil.dispatchAllInvocationEvents();
-    myManager.projectClosed();
+    Disposer.dispose(myManager);
     verify(myDetachedToolWindow1).updateSettingsInAttachedToolWindow();
   }
 
