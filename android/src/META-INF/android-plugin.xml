@@ -69,10 +69,6 @@
       <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.databinding.DataBindingProjectComponent</implementation-class>
-      <loadForDefaultProject/>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.databinding.LayoutBindingProjectComponent</implementation-class>
       <loadForDefaultProject/>
     </component>
@@ -291,6 +287,7 @@
     <listener class="com.android.tools.idea.deploy.DeployActionsInitializer$MyFacetManagerAdapter" topic="com.intellij.facet.FacetManagerListener"/>
     <listener class="com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener" topic="com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener"/>
     <listener class="com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener" topic="com.intellij.execution.ExecutionListener"/>
+    <listener class="com.android.tools.idea.databinding.DataBindingAnalyticsListener" topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener" />
   </projectListeners>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
