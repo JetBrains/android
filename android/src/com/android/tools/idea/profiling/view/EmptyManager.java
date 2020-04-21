@@ -41,7 +41,7 @@ public class EmptyManager extends CaptureEditorLightToolWindowManager {
 
   @NotNull
   public static EmptyManager getInstance(@NotNull Project project) {
-    return project.getComponent(EmptyManager.class);
+    return project.getService(EmptyManager.class);
   }
 
   protected EmptyManager(@NotNull Project project) {

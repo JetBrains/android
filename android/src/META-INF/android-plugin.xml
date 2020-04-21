@@ -54,12 +54,6 @@
       <implementation-class>com.android.tools.idea.res.PsiProjectListener</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.res.ResourceNotificationManager</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.profiling.view.EmptyManager</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.databinding.LayoutBindingProjectComponent</implementation-class>
       <loadForDefaultProject/>
     </component>
@@ -310,6 +304,8 @@
     <projectService serviceImplementation="com.android.tools.idea.project.SyncTimestamp" />
     <projectService serviceImplementation="com.android.tools.idea.profiling.view.AnalysisResultsManager" />
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceClassRegistry" />
+    <projectService serviceImplementation="com.android.tools.idea.profiling.view.EmptyManager" />
+    <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
 
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>

@@ -133,7 +133,7 @@ public class ResourceNotificationManager {
    */
   @NotNull
   public static ResourceNotificationManager getInstance(@NotNull Project project) {
-    return project.getComponent(ResourceNotificationManager.class);
+    return project.getService(ResourceNotificationManager.class);
   }
 
   @NotNull
