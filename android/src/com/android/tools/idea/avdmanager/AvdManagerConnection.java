@@ -583,7 +583,7 @@ public class AvdManagerConnection {
 
     commandLine.addParameters("-avd", info.getName());
     if (shouldBeLaunchedEmbedded(info)) {
-      commandLine.addParameters("-no-window", "-gpu", "auto-no-window"); // Launch headless.
+      commandLine.addParameters("-no-window", "-gpu", "auto-no-window", "-grpc-use-token"); // Launch headless.
     }
   }
 
