@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.property.ptable.PTable;
 import com.android.tools.property.ptable.PTableItem;
 import com.android.tools.idea.common.property.PropertiesManager;
-import com.android.tools.idea.uibuilder.property.MockNlComponent;
+import com.android.tools.idea.uibuilder.util.MockNlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
