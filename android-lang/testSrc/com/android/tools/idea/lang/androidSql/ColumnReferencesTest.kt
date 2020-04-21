@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.androidSql
 
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumnPsiReference
+import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
@@ -1933,5 +1934,22 @@ class ColumnReferencesTest : RoomLightTestCase() {
     myFixture.moveCaret("my|Id")
     renameAction = myFixture.testAction(ActionManager.getInstance().getAction(IdeActions.ACTION_RENAME))
     assertThat(renameAction.isEnabledAndVisible).isTrue()
+  }
+
+  fun testResolveBuildInTable() {
+    myFixture.loadNewFile("com/example/SomeDao.kt", """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        interface Dao {
+          @Query("SELECT <caret> FROM sqlite_sequence WHERE name = :tableName")
+          suspend fun getSequenceNumber(tableName:String) : Long?
+        }
+    """.trimIndent())
+
+    val columns = myFixture.completeBasic().map { it.lookupString }
+    assertThat(columns).containsExactly("name", "seq")
   }
 }
