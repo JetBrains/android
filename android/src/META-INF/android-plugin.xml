@@ -57,9 +57,6 @@
       <implementation-class>com.android.tools.idea.res.ResourceNotificationManager</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.model.MergedManifestRefreshListener$SubscriptionComponent</implementation-class>
     </component>
     <component>
@@ -321,8 +318,10 @@
                  restartRequired="false"/>
 
     <postStartupActivity implementation="com.android.tools.idea.stats.ProjectSizeUsageTracker"/>
+    <postStartupActivity implementation="com.android.tools.idea.startup.ClearResourceCacheStartupActivity"/>
 
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectComponent" />
+    <projectService serviceImplementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild" />
 
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
