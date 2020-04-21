@@ -38,7 +38,7 @@ import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.actions.PickSampleListDataViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.RecyclerViewAssistant;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
+import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
 import java.util.Collections;
