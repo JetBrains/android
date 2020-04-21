@@ -21,13 +21,8 @@ import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.res.colorToString
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.FlagValue
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.*
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.PropertyEvent
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Resource
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
@@ -130,7 +125,7 @@ class PropertiesProvider(private val model: InspectorPropertiesModel) {
     private fun generateItemsForResolutionStack() {
       for (property in properties.propertyList) {
         val name = stringTable[property.name]
-        val item = table[ANDROID_URI, name]
+        val item = table[ANDROID_URI, name]!!
         val map = property.resolutionStackList
           .mapNotNull { stringTable[it] }
           .associateWith { resourceLookup?.findAttributeValue(item, it) }
