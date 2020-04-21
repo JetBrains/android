@@ -373,7 +373,9 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
     // Surfaceflinger
     SurfaceflingerTrackModel sfModel = new SurfaceflingerTrackModel(cpuCapture, timeline.getViewRange());
-    display.addTrackModel(TrackModel.newBuilder(sfModel, ProfilerTrackRendererType.SURFACEFLINGER, "Surfaceflinger"));
+    SurfaceflingerTooltip sfTooltip = new SurfaceflingerTooltip(timeline, sfModel.getSurfaceflingerEvents());
+    display.addTrackModel(
+      TrackModel.newBuilder(sfModel, ProfilerTrackRendererType.SURFACEFLINGER, "Surfaceflinger").setDefaultTooltipModel(sfTooltip));
 
     // VSYNC
     VsyncTrackModel vsyncModel = new VsyncTrackModel(cpuCapture, timeline.getViewRange());

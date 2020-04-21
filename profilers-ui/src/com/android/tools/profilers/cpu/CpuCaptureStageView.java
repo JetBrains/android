@@ -118,6 +118,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myTrackGroupList.getTooltipBinder().bind(CpuKernelTooltip.class, CpuKernelTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(SurfaceflingerTooltip.class, SurfaceflingerTooltipView::new);
 
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
     stage.getMultiSelectionModel().addDependency(this)
