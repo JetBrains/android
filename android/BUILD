@@ -17,10 +17,10 @@ iml_module(
         "//tools/adt/idea/android/lib:bundled-libs",
         "//tools/adt/idea/android/lib:sample-data",
         "//tools/adt/idea/android:profiler-artifacts",
-        "//tools/adt/idea/android:aia-artifacts",
         "//tools/adt/idea/android:transport-artifacts",
         "//tools/base/bazel:studio-proto",
         "//tools/base/bazel:studio-grpc",
+        "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
     ] + glob([
         "build.xml",
     ]),
@@ -497,20 +497,6 @@ filegroup(
 )
 
 filegroup(
-    name = "aia-artifacts",
-    srcs = [
-        "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-filegroup(
-    name = "analytics-artifacts",
-    srcs = ["//tools/analytics-library/protos/src/main/proto:studio.proto"],
-    visibility = ["//visibility:public"],
-)
-
-filegroup(
     name = "transport-artifacts",
     srcs = [
         "//tools/base/transport:android",
@@ -520,42 +506,25 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-filegroup(
-    name = "layout-inspector-artifacts",
-    srcs = [
-        "//tools/base/dynamic-layout-inspector:skia-grpc-server",
-        "//tools/base/dynamic-layout-inspector/proto:layout_inspector_java_proto",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-filegroup(
-    name = "sqlite-inspector-artifacts",
-    srcs = [
-        "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 # Various artifacts that the ANT and within-idea studio build depend on.
 filegroup(
     name = "artifacts",
     srcs = [
-        ":aia-artifacts",
-        ":analytics-artifacts",
         ":deploy-artifacts",
-        ":layout-inspector-artifacts",
         ":profiler-artifacts",
-        ":sqlite-inspector-artifacts",
         ":transport-artifacts",
+        "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/bazel:studio-grpc",
         "//tools/base/bazel:studio-proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/ddmlib:am-instrumentation-data-proto",
+        "//tools/base/dynamic-layout-inspector:skia-grpc-server",
+        "//tools/base/dynamic-layout-inspector/proto:layout_inspector_java_proto",
         "//tools/base/emulator/proto:emulator_java_proto",
         "//tools/base/game-tools/protos:game-tools-protos",
+        "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/base/tracer:trace_agent",
     ] + select({
