@@ -26,8 +26,8 @@ import static java.awt.Color.RED;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.runners.ExecutionUtil;
-import com.intellij.openapi.actionSystem.TimerListener;
-import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.StatusBarWidget;
 import com.intellij.util.Consumer;
@@ -41,26 +41,15 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
   @VisibleForTesting
   static final String ID = "AdbConnectionWidget";
 
-  @NotNull private final TimerListener myTimerListener;
   @NotNull private ConnectionState myLastConnectionState;
-  @NotNull private StudioAdapter myAdapter;
+  @Nullable private StudioAdapter myAdapter;
 
   AdbConnectionWidget(@NotNull StudioAdapter adapter) {
     myAdapter = adapter;
-    myTimerListener = new TimerListener() {
-      @Override
-      @NotNull
-      public ModalityState getModalityState() {
-        return adapter.getModalityState();
-      }
 
-      @Override
-      public void run() {
-        updateIfNeeded();
-      }
-    };
+    myAdapter.setOnUpdate(this::updateIfNeeded);
+    Disposer.register(this, myAdapter);
 
-    myAdapter.addTimerListener(myTimerListener);
     myLastConnectionState = getConnectionState();
   }
 
@@ -82,7 +71,7 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
 
   @Override
   public void dispose() {
-    myAdapter.removeTimerListener(myTimerListener);
+    myAdapter = null;
   }
 
   @NotNull
@@ -104,6 +93,10 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
   }
 
   private void updateIfNeeded() {
+    if (myAdapter == null) {
+      return;
+    }
+
     StatusBar statusBar = myAdapter.getVisibleStatusBar();
     if (statusBar == null) {
       return;
@@ -120,6 +113,10 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
 
   @NotNull
   private ConnectionState getConnectionState() {
+    if (myAdapter == null) {
+      return STUDIO_MANAGED_DISCONNECTED;
+    }
+
     if (myAdapter.isBridgeConnected()) {
       return myAdapter.isBridgeInUserManagedMode() ? USER_MANAGED_CONNECTED : STUDIO_MANAGED_CONNECTED;
     }
@@ -155,19 +152,14 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
    * Abstraction for interactions with ADB and Studio due to those dependencies being heavy and/or static.
    * This allows the widget class itself to be easily testable.
    */
-  interface StudioAdapter {
+  interface StudioAdapter extends Disposable {
     boolean isBridgeConnected();
 
     boolean isBridgeInUserManagedMode();
 
-    @NotNull
-    ModalityState getModalityState();
-
     @Nullable
     StatusBar getVisibleStatusBar();
 
-    void addTimerListener(@NotNull TimerListener timerListener);
-
-    void removeTimerListener(@NotNull TimerListener timerListener);
+    void setOnUpdate(@NotNull Runnable update);
   }
 }

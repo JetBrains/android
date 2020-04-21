@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.intellij.openapi.actionSystem.TimerListener;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.StatusBar;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +52,8 @@ public class AdbConnectionWidgetTest {
     adapter.myIsConnected = false;
     adapter.myTimerListener.run(); // "Advance" the clock.
     assertThat(adapter.myLastIcon).isSameAs(AdbConnectionWidget.ConnectionState.STUDIO_MANAGED_DISCONNECTED.myIcon);
+
+    Disposer.dispose(adapter);
   }
 
   @Test
@@ -71,6 +74,8 @@ public class AdbConnectionWidgetTest {
     adapter.myIsConnected = false;
     adapter.myTimerListener.run(); // "Advance" the clock.
     assertThat(adapter.myLastIcon).isSameAs(AdbConnectionWidget.ConnectionState.USER_MANAGED_DISCONNECTED.myIcon);
+
+    Disposer.dispose(adapter);
   }
 
   private static class StubStudioAdapter implements AdbConnectionWidget.StudioAdapter {
@@ -80,18 +85,20 @@ public class AdbConnectionWidgetTest {
     public Icon myLastIcon;
     public TimerListener myTimerListener;
 
+    private final AdbConnectionWidget myWidget;
+
     private StubStudioAdapter(boolean isUserManaged) {
       myIsUserManaged = isUserManaged;
-      AdbConnectionWidget widget = new AdbConnectionWidget(this);
+      myWidget = new AdbConnectionWidget(this);
       Mockito.doAnswer(new Answer<Void>() {
         @Override
         @Nullable
         public Void answer(@NotNull InvocationOnMock invocation) {
-          myLastIcon = widget.getIcon();
+          myLastIcon = myWidget.getIcon();
           return null;
         }
       }).when(myStatusBar).updateWidget(AdbConnectionWidget.ID);
-      myLastIcon = widget.getIcon();
+      myLastIcon = myWidget.getIcon();
     }
 
     @Override
@@ -104,12 +111,6 @@ public class AdbConnectionWidgetTest {
       return myIsUserManaged;
     }
 
-    @NotNull
-    @Override
-    public ModalityState getModalityState() {
-      return ModalityState.defaultModalityState();
-    }
-
     @Nullable
     @Override
     public StatusBar getVisibleStatusBar() {
@@ -117,13 +118,25 @@ public class AdbConnectionWidgetTest {
     }
 
     @Override
-    public void addTimerListener(@NotNull TimerListener timerListener) {
-      myTimerListener = timerListener;
+    public void setOnUpdate(@NotNull Runnable update) {
+      myTimerListener = new TimerListener() {
+        @NotNull
+        @Override
+        public ModalityState getModalityState() {
+          return ModalityState.defaultModalityState();
+        }
+
+        @Override
+        public void run() {
+          update.run();
+        }
+      };
     }
 
     @Override
-    public void removeTimerListener(@NotNull TimerListener timerListener) {
-      assertThat(timerListener).isSameAs(myTimerListener);
+    public void dispose() {
+      myTimerListener = null;
+      Disposer.dispose(myWidget);
     }
   }
 }
