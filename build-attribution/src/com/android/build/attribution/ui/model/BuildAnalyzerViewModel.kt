@@ -15,7 +15,11 @@
  */
 package com.android.build.attribution.ui.model
 
-class BuildAnalyzerViewModel {
+import com.android.build.attribution.ui.data.BuildAttributionReportUiData
+
+class BuildAnalyzerViewModel(
+  val reportUiData: BuildAttributionReportUiData
+) {
   enum class DataSet(val uiName: String) {
     OVERVIEW("Overview"), TASKS("Tasks"), WARNINGS("Warnings")
   }
