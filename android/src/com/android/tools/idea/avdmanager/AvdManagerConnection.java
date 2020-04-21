@@ -827,7 +827,7 @@ public class AvdManagerConnection {
   }
 
   @NotNull
-  private ListenableFuture<AccelerationErrorCode> checkAccelerationAsync() {
+  public ListenableFuture<AccelerationErrorCode> checkAccelerationAsync() {
     return MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit(this::checkAcceleration);
   }
 
