@@ -182,7 +182,7 @@ class DefaultPropertiesProvider(
     private fun generateItemsForResolutionStack() {
       for (property in properties.propertyList) {
         val name = stringTable[property.name]
-        val item = table[ANDROID_URI, name]
+        val item = table[ANDROID_URI, name]!!
         val map = property.resolutionStackList
           .mapNotNull { stringTable[it] }
           .associateWith { resourceLookup.findAttributeValue(item, it) }
