@@ -110,7 +110,7 @@ public class ResourceClassRegistry {
    */
   @NotNull
   public static ResourceClassRegistry get(@NotNull Project project) {
-    return project.getComponent(ResourceClassRegistry.class);
+    return project.getService(ResourceClassRegistry.class);
   }
 
   @VisibleForTesting
