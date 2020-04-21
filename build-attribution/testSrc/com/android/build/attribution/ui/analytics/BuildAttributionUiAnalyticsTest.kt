@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.analytics
 
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics.*
 import com.android.build.attribution.ui.tree.AbstractBuildAttributionNode
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.LoggedUsage
@@ -116,7 +117,7 @@ class BuildAttributionUiAnalyticsTest {
 
   @Test
   fun testTabOpen() {
-    uiAnalytics.initFirstPage("criticalPathTasks", CRITICAL_PATH_TASKS_ROOT)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASKS_ROOT, "criticalPathTasks"))
     uiAnalytics.tabOpened()
 
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
@@ -129,8 +130,8 @@ class BuildAttributionUiAnalyticsTest {
 
   @Test
   fun testTabOpenFromBuildOutputLink() {
-    uiAnalytics.initFirstPage("criticalPathTasks", CRITICAL_PATH_TASKS_ROOT)
-    uiAnalytics.registerOpenEventSource(BuildAttributionUiAnalytics.TabOpenEventSource.BUILD_OUTPUT_LINK)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASKS_ROOT, "criticalPathTasks"))
+    uiAnalytics.registerOpenEventSource(TabOpenEventSource.BUILD_OUTPUT_LINK)
     uiAnalytics.tabOpened()
     //Check state was cleared and next open will be reported as TAB_OPENED_WITH_TAB_CLICK
     uiAnalytics.tabOpened()
@@ -151,8 +152,8 @@ class BuildAttributionUiAnalyticsTest {
 
   @Test
   fun testTabOpenFromWNA() {
-    uiAnalytics.initFirstPage("criticalPathTasks", CRITICAL_PATH_TASKS_ROOT)
-    uiAnalytics.registerOpenEventSource(BuildAttributionUiAnalytics.TabOpenEventSource.WNA_BUTTON)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASKS_ROOT, "criticalPathTasks"))
+    uiAnalytics.registerOpenEventSource(TabOpenEventSource.WNA_BUTTON)
     uiAnalytics.tabOpened()
 
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
@@ -166,7 +167,7 @@ class BuildAttributionUiAnalyticsTest {
 
   @Test
   fun testTabClosed() {
-    uiAnalytics.initFirstPage("criticalPathTasks", CRITICAL_PATH_TASKS_ROOT)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASKS_ROOT, "criticalPathTasks"))
     uiAnalytics.tabClosed()
 
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
@@ -182,7 +183,7 @@ class BuildAttributionUiAnalyticsTest {
 
   @Test
   fun testTabHidden() {
-    uiAnalytics.initFirstPage("criticalPathTasks", CRITICAL_PATH_TASKS_ROOT)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASKS_ROOT, "criticalPathTasks"))
     uiAnalytics.tabHidden()
 
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
@@ -199,7 +200,7 @@ class BuildAttributionUiAnalyticsTest {
   @Test
   fun testContentReplaced() {
     uiAnalytics.tabCreated()
-    uiAnalytics.initFirstPage("criticalPathTasks", CRITICAL_PATH_TASKS_ROOT)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASKS_ROOT, "criticalPathTasks"))
     val newBuildSessionId = UUID.randomUUID().toString()
     uiAnalytics.newReportSessionId(newBuildSessionId)
     uiAnalytics.buildReportReplaced()
@@ -227,7 +228,7 @@ class BuildAttributionUiAnalyticsTest {
 
   @Test
   fun testHelpLinkClicked() {
-    uiAnalytics.initFirstPage("task1", CRITICAL_PATH_TASK_PAGE)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASK_PAGE, "task1"))
     uiAnalytics.helpLinkClicked()
 
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
@@ -243,7 +244,7 @@ class BuildAttributionUiAnalyticsTest {
 
   @Test
   fun testGenerateReportLinkClicked() {
-    uiAnalytics.initFirstPage("task1", CRITICAL_PATH_TASK_PAGE)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASK_PAGE, "task1"))
     uiAnalytics.bugReportLinkClicked()
 
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
@@ -259,7 +260,7 @@ class BuildAttributionUiAnalyticsTest {
 
   @Test
   fun testReportingWindowCopyClicked() {
-    uiAnalytics.initFirstPage("task1", CRITICAL_PATH_TASK_PAGE)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASK_PAGE, "task1"))
     uiAnalytics.reportingWindowCopyButtonClicked()
 
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
@@ -275,7 +276,7 @@ class BuildAttributionUiAnalyticsTest {
 
   @Test
   fun testReportingWindowClosed() {
-    uiAnalytics.initFirstPage("task1", CRITICAL_PATH_TASK_PAGE)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASK_PAGE, "task1"))
     uiAnalytics.reportingWindowClosed()
 
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
@@ -291,7 +292,7 @@ class BuildAttributionUiAnalyticsTest {
 
   @Test
   fun testPageChangeEvent() {
-    uiAnalytics.initFirstPage("tasksRoot", CRITICAL_PATH_TASKS_ROOT)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASKS_ROOT, "tasksRoot"))
     uiAnalytics.pageChange("task1", CRITICAL_PATH_TASK_PAGE)
 
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
@@ -309,7 +310,7 @@ class BuildAttributionUiAnalyticsTest {
 
   @Test
   fun testLinkPageChangeEvent() {
-    uiAnalytics.initFirstPage("tasksRoot", CRITICAL_PATH_TASKS_ROOT)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASKS_ROOT, "tasksRoot"))
     uiAnalytics.registerNodeLinkClick()
     uiAnalytics.pageChange("task1", CRITICAL_PATH_TASK_PAGE)
 
@@ -328,7 +329,7 @@ class BuildAttributionUiAnalyticsTest {
 
   @Test
   fun testSamePageOpenTwice() {
-    uiAnalytics.initFirstPage("tasksRoot", CRITICAL_PATH_TASKS_ROOT)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASKS_ROOT, "tasksRoot"))
     uiAnalytics.pageChange("task1", CRITICAL_PATH_TASK_PAGE)
     uiAnalytics.pageChange("task2", CRITICAL_PATH_TASK_PAGE)
     uiAnalytics.pageChange("task1", CRITICAL_PATH_TASK_PAGE)
@@ -354,7 +355,7 @@ class BuildAttributionUiAnalyticsTest {
   @Test
   fun testFullFlow() {
     uiAnalytics.tabCreated()
-    uiAnalytics.initFirstPage("tasksRoot", CRITICAL_PATH_TASKS_ROOT)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASKS_ROOT, "tasksRoot"))
     uiAnalytics.tabOpened()
     uiAnalytics.pageChange("buildSummary", BUILD_SUMMARY)
     uiAnalytics.pageChange("tasksRoot", CRITICAL_PATH_TASKS_ROOT)
@@ -401,8 +402,8 @@ class BuildAttributionUiAnalyticsTest {
 
     uiAnalytics.tabClosed()
     uiAnalytics.tabCreated()
-    uiAnalytics.initFirstPage("tasksRoot", CRITICAL_PATH_TASKS_ROOT)
-    uiAnalytics.registerOpenEventSource(BuildAttributionUiAnalytics.TabOpenEventSource.BUILD_OUTPUT_LINK)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASKS_ROOT, "tasksRoot"))
+    uiAnalytics.registerOpenEventSource(TabOpenEventSource.BUILD_OUTPUT_LINK)
     uiAnalytics.tabOpened()
     // Current page should now be "tasksRoot" as view was reset.
     // "task2" was already opened and should have the same number 2.
@@ -413,7 +414,7 @@ class BuildAttributionUiAnalyticsTest {
     val newBuildSessionId = UUID.randomUUID().toString()
     uiAnalytics.newReportSessionId(newBuildSessionId)
     uiAnalytics.buildReportReplaced()
-    uiAnalytics.initFirstPage("tasksRoot", CRITICAL_PATH_TASKS_ROOT)
+    uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASKS_ROOT, "tasksRoot"))
     // All pages should get new numbers now.
     uiAnalytics.pageChange("task3", CRITICAL_PATH_TASK_PAGE)
     uiAnalytics.pageChange("task2", CRITICAL_PATH_TASK_PAGE)
