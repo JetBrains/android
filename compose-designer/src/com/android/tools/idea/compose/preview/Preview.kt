@@ -42,6 +42,7 @@ import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFil
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.modelAffinity
 import com.android.tools.idea.compose.preview.util.previewElementComparatorBySourcePosition
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -82,12 +83,12 @@ import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotifications
+import com.intellij.util.containers.toArray
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.backend.common.pop
 import java.awt.BorderLayout
 import java.time.Duration
 import java.util.EnumMap
@@ -227,9 +228,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       isInteractive.set(newValue != null)
       if (isInteractive.get()) { // Enable interactive
         this.singleElementFilteredProvider.composableMethodFqn = newValue
-        refresh()
-        ticker.start()
-        interactionHandler?.let { it.selected = InteractionMode.INTERACTIVE }
+        refresh().invokeOnCompletion {
+          ticker.start()
+          interactionHandler?.let { it.selected = InteractionMode.INTERACTIVE }
+        }
       }
       else { // Disable interactive
         interactionHandler?.let { it.selected = InteractionMode.DEFAULT }
@@ -447,6 +449,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     notificationsPanel.updateNotifications(psiFilePointer.virtualFile, parentEditor, project)
   }
 
+  private fun updateNotifications() = UIUtil.invokeLaterIfNeeded {
+    // Make sure all notifications are cleared-up
+    EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile)
+  }
+
   /**
    * Updates the surface visibility and displays the content or an error message depending on the build state. This method is called after
    * certain updates like a build or a preview refresh has happened.
@@ -463,8 +470,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       workbench.showContent()
     }
 
-    // Make sure all notifications are cleared-up
-    EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile)
+    updateNotifications()
   }
 
   /**
@@ -535,7 +541,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
 
         val model = if (existingModels.isNotEmpty()) {
-          val reusedModel = existingModels.pop()
+          // Find the same model we were using before, if possible. See modelAffinity for more details.
+          val reusedModel = existingModels.minBy { aModel -> modelAffinity(aModel.dataContext, previewElement) }!!
+          existingModels.remove(reusedModel)
+
           LOG.debug("Re-using model ${reusedModel.virtualFile.name}")
           configureExistingModel(reusedModel,
                                  previewElement.displaySettings.name,
@@ -575,20 +584,27 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     // This will happen if the user removes one or more previews.
     if (LOG.isDebugEnabled) LOG.debug("Removing ${existingModels.size} model(s)")
     existingModels.forEach { surface.removeModel(it) }
-    models
+    val newSceneManagers = models
       .reversed()
-      .onEach {
+      .map {
         val (model, previewElement) = it
         // We call addModel even though the model might not be new. If we try to add an existing model,
         // this will trigger a new render which is exactly what we want.
         configureLayoutlibSceneManager(surface.addModelWithoutRender(model) as LayoutlibSceneManager,
                                        showDecorations = previewElement.displaySettings.showDecoration,
                                        isInteractive = isInteractive.get())
-          .requestComposeRender()
-          .await()
-      }.ifEmpty {
-        showModalErrorMessage(message("panel.no.previews.defined"))
       }
+
+    surface.repaint()
+    if (newSceneManagers.isNotEmpty()) {
+      CompletableFuture.allOf(*newSceneManagers
+        .map { it.requestComposeRender() }
+        .toTypedArray())
+        .await()
+    }
+    else {
+      showModalErrorMessage(message("panel.no.previews.defined"))
+    }
 
     if (LOG.isDebugEnabled) {
       LOG.debug("Render completed in ${stopwatch?.duration?.toMillis()}ms")
@@ -626,18 +642,28 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     onRefresh?.invoke()
   }
 
+  private fun startRenderingUI() {
+    isContentBeingRendered = true
+    updateNotifications()
+  }
+
+  private fun stopRenderingUI() {
+    isContentBeingRendered = false
+    updateSurfaceVisibilityAndNotifications()
+  }
+
   /**
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
-  override fun refresh() {
+  fun refresh() =
     launch(uiThread) {
       if (DumbService.isDumb(project)) {
         LOG.debug("Project is in dumb mode, not able to refresh")
         return@launch
       }
 
-      isContentBeingRendered = true
+      startRenderingUI()
       val filePreviewElements = withContext(workerThread) {
         memoizedElementsProvider.refresh()
         previewProvider.previewElements
@@ -672,10 +698,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }.join()
       }
 
-      isContentBeingRendered = false
-      updateSurfaceVisibilityAndNotifications()
+      stopRenderingUI()
     }
-  }
 
   private fun forceRefresh() {
     previewElements = emptyList() // This will just force a refresh
