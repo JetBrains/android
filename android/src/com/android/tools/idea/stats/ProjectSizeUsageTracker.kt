@@ -30,16 +30,17 @@ import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.util.Processor
 
-class ProjectSizeUsageTracker(private val project: Project) : ProjectComponent {
-  override fun projectOpened() {
+class ProjectSizeUsageTracker : StartupActivity.DumbAware {
+  override fun runActivity(project: Project) {
     val connection = project.messageBus.connect()
-    connection.subscribe<ProjectSystemSyncManager.SyncResultListener>(
+    connection.subscribe(
       PROJECT_SYSTEM_SYNC_TOPIC,
       object : ProjectSystemSyncManager.SyncResultListener {
         override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
