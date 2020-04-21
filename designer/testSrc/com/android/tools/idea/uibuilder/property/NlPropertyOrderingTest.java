@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.idea.uibuilder.util.MockNlComponent;
 import com.android.tools.property.ptable.PTableItem;
 import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;

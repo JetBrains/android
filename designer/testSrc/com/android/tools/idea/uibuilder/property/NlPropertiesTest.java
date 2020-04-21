@@ -41,6 +41,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
+import com.android.tools.idea.uibuilder.util.MockNlComponent;
 import com.android.tools.property.ptable.StarState;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
