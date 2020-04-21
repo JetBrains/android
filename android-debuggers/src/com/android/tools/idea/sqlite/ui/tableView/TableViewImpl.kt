@@ -223,6 +223,8 @@ class TableViewImpl : TableView {
     columns = null
     table.model = MyTableModel(emptyList())
     table.emptyText.text = "Table is empty"
+
+    setEditable(false)
   }
 
   override fun startTableLoading() {

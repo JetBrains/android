@@ -112,7 +112,6 @@ class SqliteEvaluatorController(
         }
 
         view.tableView.resetView()
-        view.tableView.setEditable(false)
 
         if (rowCount > 0) {
           currentTableController = TableController(
