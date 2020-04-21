@@ -70,13 +70,7 @@
       <headless-implementation-class/>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.uibuilder.editor.LayoutNavigationManager</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlXmlEditors</implementation-class>
     </component>
   </project-components>
 
