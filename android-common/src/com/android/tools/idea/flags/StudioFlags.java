@@ -422,7 +422,7 @@ public final class StudioFlags {
     "adb.connection.status.widget.enabled",
     "Enable and Show ADB Connection Widget",
     "Enables and shows the ADB connection status widget in the status bar",
-    true);
+    false);
 
   public static final Flag<Boolean> ADB_WIRELESS_PAIRING_ENABLED = Flag.create(
     RUNDEBUG,
