@@ -60,9 +60,6 @@
       <implementation-class>com.android.tools.idea.profiling.view.EmptyManager</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.profiling.view.AnalysisResultsManager</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
     </component>
     <component>
@@ -314,6 +311,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectComponent" />
     <projectService serviceImplementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild" />
     <projectService serviceImplementation="com.android.tools.idea.project.SyncTimestamp" />
+    <projectService serviceImplementation="com.android.tools.idea.profiling.view.AnalysisResultsManager" />
 
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>

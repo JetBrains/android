@@ -41,7 +41,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
 
   @NotNull
   public static AnalysisResultsManager getInstance(@NotNull Project project) {
-    return project.getComponent(AnalysisResultsManager.class);
+    return project.getService(AnalysisResultsManager.class);
   }
 
   protected AnalysisResultsManager(@NotNull Project project) {
