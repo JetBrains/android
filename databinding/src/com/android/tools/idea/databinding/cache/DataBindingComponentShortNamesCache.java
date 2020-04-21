@@ -17,7 +17,6 @@ package com.android.tools.idea.databinding.cache;
 
 import com.android.SdkConstants;
 import com.android.support.AndroidxName;
-import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.android.tools.idea.databinding.finders.DataBindingComponentClassFinder;
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass;
 import com.intellij.openapi.project.Project;
@@ -37,11 +36,11 @@ import org.jetbrains.annotations.NotNull;
  * See {@link LightDataBindingComponentClass}
  */
 final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
-  private final DataBindingProjectComponent myComponent;
+  private final Project myProject;
   private static final String[] ourClassNames = new String[]{SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT};
 
   DataBindingComponentShortNamesCache(@NotNull Project project) {
-    myComponent = project.getComponent(DataBindingProjectComponent.class);
+    myProject = project;
   }
 
   @NotNull
@@ -63,7 +62,7 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   private boolean check(String name, GlobalSearchScope scope) {
     return SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT.equals(name)
             && scope.getProject() != null
-            && myComponent.getProject().equals(scope.getProject());
+            && myProject.equals(scope.getProject());
   }
 
   @NotNull
