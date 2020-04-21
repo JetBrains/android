@@ -29,9 +29,14 @@ fun RecipeExecutor.generateTvModule(
 ) {
   generateCommonModule(
     data, appTitle, useKts,
-    generateManifest(data.packageName, !data.isLibrary, hasRoundIcon = false),
+    generateManifest(
+      packageName = data.packageName,
+      hasApplicationBlock = !data.isLibrary,
+      hasRoundIcon = false,
+      theme = "@style/${data.themesData.main.name}"
+    ),
     iconsGenerationStyle = IconsGenerationStyle.MIPMAP_SQUARE_ONLY,
-    themesXml = basicThemesXml("@style/Theme.Leanback"), colorsXml = null
+    themesXml = basicThemesXml("@style/Theme.Leanback", data.themesData.main.name), colorsXml = null
   )
 
   addDependency("com.android.support:leanback-v17:+")

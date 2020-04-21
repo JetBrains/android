@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates
 
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
+import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase
 import java.io.File
 
@@ -29,5 +30,11 @@ class TemplateUtilsTest : TestCase() {
     assertTrue(hasExtension(fileWithExt, ext))
     assertTrue(hasExtension(fileWithExt, ".$ext"))
     assertFalse(hasExtension(fileWithoutExt, ext))
+  }
+
+  fun testCapitalizeAppName() {
+    assertThat(capitalizeAppName("My Application")).isEqualTo("MyApplication")
+    assertThat(capitalizeAppName("  My Application  withSpace  ")).isEqualTo("MyApplicationWithSpace")
+    assertThat(capitalizeAppName("my application")).isEqualTo("MyApplication")
   }
 }
