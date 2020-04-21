@@ -28,6 +28,7 @@ import com.android.tools.idea.util.listenUntilNextSync
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -106,21 +107,17 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
    * [ProjectComponent] responsible for ensuring that a [Project] has a [MergedManifestRefreshListener]
    * subscribed to listen for VFS changes once the initial project sync has completed.
    */
-  private class SubscriptionComponent(val project: Project) :
-    LazyFileListenerSubscriber<MergedManifestRefreshListener>(MergedManifestRefreshListener(project), project),
-    ProjectComponent {
-    override fun subscribe() = VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
-
-    override fun projectOpened() {
+  private class SubscriptionStartupActivity : StartupActivity.DumbAware {
+    override fun runActivity(project: Project) {
+      val subscriber = object : LazyFileListenerSubscriber<MergedManifestRefreshListener>(MergedManifestRefreshListener(project), project) {
+        override fun subscribe() {
+          VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
+        }
+      }
       project.listenUntilNextSync(listener = object : SyncResultListener {
-        override fun syncEnded(result: SyncResult) = ensureSubscribed()
+        override fun syncEnded(result: SyncResult) = subscriber.ensureSubscribed()
       })
     }
-  }
-
-  companion object {
-    @JvmStatic
-    fun ensureSubscribed(project: Project) = project.getComponent(SubscriptionComponent::class.java).ensureSubscribed()
   }
 }
 
