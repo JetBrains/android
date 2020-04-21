@@ -30,7 +30,6 @@ import com.android.SdkConstants.ATTR_URI
 import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.SdkConstants.TAG_INCLUDE
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.model.className
@@ -67,7 +66,6 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.annotations.TestOnly
 import java.util.LinkedList
-import java.util.stream.Collectors
 
 /**
  * This class probably shouldn't be instantiated directly. Instead do
@@ -90,8 +88,6 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
   fun getProtoForTest(): NavEditorEvent {
     return navEventBuilder.build()
   }
-
-  fun withPropertyInfo(property: NlProperty, wasEmpty: Boolean) = withAttributeInfo(property.name, property.tagName, wasEmpty)
 
   fun withAttributeInfo(attrName: String,
                         tagName: String?,

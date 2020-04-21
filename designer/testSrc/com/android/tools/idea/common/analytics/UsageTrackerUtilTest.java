@@ -49,16 +49,9 @@ package com.android.tools.idea.common.analytics;
 
  import com.android.ide.common.rendering.api.ResourceNamespace;
  import com.android.ide.common.rendering.api.ResourceReference;
- import com.android.tools.idea.common.model.NlComponent;
- import com.android.tools.idea.common.model.NlModel;
- import com.android.tools.idea.common.property.NlProperty;
- import com.android.tools.idea.common.property.PropertiesManager;
- import com.android.tools.idea.uibuilder.property.NlPropertyItem;
  import com.intellij.openapi.Disposable;
  import com.intellij.openapi.util.Disposer;
  import com.intellij.openapi.util.text.StringUtil;
- import com.intellij.util.xml.XmlName;
- import java.util.Collections;
  import java.util.HashMap;
  import java.util.Map;
  import java.util.Set;
@@ -82,40 +75,6 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
   private static final String LEANBACK_V17_COORDINATE = LEANBACK_V17_ARTIFACT + ":7.0.0";
   private static final String ACME_LIB_COORDINATE = "com.acme:my-layout:1.0.0";
   private static final String ATTR_ACME_LAYOUT_MARGIN = "layout_my_custom_right_margin";
-
-  private NlModel myModel;
-
-  public void testConvertAttribute() {
-    setUpApplicationAttributes();
-
-    NlProperty textProperty = createProperty(ATTR_TEXT, ANDROID_URI, null);
-    assertThat(convertAttribute(textProperty).getAttributeName()).isEqualTo(ATTR_TEXT);
-    assertThat(convertAttribute(textProperty).getAttributeNamespace()).isEqualTo(ANDROID);
-
-    NlProperty collapseProperty = createProperty(ATTR_LAYOUT_COLLAPSE_MODE, AUTO_URI, DESIGN_COORDINATE);
-    assertThat(convertAttribute(collapseProperty).getAttributeName()).isEqualTo(ATTR_LAYOUT_COLLAPSE_MODE);
-    assertThat(convertAttribute(collapseProperty).getAttributeNamespace()).isEqualTo(APPLICATION);
-
-    NlProperty customProperty = createProperty(ATTR_ACME_LAYOUT_MARGIN, AUTO_URI, ACME_LIB_COORDINATE);
-    assertThat(convertAttribute(customProperty).getAttributeName()).isEqualTo(CUSTOM_NAME);
-    assertThat(convertAttribute(customProperty).getAttributeNamespace()).isEqualTo(APPLICATION);
-  }
-
-  public void testConvertToolsAttribute() {
-    setUpApplicationAttributes();
-
-    NlProperty textProperty = createProperty(ATTR_TEXT, ANDROID_URI, null).getDesignTimeProperty();
-    assertThat(convertAttribute(textProperty).getAttributeName()).isEqualTo(ATTR_TEXT);
-    assertThat(convertAttribute(textProperty).getAttributeNamespace()).isEqualTo(TOOLS);
-
-    NlProperty collapseProperty = createProperty(ATTR_LAYOUT_COLLAPSE_MODE, AUTO_URI, DESIGN_COORDINATE).getDesignTimeProperty();
-    assertThat(convertAttribute(collapseProperty).getAttributeName()).isEqualTo(ATTR_LAYOUT_COLLAPSE_MODE);
-    assertThat(convertAttribute(collapseProperty).getAttributeNamespace()).isEqualTo(TOOLS);
-
-    NlProperty customProperty = createProperty(ATTR_ACME_LAYOUT_MARGIN, AUTO_URI, ACME_LIB_COORDINATE).getDesignTimeProperty();
-    assertThat(convertAttribute(customProperty).getAttributeName()).isEqualTo(CUSTOM_NAME);
-    assertThat(convertAttribute(customProperty).getAttributeNamespace()).isEqualTo(TOOLS);
-  }
 
   public void testConvertAttributeByName() {
     setUpApplicationAttributes();
@@ -212,17 +171,6 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
     assertThat(lookupAttributeResource(myFacet, ATTR_ACME_LAYOUT_MARGIN).getLibraryName()).isEqualTo(ACME_LIB_COORDINATE);
   }
 
-  private NlProperty createProperty(@NotNull String propertyName, @NotNull String namespace, @Nullable String libraryName) {
-    NlComponent component = mock(NlComponent.class);
-    when(component.getModel()).thenReturn(myModel);
-
-    PropertiesManager propertiesManager = mock(PropertiesManager.class);
-    return NlPropertyItem.create(new XmlName(propertyName, namespace),
-                                 new AttributeDefinition(ResourceNamespace.RES_AUTO, propertyName, libraryName, null),
-                                 Collections.singletonList(component),
-                                 propertiesManager);
-  }
-
   private void setUpApplicationAttributes() {
     Attributes frameworkAttributes = new Attributes();
     frameworkAttributes.add(new AttributeDefinition(ResourceNamespace.ANDROID, ATTR_TEXT));
@@ -245,9 +193,6 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
                               ModuleResourceManagers.class,
                               resourceManagers,
                               getTestRootDisposable());
-
-    myModel = mock(NlModel.class);
-    when(myModel.getFacet()).thenReturn(myFacet);
   }
 
   public static <T> void registerComponentInstance(MutablePicoContainer container, Class<T> key, T implementation, Disposable parentDisposable) {

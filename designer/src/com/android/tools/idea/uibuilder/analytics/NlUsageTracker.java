@@ -16,9 +16,7 @@
 package com.android.tools.idea.uibuilder.analytics;
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager;
-import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -47,17 +45,6 @@ public interface NlUsageTracker {
                           @NotNull String representation,
                           @NotNull String selectedGroup,
                           int filterMatches);
-
-  /**
-   * Logs a property change action through either the inspector or the property table.
-   *
-   * @param property The property that was changed.
-   * @param propertiesMode The mode used: inspector or property table.
-   * @param filterMatches The number of matches if attribute name was selected by a filter or -1 if not filtered.
-   */
-  void logPropertyChange(@NotNull NlProperty property,
-                         @NotNull NlPropertiesPanel.PropertiesViewMode propertiesMode,
-                         int filterMatches);
 
   /**
    * Logs a property change action through either the inspector or the property table.
