@@ -60,7 +60,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Dependency provider(s) (1 usage)
+      |  Provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |    myExample (1 usage)
       |     MyModule (1 usage)
@@ -106,7 +106,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Dependency provider(s) (1 usage)
+      |  Provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |     (1 usage)
       |     MyClass.kt (1 usage)
@@ -148,7 +148,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Dependency provider(s) (1 usage)
+      |  Provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |    myExample (1 usage)
       |     MyProvider (1 usage)
@@ -185,7 +185,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Dependency provider(s) (1 usage)
+      |  Provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |     (1 usage)
       |     MyProvider.kt (1 usage)
@@ -229,7 +229,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Dependency provider(s) (1 usage)
+      |  Provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |    myExample (1 usage)
       |     MyModule (1 usage)
@@ -275,7 +275,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Dependency provider(s) (1 usage)
+      |  Provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |     (1 usage)
       |     MyClass.kt (1 usage)
@@ -322,7 +322,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Dependency provider(s) (1 usage)
+      |  Provider(s) (1 usage)
       |   ${module.name} (1 usage)
       |     (1 usage)
       |     MyClass.kt (1 usage)
@@ -438,7 +438,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (4 usages)
-      |  Dependency consumer(s) (4 usages)
+      |  Consumer(s) (4 usages)
       |   ${module.name} (4 usages)
       |    example (4 usages)
       |     MyClass (1 usage)
@@ -491,7 +491,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Dependency components method(s) (1 usage)
+      |  Exposed by component(s) (1 usage)
       |   ${module.name} (1 usage)
       |    test (1 usage)
       |     MyComponent (1 usage)
@@ -555,14 +555,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Dependency component(s) (2 usages)
+      |  Included in component(s) (2 usages)
       |   ${myFixture.module.name} (2 usages)
       |    test (2 usages)
       |     MyComponent.java (1 usage)
       |      5public interface MyComponent {}
       |     MyComponentKt.kt (1 usage)
       |      5interface MyComponentKt
-      |  Dependency module(s) (1 usage)
+      |  Included in module(s) (1 usage)
       |   ${myFixture.module.name} (1 usage)
       |    test (1 usage)
       |     MyModule2.java (1 usage)
@@ -603,7 +603,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Dependency component(s) (1 usage)
+      |  Parent component(s) (1 usage)
       |   ${myFixture.module.name} (1 usage)
       |    test (1 usage)
       |     MyDependantComponent.kt (1 usage)
@@ -687,7 +687,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Dependency component(s) (3 usages)
+      |  Parent component(s) (3 usages)
       |   ${myFixture.module.name} (3 usages)
       |    test (3 usages)
       |     MyComponent.java (1 usage)
