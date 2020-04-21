@@ -76,9 +76,6 @@
       <implementation-class>com.android.tools.idea.databinding.LayoutBindingProjectComponent</implementation-class>
       <loadForDefaultProject/>
     </component>
-    <component>
-      <implementation-class>com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener</implementation-class>
-    </component>
   </project-components>
   <actions>
     <action id="Project.CallGraph" internal="true" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
@@ -292,6 +289,8 @@
   <projectListeners>
     <listener class="com.android.tools.idea.deploy.DeployActionsInitializer$MyRunManagerListener" topic="com.intellij.execution.RunManagerListener"/>
     <listener class="com.android.tools.idea.deploy.DeployActionsInitializer$MyFacetManagerAdapter" topic="com.intellij.facet.FacetManagerListener"/>
+    <listener class="com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener" topic="com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener"/>
+    <listener class="com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener" topic="com.intellij.execution.ExecutionListener"/>
   </projectListeners>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
