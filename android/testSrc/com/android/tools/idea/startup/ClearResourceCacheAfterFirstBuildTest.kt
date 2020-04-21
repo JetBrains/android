@@ -59,7 +59,7 @@ class ClearResourceCacheAfterFirstBuildTest {
     projectSystem = TestProjectSystem(project, lastSyncResult = SyncResult.UNKNOWN)
     projectRule.registerExtension(EP_NAME, projectSystem)
 
-    clearResourceCacheAfterFirstBuild = project.getComponent(ClearResourceCacheAfterFirstBuild::class.java)
+    clearResourceCacheAfterFirstBuild = ClearResourceCacheAfterFirstBuild.getInstance(project)
 
     onCacheClean = TestRunnable {
       assertWithMessage("onCacheClean callback was called before resource cache was cleared")
