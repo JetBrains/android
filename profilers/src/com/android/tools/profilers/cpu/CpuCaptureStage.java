@@ -379,7 +379,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
     // VSYNC
     VsyncTrackModel vsyncModel = new VsyncTrackModel(cpuCapture, timeline.getViewRange());
-    display.addTrackModel(TrackModel.newBuilder(vsyncModel, ProfilerTrackRendererType.VSYNC, "VSYNC"));
+    VsyncTooltip vsyncTooltip = new VsyncTooltip(timeline, vsyncModel.getVsyncCounterSeries());
+    display.addTrackModel(TrackModel.newBuilder(vsyncModel, ProfilerTrackRendererType.VSYNC, "VSYNC").setDefaultTooltipModel(vsyncTooltip));
     return display;
   }
 
