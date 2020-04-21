@@ -407,7 +407,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       tableData.add(
         Lists.newArrayList(
           Strings.nullToEmpty(tensorInfo.getName()),
-          tensorInfo.getContentType().toString(),
+          getDisplayContentType(tensorInfo).toString(),
           Strings.nullToEmpty(tensorInfo.getDescription()),
           Arrays.toString(tensorInfo.getShape()),
           meanStdColumn,
@@ -415,6 +415,21 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         ));
     }
     return tableData;
+  }
+
+  @NotNull
+  private static TensorInfo.ContentType getDisplayContentType(@NotNull TensorInfo tensorInfo) {
+    // Display Image only if it is RGB image.
+    if (tensorInfo.getContentType() == TensorInfo.ContentType.IMAGE) {
+      TensorInfo.ImageProperties imageProperties = tensorInfo.getImageProperties();
+      if (imageProperties != null && imageProperties.colorSpaceType == TensorInfo.ImageProperties.ColorSpaceType.RGB) {
+        return TensorInfo.ContentType.IMAGE;
+      } else {
+        return TensorInfo.ContentType.FEATURE;
+      }
+    }
+
+    return tensorInfo.getContentType();
   }
 
   private static boolean isValidMinMaxColumn(@Nullable MetadataExtractor.NormalizationParams params) {
