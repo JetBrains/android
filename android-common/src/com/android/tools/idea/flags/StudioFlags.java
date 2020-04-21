@@ -268,11 +268,6 @@ public final class StudioFlags {
     "If enabled, the assistant panel will display helpful guide on using the Navigation Editor.",
     true);
 
-  public static final Flag<Boolean> NELE_NEW_PROPERTY_PANEL = Flag.create(
-    NELE, "new.property", "Enable the new Property Panel",
-    "Enable the new Property Panel",
-    true);
-
   public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
     NELE, "drag.placeholder", "Dragging widgets with Placeholders",
     "New architecture for dragging widgets in Layout Editor",
