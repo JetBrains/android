@@ -21,15 +21,15 @@ package com.android.tools.profilers.cpu.atrace
 data class SurfaceflingerEvent(val start: Long,
                                val end: Long,
                                val type: Type) {
-  enum class Type {
+  enum class Type(val displayName: String) {
     /**
      * Represents the state when there are no trace events in the Surfaceflinger process.
      */
-    IDLE,
+    IDLE("Idle"),
 
     /**
      * Represents the state when there are any trace event in the Surfaceflinger process.
      */
-    PROCESSING
+    PROCESSING("Processing");
   }
 }

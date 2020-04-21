@@ -170,9 +170,12 @@ class CpuCaptureStageViewTest {
     assertThat(stageView.trackGroupList.activeTooltip).isNull()
 
     // Frame tooltip
-    val frameTrackUi = FakeUi(trackGroups[0].overlay)
-    frameTrackUi.mouse.moveTo(0, 0)
+    val displayTrackUi = FakeUi(trackGroups[0].overlay)
+    displayTrackUi.mouse.moveTo(0, 0)
     assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(CpuFrameTooltip::class.java)
+    val surfaceflingerTrackPos = trackGroups[0].trackList.indexToLocation(1)
+    displayTrackUi.mouse.moveTo(surfaceflingerTrackPos.x, surfaceflingerTrackPos.y)
+    assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(SurfaceflingerTooltip::class.java)
 
     // Thread tooltip
     // TODO: cell renderer has width=0 in this test, causing the in-cell tooltip switching logic to fail.

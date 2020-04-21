@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.StateChartModel
@@ -26,7 +27,10 @@ import java.util.function.Supplier
  */
 class SurfaceflingerTrackModel(capture: CpuCapture,
                                viewRange: Range) : StateChartModel<SurfaceflingerEvent?>() {
+  val surfaceflingerEvents: DataSeries<SurfaceflingerEvent>
+
   init {
-    addSeries(RangedSeries(viewRange, LazyDataSeries(Supplier { capture.surfaceflingerEvents })))
+    surfaceflingerEvents = LazyDataSeries(Supplier { capture.surfaceflingerEvents })
+    addSeries(RangedSeries(viewRange, surfaceflingerEvents))
   }
 }
