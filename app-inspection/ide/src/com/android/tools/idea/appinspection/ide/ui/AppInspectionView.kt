@@ -173,6 +173,7 @@ class AppInspectionView(
       else -> inspectorTabs
     }
     inspectorPanel.add(inspectorComponent)
+    inspectorPanel.repaint()
   }
 
   override fun dispose() {
