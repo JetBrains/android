@@ -173,7 +173,7 @@ public class NewInstantAppTest {
            .open("app/src/main/res/values/colors.xml")
            .moveBetween("black_overlay", "")
            .open("app/src/main/res/values/themes.xml")
-           .moveBetween("Theme.App.Fullscreen", "")
+           .moveBetween("Theme.BuildApp.Fullscreen", "")
            .moveBetween("FullscreenContainer", "")
            .open("app/src/main/res/values-night/themes.xml")
            .moveBetween("fullscreenBackgroundColor", "")

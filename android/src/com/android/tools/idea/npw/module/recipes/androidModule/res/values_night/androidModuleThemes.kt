@@ -18,12 +18,12 @@ package com.android.tools.idea.npw.module.recipes.androidModule.res.values_night
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.DARK_ACTION_BAR_APPCOMPAT
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.DARK_ACTION_BAR_MATERIAL_COMPONENTS
 
-fun androidModuleThemes(useAndroidX: Boolean): String {
+fun androidModuleThemes(useAndroidX: Boolean, themeName: String = "Theme.App"): String {
   val parent = if (useAndroidX) DARK_ACTION_BAR_MATERIAL_COMPONENTS else DARK_ACTION_BAR_APPCOMPAT
   return """
 <resources>
   <!-- Application theme for dark theme. -->
-  <style name="Theme.App" parent="$parent">
+  <style name="$themeName" parent="$parent">
       <!-- Customize your theme here. -->
       <item name="colorPrimary">@color/purple200</item>
       <item name="colorPrimaryDark">@color/purple700</item>

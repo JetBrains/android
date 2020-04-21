@@ -39,11 +39,15 @@ fun RecipeExecutor.generateAndroidModule(
     data = data,
     appTitle = appTitle,
     useKts = useKts,
-    manifestXml = generateManifest(data.packageName, !data.isLibrary),
+    manifestXml = generateManifest(
+      packageName = data.packageName,
+      hasApplicationBlock = !data.isLibrary,
+      theme = "@style/${data.themesData.main.name}"
+    ),
     generateTests= true,
     includeCppSupport = includeCppSupport,
-    themesXml = androidModuleThemes(useAndroidX),
-    themesXmlNight = androidModuleThemesNight(useAndroidX),
+    themesXml = androidModuleThemes(useAndroidX, data.themesData.main.name),
+    themesXmlNight = androidModuleThemesNight(useAndroidX, data.themesData.main.name),
     cppFlags = cppFlags
   )
   val projectData = data.projectTemplateData

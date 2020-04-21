@@ -179,7 +179,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
   fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project) {
     projectTemplateDataBuilder.setBuildVersion(buildVersion, project)
     isNew = true
-    themesData = ThemesData() // New modules always have a theme (unless its a library, but it will have no activity)
+    themesData = ThemesData(appName = capitalizeAppName(projectTemplateDataBuilder.applicationName)) // New modules always have a theme (unless its a library, but it will have no activity)
 
     apis = ApiTemplateData(
       buildApi = ApiVersion(buildVersion.buildApiLevel, buildVersion.buildApiLevelStr),
@@ -218,6 +218,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     ApplicationManager.getApplication().runReadAction {
       val hasActionBar = ThemeHelper.hasActionBar(configuration, themeName)
       themesData = ThemesData(
+        capitalizeAppName(projectTemplateDataBuilder.applicationName),
         ThemeData(themeName, true),
         getDerivedTheme(themeName, noActionBar, hasActionBar == false),
         getDerivedTheme(themeName, appBarOverlay, false),
@@ -241,7 +242,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     isLibrary!!,
     packageName!!,
     formFactor!!,
-    themesData ?: ThemesData(),
+    themesData ?: ThemesData(appName = capitalizeAppName(projectTemplateDataBuilder.applicationName)),
     baseFeature,
     apis!!
   )
@@ -276,7 +277,7 @@ fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuild
     isNew = true
     isLibrary = false
     formFactor = FormFactor.Mobile
-    themesData = ThemesData()
+    themesData = ThemesData(appName = capitalizeAppName(projectTemplateDataBuilder.applicationName))
     apis = ApiTemplateData(
       buildApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),
       targetApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),
@@ -287,3 +288,4 @@ fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuild
     )
   }
 }
+
