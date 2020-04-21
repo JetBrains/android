@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth.assertThat
@@ -25,7 +26,7 @@ import java.awt.Dimension
 
 class BuildAnalyzerComboBoxViewTest {
 
-  val model = BuildAnalyzerViewModel()
+  val model = BuildAnalyzerViewModel(MockUiData())
   val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
   val view = BuildAnalyzerComboBoxView(model, mockHandlers).apply {
     wholePanel.size = Dimension(600, 200)

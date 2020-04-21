@@ -213,7 +213,7 @@ private class NewViewComponentContainer(
   val view: BuildAnalyzerComboBoxView
 
   init {
-    val model = BuildAnalyzerViewModel()
+    val model = BuildAnalyzerViewModel(uiData)
     val controller = BuildAnalyzerViewController(model, uiAnalytics, issueReporter)
     view = BuildAnalyzerComboBoxView(model, controller)
   }

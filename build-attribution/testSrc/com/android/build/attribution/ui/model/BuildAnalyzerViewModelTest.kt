@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.model
 
+import com.android.build.attribution.ui.MockUiData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -26,7 +27,9 @@ class BuildAnalyzerViewModelTest {
     callsCount++
   }
 
-  private val model = BuildAnalyzerViewModel().apply {
+  val mockData = MockUiData()
+
+  private val model = BuildAnalyzerViewModel(mockData).apply {
     dataSetSelectionListener = listenerMock
   }
 

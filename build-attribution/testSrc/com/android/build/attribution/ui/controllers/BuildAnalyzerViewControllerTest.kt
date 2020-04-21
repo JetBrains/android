@@ -15,7 +15,9 @@
  */
 package com.android.build.attribution.ui.controllers
 
+import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
+import com.android.build.attribution.ui.mockTask
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
@@ -42,7 +44,11 @@ class BuildAnalyzerViewControllerTest {
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
-  val model = BuildAnalyzerViewModel()
+  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000)
+  val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
+  val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000)
+
+  val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)))
   val analytics = BuildAttributionUiAnalytics(projectRule.project)
   val buildSessionId = UUID.randomUUID().toString()
   val issueReporter = Mockito.mock(TaskIssueReporter::class.java)

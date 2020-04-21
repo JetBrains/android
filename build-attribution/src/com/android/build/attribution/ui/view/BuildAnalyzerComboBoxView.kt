@@ -50,10 +50,7 @@ class BuildAnalyzerComboBoxView(
     }
   }
 
-  private val overviewPage = object : BuildAnalyzerDataPageView {
-    override val component = JPanel().apply { name = "build-overview" }
-    override val additionalControls = JPanel().apply { name = "build-overview-additional-controls" }
-  }
+  private val overviewPage = BuildOverviewPageView(model)
 
   private val tasksPage = object : BuildAnalyzerDataPageView {
     override val component = JPanel().apply { name = "tasks-view" }
