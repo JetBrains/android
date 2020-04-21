@@ -103,8 +103,8 @@ We accomplish this by setting up a two-way binding between the name property and
 
 ```java
 public class NameEditorScreen {
-  private JTextField myNameField = …;
-  private JButton myResetButton = …;
+  private JTextField myNameField /* = … */;
+  private JButton myResetButton /* = … */;
 
   private BindingsManager myBindings = new BindingsManager();
   private StringProperty myName = new StringValueProperty();
