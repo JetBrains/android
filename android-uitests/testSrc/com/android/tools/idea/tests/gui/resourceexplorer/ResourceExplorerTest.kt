@@ -25,7 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixtur
 import com.android.tools.idea.tests.gui.framework.fixture.ResourcePickerDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture
-import com.android.tools.idea.uibuilder.property.assistant.AssistantPopupPanel
+import com.android.tools.idea.uibuilder.assistant.AssistantPopupPanel
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.KeyPressInfo
 import org.fest.swing.fixture.JButtonFixture

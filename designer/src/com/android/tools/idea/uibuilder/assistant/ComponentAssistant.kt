@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.assistant
+package com.android.tools.idea.uibuilder.assistant
 
 import com.android.tools.idea.common.model.NlComponent
 import javax.swing.JComponent
