@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import static com.android.tools.idea.common.property.PropertiesManager.UPDATE_DELAY_MSECS;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
 import com.android.tools.idea.common.editor.ActionUtils;
@@ -93,6 +92,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
                                                      DataProvider {
+  private  final static int UPDATE_DELAY_MSECS = 250;
+
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
   private final NlTreeBadgeHandler myBadgeHandler;
