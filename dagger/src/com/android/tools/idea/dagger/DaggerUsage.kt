@@ -32,12 +32,13 @@ import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.usages.impl.rules.UsageTypeProviderEx
 import com.intellij.util.Processor
 
-private val DEPENDENCY_PROVIDERS_USAGE_TYPE = UsageType(DEPENDENCY_PROVIDERS)
-private val DEPENDENCY_CONSUMERS_USAGE_TYPE = UsageType(DEPENDENCY_CONSUMERS)
-private val DEPENDENCY_COMPONENT_METHOD_USAGE_TYPE = UsageType(DEPENDENCY_COMPONENT_METHODS)
-private val DEPENDENCY_COMPONENT_USAGE_TYPE = UsageType(DEPENDENCY_COMPONENTS)
-private val SUBCOMPONENT_USAGE_TYPE = UsageType(SUBCOMPONENTS)
-private val DEPENDENCY_MODULE_USAGE_TYPE = UsageType(DEPENDENCY_MODULES)
+private val PROVIDERS_USAGE_TYPE = UsageType(UIStrings.PROVIDERS)
+private val CONSUMERS_USAGE_TYPE = UsageType(UIStrings.CONSUMERS)
+private val EXPOSED_BY_COMPONENTS_USAGE_TYPE = UsageType(UIStrings.EXPOSED_BY_COMPONENTS)
+private val PARENT_COMPONENTS_USAGE_TYPE = UsageType(UIStrings.PARENT_COMPONENTS)
+private val SUBCOMPONENTS_USAGE_TYPE = UsageType(UIStrings.SUBCOMPONENTS)
+private val INCLUDED_IN_COMPONENTS_USAGE_TYPE = UsageType(UIStrings.INCLUDED_IN_COMPONENTS)
+private val INCLUDED_IN_MODULES_USAGE_TYPE = UsageType(UIStrings.INCLUDED_IN_MODULES)
 
 /**
  * [UsageTypeProvider] that labels Dagger providers and consumers with the right description.
@@ -48,14 +49,14 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
     return when {
       !DAGGER_SUPPORT_ENABLED.get() -> null
       element?.project?.service<DaggerDependencyChecker>()?.isDaggerPresent() != true -> null
-      target.isDaggerConsumer && element.isDaggerProvider -> DEPENDENCY_PROVIDERS_USAGE_TYPE
-      target.isDaggerProvider && element.isDaggerConsumer -> DEPENDENCY_CONSUMERS_USAGE_TYPE
-      target.isDaggerProvider && element.isDaggerComponentMethod -> DEPENDENCY_COMPONENT_METHOD_USAGE_TYPE
-      target.isDaggerModule && element.isDaggerComponent -> DEPENDENCY_COMPONENT_USAGE_TYPE
-      target.isDaggerModule && element.isDaggerModule -> DEPENDENCY_MODULE_USAGE_TYPE
-      target.isDaggerComponent && element.isDaggerComponent -> DEPENDENCY_COMPONENT_USAGE_TYPE
-      target.isDaggerSubcomponent && element.isDaggerComponent -> DEPENDENCY_COMPONENT_USAGE_TYPE
-      target.isDaggerComponent && element.isDaggerSubcomponent -> SUBCOMPONENT_USAGE_TYPE
+      target.isDaggerConsumer && element.isDaggerProvider -> PROVIDERS_USAGE_TYPE
+      target.isDaggerProvider && element.isDaggerConsumer -> CONSUMERS_USAGE_TYPE
+      target.isDaggerProvider && element.isDaggerComponentMethod -> EXPOSED_BY_COMPONENTS_USAGE_TYPE
+      target.isDaggerModule && element.isDaggerComponent -> INCLUDED_IN_COMPONENTS_USAGE_TYPE
+      target.isDaggerModule && element.isDaggerModule -> INCLUDED_IN_MODULES_USAGE_TYPE
+      target.isDaggerComponent && element.isDaggerComponent -> PARENT_COMPONENTS_USAGE_TYPE
+      target.isDaggerSubcomponent && element.isDaggerComponent -> PARENT_COMPONENTS_USAGE_TYPE
+      target.isDaggerComponent && element.isDaggerSubcomponent -> SUBCOMPONENTS_USAGE_TYPE
       else -> null
     }
   }
