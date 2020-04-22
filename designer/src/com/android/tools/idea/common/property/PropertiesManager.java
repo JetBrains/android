@@ -119,6 +119,10 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
     return myPropertiesPanel;
   }
 
+  protected boolean isPropertiesPanelCreated() {
+    return myPropertiesPanel != null;
+  }
+
   @NotNull
   protected abstract PropertiesPanel<Self> createPropertiesPanel();
 

@@ -188,7 +188,9 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
   @Override
   public void setToolContext(@Nullable DesignSurface designSurface) {
     super.setToolContext(designSurface);
-    getPropertiesPanel().setToolContext(designSurface);
+    if (designSurface != null || isPropertiesPanelCreated()) {
+      getPropertiesPanel().setToolContext(designSurface);
+    }
   }
 
   @Override
