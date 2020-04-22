@@ -563,6 +563,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     listOfNotNull(debugBuildType, releaseBuildType),
     listOf(),
     "buildToolsVersion",
+    "ndkVersion",
     listOf(),
     listOf("debug", "release")
       .map { variant ->
