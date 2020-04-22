@@ -16,19 +16,18 @@
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.CheckBoxListListener;
+import com.intellij.util.containers.ContainerUtil;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-public class PsCheckBoxList<T> extends CheckBoxList<T> {
-  @NotNull private final List<CheckBoxListListener> myListeners = Lists.newCopyOnWriteArrayList();
+public final class PsCheckBoxList<T> extends CheckBoxList<T> {
+  @NotNull private final List<CheckBoxListListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
 
   @Nullable private SelectionChangeListener<ImmutableList<T>> mySelectionChangeListener;
 

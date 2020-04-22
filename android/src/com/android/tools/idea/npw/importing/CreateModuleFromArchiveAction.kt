@@ -27,7 +27,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.command.UndoConfirmationPolicy
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -38,7 +37,8 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Paths
 
-private val log: Logger get() = logger(::log)
+private val log: Logger
+  get() = Logger.getInstance("#com.android.tools.idea.npw.importing.CreateModuleFromArchiveActionKt")
 
 /** Wraps archive in a Gradle module. */
 fun createModuleFromArchive(

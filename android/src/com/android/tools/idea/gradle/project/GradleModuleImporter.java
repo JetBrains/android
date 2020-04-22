@@ -39,7 +39,6 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -55,6 +54,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -160,7 +160,7 @@ public final class GradleModuleImporter extends ModuleImporter {
     GradleSiblingLookup subProjectLocations = new GradleSiblingLookup(sourceProject, destinationProject);
     Function<VirtualFile, Iterable<String>> parser = GradleProjectDependencyParser.newInstance(destinationProject);
     Map<String, VirtualFile> modules = Maps.newHashMap();
-    List<VirtualFile> toAnalyze = Lists.newLinkedList();
+    List<VirtualFile> toAnalyze = new LinkedList<>();
     toAnalyze.add(sourceProject);
 
     while (!toAnalyze.isEmpty()) {

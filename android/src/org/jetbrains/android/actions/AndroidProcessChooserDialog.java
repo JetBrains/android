@@ -45,13 +45,10 @@ import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTree;
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -210,7 +207,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     AndroidDebugger selectedDebugger = null;
     AndroidDebugger defaultDebugger = null;
-    List<AndroidDebugger> androidDebuggers = Lists.newLinkedList();
+    List<AndroidDebugger> androidDebuggers = new LinkedList<>();
     for (AndroidDebugger androidDebugger : AndroidDebugger.EP_NAME.getExtensions()) {
       if (!androidDebugger.supportsProject(myProject)) {
         continue;
