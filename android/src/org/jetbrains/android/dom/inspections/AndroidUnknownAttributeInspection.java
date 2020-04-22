@@ -89,7 +89,7 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
     if (isMyFile(facet, (XmlFile)file)) {
       Module module = facet.getModule();
       // Support attributes defined by @BindingAdapter annotations.
-      DataBindingModuleComponent dataBindingComponent = module.getComponent(DataBindingModuleComponent.class);
+      DataBindingModuleComponent dataBindingComponent = module.getService(DataBindingModuleComponent.class);
       Set<String> bindingAdapterAttributes = dataBindingComponent != null
                                              ? dataBindingComponent.getBindingAdapterAttributes()
                                              : Collections.emptySet();

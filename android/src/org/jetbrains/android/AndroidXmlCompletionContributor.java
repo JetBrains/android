@@ -395,7 +395,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
     }
 
     Module module = facet.getModule();
-    DataBindingModuleComponent dataBindingComponent = module.getComponent(DataBindingModuleComponent.class);
+    DataBindingModuleComponent dataBindingComponent = module.getService(DataBindingModuleComponent.class);
     if (dataBindingComponent == null) {
       return;
     }
