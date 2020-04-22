@@ -35,6 +35,7 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
@@ -196,7 +197,7 @@ open class NelePropertyItem(
   }
 
   override val editingSupport = object : EditingSupport {
-    override val completion = { getCompletionValues() }
+    override val completion : EditorCompletion = { getCompletionValues() }
     override val allowCustomValues: Boolean
       get() = type.allowCustomValues
     override val validation = { text: String? -> validate(text) }

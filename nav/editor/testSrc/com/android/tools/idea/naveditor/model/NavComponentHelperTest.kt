@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
+import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavDestinationInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -32,6 +33,7 @@ import icons.StudioIcons.NavEditor.Tree.INCLUDE_GRAPH
 import icons.StudioIcons.NavEditor.Tree.NESTED_GRAPH
 import icons.StudioIcons.NavEditor.Tree.PLACEHOLDER
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThat
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -418,5 +420,21 @@ class NavComponentHelperTest2 : NavTestCase() {
   private fun testIcon(component: NlComponent, expected: Icon) {
     val actual = component.mixin?.icon
     assertEquals(expected, actual)
+  }
+
+  fun testGetArguments() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1", name = "myClass") {
+          argument("argument1")
+          argument("argument2")
+          argument("argument3")
+        }
+      }
+    }
+
+    val fragment1 = model.find("fragment1")!!
+    val arguments = fragment1.getArgumentNames()
+    Truth.assertThat(arguments).containsExactlyElementsIn(arrayOf("argument1", "argument2", "argument3"))
   }
 }

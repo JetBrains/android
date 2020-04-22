@@ -388,7 +388,7 @@ class NelePropertyItemTest {
   fun testCompletion() {
     val util = SupportTestUtil(projectRule, createTextView())
     val text = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
-    val values = text.editingSupport.completion()
+    val values = text.editingSupport.completion("")
     assertThat(values.size).isAtLeast(25)
     assertThat(values.filter { it.startsWith("@string/") }).containsExactly("@string/demo", "@string/design").inOrder()
     assertThat(values).containsAllOf("@android:string/yes", "@android:string/no", "@android:string/cancel")
@@ -400,7 +400,7 @@ class NelePropertyItemTest {
     val util = SupportTestUtil(projectRule, createMultipleComponents())
     util.components.retainAll(listOf(util.components.first())) // Select the first components for the property
     val toEndOf = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_TO_END_OF, NelePropertyType.ID)
-    val values = toEndOf.editingSupport.completion()
+    val values = toEndOf.editingSupport.completion("")
     assertThat(values).containsExactly("@id/button1", "@id/text2", "@id/button2").inOrder()
   }
 
@@ -410,7 +410,7 @@ class NelePropertyItemTest {
     projectRule.fixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf")
     val util = SupportTestUtil(projectRule, createTextView())
     val font = util.makeProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.FONT)
-    val values = font.editingSupport.completion()
+    val values = font.editingSupport.completion("")
     val expected = mutableListOf("@font/customfont")
     expected.addAll(AndroidDomUtil.AVAILABLE_FAMILIES)
     assertThat(values).containsExactlyElementsIn(expected)
@@ -421,7 +421,7 @@ class NelePropertyItemTest {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
     val util = SupportTestUtil(projectRule, createTextView())
     val background = util.makeProperty(ANDROID_URI, ATTR_BACKGROUND, NelePropertyType.DRAWABLE)
-    val values = background.editingSupport.completion()
+    val values = background.editingSupport.completion("")
     val set = HashSet(values)
 
     // There must be no duplicates
@@ -440,7 +440,7 @@ class NelePropertyItemTest {
   fun testParentTagCompletion() {
     val util = SupportTestUtil(projectRule, VIEW_MERGE)
     val text = util.makeProperty(TOOLS_URI, ATTR_PARENT_TAG, NelePropertyType.STRING)
-    val values = text.editingSupport.completion()
+    val values = text.editingSupport.completion("")
     assertThat(values).containsAllOf(LINEAR_LAYOUT, ABSOLUTE_LAYOUT, FRAME_LAYOUT)
   }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.dialogs
 
 import com.android.tools.adtui.model.stdui.DefaultCommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.sdk.AndroidPlatform
 
@@ -35,6 +36,6 @@ class ActionTextFieldModel : DefaultCommonTextFieldModel("") {
   }
 
   override val editingSupport = object : EditingSupport {
-    override val completion = { actions }
+    override val completion: EditorCompletion = { actions }
   }
 }
