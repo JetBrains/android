@@ -24,11 +24,14 @@ import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
@@ -41,6 +44,7 @@ import com.intellij.ui.EditorNotifications;
 import com.intellij.util.Consumer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
@@ -62,24 +66,43 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
  *
  * <p>PsiProjectListener also notifies {@link EditorNotifications} when it detects that a Gradle file has been modified.
  */
-public final class PsiProjectListener implements PsiTreeChangeListener {
+public final class PsiProjectListener implements PsiTreeChangeListener, Disposable {
   private final ResourceFolderRegistry myRegistry;
   private SampleDataListener mySampleDataListener;
   @NotNull private final Project myProject;
   @NotNull private final ResourceNotificationManager myResourceNotificationManager;
-
+  private final AtomicBoolean subscribed = new AtomicBoolean(false);
   private static final List<FileNameMatcher> RENDERSCRIPT_MATCHERS = Arrays.asList(AndroidRenderscriptFileType.fileNameMatchers());
+
+  public static class SubscribeOnStartupActivity implements StartupActivity.DumbAware {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      ServiceManager.getService(project, PsiProjectListener.class).ensureSubscribed();
+    }
+  }
 
   @NotNull
   public static PsiProjectListener getInstance(@NotNull Project project) {
-    return project.getComponent(PsiProjectListener.class);
+    return project.getService(PsiProjectListener.class);
   }
 
   public PsiProjectListener(@NotNull Project project) {
     myProject = project;
     myResourceNotificationManager = ResourceNotificationManager.getInstance(project);
-    PsiManager.getInstance(project).addPsiTreeChangeListener(this);
     myRegistry = ResourceFolderRegistry.getInstance(project);
+  }
+
+  public void ensureSubscribed() {
+    if (subscribed.compareAndSet(false, true)) {
+      PsiManager.getInstance(myProject).addPsiTreeChangeListener(this);
+    }
+  }
+
+  @Override
+  public void dispose() {
+    if (subscribed.compareAndSet(true, false)) {
+      PsiManager.getInstance(myProject).removePsiTreeChangeListener(this);
+    }
   }
 
   /**

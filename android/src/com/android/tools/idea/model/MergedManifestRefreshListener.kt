@@ -21,14 +21,16 @@ import com.android.resources.ResourceFolderType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.util.LazyVirtualFileListenerSubscriber
+import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
@@ -105,11 +107,21 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
    * [ProjectComponent] responsible for ensuring that a [Project] has a [MergedManifestRefreshListener]
    * subscribed once the initial project sync has completed.
    */
+  private class SubscriptionService(val project: Project) :
+    LazyFileListenerSubscriber<MergedManifestRefreshListener>(MergedManifestRefreshListener(project)),
+    Disposable {
+    // Never use Application or Project as parents for disposables, as they will be leaked on plugin unload.
+    override fun subscribe() = VirtualFileManager.getInstance().addVirtualFileListener(listener, this)
+
+    override fun dispose() {
+
+    }
+  }
+
   private class SubscriptionStartupActivity : StartupActivity.DumbAware {
     override fun runActivity(project: Project) {
-      val subscriber = LazyVirtualFileListenerSubscriber(MergedManifestRefreshListener(project), project)
       project.listenUntilNextSync(listener = object : SyncResultListener {
-        override fun syncEnded(result: SyncResult) = subscriber.ensureSubscribed()
+        override fun syncEnded(result: SyncResult) = project.getService(SubscriptionService::class.java).ensureSubscribed()
       })
     }
   }

@@ -15,23 +15,19 @@
  */
 package com.android.tools.idea.util
 
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.vfs.VirtualFileListener
-import com.intellij.openapi.vfs.VirtualFileManager
+import java.util.EventListener
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * An object that lazily subscribes a [listener] to respond to VFS changes after [ensureSubscribed] has been called.
+ * An object that lazily subscribes a [listener] to respond to file changes after [ensureSubscribed] has been called.
  */
-open class LazyVirtualFileListenerSubscriber<T : VirtualFileListener>(val listener: T, val parent: Disposable) {
+abstract class LazyFileListenerSubscriber<T : EventListener>(val listener: T) {
   private val subscribed = AtomicBoolean(false)
 
   /** Subscribes the listener. [ensureSubscribed] guarantees this function will only be called once.*/
-  protected open fun subscribe() {
-    VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
-  }
+  protected abstract fun subscribe()
 
-  /** Ensures that the [VirtualFileListener] is actively listening for VFS changes.*/
+  /** Ensures that the [EventListener] is actively listening for file changes.*/
   fun ensureSubscribed() {
     if (subscribed.compareAndSet(false, true)) {
       subscribe()
