@@ -113,7 +113,8 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       // Ensure that we're listening to the PSI structure for Gradle file edit notifications
       Project project = file.getProject();
       if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
-        PsiProjectListener.getInstance(project);
+        // FIXME: this line looks wrong: PsiProjectListener subscribes itself on startup. Probably, it should not?
+        PsiProjectListener.getInstance(project).ensureSubscribed();
       }
     }
     else if (fileType != StdFileTypes.JAVA

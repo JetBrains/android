@@ -48,9 +48,6 @@
     <component>
       <implementation-class>org.jetbrains.android.AndroidPropertyFilesUpdater</implementation-class>
     </component>
-    <component>
-      <implementation-class>com.android.tools.idea.res.PsiProjectListener</implementation-class>
-    </component>
   </project-components>
   <actions>
     <action id="Project.CallGraph" internal="true" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
@@ -292,6 +289,7 @@
     <postStartupActivity implementation="com.android.tools.idea.stats.ProjectSizeUsageTracker"/>
     <postStartupActivity implementation="com.android.tools.idea.startup.ClearResourceCacheStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestRefreshListener$SubscriptionStartupActivity"/>
+    <postStartupActivity implementation="com.android.tools.idea.res.PsiProjectListener$SubscribeOnStartupActivity"/>
 
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleProjectComponent" />
     <projectService serviceImplementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild" />
@@ -301,6 +299,8 @@
     <projectService serviceImplementation="com.android.tools.idea.profiling.view.EmptyManager" />
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
     <projectService serviceImplementation="com.android.tools.idea.databinding.LayoutBindingProjectComponent" />
+    <projectService serviceImplementation="com.android.tools.idea.model.MergedManifestRefreshListener$SubscriptionService" />
+    <projectService serviceImplementation="com.android.tools.idea.res.PsiProjectListener" />
 
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
