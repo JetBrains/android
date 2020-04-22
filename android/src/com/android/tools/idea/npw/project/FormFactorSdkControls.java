@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.project;
 import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.sdk.LoadStatus;
 import com.android.repository.api.UpdatablePackage;
 import com.android.tools.idea.device.FormFactor;
@@ -37,9 +38,11 @@ import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.AsyncProcessIcon;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
@@ -69,7 +72,7 @@ public class FormFactorSdkControls implements Disposable {
 
     myBindings.bind(androidSdkInfo, new SelectedItemProperty<>(myMinSdkCombobox));
     myListeners.listen(androidSdkInfo, value ->
-      value.ifPresent(item -> myApiPercentLabel.setText(getApiHelpText(item.getMinApiLevel())))
+      value.ifPresent(item -> updateApiPercentLabel(item))
     );
 
     myLoadingDataLabel.setForeground(JBColor.GRAY);
@@ -160,7 +163,7 @@ public class FormFactorSdkControls implements Disposable {
     else if (myStatsDataLoadingStatus == LoadStatus.LOADED) {
       AndroidVersionsInfo.VersionItem currentVersionItem = getSelectedApiLevel();
       if (currentVersionItem != null) {
-        myApiPercentLabel.setText(getApiHelpText(currentVersionItem.getMinApiLevel()));
+        updateApiPercentLabel(currentVersionItem);
       }
     }
     else if (myStatsDataLoadingStatus == LoadStatus.FAILED) {
@@ -168,11 +171,17 @@ public class FormFactorSdkControls implements Disposable {
     }
   }
 
+  @Slow
   private static String getApiHelpText(int selectedApi) {
     double percentage = DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100;
     String percentageStr = percentage < 1 ? "<b>&lt; 1%</b>" :
                            format("approximately <b>" + (percentage >= 10 ? "%.3g%%" : "%.2g%%") + "</b>", percentage);
     return format("<html>Your app will run on %1$s of devices.</html>", percentageStr);
+  }
+
+  private void updateApiPercentLabel(AndroidVersionsInfo.VersionItem item) {
+    CompletableFuture.supplyAsync(() -> getApiHelpText(item.getMinApiLevel()), AppExecutorUtil.getAppExecutorService())
+      .thenAccept(text -> myApiPercentLabel.setText(text));
   }
 
   @Nullable
