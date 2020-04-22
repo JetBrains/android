@@ -42,6 +42,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.JBLabel;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import javax.swing.Action;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -51,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AddDeeplinkDialog extends DialogWrapper {
   @VisibleForTesting
-  PlaceholderTextField myUriField;
+  CommonTextField<UriTextFieldModel> myUriField;
   @VisibleForTesting
   JCheckBox myAutoVerify;
   @VisibleForTesting
@@ -73,7 +74,9 @@ public class AddDeeplinkDialog extends DialogWrapper {
 
   public AddDeeplinkDialog(@Nullable NlComponent existing, @NotNull NlComponent parent) {
     super(false);
-    myUriField.setPlaceHolderText("Enter URI - https://www.example.com/person/{id}");
+
+    List<String> argumentNames = NavComponentHelperKt.getArgumentNames(parent);
+    myUriField.getEditorModel().setArgumentNames(argumentNames);
     myActionField.getEditorModel().populateCompletions(parent.getModel().getModule());
 
     if (existing != null) {
@@ -203,6 +206,7 @@ public class AddDeeplinkDialog extends DialogWrapper {
   }
 
   private void createUIComponents() {
+    myUriField = new CommonTextField<>(new UriTextFieldModel());
     myMimeTypeField = new CommonTextField<>(new MimeTypeTextFieldModel());
     myActionField = new CommonTextField<>(new ActionTextFieldModel());
   }

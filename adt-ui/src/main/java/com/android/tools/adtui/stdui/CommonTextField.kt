@@ -54,7 +54,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
       registerActionKey({ escapeInLookup() }, KeyStrokes.ESCAPE, "escape")
       registerActionKey({ tab() }, KeyStrokes.TAB, "tab")
       registerActionKey({ backTab() }, KeyStrokes.BACKTAB, "backTab")
-      registerActionKey({ myLookup.showLookup() }, KeyStrokes.CTRL_SPACE, "showCompletions")
+      registerActionKey({ myLookup.showLookup(text) }, KeyStrokes.CTRL_SPACE, "showCompletions")
       registerActionKey({ myLookup.selectNext() }, KeyStrokes.DOWN, "selectNext", { myLookup.enabled })
       registerActionKey({ myLookup.selectPrevious() }, KeyStrokes.UP, "selectPrevious", { myLookup.enabled })
       registerActionKey({ myLookup.selectNextPage() }, KeyStrokes.PAGE_DOWN, "selectNextPage", { myLookup.enabled })
@@ -82,7 +82,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
 
           // setText is usually initial setup. Don't show completions here:
           if (!documentChangeFromSetText && (newText.isNotEmpty() || lookup?.isVisible == true)) {
-            lookup?.showLookup()
+            lookup?.showLookup(newText)
           }
           updateOutline()
         }

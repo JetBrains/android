@@ -23,6 +23,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.property.panel.api.ActionIconButton
 import com.android.tools.property.panel.api.FlagsPropertyItem
@@ -94,9 +95,9 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
     private set
 
   override val nameEditingSupport = object : EditingSupport {
-    override val completion = { getPropertyNamesWithPrefix() }
+    override val completion: EditorCompletion = { getPropertyNamesWithPrefix() }
     override val allowCustomValues = false
-    override val validation = { text: String? -> validateName(text)}
+    override val validation = { text: String? -> validateName(text) }
   }
 
   override var value: String?

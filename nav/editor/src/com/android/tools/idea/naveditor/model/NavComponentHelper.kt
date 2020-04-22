@@ -244,6 +244,10 @@ fun NlComponent.getActionType(currentRoot: NlComponent?): ActionType {
   return ActionType.EXIT
 }
 
+fun NlComponent.getArgumentNames() : List<String> {
+  return children.filter { it.tagName == TAG_ARGUMENT }.mapNotNull { it.argumentName }
+}
+
 private fun NlComponent.containsDestination(destinationId: String): Boolean {
   return children.map { it.id }.contains(destinationId)
 }

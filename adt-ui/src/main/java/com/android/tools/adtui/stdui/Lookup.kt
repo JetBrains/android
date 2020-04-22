@@ -35,6 +35,7 @@ import java.awt.Rectangle
 import java.awt.Toolkit
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.util.concurrent.atomic.AtomicReference
 import javax.swing.DefaultListModel
 import javax.swing.JComponent
 import javax.swing.JList
@@ -68,6 +69,7 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
   private var dataLoading = false
   private var dataLoaded = false
   private var lookupCancelled = false
+  private var lastCompletionText = AtomicReference<String>("")
 
   init {
     @Suppress("UNCHECKED_CAST")
@@ -79,22 +81,31 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
   val isVisible: Boolean
     get() = ui.visible
 
-  fun showLookup() {
-    if (dataLoaded) {
+  fun showLookup(forText: String) {
+    val support = editor.editorModel.editingSupport
+
+    if (dataLoaded && (!support.alwaysRefreshCompletions || forText == lastCompletionText.get())) {
       updateFilter()
     }
     else {
       lookupCancelled = false
-      val support = editor.editorModel.editingSupport
+      lastCompletionText.set(forText)
       support.execution(Runnable {
         if (dataLoading) {
           // Start at most than 1 completion query
           return@Runnable
         }
         dataLoading = true
-        val values: List<String>
+        var values: List<String> = emptyList()
+        var done = false
         try {
-          values = support.completion()
+          // If the text has changed while the completions were being generated, recompute them
+          // before displaying them.
+          while (!done) {
+            val lastText = lastCompletionText.get()
+            values = support.completion(lastText)
+            done = (lastText == lastCompletionText.get())
+          }
         }
         finally {
           dataLoading = false

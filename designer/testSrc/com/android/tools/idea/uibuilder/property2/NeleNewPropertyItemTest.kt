@@ -142,7 +142,7 @@ class NeleNewPropertyItemTest {
     val properties = createTable()
     val model = properties.first!!.model
     val property = NeleNewPropertyItem(model, properties)
-    val values = property.nameEditingSupport.completion()
+    val values = property.nameEditingSupport.completion("")
     assertThat(values).containsExactly("style", "android:text", "android:textSize", "android:textColor", "android:gravity", "app:srcCompat",
                                        "tools:text", "tools:textSize", "tools:textColor", "tools:gravity", "tools:srcCompat")
   }
@@ -154,7 +154,7 @@ class NeleNewPropertyItemTest {
     val property = NeleNewPropertyItem(model, properties, { it.rawValue == null })
     properties[ANDROID_URI, ATTR_TEXT].value = "Hello"
     properties[ANDROID_URI, ATTR_TEXT_COLOR].value = "#445566"
-    val values = property.nameEditingSupport.completion()
+    val values = property.nameEditingSupport.completion("")
     assertThat(values).containsExactly("style", "android:textSize", "android:gravity", "app:srcCompat",
                                        "tools:text", "tools:textSize", "tools:textColor", "tools:gravity", "tools:srcCompat")
   }

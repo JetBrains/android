@@ -18,12 +18,24 @@ package com.android.tools.idea.naveditor.dialogs
 import com.android.tools.adtui.model.stdui.DefaultCommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditorCompletion
-import com.intellij.xml.util.documentation.MimeTypeDictionary
 
-private val MIME_TYPES = MimeTypeDictionary.HTML_CONTENT_TYPES.toList()
+class UriTextFieldModel : DefaultCommonTextFieldModel("") {
+  lateinit var argumentNames: List<String>
 
-class MimeTypeTextFieldModel : DefaultCommonTextFieldModel("") {
+  init {
+    placeHolderValue = "Enter URI - https://www.example.com/person/{id}"
+  }
+
   override val editingSupport = object : EditingSupport {
-    override val completion: EditorCompletion = { MIME_TYPES }
+    override val alwaysRefreshCompletions = true
+    override val completion: EditorCompletion = { forText ->
+      if (forText.lastOrNull() == '{') {
+        argumentNames.map { "${forText}$it}" }
+      }
+      else {
+        listOf()
+      }
+    }
   }
 }
+
