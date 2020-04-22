@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.stats;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.repository.Revision;
 import com.android.tools.idea.downloads.DownloadService;
 import com.google.common.annotations.VisibleForTesting;
@@ -34,6 +35,7 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,6 +71,7 @@ public class DistributionService extends DownloadService {
    * Gets the percentage of devices on {@code apiLevel} or older.
    * If the distributions haven't been loaded yet, this call will load them synchronously.
    */
+  @Slow
   public double getSupportedDistributionForApiLevel(int apiLevel) {
     if (apiLevel <= 0) {
       return 0;
