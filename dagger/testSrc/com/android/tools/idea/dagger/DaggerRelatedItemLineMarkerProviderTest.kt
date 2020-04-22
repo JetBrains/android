@@ -164,7 +164,6 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
 
   fun testComponentForModules() {
-    // Provider
     val moduleFile = myFixture.configureByText(
       //language=JAVA
       JavaFileType.INSTANCE,
@@ -400,5 +399,60 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
     assertThat(result).containsAllOf("Subcomponent(s): MySubcomponent2",
                                      "Subcomponent(s): MySubcomponent")
+  }
+
+  fun testObjectClassInKotlin() {
+    val moduleFile = myFixture.addFileToProject("test/MyModule.kt",
+      //language=kotlin
+                                                """
+        package test
+        import dagger.Module
+
+        @Module
+        object MyModule
+      """.trimIndent()
+    ).virtualFile
+
+    // Enum shouldn't be treated as dagger entity.
+    val notModuleFile = myFixture.addFileToProject("test/NotMyModule.kt",
+      //language=kotlin
+                                                   """
+        package test
+        import dagger.Module
+
+        enum class NotMyModule {
+          @Module
+          ONE
+        }
+      """.trimIndent()
+    ).virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(moduleFile)
+    myFixture.moveCaret("MyMod|ule")
+
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isNotEmpty()
+
+    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    assertThat(gotoRelatedItems).hasSize(1)
+    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
+    assertThat(result).containsExactly("Included in component(s): MyComponent")
+
+    myFixture.configureFromExistingVirtualFile(notModuleFile)
+    myFixture.moveCaret("ON|E")
+
+    assertThat(myFixture.findGuttersAtCaret()).isEmpty()
   }
 }

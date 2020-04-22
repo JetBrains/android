@@ -46,8 +46,10 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtConstructor
+import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
@@ -223,23 +225,24 @@ val PsiElement?.isDaggerConsumer: Boolean
   }
 
 
-internal fun PsiElement?.isClassAnnotatedWith(annotationFQName: String): Boolean {
-  return this is KtClass && findAnnotation(FqName(annotationFQName)) != null ||
+internal fun PsiElement?.isClassOrObjectAnnotatedWith(annotationFQName: String): Boolean {
+  return this is KtClass && this !is KtEnumEntry && findAnnotation(FqName(annotationFQName)) != null ||
+         this is KtObjectDeclaration && !this.isCompanion() && findAnnotation(FqName(annotationFQName)) != null ||
          this is PsiClass && hasAnnotation(annotationFQName)
 }
 
 /**
  * True if PsiElement is class annotated DAGGER_MODULE_ANNOTATION.
  */
-internal val PsiElement?.isDaggerModule get() = isClassAnnotatedWith(DAGGER_MODULE_ANNOTATION)
+internal val PsiElement?.isDaggerModule get() = isClassOrObjectAnnotatedWith(DAGGER_MODULE_ANNOTATION)
 
 internal val PsiElement?.isDaggerComponentMethod: Boolean
   get() = this is PsiMethod && this.containingClass.isDaggerComponent ||
           this is KtNamedFunction && this.containingClass().isDaggerComponent
 
-internal val PsiElement?.isDaggerComponent get() = isClassAnnotatedWith(DAGGER_COMPONENT_ANNOTATION)
+internal val PsiElement?.isDaggerComponent get() = isClassOrObjectAnnotatedWith(DAGGER_COMPONENT_ANNOTATION)
 
-internal val PsiElement?.isDaggerSubcomponent get() = isClassAnnotatedWith(DAGGER_SUBCOMPONENT_ANNOTATION)
+internal val PsiElement?.isDaggerSubcomponent get() = isClassOrObjectAnnotatedWith(DAGGER_SUBCOMPONENT_ANNOTATION)
 
 /**
  * Returns pair of a type and an optional [QualifierInfo] for [PsiElement].
@@ -404,4 +407,9 @@ private fun PsiAnnotation.getClassesFromAttribute(attrName: String): Collection<
 /**
  * Tries to cast PsiElement to PsiClass.
  */
-internal fun PsiElement.toPsiClass(): PsiClass? = if (this is PsiClass) this else (this as KtClass).toLightClass()
+internal fun PsiElement.toPsiClass(): PsiClass? = when {
+  this is PsiClass -> this
+  this is KtClass && this !is KtEnumEntry -> this.toLightClass()
+  this is KtObjectDeclaration -> this.toLightClass()
+  else -> error("[Dagger editor] Unable to cast ${this.javaClass} to PsiClass")
+}
