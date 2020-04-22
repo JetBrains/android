@@ -46,7 +46,6 @@ import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.model.visibleDestinations
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getResourceItems
-import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_ACTION
@@ -537,7 +536,7 @@ open class AddActionDialog(
           .getResourceItems(ResourceNamespace.TODO(), ResourceType.ANIMATOR, visibilityLookup, ResourceVisibility.PUBLIC)
           .mapTo(result) { ValueWithDisplayString(it, "@${ResourceType.ANIMATOR.getName()}/$it") }
       }
-      result.sortBy { it.displayString }
+      result.sortBy { it.display }
       return result
     }
   }
