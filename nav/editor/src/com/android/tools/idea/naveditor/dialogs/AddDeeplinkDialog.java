@@ -40,7 +40,6 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBTextField;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.swing.Action;
@@ -56,7 +55,7 @@ public class AddDeeplinkDialog extends DialogWrapper {
   @VisibleForTesting
   JCheckBox myAutoVerify;
   @VisibleForTesting
-  JBTextField myMimeTypeField;
+  CommonTextField<MimeTypeTextFieldModel> myMimeTypeField;
   @VisibleForTesting
   CommonTextField<ActionTextFieldModel> myActionField;
 
@@ -204,6 +203,7 @@ public class AddDeeplinkDialog extends DialogWrapper {
   }
 
   private void createUIComponents() {
+    myMimeTypeField = new CommonTextField<>(new MimeTypeTextFieldModel());
     myActionField = new CommonTextField<>(new ActionTextFieldModel());
   }
 
