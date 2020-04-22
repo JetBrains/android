@@ -34,7 +34,7 @@ import com.intellij.psi.util.CachedValuesManager
  * See [LightDataBindingComponentClass]
  */
 class DataBindingComponentClassFinder(project: Project) : PsiElementFinder() {
-  private val component = project.getComponent(LayoutBindingProjectComponent::class.java)
+  private val component = LayoutBindingProjectComponent.getInstance(project)
   private val classes: CachedValue<List<PsiClass>>
 
   init {

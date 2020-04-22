@@ -53,10 +53,6 @@
     <component>
       <implementation-class>com.android.tools.idea.res.PsiProjectListener</implementation-class>
     </component>
-    <component>
-      <implementation-class>com.android.tools.idea.databinding.LayoutBindingProjectComponent</implementation-class>
-      <loadForDefaultProject/>
-    </component>
   </project-components>
   <actions>
     <action id="Project.CallGraph" internal="true" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
@@ -306,6 +302,7 @@
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceClassRegistry" />
     <projectService serviceImplementation="com.android.tools.idea.profiling.view.EmptyManager" />
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
+    <projectService serviceImplementation="com.android.tools.idea.databinding.LayoutBindingProjectComponent" />
 
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>

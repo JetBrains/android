@@ -91,4 +91,9 @@ class LayoutBindingProjectComponent(val project: Project) : ModificationTracker 
   }
 
   override fun getModificationCount() = ModuleManager.getInstance(project).modificationCount
+
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project) : LayoutBindingProjectComponent = project.getService(LayoutBindingProjectComponent::class.java)
+  }
 }

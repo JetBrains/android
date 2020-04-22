@@ -43,7 +43,7 @@ class BindingClassFinder(private val project: Project) : PsiElementFinder() {
     }
 
     fun findAllBindingClasses(facet: AndroidFacet): List<LightBindingClass> {
-      val bindingComponent = facet.module.project.getComponent(LayoutBindingProjectComponent::class.java)
+      val bindingComponent = LayoutBindingProjectComponent.getInstance(facet.module.project)
       if (bindingComponent.getAllBindingEnabledFacets().isEmpty()) return emptyList()
 
       val moduleDataBinding = ModuleDataBinding.getInstance(facet)

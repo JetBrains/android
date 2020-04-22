@@ -35,7 +35,7 @@ import com.intellij.psi.util.CachedValuesManager
  * See [LightBrClass]
  */
 class BrClassFinder(project: Project) : PsiElementFinder() {
-  private val component = project.getComponent(LayoutBindingProjectComponent::class.java)
+  private val component = LayoutBindingProjectComponent.getInstance(project)
   private val classByPackageCache: CachedValue<Map<String, PsiClass>>
 
   init {
