@@ -78,7 +78,7 @@ class DatabaseInspectorViewImpl(
     tabs.name = "right-panel-tabs-panel"
     tabs.apply {
       isTabDraggingEnabled = true
-      setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(5, 10, 6, 10)) }
+      setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(5, 10, 5, 10)) }
       addTabMouseListener(object : MouseAdapter() {
         override fun mousePressed(e: MouseEvent) {
           if (UIUtil.isCloseClick(e)) {
