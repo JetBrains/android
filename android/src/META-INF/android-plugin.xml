@@ -26,7 +26,6 @@
   <depends optional="true" config-file="layoutlib-native.xml">com.android.layoutlib.native</depends>
   <depends optional="true" config-file="layoutlib-standard.xml">com.android.layoutlib.standard</depends>
 
-  <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
   <depends optional="true" config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="database-support.xml">com.intellij.database</depends>
   <depends optional="true">org.jetbrains.plugins.terminal</depends>
@@ -839,7 +838,6 @@
 
 
   <extensionPoints>
-    <extensionPoint qualifiedName="org.jetbrains.android.lightBuildProvider" interface="org.jetbrains.android.compiler.AndroidLightBuildProvider"/>
     <extensionPoint qualifiedName="com.android.moduleDescriptionProvider" interface="com.android.tools.idea.npw.module.ModuleDescriptionProvider"/>
 
     <extensionPoint qualifiedName="com.android.customProjectTypeImporter" interface="com.android.tools.idea.project.CustomProjectTypeImporter"/>
