@@ -241,7 +241,7 @@ fun supportsImprovedTestDeps(agpVersion: GradlePluginVersion) =
   GradleVersion.parse(agpVersion).compareIgnoringQualifiers("3.0.0") >= 0
 
 fun RecipeExecutor.addTestDependencies(agpVersion: GradlePluginVersion) {
-  addDependency("junit:junit:4.12", "testCompile")
+  addDependency("junit:junit:4.+", "testCompile")
   if (supportsImprovedTestDeps(agpVersion)) {
     addDependency("com.android.support.test:runner:+", "androidTestCompile")
     addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestCompile")
