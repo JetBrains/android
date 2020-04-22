@@ -117,7 +117,10 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
     return myNativeLibraries;
   }
 
-  @Override
+  /**
+   * Removed from the model in 4.1.0
+   */
+  @Deprecated
   @NotNull
   public Map<String, ClassField> getResValues() {
     return Collections.emptyMap();
