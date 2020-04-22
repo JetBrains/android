@@ -18,7 +18,10 @@ package com.android.tools.idea.npw.importing;
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicates;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -27,14 +30,18 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.uiDesigner.core.AbstractLayout;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.Collator;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Table for showing a list of modules that will be imported.
@@ -109,7 +116,7 @@ public final class ModulesTable extends JBPanel implements Scrollable {
       }
 
       boolean isFirst = true;
-      Collection<ModuleImportSettingsPane> editors = Lists.newLinkedList();
+      Collection<ModuleImportSettingsPane> editors = new LinkedList<>();
 
       Set<ModuleToImport> allModules = Sets.newTreeSet(new ModuleComparator(myListModel.getCurrentPath()));
       Iterables

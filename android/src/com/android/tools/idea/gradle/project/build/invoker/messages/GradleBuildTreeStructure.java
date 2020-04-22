@@ -15,27 +15,32 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker.messages;
 
+import static com.intellij.ide.errorTreeView.NewErrorTreeViewPanel.createExportPrefix;
+import static com.intellij.ide.errorTreeView.NewErrorTreeViewPanel.createRendererPrefix;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import com.intellij.ide.errorTreeView.*;
+import com.intellij.ide.errorTreeView.ErrorTreeElement;
+import com.intellij.ide.errorTreeView.ErrorTreeElementKind;
+import com.intellij.ide.errorTreeView.ErrorViewStructure;
+import com.intellij.ide.errorTreeView.GroupingElement;
+import com.intellij.ide.errorTreeView.NavigatableMessageElement;
+import com.intellij.ide.errorTreeView.SimpleMessageElement;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
+import com.intellij.util.containers.ContainerUtil;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.intellij.ide.errorTreeView.NewErrorTreeViewPanel.createExportPrefix;
-import static com.intellij.ide.errorTreeView.NewErrorTreeViewPanel.createRendererPrefix;
 
 /**
  * Stores the messages to be displayed in the "Messages" window.
  */
-public class GradleBuildTreeStructure extends ErrorViewStructure {
-  private final List<ErrorTreeElement> myMessages = Lists.newCopyOnWriteArrayList();
+public final class GradleBuildTreeStructure extends ErrorViewStructure {
+  private final List<ErrorTreeElement> myMessages = ContainerUtil.createLockFreeCopyOnWriteList();
   private final ListMultimap<ErrorTreeElementKind, ErrorTreeElement> myMessagesByType = ArrayListMultimap.create();
   private final ListMultimap<String, NavigatableMessageElement> myGroupNameToMessagesMap = ArrayListMultimap.create();
 

@@ -64,8 +64,7 @@ import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
-import java.awt.BorderLayout;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -73,10 +72,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -203,7 +199,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
           }
 
           @Override
-          public PopupStep onChosen(AbstractPopupAction action, boolean finalChoice) {
+          public PopupStep<?> onChosen(AbstractPopupAction action, boolean finalChoice) {
             return doFinalStep(action::execute);
           }
 

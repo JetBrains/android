@@ -21,17 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
-import com.android.tools.idea.gradle.structure.model.PsBaseDependency
-import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
-import com.android.tools.idea.gradle.structure.model.PsJarDependency
-import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
-import com.android.tools.idea.gradle.structure.model.PsModuleDependency
-import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
-import com.android.tools.idea.gradle.structure.model.PsResolvedJarDependency
-import com.android.tools.idea.gradle.structure.model.PsResolvedLibraryDependency
-import com.android.tools.idea.gradle.structure.model.PsResolvedModuleDependency
-import com.android.tools.idea.gradle.structure.model.targetModuleResolvedDependencies
-import com.google.common.collect.Lists
+import com.android.tools.idea.gradle.structure.model.*
 import com.google.common.collect.Sets
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.util.text.StringUtil
@@ -135,11 +125,11 @@ fun createNodesForResolvedDependencies(
   collection: PsDependencyCollection<*, *, *, *>
 ): List<AbstractPsModelNode<*>> {
   val allTransitive = Sets.newHashSet<String>()
-  val children = Lists.newArrayList<AbstractPsModelNode<*>>()
+  val children = ArrayList<AbstractPsModelNode<*>>()
 
   val declared = SortedList(
     PsDependencyComparator(parent.uiSettings))
-  val mayBeTransitive = Lists.newArrayList<PsLibraryDependency>()
+  val mayBeTransitive = ArrayList<PsLibraryDependency>()
   for (dependency in collection.modules) {
     if (dependency.isDeclared) {
       declared.add(dependency)

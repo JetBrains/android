@@ -26,50 +26,16 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslUnknownElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.*
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.getBlockElement
-import com.google.common.collect.Lists
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.text.StringUtil.unquoteString
 import com.intellij.psi.PsiElement
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.psi.KtArrayAccessExpression
-import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.psi.KtBlockExpression
-import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtClassLiteralExpression
-import org.jetbrains.kotlin.psi.KtConstantExpression
-import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtNameReferenceExpression
-import org.jetbrains.kotlin.psi.KtParenthesizedExpression
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.psi.KtReferenceExpression
-import org.jetbrains.kotlin.psi.KtScriptInitializer
-import org.jetbrains.kotlin.psi.KtStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtStringTemplateExpression
-import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
-import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.psi.KtValueArgumentList
-import org.jetbrains.kotlin.psi.KtVisitor
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 import org.jetbrains.kotlin.resolve.constants.evaluate.parseBoolean
 import org.jetbrains.kotlin.resolve.constants.evaluate.parseNumericLiteral
@@ -235,7 +201,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     // If expression is a pure block element and not an expression.
     if (expression.isBlockElement()) {
       // We might need to apply the block to multiple DslElements.
-      val blockElements = Lists.newArrayList<GradlePropertiesDslElement>()
+      val blockElements = ArrayList<GradlePropertiesDslElement>()
       // If the block is allprojects, we need to apply the closure to the project and to all its subprojetcs.
       if (parent is GradleDslFile && referenceName == "allprojects") {
         // The block has to be applied to the project.
