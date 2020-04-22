@@ -58,7 +58,7 @@ public class LayoutBindingPackageFinder extends PsiElementFinder {
   private final CachedValue<Map<String, PsiPackage>> myPackageCache;
 
   public LayoutBindingPackageFinder(@NotNull Project project) {
-    myComponent = project.getComponent(LayoutBindingProjectComponent.class);
+    myComponent = LayoutBindingProjectComponent.getInstance(project);
     myPackageCache = CachedValuesManager.getManager(project).createCachedValue(
       new ProjectResourceCachedValueProvider<Map<String, PsiPackage>, Set<String>>(myComponent) {
 
