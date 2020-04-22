@@ -26,6 +26,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -115,7 +116,8 @@ class DatabaseInspectorControllerImpl(
 
   override suspend fun addSqliteDatabase(database: SqliteDatabase) = withContext(uiThread) {
     Disposer.register(this@DatabaseInspectorControllerImpl, database.databaseConnection)
-    addNewDatabase(database, readDatabaseSchema(database))
+    val schema = readDatabaseSchema(database) ?: return@withContext
+    addNewDatabase(database, schema)
   }
 
   override suspend fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) = withContext(uiThread) {
@@ -192,11 +194,18 @@ class DatabaseInspectorControllerImpl(
       .forEach { it.removeListeners() }
   }
 
-  private suspend fun readDatabaseSchema(database: SqliteDatabase): SqliteSchema = withContext(workerThread) {
+  private suspend fun readDatabaseSchema(database: SqliteDatabase): SqliteSchema? = withContext(workerThread) {
     try {
       val schema = database.databaseConnection.readSchema().await()
       withContext(uiThread) { view.stopLoading() }
       schema
+    }
+    catch (e: LiveInspectorException) {
+      ensureActive()
+      withContext(uiThread) {
+        view.reportError("Error reading Sqlite database", e)
+      }
+      null
     }
     catch (e: Exception) {
       ensureActive()
@@ -236,7 +245,7 @@ class DatabaseInspectorControllerImpl(
 
   private suspend fun updateDatabaseSchema(database: SqliteDatabase) {
     val oldSchema = model.getDatabaseSchema(database) ?: return
-    val newSchema = readDatabaseSchema(database)
+    val newSchema = readDatabaseSchema(database) ?: return
     withContext(uiThread) {
       if (oldSchema != newSchema) {
         model.add(database, newSchema)
@@ -335,8 +344,6 @@ class DatabaseInspectorControllerImpl(
       return
     }
 
-    val databaseConnection = database.databaseConnection
-
     val tableView = viewFactory.createTableView()
     view.openTab(tabId, table.name, tableView.component)
 
@@ -345,7 +352,7 @@ class DatabaseInspectorControllerImpl(
       project = project,
       view = tableView,
       tableSupplier = { model.getDatabaseSchema(database)?.tables?.firstOrNull{ it.name == table.name } },
-      databaseConnection = databaseConnection,
+      databaseConnection = database.databaseConnection,
       sqliteStatement = createSqliteStatement(project, selectAllAndRowIdFromTable(table)),
       edtExecutor = edtExecutor,
       taskExecutor = taskExecutor
