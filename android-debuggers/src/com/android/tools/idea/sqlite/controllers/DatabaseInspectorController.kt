@@ -244,8 +244,9 @@ class DatabaseInspectorControllerImpl(
   }
 
   private suspend fun updateDatabaseSchema(database: SqliteDatabase) {
-    val oldSchema = model.getDatabaseSchema(database) ?: return
+    // TODO(b/154733971) this only works because the suspending function is called first, otherwise we have concurrency issues
     val newSchema = readDatabaseSchema(database) ?: return
+    val oldSchema = model.getDatabaseSchema(database) ?: return
     withContext(uiThread) {
       if (oldSchema != newSchema) {
         model.add(database, newSchema)

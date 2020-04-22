@@ -1085,4 +1085,29 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         eq(table2.name), any(JComponent::class.java)
       )
   }
+
+  fun testUpdateSchemaAddsNewTableOnlyOnceIfCalledConcurrently() {
+    // Prepare
+    mockSqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    val newSchema = SqliteSchema(listOf(SqliteTable("tab", emptyList(), null, false)))
+
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+
+    // Act
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(newSchema))
+    mockSqliteView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
+    mockSqliteView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockSqliteView, times(1)).updateDatabaseSchema(
+      sqliteDatabase1,
+      listOf(AddTable(IndexedSqliteTable(SqliteTable("tab", emptyList(), null, false), 0), emptyList()))
+    )
+  }
 }
