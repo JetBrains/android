@@ -3,7 +3,6 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
-import com.intellij.ProjectTopics;
 import com.intellij.lang.properties.IProperty;
 import com.intellij.lang.properties.psi.PropertiesElementFactory;
 import com.intellij.lang.properties.psi.PropertiesFile;
@@ -13,8 +12,9 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.components.Service;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -54,6 +54,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Eugene.Kudelevsky
  */
+@Service
 public final class AndroidPropertyFilesUpdater implements Disposable {
   private static final NotificationGroup PROPERTY_FILES_UPDATING_NOTIFICATION =
     NotificationGroup.balloonGroup("Android Property Files Updating");
@@ -62,14 +63,16 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
   private final SingleAlarm myAlarm;
   private final Project myProject;
 
-  private AndroidPropertyFilesUpdater(Project project) {
-    myAlarm = new SingleAlarm(() -> TransactionGuard.submitTransaction(project, this::updatePropertyFilesIfNecessary), 50, this);
-    myProject = project;
-
-    if (!ApplicationManager.getApplication().isUnitTestMode() &&
-        !ApplicationManager.getApplication().isHeadlessEnvironment()) {
-      addProjectPropertiesUpdatingListener();
+  public static class ModuleRootListenerImpl implements ModuleRootListener {
+    @Override
+    public void rootsChanged(@NotNull final ModuleRootEvent event) {
+      ServiceManager.getService(event.getProject(), AndroidPropertyFilesUpdater.class).onRootsChanged();
     }
+  }
+
+  private AndroidPropertyFilesUpdater(Project project) {
+    myAlarm = new SingleAlarm(() -> ApplicationManager.getApplication().invokeLater(this::updatePropertyFilesIfNecessary), 50, this);
+    myProject = project;
   }
 
   @Override
@@ -80,13 +83,11 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
     myAlarm.cancel();
   }
 
-  private void addProjectPropertiesUpdatingListener() {
-    myProject.getMessageBus().connect(myProject).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
-      @Override
-      public void rootsChanged(@NotNull final ModuleRootEvent event) {
-        StartupManager.getInstance(myProject).runWhenProjectIsInitialized(myAlarm::cancelAndRequest);
-      }
-    });
+  private void onRootsChanged() {
+    if (!ApplicationManager.getApplication().isUnitTestMode() &&           // AE: Please don't register startup activities for
+        !ApplicationManager.getApplication().isHeadlessEnvironment()) {    //   the default project: they won't ever be run
+      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(myAlarm::cancelAndRequest);
+    }
   }
 
   private void updatePropertyFilesIfNecessary() {

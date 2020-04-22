@@ -45,9 +45,6 @@
     <component>
       <implementation-class>org.jetbrains.android.AndroidProjectComponent</implementation-class>
     </component>
-    <component>
-      <implementation-class>org.jetbrains.android.AndroidPropertyFilesUpdater</implementation-class>
-    </component>
   </project-components>
   <actions>
     <action id="Project.CallGraph" internal="true" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
@@ -264,6 +261,7 @@
     <listener class="com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener" topic="com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener"/>
     <listener class="com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener" topic="com.intellij.execution.ExecutionListener"/>
     <listener class="com.android.tools.idea.databinding.DataBindingAnalyticsListener" topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener" />
+    <listener class="org.jetbrains.android.AndroidPropertyFilesUpdater$ModuleRootListenerImpl" topic="com.intellij.openapi.roots.ModuleRootListener"/>
   </projectListeners>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
