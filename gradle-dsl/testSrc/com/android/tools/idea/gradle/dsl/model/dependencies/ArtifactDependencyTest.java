@@ -1427,7 +1427,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     }
   }
 
-  private void runSetFullReferencesTest(@NotNull TestFileName testFileName) throws IOException {
+  private void runSetFullReferencesTest(@NotNull TestFileName testFileName, @NotNull TestFileName expected) throws IOException {
     writeToBuildFile(testFileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1441,17 +1441,24 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     model.setValue(iStr("com.${guavaPart}"));
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, expected);
 
     dependencies = buildModel.dependencies();
     artifacts = dependencies.artifacts();
     assertSize(2, artifacts);
 
-    model = artifacts.get(0).completeModel();
-    verifyPropertyModel(model, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, DERIVED, 1, "0");
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
-    model = artifacts.get(1).completeModel();
-    verifyPropertyModel(model, STRING_TYPE, "com.google.guava:guava:+", STRING, DERIVED, 1, "1");
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
+    ResolvedPropertyModel model0 = artifacts.get(0).completeModel();
+    ResolvedPropertyModel model1 = artifacts.get(1).completeModel();
+    if (isGroovy()) {
+      verifyPropertyModel(model0, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, DERIVED, 1, "0");
+      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", STRING, DERIVED, 1, "1");
+    }
+    else {
+      verifyPropertyModel(model0, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, REGULAR, 1, "testCompile");
+      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", STRING, REGULAR, 1, "testCompile");
+    }
   }
 
   private void runSetFullSingleReferenceTest(@NotNull TestFileName testFileName, @NotNull PropertyType type, @NotNull String name)
@@ -1492,12 +1499,12 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetFullReferencesCompactApplication() throws IOException {
-    runSetFullReferencesTest(TestFile.SET_FULL_REFERENCES_COMPACT_APPLICATION);
+    runSetFullReferencesTest(TestFile.SET_FULL_REFERENCES_COMPACT_APPLICATION, TestFile.SET_FULL_REFERENCES_COMPACT_APPLICATION_EXPECTED);
   }
 
   @Test
   public void testSetFullReferenceCompactMethod() throws IOException {
-    runSetFullReferencesTest(TestFile.SET_FULL_REFERENCE_COMPACT_METHOD);
+    runSetFullReferencesTest(TestFile.SET_FULL_REFERENCE_COMPACT_METHOD, TestFile.SET_FULL_REFERENCE_COMPACT_METHOD_EXPECTED);
   }
 
   @Test
@@ -2083,7 +2090,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     SET_SINGLE_REFERENCE_COMPACT_APPLICATION("setSingleReferenceCompactApplication"),
     SET_SINGLE_REFERENCE_COMPACT_METHOD("setSingleReferenceCompactMethod"),
     SET_FULL_REFERENCES_COMPACT_APPLICATION("setFullReferencesCompactApplication"),
+    SET_FULL_REFERENCES_COMPACT_APPLICATION_EXPECTED("setFullReferencesCompactApplicationExpected"),
     SET_FULL_REFERENCE_COMPACT_METHOD("setFullReferenceCompactMethod"),
+    SET_FULL_REFERENCE_COMPACT_METHOD_EXPECTED("setFullReferenceCompactMethodExpected"),
     PARSE_FULL_REFERENCE_MAP("parseFullReferenceMap"),
     SET_FULL_REFERENCE_MAP("setFullReferenceMap"),
     CORRECT_OBTAIN_RESULT_MODEL("correctObtainResultModel"),
