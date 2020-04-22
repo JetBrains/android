@@ -1,5 +1,0 @@
-<idea-plugin>
-  <extensions defaultExtensionNs="org.jetbrains">
-    <android.lightBuildProvider implementation="org.jetbrains.android.compiler.AndroidTestNgLightBuildProvider"/>
-  </extensions>
-</idea-plugin>
