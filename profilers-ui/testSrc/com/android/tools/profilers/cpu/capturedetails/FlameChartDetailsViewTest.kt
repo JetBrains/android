@@ -44,7 +44,6 @@ import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -131,22 +130,5 @@ class FlameChartDetailsViewTest {
 
     val chart = TreeWalker(flameChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
     assertThat(chart.isVisible).isTrue()
-  }
-
-  @Test
-  @Ignore("b/110883498")
-  fun showsNoDataForRangeMessage() {
-    // Select a range where we don't have trace data
-    val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-    val flameChart = CaptureDetails.Type.FLAME_CHART.build(range, listOf(capture.getCaptureNode(capture.mainThreadId)),
-                                                           capture) as CaptureDetails.FlameChart
-    val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
-
-    val noDataInstructions = TreeWalker(flameChartView.component).descendants().filterIsInstance<InstructionsPanel>().first {
-      val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
-
-      textInstruction.text == CaptureDetailsView.NO_DATA_FOR_RANGE_MESSAGE
-    }
-    assertThat(noDataInstructions.isVisible).isTrue()
   }
 }
