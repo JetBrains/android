@@ -64,6 +64,7 @@ iml_module(
         "//tools/idea/xml/dom-impl:intellij.xml.dom.impl[module, test]",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
+        "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
     ],
 )
 
