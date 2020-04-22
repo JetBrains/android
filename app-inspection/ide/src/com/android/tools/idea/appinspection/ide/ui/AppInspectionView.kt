@@ -47,6 +47,7 @@ import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ItemEvent
+import java.util.concurrent.CancellationException
 import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.SwingConstants
@@ -158,7 +159,13 @@ class AppInspectionView(
           }, MoreExecutors.directExecutor())
         }.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Unit> {
           override fun onSuccess(result: Unit?) {}
-          override fun onFailure(t: Throwable) = Logger.getInstance(AppInspectionView::class.java).error(t)
+          override fun onFailure(t: Throwable) {
+            // We don't log cancellation exceptions because they are expected as part of the operation. For example: the service cancels all
+            // outstanding futures when it is turned off.
+            if (t !is CancellationException) {
+              Logger.getInstance(AppInspectionView::class.java).error(t)
+            }
+          }
         })
       }
   }
