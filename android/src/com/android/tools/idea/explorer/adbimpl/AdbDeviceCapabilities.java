@@ -15,19 +15,24 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
-import com.android.ddmlib.*;
+import static com.android.tools.idea.explorer.adbimpl.AdbPathUtil.DEVICE_TEMP_DIRECTORY;
+
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.SyncException;
+import com.android.ddmlib.SyncService;
+import com.android.ddmlib.TimeoutException;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.explorer.adbimpl.AdbPathUtil.DEVICE_TEMP_DIRECTORY;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Helper class used to detect various capabilities/features supported by a {@link IDevice}
@@ -56,7 +61,7 @@ public class AdbDeviceCapabilities {
 
   public synchronized boolean supportsTestCommand()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
-    assert !ApplicationManager.getApplication().isDispatchThread();
+    assertNotDispatchThread();
 
     if (mySupportsTestCommand == null) {
       mySupportsTestCommand = supportsTestCommandWorker();
@@ -66,7 +71,7 @@ public class AdbDeviceCapabilities {
 
   public synchronized boolean supportsRmForceFlag()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
-    assert !ApplicationManager.getApplication().isDispatchThread();
+    assertNotDispatchThread();
 
     if (mySupportsRmForceFlag == null) {
       mySupportsRmForceFlag = supportsRmForceFlagWorker();
@@ -76,7 +81,7 @@ public class AdbDeviceCapabilities {
 
   public synchronized boolean supportsTouchCommand()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-    assert !ApplicationManager.getApplication().isDispatchThread();
+    assertNotDispatchThread();
 
     if (mySupportsTouchCommand == null) {
       mySupportsTouchCommand = supportsTouchCommandWorker();
@@ -86,7 +91,7 @@ public class AdbDeviceCapabilities {
 
   public synchronized boolean supportsSuRootCommand()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-    assert !ApplicationManager.getApplication().isDispatchThread();
+    assertNotDispatchThread();
 
     if (mySupportsSuRootCommand == null) {
       mySupportsSuRootCommand = supportsSuRootCommandWorker();
@@ -96,7 +101,7 @@ public class AdbDeviceCapabilities {
 
   public synchronized boolean isRoot()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-    assert !ApplicationManager.getApplication().isDispatchThread();
+    assertNotDispatchThread();
 
     if (myIsRoot == null) {
       myIsRoot = isRootWorker();
@@ -106,7 +111,7 @@ public class AdbDeviceCapabilities {
 
   public synchronized boolean supportsCpCommand()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
-    assert !ApplicationManager.getApplication().isDispatchThread();
+    assertNotDispatchThread();
 
     if (mySupportsCpCommand == null) {
       mySupportsCpCommand = supportsCpCommandWorker();
@@ -116,7 +121,7 @@ public class AdbDeviceCapabilities {
 
   synchronized boolean hasEscapingLs()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-    assert !ApplicationManager.getApplication().isDispatchThread();
+    assertNotDispatchThread();
 
     if (myEscapingLs == null) {
       myEscapingLs = hasEscapingLsWorker();
@@ -128,12 +133,17 @@ public class AdbDeviceCapabilities {
   @SuppressWarnings("unused")
   public synchronized boolean supportsMkTempCommand()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-    assert !ApplicationManager.getApplication().isDispatchThread();
+    assertNotDispatchThread();
 
     if (mySupportsMkTempCommand == null) {
       mySupportsMkTempCommand = supportsMkTempCommandWorker();
     }
     return mySupportsMkTempCommand;
+  }
+
+  private static void assertNotDispatchThread() {
+    Application application = ApplicationManager.getApplication();
+    assert application == null || !application.isDispatchThread();
   }
 
   @NotNull
