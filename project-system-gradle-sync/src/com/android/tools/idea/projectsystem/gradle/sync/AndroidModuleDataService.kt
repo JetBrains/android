@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea.data.service
+package com.android.tools.idea.projectsystem.gradle.sync
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
+import com.android.tools.idea.gradle.project.sync.idea.data.service.ModuleModelDataService
 import com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetup
@@ -62,8 +63,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
 import org.jetbrains.jps.model.serialization.PathMacroUtil
 import java.io.File
-import java.util.ArrayList
-import java.util.HashMap
 import java.util.LinkedList
 import java.util.concurrent.TimeUnit
 
@@ -109,7 +108,8 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       else {
         // If we don't have a model for this module then we need to ensure that no Android facets are left on the module.
         val facetModel = modelsProvider.getModifiableFacetModel(module)
-        removeAllFacets(facetModel, AndroidFacet.ID)      }
+        removeAllFacets(facetModel, AndroidFacet.ID)
+      }
     }
 
     if (modelsByModuleName.isNotEmpty()) {
