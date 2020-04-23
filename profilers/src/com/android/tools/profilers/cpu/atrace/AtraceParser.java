@@ -20,9 +20,9 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
-import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.MainProcessSelector;
+import com.android.tools.profilers.cpu.ThreadState;
 import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.google.common.annotations.VisibleForTesting;
@@ -75,7 +75,7 @@ public class AtraceParser implements TraceParser {
   /**
    * Map between thread id, and the thread state for each state transition on that thread.
    */
-  private final Map<Integer, List<SeriesData<CpuProfilerStage.ThreadState>>> myThreadStateData;
+  private final Map<Integer, List<SeriesData<ThreadState>>> myThreadStateData;
 
   /**
    * List of cpu utilization values for a specific process. The values range from 0 -> 100 in increments of CPU count.
@@ -285,7 +285,7 @@ public class AtraceParser implements TraceParser {
   }
 
   @NotNull
-  public Map<Integer, List<SeriesData<CpuProfilerStage.ThreadState>>> getThreadStateDataSeries() {
+  public Map<Integer, List<SeriesData<ThreadState>>> getThreadStateDataSeries() {
     return myThreadStateData;
   }
 
@@ -340,16 +340,16 @@ public class AtraceParser implements TraceParser {
   }
 
   /**
-   * Builds a map of thread id to a list of {@link CpuProfilerStage.ThreadState} series.
+   * Builds a map of thread id to a list of {@link ThreadState} series.
    */
   private void buildThreadStateData() {
     for (ThreadModel thread : myProcessModel.getThreads()) {
-      List<SeriesData<CpuProfilerStage.ThreadState>> states = new ArrayList<>();
+      List<SeriesData<ThreadState>> states = new ArrayList<>();
       myThreadStateData.put(thread.getId(), states);
-      CpuProfilerStage.ThreadState lastState = CpuProfilerStage.ThreadState.UNKNOWN;
+      ThreadState lastState = ThreadState.UNKNOWN;
       for (SchedSlice slice : thread.getSchedSlices()) {
         long startTimeUs = convertToUserTimeUs(slice.getStartTime());
-        CpuProfilerStage.ThreadState state = getState(slice);
+        ThreadState state = getState(slice);
         if (state != lastState) {
           states.add(new SeriesData<>(startTimeUs, state));
           lastState = state;
@@ -422,23 +422,23 @@ public class AtraceParser implements TraceParser {
   /**
    * @return converted state from the input slice.
    */
-  private static CpuProfilerStage.ThreadState getState(SchedSlice slice) {
+  private static ThreadState getState(SchedSlice slice) {
     switch (slice.getState()) {
       case RUNNING:
-        return CpuProfilerStage.ThreadState.RUNNING_CAPTURED;
+        return ThreadState.RUNNING_CAPTURED;
       case WAKING:
       case RUNNABLE:
-        return CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED;
+        return ThreadState.RUNNABLE_CAPTURED;
       case EXIT_DEAD:
-        return CpuProfilerStage.ThreadState.DEAD_CAPTURED;
+        return ThreadState.DEAD_CAPTURED;
       case SLEEPING:
-        return CpuProfilerStage.ThreadState.SLEEPING_CAPTURED;
+        return ThreadState.SLEEPING_CAPTURED;
       case UNINTR_SLEEP:
-        return CpuProfilerStage.ThreadState.WAITING_CAPTURED;
+        return ThreadState.WAITING_CAPTURED;
       case UNINTR_SLEEP_IO:
-        return CpuProfilerStage.ThreadState.WAITING_IO_CAPTURED;
+        return ThreadState.WAITING_IO_CAPTURED;
       default:
-        return CpuProfilerStage.ThreadState.UNKNOWN;
+        return ThreadState.UNKNOWN;
     }
   }
 

@@ -26,7 +26,6 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -47,7 +46,7 @@ class MergeCaptureDataSeriesTest {
   var myGrpcChannel = FakeGrpcChannel("CpuProfilerStageTestChannel", myTransportService, myCpuService)
   private val myProfilerClient by lazy { ProfilerClient(myGrpcChannel.channel) }
 
-  private lateinit var myMergeCaptureDataSeries: MergeCaptureDataSeries<CpuProfilerStage.ThreadState>
+  private lateinit var myMergeCaptureDataSeries: MergeCaptureDataSeries<ThreadState>
   private lateinit var myStage: CpuProfilerStage
 
   @Before
@@ -62,9 +61,9 @@ class MergeCaptureDataSeriesTest {
     val capture = myParser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0)
     capture.range.set(TimeUnit.MILLISECONDS.toMicros(50).toDouble(), TimeUnit.MILLISECONDS.toMicros(150).toDouble())
     myStage.capture = capture
-    val aTraceSeries = LazyDataSeries<CpuProfilerStage.ThreadState> { buildSeriesData(50, 150, 10) }
+    val aTraceSeries = LazyDataSeries<ThreadState> { buildSeriesData(50, 150, 10) }
     val threadStateSeries = LegacyCpuThreadStateDataSeries(myProfilerClient.cpuClient, ProfilersTestData.SESSION_DATA, 1, capture)
-    myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(capture, threadStateSeries, aTraceSeries)
+    myMergeCaptureDataSeries = MergeCaptureDataSeries<ThreadState>(capture, threadStateSeries, aTraceSeries)
     myCpuService.addThreads(1, "Thread", buildThreadActivityData(1, 200, 20))
   }
 
@@ -137,9 +136,9 @@ class MergeCaptureDataSeriesTest {
   @Test
   fun testGetDataNoTraceGetsSampledData() {
     val capture = myStage.capture!!
-    val aTraceSeries = LazyDataSeries<CpuProfilerStage.ThreadState> { buildSeriesData(50, 150, 0) }
+    val aTraceSeries = LazyDataSeries<ThreadState> { buildSeriesData(50, 150, 0) }
     val threadStateSeries = LegacyCpuThreadStateDataSeries(myProfilerClient.cpuClient, ProfilersTestData.SESSION_DATA, 1, myStage.capture)
-    myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(capture, threadStateSeries, aTraceSeries)
+    myMergeCaptureDataSeries = MergeCaptureDataSeries<ThreadState>(capture, threadStateSeries, aTraceSeries)
     val stateSeries = myMergeCaptureDataSeries.getDataForRange(
       Range(
         TimeUnit.MILLISECONDS.toMicros(100).toDouble(),
@@ -154,10 +153,10 @@ class MergeCaptureDataSeriesTest {
     // Our capture range is 50 -> 150, so we create a data sample that starts at 100 to ensure we get a ThreadStateDataSeries range call
     // from 0 -> 100
     val capture = myStage.capture!!
-    val aTraceSeries = LazyDataSeries<CpuProfilerStage.ThreadState> { buildSeriesData(100, 150, 10) }
+    val aTraceSeries = LazyDataSeries<ThreadState> { buildSeriesData(100, 150, 10) }
     val threadStateSeries = FakeLegacyCpuThreadStateDataSeries(myProfilerClient.cpuClient, ProfilersTestData.SESSION_DATA, 1,
                                                                myStage.capture)
-    myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(capture, threadStateSeries, aTraceSeries)
+    myMergeCaptureDataSeries = MergeCaptureDataSeries<ThreadState>(capture, threadStateSeries, aTraceSeries)
     myMergeCaptureDataSeries.getDataForRange(
       Range(
         TimeUnit.MILLISECONDS.toMicros(0).toDouble(),
@@ -171,11 +170,11 @@ class MergeCaptureDataSeriesTest {
     assertThat(threadStateSeries.calledWithRanges[1].max).isWithin(EPSILON).of(TimeUnit.MILLISECONDS.toMicros(200).toDouble())
   }
 
-  private fun buildSeriesData(startTime: Long, endTime: Long, count: Int): List<SeriesData<CpuProfilerStage.ThreadState>> {
-    val seriesData = ArrayList<SeriesData<CpuProfilerStage.ThreadState>>()
+  private fun buildSeriesData(startTime: Long, endTime: Long, count: Int): List<SeriesData<ThreadState>> {
+    val seriesData = ArrayList<SeriesData<ThreadState>>()
     for (i in 0 until count) {
       val time = startTime + (((endTime - startTime) / count) * i)
-      seriesData.add(SeriesData(TimeUnit.MILLISECONDS.toMicros(time), CpuProfilerStage.ThreadState.SLEEPING))
+      seriesData.add(SeriesData(TimeUnit.MILLISECONDS.toMicros(time), ThreadState.SLEEPING))
     }
     return seriesData
   }
@@ -199,7 +198,7 @@ class MergeCaptureDataSeriesTest {
                                                    capture: CpuCapture?) : LegacyCpuThreadStateDataSeries(stub, session, tid, capture) {
     val calledWithRanges = arrayListOf<Range>()
 
-    override fun getDataForRange(range: Range?): MutableList<SeriesData<CpuProfilerStage.ThreadState>> {
+    override fun getDataForRange(range: Range?): MutableList<SeriesData<ThreadState>> {
       calledWithRanges.add(range!!)
       return super.getDataForRange(range)
     }

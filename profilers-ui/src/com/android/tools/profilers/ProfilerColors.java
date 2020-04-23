@@ -17,7 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.common.StudioColorsKt;
-import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.ThreadState;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
@@ -86,46 +86,46 @@ public class ProfilerColors {
    * Represents pair of colors of non-selected and hovered states of a thread.
    * The first color is for a non-selected thread, the second one is for a hovered thread.
    */
-  public static final EnumColors.Builder<CpuProfilerStage.ThreadState> THREAD_STATES =
-    new EnumColors.Builder<CpuProfilerStage.ThreadState>(2)
-      .add(CpuProfilerStage.ThreadState.RUNNING,
+  public static final EnumColors.Builder<ThreadState> THREAD_STATES =
+    new EnumColors.Builder<ThreadState>(2)
+      .add(ThreadState.RUNNING,
            CPU_USAGE,
            new JBColor(0x159482, 0x73D7BA))
-      .add(CpuProfilerStage.ThreadState.RUNNING_CAPTURED,
+      .add(ThreadState.RUNNING_CAPTURED,
            CPU_USAGE_CAPTURED,
            CPU_USAGE_CAPTURED_HOVER)
-      .add(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED,
+      .add(ThreadState.RUNNABLE_CAPTURED,
            CPU_TRACE_IDLE,
            CPU_TRACE_IDLE_HOVER)
-      .add(CpuProfilerStage.ThreadState.WAITING,
+      .add(ThreadState.WAITING,
            new JBColor(0xeccc8e, 0xa5956a),
            new JBColor(0xE3AD48, 0xF8E8C3))
-      .add(CpuProfilerStage.ThreadState.WAITING_CAPTURED,
+      .add(ThreadState.WAITING_CAPTURED,
            new JBColor(0xEAC174, 0xF1D48C),
            new JBColor(0xE3AD48, 0xF8E8C3))
-      .add(CpuProfilerStage.ThreadState.WAITING_IO_CAPTURED,
+      .add(ThreadState.WAITING_IO_CAPTURED,
            new JBColor(0xFFB74D, 0xFFCA28),
            new JBColor(0xE3AD48, 0xF8E8C3))
-      .add(CpuProfilerStage.ThreadState.SLEEPING,
+      .add(ThreadState.SLEEPING,
            new JBColor(0xF2F6F8, 0x353739),
            new JBColor(0xD5DADD, 0x595C61))
-      .add(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED,
+      .add(ThreadState.SLEEPING_CAPTURED,
            new JBColor(0xE7ECED, 0x3C3E40),
            new JBColor(0xD5DADD, 0x595C61))
-      .add(CpuProfilerStage.ThreadState.DEAD,
+      .add(ThreadState.DEAD,
            Gray.TRANSPARENT,
            Gray.TRANSPARENT)
-      .add(CpuProfilerStage.ThreadState.DEAD_CAPTURED,
+      .add(ThreadState.DEAD_CAPTURED,
            Gray.TRANSPARENT,
            Gray.TRANSPARENT)
-      .add(CpuProfilerStage.ThreadState.HAS_ACTIVITY,
+      .add(ThreadState.HAS_ACTIVITY,
            CPU_USAGE,
            new JBColor(0x159482, 0x73D7BA))
-      .add(CpuProfilerStage.ThreadState.NO_ACTIVITY,
+      .add(ThreadState.NO_ACTIVITY,
            Gray.TRANSPARENT,
            Gray.TRANSPARENT)
       // TODO: remove UNKNOWN mapping when all states are covered.
-      .add(CpuProfilerStage.ThreadState.UNKNOWN,
+      .add(ThreadState.UNKNOWN,
            new JBColor(0xC1D6F6, 0x5A6E7D),
            new JBColor(0xC1D6F6, 0x5A6E7D));
 

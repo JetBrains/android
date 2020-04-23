@@ -70,7 +70,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
       }
     });
 
-    StateChart<CpuProfilerStage.ThreadState> threadStateChart = createStateChart(trackModel.getDataModel().getThreadStateChartModel());
+    StateChart<ThreadState> threadStateChart = createStateChart(trackModel.getDataModel().getThreadStateChartModel());
     JPanel panel = new JPanel();
     if (trackModel.isCollapsed() || threadStateChart == null) {
       // Don't show thread states if we don't have the chart for it or if the track is collapsed.
@@ -133,12 +133,12 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
   }
 
   @Nullable
-  private static StateChart<CpuProfilerStage.ThreadState> createStateChart(@NotNull StateChartModel<CpuProfilerStage.ThreadState> model) {
+  private static StateChart<ThreadState> createStateChart(@NotNull StateChartModel<ThreadState> model) {
     if (model.getSeries().isEmpty()) {
       // No thread state data, don't create chart.
       return null;
     }
-    StateChart<CpuProfilerStage.ThreadState> threadStateChart = new StateChart<>(model, new CpuThreadColorProvider());
+    StateChart<ThreadState> threadStateChart = new StateChart<>(model, new CpuThreadColorProvider());
     threadStateChart.setHeightGap(0.0f);
     return threadStateChart;
   }
@@ -161,12 +161,12 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     return builder.build();
   }
 
-  private static class CpuThreadColorProvider extends StateChartColorProvider<CpuProfilerStage.ThreadState> {
-    private EnumColors<CpuProfilerStage.ThreadState> myEnumColors = ProfilerColors.THREAD_STATES.build();
+  private static class CpuThreadColorProvider extends StateChartColorProvider<ThreadState> {
+    private EnumColors<ThreadState> myEnumColors = ProfilerColors.THREAD_STATES.build();
 
     @NotNull
     @Override
-    public Color getColor(boolean isMouseOver, @NotNull CpuProfilerStage.ThreadState value) {
+    public Color getColor(boolean isMouseOver, @NotNull ThreadState value) {
       myEnumColors.setColorIndex(isMouseOver ? 1 : 0);
       return myEnumColors.getColor(value);
     }

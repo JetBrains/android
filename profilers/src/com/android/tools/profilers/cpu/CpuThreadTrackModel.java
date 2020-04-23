@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
  * Track model for CPU threads in CPU capture stage. Consists of thread states and trace events.
  */
 public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
-  @NotNull private final StateChartModel<CpuProfilerStage.ThreadState> myThreadStateChartModel;
+  @NotNull private final StateChartModel<ThreadState> myThreadStateChartModel;
   @NotNull private final CaptureDetails.CallChart myCallChartModel;
   @NotNull private final CpuCapture myCapture;
   @NotNull private final Timeline myTimeline;
@@ -55,7 +55,7 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     myThreadStateChartModel = new StateChartModel<>();
     myThreadStateTooltip = new CpuThreadsTooltip(timeline);
     if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
-      DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries =
+      DataSeries<ThreadState> threadStateDataSeries =
         new LazyDataSeries<>(() -> capture.getThreadStatesForThread(threadInfo.getId()));
       myThreadStateChartModel.addSeries(new RangedSeries<>(timeline.getViewRange(), threadStateDataSeries));
       myThreadStateTooltip.setThread(threadInfo.getName(), threadStateDataSeries);
@@ -72,7 +72,7 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   }
 
   @NotNull
-  public StateChartModel<CpuProfilerStage.ThreadState> getThreadStateChartModel() {
+  public StateChartModel<ThreadState> getThreadStateChartModel() {
     return myThreadStateChartModel;
   }
 

@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * This class is responsible for querying CPU thread data from unified pipeline {@link Common.Event} and extract a single thread data.
  */
-public class CpuThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
+public class CpuThreadStateDataSeries implements DataSeries<ThreadState> {
   @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myClient;
   private final long myStreamId;
   private final int myPid;
@@ -52,8 +52,8 @@ public class CpuThreadStateDataSeries implements DataSeries<CpuProfilerStage.Thr
   }
 
   @Override
-  public List<SeriesData<CpuProfilerStage.ThreadState>> getDataForRange(Range rangeUs) {
-    List<SeriesData<CpuProfilerStage.ThreadState>> series = new ArrayList<>();
+  public List<SeriesData<ThreadState>> getDataForRange(Range rangeUs) {
+    List<SeriesData<ThreadState>> series = new ArrayList<>();
     long minNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
     long maxNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
     GetEventGroupsResponse response = myClient.getEventGroups(
