@@ -19,7 +19,6 @@ import static com.android.tools.profilers.StudioProfilers.DAEMON_DEVICE_DIR_PATH
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.ConditionalEnumComboBoxModel;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.EaseOutModel;
@@ -31,9 +30,6 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
-import com.android.tools.adtui.model.filter.Filter;
-import com.android.tools.adtui.model.filter.FilterHandler;
-import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
@@ -64,17 +60,11 @@ import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
-import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.FieldObject;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
-import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -89,7 +79,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -123,7 +112,6 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
   private final MemoryStageLegends myLegends;
   private final MemoryStageLegends myTooltipLegends;
   private final EaseOutModel myInstructionsEaseOutModel;
-  private final ConditionalEnumComboBoxModel<MemoryProfilerConfiguration.ClassGrouping> myClassGroupingModel;
 
   /**
    * Whether the stage only contains heap dump data imported from hprof file
@@ -137,20 +125,14 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
   @NotNull
   private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
 
-  @NotNull private FilterHandler myFilterHandler;
-  @Nullable private Filter myLastFilter;
-
   private final MemoryServiceBlockingStub myClient;
   private final DurationDataModel<CaptureDurationData<CaptureObject>> myHeapDumpDurations;
   private final DurationDataModel<CaptureDurationData<CaptureObject>> myAllocationDurations;
   private final DurationDataModel<CaptureDurationData<CaptureObject>> myNativeAllocationDurations;
   private final CaptureObjectLoader myLoader;
-  private final MemoryProfilerSelection mySelection;
-  private final MemoryProfilerConfiguration myConfiguration;
+  private final MemoryCaptureSelection myCaptureSelection;
   private final EventMonitor myEventMonitor;
   private final RangeSelectionModel myRangeSelectionModel;
-  private final StackTraceModel myAllocationStackTraceModel;
-  private final StackTraceModel myDeallocationStackTraceModel;
   private boolean myTrackingAllocations;
   private boolean myUpdateCaptureOnSelection = true;
   private final CaptureElapsedTimeUpdatable myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
@@ -174,10 +156,14 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
       profilers.getSessionsManager().getSelectedSessionMetaData().getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
     mySessionData = profilers.getSession();
     myClient = profilers.getClient().getMemoryClient();
+    myCaptureSelection = new MemoryCaptureSelection(profilers.getIdeServices());
+
     HeapDumpSampleDataSeries heapDumpSeries =
-      new HeapDumpSampleDataSeries(profilers.getClient(), mySessionData, getStudioProfilers().getIdeServices().getFeatureTracker(), this);
+      new HeapDumpSampleDataSeries(profilers.getClient(), mySessionData, getStudioProfilers().getIdeServices().getFeatureTracker(),
+                                   myCaptureSelection);
     AllocationInfosDataSeries allocationSeries =
-      new AllocationInfosDataSeries(profilers.getClient(), mySessionData, getStudioProfilers().getIdeServices().getFeatureTracker(), this);
+      new AllocationInfosDataSeries(profilers.getClient(), mySessionData, getStudioProfilers().getIdeServices().getFeatureTracker(),
+                                    this);
     NativeAllocationSamplesSeries nativeSampleSeries =
       new NativeAllocationSamplesSeries(profilers.getClient(), mySessionData, getStudioProfilers().getIdeServices().getFeatureTracker(),
                                         this);
@@ -188,8 +174,6 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
     myHeapDumpDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, heapDumpSeries));
     myAllocationDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, allocationSeries));
     myNativeAllocationDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, nativeSampleSeries));
-    mySelection = new MemoryProfilerSelection(this);
-    myConfiguration = new MemoryProfilerConfiguration(this);
 
     DataSeries<GcDurationData> gcSeries =
       getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled() ?
@@ -267,19 +251,6 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
       }
     });
 
-    myFilterHandler = new FilterHandler() {
-      @Override
-      @NotNull
-      protected FilterResult applyFilter(@NotNull Filter filter) {
-        selectCaptureFilter(filter);
-        HeapSet heapSet = getSelectedHeapSet();
-        return heapSet == null ? FilterResult.EMPTY_RESULT : new FilterResult(heapSet.getFilterMatchCount(), 0, true);
-      }
-    };
-
-    myAllocationStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
-    myDeallocationStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
-
     // Set the sampling mode based on the last user setting. If the current session (either alive or dead) has a different sampling setting,
     // It will be set properly in the AllocationSamplingRateUpdatable.
     myLiveAllocationSamplingMode = LiveAllocationSamplingMode.getModeFromFrequency(
@@ -287,13 +258,6 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
         .getInt(LIVE_ALLOCATION_SAMPLING_PREF, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue())
     );
     myAllocationSamplingRateUpdatable.update(0);
-
-    myClassGroupingModel = new ConditionalEnumComboBoxModel<>(MemoryProfilerConfiguration.ClassGrouping.class, (grouping) -> {
-      if (getSelectedCapture() != null) {
-        return getSelectedCapture().isGroupingSupported(grouping);
-      }
-      return true;
-    });
   }
 
   public boolean hasUserUsedMemoryCapture() {
@@ -349,23 +313,13 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
   }
 
   @NotNull
-  public ConditionalEnumComboBoxModel<MemoryProfilerConfiguration.ClassGrouping> getClassGroupingModel() {
-    return myClassGroupingModel;
+  public MemoryCaptureSelection getCaptureSelection() {
+    return myCaptureSelection;
   }
 
   @NotNull
   public RangeSelectionModel getRangeSelectionModel() {
     return myRangeSelectionModel;
-  }
-
-  @NotNull
-  public StackTraceModel getAllocationStackTraceModel() {
-    return myAllocationStackTraceModel;
-  }
-
-  @NotNull
-  public StackTraceModel getDeallocationStackTraceModel() {
-    return myDeallocationStackTraceModel;
   }
 
   private void selectCaptureFromSelectionRange() {
@@ -703,108 +657,19 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
     return myNativeAllocationDurations;
   }
 
-  public void selectFieldObjectPath(@NotNull List<FieldObject> fieldObjectPath) {
-    mySelection.selectFieldObjectPath(fieldObjectPath);
-  }
-
-  @NotNull
-  public List<FieldObject> getSelectedFieldObjectPath() {
-    return mySelection.getFieldObjectPath();
-  }
-
-  public void selectInstanceObject(@Nullable InstanceObject instanceObject) {
-    mySelection.selectInstanceObject(instanceObject);
-  }
-
-  @Nullable
-  public InstanceObject getSelectedInstanceObject() {
-    return mySelection.getInstanceObject();
-  }
-
-  public void selectClassSet(@Nullable ClassSet classSet) {
-    mySelection.selectClassSet(classSet);
-  }
-
-  @Nullable
-  public ClassSet getSelectedClassSet() {
-    return mySelection.getClassSet();
-  }
-
-  public void refreshSelectedHeap() {
-    myAspect.changed(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS);
-    myFilterHandler.refreshFilterContent();
-  }
-
-  public void selectHeapSet(@Nullable HeapSet heapSet) {
-    mySelection.selectHeapSet(heapSet);
-    myFilterHandler.refreshFilterContent();
-    if (heapSet != null) {
-      getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectMemoryHeap(heapSet.getName());
-    }
-  }
-
-  @Nullable
-  public HeapSet getSelectedHeapSet() {
-    return mySelection.getHeapSet();
-  }
-
-  private void selectCaptureFilter(@NotNull Filter filter) {
-    // Only track filter usage when filter has been updated.
-    if (!Objects.equals(myLastFilter, filter)) {
-      myLastFilter = filter;
-      trackFilterUsage(filter);
-    }
-    if (getSelectedHeapSet() != null) {
-      getSelectedHeapSet().selectFilter(filter);
-    }
-    // Clears the selected ClassSet if it's been filtered.
-    if (getSelectedClassSet() != null && getSelectedClassSet().getIsFiltered()) {
-      selectClassSet(ClassSet.EMPTY_SET);
-    }
-    myAspect.changed(MemoryProfilerAspect.CURRENT_FILTER);
-  }
-
-  private void trackFilterUsage(@NotNull Filter filter) {
-    FilterMetadata filterMetadata = new FilterMetadata();
-    FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
-    switch (getConfiguration().getClassGrouping()) {
-      case ARRANGE_BY_CLASS:
-        filterMetadata.setView(FilterMetadata.View.MEMORY_CLASS);
-        break;
-      case ARRANGE_BY_PACKAGE:
-        filterMetadata.setView(FilterMetadata.View.MEMORY_PACKAGE);
-        break;
-      case ARRANGE_BY_CALLSTACK:
-        filterMetadata.setView(FilterMetadata.View.MEMORY_CALLSTACK);
-        break;
-    }
-    filterMetadata.setFeaturesUsed(filter.isMatchCase(), filter.isRegex());
-    if (getSelectedHeapSet() != null) {
-      filterMetadata.setMatchedElementCount(getSelectedHeapSet().getFilteredObjectSetCount());
-      filterMetadata.setTotalElementCount(getSelectedHeapSet().getTotalObjectSetCount());
-    }
-    filterMetadata.setFilterTextLength(filter.isEmpty() ? 0 : filter.getFilterString().length());
-    featureTracker.trackFilterMetadata(filterMetadata);
-  }
-
-  @NotNull
-  public FilterHandler getFilterHandler() {
-    return myFilterHandler;
-  }
-
   @VisibleForTesting
   void selectCaptureDuration(@Nullable CaptureDurationData<? extends CaptureObject> durationData,
                              @Nullable Executor joiner) {
     myPendingCaptureStartTime = INVALID_START_TIME;
-    if (!mySelection.selectCaptureEntry(durationData == null ? null : durationData.getCaptureEntry())) {
+    if (!myCaptureSelection.selectCaptureEntry(durationData == null ? null : durationData.getCaptureEntry())) {
       return;
     }
     myUpdateCaptureOnSelection = false;
-    CaptureObject captureObject = mySelection.getCaptureObject();
+    CaptureObject captureObject = myCaptureSelection.getSelectedCapture();
     Runnable clear = () -> {
-      mySelection.selectCaptureEntry(null);
+      myCaptureSelection.selectCaptureEntry(null);
       getTimeline().getSelectionRange().clear();
-      myAspect.changed(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE);
+      myCaptureSelection.getAspect().changed(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE);
       setProfilerMode(ProfilerMode.NORMAL);
     };
     if (captureObject == null) {
@@ -812,7 +677,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
       clear.run();
       return;
     }
-    getClassGroupingModel().update();
+    myCaptureSelection.getClassGroupingModel().update();
 
     // Synchronize selection with the capture object. Do so only if the capture object is not ongoing.
     if (durationData != null && durationData.getDurationUs() != Long.MAX_VALUE) {
@@ -834,7 +699,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
         () -> {
           try {
             CaptureObject loadedCaptureObject = future.get();
-            if (mySelection.finishSelectingCaptureObject(loadedCaptureObject)) {
+            if (myCaptureSelection.finishSelectingCaptureObject(loadedCaptureObject)) {
               Collection<HeapSet> heaps = loadedCaptureObject.getHeapSets();
               if (heaps.isEmpty()) {
                 return;
@@ -842,20 +707,20 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
 
               for (HeapSet heap : heaps) {
                 if (heap.getName().equals("app")) {
-                  selectHeapSet(heap);
+                  myCaptureSelection.selectHeapSet(heap);
                   return;
                 }
               }
 
               for (HeapSet heap : heaps) {
                 if (heap.getName().equals("default")) {
-                  selectHeapSet(heap);
+                  myCaptureSelection.selectHeapSet(heap);
                   return;
                 }
               }
 
               HeapSet heap = new ArrayList<>(heaps).get(0);
-              selectHeapSet(heap);
+              myCaptureSelection.selectHeapSet(heap);
             }
             else {
               // Capture loading failed.
@@ -863,7 +728,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
               selectCaptureDuration(null, null);
 
               // Triggers the aspect to inform listeners that the heap content/filter has changed (become null).
-              refreshSelectedHeap();
+              myCaptureSelection.refreshSelectedHeap();
             }
           }
           catch (InterruptedException exception) {
@@ -982,16 +847,6 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
     if (last.getStatus() == Memory.MemoryNativeTrackingData.Status.SUCCESS) {
       nativeAllocationTrackingStart(last);
     }
-  }
-
-  @Nullable
-  public CaptureObject getSelectedCapture() {
-    return mySelection.getCaptureObject();
-  }
-
-  @NotNull
-  public MemoryProfilerConfiguration getConfiguration() {
-    return myConfiguration;
   }
 
   public AxisComponentModel getMemoryAxis() {
@@ -1152,7 +1007,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
     @Override
     public void update(long elapsedNs) {
       if (myTrackingAllocations) {
-        myAspect.changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
+        myCaptureSelection.getAspect().changed(CaptureSelectionAspect.CURRENT_CAPTURE_ELAPSED_TIME);
       }
     }
   }

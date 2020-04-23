@@ -29,20 +29,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
-  @NotNull private final MemoryProfilerStage myStage;
+  @NotNull private final MemoryCaptureSelection mySelection;
 
   public HeapDumpSampleDataSeries(@NotNull ProfilerClient client,
                                   @Nullable Common.Session session,
                                   @NotNull FeatureTracker featureTracker,
-                                  @NotNull MemoryProfilerStage stage) {
+                                  @NotNull MemoryCaptureSelection selection) {
     super(client, session, featureTracker);
-    myStage = stage;
+    mySelection = selection;
   }
 
   @Override
   public List<SeriesData<CaptureDurationData<CaptureObject>>> getDataForRange(Range range) {
     List<HeapDumpInfo> infos =
-      MemoryProfiler.getHeapDumpsForSession(myClient, mySession, range, myStage.getStudioProfilers().getIdeServices());
+      MemoryProfiler.getHeapDumpsForSession(myClient, mySession, range, mySelection.getIdeServices());
 
     List<SeriesData<CaptureDurationData<CaptureObject>>> seriesData = new ArrayList<>();
     for (HeapDumpInfo info : infos) {
@@ -52,7 +52,7 @@ class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
           getDurationUs(info.getStartTime(), info.getEndTime()), false, false,
           new CaptureEntry<>(
             info,
-            () -> new HeapDumpCaptureObject(myClient, mySession, info, null, myFeatureTracker, myStage)))));
+            () -> new HeapDumpCaptureObject(myClient, mySession, info, null, myFeatureTracker, mySelection)))));
     }
 
     return seriesData;

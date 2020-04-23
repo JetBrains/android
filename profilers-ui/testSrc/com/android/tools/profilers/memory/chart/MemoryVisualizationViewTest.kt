@@ -28,10 +28,10 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.memory.ClassGrouping
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MemoryCaptureObjectTestUtils
-import com.android.tools.profilers.memory.MemoryProfilerConfiguration
 import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -61,7 +61,7 @@ class MemoryVisualizationViewTest {
     stage = MemoryProfilerStage(
       StudioProfilers(ProfilerClient(myGrpcChannel.channel), fakeIdeProfilerServices, FakeTimer()),
       loader)
-    visualizationView = MemoryVisualizationView(stage)
+    visualizationView = MemoryVisualizationView(stage.captureSelection)
   }
 
   @Test
@@ -75,12 +75,12 @@ class MemoryVisualizationViewTest {
   @Test
   fun classGroupingResetOnDeselected() {
     val heapSet = MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage)
-    heapSet.classGrouping = MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS
-    assertThat(heapSet.classGrouping).isEqualTo(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS)
+    heapSet.classGrouping = ClassGrouping.ARRANGE_BY_CLASS
+    assertThat(heapSet.classGrouping).isEqualTo(ClassGrouping.ARRANGE_BY_CLASS)
     visualizationView.onSelectionChanged(true)
-    assertThat(heapSet.classGrouping).isEqualTo(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK)
+    assertThat(heapSet.classGrouping).isEqualTo(ClassGrouping.ARRANGE_BY_CALLSTACK)
     visualizationView.onSelectionChanged(false)
-    assertThat(heapSet.classGrouping).isEqualTo(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS)
+    assertThat(heapSet.classGrouping).isEqualTo(ClassGrouping.ARRANGE_BY_CLASS)
   }
 
   @Test

@@ -27,15 +27,14 @@ import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
-  @Nullable private MemoryProfilerStage myStage;
+  @NotNull private MemoryProfilerStage myStage;
 
   public AllocationInfosDataSeries(@NotNull ProfilerClient client,
                                    @NotNull Common.Session session,
                                    @NotNull FeatureTracker featureTracker,
-                                   @Nullable MemoryProfilerStage stage) {
+                                   @NotNull MemoryProfilerStage stage) {
     super(client, session, featureTracker);
     myStage = stage;
   }

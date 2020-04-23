@@ -74,7 +74,7 @@ public class MemoryInstanceDetailsViewTest {
     myStage =
       new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer),
                               loader);
-    myDetailsView = new MemoryInstanceDetailsView(myStage, myFakeIdeProfilerComponents);
+    myDetailsView = new MemoryInstanceDetailsView(myStage.getCaptureSelection(), myFakeIdeProfilerComponents, myStage.getTimeline());
     myFakeCaptureObject = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE").build();
   }
 
@@ -82,7 +82,7 @@ public class MemoryInstanceDetailsViewTest {
   public void NullSelectionVisibilityTest() throws Exception {
     // Null selection
     Component component = myDetailsView.getComponent();
-    assertNull(myStage.getSelectedInstanceObject());
+    assertNull(myStage.getCaptureSelection().getSelectedInstanceObject());
     assertFalse(component.isVisible());
   }
 
@@ -95,7 +95,7 @@ public class MemoryInstanceDetailsViewTest {
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
       null);
-    myStage.selectInstanceObject(fakeInstanceObject);
+    myStage.getCaptureSelection().selectInstanceObject(fakeInstanceObject);
     assertFalse(component.isVisible());
   }
 
@@ -112,7 +112,7 @@ public class MemoryInstanceDetailsViewTest {
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
       null);
-    myStage.selectInstanceObject(referee);
+    myStage.getCaptureSelection().selectInstanceObject(referee);
     assertTrue(component.isVisible());
   }
 
@@ -129,7 +129,7 @@ public class MemoryInstanceDetailsViewTest {
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
       null);
-    myStage.selectInstanceObject(instance);
+    myStage.getCaptureSelection().selectInstanceObject(instance);
     assertTrue(component.isVisible());
   }
 
@@ -227,14 +227,14 @@ public class MemoryInstanceDetailsViewTest {
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
       null);
-    assertNotNull(myStage.getSelectedCapture());
-    myStage
+    assertNotNull(myStage.getCaptureSelection().getSelectedCapture());
+    myStage.getCaptureSelection()
       .selectClassSet((ClassSet)myFakeCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID).findContainingClassifierSet(referee));
-    assertNotNull(myStage.getSelectedClassSet());
-    myStage.selectInstanceObject(referee);
+    assertNotNull(myStage.getCaptureSelection().getSelectedClassSet());
+    myStage.getCaptureSelection().selectInstanceObject(referee);
     JTree tree = myDetailsView.getReferenceTree();
     assertNotNull(tree);
-    assertEquals(referee, myStage.getSelectedInstanceObject());
+    assertEquals(referee, myStage.getCaptureSelection().getSelectedInstanceObject());
 
     // Check that the Go To Instance menu item exists but is disabled since no instance is selected
     List<ContextMenuItem> menus = myFakeIdeProfilerComponents.getComponentContextMenus(tree);
@@ -248,10 +248,10 @@ public class MemoryInstanceDetailsViewTest {
     tree.setSelectionPath(new TreePath(refNode));
     assertTrue(menus.get(0).isEnabled());
     menus.get(0).run();
-    assertEquals(myFakeCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID), myStage.getSelectedHeapSet());
-    assertNotNull(myStage.getSelectedClassSet());
-    assertEquals(myStage.getSelectedClassSet(), myStage.getSelectedClassSet().findContainingClassifierSet(referer));
-    assertEquals(referer, myStage.getSelectedInstanceObject());
+    assertEquals(myFakeCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID), myStage.getCaptureSelection().getSelectedHeapSet());
+    assertNotNull(myStage.getCaptureSelection().getSelectedClassSet());
+    assertEquals(myStage.getCaptureSelection().getSelectedClassSet(), myStage.getCaptureSelection().getSelectedClassSet().findContainingClassifierSet(referer));
+    assertEquals(referer, myStage.getCaptureSelection().getSelectedInstanceObject());
   }
 
   @Test
@@ -285,7 +285,7 @@ public class MemoryInstanceDetailsViewTest {
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
       null);
-    myStage.selectInstanceObject(fakeRootObject);
+    myStage.getCaptureSelection().selectInstanceObject(fakeRootObject);
 
     JTree tree = myDetailsView.getReferenceTree();
     assertNotNull(tree);

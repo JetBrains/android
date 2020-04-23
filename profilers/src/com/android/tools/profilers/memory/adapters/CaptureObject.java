@@ -22,7 +22,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.memory.MemoryProfilerConfiguration;
+import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
@@ -216,7 +216,7 @@ public interface CaptureObject extends MemoryObject {
 
   default void removeAllFilters(@NotNull Executor analyzeJoiner) {}
 
-  default boolean isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping grouping) {
+  default boolean isGroupingSupported(ClassGrouping grouping) {
     switch (grouping) {
       case ARRANGE_BY_CLASS:
       case ARRANGE_BY_PACKAGE:

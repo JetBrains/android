@@ -28,6 +28,7 @@ import static com.android.tools.profilers.memory.SimpleColumnRenderer.onSubclass
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.StandardColors;
@@ -85,7 +86,7 @@ import org.jetbrains.annotations.Nullable;
 final class MemoryClassSetView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 500;
 
-  @NotNull private final MemoryProfilerStage myStage;
+  @NotNull private final MemoryCaptureSelection mySelection;
 
   @NotNull private final ContextMenuInstaller myContextMenuInstaller;
 
@@ -111,19 +112,22 @@ final class MemoryClassSetView extends AspectObserver {
 
   @Nullable private List<FieldObject> myFieldObjectPath;
 
-  MemoryClassSetView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
-    myStage = stage;
+  MemoryClassSetView(@NotNull MemoryCaptureSelection selection,
+                     @NotNull IdeProfilerComponents ideProfilerComponents,
+                     @NotNull Range selectionRange,
+                     @NotNull StreamingTimeline timeline) {
+    mySelection = selection;
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
-    myStage.getAspect().addDependency(this)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCaptureObject)
-      .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
-      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::refreshSelectedInstance)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshAllInstances)
-      .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::refreshFieldPath);
+    mySelection.getAspect().addDependency(this)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, this::refreshCaptureObject)
+      .onChange(CaptureSelectionAspect.CURRENT_CLASS, this::refreshClassSet)
+      .onChange(CaptureSelectionAspect.CURRENT_INSTANCE, this::refreshSelectedInstance)
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, this::refreshAllInstances)
+      .onChange(CaptureSelectionAspect.CURRENT_FIELD_PATH, this::refreshFieldPath);
 
     LongFunction<String> timeFormatter = t ->
-      TimeFormatter.getSemiSimplifiedClockString(stage.getTimeline().convertToRelativeTimeUs(t));
+      TimeFormatter.getSemiSimplifiedClockString(timeline.convertToRelativeTimeUs(t));
 
     myAttributeColumns.put(
       InstanceAttribute.LABEL,
@@ -154,11 +158,8 @@ final class MemoryClassSetView extends AspectObserver {
                                     timeFormatter),
           value -> null,
           makeConditionalGetter(InstanceObject.class, InstanceObject::getAllocTime,
-                                t -> {
-                                  Range selectionRange = myStage.getRangeSelectionModel().getSelectionRange();
-                                  return t >= TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMin()) &&
-                                         t < TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMax());
-                                },
+                                t -> t >= TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMin()) &&
+                                     t < TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMax()),
                                 t -> SimpleTextAttributes.REGULAR_ATTRIBUTES,
                                 SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES),
           SwingConstants.RIGHT),
@@ -185,13 +186,13 @@ final class MemoryClassSetView extends AspectObserver {
       makeSizeColumn("Retained Size", ValueObject::getRetainedSize));
 
 
-    if (!stage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+    if (!selection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
       JPanel headingPanel = new JPanel(new BorderLayout());
       JLabel instanceViewLabel = new JLabel("Instance View");
       instanceViewLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
       headingPanel.add(instanceViewLabel, BorderLayout.WEST);
 
-      CloseButton closeButton = new CloseButton(e -> myStage.selectClassSet(null));
+      CloseButton closeButton = new CloseButton(e -> mySelection.selectClassSet(null));
       headingPanel.add(closeButton, BorderLayout.EAST);
 
       myInstancesPanel.add(headingPanel, BorderLayout.NORTH);
@@ -211,7 +212,7 @@ final class MemoryClassSetView extends AspectObserver {
     myInstanceObject = null;
     myFieldObjectPath = null;
     myInstancesPanel.setVisible(false);
-    myStage.selectInstanceObject(null);
+    mySelection.selectInstanceObject(null);
   }
 
   @NotNull
@@ -261,15 +262,15 @@ final class MemoryClassSetView extends AspectObserver {
       MemoryObject memoryObject = valueNode.getAdapter();
       if (memoryObject instanceof InstanceObject) {
         myInstanceObject = (InstanceObject)valueNode.getAdapter();
-        myStage.selectFieldObjectPath(Collections.emptyList());
-        myStage.selectInstanceObject(myInstanceObject);
+        mySelection.selectFieldObjectPath(Collections.emptyList());
+        mySelection.selectInstanceObject(myInstanceObject);
       }
       else if (memoryObject instanceof FieldObject) {
         assert path.getPathCount() > 2;
         MemoryObjectTreeNode instanceNode = (MemoryObjectTreeNode)path.getPathComponent(1);
         assert instanceNode.getAdapter() instanceof InstanceObject;
         myInstanceObject = (InstanceObject)instanceNode.getAdapter();
-        myStage.selectInstanceObject(myInstanceObject);
+        mySelection.selectInstanceObject(myInstanceObject);
 
         Object[] fieldNodePath = Arrays.copyOfRange(path.getPath(), 2, path.getPathCount());
         ArrayList<FieldObject> fieldObjectPath = new ArrayList<>(fieldNodePath.length);
@@ -281,7 +282,7 @@ final class MemoryClassSetView extends AspectObserver {
           fieldObjectPath.add(((MemoryObjectTreeNode<FieldObject>)fieldNode).getAdapter());
         }
         myFieldObjectPath = fieldObjectPath;
-        myStage.selectFieldObjectPath(fieldObjectPath);
+        mySelection.selectFieldObjectPath(fieldObjectPath);
       }
     });
 
@@ -356,7 +357,7 @@ final class MemoryClassSetView extends AspectObserver {
   private void installTreeContextMenus() {
     assert myTree != null;
 
-    myContextMenuInstaller.installNavigationContextMenu(myTree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+    myContextMenuInstaller.installNavigationContextMenu(myTree, mySelection.getIdeServices().getCodeNavigator(), () -> {
       TreePath selection = myTree.getSelectionPath();
       if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
         return null;
@@ -411,10 +412,10 @@ final class MemoryClassSetView extends AspectObserver {
         assert heapSet != null;
         ClassifierSet classifierSet = heapSet.findContainingClassifierSet(selectedObject);
         assert classifierSet instanceof ClassSet;
-        myStage.selectHeapSet(heapSet);
-        myStage.selectClassSet((ClassSet)classifierSet);
-        myStage.selectInstanceObject(selectedObject);
-        myStage.selectFieldObjectPath(Collections.emptyList());
+        mySelection.selectHeapSet(heapSet);
+        mySelection.selectClassSet((ClassSet)classifierSet);
+        mySelection.selectInstanceObject(selectedObject);
+        mySelection.selectFieldObjectPath(Collections.emptyList());
       }
     });
   }
@@ -440,8 +441,7 @@ final class MemoryClassSetView extends AspectObserver {
                                                   InstanceNodeKt.addChild(
                                                     this,
                                                     subAdapter,
-                                                    myStage.getStudioProfilers().getIdeServices().getFeatureConfig()
-                                                      .isSeparateHeapDumpUiEnabled() ?
+                                                    mySelection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() ?
                                                     LeafNode::new :
                                                     InstanceDetailsTreeNode::new));
 
@@ -462,12 +462,12 @@ final class MemoryClassSetView extends AspectObserver {
   }
 
   private void refreshCaptureObject() {
-    myCaptureObject = myStage.getSelectedCapture();
+    myCaptureObject = mySelection.getSelectedCapture();
     reset();
   }
 
   private void refreshClassSet() {
-    ClassSet classSet = myStage.getSelectedClassSet();
+    ClassSet classSet = mySelection.getSelectedClassSet();
     if (classSet == myClassSet) {
       return;
     }
@@ -490,7 +490,7 @@ final class MemoryClassSetView extends AspectObserver {
   }
 
   private void refreshSelectedInstance() {
-    InstanceObject instanceObject = myStage.getSelectedInstanceObject();
+    InstanceObject instanceObject = mySelection.getSelectedInstanceObject();
     if (myInstanceObject == instanceObject) {
       return;
     }
@@ -517,7 +517,7 @@ final class MemoryClassSetView extends AspectObserver {
     }
 
     if (myClassSet.isEmpty()) {
-      myStage.selectClassSet(ClassSet.EMPTY_SET);
+      mySelection.selectClassSet(ClassSet.EMPTY_SET);
       return;
     }
 
@@ -535,11 +535,11 @@ final class MemoryClassSetView extends AspectObserver {
         return;
       }
     }
-    myStage.selectInstanceObject(null);
+    mySelection.selectInstanceObject(null);
   }
 
   private void refreshFieldPath() {
-    List<FieldObject> fieldPath = myStage.getSelectedFieldObjectPath();
+    List<FieldObject> fieldPath = mySelection.getSelectedFieldObjectPath();
     if (Objects.equals(myFieldObjectPath, fieldPath)) {
       if (myFieldObjectPath != null && !myFieldObjectPath.isEmpty()) {
         assert myTree != null;

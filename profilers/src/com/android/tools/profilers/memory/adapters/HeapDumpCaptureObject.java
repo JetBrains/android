@@ -36,7 +36,6 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.MemoryProfiler;
-import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
@@ -44,6 +43,8 @@ import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.ProjectClassesInstanceFilter;
+import com.android.tools.profilers.memory.CaptureSelectionAspect;
+import com.android.tools.profilers.memory.MemoryCaptureSelection;
 import com.android.tools.proguard.ProguardMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
@@ -102,7 +103,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
   private boolean myHasNativeAllocations;
 
   @NotNull
-  private final MemoryProfilerStage myStage;
+  private final MemoryCaptureSelection mySelection;
 
   private final ActivityFragmentLeakInstanceFilter myActivityFragmentLeakFilter;
 
@@ -118,17 +119,17 @@ public class HeapDumpCaptureObject implements CaptureObject {
                                @NotNull HeapDumpInfo heapDumpInfo,
                                @Nullable ProguardMap proguardMap,
                                @NotNull FeatureTracker featureTracker,
-                               @NotNull MemoryProfilerStage stage) {
+                               @NotNull MemoryCaptureSelection selection) {
     myClient = client;
     mySession = session;
     myHeapDumpInfo = heapDumpInfo;
     myProguardMap = proguardMap;
     myFeatureTracker = featureTracker;
-    myStage = stage;
+    mySelection = selection;
 
     myActivityFragmentLeakFilter = new ActivityFragmentLeakInstanceFilter(myClassDb);
     mySupportedInstanceFilters = ImmutableSet.of(myActivityFragmentLeakFilter,
-                                                 new ProjectClassesInstanceFilter(myStage.getStudioProfilers().getIdeServices()));
+                                                 new ProjectClassesInstanceFilter(mySelection.getIdeServices()));
   }
 
   @NotNull
@@ -225,7 +226,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
       .map(cl -> createClassObjectInstance(null, cl))
       .findAny().orElse(null);
 
-    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+    if (mySelection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
       Map<Heap, HeapSet> heapSets = snapshot.getHeaps().stream()
         .collect(Collectors.toMap(Function.identity(),
                                   heap -> new HeapSet(this, heap.getName(), heap.getId())));
@@ -278,7 +279,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
       });
     }
 
-    myStage.refreshSelectedHeap();
+    mySelection.refreshSelectedHeap();
 
     return true;
   }
@@ -368,7 +369,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
     assert mySupportedInstanceFilters.contains(filterToAdd);
 
     myCurrentInstanceFilters.add(filterToAdd);
-    myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING);
+    mySelection.getAspect().changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATING);
     myExecutorService.execute(() -> {
       // Run the analyzers on the currently existing InstanceObjects in the HeapSets.
       Set<InstanceObject> currentInstances =
@@ -385,7 +386,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
     }
 
     myCurrentInstanceFilters.remove(filterToRemove);
-    myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING);
+    mySelection.getAspect().changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATING);
     myExecutorService.execute(() -> {
       // Run the remaining analyzers on the full instance set, since we don't know that the instances that have been removed from the
       // HeapSets using the filter that we are removing.
@@ -402,14 +403,14 @@ public class HeapDumpCaptureObject implements CaptureObject {
   public void setSingleFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {
     myCurrentInstanceFilters.clear();
     myCurrentInstanceFilters.add(filter);
-    myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING);
+    mySelection.getAspect().changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATING);
     myExecutorService.execute(() -> refreshInstances(filter.filter(getAllInstances()), analyzeJoiner));
   }
 
   @Override
   public void removeAllFilters(@NotNull Executor analyzeJoiner) {
     myCurrentInstanceFilters.clear();
-    myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING);
+    mySelection.getAspect().changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATING);
     myExecutorService.execute(() -> refreshInstances(getAllInstances(), analyzeJoiner));
   }
 
@@ -426,8 +427,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
         .map(h -> (Consumer<InstanceObject>)h::addDeltaInstanceObject).findAny()
         .orElse((InstanceObject inst) -> myHeapSets.get(inst.getHeapId()).addDeltaInstanceObject(inst));
       instances.forEach(onInst);
-      myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATED);
-      myStage.refreshSelectedHeap();
+      mySelection.getAspect().changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATED);
+      mySelection.refreshSelectedHeap();
     });
   }
 

@@ -34,7 +34,7 @@ public final class MemoryCaptureView extends AspectObserver {
     return Logger.getInstance(MemoryCaptureView.class);
   }
 
-  @NotNull private final MemoryProfilerStage myStage;
+  @NotNull private final MemoryCaptureSelection mySelection;
 
   @NotNull private final JLabel myLabel;
 
@@ -42,11 +42,11 @@ public final class MemoryCaptureView extends AspectObserver {
 
   @Nullable private CaptureObject myCaptureObject = null;
 
-  MemoryCaptureView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
-    myStage = stage;
-    myStage.getAspect().addDependency(this)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::reset)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refresh);
+  MemoryCaptureView(@NotNull MemoryCaptureSelection selection, @NotNull IdeProfilerComponents ideProfilerComponents) {
+    mySelection = selection;
+    mySelection.getAspect().addDependency(this)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADING_CAPTURE, this::reset)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, this::refresh);
 
     myPanel = new JPanel(createToolbarLayout());
     myLabel = new JLabel();
@@ -68,11 +68,11 @@ public final class MemoryCaptureView extends AspectObserver {
   private void reset() {
     myPanel.removeAll();
     myLabel.setText("");
-    myCaptureObject = myStage.getSelectedCapture();
+    myCaptureObject = mySelection.getSelectedCapture();
   }
 
   private void refresh() {
-    CaptureObject captureObject = myStage.getSelectedCapture();
+    CaptureObject captureObject = mySelection.getSelectedCapture();
     boolean validCapture = captureObject == myCaptureObject && myCaptureObject != null;
 
     if (validCapture) {

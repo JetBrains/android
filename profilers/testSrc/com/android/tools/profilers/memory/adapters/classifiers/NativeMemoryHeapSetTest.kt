@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers
 
-import com.android.tools.profilers.memory.MemoryProfilerConfiguration
+import com.android.tools.profilers.memory.ClassGrouping
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -35,7 +35,7 @@ class NativeMemoryHeapSetTest {
       FakeCaptureObject.Builder().build())
     val defaultClassifier = heapSet.createSubClassifier()
     assertThat(defaultClassifier).isInstanceOf(NativeAllocationMethodSet.createDefaultClassifier().javaClass)
-    heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK)
+    heapSet.setClassGrouping(ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK)
     val callstackClassifier = heapSet.createSubClassifier()
     assertThat(callstackClassifier).isInstanceOf(NativeCallStackSet.createDefaultClassifier().javaClass)
   }

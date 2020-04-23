@@ -25,16 +25,16 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.ListCellRenderer
 
-internal class MemoryInstanceFilterMenu(stage: MemoryProfilerStage): AspectObserver() {
+internal class MemoryInstanceFilterMenu(selection: MemoryCaptureSelection): AspectObserver() {
   val component = ProfilerCombobox<CaptureObjectInstanceFilter>()
 
   init {
-    stage.aspect.addDependency(this)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE) {
+    selection.aspect.addDependency(this)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADING_CAPTURE) {
         component.isVisible = false
       }
-      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE) {
-        val captureObject = stage.selectedCapture
+      .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE) {
+        val captureObject = selection.selectedCapture
         if (captureObject != null) {
           val filters = captureObject.supportedInstanceFilters
           if (filters.size > 0) {
@@ -53,7 +53,7 @@ internal class MemoryInstanceFilterMenu(stage: MemoryProfilerStage): AspectObser
       }
 
     component.addActionListener {
-      val captureObject = stage.selectedCapture!!
+      val captureObject = selection.selectedCapture!!
       when (val filter = component.selectedItem as CaptureObjectInstanceFilter?) {
         null -> captureObject.removeAllFilters(ApplicationManager.getApplication()::invokeLater)
         else -> captureObject.setSingleFilter(filter, ApplicationManager.getApplication()::invokeLater)

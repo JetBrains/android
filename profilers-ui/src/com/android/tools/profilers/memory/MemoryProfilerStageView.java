@@ -160,14 +160,18 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     // Do not initialize the monitor UI if it only contains heap dump data.
     // In this case, myRangeSelectionComponent is null and we will not build the context menu.
     JPanel monitorUi = getStage().isMemoryCaptureOnly() ? null : buildMonitorUi();
-    CapturePanel capturePanel = new CapturePanel(this);
+    CapturePanel capturePanel = new CapturePanel(getStage().getCaptureSelection(),
+                                                 getStage().isMemoryCaptureOnly() ? null : getSelectionTimeLabel(),
+                                                 getStage().getRangeSelectionModel().getSelectionRange(),
+                                                 getIdeComponents(),
+                                                 getStage().getTimeline());
     Function0<LoadingPanel> makeLoadingPanel = () -> {
       LoadingPanel loadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
       loadingPanel.setLoadingText("Fetching results");
       return loadingPanel;
     };
     myLayout = getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() ?
-               new SeparateHeapDumpMemoryProfilerStageLayout(monitorUi, capturePanel, makeLoadingPanel, stage,
+               new SeparateHeapDumpMemoryProfilerStageLayout(monitorUi, capturePanel, makeLoadingPanel, stage.getCaptureSelection(),
                                                              this::setUpToolbarForTimeline,
                                                              this::setUpToolbarForCapture,
                                                              this::setUpToolbarForLoading) :
@@ -262,10 +266,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myAllocationSamplingRateDropDown = new ProfilerCombobox();
 
     getStage().getAspect().addDependency(this)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
-      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged)
-      .onChange(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
+      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged);
+    getStage().getCaptureSelection().getAspect().addDependency(this)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
+
+      .onChange(CaptureSelectionAspect.CURRENT_CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
 
     setUpToolbarForTimeline();
     captureObjectChanged();
@@ -849,7 +855,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private void captureObjectChanged() {
     // Forcefully ends the previous loading operation if it is still ongoing.
     stopLoadingUi();
-    myCaptureObject = getStage().getSelectedCapture();
+    myCaptureObject = getStage().getCaptureSelection().getSelectedCapture();
     if (myCaptureObject == null) {
       boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
       myAllocationButton.setEnabled(isAlive);
@@ -881,7 +887,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myRangeSelectionComponent.requestFocus();
     }
     myHeapDumpButton.setEnabled(isAlive);
-    if (myCaptureObject != getStage().getSelectedCapture() || myCaptureObject == null) {
+    if (myCaptureObject != getStage().getCaptureSelection().getSelectedCapture() || myCaptureObject == null) {
       return;
     }
 
