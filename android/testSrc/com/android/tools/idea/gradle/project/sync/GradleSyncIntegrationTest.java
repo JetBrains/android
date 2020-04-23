@@ -708,9 +708,11 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     when(taskId.findProject()).thenReturn(project);
 
     // Verify that the task "help" can be found and executed.
+/* b/154962759
     assertTrue(new AndroidGradleTaskManager().executeTasks(taskId, singletonList("help"), project.getBasePath(), null, null,
                                                            new ExternalSystemTaskNotificationListenerAdapter() {
                                                            }));
+b/154962759 */
   }
 
   public void testNDKModelRefreshedWithModifiedCMakeLists() throws Exception {
