@@ -20,10 +20,10 @@
     have duplicate information. The above line indicates that the build should not include this file when
     running the ant tests.
   -->
-  <name>Build Attribution Tests</name>
-  <id>com.android.build.com.android.build.attribution.analyzers.tests</id>
-  <xi:include href="/META-INF/build-attribution.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <name>Gradle Sync Tests</name>
+  <id>intellij.android.projectSystem.gradle.sync.tests</id>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-lang.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

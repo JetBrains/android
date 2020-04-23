@@ -62,5 +62,6 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
     ],
 )
