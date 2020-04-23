@@ -31,7 +31,6 @@ class AndroidKotlinCompletionContributorTest : AndroidGradleTestCase() {
   }
 
   override fun tearDown() {
-    super.tearDown()
     try {
       StudioFlags.KOTLIN_INCORRECT_SCOPE_CHECK_IN_TESTS.clearOverride()
     }
