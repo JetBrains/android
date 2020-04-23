@@ -121,6 +121,7 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
       projectsData.forEach((data) -> {
         attachModelsToFacets(project, data);
       });
+      ProjectStructure.getInstance(project).analyzeProjectStructure();
       syncState.syncSkipped(null);
     }
   }

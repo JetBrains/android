@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags.DAGGER_SUPPORT_ENABLED
 import com.intellij.find.findUsages.CustomUsageSearcher
 import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.components.service
 import com.intellij.psi.PsiElement
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.PsiElementUsageTarget
@@ -30,13 +31,14 @@ import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.usages.impl.rules.UsageTypeProviderEx
 import com.intellij.util.Processor
-import org.jetbrains.kotlin.idea.util.module
 
-private val DEPENDENCY_PROVIDERS_USAGE_TYPE = UsageType(DEPENDENCY_PROVIDERS)
-private val DEPENDENCY_CONSUMERS_USAGE_TYPE = UsageType(DEPENDENCY_CONSUMERS)
-private val DEPENDENCY_COMPONENT_METHOD_USAGE_TYPE = UsageType(DEPENDENCY_COMPONENT_METHODS)
-private val DEPENDENCY_COMPONENT_USAGE_TYPE = UsageType(DEPENDENCY_COMPONENTS)
-private val DEPENDENCY_MODULE_USAGE_TYPE = UsageType(DEPENDENCY_MODULES)
+private val PROVIDERS_USAGE_TYPE = UsageType(UIStrings.PROVIDERS)
+private val CONSUMERS_USAGE_TYPE = UsageType(UIStrings.CONSUMERS)
+private val EXPOSED_BY_COMPONENTS_USAGE_TYPE = UsageType(UIStrings.EXPOSED_BY_COMPONENTS)
+private val PARENT_COMPONENTS_USAGE_TYPE = UsageType(UIStrings.PARENT_COMPONENTS)
+private val SUBCOMPONENTS_USAGE_TYPE = UsageType(UIStrings.SUBCOMPONENTS)
+private val INCLUDED_IN_COMPONENTS_USAGE_TYPE = UsageType(UIStrings.INCLUDED_IN_COMPONENTS)
+private val INCLUDED_IN_MODULES_USAGE_TYPE = UsageType(UIStrings.INCLUDED_IN_MODULES)
 
 /**
  * [UsageTypeProvider] that labels Dagger providers and consumers with the right description.
@@ -46,14 +48,15 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
     val target = (targets.firstOrNull() as? PsiElementUsageTarget)?.element ?: return null
     return when {
       !DAGGER_SUPPORT_ENABLED.get() -> null
-      element?.module?.isDaggerPresent() != true -> null
-      target.isDaggerConsumer && element.isDaggerProvider -> DEPENDENCY_PROVIDERS_USAGE_TYPE
-      target.isDaggerProvider && element.isDaggerConsumer -> DEPENDENCY_CONSUMERS_USAGE_TYPE
-      target.isDaggerProvider && element.isDaggerComponentMethod -> DEPENDENCY_COMPONENT_METHOD_USAGE_TYPE
-      target.isDaggerModule && element.isDaggerComponent -> DEPENDENCY_COMPONENT_USAGE_TYPE
-      target.isDaggerModule && element.isDaggerModule -> DEPENDENCY_MODULE_USAGE_TYPE
-      target.isDaggerComponent && element.isDaggerComponent -> DEPENDENCY_COMPONENT_USAGE_TYPE
-      target.isDaggerSubcomponent && element.isDaggerComponent -> DEPENDENCY_COMPONENT_USAGE_TYPE
+      element?.project?.service<DaggerDependencyChecker>()?.isDaggerPresent() != true -> null
+      target.isDaggerConsumer && element.isDaggerProvider -> PROVIDERS_USAGE_TYPE
+      target.isDaggerProvider && element.isDaggerConsumer -> CONSUMERS_USAGE_TYPE
+      target.isDaggerProvider && element.isDaggerComponentMethod -> EXPOSED_BY_COMPONENTS_USAGE_TYPE
+      target.isDaggerModule && element.isDaggerComponent -> INCLUDED_IN_COMPONENTS_USAGE_TYPE
+      target.isDaggerModule && element.isDaggerModule -> INCLUDED_IN_MODULES_USAGE_TYPE
+      target.isDaggerComponent && element.isDaggerComponent -> PARENT_COMPONENTS_USAGE_TYPE
+      target.isDaggerSubcomponent && element.isDaggerComponent -> PARENT_COMPONENTS_USAGE_TYPE
+      target.isDaggerComponent && element.isDaggerSubcomponent -> SUBCOMPONENTS_USAGE_TYPE
       else -> null
     }
   }
@@ -76,7 +79,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
     runReadAction {
       when {
         !DAGGER_SUPPORT_ENABLED.get() -> return@runReadAction
-        element.module?.isDaggerPresent() != true -> return@runReadAction
+        !element.project.service<DaggerDependencyChecker>().isDaggerPresent() -> return@runReadAction
         element.isDaggerConsumer -> processCustomUsagesForConsumers(element, processor)
         element.isDaggerProvider -> processCustomUsagesForProvider(element, processor)
         element.isDaggerModule -> processCustomUsagesForModule(element, processor)
@@ -102,6 +105,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
   private fun processCustomUsagesForComponent(component: PsiElement, processor: Processor<Usage>) {
     // component is always PsiClass or KtClass, see [isDaggerComponent].
     getDependantComponentsForComponent(component.toPsiClass()!!).forEach { processor.process(UsageInfo2UsageAdapter(UsageInfo(it))) }
+    getSubcomponents(component.toPsiClass()!!).forEach { processor.process(UsageInfo2UsageAdapter(UsageInfo(it))) }
   }
 
   /**

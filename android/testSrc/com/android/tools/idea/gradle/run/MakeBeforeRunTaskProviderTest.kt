@@ -23,6 +23,7 @@ import com.android.sdklib.devices.Abi
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.SyncNeeded
 import com.android.tools.idea.run.AndroidDevice
+import com.android.tools.idea.run.AndroidDeviceSpec
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -47,6 +48,7 @@ import org.mockito.MockitoAnnotations.initMocks
 import org.mockito.invocation.InvocationOnMock
 import java.io.File
 import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
 
 class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   @Mock
@@ -95,7 +97,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86))
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
-                                                                         listOf(myDevice))
+                                                                         deviceSpec(myDevice))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=20"))
     assertTrue(arguments.contains("-Pandroid.injected.build.abi=armeabi,x86"))
     for (argument in arguments) {
@@ -110,7 +112,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(myDevice.density).thenReturn(640)
     `when`(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
     val arguments =
-      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, listOf(myDevice))
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=23"))
     assertTrue(arguments.contains("-Pandroid.injected.build.codename=N"))
   }
@@ -125,7 +127,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     myRunConfiguration.DEPLOY_APK_FROM_BUNDLE = true
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
-                                                                         listOf(myDevice))
+                                                                         deviceSpec(myDevice))
     val expectedJson = "{\"sdk_version\":23,\"screen_density\":640,\"supported_abis\":[\"armeabi\"],\"supported_locales\":[\"es\",\"fr\"]}"
     assertExpectedJsonFile(arguments, expectedJson)
   }
@@ -145,7 +147,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     myRunConfiguration.DEPLOY_APK_FROM_BUNDLE = true
 
     val arguments =
-      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, listOf(myDevice))
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
     assertTrue(arguments.contains("-Pandroid.injected.modules.install.list=feature1,feature2"))
   }
 
@@ -165,7 +167,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     // Invoke method and check result matches arguments needed for invoking "select apks from bundle" task
     // (as opposed to the regular "assemble" task
     val arguments =
-      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, listOf(myDevice))
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
     assertExpectedJsonFile(arguments, "{\"sdk_version\":20,\"screen_density\":640,\"supported_abis\":[\"armeabi\"]}")
   }
 
@@ -181,7 +183,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     // Invoke method and check result matches arguments needed for invoking "select apks from bundle" task
     // (as opposed to the regular "assemble" task
     val arguments =
-      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, listOf(myDevice))
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=20"))
     assertTrue(arguments.contains("-Pandroid.injected.build.abi=armeabi"))
   }
@@ -197,7 +199,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(device2.density).thenReturn(480)
     `when`(device2.abis).thenReturn(ImmutableList.of(Abi.X86, Abi.X86_64))
     val arguments =
-      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, ImmutableList.of(device1, device2))
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(device1, device2))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=22"))
     for (argument in arguments) {
       assertFalse("ABIs should not be passed to Gradle when there are multiple devices",
@@ -263,3 +265,6 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     }
   }
 }
+
+private fun deviceSpec(vararg devices: AndroidDevice): AndroidDeviceSpec? =
+  createSpec(devices.toList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!

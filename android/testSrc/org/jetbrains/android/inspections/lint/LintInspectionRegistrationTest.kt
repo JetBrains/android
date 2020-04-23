@@ -22,7 +22,7 @@ import com.android.tools.idea.lint.LintIdeViewTypeDetector
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX
 import com.android.tools.idea.lint.common.LintIdeIssueRegistry
-import com.android.tools.idea.lint.common.LintIdeProject.SUPPORT_CLASS_FILES
+import com.android.tools.idea.lint.common.LintIdeClient.SUPPORT_CLASS_FILES
 import com.android.tools.lint.checks.CheckResultDetector
 import com.android.tools.lint.checks.PermissionDetector
 import com.android.tools.lint.checks.ViewTypeDetector

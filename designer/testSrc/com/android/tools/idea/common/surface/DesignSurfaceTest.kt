@@ -174,7 +174,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
                   disposible,
                   java.util.function.Function { TestActionManager(it) },
                   java.util.function.Function { TestInteractionHandler(it) },
-                  State.FULL,
                   true,
                   java.util.function.Function { TestLayoutManager(it) },
                   java.util.function.Function { TestActionHandler(it) }) {

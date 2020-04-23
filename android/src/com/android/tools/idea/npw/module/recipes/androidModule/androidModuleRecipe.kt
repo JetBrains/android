@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule
 
-import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStyles
-import com.android.tools.idea.npw.module.recipes.androidModule.res.values_night.androidModuleStyles as androidModuleStylesNight
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values_night.androidModuleThemes as androidModuleThemesNight
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
@@ -39,11 +39,15 @@ fun RecipeExecutor.generateAndroidModule(
     data = data,
     appTitle = appTitle,
     useKts = useKts,
-    manifestXml = generateManifest(data.packageName, !data.isLibrary),
+    manifestXml = generateManifest(
+      packageName = data.packageName,
+      hasApplicationBlock = !data.isLibrary,
+      theme = "@style/${data.themesData.main.name}"
+    ),
     generateTests= true,
     includeCppSupport = includeCppSupport,
-    stylesXml = androidModuleStyles(useAndroidX),
-    stylesXmlNight = androidModuleStylesNight(useAndroidX),
+    themesXml = androidModuleThemes(useAndroidX, data.themesData.main.name),
+    themesXmlNight = androidModuleThemesNight(useAndroidX, data.themesData.main.name),
     cppFlags = cppFlags
   )
   val projectData = data.projectTemplateData

@@ -16,17 +16,13 @@
 package com.android.tools.idea.sqlite.databaseConnection.live
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.project.Project
 import java.util.concurrent.Executor
 
 /**
@@ -36,69 +32,28 @@ import java.util.concurrent.Executor
  * @param messenger Used to send messages to an on-device inspector.
  * @param taskExecutor Used to execute IO operation on a background thread.
  */
-class LiveSqliteResultSet(
-  private val project: Project,
+abstract class LiveSqliteResultSet(
   private val sqliteStatement: SqliteStatement,
-  private val messenger: AppInspectorClient.CommandMessenger,
+  private val messenger: DatabaseInspectorMessenger,
   private val connectionId: Int,
   private val taskExecutor: Executor
 ) : SqliteResultSet {
 
   override val columns: ListenableFuture<List<ResultSetSqliteColumn>> get() {
-    val queryCommand = buildQueryCommand(sqliteStatement, connectionId)
-    val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
-
-    return responseFuture.transform(taskExecutor) {
-      val response = SqliteInspectorProtocol.Response.parseFrom(it)
-
-      if (response.hasErrorOccurred()) {
-        handleError(project, response.errorOccurred.content, logger<LiveSqliteResultSet>())
-      }
-
-      return@transform response.query.columnNamesList.map { columnName ->
+    return sendQueryCommand(sqliteStatement).transform(taskExecutor) { response ->
+      response.query.columnNamesList.map { columnName ->
         ResultSetSqliteColumn(columnName, null, null, null)
       }
-    }.cancelOnDispose(this)
+    }
   }
 
-  override val totalRowCount: ListenableFuture<Int> get() {
-    val queryCommand = buildQueryCommand(sqliteStatement.toRowCountStatement(), connectionId)
-    val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
+  abstract override val totalRowCount: ListenableFuture<Int>
+  abstract override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>>
 
-    return responseFuture.transform(taskExecutor) {
-      val response = SqliteInspectorProtocol.Response.parseFrom(it)
-
-      if (response.hasErrorOccurred()) {
-        handleError(project, response.errorOccurred.content, logger<LiveSqliteResultSet>())
-      }
-
-      response.query.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.intValue ?: 0
-    }.cancelOnDispose(this)
+  protected fun sendQueryCommand(sqliteStatement: SqliteStatement): ListenableFuture<SqliteInspectorProtocol.Response> {
+    val queryCommand = buildQueryCommand(sqliteStatement, connectionId)
+    return messenger.sendCommand(queryCommand).cancelOnDispose(this)
   }
 
-  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
-    checkOffsetAndSize(rowOffset, rowBatchSize)
-
-    val queryCommand = buildQueryCommand(sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize), connectionId)
-    val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
-
-    return responseFuture.transform(taskExecutor) { byteArray ->
-      val response = SqliteInspectorProtocol.Response.parseFrom(byteArray)
-
-      if (response.hasErrorOccurred()) {
-        handleError(project, response.errorOccurred.content, logger<LiveSqliteResultSet>())
-      }
-
-      val columnNames = response.query.columnNamesList
-      val rows = response.query.rowsList.map {
-        val sqliteColumnValues = it.valuesList.mapIndexed { index, cellValue -> cellValue.toSqliteColumnValue(columnNames[index]) }
-        SqliteRow(sqliteColumnValues)
-      }
-
-      rows
-    }.cancelOnDispose(this)
-  }
-
-  override fun dispose() {
-  }
+  override fun dispose() { }
 }

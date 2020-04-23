@@ -19,13 +19,13 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.emulator.control.VmRunState
 import com.android.tools.idea.concurrency.AndroidIoManager
+import com.android.tools.idea.emulator.ConfigurationOverrider.getDefaultConfiguration
 import com.google.common.collect.ImmutableSet
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.Alarm
 import gnu.trove.TObjectLongHashMap
@@ -48,7 +48,6 @@ class RunningEmulatorCatalog : Disposable.Parent {
   // TODO: Use WatchService instead of polling.
   @Volatile var emulators: Set<EmulatorController> = ImmutableSet.of()
 
-  private val registrationDir = getRegistrationDirectory()
   private val fileNamePattern = Pattern.compile("pid_\\d+.ini")
   private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
   @Volatile private var isDisposing = false
@@ -259,7 +258,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
 
   private fun readRegistrationDirectory(): List<Path> {
     return try {
-      Files.list(registrationDir).use {
+      Files.list(getDefaultConfiguration().emulatorRegistrationDirectory).use {
         it.filter { fileNamePattern.matcher(it.fileName.toString()).matches() }.toList()
       }
     } catch (e: NoSuchFileException) {
@@ -273,6 +272,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private fun readEmulatorInfo(file: Path): EmulatorId? {
     var grpcPort = 0
     var grpcCertificate: String? = null
+    var grpcToken: String? = null
     var avdId: String? = null
     var avdName: String? = null
     var avdFolder: Path? = null
@@ -287,6 +287,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
           }
           line.startsWith("grpc.certificate=") -> {
             grpcCertificate = line.substring("grpc.certificate=".length)
+          }
+          line.startsWith("grpc.token=") -> {
+            grpcToken = line.substring("grpc.token=".length)
           }
           line.startsWith("avd.id=") -> {
             avdId = line.substring("add.id=".length)
@@ -312,33 +315,15 @@ class RunningEmulatorCatalog : Disposable.Parent {
     catch (ignore: IOException) {
     }
 
-    return if (grpcPort > 0 && grpcCertificate != null && avdId != null && avdName != null && serialPort != 0 && adbPort != 0) {
-      EmulatorId(grpcPort, grpcCertificate, avdId, avdName, avdFolder, serialPort, adbPort, commandLine, file.fileName.toString())
+    if (grpcPort <= 0 || avdId == null || avdName == null || avdFolder == null ||
+        serialPort <= 0 && adbPort <= 0 || commandLine.isEmpty()) {
+      return null
     }
-    else {
-      null
-    }
-  }
 
-  private fun getRegistrationDirectory(): Path {
-    val dirInfo =
-      when {
-        SystemInfo.isMac -> {
-          DirDescriptor("HOME", "Library/Caches/TemporaryItems")
-        }
-        SystemInfo.isWindows -> {
-          DirDescriptor("LOCALAPPDATA", "Temp")
-        }
-        else -> {
-          DirDescriptor("XDG_RUNTIME_DIR", null)
-        }
-      }
-
-    val base = System.getenv(dirInfo.environmentVariable)
-    if (dirInfo.relativePath == null) {
-      return Paths.get(base, REGISTRATION_DIRECTORY_RELATIVE_PATH)
-    }
-    return Paths.get(base, dirInfo.relativePath, REGISTRATION_DIRECTORY_RELATIVE_PATH)
+    return EmulatorId(grpcPort = grpcPort, grpcCertificate = grpcCertificate, grpcToken = grpcToken,
+                      avdId = avdId, avdName = avdName, avdFolder = avdFolder,
+                      serialPort = serialPort, adbPort = adbPort, commandLine = commandLine,
+                      registrationFileName = file.fileName.toString())
   }
 
   override fun beforeTreeDispose() {
@@ -376,14 +361,10 @@ class RunningEmulatorCatalog : Disposable.Parent {
     fun emulatorRemoved(emulator: EmulatorController)
   }
 
-  private class DirDescriptor(val environmentVariable: String, val relativePath: String?)
-
   companion object {
     @JvmStatic
     fun getInstance(): RunningEmulatorCatalog {
       return ServiceManager.getService(RunningEmulatorCatalog::class.java)
     }
-
-    private const val REGISTRATION_DIRECTORY_RELATIVE_PATH = "avd/running"
   }
 }

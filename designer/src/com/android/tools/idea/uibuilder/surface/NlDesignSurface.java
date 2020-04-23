@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
@@ -64,14 +65,15 @@ import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.intellij.concurrency.JobScheduler;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
 import java.awt.Container;
@@ -81,6 +83,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -98,6 +102,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   private static final double DEFAULT_MIN_SCALE = 0.1;
   private static final double DEFAULT_MAX_SCALE = 10;
+
+  private static final int STOP_SCROLLING_RENDER_DELAY_MS = 50;
 
   private static class NlDesignSurfacePositionableContentLayoutManager extends PositionableContentLayoutManager {
     private final NlDesignSurface myDesignSurface;
@@ -121,7 +127,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       Dimension extentSize = myDesignSurface.getExtentSize();
       int availableWidth = extentSize.width;
       int availableHeight = extentSize.height;
-      Dimension dimension = myLayoutManager.getRequiredSize(myDesignSurface.getSceneViews(), availableWidth, availableHeight, null);
+      Dimension dimension = myLayoutManager.getRequiredSize(myDesignSurface.getPositionableContent(), availableWidth, availableHeight, null);
 
       if (dimension.width >= 0 && dimension.height >= 0) {
         dimension.setSize(dimension.width + 2 * DEFAULT_SCREEN_OFFSET_X, dimension.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
@@ -150,7 +156,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private boolean myIsEditable = true;
     private SurfaceLayoutManager myLayoutManager;
     private NavigationHandler myNavigationHandler;
-    @NotNull private State myDefaultSurfaceState = State.FULL;
     private double myMinScale = DEFAULT_MIN_SCALE;
     private double myMaxScale = DEFAULT_MAX_SCALE;
     @NotNull private ZoomType myOnChangeZoom = ZoomType.FIT_INTO;
@@ -250,16 +255,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     /**
-     * Specify the default {@link State} of this {@link NlDesignSurface}, which will be set for newly created files or if the {@link State}
-     * is not overridden somewhere else (e.g. {@link State} saved before closing the file).
-     */
-    @NotNull
-    public Builder setDefaultSurfaceState(@NotNull State surfaceState) {
-      myDefaultSurfaceState = surfaceState;
-      return this;
-    }
-
-    /**
      * When the surface is clicked, it can delegate navigation related task to the given handler.
      * @param navigationHandler handles the navigation when the surface is clicked.
      */
@@ -335,7 +330,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  layoutManager,
                                  myActionManagerProvider,
                                  myInteractionHandlerProvider,
-                                 myDefaultSurfaceState,
                                  myNavigationHandler,
                                  myMinScale,
                                  myMaxScale,
@@ -392,6 +386,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
 
+  @Nullable private ScheduledFuture<?> myStopScrollingRenderFuture = null;
+
   private final Dimension myScrollableViewMinSize = new Dimension();
   @Nullable private NlLayoutValidator myValidator;
 
@@ -404,13 +400,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull SurfaceLayoutManager layoutManager,
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
                           @NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider,
-                          @NotNull State defaultSurfaceState,
                           @Nullable NavigationHandler navigationHandler,
                           double minScale,
                           double maxScale,
                           @NotNull ZoomType onChangeZoom,
                           @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider) {
-    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceState, isEditable, onChangeZoom,
+    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable, onChangeZoom,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, layoutManager),
           actionHandlerProvider);
     myAnalyticsManager = new NlAnalyticsManager(this);
@@ -428,8 +423,19 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myMinScale = minScale;
     myMaxScale = maxScale;
 
-  if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get())
-    myValidator = new NlLayoutValidator(myIssueModel, this);
+    if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get()) {
+      myValidator = new NlLayoutValidator(myIssueModel, this);
+    }
+    myScrollPane.getViewport().addChangeListener(e -> {
+      requestRender();
+      if (myStopScrollingRenderFuture != null) {
+        myStopScrollingRenderFuture.cancel(true);
+      }
+      myStopScrollingRenderFuture = JobScheduler.getScheduler()
+        .schedule((Runnable)() -> CompletableFuture.runAsync(() -> requestRender(), EdtExecutorService.getInstance()),
+                  STOP_SCROLLING_RENDER_DELAY_MS,
+                  TimeUnit.MILLISECONDS);
+    });
   }
 
   /**
@@ -708,6 +714,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public void dispose() {
     myAccessoryPanel.setSurface(null);
     super.dispose();
+    if (myStopScrollingRenderFuture != null) {
+      myStopScrollingRenderFuture.cancel(true);
+    }
   }
 
   @Override
@@ -937,7 +946,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   public Object getData(@NotNull String dataId) {
-    if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId)) {
+    if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId) ) {
+      return this;
+    }
+    else if (DESIGN_SURFACE.is(dataId)) {
       return this;
     }
     return super.getData(dataId);

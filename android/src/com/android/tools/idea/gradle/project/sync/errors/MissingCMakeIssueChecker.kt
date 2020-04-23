@@ -33,6 +33,7 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.io.File
 import java.io.IOException
 
@@ -109,7 +110,7 @@ fun versionSatisfies(candidateCmake: Revision, requestedCmake: RevisionOrHigher)
 
 open class MissingCMakeIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
+    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
 
     val description = when {
        (matchesCannotFindCmake(message) || matchesTriedInstall(message) || matchesCmakeWithVersion(message)) -> {
@@ -161,7 +162,7 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
     if (alreadyInstalledCmake != null) {
       // A suitable CMake was already installed.
       try {
-        // Get the cmake.dir property from local.properties. If none exists, prompt the user to set one
+        // Get the cmake.dir property from locaissueData.error.getRootCause()l.properties. If none exists, prompt the user to set one
         val cmakeDir= getLocalProperties(issueData.projectPath)
         if (cmakeDir == null) {
           description.addQuickFix("Set cmake.dir in local.properties to '${alreadyInstalledCmake}' .",

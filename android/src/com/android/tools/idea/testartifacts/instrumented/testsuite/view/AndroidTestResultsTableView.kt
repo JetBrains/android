@@ -24,6 +24,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.progress.util.ColorProgressBar
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.TableView
@@ -32,12 +33,17 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import java.awt.Color
 import java.awt.Component
+import java.util.Comparator
+import java.io.File
 import javax.swing.Icon
 import javax.swing.JTable
 import javax.swing.ListSelectionModel
+import javax.swing.RowFilter
 import javax.swing.event.ListSelectionEvent
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
+import javax.swing.table.TableModel
+import javax.swing.table.TableRowSorter
 
 /**
  * A table to display Android test results. Test results are grouped by device and test case. The column is a device name
@@ -69,6 +75,36 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener) {
   @UiThread
   fun addTestCase(device: AndroidDevice, testCase: AndroidTestCase) {
     myModel.addTestResultsRow(device, testCase)
+    refreshTable()
+  }
+
+  /**
+   * Sets a filter to hide specific rows from this table.
+   *
+   * @param filter a predicate which returns false for an item to be hidden
+   */
+  @UiThread
+  fun setRowFilter(filter: (AndroidTestResults) -> Boolean) {
+    val sorter = myTableView.rowSorter as? TableRowSorter ?: return
+    sorter.rowFilter = object: RowFilter<TableModel, Int>() {
+      override fun include(entry: Entry<out TableModel, out Int>): Boolean {
+        if (entry.valueCount == 0) {
+          return false
+        }
+        val results = entry.getValue(0) as? AndroidTestResults ?: return false
+        return filter(results)
+      }
+    }
+  }
+
+  /**
+   * Sets a filter to hide specific columns from this table.
+   *
+   * @param filter a predicate which returns false for an column to be hidden
+   */
+  @UiThread
+  fun setColumnFilter(filter: (AndroidDevice) -> Boolean) {
+    myModel.setVisibleCondition(filter)
     refreshTable()
   }
 
@@ -112,8 +148,11 @@ interface AndroidTestResultsTableListener {
    * is invoked only for the first time.
    *
    * @param selectedResults results which a user selected
+   * @param selectedDevice Android device which a user selected
+   *   or null if a user clicks on non-device specific column
    */
-  fun onAndroidTestResultsRowSelected(selectedResults: AndroidTestResults)
+  fun onAndroidTestResultsRowSelected(selectedResults: AndroidTestResults,
+                                      selectedDevice: AndroidDevice?)
 }
 
 /**
@@ -144,18 +183,24 @@ fun getColorFor(androidTestResult: AndroidTestCaseResult?): Color? {
 /**
  * An internal swing view component implementing AndroidTestResults table view.
  */
-private class AndroidTestResultsTableViewComponent(model: AndroidTestResultsTableModel,
+private class AndroidTestResultsTableViewComponent(private val model: AndroidTestResultsTableModel,
                                                    private val listener: AndroidTestResultsTableListener)
   : TableView<AndroidTestResultsRow>(model) {
   init {
     putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
     selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
+    autoResizeMode = AUTO_RESIZE_OFF
+    tableHeader.resizingAllowed = false
+    tableHeader.reorderingAllowed = false
+    showHorizontalLines = false
   }
 
   override fun valueChanged(event: ListSelectionEvent) {
     super.valueChanged(event)
     selectedObject?.let {
-      listener.onAndroidTestResultsRowSelected(it)
+      listener.onAndroidTestResultsRowSelected(
+        it,
+        (model.columnInfos.getOrNull(selectedColumn) as? AndroidTestResultsColumn)?.device)
       clearSelection()
     }
   }
@@ -165,7 +210,7 @@ private class AndroidTestResultsTableViewComponent(model: AndroidTestResultsTabl
  * A view model class of [AndroidTestResultsTableViewComponent].
  */
 private class AndroidTestResultsTableModel :
-  ListTableModel<AndroidTestResultsRow>(TestNameColumn(), TestStatusColumn()) {
+  ListTableModel<AndroidTestResultsRow>(TestNameColumn, TestStatusColumn) {
 
   /**
    * A map of test results rows. The key is [AndroidTestCase.id] and the value is [AndroidTestResultsRow].
@@ -174,10 +219,17 @@ private class AndroidTestResultsTableModel :
   private val myTestResultsRows = mutableMapOf<String, AndroidTestResultsRow>()
 
   /**
+   * A current visible condition.
+   */
+  private var myVisibleCondition: ((AndroidDevice) -> Boolean)? = null
+
+  /**
    * Creates and adds a new column for a given device.
    */
   fun addDeviceColumn(device: AndroidDevice) {
-    columnInfos += AndroidTestResultsColumn(device)
+    columnInfos += AndroidTestResultsColumn(device).apply {
+      myVisibleCondition = this@AndroidTestResultsTableModel.myVisibleCondition
+    }
   }
 
   /**
@@ -191,19 +243,39 @@ private class AndroidTestResultsTableModel :
     row.addTestCase(device, testCase)
     fireTableDataChanged()
   }
+
+  /**
+   * Sets a visible condition.
+   *
+   * @param visibleCondition a predicate which returns true for an column to be displayed
+   */
+  fun setVisibleCondition(visibleCondition: (AndroidDevice) -> Boolean) {
+    myVisibleCondition = visibleCondition
+    columnInfos.forEach {
+      if (it is AndroidTestResultsColumn) {
+        it.myVisibleCondition = myVisibleCondition
+      }
+    }
+  }
 }
 
 /**
  * A column for displaying a test name.
  */
-private class TestNameColumn : ColumnInfo<AndroidTestResultsRow, AndroidTestResultsRow>("Tests") {
+private object TestNameColumn : ColumnInfo<AndroidTestResultsRow, AndroidTestResultsRow>("Tests") {
+  private val myComparator = Comparator<AndroidTestResultsRow> { lhs, rhs ->
+    compareValues(lhs.testCaseName, rhs.testCaseName)
+  }
   override fun valueOf(item: AndroidTestResultsRow): AndroidTestResultsRow = item
+  override fun getComparator(): Comparator<AndroidTestResultsRow> = myComparator
+  override fun getWidth(table: JTable?): Int = 400
   override fun getCustomizedRenderer(o: AndroidTestResultsRow?, renderer: TableCellRenderer?): TableCellRenderer {
     return TestNameColumnCellRenderer
   }
 }
 
 private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
+  const val maxDisplayNameLength: Int = 40
   private val myEmptyBorder = JBUI.Borders.empty(10)
   override fun getTableCellRendererComponent(table: JTable?,
                                              value: Any?,
@@ -213,7 +285,8 @@ private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
                                              column: Int): Component {
     val results = value as? AndroidTestResultsRow ?: return this
 
-    super.getTableCellRendererComponent(table, results.testCaseName, isSelected, hasFocus, row, column)
+    val shortenedName = StringUtil.last(results.testCaseName, maxDisplayNameLength, true)
+    super.getTableCellRendererComponent(table, shortenedName, isSelected, hasFocus, row, column)
     icon = getIconFor(results.getTestResultSummary())
     border = myEmptyBorder
 
@@ -224,8 +297,12 @@ private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
 /**
  * A column for displaying an aggregated test result grouped by a test case ID.
  */
-private class TestStatusColumn : ColumnInfo<AndroidTestResultsRow, AndroidTestResultsRow>("Status") {
+private object TestStatusColumn : ColumnInfo<AndroidTestResultsRow, AndroidTestResultsRow>("Status") {
+  private val myComparator = Comparator<AndroidTestResultsRow> { lhs, rhs ->
+    compareValues(lhs.getTestResultSummary(), rhs.getTestResultSummary())
+  }
   override fun valueOf(item: AndroidTestResultsRow): AndroidTestResultsRow = item
+  override fun getComparator(): Comparator<AndroidTestResultsRow> = myComparator
   override fun getWidth(table: JTable): Int = 80
   override fun getCustomizedRenderer(o: AndroidTestResultsRow?, renderer: TableCellRenderer?): TableCellRenderer {
     return TestStatusColumnCellRenderer
@@ -255,12 +332,23 @@ private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
  *
  * @param device shows an individual test case result in this column for a given [device]
  */
-private class AndroidTestResultsColumn(private val device: AndroidDevice) :
+private class AndroidTestResultsColumn(val device: AndroidDevice) :
   ColumnInfo<AndroidTestResultsRow, AndroidTestCaseResult?>(device.name) {
+  private val myComparator = Comparator<AndroidTestResultsRow> { lhs, rhs ->
+    compareValues(lhs.getTestCaseResult(device), rhs.getTestCaseResult(device))
+  }
+  var myVisibleCondition: ((AndroidDevice) -> Boolean)? = null
   override fun valueOf(item: AndroidTestResultsRow): AndroidTestCaseResult? {
     return item.getTestCaseResult(device)
   }
-  override fun getWidth(table: JTable): Int = 120
+  override fun getComparator(): Comparator<AndroidTestResultsRow> = myComparator
+  override fun getWidth(table: JTable): Int {
+    val isVisible = myVisibleCondition?.invoke(device) ?: true
+    // JTable does not support hiding columns natively. We simply set the column
+    // width to 1 px to hide. Note that you cannot set zero here because it will be
+    // ignored. See TableView.updateColumnSizes for details.
+    return if (isVisible) { 120 } else { 1 }
+  }
   override fun getCustomizedRenderer(o: AndroidTestResultsRow?, renderer: TableCellRenderer?): TableCellRenderer {
     return AndroidTestResultsColumnCellRenderer
   }
@@ -312,6 +400,16 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
    * Returns an error stack for a given [device].
    */
   override fun getErrorStackTrace(device: AndroidDevice): String = myTestCases[device.id]?.errorStackTrace ?: ""
+
+  /**
+   * Returns a benchmark result for a given [device].
+   */
+  override fun getBenchmark(device: AndroidDevice): String = myTestCases[device.id]?.benchmark ?: ""
+
+  /**
+   * Returns the snapshot artifact from Android Test Retention if available.
+   */
+  override fun getRetentionSnapshot(device: AndroidDevice): File? = myTestCases[device.id]?.retentionSnapshot
 
   /**
    * Returns a one liner test result summary string.

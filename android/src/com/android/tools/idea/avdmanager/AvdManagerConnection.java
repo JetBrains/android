@@ -591,9 +591,14 @@ public class AvdManagerConnection {
     // In order for an AVD to be launched in a tool window the corresponding option should be
     // enabled in Emulator settings and the AVD should not be foldable, TV, or Android Auto.
     return EmulatorSettings.getInstance().getLaunchInToolWindow() &&
-           avd.getProperty("hw.displayRegion.0.1.width") == null && // Not foldable.
+           !isFoldable(avd) &&
            !"android-tv".equals(avd.getProperty(AVD_INI_TAG_ID)) &&
            !"android-automotive".equals(avd.getProperty(AVD_INI_TAG_ID));
+  }
+
+  public static boolean isFoldable(@NotNull AvdInfo avd) {
+    String displayRegionWidth = avd.getProperty("hw.displayRegion.0.1.width");
+    return displayRegionWidth != null && !"0".equals(displayRegionWidth);
   }
 
   /**

@@ -439,9 +439,11 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
         File("stub_assetsFolder"),
         it.variant,
         emptyList(),
-        File("srub_proguard.txt"),
+        File("stub_proguard.txt"),
         File("stub_lintJar.jar"),
-        File("stub_publicResources")
+        File("stub_publicResources"),
+        File("stub_symbolFile.txt"),
+        File("stub_annotations.zip")
       )
     }
   )
@@ -561,6 +563,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     listOfNotNull(debugBuildType, releaseBuildType),
     listOf(),
     "buildToolsVersion",
+    "ndkVersion",
     listOf(),
     listOf("debug", "release")
       .map { variant ->

@@ -17,17 +17,18 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
-import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 class GradleBrokenPipeIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
+    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (message.isEmpty() || !message.startsWith("Broken pipe")) return null
 
     // Log metrics.
@@ -36,7 +37,7 @@ class GradleBrokenPipeIssueChecker : GradleIssueChecker {
     }
     val description = MessageComposer("Broken pipe.").apply {
       addDescription("The Gradle daemon may be trying to use ipv4 instead of ipv6.")
-      addQuickFix("More info (including workarounds)", ConnectionPermissionDeniedIssueChecker.OpenLinkQuickFix("https://developer.android.com/r/studio-ui/known-issues.html"
+      addQuickFix("More info (including workarounds)", OpenLinkQuickFix("https://developer.android.com/r/studio-ui/known-issues.html"
       ))
     }
     return return object : BuildIssue {

@@ -35,27 +35,22 @@ import org.jetbrains.annotations.NotNull;
  */
 final class MultipleDevicesAction extends AnAction {
   @NotNull
-  private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
-
-  @NotNull
   private final Function<Project, RunnerAndConfigurationSettings> myGetSelectedConfiguration;
 
   @NotNull
-  private final Function<Project, SelectedDevicesService> mySelectedDevicesServiceGetInstance;
+  private final Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
 
-  MultipleDevicesAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
-    this(comboBoxAction, project -> RunManager.getInstance(project).getSelectedConfiguration(), SelectedDevicesService::getInstance);
+  MultipleDevicesAction() {
+    this(project -> RunManager.getInstance(project).getSelectedConfiguration(), DevicesSelectedService::getInstance);
   }
 
   @VisibleForTesting
-  MultipleDevicesAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
-                        @NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration,
-                        @NotNull Function<Project, SelectedDevicesService> selectedDevicesServiceGetInstance) {
+  MultipleDevicesAction(@NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration,
+                        @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
     super("Multiple Devices");
 
-    myComboBoxAction = comboBoxAction;
     myGetSelectedConfiguration = getSelectedConfiguration;
-    mySelectedDevicesServiceGetInstance = selectedDevicesServiceGetInstance;
+    myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
   }
 
   @Override
@@ -80,7 +75,7 @@ final class MultipleDevicesAction extends AnAction {
       return;
     }
 
-    if (mySelectedDevicesServiceGetInstance.apply(project).isSelectionEmpty()) {
+    if (myDevicesSelectedServiceGetInstance.apply(project).isDialogSelectionEmpty()) {
       presentation.setEnabled(false);
       return;
     }
@@ -96,7 +91,7 @@ final class MultipleDevicesAction extends AnAction {
       return;
     }
 
-    myComboBoxAction.setMultipleDevicesSelected(project, true);
+    myDevicesSelectedServiceGetInstance.apply(project).setMultipleDevicesSelectedInComboBox(true);
   }
 
   private static boolean isSupportedRunConfigurationType(@NotNull ConfigurationType type) {

@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.psi.KtProperty
  */
 class ProguardR8UseScopeEnlarger : UseScopeEnlarger() {
   override fun getAdditionalUseScope(element: PsiElement): SearchScope? {
-    if (element is PsiMember || element is KtProperty) {
+    if ((element is PsiMember || element is KtProperty) && element.containingFile != null) {
       // Find all the modules that can "see" our class/field/method, restrict it to just R8 rules:
       return GlobalSearchScope.getScopeRestrictedByFileTypes(
         ResolveScopeManager.getElementUseScope(element.containingFile),

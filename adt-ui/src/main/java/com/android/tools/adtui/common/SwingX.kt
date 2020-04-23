@@ -25,8 +25,6 @@ inline class SwingX(val value: Float) {
   operator fun minus(rhs: SwingX) = SwingLength(value - rhs.value)
   fun toInt() = value.toInt()
   fun toDouble() = value.toDouble()
-  override fun toString() = value.toString()
 }
 
-fun String.toSwingX() = SwingX(this.toFloat())
 fun interpolate(start: SwingX, end: SwingX, fraction: Float) = start + (end - start) * fraction

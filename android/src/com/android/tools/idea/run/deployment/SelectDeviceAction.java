@@ -25,9 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 public final class SelectDeviceAction extends AnAction {
   @NotNull
-  private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
-
-  @NotNull
   private final Project myProject;
 
   @NotNull
@@ -53,7 +50,6 @@ public final class SelectDeviceAction extends AnAction {
                              boolean snapshotActionGroupChild) {
     configurePresentation(comboBoxAction, project, device, snapshotActionGroupChild);
 
-    myComboBoxAction = comboBoxAction;
     myProject = project;
     myDevice = device;
   }
@@ -87,7 +83,7 @@ public final class SelectDeviceAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    myComboBoxAction.setSelectedDevice(myProject, myDevice);
+    DevicesSelectedService.getInstance(myProject).setDeviceSelectedWithComboBox(myDevice);
   }
 
   @Override
@@ -97,16 +93,11 @@ public final class SelectDeviceAction extends AnAction {
     }
 
     SelectDeviceAction action = (SelectDeviceAction)object;
-    return myComboBoxAction.equals(action.myComboBoxAction) && myProject.equals(action.myProject) && myDevice.equals(action.myDevice);
+    return myProject.equals(action.myProject) && myDevice.equals(action.myDevice);
   }
 
   @Override
   public int hashCode() {
-    int hashCode = myComboBoxAction.hashCode();
-
-    hashCode = 31 * hashCode + myProject.hashCode();
-    hashCode = 31 * hashCode + myDevice.hashCode();
-
-    return hashCode;
+    return 31 * myProject.hashCode() + myDevice.hashCode();
   }
 }

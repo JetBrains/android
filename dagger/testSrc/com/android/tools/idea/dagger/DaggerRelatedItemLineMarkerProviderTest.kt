@@ -77,7 +77,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(gotoRelatedItems).hasSize(1)
     var provider = gotoRelatedItems.first()
 
-    assertThat(provider.group).isEqualTo("Dependency provider(s)")
+    assertThat(provider.group).isEqualTo("Provider(s)")
     assertThat(provider.element).isEqualTo(providerMethod)
 
     // Kotlin consumer
@@ -103,7 +103,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(gotoRelatedItems).hasSize(1)
     provider = gotoRelatedItems.first()
 
-    assertThat(provider.group).isEqualTo("Dependency provider(s)")
+    assertThat(provider.group).isEqualTo("Provider(s)")
     assertThat(provider.element).isEqualTo(providerMethod)
 
     // Icons in provider file.
@@ -158,7 +158,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
     assertThat(gotoRelatedItems).hasSize(1)
     val method = gotoRelatedItems.first()
-    assertThat(method.group).isEqualTo("Dependency components method(s)")
+    assertThat(method.group).isEqualTo("Exposed by component(s)")
     assertThat(method.element?.text).isEqualTo("String getString();")
   }
 
@@ -211,7 +211,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
     assertThat(gotoRelatedItems).hasSize(2)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
-    assertThat(result).containsAllOf("Dependency component(s): MyComponent", "Dependency modules(s): MyModule2")
+    assertThat(result).containsAllOf("Included in component(s): MyComponent", "Included in module(s): MyModule2")
   }
 
   fun testDependantComponentsForComponent() {
@@ -249,7 +249,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
     assertThat(gotoRelatedItems).hasSize(1)
     val method = gotoRelatedItems.first()
-    assertThat(method.group).isEqualTo("Dependency component(s)")
+    assertThat(method.group).isEqualTo("Parent component(s)")
     assertThat((method.element as PsiClass).name).isEqualTo("MyDependantComponent")
   }
 
@@ -323,16 +323,82 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     )
 
     myFixture.configureFromExistingVirtualFile(subcomponentFile)
-    val component = myFixture.moveCaret("MySubcompon|ent").parentOfType<PsiClass>()!!
+    myFixture.moveCaret("MySubcompon|ent")
     val icons = myFixture.findGuttersAtCaret()
     assertThat(icons).isNotEmpty()
 
     val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
     assertThat(gotoRelatedItems).hasSize(3)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
-    assertThat(result).containsAllOf("Dependency component(s): MyComponent",
-                                     "Dependency component(s): MyComponentWithBuilder",
-                                     "Dependency component(s): MyComponentKt")
+    assertThat(result).containsAllOf("Parent component(s): MyComponent",
+                                     "Parent component(s): MyComponentWithBuilder",
+                                     "Parent component(s): MyComponentKt")
   }
 
+  fun testSubcomponentForComponent() {
+    // Java Subcomponent
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Subcomponent;
+
+      @Subcomponent
+      public interface MySubcomponent {
+        @Subcomponent.Builder
+          interface Builder {}
+      }
+    """.trimIndent()
+    )
+
+    // Kotlin Subcomponent
+    myFixture.addFileToProject(
+      "test/MySubcomponent2.kt",
+      //language=kotlin
+      """
+      package test
+      import dagger.Subcomponent
+
+      @Subcomponent
+      interface MySubcomponent2
+    """.trimIndent()
+    )
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+
+        import dagger.Module;
+
+        @Module(subcomponents = { MySubcomponent.class })
+        class MyModule { }
+      """.trimIndent()
+    )
+
+    // Java Component
+    val file = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {
+        MySubcomponent2 getSubcomponent();
+      }
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.moveCaret("MyCompon|ent")
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isNotEmpty()
+
+    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    assertThat(gotoRelatedItems).hasSize(2)
+    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
+    assertThat(result).containsAllOf("Subcomponent(s): MySubcomponent2",
+                                     "Subcomponent(s): MySubcomponent")
+  }
 }

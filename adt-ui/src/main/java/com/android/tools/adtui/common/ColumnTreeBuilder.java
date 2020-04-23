@@ -92,6 +92,8 @@ public class ColumnTreeBuilder {
   @Nullable
   private Color myHoverColor;
 
+  private boolean myShowHeaderTooltips;
+
   @NotNull
   private final ColumnTreeScrollPanel myHScrollBarPanel;
 
@@ -153,6 +155,12 @@ public class ColumnTreeBuilder {
   @NotNull
   public ColumnTreeBuilder setTableIntercellSpacing(Dimension spacing) {
     myTable.setIntercellSpacing(spacing);
+    return this;
+  }
+
+  @NotNull
+  public ColumnTreeBuilder setShowHeaderTooltips(boolean showing) {
+    myShowHeaderTooltips = showing;
     return this;
   }
 
@@ -224,7 +232,7 @@ public class ColumnTreeBuilder {
 
     for (int i = 0; i < myColumnBuilders.size(); i++) {
       ColumnBuilder column = myColumnBuilders.get(i);
-      column.configure(i, myTable, rowSorter, myCellRenderer);
+      column.configure(i, myTable, rowSorter, myCellRenderer, myShowHeaderTooltips);
     }
 
     JPanel panel = new TreeWrapperPanel(myTable, myTree);
@@ -702,7 +710,11 @@ public class ColumnTreeBuilder {
       model.addColumn(myName);
     }
 
-    private void configure(int index, JTable table, ColumnTreeTableRowSorter sorter, ColumnTreeCellRenderer renderer) {
+    private void configure(int index,
+                           JTable table,
+                           ColumnTreeTableRowSorter sorter,
+                           ColumnTreeCellRenderer renderer,
+                           boolean showHeaderTooltips) {
       TableColumn column = table.getColumnModel().getColumn(index);
       column.setPreferredWidth(myWidth);
       column.setMinWidth(myMinimumWidth);
@@ -718,6 +730,9 @@ public class ColumnTreeBuilder {
           }
           if (component instanceof JComponent) {
             ((JComponent)component).setBorder(myHeaderBorder);
+            if (showHeaderTooltips) {
+              ((JComponent)component).setToolTipText(value.toString());
+            }
           }
           return component;
         }

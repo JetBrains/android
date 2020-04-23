@@ -360,6 +360,9 @@ public class TransportServiceProxyTest {
     when(mockDevice.getClients()).thenReturn(clients);
     when(mockDevice.getState()).thenReturn(IDevice.DeviceState.ONLINE);
     when(mockDevice.getAbis()).thenReturn(Collections.singletonList("armeabi"));
+    when(mockDevice.getProperty(IDevice.PROP_BUILD_TAGS)).thenReturn("release-keys");
+    when(mockDevice.getProperty(IDevice.PROP_BUILD_TYPE)).thenReturn("user");
+    when(mockDevice.getProperty(IDevice.PROP_DEVICE_CPU_ABI)).thenReturn("armeabi");
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) {

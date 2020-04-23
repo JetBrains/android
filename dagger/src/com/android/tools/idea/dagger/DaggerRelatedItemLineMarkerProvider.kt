@@ -21,6 +21,7 @@ import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.navigation.GotoRelatedItem
+import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.NotNullLazyValue
@@ -29,15 +30,21 @@ import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.lexer.KtTokens
 import javax.swing.Icon
 
-internal const val DEPENDENCY_PROVIDERS = "Dependency provider(s)"
-internal const val DEPENDENCY_CONSUMERS = "Dependency consumer(s)"
-internal const val DEPENDENCY_COMPONENT_METHODS = "Dependency components method(s)"
-internal const val DEPENDENCY_COMPONENTS = "Dependency component(s)"
-internal const val DEPENDENCY_MODULES = "Dependency modules(s)"
+/**
+ * Contains strings that are visible in UI of Dagger tooling support, e.g in gutter icons and "Find usages" window.
+ */
+internal object UIStrings {
+  const val PROVIDERS = "Provider(s)"
+  const val CONSUMERS = "Consumer(s)"
+  const val EXPOSED_BY_COMPONENTS = "Exposed by component(s)"
+  const val PARENT_COMPONENTS = "Parent component(s)"
+  const val SUBCOMPONENTS = "Subcomponent(s)"
+  const val INCLUDED_IN_COMPONENTS = "Included in component(s)"
+  const val INCLUDED_IN_MODULES = "Included in module(s)"
+}
 
 /**
  * Provides [RelatedItemLineMarkerInfo] for Dagger consumers/providers.
@@ -47,7 +54,7 @@ internal const val DEPENDENCY_MODULES = "Dependency modules(s)"
 class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
   override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<PsiElement>>) {
-    if (!StudioFlags.DAGGER_SUPPORT_ENABLED.get() || element.module?.isDaggerPresent() != true) return
+    if (!StudioFlags.DAGGER_SUPPORT_ENABLED.get() || !element.project.service<DaggerDependencyChecker>().isDaggerPresent()) return
 
     if (!element.canBeLineMarkerProvide) return
 
@@ -88,7 +95,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
       // subcomponent is always PsiClass or KtClass, see [isDaggerSubcomponent].
       override fun compute() = getDaggerParentComponentsForSubcomponent(subcomponent.toPsiClass()!!).map {
-        GotoRelatedItem(it, DEPENDENCY_COMPONENTS)
+        GotoRelatedItem(it, UIStrings.PARENT_COMPONENTS)
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
@@ -97,8 +104,9 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
   private fun getIconAndGoToItemsForComponent(component: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
       // component is always PsiClass or KtClass, see [isDaggerComponent].
-      override fun compute() = getDependantComponentsForComponent(component.toPsiClass()!!).map {
-        GotoRelatedItem(it, DEPENDENCY_COMPONENTS)
+      override fun compute(): List<GotoRelatedItem> {
+        return getDependantComponentsForComponent(component.toPsiClass()!!).map { GotoRelatedItem(it, UIStrings.PARENT_COMPONENTS) } +
+               getSubcomponents(component.toPsiClass()!!).map { GotoRelatedItem(it, UIStrings.SUBCOMPONENTS) }
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
@@ -109,7 +117,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       override fun compute(): List<GotoRelatedItem> {
         // [module] is always PsiClass or KtClass, see [isDaggerModule].
         return getUsagesForDaggerModule(module.toPsiClass()!!).map {
-          val group = if (it.isDaggerComponent) DEPENDENCY_COMPONENTS else DEPENDENCY_MODULES
+          val group = if (it.isDaggerComponent) UIStrings.INCLUDED_IN_COMPONENTS else UIStrings.INCLUDED_IN_MODULES
           GotoRelatedItem(it, group)
         }
       }
@@ -120,8 +128,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
   private fun getIconAndGoToItemsForProvider(provider: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
       override fun compute(): List<GotoRelatedItem> {
-        return getDaggerConsumersFor(provider).map { GotoRelatedItem(it, DEPENDENCY_CONSUMERS) } +
-               getDaggerComponentMethodsForProvider(provider).map { GotoRelatedItem(it, DEPENDENCY_COMPONENT_METHODS) }
+        return getDaggerConsumersFor(provider).map { GotoRelatedItem(it, UIStrings.CONSUMERS) } +
+               getDaggerComponentMethodsForProvider(provider).map { GotoRelatedItem(it, UIStrings.EXPOSED_BY_COMPONENTS) }
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
@@ -129,7 +137,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
   private fun getIconAndGoToItemsForConsumer(consumer: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
-      override fun compute() = getDaggerProvidersFor(consumer).map { GotoRelatedItem(it, DEPENDENCY_PROVIDERS) }
+      override fun compute() = getDaggerProvidersFor(consumer).map { GotoRelatedItem(it, UIStrings.PROVIDERS) }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_PROVIDER, gotoTargets)
   }

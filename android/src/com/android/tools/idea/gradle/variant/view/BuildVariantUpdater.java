@@ -28,7 +28,6 @@ import static com.intellij.util.ThreeState.YES;
 
 import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.ProjectStructure;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -546,7 +545,6 @@ public class BuildVariantUpdater {
       private double PROGRESS_SETUP_PROJECT_SIZE = 0.2;
       private double PROGRESS_COMMIT_START = PROGRESS_SETUP_PROJECT_START + PROGRESS_SETUP_PROJECT_SIZE;
       private double PROGRESS_COMMIT_SIZE = 0.4;
-      private double PROGRESS_GENERATE_SOURCES_START = PROGRESS_COMMIT_START + PROGRESS_COMMIT_SIZE;
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
@@ -564,9 +562,6 @@ public class BuildVariantUpdater {
 
         // Commit changes and dispose models providers
         commitChanges(project, modelsProviders, indicator);
-
-        // Run generate sources if needed
-        generateSourcesIfNeeded(project, affectedAndroidFacets, indicator);
 
         if (application.isUnitTestMode()) {
           variantSelectionChangeListeners.run();
@@ -640,19 +635,6 @@ public class BuildVariantUpdater {
           });
           progress += step;
           indicator.setFraction(progress);
-        }
-      }
-
-      private void generateSourcesIfNeeded(@NotNull Project project,
-                                           @NotNull List<AndroidFacet> affectedAndroidFacets,
-                                           @NotNull ProgressIndicator indicator) {
-        if (!affectedAndroidFacets.isEmpty()) {
-          // We build only the selected variant. If user changes variant, we need to re-generate sources since the generated sources may not
-          // be there.
-          if (!ApplicationManager.getApplication().isUnitTestMode()) {
-            indicator.setFraction(PROGRESS_GENERATE_SOURCES_START);
-            GradleProjectBuilder.getInstance(project).generateSources();
-          }
         }
       }
     };

@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
@@ -32,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 
 public class RenderResult {
+  private static Logger LOG = Logger.getInstance(RenderResult.class);
+
   @NotNull private final PsiFile myFile;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final ImmutableList<ViewInfo> myRootViews;
@@ -93,7 +96,7 @@ public class RenderResult {
     List<ViewInfo> systemRootViews = session.getSystemRootViews();
     Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties = session.getDefaultNamespacedProperties();
     Map<Object, String> defaultStyles = session.getDefaultStyles();
-    return new RenderResult(
+    RenderResult result = new RenderResult(
       file,
       renderTask.getContext().getModule(),
       logger,
@@ -105,6 +108,12 @@ public class RenderResult {
       defaultProperties != null ? ImmutableMap.copyOf(defaultProperties) : ImmutableMap.of(),
       defaultStyles != null ? ImmutableMap.copyOf(defaultStyles) : ImmutableMap.of(),
       session.getValidationData());
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(result.toString());
+    }
+
+    return result;
   }
 
   /**
@@ -117,7 +126,7 @@ public class RenderResult {
                                                               @Nullable Throwable throwable) {
     Module module = logger.getModule();
     assert module != null;
-    return new RenderResult(
+    RenderResult result = new RenderResult(
       file,
       module, // do not use renderTask.getModule as a disposed renderTask could be the reason we are here
       logger,
@@ -129,6 +138,12 @@ public class RenderResult {
       ImmutableMap.of(),
       ImmutableMap.of(),
       null);
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(result.toString());
+    }
+
+    return result;
   }
 
   /**
@@ -157,7 +172,7 @@ public class RenderResult {
   private static RenderResult createErrorResult(@NotNull PsiFile file, @NotNull Result errorResult, @Nullable RenderLogger logger) {
     Module module = ModuleUtilCore.findModuleForPsiElement(file);
     assert module != null;
-    return new RenderResult(
+    RenderResult result = new RenderResult(
       file,
       module,
       logger != null ? logger : new RenderLogger(null, module),
@@ -169,6 +184,12 @@ public class RenderResult {
       ImmutableMap.of(),
       ImmutableMap.of(),
       null);
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(result.toString());
+    }
+
+    return result;
   }
 
   @NotNull

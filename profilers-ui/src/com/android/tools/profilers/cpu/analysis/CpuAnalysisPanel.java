@@ -70,7 +70,9 @@ public class CpuAnalysisPanel extends AspectObserver {
   private void setupBindings() {
     myTabViewsBinder = new ViewBinder<>();
     myTabViewsBinder.bind(CpuAnalysisChartModel.class, CpuAnalysisChart::new);
-    myTabViewsBinder.bind(CpuAnalysisTabModel.class, CpuAnalysisSummaryTab::new);
+    myTabViewsBinder.bind(FullTraceAnalysisSummaryTabModel.class, CpuAnalysisSummaryTab::new);
+    myTabViewsBinder.bind(CpuThreadAnalysisSummaryTabModel.class, CpuAnalysisSummaryTab::new);
+    myTabViewsBinder.bind(CaptureNodeAnalysisSummaryTabModel.class, CpuAnalysisSummaryTab::new);
   }
 
   @NotNull
@@ -83,6 +85,12 @@ public class CpuAnalysisPanel extends AspectObserver {
   @VisibleForTesting
   TabbedToolbar getTabs() {
     return myTabs;
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public ViewBinder<StudioProfilersView, CpuAnalysisTabModel, CpuAnalysisTab> getTabViewsBinder() {
+    return myTabViewsBinder;
   }
 
   /**

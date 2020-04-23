@@ -30,11 +30,16 @@ interface DatabaseConnection : Disposable {
   fun readSchema(): ListenableFuture<SqliteSchema>
 
   /**
-   * Executes a SQLite statement on the database.
-   *
-   * @see java.sql.PreparedStatement.execute
+   * Use this method for Query statements (like SELECT or EXPLAIN) that return a list of rows.
+   * @return a [SqliteResultSet] for [sqliteStatement] that can be used to navigate the result of the query.
    */
-  fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet>
+  fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet>
+
+  /**
+   * Executes [sqliteStatement] and ignore the result.
+   * Use this method to run SQLite statements that have no result, such as UPDATE and INSERT
+   */
+  fun execute(sqliteStatement: SqliteStatement): ListenableFuture<Unit>
 
   override fun dispose() {
     close().get()

@@ -429,6 +429,13 @@ public final class StudioFlags {
     "Enables and shows the ADB connection status widget in the status bar",
     true);
 
+  public static final Flag<Boolean> ADB_WIRELESS_PAIRING_ENABLED = Flag.create(
+    RUNDEBUG,
+    "adb.wireless.enabled",
+    "Enable pairing devices through ADB wireless",
+    "Allow pairing new physical device through QR Code pairing via ADB wireless",
+    false);
+
   /**
    * The strategy that {@link com.android.tools.idea.run.activity.DefaultActivityLocator}
    * uses to obtain a list of activities from a given module's merged manifest.
@@ -556,7 +563,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_ENABLED = Flag.create(
     EMBEDDED_EMULATOR, "embedded.emulator.enabled", "Enable Embedded Emulator",
     "Enables the Embedded Emulator tool window",
-    false);
+    true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "embedded.emulator.trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",
@@ -739,6 +746,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> MULTIDEVICE_INSTRUMENTATION_TESTS = Flag.create(
     TESTING, "multidevice.instrumentation.tests", "Allow running instrumentation tests on multiple devices at a time.",
     "If enabled, you can choose run-on-selected-devices for android instrumentation test run configurations.",
+    true
+  );
+
+  public static final Flag<Boolean> UTP_TEST_RESULT_SUPPORT = Flag.create(
+    TESTING, "utp.instrumentation.tests", "Allow importing UTP test results.",
+    "If enabled, you can import UTP test results and display them in test result panel.",
     false
   );
   //endregion

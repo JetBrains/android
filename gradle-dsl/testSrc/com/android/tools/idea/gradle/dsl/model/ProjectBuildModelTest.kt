@@ -15,27 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model
 
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED_APPLIED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED_SUB
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_APPLY_NO_ROOT_BUILD_FILE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_APPLY_NO_ROOT_BUILD_FILE_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_APPLIED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_SUB
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_GET_MODEL_FROM_VIRTUAL_FILE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_MULTIPLE_MODELS_PERSIST_CHANGES
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_MULTIPLE_MODELS_PERSIST_CHANGES_SUB
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_PROJECT_MODELS_SAVES_FILES
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_PROJECT_MODELS_SAVES_FILES_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_PROJECT_MODELS_SAVES_FILES_SUB
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_APPLIED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_APPLIED_SUB
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_SUB
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_SETTINGS_FILE_UPDATES_CORRECTLY
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_SETTINGS_FILE_UPDATES_CORRECTLY_OTHER_SUB
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROJECT_BUILD_MODEL_SETTINGS_FILE_UPDATES_CORRECTLY_SUB
+import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
@@ -46,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.runWriteAction
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
+import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
 import java.io.File
 import java.io.IOException
@@ -53,9 +34,9 @@ import java.io.IOException
 class ProjectBuildModelTest : GradleFileModelTestCase() {
   @Test
   fun testAppliedFilesShared() {
-    writeToNewProjectFile("b", PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED_APPLIED)
-    writeToBuildFile(PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED)
-    writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED_SUB)
+    val b = writeToNewProjectFile("b", TestFile.APPLIED_FILES_SHARED_APPLIED)
+    writeToBuildFile(TestFile.APPLIED_FILES_SHARED)
+    writeToSubModuleBuildFile(TestFile.APPLIED_FILES_SHARED_SUB)
     writeToSettingsFile(subModuleSettingsText)
 
     val projectModel = projectBuildModel
@@ -81,7 +62,12 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
     assertFalse(parentBuildModel.isModified)
     assertTrue(childBuildModel.isModified)
+
     applyChangesAndReparse(projectModel)
+    verifyFileContents(myBuildFile, TestFile.APPLIED_FILES_SHARED)
+    verifyFileContents(mySubModuleBuildFile, TestFile.APPLIED_FILES_SHARED_SUB_EXPECTED)
+    verifyFileContents(myProjectBasePath.findChild(b)!!, TestFile.APPLIED_FILES_SHARED_APPLIED_EXPECTED)
+
     assertFalse(parentBuildModel.isModified)
     assertFalse(childBuildModel.isModified)
 
@@ -97,7 +83,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testApplyNoRootBuildFile() {
-    writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_APPLY_NO_ROOT_BUILD_FILE)
+    writeToSubModuleBuildFile(TestFile.APPLY_NO_ROOT_BUILD_FILE)
     writeToSettingsFile(subModuleSettingsText)
 
     // Delete the main build file
@@ -115,13 +101,13 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     // Make sure that applying the changes still affects the submodule build file
     applyChangesAndReparse(pbm)
 
-    verifyFileContents(mySubModuleBuildFile, PROJECT_BUILD_MODEL_APPLY_NO_ROOT_BUILD_FILE_EXPECTED)
+    verifyFileContents(mySubModuleBuildFile, TestFile.APPLY_NO_ROOT_BUILD_FILE_EXPECTED)
   }
 
   @Test
   fun testMultipleModelsPersistChanges() {
-    writeToBuildFile(PROJECT_BUILD_MODEL_MULTIPLE_MODELS_PERSIST_CHANGES)
-    writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_MULTIPLE_MODELS_PERSIST_CHANGES_SUB)
+    writeToBuildFile(TestFile.MULTIPLE_MODELS_PERSIST_CHANGES)
+    writeToSubModuleBuildFile(TestFile.MULTIPLE_MODELS_PERSIST_CHANGES_SUB)
 
     val projectModel = projectBuildModel
     val childModelOne = projectModel.getModuleBuildModel(mySubModule)!!
@@ -151,6 +137,8 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(projectModel)
+    verifyFileContents(myBuildFile, TestFile.MULTIPLE_MODELS_PERSIST_CHANGES_EXPECTED)
+    verifyFileContents(mySubModuleBuildFile, TestFile.MULTIPLE_MODELS_PERSIST_CHANGES_SUB_EXPECTED)
 
     run {
       val parentPropertyModel = parentModelTwo.ext().findProperty("prop")
@@ -169,10 +157,10 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   @Test
   fun testApplyResolvesCorrectFile() {
     // The sub-module applies a sub-module Gradle file which in turn applies a Gradle file from the root project directory.
-    writeToBuildFile(PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE)
-    writeToNewProjectFile("applied", PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_APPLIED)
-    writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_SUB)
-    writeToNewSubModuleFile("applied", PROJECT_BUILD_MODEL_RESOLVES_CORRECT_FILE_APPLIED_SUB)
+    writeToBuildFile(TestFile.RESOLVES_CORRECT_FILE)
+    writeToNewProjectFile("applied", TestFile.RESOLVES_CORRECT_FILE_APPLIED)
+    writeToSubModuleBuildFile(TestFile.RESOLVES_CORRECT_FILE_SUB)
+    writeToNewSubModuleFile("applied", TestFile.RESOLVES_CORRECT_FILE_APPLIED_SUB)
     writeToSettingsFile(subModuleSettingsText)
 
     // This should correctly resolve the variable
@@ -185,10 +173,10 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSettingsFileUpdatesCorrectly() {
-    writeToBuildFile(PROJECT_BUILD_MODEL_SETTINGS_FILE_UPDATES_CORRECTLY)
-    writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_SETTINGS_FILE_UPDATES_CORRECTLY_SUB)
+    writeToBuildFile(TestFile.SETTINGS_FILE_UPDATES_CORRECTLY)
+    writeToSubModuleBuildFile(TestFile.SETTINGS_FILE_UPDATES_CORRECTLY_SUB)
     writeToSettingsFile(subModuleSettingsText)
-    val newModule = writeToNewSubModule("lib", PROJECT_BUILD_MODEL_SETTINGS_FILE_UPDATES_CORRECTLY_OTHER_SUB, "")
+    val newModule = writeToNewSubModule("lib", TestFile.SETTINGS_FILE_UPDATES_CORRECTLY_OTHER_SUB, "")
 
     val projectModel = projectBuildModel
     val parentBuildModel = projectModel.projectBuildModel!!
@@ -222,6 +210,8 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(projectModel)
+    verifyFileContents(myBuildFile, TestFile.SETTINGS_FILE_UPDATES_CORRECTLY_EXPECTED)
+    verifyFileContents(mySettingsFile, TestFile.SETTINGS_FILE_UPDATES_CORRECTLY_SETTINGS_EXPECTED)
 
     run {
       val paths = settingsModel.modulePaths()
@@ -231,8 +221,8 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testProjectModelSavesFiles() {
-    writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_PROJECT_MODELS_SAVES_FILES_SUB)
-    writeToBuildFile(PROJECT_BUILD_MODEL_PROJECT_MODELS_SAVES_FILES)
+    writeToSubModuleBuildFile(TestFile.PROJECT_MODELS_SAVES_FILES_SUB)
+    writeToBuildFile(TestFile.PROJECT_MODELS_SAVES_FILES)
     writeToSettingsFile(subModuleSettingsText)
     var pbm = projectBuildModel
     var buildModel = pbm.getModuleBuildModel(mySubModule)
@@ -247,40 +237,40 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     optionsModel = buildModel!!.android().defaultConfig().externalNativeBuild().cmake()
     verifyListProperty(optionsModel.arguments(), listOf("-DCMAKE_MAKE_PROGRAM=////"))
 
-    verifyFileContents(mySubModuleBuildFile, PROJECT_BUILD_MODEL_PROJECT_MODELS_SAVES_FILES_EXPECTED)
+    verifyFileContents(mySubModuleBuildFile, TestFile.PROJECT_MODELS_SAVES_FILES_EXPECTED)
   }
 
   @Test
   fun testGetModelFromVirtualFile() {
-    writeToBuildFile(PROJECT_BUILD_MODEL_GET_MODEL_FROM_VIRTUAL_FILE)
+    writeToBuildFile(TestFile.GET_MODEL_FROM_VIRTUAL_FILE)
 
     val pbm = projectBuildModel
     val buildModel = pbm.getModuleBuildModel(myBuildFile)
     assertNotNull(buildModel)
-    verifyPropertyModel(buildModel.android().compileSdkVersion(), STRING_TYPE, "28", STRING, REGULAR, 0)
+    verifyPropertyModel(buildModel.android().compileSdkVersion(), INTEGER_TYPE, 28, INTEGER, REGULAR, 0)
   }
 
   @Test
   fun testEnsureParsingAppliedFileInSubmoduleFolder() {
-    writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_SUB)
-    writeToBuildFile(PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER)
+    writeToSubModuleBuildFile(TestFile.ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_SUB)
+    writeToBuildFile(TestFile.ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER)
     writeToSettingsFile(subModuleSettingsText)
-    writeToNewSubModuleFile("a", PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_APPLIED)
+    writeToNewSubModuleFile("a", TestFile.ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_APPLIED)
 
     val pbm = projectBuildModel
     val buildModel = pbm.getModuleBuildModel(myModule)
 
     val pluginModel = buildModel!!.buildscript().dependencies().artifacts()[0].completeModel()
-    assertEquals("com.android.tools.build:gradle:${'$'}version", pluginModel.forceString())
+    assertEquals("com.android.tools.build:gradle:1.2.3", pluginModel.forceString())
   }
 
   @Test
   fun testProjectModelGetFile() {
     // We reuse a build file here since we just need any file for this test.
-    writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_SUB)
-    writeToBuildFile(PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER)
+    writeToSubModuleBuildFile(TestFile.ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_SUB)
+    writeToBuildFile(TestFile.ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER)
     writeToSettingsFile(subModuleSettingsText)
-    writeToNewSubModuleFile("a", PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_APPLIED)
+    writeToNewSubModuleFile("a", TestFile.ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_APPLIED)
 
     val pbm = projectBuildModel
     val mainBuildModel = pbm.getModuleBuildModel(myModule)!!
@@ -294,4 +284,40 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     assertEquals(subPsiFile.virtualFile, subBuildModel.virtualFile)
     assertEquals(settingFile.virtualFile, settingModel.virtualFile)
   }
+
+  enum class TestFile(val path: @SystemDependent String): TestFileName {
+    APPLIED_FILES_SHARED("appliedFilesShared"),
+    APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),
+    APPLIED_FILES_SHARED_APPLIED_EXPECTED("appliedFilesSharedAppliedExpected"),
+    APPLIED_FILES_SHARED_SUB("appliedFilesShared_sub"),
+    APPLIED_FILES_SHARED_SUB_EXPECTED("appliedFilesShared_subExpected"),
+    APPLY_NO_ROOT_BUILD_FILE("applyNoRootBuildFile"),
+    APPLY_NO_ROOT_BUILD_FILE_EXPECTED("applyNoRootBuildFileExpected"),
+    MULTIPLE_MODELS_PERSIST_CHANGES("multipleModelsPersistChanges"),
+    MULTIPLE_MODELS_PERSIST_CHANGES_SUB("multipleModelsPersistChanges_sub"),
+    MULTIPLE_MODELS_PERSIST_CHANGES_EXPECTED("multipleModelsPersistChangesExpected"),
+    MULTIPLE_MODELS_PERSIST_CHANGES_SUB_EXPECTED("multipleModelsPersistChanges_subExpected"),
+    SETTINGS_FILE_UPDATES_CORRECTLY("settingsFileUpdatesCorrectly"),
+    SETTINGS_FILE_UPDATES_CORRECTLY_EXPECTED("settingsFileUpdatesCorrectlyExpected"),
+    SETTINGS_FILE_UPDATES_CORRECTLY_SUB("settingsFileUpdatesCorrectly_sub"),
+    SETTINGS_FILE_UPDATES_CORRECTLY_OTHER_SUB("settingsFileUpdatesCorrectlyOther_sub"),
+    SETTINGS_FILE_UPDATES_CORRECTLY_SETTINGS_EXPECTED("settingsFileUpdatesCorrectlySettingsExpected"),
+    PROJECT_MODELS_SAVES_FILES("projectModelSavesFiles"),
+    PROJECT_MODELS_SAVES_FILES_SUB("projectModelSavesFiles_sub"),
+    PROJECT_MODELS_SAVES_FILES_EXPECTED("projectModelSavesFilesExpected"),
+    GET_MODEL_FROM_VIRTUAL_FILE("getModelFromVirtualFile"),
+    ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER("ensureParsingAppliedFileInSubmoduleFolder"),
+    ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_SUB("ensureParsingAppliedFileInSubmoduleFolder_sub"),
+    ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_APPLIED("ensureParsingAppliedFileInSubmoduleFolderApplied"),
+    RESOLVES_CORRECT_FILE("applyResolvesCorrectFile"),
+    RESOLVES_CORRECT_FILE_APPLIED("applyResolvesCorrectFileApplied"),
+    RESOLVES_CORRECT_FILE_APPLIED_SUB("applyResolvesCorrectFileApplied_sub"),
+    RESOLVES_CORRECT_FILE_SUB("applyResolvesCorrectFile_sub"),
+    ;
+
+    override fun toFile(basePath: @SystemDependent String, extension: String): File {
+      return super.toFile("$basePath/projectBuildModel/$path", extension)
+    }
+  }
+
 }

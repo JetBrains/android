@@ -34,7 +34,6 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.pom.Navigatable
 import org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM
@@ -174,5 +173,5 @@ private class RemoveSHA256FromGradleWrapperQuickFix : DescribedBuildIssueQuickFi
 private fun findGradleWrapper(projectPath: String) : GradleWrapper? {
   val propertiesFile = GradleWrapper.getDefaultPropertiesFilePath(File(projectPath))
   if (!propertiesFile.isFile) return null
-  return GradleWrapper.get(propertiesFile)
+  return GradleWrapper.get(propertiesFile, null)
 }

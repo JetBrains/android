@@ -17,17 +17,11 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingLength
 import com.android.tools.adtui.common.SwingPoint
-import com.android.tools.adtui.common.toSwingLength
-import com.android.tools.adtui.common.toSwingPoint
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.TARGET_LEVEL
 import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.FillShape
-import com.android.tools.idea.common.scene.draw.buildString
-import com.android.tools.idea.common.scene.draw.colorToString
-import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.naveditor.scene.HANDLE_STROKE
 import com.android.tools.idea.naveditor.scene.makeCircleLerp
 import java.awt.Color
@@ -41,28 +35,6 @@ class DrawActionHandle(private val center: SwingPoint,
                        private val outerColor: Color,
                        private val innerColor: Color
 ) : CompositeDrawCommand(TARGET_LEVEL) {
-  private constructor(tokens: Array<String>)
-    : this(tokens[0].toSwingPoint(),
-           tokens[1].toSwingLength(),
-           tokens[2].toSwingLength(),
-           tokens[3].toSwingLength(),
-           tokens[4].toSwingLength(),
-           tokens[5].toInt(),
-           stringToColor(tokens[6]),
-           stringToColor(tokens[7]))
-
-  constructor(s: String) : this(parse(s, 8))
-
-  override fun serialize() = buildString(javaClass.simpleName,
-                                         center,
-                                         initialOuterRadius,
-                                         finalOuterRadius,
-                                         initialInnerRadius,
-                                         finalInnerRadius,
-                                         duration,
-                                         colorToString(outerColor),
-                                         colorToString(innerColor))
-
   override fun buildCommands(): List<DrawCommand> {
     val outerCircle = makeCircleLerp(center, initialOuterRadius, finalOuterRadius, duration)
     val innerCircle = makeCircleLerp(center, initialInnerRadius, finalInnerRadius, duration)

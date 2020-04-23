@@ -15,20 +15,16 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection.live
 
-import androidx.sqlite.inspection.SqliteInspectorProtocol
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Command
 import androidx.sqlite.inspection.SqliteInspectorProtocol.GetSchemaCommand
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.Executor
 
@@ -36,8 +32,7 @@ import java.util.concurrent.Executor
  * Implementation of [DatabaseConnection] based on the AppInspection pipeline.
  */
 class LiveDatabaseConnection(
-  private val project: Project,
-  private val messenger: AppInspectorClient.CommandMessenger,
+  private val messenger: DatabaseInspectorMessenger,
   private val id: Int,
   private val taskExecutor: Executor
 ) : DatabaseConnection {
@@ -51,39 +46,26 @@ class LiveDatabaseConnection(
     val commands = Command.newBuilder()
       .setGetSchema(GetSchemaCommand.newBuilder().setDatabaseId(id))
       .build()
-    val responseFuture = messenger.sendRawCommand(commands.toByteArray())
+    val responseFuture = messenger.sendCommand(commands)
 
-    return responseFuture.transform(taskExecutor) {
-      val response = SqliteInspectorProtocol.Response.parseFrom(it)
-
-      if (response.hasErrorOccurred()) {
-        handleError(project, response.errorOccurred.content, logger<LiveDatabaseConnection>())
-      }
-
+    return responseFuture.transform(taskExecutor) { response ->
       response.getSchema.tablesList.toSqliteSchema()
     }
   }
 
-  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
-    val queryCommand = buildQueryCommand(sqliteStatement, id)
-    val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
-
-    return responseFuture.transform(taskExecutor) {
-      val response = SqliteInspectorProtocol.Response.parseFrom(it)
-
-      if (response.hasErrorOccurred()) {
-        handleError(project, response.errorOccurred.content, logger<LiveDatabaseConnection>())
-      }
-
-      val resultSet = if (response.query.columnNamesList.isNotEmpty()) {
-        LiveSqliteResultSet(project, sqliteStatement, messenger, id, taskExecutor)
-      }
-      else {
-        EmptySqliteResultSet()
-      }
-      Disposer.register(this, resultSet)
-
-      return@transform resultSet
+  override fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
+    val resultSet = when (sqliteStatement.statementType) {
+      SqliteStatementType.SELECT -> PagedLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
+      SqliteStatementType.EXPLAIN -> LazyLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
+      else -> throw IllegalArgumentException("SqliteStatement must be of type SELECT or EXPLAIN, but is ${sqliteStatement.statementType}")
     }
+    Disposer.register(this, resultSet)
+    return Futures.immediateFuture(resultSet)
+  }
+
+  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+    val queryCommand = buildQueryCommand(sqliteStatement, id)
+    val responseFuture = messenger.sendCommand(queryCommand)
+    return responseFuture.transform { Unit }
   }
 }

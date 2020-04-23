@@ -65,6 +65,7 @@ class ProjectTemplateDataBuilder(private val isNewProject: Boolean) {
   val includedFormFactorNames = mutableMapOf<FormFactor, MutableList<String>>()
   var debugKeyStoreSha1: String? = null
   var overridePathCheck: Boolean? = null
+  var applicationName: String? = null
 
   internal fun setEssentials(project: Project) {
     kotlinVersion = bundledRuntimeVersion()

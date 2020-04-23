@@ -33,6 +33,7 @@ public class StudioIcons {
     public static final Icon DEVICE_WEAR = load("/studio/icons/avd/device-wear.svg"); // 16x16
     public static final Icon EDIT = load("/studio/icons/avd/edit.svg"); // 16x16
     public static final Icon LANDSCAPE = load("/studio/icons/avd/landscape.svg"); // 48x48
+    public static final Icon PAIR_OVER_WIFI = load("/studio/icons/avd/pair-over-wifi.svg"); // 16x16
     public static final Icon PORTRAIT = load("/studio/icons/avd/portrait.svg"); // 48x48
     public static final Icon RUN = load("/studio/icons/avd/run.svg"); // 16x16
   }
@@ -110,6 +111,7 @@ public class StudioIcons {
   public static class DatabaseInspector {
     public static final Icon COLUMN = load("/studio/icons/database-inspector/column.svg"); // 16x16
     public static final Icon DATABASE = load("/studio/icons/database-inspector/database.svg"); // 16x16
+    public static final Icon NEW_QUERY = load("/studio/icons/database-inspector/new-query.svg"); // 16x16
     public static final Icon PRIMARY_KEY = load("/studio/icons/database-inspector/primary-key.svg"); // 16x16
     public static final Icon SCHEMA = load("/studio/icons/database-inspector/schema.svg"); // 16x16
     public static final Icon TABLE = load("/studio/icons/database-inspector/table.svg"); // 16x16
@@ -286,6 +288,7 @@ public class StudioIcons {
       public static final Icon PASSWORD_NUMERIC_TEXTFIELD = load("/studio/icons/layout-editor/palette/password-numeric-textfield.svg"); // 16x16
       public static final Icon PASSWORD_TEXTFIELD = load("/studio/icons/layout-editor/palette/password-textfield.svg"); // 16x16
       public static final Icon PHONE_TEXTFIELD = load("/studio/icons/layout-editor/palette/phone-textfield.svg"); // 16x16
+      public static final Icon PLACEHOLDER = load("/studio/icons/layout-editor/palette/placeholder.svg"); // 16x16
       public static final Icon POSTAL_ADDRESS_TEXTFIELD = load("/studio/icons/layout-editor/palette/postal-address-textfield.svg"); // 16x16
       public static final Icon PROGRESS_BAR_HORIZONTAL = load("/studio/icons/layout-editor/palette/progress-bar-horizontal.svg"); // 16x16
       public static final Icon PROGRESS_BAR = load("/studio/icons/layout-editor/palette/progress-bar.svg"); // 16x16
@@ -342,7 +345,11 @@ public class StudioIcons {
       public static final Icon FAVORITES_SELECTED = load("/studio/icons/layout-editor/properties/favorites-selected.svg"); // 16x16
       public static final Icon FAVORITES = load("/studio/icons/layout-editor/properties/favorites.svg"); // 16x16
       public static final Icon FLAG = load("/studio/icons/layout-editor/properties/flag.svg"); // 14x14
+      public static final Icon GONE_TOOLS_ATTRIBUTE = load("/studio/icons/layout-editor/properties/gone-tools-attribute.svg"); // 16x16
+      public static final Icon GONE = load("/studio/icons/layout-editor/properties/gone.svg"); // 16x16
       public static final Icon IMAGE_PICKER = load("/studio/icons/layout-editor/properties/image-picker.svg"); // 16x16
+      public static final Icon INVISIBLE_TOOLS_ATTRIBUTE = load("/studio/icons/layout-editor/properties/invisible-tools-attribute.svg"); // 16x16
+      public static final Icon INVISIBLE = load("/studio/icons/layout-editor/properties/invisible.svg"); // 16x16
       public static final Icon MODIFY_NAV = load("/studio/icons/layout-editor/properties/modify-nav.svg"); // 16x16
       public static final Icon MODIFY_TEXT = load("/studio/icons/layout-editor/properties/modify-text.svg"); // 16x16
       public static final Icon MODIFY_THEME = load("/studio/icons/layout-editor/properties/modify-theme.svg"); // 16x16
@@ -356,6 +363,8 @@ public class StudioIcons {
       public static final Icon TEXT_STYLE_UPPERCASE = load("/studio/icons/layout-editor/properties/text-style-uppercase.svg"); // 16x16
       public static final Icon TOGGLE_PROPERTIES = load("/studio/icons/layout-editor/properties/toggle-properties.svg"); // 16x16
       public static final Icon TOOLS_ATTRIBUTE = load("/studio/icons/layout-editor/properties/tools-attribute.svg"); // 12x12
+      public static final Icon VISIBLE_TOOLS_ATTRIBUTE = load("/studio/icons/layout-editor/properties/visible-tools-attribute.svg"); // 16x16
+      public static final Icon VISIBLE = load("/studio/icons/layout-editor/properties/visible.svg"); // 16x16
     }
 
     public static class Toolbar {

@@ -29,8 +29,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.text.StringUtil.trimStart
 
-private const val DEFAULT_THEME_NAME = "AppTheme"
-private const val ALTERNATE_THEME_NAME = "Theme.App"
+private const val DEFAULT_THEME_NAME = "Theme.App"
 
 /**
  * Theme utility class for use with templates.
@@ -43,7 +42,6 @@ class ThemeHelper(private val module: Module) {
       return when {
         manifestTheme != null -> trimStart(manifestTheme, SdkConstants.STYLE_RESOURCE_PREFIX)
         DEFAULT_THEME_NAME.toProjectStyleResource() != null -> DEFAULT_THEME_NAME
-        ALTERNATE_THEME_NAME.toProjectStyleResource() != null -> ALTERNATE_THEME_NAME
         else -> null
       }
     }

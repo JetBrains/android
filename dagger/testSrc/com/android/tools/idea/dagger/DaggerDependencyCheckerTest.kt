@@ -16,8 +16,8 @@
 package com.android.tools.idea.dagger
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
@@ -50,15 +50,6 @@ class DaggerDependencyCheckerTest : UsefulTestCase() {
 
     daggerLib = daggerLibFixture.module
     appModule = appModuleFixture.module
-
-    myFixture.addFileToProject("DaggerDependencyCheckerTest_dagger/src/dagger/Module.java",
-      // language=JAVA
-                               """
-      package dagger;
-
-      public @interface Module {}
-      """.trimIndent()
-    )
   }
 
   override fun tearDown() {
@@ -82,10 +73,29 @@ class DaggerDependencyCheckerTest : UsefulTestCase() {
   }
 
   fun test() {
-    // We are not using dagger module in appModule.
-    assertThat(appModule.isDaggerPresent()).isFalse()
-    // Add dagger as dependency.
-    ModuleRootModificationUtil.addDependency(appModule, daggerLib)
-    assertThat(appModule.isDaggerPresent()).isTrue()
+    val appFile = myFixture.addFileToProject("DaggerDependencyCheckerTest_app/src/test/MyClass.java",
+      // language=JAVA
+                                             """
+      package test;
+
+      public class MyClass {}
+      """.trimIndent()
+    )
+
+    assertThat(appFile.project.service<DaggerDependencyChecker>().isDaggerPresent()).isFalse()
+
+    // Make dagger module actually dagger by adding dagger.Module interface
+    myFixture.addFileToProject("DaggerDependencyCheckerTest_dagger/src/dagger/Module.java",
+      // language=JAVA
+                               """
+      package dagger;
+
+      public @interface Module {}
+      """.trimIndent()
+    )
+
+    // We are not using a Dagger module in an App module, but isDaggerPresent checks for the project.
+    assertThat(appFile.project.service<DaggerDependencyChecker>().isDaggerPresent()).isTrue()
+
   }
 }

@@ -41,6 +41,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import org.jetbrains.plugins.gradle.codeInsight.actions.AddGradleDslPluginAction
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import org.jetbrains.plugins.gradle.settings.DistributionType
 import java.util.concurrent.CompletableFuture
 import java.util.regex.Pattern
@@ -50,8 +51,7 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
   private val MISSING_METHOD_PATTERN = Pattern.compile("Could not find method (.*?) .*")
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
-    //val rootCause = issueData.error.cause ?: return null
+    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (!message.startsWith(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX)) return null
 
     // Log metrics.

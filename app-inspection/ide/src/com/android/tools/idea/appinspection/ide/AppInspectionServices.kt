@@ -28,8 +28,12 @@ import com.android.tools.idea.transport.TransportServiceProxy
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.TimeUnit
 
@@ -47,6 +51,8 @@ internal class AppInspectionHostService : Disposable {
   private val client = TransportClient(TransportService.CHANNEL_NAME)
   private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
 
+  private val applicationMessageBus = ApplicationManager.getApplication().messageBus.connect(this)
+
   val discoveryHost = AppInspectionDiscoveryHost(
     AppExecutorUtil.getAppScheduledExecutorService(),
     client,
@@ -57,6 +63,14 @@ internal class AppInspectionHostService : Disposable {
       logger.error("AndroidDebugBridge cannot find device (manufacturer='${device.manufacturer}', '${device.model}', '${device.serial}')")
     }
     jarCopier
+  }
+
+  init {
+    applicationMessageBus.subscribe(ProjectManager.TOPIC, object : ProjectManagerListener {
+      override fun projectClosing(project: Project) {
+        discoveryHost.disposeClients(project.name)
+      }
+    })
   }
 
   private fun IDevice.createJarCopier(): AppInspectionJarCopier {

@@ -35,6 +35,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Locale;
 import javax.swing.JPanel;
@@ -55,9 +56,16 @@ public class DetailsViewContentView {
   @Nullable private AndroidTestCaseResult myAndroidTestCaseResult;
   @NotNull private String myLogcat = "";
   @NotNull private String myErrorStackTrace = "";
+  @Nullable private File myRetentionSnapshot = null;
 
   @VisibleForTesting final ConsoleViewImpl myLogsView;
+
+  @VisibleForTesting final TabInfo myBenchmarkTab;
+  @VisibleForTesting final ConsoleViewImpl myBenchmarkView;
+
   @VisibleForTesting final AndroidDeviceInfoTableView myDeviceInfoTableView;
+  @VisibleForTesting final RetentionView myRetentionView;
+  @VisibleForTesting final TabInfo myRetentionTab;
 
   public DetailsViewContentView(@NotNull Disposable parentDisposable,
                                 @NotNull Project project) {
@@ -72,11 +80,26 @@ public class DetailsViewContentView {
     logsTab.setText("Logs");
     tabs.addTab(logsTab);
 
+    // Create benchmark tab.
+    myBenchmarkView = new ConsoleViewImpl(project, /*viewer=*/true);
+    Disposer.register(parentDisposable, myBenchmarkView);
+    myBenchmarkTab = new TabInfo(myBenchmarkView.getComponent());
+    myBenchmarkTab.setText("Benchmark");
+    myBenchmarkTab.setHidden(true);
+    tabs.addTab(myBenchmarkTab);
+
     // Device info tab.
     myDeviceInfoTableView = new AndroidDeviceInfoTableView();
     TabInfo deviceInfoTab = new TabInfo(myDeviceInfoTableView.getComponent());
     deviceInfoTab.setText("Device Info");
     tabs.addTab(deviceInfoTab);
+
+    // Android Test Retention tab.
+    myRetentionView = new RetentionView();
+    myRetentionTab = new TabInfo(myRetentionView.getRootPanel());
+    myRetentionTab.setText("Retention");
+    tabs.addTab(myRetentionTab);
+    myRetentionTab.setHidden(true);
 
     // Wrap JBTabs to draw a border on top.
     JPanel tabsWrapper = new JPanel(new BorderLayout());
@@ -114,6 +137,21 @@ public class DetailsViewContentView {
     myErrorStackTrace = errorStackTrace;
     refreshTestResultLabel();
     refreshLogsView();
+  }
+
+  public void setBenchmarkText(@NotNull String benchmarkText) {
+    myBenchmarkView.clear();
+    myBenchmarkView.print(benchmarkText, ConsoleViewContentType.NORMAL_OUTPUT);
+    myBenchmarkTab.setHidden(StringUtil.isEmpty(benchmarkText));
+  }
+
+  public void setRetentionSnapshot(@Nullable File rententionSnapshot) {
+    myRetentionSnapshot = rententionSnapshot;
+    refreshRetentionView();
+  }
+
+  private void refreshRetentionView() {
+    myRetentionTab.setHidden(myRetentionSnapshot == null);
   }
 
   private void refreshTestResultLabel() {

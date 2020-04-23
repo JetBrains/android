@@ -41,13 +41,13 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   private final TableModel myTableModel;
 
   @NotNull
-  private final Function<Project, SelectedDevicesService> mySelectedDevicesServiceGetInstance;
+  private final Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
 
   @Nullable
   private ModifyDeviceSetDialogTable myTable;
 
   ModifyDeviceSetDialog(@NotNull Project project) {
-    this(project, newModifyDeviceSetDialogTableModel(project), SelectedDevicesService::getInstance);
+    this(project, newModifyDeviceSetDialogTableModel(project), DevicesSelectedService::getInstance);
   }
 
   @NotNull
@@ -58,12 +58,12 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   @VisibleForTesting
   ModifyDeviceSetDialog(@NotNull Project project,
                         @NotNull TableModel tableModel,
-                        @NotNull Function<Project, SelectedDevicesService> selectedDevicesServiceGetInstance) {
+                        @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
     super(project);
 
     myProject = project;
     myTableModel = tableModel;
-    mySelectedDevicesServiceGetInstance = selectedDevicesServiceGetInstance;
+    myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
 
     initTable();
     init();
@@ -81,7 +81,7 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
     myTable = new ModifyDeviceSetDialogTable();
 
     myTable.setModel(myTableModel);
-    myTable.setSelectedDevices(mySelectedDevicesServiceGetInstance.apply(myProject).getSelectedDeviceKeys());
+    myTable.setSelectedDevices(myDevicesSelectedServiceGetInstance.apply(myProject).getDeviceKeysSelectedWithDialog());
   }
 
   @NotNull
@@ -132,6 +132,6 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
     super.doOKAction();
 
     assert myTable != null;
-    mySelectedDevicesServiceGetInstance.apply(myProject).setSelectedDevices(myTable.getSelectedDevices());
+    myDevicesSelectedServiceGetInstance.apply(myProject).setDevicesSelectedWithDialog(myTable.getSelectedDevices());
   }
 }

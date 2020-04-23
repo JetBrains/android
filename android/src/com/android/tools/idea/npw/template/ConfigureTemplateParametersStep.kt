@@ -21,15 +21,15 @@ import com.android.tools.idea.npw.bindExpression
 import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.project.getSourceProvider
-import com.android.tools.idea.npw.template.components.CheckboxProvider2
+import com.android.tools.idea.npw.template.components.CheckboxProvider
 import com.android.tools.idea.npw.template.components.ComponentProvider
-import com.android.tools.idea.npw.template.components.EnumComboProvider2
-import com.android.tools.idea.npw.template.components.LabelWithEditButtonProvider2
+import com.android.tools.idea.npw.template.components.EnumComboProvider
+import com.android.tools.idea.npw.template.components.LabelWithEditButtonProvider
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvider
-import com.android.tools.idea.npw.template.components.PackageComboProvider2
+import com.android.tools.idea.npw.template.components.PackageComboProvider
 import com.android.tools.idea.npw.template.components.SeparatorProvider
-import com.android.tools.idea.npw.template.components.TextFieldProvider2
+import com.android.tools.idea.npw.template.components.TextFieldProvider
 import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.BindingsManager
@@ -262,7 +262,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
    * The caller should use [RowEntry.addToPanel] after receiving it.
    */
   private fun createRowForWidget(module: Module?, widget: Widget<*>): RowEntry<*> = when (widget) {
-    is TextFieldWidget -> RowEntry(widget.p.name, TextFieldProvider2(widget.parameter))
+    is TextFieldWidget -> RowEntry(widget.p.name, TextFieldProvider(widget.parameter))
     is LanguageWidget -> RowEntry(message("android.wizard.language.combo.header"), LanguageComboProvider()).also {
       val language = (it.property as SelectedItemProperty<Language>)
       bindings.bindTwoWay(language, model.language)
@@ -274,10 +274,10 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     is PackageNameWidget -> {
       val rowEntry = if (module != null)
         RowEntry(
-          widget.p.name, PackageComboProvider2(module.project, widget.p, model.packageName.get(), getRecentsKeyForParameter(widget.p))
+          widget.p.name, PackageComboProvider(module.project, widget.p, model.packageName.get(), getRecentsKeyForParameter(widget.p))
         )
       else
-        RowEntry(widget.p.name, LabelWithEditButtonProvider2(widget.p))
+        RowEntry(widget.p.name, LabelWithEditButtonProvider(widget.p))
 
       // All ATTR_PACKAGE_NAME providers should be string types and provide StringProperties
       val packageName = rowEntry.property as StringProperty
@@ -286,9 +286,9 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       listeners.listen(model.packageName) { enqueueEvaluateParameters() }
       rowEntry
     }
-    is CheckBoxWidget -> RowEntry(CheckboxProvider2(widget.p))
+    is CheckBoxWidget -> RowEntry(CheckboxProvider(widget.p))
     is Separator -> RowEntry(SeparatorProvider())
-    is EnumWidget<*> -> RowEntry(widget.p.name, EnumComboProvider2(widget.p))
+    is EnumWidget<*> -> RowEntry(widget.p.name, EnumComboProvider(widget.p))
     else -> TODO("Only string and bool parameters are supported for now")
   }
 

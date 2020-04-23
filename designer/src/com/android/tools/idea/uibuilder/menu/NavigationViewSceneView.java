@@ -17,69 +17,48 @@ package com.android.tools.idea.uibuilder.menu;
 
 import android.view.View;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
-import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Dimension;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * A SceneView for <a href="https://developer.android.com/reference/android/support/design/widget/NavigationView.html">NavigationView</a>
+ * Utilities for building a SceneView for <a href="https://developer.android.com/reference/android/support/design/widget/NavigationView.html">NavigationView</a>
  * menus.
  */
-public final class NavigationViewSceneView extends ScreenView {
+public final class NavigationViewSceneView {
   public static final String SHOW_IN_ATTRIBUTE_VALUE = "navigation_view";
-
-  public NavigationViewSceneView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
-    super(surface, manager);
-  }
-
-  @NotNull
-  @Override
-  protected ImmutableList<Layer> createLayers() {
-    return ImmutableList.of(new ScreenViewLayer(this));
-  }
 
   /**
    * Returns the size of the NavigationView view object. The sizes of these SceneViews usually match the size of the device in the
    * configuration.
    */
-  @NotNull
-  @Override
-  public Dimension getContentSize(@Nullable Dimension size) {
-    if (size == null) {
-      size = new Dimension();
+  public static final ScreenView.ContentSizePolicy CONTENT_SIZE_POLICY = new ScreenView.ContentSizePolicy() {
+    @Override
+    public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
+      RenderResult result = screenView.getResult();
+
+      if (result == null) {
+        return;
+      }
+
+      List<ViewInfo> views = result.getRootViews();
+
+      if (views.isEmpty()) {
+        return;
+      }
+
+      Object view = views.get(0).getViewObject();
+
+      try {
+        outDimension.setSize(getWidth(view), getHeight(view));
+      }
+      catch (ReflectiveOperationException exception) {
+        throw new RuntimeException(exception);
+      }
     }
-
-    RenderResult result = getResult();
-
-    if (result == null) {
-      return size;
-    }
-
-    List<ViewInfo> views = result.getRootViews();
-
-    if (views.isEmpty()) {
-      return size;
-    }
-
-    Object view = views.get(0).getViewObject();
-
-    try {
-      size.setSize(getWidth(view), getHeight(view));
-      return size;
-    }
-    catch (ReflectiveOperationException exception) {
-      throw new RuntimeException(exception);
-    }
-  }
+  };
 
   private static int getWidth(@NotNull Object view) throws ReflectiveOperationException {
     return (int)View.class.getDeclaredMethod("getWidth").invoke(view);
@@ -89,10 +68,5 @@ public final class NavigationViewSceneView extends ScreenView {
     return (int)View.class.getDeclaredMethod("getHeight").invoke(view);
   }
 
-  @NotNull
-  @Override
-  public Shape getScreenShape() {
-    Dimension size = getScaledContentSize();
-    return new Rectangle(getX(), getY(), size.width, size.height);
-  }
+  private NavigationViewSceneView() {}
 }

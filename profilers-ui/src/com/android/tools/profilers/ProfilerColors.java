@@ -21,8 +21,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-
-import java.awt.*;
+import java.awt.Color;
 
 public class ProfilerColors {
 
@@ -79,6 +78,9 @@ public class ProfilerColors {
 
   public static final Color NORMAL_FRAME_COLOR = new JBColor(new Color(0xAAD4D4D4, true), new Color(0xAA58595A, true));
   public static final Color NORMAL_FRAME_COLOR_HIGHLIGHTED = new JBColor(new Color(0xAAB9B9B9, true), new Color(0xAA767778, true));
+
+  public static final Color SURFACEFLINGER_EVENT = new JBColor(0x6E8C9A, 0x606D7E);
+  public static final Color VSYNC_COUNTER_VALUE = StudioColorsKt.getBorder();
 
   /**
    * Represents pair of colors of non-selected and hovered states of a thread.

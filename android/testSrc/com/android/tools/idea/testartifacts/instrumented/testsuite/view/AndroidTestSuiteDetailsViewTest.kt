@@ -33,6 +33,7 @@ import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
+import java.io.File
 
 /**
  * Unit tests for [AndroidTestSuiteDetailsView].
@@ -76,11 +77,13 @@ class AndroidTestSuiteDetailsViewTest {
 
   private fun createTestResults(testCaseName: String, testCaseResult: AndroidTestCaseResult): AndroidTestResults {
     return object: AndroidTestResults {
+      override fun getRetentionSnapshot(device: AndroidDevice): File? = null
       override val testCaseName: String = testCaseName
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = testCaseResult
       override fun getTestResultSummary(): AndroidTestCaseResult = testCaseResult
       override fun getLogcat(device: AndroidDevice): String = ""
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
+      override fun getBenchmark(device: AndroidDevice): String = ""
     }
   }
 }

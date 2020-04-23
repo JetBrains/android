@@ -16,15 +16,11 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingRectangle
-import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.model.Scale
-import com.android.tools.idea.common.model.toScale
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
-import com.android.tools.idea.common.scene.draw.buildString
-import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.naveditor.scene.HEADER_ICON_SIZE
 import com.android.tools.idea.naveditor.scene.HEADER_TEXT_HEIGHT
 import com.android.tools.idea.naveditor.scene.HEADER_TEXT_PADDING
@@ -40,14 +36,6 @@ class DrawHeader(private val rectangle: SwingRectangle,
                  private val text: String,
                  private val isStart: Boolean,
                  private val hasDeepLink: Boolean) : CompositeDrawCommand(COMPONENT_LEVEL) {
-
-  constructor(serialized: String) : this(parse(serialized, 5))
-
-  private constructor(tokens: Array<String>) : this(tokens[0].toSwingRect(), tokens[1].toScale(), tokens[2],
-                                                    tokens[3].toBoolean(), tokens[4].toBoolean())
-
-  override fun serialize() = buildString(javaClass.simpleName, rectangle.toString(), scale, text, isStart, hasDeepLink)
-
   override fun buildCommands(): List<DrawCommand> {
     val list = mutableListOf<DrawCommand>()
 

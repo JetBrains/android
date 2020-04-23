@@ -59,6 +59,7 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingS
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
@@ -313,6 +314,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
 
     updateAllocationTrackingStatus();
+    updateNativeAllocationTrackingStatus();
   }
 
   @Override
@@ -442,7 +444,8 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
   }
 
   private Transport.ExecuteResponse startNativeAllocationTracking() {
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackRecordAllocations();
+    IdeProfilerServices ide = getStudioProfilers().getIdeServices();
+    ide.getFeatureTracker().trackRecordAllocations();
     getStudioProfilers().setMemoryLiveAllocationEnabled(false);
     Common.Process process = getStudioProfilers().getProcess();
     String traceFilePath = String.format(Locale.getDefault(), "%s/%s.trace", DAEMON_DEVICE_DIR_PATH, process.getName());
@@ -451,7 +454,9 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
       .setPid(mySessionData.getPid())
       .setType(Commands.Command.CommandType.START_NATIVE_HEAP_SAMPLE)
       .setStartNativeSample(Memory.StartNativeSample.newBuilder()
-                              .setSamplingIntervalBytes(32)
+                              // Note: This will use the config for the one that is loaded (in the drop down) vs the one used to launch
+                              // the app.
+                              .setSamplingIntervalBytes(ide.getFeatureConfig().getNativeMemorySamplingRateForCurrentConfig())
                               .setSharedMemoryBufferBytes(64 * 1024 * 1024)
                               .setAbiCpuArch(process.getAbiCpuArch())
                               .setTempPath(traceFilePath)
@@ -585,7 +590,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
     else {
       // TODO(b/150503095)
       ForceGarbageCollectionResponse response =
-          myClient.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(mySessionData).build());
+        myClient.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(mySessionData).build());
     }
   }
 
@@ -880,7 +885,8 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
 
     if (captureObject.canSafelyLoad()) {
       load.run();
-    } else {
+    }
+    else {
       getStudioProfilers().getIdeServices()
         .openYesNoDialog("The hprof file is large, and Android Studio may become unresponsive while " +
                          "it parses the data and afterwards. Do you want to continue?",
@@ -928,7 +934,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
       else {
         // TODO(b/150503095)
         SetAllocationSamplingRateResponse response =
-            getStudioProfilers().getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
+          getStudioProfilers().getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
                                                                                          .setSession(mySessionData)
                                                                                          .setSamplingRate(samplingRate)
                                                                                          .build());
@@ -962,6 +968,19 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
     else {
       myPendingCaptureStartTime = INVALID_START_TIME;
       myPendingLegacyAllocationStartTimeNs = INVALID_START_TIME;
+    }
+  }
+
+  private void updateNativeAllocationTrackingStatus() {
+    List<Memory.MemoryNativeTrackingData> samples = MemoryProfiler
+      .getNativeHeapStatusForSession(getStudioProfilers().getClient(), mySessionData, new Range(Long.MIN_VALUE, Long.MAX_VALUE));
+    if (samples.isEmpty()) {
+      return;
+    }
+    Memory.MemoryNativeTrackingData last = samples.get(samples.size() - 1);
+    // If there is an ongoing recording.
+    if (last.getStatus() == Memory.MemoryNativeTrackingData.Status.SUCCESS) {
+      nativeAllocationTrackingStart(last);
     }
   }
 

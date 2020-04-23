@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.legacydevice
 
+import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.Client
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
@@ -176,6 +177,7 @@ class LegacyClient(parentDisposable: Disposable) : InspectorClient {
    *
    * Return <code>true</code> if windows were found otherwise false.
    */
+  @Slow
   fun reloadAllWindows(): Boolean {
     val windowIds = treeLoader.getAllWindowIds(null, this) ?: return false
     if (windowIds.isEmpty()) {

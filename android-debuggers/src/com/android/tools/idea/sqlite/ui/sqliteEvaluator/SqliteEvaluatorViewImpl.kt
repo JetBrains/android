@@ -29,16 +29,19 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.psi.PsiManager
+import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.SideBorder
 import com.intellij.util.ui.JBUI
+import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Toolkit
 import java.awt.event.KeyEvent
 import java.util.ArrayList
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.KeyStroke
 
@@ -53,7 +56,7 @@ class SqliteEvaluatorViewImpl(
 
   override val component: JComponent = JPanel(BorderLayout())
 
-  private val databaseComboBox = ComboBox<ComboBoxItem>()
+  private val databaseComboBox = ComboBox<SqliteDatabase>()
   private val expandableEditor = ExpandableEditor(EditorTextField(project, AndroidSqlLanguage.INSTANCE.associatedFileType))
 
   private val listeners = ArrayList<SqliteEvaluatorView.Listener>()
@@ -83,6 +86,19 @@ class SqliteEvaluatorViewImpl(
     runStatementAction.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), expandableEditor.expandedEditor)
 
     databaseComboBox.addActionListener { setSchemaFromSelectedItem() }
+    databaseComboBox.setMinimumAndPreferredWidth(JBUI.scale(300))
+    databaseComboBox.renderer = object : ColoredListCellRenderer<SqliteDatabase>() {
+      override fun customizeCellRenderer(
+        list: JList<out SqliteDatabase>,
+        sqliteDatabase: SqliteDatabase,
+        index: Int,
+        selected: Boolean,
+        hasFocus: Boolean
+      ) {
+        icon = StudioIcons.DatabaseInspector.DATABASE
+        append(sqliteDatabase.name)
+      }
+    }
 
     controlsPanel.add(runButton, BorderLayout.EAST)
     controlsPanel.add(databaseComboBox, BorderLayout.WEST)
@@ -98,7 +114,7 @@ class SqliteEvaluatorViewImpl(
   override fun schemaChanged(database: SqliteDatabase) {
     // A fresh schema is taken from the schema provider each time the selected db changes in the combo box.
     // Therefore the only case we need to worry about is when the schema that changed belongs to the currently selected db.
-    if ((databaseComboBox.selectedItem as ComboBoxItem).database == database) {
+    if ((databaseComboBox.selectedItem as SqliteDatabase) == database) {
       setSchemaFromSelectedItem()
     }
   }
@@ -106,7 +122,7 @@ class SqliteEvaluatorViewImpl(
   private fun evaluateSqliteExpression() {
     listeners.forEach {
       it.evaluateSqlActionInvoked(
-        (databaseComboBox.selectedItem as ComboBoxItem).database,
+        (databaseComboBox.selectedItem as SqliteDatabase),
         expandableEditor.activeEditor.text
       )
     }
@@ -114,7 +130,7 @@ class SqliteEvaluatorViewImpl(
 
   private fun setSchemaFromSelectedItem() {
     if (databaseComboBox.selectedIndex < 0) return
-    val database = (databaseComboBox.selectedItem as ComboBoxItem).database
+    val database = (databaseComboBox.selectedItem as SqliteDatabase)
     val schema = schemaProvider.getSchema(database)
 
     val fileDocumentManager = FileDocumentManager.getInstance()
@@ -128,16 +144,15 @@ class SqliteEvaluatorViewImpl(
   }
 
   override fun addDatabase(database: SqliteDatabase, index: Int) {
-    databaseComboBox.insertItemAt(ComboBoxItem(database, database.name), index)
+    databaseComboBox.insertItemAt(database, index)
     if (databaseComboBox.selectedIndex == -1) databaseComboBox.selectedIndex = 0
   }
 
   override fun selectDatabase(database: SqliteDatabase) {
     // Avoid setting the item if it's already selected, so we don't trigger the action listener for now reason.
-    val itemToSelect = ComboBoxItem(database, database.name)
-    val currentlySelectedItem = databaseComboBox.selectedItem
-    if (itemToSelect != currentlySelectedItem) {
-      databaseComboBox.selectedItem = itemToSelect
+    val currentlySelectedItem = databaseComboBox.selectedItem as SqliteDatabase
+    if (database != currentlySelectedItem) {
+      databaseComboBox.selectedItem = database
     }
   }
 
@@ -146,7 +161,7 @@ class SqliteEvaluatorViewImpl(
   }
 
   override fun getActiveDatabase(): SqliteDatabase {
-    return (databaseComboBox.selectedItem as ComboBoxItem).database
+    return databaseComboBox.selectedItem as SqliteDatabase
   }
 
   override fun getSqliteStatement(): String {
@@ -163,9 +178,5 @@ class SqliteEvaluatorViewImpl(
 
   override fun showSqliteStatement(sqliteStatement: String) {
     expandableEditor.activeEditor.text = sqliteStatement
-  }
-
-  internal data class ComboBoxItem(val database: SqliteDatabase, val name: String) {
-    override fun toString() = name
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.targets
 
+import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
@@ -22,16 +23,19 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.ACTION_COLOR
+import com.android.tools.idea.naveditor.scene.ConnectionDirection
 import com.android.tools.idea.naveditor.scene.FRAME_COLOR
 import com.android.tools.idea.naveditor.scene.SELECTED_COLOR
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawFragment
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawHeader
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
+import com.android.tools.idea.naveditor.scene.getDestinationDirection
 import com.android.tools.idea.naveditor.scene.verifyScene
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
+import com.google.common.truth.Truth.assertThat
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.`when`
 import java.awt.Color
@@ -116,79 +120,23 @@ class ActionTargetTest : NavTestCase() {
   }
 
   fun testDirection() {
-    val model = model("nav.xml") {
-      navigation("root", startDestination = "fragment1") {
-        fragment("fragment1")
-        fragment("fragment2") {
-          action(id = "action1", destination = "fragment1")
-        }
-        fragment("fragment3") {
-          action(id = "action2", destination = "fragment1")
-        }
-        fragment("fragment4") {
-          action(id = "action3", destination = "fragment1")
-        }
-        fragment("fragment5") {
-          action(id = "action4", destination = "fragment1")
-        }
-        fragment("fragment6") {
-          action(id = "action5", destination = "fragment1")
-        }
-      }
-    }
-
-    val scene = model.surface.scene!!
-
     //  |---------|
     //  |    2  3 |
     //  | 4  1    |
     //  |    5  6 |
     //  |---------|
-    scene.getSceneComponent("fragment1")!!.setPosition(500, 500)
-    scene.getSceneComponent("fragment2")!!.setPosition(500, 0)
-    scene.getSceneComponent("fragment3")!!.setPosition(1000, 0)
-    scene.getSceneComponent("fragment4")!!.setPosition(0, 500)
-    scene.getSceneComponent("fragment5")!!.setPosition(500, 1000)
-    scene.getSceneComponent("fragment6")!!.setPosition(1000, 1000)
+    val rect1 = SwingRectangle(Rectangle2D.Float(500f, 500f, 153f, 256f))
+    val rect2 = SwingRectangle(Rectangle2D.Float(500f, 0f, 153f, 256f))
+    val rect3 = SwingRectangle(Rectangle2D.Float(1000f, 0f, 153f, 256f))
+    val rect4 = SwingRectangle(Rectangle2D.Float(0f, 500f, 153f, 256f))
+    val rect5 = SwingRectangle(Rectangle2D.Float(500f, 1000f, 153f, 256f))
+    val rect6 = SwingRectangle(Rectangle2D.Float(1000f, 1000f, 153f, 256f))
 
-    scene.sceneManager.layout(false)
-    val list = DisplayList()
-    scene.layout(0, scene.sceneManager.sceneView.context)
-    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-
-    // Arrows should be down for 2 and 3, right for 4, up for 5 and 6
-    assertEquals(
-      "Clip,0,0,1377,1428\n" +
-      "DrawAction,650.0x400.0x76.5x128.0,650.0x650.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawAction,900.0x400.0x76.5x128.0,650.0x650.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawAction,400.0x650.0x76.5x128.0,650.0x650.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawAction,650.0x900.0x76.5x128.0,650.0x650.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawAction,900.0x900.0x76.5x128.0,650.0x650.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,650.0x639.0x76.5x11.0,0.5,fragment1,true,false\n" +
-      "DrawFragment,650.0x650.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "DrawHeader,650.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
-      "DrawFragment,650.0x400.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "DrawHeader,900.0x389.0x76.5x11.0,0.5,fragment3,false,false\n" +
-      "DrawFragment,900.0x400.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "DrawHeader,400.0x639.0x76.5x11.0,0.5,fragment4,false,false\n" +
-      "DrawFragment,400.0x650.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "DrawHeader,650.0x889.0x76.5x11.0,0.5,fragment5,false,false\n" +
-      "DrawFragment,650.0x900.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "DrawHeader,900.0x889.0x76.5x11.0,0.5,fragment6,false,false\n" +
-      "DrawFragment,900.0x900.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+    assertThat(getDestinationDirection(rect2, rect1)).isEqualTo(ConnectionDirection.TOP)
+    assertThat(getDestinationDirection(rect3, rect1)).isEqualTo(ConnectionDirection.TOP)
+    assertThat(getDestinationDirection(rect4, rect1)).isEqualTo(ConnectionDirection.LEFT)
+    assertThat(getDestinationDirection(rect5, rect1)).isEqualTo(ConnectionDirection.BOTTOM)
+    assertThat(getDestinationDirection(rect6, rect1)).isEqualTo(ConnectionDirection.BOTTOM)
   }
 
   fun testTooltips() {

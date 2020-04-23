@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.mockup;
 
+import static com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -217,16 +219,20 @@ public class MockupTest extends MockupTestCase {
 
   public void testGetBounds_Normal_Position() {
     final NlModel model = createModel1Mockup(MOCKUP_PSD, "0 0 -1 -1 10 10 120 50");
+    LayoutlibSceneManager mockSceneManager = mock(LayoutlibSceneManager.class);
     NlDesignSurface mockSurface = mock(NlDesignSurface.class);
     when(mockSurface.getScale()).thenReturn(1.0);
 
-    ScreenView screenView = mock(ScreenView.class);
+    ScreenView screenView = spy(new ScreenView(mockSurface, mockSceneManager, new ScreenView.ContentSizePolicy() {
+      @Override
+      public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
+        outDimension.setSize(1000, 2000);
+      }
+    }));
     when(screenView.getX()).thenReturn(0);
     when(screenView.getY()).thenReturn(0);
-    when(screenView.getContentSize(anyObject())).thenReturn(new Dimension(1000, 2000));
     when(screenView.getScale()).thenReturn(2.);
     when(screenView.getSurface()).thenReturn(mockSurface);
-    LayoutlibSceneManager mockSceneManager = mock(LayoutlibSceneManager.class);
     when(screenView.getSceneManager()).thenReturn(mockSceneManager);
     when(mockSceneManager.getSceneScalingFactor()).thenReturn(1f);
     final Mockup mockup = Mockup.create(model.getComponents().get(0));
@@ -257,7 +263,7 @@ public class MockupTest extends MockupTestCase {
       })
       .build();
     surface.setModel(model);
-    final ScreenView screenView = new ScreenView(surface, surface.getSceneManager()) {
+    final ScreenView screenView = new ScreenView(surface, surface.getSceneManager(), DEVICE_CONTENT_SIZE_POLICY) {
       @Override
       public double getScale() {
         return 1.0;
@@ -290,7 +296,7 @@ public class MockupTest extends MockupTestCase {
       })
       .build();
     surface.setModel(model);
-    final ScreenView screenView = new ScreenView(surface, surface.getSceneManager()) {
+    final ScreenView screenView = new ScreenView(surface, surface.getSceneManager(), DEVICE_CONTENT_SIZE_POLICY) {
       @Override
       public double getScale() {
         return 1.0;

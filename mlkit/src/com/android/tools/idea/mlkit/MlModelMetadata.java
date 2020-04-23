@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.mlkit;
 
-import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.ModelInfo;
-import com.android.tools.mlkit.ModelParsingException;
 import com.android.tools.mlkit.TensorInfo;
+import com.android.tools.mlkit.exception.TfliteModelException;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -46,26 +46,17 @@ public class MlModelMetadata {
     myModelFileUrl = modelFileUrl;
     myClassName = className;
 
-    ByteBuffer byteBuffer = null;
     try {
-      // Load model as ByteBuffer
       VirtualFile modelFile = VirtualFileManager.getInstance().findFileByUrl(modelFileUrl);
-      if (modelFile != null) {
-        byte[] data = modelFile.contentsToByteArray();
-        byteBuffer = ByteBuffer.wrap(data);
+      if (modelFile != null && modelFile.getLength() > 0) {
+        myModelData = ModelInfo.buildFrom(ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(modelFile).toPath())));
       }
+    }
+    catch (TfliteModelException e) {
+      LOG.warn("Failed to get model info from model:: " + modelFileUrl, e);
     }
     catch (IOException e) {
-      LOG.error("IO Exception when loading model: " + modelFileUrl, e);
-    }
-
-    try {
-      if (byteBuffer != null) {
-        myModelData = ModelInfo.buildFrom(new MetadataExtractor(byteBuffer));
-      }
-    }
-    catch (ModelParsingException e) {
-      LOG.warn("Metadata is invalid in model: " + modelFileUrl, e);
+      LOG.warn("IO Exception when loading model: " + modelFileUrl, e);
     }
   }
 
@@ -75,20 +66,12 @@ public class MlModelMetadata {
 
   @NotNull
   public List<TensorInfo> getInputTensorInfos() {
-    if (isValidModel()) {
-      return myModelData.getInputs();
-    }
-
-    return Collections.emptyList();
+    return myModelData != null ? myModelData.getInputs() : Collections.emptyList();
   }
 
   @NotNull
   public List<TensorInfo> getOutputTensorInfos() {
-    if (isValidModel()) {
-      return myModelData.getOutputs();
-    }
-
-    return Collections.emptyList();
+    return myModelData != null ? myModelData.getOutputs() : Collections.emptyList();
   }
 
   @Override

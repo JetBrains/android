@@ -37,23 +37,38 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
- * Executes a given shell command on a given device. This function blocks caller
- * until the command finishes or times out and returns output in string.
- */
-@WorkerThread
-private fun executeShellCommandSync(device: IDevice, command: String): String {
-  val latch = CountDownLatch(1)
-  val receiver = CollectingOutputReceiver(latch)
-  device.executeShellCommand(command, receiver, 10, TimeUnit.SECONDS)
-  latch.await(10, TimeUnit.SECONDS)
-  return receiver.output.trim()
-}
-
-/**
  * An adapter to translate [ITestRunListener] callback methods into [AndroidTestResultListener].
  */
 class DdmlibTestRunListenerAdapter(device: IDevice,
                                    private val listener: AndroidTestResultListener) : ITestRunListener {
+
+  companion object {
+    const val BENCHMARK_TEST_METRICS_KEY = "android.studio.display.benchmark"
+    private val benchmarkPrefixRegex = "^benchmark:".toRegex(RegexOption.MULTILINE)
+
+    /**
+     * Retrieves benchmark output text from a given [testMetrics].
+     */
+    private fun getBenchmarkOutput(testMetrics: MutableMap<String, String>): String {
+      // Workaround solution for b/154322086.
+      return benchmarkPrefixRegex
+        .replace(testMetrics.getOrDefault(BENCHMARK_TEST_METRICS_KEY, ""), "")
+        .trimIndent()
+    }
+
+    /**
+     * Executes a given shell command on a given device. This function blocks caller
+     * until the command finishes or times out and returns output in string.
+     */
+    @WorkerThread
+    private fun executeShellCommandSync(device: IDevice, command: String): String {
+      val latch = CountDownLatch(1)
+      val receiver = CollectingOutputReceiver(latch)
+      device.executeShellCommand(command, receiver, 10, TimeUnit.SECONDS)
+      latch.await(10, TimeUnit.SECONDS)
+      return receiver.output.trim()
+    }
+  }
 
   private val myDevice = AndroidDevice(device.serialNumber,
                                        device.avdName ?: device.serialNumber,
@@ -116,6 +131,7 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
       testCase.result = AndroidTestCaseResult.PASSED
     }
     testCase.logcat = testMetrics.getOrDefault(DDMLIB_LOGCAT, "")
+    testCase.benchmark = getBenchmarkOutput(testMetrics)
     listener.onTestCaseFinished(myDevice, myTestSuite, testCase)
   }
 

@@ -28,12 +28,12 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.Recipe
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LargeFileWriteRequestor
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -71,7 +71,7 @@ class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor
           // Delete existing file if it exists.
           val existingFile = toDir.findChild(fromFile.name)
           if (existingFile != null && existingFile.exists()) {
-            existingFile.delete(this);
+            existingFile.delete(this)
           }
 
           val virtualFile = fromFile.copy(this, toDir, fromFile.name)
@@ -87,8 +87,7 @@ class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor
               dryRun = false,
               moduleRoot = null
             )
-            // TODO(b/153163381): Add loggingEvent here.
-            mlkitRecipe.render(context, DefaultRecipeExecutor(context), null)
+            mlkitRecipe.render(context, DefaultRecipeExecutor(context), TemplateRenderer.ML_MODEL_BINDING_IMPORT_WIZARD)
             module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
           }
 

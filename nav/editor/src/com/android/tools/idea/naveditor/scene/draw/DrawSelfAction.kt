@@ -17,14 +17,8 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingPath
 import com.android.tools.adtui.common.SwingRectangle
-import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.model.times
-import com.android.tools.idea.common.model.toScale
-import com.android.tools.idea.common.scene.draw.buildString
-import com.android.tools.idea.common.scene.draw.colorToString
-import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.naveditor.scene.ACTION_ARROW_PARALLEL
 import com.android.tools.idea.naveditor.scene.ACTION_ARROW_PERPENDICULAR
 import com.android.tools.idea.naveditor.scene.ArrowDirection
@@ -40,15 +34,6 @@ class DrawSelfAction(private val rectangle: SwingRectangle,
                      scale: Scale,
                      color: Color,
                      isPopAction: Boolean) : DrawActionBase(scale, color, isPopAction) {
-
-  private constructor(tokens: Array<String>)
-    : this(tokens[0].toSwingRect(), tokens[1].toScale(), stringToColor(tokens[2]), tokens[3].toBoolean())
-
-  constructor(serialized: String) : this(parse(serialized, 4))
-
-  override fun serialize() = buildString(javaClass.simpleName, rectangle.toString(),
-                                         scale, colorToString(color), isPopAction)
-
   override fun buildAction(): Action {
     val points = selfActionPoints(rectangle, scale)
     val path = SwingPath()

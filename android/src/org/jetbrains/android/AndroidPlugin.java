@@ -1,14 +1,13 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
-import static com.android.tools.idea.startup.Actions.moveAction;
-
 import com.android.tools.adtui.webp.WebpMetadata;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.startup.Actions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -32,10 +31,11 @@ public final class AndroidPlugin {
   public AndroidPlugin() {
     VirtualFileSystemOpener.INSTANCE.mount();
     registerWebpSupport();
+    ActionManager actionManager = ActionManager.getInstance();
     if (!IdeInfo.getInstance().isAndroidStudio()) {
-      initializeForNonStudio();
+      initializeForNonStudio(actionManager);
     }
-    setUpActionsUnderFlag();
+    setUpActionsUnderFlag(actionManager);
   }
 
   private static void registerWebpSupport() {
@@ -51,22 +51,21 @@ public final class AndroidPlugin {
    * Initializes the Android plug-in when it runs outside of Android Studio.
    * Reduces prominence of the Android related UI elements to keep low profile.
    */
-  private static void initializeForNonStudio() {
+  private static void initializeForNonStudio(ActionManager actionManager) {
     // Move the "Sync Project with Gradle Files" from the File menu to Tools > Android.
-    moveAction("Android.SyncProject", IdeActions.GROUP_FILE, GROUP_ANDROID_TOOLS, new Constraints(Anchor.FIRST, null));
+    Actions.moveAction(actionManager, "Android.SyncProject", IdeActions.GROUP_FILE, GROUP_ANDROID_TOOLS, new Constraints(Anchor.FIRST, null));
     // Move the "Sync Project with Gradle Files" toolbar button to a less prominent place.
-    moveAction("Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
+    Actions.moveAction(actionManager, "Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
                new Constraints(Anchor.LAST, null));
     AnalyticsSettings.disable();
     UsageTracker.disable();
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
   }
 
-  private static void setUpActionsUnderFlag() {
+  private static void setUpActionsUnderFlag(ActionManager actionManager) {
     // TODO: Once the StudioFlag is removed, the configuration type registration should move to the
     // android-plugin.xml file.
     if (StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get()) {
-      ActionManager actionManager = ActionManager.getInstance();
       AnAction parentGroup = actionManager.getAction("BuildMenu");
       if (parentGroup instanceof DefaultActionGroup) {
         // Create new "Build Bundle(s) / APK(s)" group
@@ -79,11 +78,11 @@ public final class AndroidPlugin {
           }
         };
         actionManager.registerAction(groupId, group);
-        ((DefaultActionGroup)parentGroup).add(group, new Constraints(Anchor.BEFORE, "Android.GenerateSignedApk"));
+        ((DefaultActionGroup)parentGroup).add(group, new Constraints(Anchor.BEFORE, "Android.GenerateSignedApk"), actionManager);
 
         // Move "Build" actions to new "Build Bundle(s) / APK(s)" group
-        moveAction("Android.BuildApk", "BuildMenu", groupId, new Constraints(Anchor.FIRST, null));
-        moveAction("Android.BuildBundle", "BuildMenu", groupId, new Constraints(Anchor.AFTER, null));
+        Actions.moveAction(actionManager, "Android.BuildApk", "BuildMenu", groupId, new Constraints(Anchor.FIRST, null));
+        Actions.moveAction(actionManager, "Android.BuildBundle", "BuildMenu", groupId, new Constraints(Anchor.AFTER, null));
       }
     }
   }

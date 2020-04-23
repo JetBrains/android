@@ -47,7 +47,6 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
     val workBench = WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this)
     val surface: (panel: DesignerEditorPanel) -> DesignSurface = {
       NlDesignSurface.builder(myProject, this)
-        .setDefaultSurfaceState(AndroidEditorSettings.getInstance().globalState.preferredDrawableSurfaceState())
         .build()
         .apply {
           setScreenMode(SceneMode.RENDER, false)
@@ -55,7 +54,8 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
     }
 
     return DesignerEditorPanel(this, myProject, myFile, workBench, surface, { emptyList() },
-                               if (StudioFlags.NELE_ANIMATIONS_PREVIEW.get()) this::addAnimationToolbar else null)
+                               if (StudioFlags.NELE_ANIMATIONS_PREVIEW.get()) this::addAnimationToolbar else null,
+                               AndroidEditorSettings.getInstance().globalState.preferredDrawableSurfaceState())
   }
 
   private fun addAnimationToolbar(surface: DesignSurface, model: NlModel?) = if (model?.type is AnimatedVectorFileType) {
@@ -73,8 +73,8 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
 }
 
 fun AndroidEditorSettings.GlobalState.preferredDrawableSurfaceState() = when(preferredDrawableEditorMode) {
-  AndroidEditorSettings.EditorMode.CODE -> DesignSurface.State.DEACTIVATED
-  AndroidEditorSettings.EditorMode.SPLIT -> DesignSurface.State.SPLIT
-  AndroidEditorSettings.EditorMode.DESIGN -> DesignSurface.State.FULL
-  else -> DesignSurface.State.SPLIT // default
+  AndroidEditorSettings.EditorMode.CODE -> DesignerEditorPanel.State.DEACTIVATED
+  AndroidEditorSettings.EditorMode.SPLIT -> DesignerEditorPanel.State.SPLIT
+  AndroidEditorSettings.EditorMode.DESIGN -> DesignerEditorPanel.State.FULL
+  else -> DesignerEditorPanel.State.SPLIT // default
 }

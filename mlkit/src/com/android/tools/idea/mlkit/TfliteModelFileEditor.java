@@ -17,10 +17,13 @@ package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.mlkit.lightpsi.ClassNames;
 import com.android.tools.mlkit.MetadataExtractor;
+import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.ModelInfo;
-import com.android.tools.mlkit.ModelParsingException;
+import com.android.tools.mlkit.ModelVerifier;
 import com.android.tools.mlkit.TensorInfo;
+import com.android.tools.mlkit.exception.TfliteModelException;
+import com.android.tools.mlkit.exception.UnsupportedTfliteMetadataException;
 import com.android.utils.StringHelper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -40,7 +43,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
-import com.intellij.openapi.util.io.FileTooBigException;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -58,27 +60,34 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.LineSeparator;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.JBUI.Borders;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -86,14 +95,16 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.KotlinFileType;
@@ -105,7 +116,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static final String NAME = "TFLite Model File";
   private static final ImmutableList<String> TENSOR_TABLE_HEADER =
     ImmutableList.of("Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max");
-  private static final int MAX_LINE_LENGTH = 100;
+  private static final int MAX_LINE_LENGTH = 80;
+  private static final String LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().getSeparatorString();
 
   private final Project myProject;
   private final VirtualFile myFile;
@@ -141,9 +153,28 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @NotNull
   private JComponent createContentPanel() {
+    if (myFile.getLength() > MlConstants.MAX_SUPPORTED_MODEL_FILE_SIZE_IN_BYTES) {
+      return createWarningMessagePanel("This file is over the maximum supported size 200 MB.");
+    }
+
     JPanel contentPanel = createPanelWithYAxisBoxLayout(Borders.empty(20));
+    ByteBuffer byteBuffer = null;
+
     try {
-      ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(myFile.contentsToByteArray())));
+      byteBuffer = ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath()));
+      ModelVerifier.verifyModel(byteBuffer);
+    }
+    catch (TfliteModelException e) {
+      if (!(e instanceof UnsupportedTfliteMetadataException)) {
+        return createWarningMessagePanel("Invalid TensorFlow Lite Model: " + e.getMessage());
+      }
+    } catch (IOException e) {
+      Logger.getInstance(TfliteModelFileEditor.class).error(e);
+      return createWarningMessagePanel("Something goes wrong while reading model file.");
+    }
+
+    if (byteBuffer != null) {
+      ModelInfo modelInfo = ModelInfo.buildWithoutVerification(byteBuffer);
       if (modelInfo.isMetadataExisted()) {
         contentPanel.add(createModelSection(modelInfo));
         contentPanel.add(createTensorsSection(modelInfo));
@@ -159,16 +190,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
           contentPanel.add(createSampleCodeSection(modelClass, modelInfo));
         }
       }
-    }
-    catch (FileTooBigException e) {
-      contentPanel.add(createFileTooBigPane());
-    }
-    catch (IOException e) {
-      Logger.getInstance(TfliteModelFileEditor.class).error(e);
-    }
-    catch (ModelParsingException e) {
-      Logger.getInstance(TfliteModelFileEditor.class).warn(e);
-      // TODO(deanzhou): show warning message in panel
     }
 
     return contentPanel;
@@ -214,18 +235,16 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     sectionPanel.add(createSectionHeader("Model"));
 
     JBTable modelTable = createTable(getModelTableData(modelInfo), Collections.emptyList());
-    JPanel modelTablePanel = createPanelWithYAxisBoxLayout(Borders.emptyLeft(20));
+    JPanel modelTablePanel = createPanelWithFlowLayout(Borders.emptyLeft(20));
     modelTablePanel.add(modelTable);
     sectionPanel.add(modelTablePanel);
+    sectionPanel.setMaximumSize(sectionPanel.getPreferredSize());
 
     return sectionPanel;
   }
 
   @NotNull
   private static JComponent createTensorsSection(@NotNull ModelInfo modelInfo) {
-    JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
-    sectionPanel.add(createSectionHeader("Tensors"));
-
     JPanel sectionContentPanel = createPanelWithYAxisBoxLayout(Borders.emptyLeft(20));
 
     JBLabel inputsLabel = new JBLabel("Inputs");
@@ -246,7 +265,22 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     outputTensorTable.setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY));
     sectionContentPanel.add(outputTensorTable);
 
-    sectionPanel.add(sectionContentPanel);
+    // Align column width between tensor tables.
+    for (int c = 0; c < TENSOR_TABLE_HEADER.size(); c++) {
+      TableColumn inputTensorTableColumn = inputTensorTable.getColumnModel().getColumn(c);
+      TableColumn outputTensorTableColumn = outputTensorTable.getColumnModel().getColumn(c);
+      int newColumnWidth = Math.max(inputTensorTableColumn.getPreferredWidth(), outputTensorTableColumn.getPreferredWidth());
+      inputTensorTableColumn.setPreferredWidth(newColumnWidth);
+      outputTensorTableColumn.setPreferredWidth(newColumnWidth);
+    }
+
+    JPanel sectionContentPanelContainer = createPanelWithFlowLayout(Borders.empty());
+    sectionContentPanelContainer.add(sectionContentPanel);
+    sectionContentPanelContainer.setMaximumSize(sectionContentPanelContainer.getPreferredSize());
+
+    JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
+    sectionPanel.add(createSectionHeader("Tensors"));
+    sectionPanel.add(sectionContentPanelContainer);
 
     return sectionPanel;
   }
@@ -264,10 +298,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
 
     JComponent header = createSectionHeader("Sample Code");
-    header.setBorder(Borders.empty(24, 0, 16, 0));
     sectionPanel.add(header);
 
-    JPanel codePaneContainer = createPanelWithYAxisBoxLayout(Borders.emptyLeft(20));
+    JPanel codePaneContainer = createPanelWithFlowLayout(Borders.empty(8, 20, 0, 0));
     sectionPanel.add(codePaneContainer);
 
     JBTabbedPane tabbedCodePane = new JBTabbedPane();
@@ -297,19 +330,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private static JEditorPane createFileTooBigPane() {
-    JEditorPane editorPane = new JEditorPane();
-    editorPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
-    editorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-    editorPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    editorPane.setBackground(UIUtil.getTextFieldBackground());
-    editorPane.setContentType("text/html");
-    editorPane.setEditable(false);
-    editorPane.setText(
-      "<html>Model file is larger than 20 MB, please check " +
-      "<a href=\"https://developer.android.com/studio/write/mlmodelbinding\">our documentation</a> " +
-      "for a workaround.</html>");
-    return editorPane;
+  private static JComponent createWarningMessagePanel(@NotNull String message) {
+    JLabel messageLabel = new JLabel(message);
+    messageLabel.setBackground(UIUtil.getTextFieldBackground());
+    messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    messageLabel.setVerticalAlignment(SwingConstants.CENTER);
+    return messageLabel;
   }
 
   @NotNull
@@ -319,23 +345,46 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     table.setAlignmentX(Component.LEFT_ALIGNMENT);
     table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     table.setBackground(UIUtil.getTextFieldBackground());
-    table.setDefaultRenderer(String.class, new MetadataCellRenderer());
+    table.setDefaultEditor(String.class, new MetadataCellComponentProvider());
+    table.setDefaultRenderer(String.class, new MetadataCellComponentProvider());
     table.setFocusable(false);
     table.setRowSelectionAllowed(false);
     table.setShowGrid(false);
     table.setShowColumns(true);
     table.getTableHeader().setReorderingAllowed(false);
     table.getTableHeader().setResizingAllowed(false);
+    table.addMouseMotionListener(new MouseAdapter() {
+      @Override
+      public void mouseMoved(@NotNull MouseEvent event) {
+        int row = table.rowAtPoint(event.getPoint());
+        int column = table.columnAtPoint(event.getPoint());
+        if (row != -1 && column != -1 && table.isCellEditable(row, column)) {
+          // Hack for skipping one extra click to turn the table cell into editable mode so links can be clickable immediately.
+          table.editCellAt(row, column);
+        }
+        else {
+          table.removeEditor();
+        }
+      }
+    });
 
-    // Sets up a appropriate width for each column.
+    // Sets up column width and row height to fit into content.
     TableCellRenderer headerCellRenderer = table.getTableHeader().getDefaultRenderer();
+    int[] rowHeights = new int[table.getRowCount()];
     for (int c = 0; c < table.getColumnCount(); c++) {
       TableColumn column = table.getColumnModel().getColumn(c);
-      int headerCellWidth =
+      int cellWidth =
         headerCellRenderer.getTableCellRendererComponent(table, column.getHeaderValue(), false, false, 0, c).getPreferredSize().width;
-      int cellWidth = table.getDefaultRenderer(tableModel.getColumnClass(c))
-        .getTableCellRendererComponent(table, tableModel.getLongestCellValue(c), false, false, 0, c).getPreferredSize().width;
-      column.setPreferredWidth(Math.max(headerCellWidth, cellWidth) + 10);
+      for (int r = 0; r < table.getRowCount(); r++) {
+        TableCellRenderer cellRenderer = table.getCellRenderer(r, c);
+        Dimension preferredSize = table.prepareRenderer(cellRenderer, r, c).getPreferredSize();
+        cellWidth = Math.max(cellWidth, preferredSize.width);
+        rowHeights[r] = Math.max(rowHeights[r], preferredSize.height);
+      }
+      column.setPreferredWidth(cellWidth + 10);
+    }
+    for (int r = 0; r < table.getRowCount(); r++) {
+      table.setRowHeight(r, rowHeights[r]);
     }
 
     return table;
@@ -348,7 +397,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     tableData.add(Lists.newArrayList("Description", Strings.nullToEmpty(modelInfo.getModelDescription())));
     tableData.add(Lists.newArrayList("Version", Strings.nullToEmpty(modelInfo.getModelVersion())));
     tableData.add(Lists.newArrayList("Author", Strings.nullToEmpty(modelInfo.getModelAuthor())));
-    // TODO(b/153093288): Linkify urls in the license text correctly.
     tableData.add(Lists.newArrayList("License", Strings.nullToEmpty(modelInfo.getModelLicense())));
     return tableData;
   }
@@ -358,12 +406,15 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     List<List<String>> tableData = new ArrayList<>();
     for (TensorInfo tensorInfo : tensorInfoList) {
       MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
-      String meanStdColumn = params != null ? Arrays.toString(params.getMean()) + " / " + Arrays.toString(params.getStd()) : "";
-      String minMaxColumn = isValidMinMaxColumn(params) ? Arrays.toString(params.getMin()) + " / " + Arrays.toString(params.getMax()) : "";
+      String meanStdColumn =
+        params != null ? convertFloatArrayToString(params.getMean()) + " / " + convertFloatArrayToString(params.getStd()) : "";
+      String minMaxColumn = isValidMinMaxColumn(params)
+                            ? convertFloatArrayToString(params.getMin()) + " / " + convertFloatArrayToString(params.getMax())
+                            : "";
       tableData.add(
         Lists.newArrayList(
           Strings.nullToEmpty(tensorInfo.getName()),
-          tensorInfo.getContentType().toString(),
+          getDisplayContentType(tensorInfo).toString(),
           Strings.nullToEmpty(tensorInfo.getDescription()),
           Arrays.toString(tensorInfo.getShape()),
           meanStdColumn,
@@ -371,6 +422,22 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         ));
     }
     return tableData;
+  }
+
+  @NotNull
+  private static TensorInfo.ContentType getDisplayContentType(@NotNull TensorInfo tensorInfo) {
+    // Display Image only if it is RGB image.
+    if (tensorInfo.getContentType() == TensorInfo.ContentType.IMAGE) {
+      TensorInfo.ImageProperties imageProperties = tensorInfo.getImageProperties();
+      if (imageProperties != null && imageProperties.colorSpaceType == TensorInfo.ImageProperties.ColorSpaceType.RGB) {
+        return TensorInfo.ContentType.IMAGE;
+      }
+      else {
+        return TensorInfo.ContentType.FEATURE;
+      }
+    }
+
+    return tensorInfo.getContentType();
   }
 
   private static boolean isValidMinMaxColumn(@Nullable MetadataExtractor.NormalizationParams params) {
@@ -397,22 +464,29 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static String buildSampleCodeInJava(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
     StringBuilder codeBuilder = new StringBuilder();
     String modelClassName = modelClass.getName();
-    codeBuilder.append("try {\n");
-    codeBuilder.append(String.format("  %s model = %s.newInstance(context);\n\n", modelClassName, modelClassName));
+    codeBuilder.append("try {").append(LINE_SEPARATOR);
+    codeBuilder
+      .append(String.format("  %s model = %s.newInstance(context);", modelClassName, modelClassName))
+      .append(LINE_SEPARATOR)
+      .append(LINE_SEPARATOR);
 
     PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
     if (processMethod.getReturnType() != null) {
-      codeBuilder.append(buildTensorInputSampleCode(processMethod, modelInfo));
+      codeBuilder.append(buildTensorInputSampleCodeInJava(processMethod, modelInfo));
       String parameterNames = Arrays.stream(processMethod.getParameterList().getParameters())
         .map(PsiParameter::getName)
         .collect(Collectors.joining(", "));
-      codeBuilder.append(String.format(
-        "  %s.%s outputs = model.%s(%s);\n\n",
-        modelClassName,
-        processMethod.getReturnType().getPresentableText(),
-        processMethod.getName(),
-        parameterNames
-      ));
+      codeBuilder
+        .append("  // Runs model inference and gets result.")
+        .append(LINE_SEPARATOR)
+        .append(String.format(
+          "  %s.%s outputs = model.%s(%s);",
+          modelClassName,
+          processMethod.getReturnType().getPresentableText(),
+          processMethod.getName(),
+          parameterNames
+        ))
+        .append(LINE_SEPARATOR);
     }
 
     PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
@@ -422,30 +496,40 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         String tensorName = outputTensorNameIterator.next();
         codeBuilder.append(
           String.format(
-            "  %s %s = outputs.%s();\n",
+            "  %s %s = outputs.%s();",
             Objects.requireNonNull(psiMethod.getReturnType()).getPresentableText(),
             tensorName,
-            psiMethod.getName()));
+            psiMethod.getName()))
+          .append(LINE_SEPARATOR);
         switch (psiMethod.getReturnType().getCanonicalText()) {
           case ClassNames.TENSOR_LABEL:
-            codeBuilder.append(String.format("  Map<String, Float> %sMap = %s.getMapWithFloatValue();\n", tensorName, tensorName));
+            codeBuilder
+              .append(String.format("  Map<String, Float> %sMap = %s.getMapWithFloatValue();", tensorName, tensorName))
+              .append(LINE_SEPARATOR);
             break;
           case ClassNames.TENSOR_IMAGE:
-            codeBuilder.append(String.format("  Bitmap %sBitmap = %s.getBitmap();\n", tensorName, tensorName));
+            codeBuilder.append(String.format("  Bitmap %sBitmap = %s.getBitmap();", tensorName, tensorName)).append(LINE_SEPARATOR);
             break;
         }
       }
     }
 
-    codeBuilder.append("} catch (IOException e) {\n  // TODO Handle the exception\n}");
+    codeBuilder
+      .append("} catch (IOException e) {")
+      .append(LINE_SEPARATOR)
+      .append("  // TODO Handle the exception")
+      .append(LINE_SEPARATOR)
+      .append("}");
 
     return codeBuilder.toString();
   }
 
   @NotNull
   private static String buildSampleCodeInKotlin(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
-    StringBuilder codeBuilder = new StringBuilder();
-    codeBuilder.append(String.format("val model = %s.newInstance(context)\n\n", modelClass.getName()));
+    StringBuilder codeBuilder = new StringBuilder()
+      .append(String.format("val model = %s.newInstance(context)", modelClass.getName()))
+      .append(LINE_SEPARATOR)
+      .append(LINE_SEPARATOR);
 
     PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
     if (processMethod.getReturnType() != null) {
@@ -453,7 +537,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       String parameterNames = Arrays.stream(processMethod.getParameterList().getParameters())
         .map(PsiParameter::getName)
         .collect(Collectors.joining(", "));
-      codeBuilder.append(String.format("val outputs = model.%s(%s)\n\n", processMethod.getName(), parameterNames));
+      codeBuilder
+        .append("// Runs model inference and gets result.")
+        .append(LINE_SEPARATOR)
+        .append(String.format("val outputs = model.%s(%s)", processMethod.getName(), parameterNames))
+        .append(LINE_SEPARATOR);
     }
 
     PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
@@ -461,13 +549,15 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getName).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
         String tensorName = outputTensorNameIterator.next();
-        codeBuilder.append(String.format("val %s = outputs.%s\n", tensorName, convertToKotlinPropertyName(psiMethod.getName())));
+        codeBuilder
+          .append(String.format("val %s = outputs.%s", tensorName, convertToKotlinPropertyName(psiMethod.getName())))
+          .append(LINE_SEPARATOR);
         switch (psiMethod.getReturnType().getCanonicalText()) {
           case ClassNames.TENSOR_LABEL:
-            codeBuilder.append(String.format("val %sMap = %s.mapWithFloatValue\n", tensorName, tensorName));
+            codeBuilder.append(String.format("val %sMap = %s.mapWithFloatValue", tensorName, tensorName)).append(LINE_SEPARATOR);
             break;
           case ClassNames.TENSOR_IMAGE:
-            codeBuilder.append(String.format("val %sBitmap = %s.bitmap\n", tensorName, tensorName));
+            codeBuilder.append(String.format("val %sBitmap = %s.bitmap", tensorName, tensorName)).append(LINE_SEPARATOR);
             break;
         }
       }
@@ -486,57 +576,67 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private static String buildTensorInputSampleCode(@NotNull PsiMethod processMethod, @NotNull ModelInfo modelInfo) {
-    StringBuilder codeBuilder = new StringBuilder();
+  private static String buildTensorInputSampleCodeInJava(@NotNull PsiMethod processMethod, @NotNull ModelInfo modelInfo) {
+    StringBuilder codeBuilder = new StringBuilder("  // Creates inputs for reference.").append(LINE_SEPARATOR);
     int index = 0;
     for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
       TensorInfo tensorInfo = modelInfo.getInputs().get(index++);
       switch (parameter.getType().getCanonicalText()) {
         case ClassNames.TENSOR_IMAGE:
           codeBuilder
-            .append(String.format("  TensorImage %s = new TensorImage();\n", parameter.getName()))
-            .append(String.format("  %s.load(bitmap);\n", parameter.getName()));
+            .append(String.format("  TensorImage %s = new TensorImage();", parameter.getName()))
+            .append(LINE_SEPARATOR)
+            .append(String.format("  %s.load(bitmap);", parameter.getName()))
+            .append(LINE_SEPARATOR);
           break;
         case ClassNames.TENSOR_BUFFER:
           codeBuilder
             .append(
               String.format(
-                "  TensorBuffer %s = TensorBuffer.createFixedSize(%s, %s);\n",
+                "  TensorBuffer %s = TensorBuffer.createFixedSize(%s, %s);",
                 parameter.getName(),
                 buildIntArrayInJava(tensorInfo.getShape()),
                 buildDataType(tensorInfo.getDataType())))
-            .append(String.format("  %s.loadBuffer(byteBuffer);\n", parameter.getName()));
+            .append(LINE_SEPARATOR)
+            .append(String.format("  %s.loadBuffer(byteBuffer);", parameter.getName()))
+            .append(LINE_SEPARATOR);
           break;
       }
     }
+    codeBuilder.append(LINE_SEPARATOR);
 
     return codeBuilder.toString();
   }
 
   @NotNull
   private static String buildTensorInputSampleCodeInKotlin(@NotNull PsiMethod processMethod, @NotNull ModelInfo modelInfo) {
-    StringBuilder codeBuilder = new StringBuilder();
+    StringBuilder codeBuilder = new StringBuilder("// Creates inputs for reference.").append(LINE_SEPARATOR);
     Iterator<TensorInfo> tensorInfoIterator = modelInfo.getInputs().iterator();
     for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
       TensorInfo tensorInfo = tensorInfoIterator.next();
       switch (parameter.getType().getCanonicalText()) {
         case ClassNames.TENSOR_IMAGE:
           codeBuilder
-            .append(String.format("val %s = TensorImage()\n", parameter.getName()))
-            .append(String.format("%s.load(bitmap)\n", parameter.getName()));
+            .append(String.format("val %s = TensorImage()", parameter.getName()))
+            .append(LINE_SEPARATOR)
+            .append(String.format("%s.load(bitmap)", parameter.getName()))
+            .append(LINE_SEPARATOR);
           break;
         case ClassNames.TENSOR_BUFFER:
           codeBuilder
             .append(
               String.format(
-                "val %s = TensorBuffer.createFixedSize(%s, %s)\n",
+                "val %s = TensorBuffer.createFixedSize(%s, %s)",
                 parameter.getName(),
                 buildIntArrayInKotlin(tensorInfo.getShape()),
                 buildDataType(tensorInfo.getDataType())))
-            .append(String.format("%s.loadBuffer(byteBuffer)\n", parameter.getName()));
+            .append(LINE_SEPARATOR)
+            .append(String.format("%s.loadBuffer(byteBuffer)", parameter.getName()))
+            .append(LINE_SEPARATOR);
           break;
       }
     }
+    codeBuilder.append(LINE_SEPARATOR);
 
     return codeBuilder.toString();
   }
@@ -661,19 +761,24 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
+  private static JPanel createPanelWithFlowLayout(@NotNull Border border) {
+    JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.setBackground(UIUtil.getTextFieldBackground());
+    panel.setBorder(border);
+    return panel;
+  }
+
+  @NotNull
   private static String breakIntoMultipleLines(@NotNull String text) {
     String[] words = text.split(" ");
     StringBuilder result = new StringBuilder();
     StringBuilder tmp = new StringBuilder();
     for (String word : words) {
-      tmp.append(word);
+      tmp.append(word).append(" ");
       if (tmp.length() > MAX_LINE_LENGTH) {
-        tmp.append("\n");
-        result.append(tmp);
-        tmp = new StringBuilder();
-      }
-      else {
-        tmp.append(" ");
+        result.append(tmp).append(LINE_SEPARATOR);
+        tmp.setLength(0);
       }
     }
     result.append(tmp);
@@ -681,22 +786,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private static String linkifyUrls(@NotNull String text) {
-    StringBuilder result = new StringBuilder();
-    for (String word : text.split(" ")) {
-      if (!word.isEmpty()) {
-        try {
-          int wordLen = word.length();
-          boolean hasSentenceSeparator = word.charAt(wordLen - 1) == ',' || word.charAt(wordLen - 1) == '.';
-          URL url = new URL(hasSentenceSeparator ? word.substring(0, word.length() - 1) : word);
-          result.append(String.format("<a href=\"%s\">%s</a>%s ", url, url, hasSentenceSeparator ? word.charAt(wordLen - 1) : ""));
-        }
-        catch (MalformedURLException e) {
-          result.append(word).append(" ");
-        }
-      }
-    }
-    return result.toString().trim();
+  private static String convertFloatArrayToString(@NotNull float[] values) {
+    DecimalFormat decimalFormat = new DecimalFormat("#.###");
+    return IntStream.range(0, values.length).mapToObj(i -> decimalFormat.format(values[i])).collect(Collectors.joining(", ", "[", "]"));
+  }
+
+  private static boolean isCellContentTypeHtml(TableModel tableModel, int rowIndex, int columnIndex) {
+    return ((String)tableModel.getValueAt(rowIndex, columnIndex)).startsWith("<html>");
   }
 
   private static class MetadataTableModel extends AbstractTableModel {
@@ -704,7 +800,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     private final List<String> myHeaderData;
 
     private MetadataTableModel(@NotNull List<List<String>> rowDataList, @NotNull List<String> headerData) {
-      myRowDataList = rowDataList;
+      myRowDataList = ContainerUtil.map(rowDataList, row -> ContainerUtil.map(row, cellValue -> {
+        String newCellValue = breakIntoMultipleLines(cellValue);
+        if (URLUtil.URL_PATTERN.matcher(newCellValue).find()) {
+          newCellValue = HtmlUtils.plainTextToHtml(newCellValue);
+        }
+        return newCellValue;
+      }));
       myHeaderData = headerData;
     }
 
@@ -719,7 +821,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
 
     @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
+    public String getValueAt(int rowIndex, int columnIndex) {
       return myRowDataList.get(rowIndex).get(columnIndex);
     }
 
@@ -733,12 +835,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       return column < myHeaderData.size() ? myHeaderData.get(column) : super.getColumnName(column);
     }
 
-    @NotNull
-    private String getLongestCellValue(int columnIndex) {
-      Optional<String> optionalValue = myRowDataList.stream()
-        .map(row -> row.get(columnIndex))
-        .max(Comparator.comparing(String::length));
-      return optionalValue.orElse("");
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+      // HACK We're relying on cell editor components (as opposed to cell renderer components) in order to receive events so we can linkify
+      // urls and make them clickable. We're not using those editors to actually edit the table model values.
+      return isCellContentTypeHtml(this, rowIndex, columnIndex);
     }
 
     private boolean hasHeader() {
@@ -746,39 +847,66 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
   }
 
-  private static class MetadataCellRenderer implements TableCellRenderer {
-    private final JTextArea myTextArea;
+  // HACK This is a TableCellEditor so the hyperlink listener works. It doesn't actually edit any table model cell values.
+  private static class MetadataCellComponentProvider extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
+    @NotNull
+    private final JTextPane myTextPane;
 
-    private MetadataCellRenderer() {
-      myTextArea = new JTextArea();
-      myTextArea.setEditable(false);
-      myTextArea.setOpaque(false);
-      myTextArea.setFont(StartupUiUtil.getLabelFont());
+    private MetadataCellComponentProvider() {
+      myTextPane = new JTextPane();
+      myTextPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
+      myTextPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
+      myTextPane.setBackground(UIUtil.getTextFieldBackground());
+      myTextPane.setEditable(false);
+      myTextPane.setHighlighter(null);
     }
 
+    @NotNull
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      String cellValue = (String)value;
-      if (cellValue.length() > MAX_LINE_LENGTH) {
-        cellValue = breakIntoMultipleLines(cellValue);
-      }
-      myTextArea.setText(cellValue);
+    public Component getTableCellRendererComponent(@NotNull JTable table,
+                                                   @NotNull Object value,
+                                                   boolean isSelected,
+                                                   boolean hasFocus,
+                                                   int row,
+                                                   int column) {
+      configureTextPane(table, row, column);
+      return myTextPane;
+    }
 
+    @NotNull
+    @Override
+    public Component getTableCellEditorComponent(@NotNull JTable table, @NotNull Object value, boolean isSelected, int row, int column) {
+      configureTextPane(table, row, column);
+      return myTextPane;
+    }
+
+    @Nullable
+    @Override
+    public Object getCellEditorValue() {
+      return null;
+    }
+
+    private void configureTextPane(@NotNull JTable table, int row, int column) {
+      myTextPane.setContentType(isCellContentTypeHtml(table.getModel(), row, column) ? "text/html" : "text/plain");
+      myTextPane.setText((String)table.getValueAt(row, column));
       if (((MetadataTableModel)table.getModel()).hasHeader()) {
-        myTextArea.setBorder(Borders.empty(8, 8, 8, 0));
+        myTextPane.setBorder(Borders.empty(8, 8, 8, 0));
       }
       else {
-        myTextArea.setBorder(Borders.empty(4, 0));
+        myTextPane.setBorder(Borders.empty(8, 0, 8, 40));
       }
-
-      return myTextArea;
     }
   }
 
   private static class TableHeaderCellRenderer extends DefaultTableCellRenderer {
-
+    @NotNull
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    public Component getTableCellRendererComponent(@NotNull JTable table,
+                                                   @NotNull Object value,
+                                                   boolean isSelected,
+                                                   boolean hasFocus,
+                                                   int row,
+                                                   int column) {
       Component delegate = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
       if (!(delegate instanceof JLabel)) return delegate;
 

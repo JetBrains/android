@@ -269,6 +269,13 @@ abstract public class SceneManager implements Disposable {
 
   public abstract void layout(boolean animate);
 
+  /**
+   * Callback when all {@link SceneView}s of this {@link SceneManager} are not visible. This function can be used to release the resources
+   * which are allocated for rendering purpose.
+   */
+  public void onNotVisible() {
+  }
+
   @NotNull
   public abstract SceneDecoratorFactory getSceneDecoratorFactory();
 

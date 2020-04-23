@@ -218,7 +218,7 @@ public class AndroidPluginVersionUpdater {
       if (rootFolder != null) {
         try {
           File wrapperPropertiesFilePath = getDefaultPropertiesFilePath(rootFolder);
-          GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFilePath);
+          GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFilePath, myProject);
           String current = gradleWrapper.getGradleVersion();
           GradleVersion parsedCurrent = null;
           if (current != null) {

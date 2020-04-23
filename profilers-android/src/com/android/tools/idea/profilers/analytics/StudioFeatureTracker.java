@@ -20,7 +20,9 @@ import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
@@ -45,6 +47,7 @@ import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -728,12 +731,17 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
       if (myDevice != null) {
         event.setDeviceInfo(
+          // Set the properties consistently with AndroidStudioUsageTracker.deviceToDeviceInfo().
           DeviceInfo.newBuilder()
-            .setManufacturer(myDevice.getManufacturer())
-            .setModel(myDevice.getModel())
+            .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(myDevice.getSerial()))
+            .setBuildTags(myDevice.getBuildTags())
+            .setBuildType(myDevice.getBuildType())
             .setBuildVersionRelease(myDevice.getVersion())
             .setBuildApiLevelFull(new AndroidVersion(myDevice.getApiLevel(), myDevice.getCodename()).getApiString())
+            .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(myDevice.getCpuAbi()))
+            .setManufacturer(myDevice.getManufacturer())
             .setDeviceType(myDevice.getIsEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
+            .setModel(myDevice.getModel())
             .build());
       }
 

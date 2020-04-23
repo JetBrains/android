@@ -31,9 +31,9 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.android.tools.mlkit.MetadataExtractor;
+import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.ModelInfo;
-import com.android.tools.mlkit.ModelParsingException;
+import com.android.tools.mlkit.exception.TfliteModelException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
@@ -44,7 +44,9 @@ import com.intellij.openapi.util.io.FileTooBigException;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.SingleRootFileViewProvider;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
+import icons.StudioIcons;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -64,8 +66,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
 
-  private static final long TFLITE_VALIDATION_THRESHOLD_BYTES = 300 * 1024 * 1024;
-
   private final BindingsManager myBindings = new BindingsManager();
 
   @NotNull private final StudioWizardStepPanel myRootPanel;
@@ -76,6 +76,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   private ComboBox<NamedModuleTemplate> myFlavorBox;
   private JCheckBox myAutoCheckBox;
   private JTextArea myInfoTextArea;
+  private HyperlinkLabel myLearnMoreLabel;
 
   public ChooseMlModelStep(@NotNull MlWizardModel model,
                            @NotNull List<NamedModuleTemplate> moduleTemplates,
@@ -87,10 +88,12 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
                                             "Select existing TensorFlow Lite model to import to ml folder",
                                             project,
                                             FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor());
-
     for (NamedModuleTemplate namedModuleTemplate : moduleTemplates) {
       myFlavorBox.addItem(namedModuleTemplate);
     }
+    myLearnMoreLabel.setIcon(StudioIcons.Common.INFO);
+    myLearnMoreLabel.setHyperlinkText("This will ensure new ML Model Binding feature works correctly ", "Learn more", "");
+    myLearnMoreLabel.setHyperlinkTarget("https://developer.android.com/studio/write/mlmodelbinding");
 
     myBindings.bindTwoWay(new TextProperty(myModelLocation.getTextField()), model.sourceLocation);
     myBindings.bindTwoWay(new SelectedProperty(myAutoCheckBox), model.autoUpdateBuildFile);
@@ -103,6 +106,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     if (text.isEmpty()) {
       myAutoCheckBox.setVisible(false);
       model.autoUpdateBuildFile.set(false);
+      myLearnMoreLabel.setVisible(false);
     }
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
@@ -114,6 +118,11 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+  }
+
+  @Override
+  public void dispose() {
+    myBindings.releaseAll();
   }
 
   @NotNull
@@ -128,7 +137,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     }
 
     for (GradleCoordinate dep : MlkitUtils.getMissingDependencies(module)) {
-      stringBuilder.append(dep + "\n");
+      stringBuilder.append(dep).append("\n");
     }
 
     return stringBuilder.toString();
@@ -149,11 +158,13 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
 
   @NotNull
   private Validator.Result checkPath(@NotNull File file) {
-    //TODO(jackqdyulei): check whether destination already contains this file.
     if (!file.isFile()) {
       return new Validator.Result(Validator.Severity.ERROR, "Please select a TensorFlow Lite model file to import.");
     }
-    else if (!isTooLargeForTfliteValidation(file) && !isValidTfliteModel(file)) {
+    else if (file.length() > MlConstants.MAX_SUPPORTED_MODEL_FILE_SIZE_IN_BYTES) {
+      return new Validator.Result(Validator.Severity.ERROR, "This file is over the maximum supported size 200 MB.");
+    }
+    else if (!isValidTfliteModel(file)) {
       return new Validator.Result(Validator.Severity.ERROR, "This file is not a valid TensorFlow Lite model file.");
     }
     else {
@@ -164,10 +175,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
       }
 
       if (virtualFile != null && SingleRootFileViewProvider.isTooLargeForContentLoading(virtualFile)) {
-        String message = isTooLargeForTfliteValidation(file)
-          ? "This file is too large so TensorFlow Lite validator is skipped."
-          : "This file is larger than 20 MB so the model binding feature may not work properly.";
-        return new Validator.Result(Validator.Severity.WARNING, message);
+        return new Validator.Result(Validator.Severity.WARNING, "This file is larger than 20 MB and may be a performance impact.");
       }
     }
     return Validator.Result.OK;
@@ -182,10 +190,6 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     }
 
     return directory.findChild(fileName);
-  }
-
-  private static boolean isTooLargeForTfliteValidation(@NotNull File file) {
-    return file.length() > TFLITE_VALIDATION_THRESHOLD_BYTES;
   }
 
   private static boolean isValidTfliteModel(@NotNull File file) {
@@ -211,10 +215,10 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
         if (bytes == null) {
           return false;
         }
-        ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(bytes)));
+        ModelInfo.buildFrom(ByteBuffer.wrap(bytes));
       }
     }
-    catch (IOException | ModelParsingException | RuntimeException e) {
+    catch (IOException | TfliteModelException | RuntimeException e) {
       Logger.getInstance(ChooseMlModelStep.class).warn("Exception when parsing TensorFlow Lite model: " + file.getName(), e);
       return false;
     }

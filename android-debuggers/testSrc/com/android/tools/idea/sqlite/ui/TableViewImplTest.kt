@@ -27,10 +27,10 @@ import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
-import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
@@ -456,7 +456,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       view,
       { sqliteTable },
       realDatabaseConnection!!,
-      SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
+      SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
       {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
@@ -471,7 +471,9 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     tableModel.setValueAt(0, 0, 2)
 
     // Assert
-    val resultSet = pumpEventsAndWaitForFuture(realDatabaseConnection!!.execute(SqliteStatement("SELECT * FROM t1")))
+    val resultSet = pumpEventsAndWaitForFuture(
+      realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+    )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
@@ -497,7 +499,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       view,
       { sqliteTable },
       realDatabaseConnection!!,
-      SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
+      SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
       {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
@@ -512,7 +514,9 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     tableModel.setValueAt(0, 0, 2)
 
     // Assert
-    val resultSet = pumpEventsAndWaitForFuture(realDatabaseConnection!!.execute(SqliteStatement("SELECT * FROM t1")))
+    val resultSet = pumpEventsAndWaitForFuture(
+      realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+    )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
@@ -538,7 +542,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       view,
       { sqliteTable },
       realDatabaseConnection!!,
-      SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
+      SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
       {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
@@ -553,7 +557,9 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     tableModel.setValueAt("foo", 0, 2)
 
     // Assert
-    val resultSet = pumpEventsAndWaitForFuture(realDatabaseConnection!!.execute(SqliteStatement("SELECT * FROM t1")))
+    val resultSet = pumpEventsAndWaitForFuture(
+      realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+    )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
@@ -579,7 +585,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       view,
       { sqliteTable },
       realDatabaseConnection!!,
-      SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
+      SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
       {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
@@ -594,7 +600,9 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     tableModel.setValueAt(null, 0, 2)
 
     // Assert
-    val resultSet = pumpEventsAndWaitForFuture(realDatabaseConnection!!.execute(SqliteStatement("SELECT * FROM t1")))
+    val resultSet = pumpEventsAndWaitForFuture(
+      realDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+    )
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
     assertSize(1, rows)
     assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
@@ -784,7 +792,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       view,
       { SqliteTable("tab", emptyList(), null, false) },
       realDatabaseConnection!!,
-      SqliteStatement("SELECT * FROM t1"),
+      SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
       {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()

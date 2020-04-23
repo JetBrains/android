@@ -32,10 +32,12 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.LabeledComponent;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SimpleListCellRenderer;
-import org.jetbrains.annotations.NotNull;
 
+import com.intellij.ui.components.JBRadioButton;
+import com.intellij.ui.components.JBTextField;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -52,16 +54,20 @@ public class AndroidProfilersPanel implements HyperlinkListener {
 
   private final Project myProject;
   private JPanel myDescription;
+  private JPanel myStartupInnerPanel;
+  private JTextPane myNativeMemoryRateProfilerDescription;
   // TODO(b/112536124): vertical gap between checkbox and text doesn't toggle the checkbox
   private JCheckBox myAdvancedProfilingCheckBox;
   private ClickableLabel myAdvancedProfilingLabel;
   private HyperlinkLabel myHyperlinkLabel;
   private JTextPane myAdvancedProfilingDescription;
-  private JLabel mySyncStatusMessage;
-  private JCheckBox myStartupCpuProfileCheckBox;
-  private ClickableLabel myStartupCpuProfileLabel;
+  private JCheckBox myStartupProfileCheckBox;
+  private ClickableLabel myStartupProfileLabel;
+  private LabeledComponent<JBTextField> myNativeMemoryProfilerSampleRate;
   private ComboBox<CpuProfilerConfig> myStartupCpuConfigsComboBox;
   private JTextPane myStartupCpuProfilerDescription;
+  private JBRadioButton myCpuRecordingRadio;
+  private JBRadioButton myMemoryRecordingRadio;
 
   public JComponent getComponent() {
     return myDescription;
@@ -71,7 +77,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     myProject = project;
     updateHyperlink("");
     addActionListenersToLabels();
-    setUpStartupCpuProfiling();
+    setUpStartupProfiling();
     resetFrom(state);
   }
 
@@ -80,10 +86,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
       myAdvancedProfilingCheckBox.requestFocus();
       myAdvancedProfilingCheckBox.setSelected(!myAdvancedProfilingCheckBox.isSelected());
     });
-    myStartupCpuProfileLabel.addActionListener(e -> {
-      myStartupCpuProfileCheckBox.requestFocus();
-      myStartupCpuProfileCheckBox.setSelected(!myStartupCpuProfileCheckBox.isSelected());
-    });
+    myStartupProfileLabel.addActionListener(e -> myStartupProfileCheckBox.setSelected(!myStartupProfileCheckBox.isSelected()));
   }
 
   /**
@@ -94,19 +97,36 @@ public class AndroidProfilersPanel implements HyperlinkListener {
    *                                 (e.g Sampled Java, Instrumented Java).
    *                                 The combobox is disabled, if {@code myStartupCpuProfileCheckBox} is unchecked.
    */
-  private void setUpStartupCpuProfiling() {
-    myStartupCpuProfileCheckBox.addItemListener(e -> myStartupCpuConfigsComboBox.setEnabled(myStartupCpuProfileCheckBox.isSelected()));
-    myStartupCpuConfigsComboBox.setEnabled(myStartupCpuProfileCheckBox.isSelected());
+  private void setUpStartupProfiling() {
+    myStartupProfileCheckBox.addItemListener(e -> {
+      myCpuRecordingRadio.setEnabled(myStartupProfileCheckBox.isSelected());
+      myMemoryRecordingRadio.setEnabled(myStartupProfileCheckBox.isSelected());
+      myStartupCpuConfigsComboBox.setEnabled(myCpuRecordingRadio.isSelected() && myStartupProfileCheckBox.isSelected());
+      myStartupProfileCheckBox.setSelected(myStartupProfileCheckBox.isSelected());
+    });
+
+    myCpuRecordingRadio.addItemListener(e -> {
+      if (myCpuRecordingRadio.isSelected()) {
+        myMemoryRecordingRadio.setSelected(false);
+        myStartupCpuConfigsComboBox.setEnabled(myCpuRecordingRadio.isSelected());
+      }
+    });
+
+    myMemoryRecordingRadio.addItemListener(e -> {
+      if (myMemoryRecordingRadio.isSelected()) {
+        myCpuRecordingRadio.setSelected(false);
+        myStartupCpuConfigsComboBox.setEnabled(!myMemoryRecordingRadio.isSelected());
+      }
+    });
+
     myStartupCpuConfigsComboBox.setModel(new DefaultComboBoxModel<>(CpuProfilerConfigsState.getInstance(myProject).getConfigs()
                                                                       .toArray(new CpuProfilerConfig[0])));
     myStartupCpuConfigsComboBox.setRenderer(SimpleListCellRenderer.create("", CpuProfilerConfig::getName));
     myStartupCpuConfigsComboBox.setSelectedIndex(0);
 
-    if (!StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get()) {
-      myStartupCpuProfileCheckBox.setVisible(false);
-      myStartupCpuProfileLabel.setVisible(false);
-      myStartupCpuConfigsComboBox.setVisible(false);
-      myStartupCpuProfilerDescription.setVisible(false);
+    if (!StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get()) {
+      myMemoryRecordingRadio.setVisible(false);
+      myNativeMemoryProfilerSampleRate.setVisible(false);
     }
   }
 
@@ -118,7 +138,10 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     myAdvancedProfilingDescription.setBackground(myDescription.getBackground());
     myAdvancedProfilingCheckBox.setSelected(enabled && state.ADVANCED_PROFILING_ENABLED);
 
-    myStartupCpuProfileCheckBox.setSelected(state.STARTUP_CPU_PROFILING_ENABLED);
+    myNativeMemoryProfilerSampleRate.getComponent().setText(Integer.toString(state.NATIVE_MEMORY_SAMPLE_RATE_BYTES));
+    myStartupProfileCheckBox.setSelected(state.STARTUP_CPU_PROFILING_ENABLED || state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED);
+    myCpuRecordingRadio.setSelected(state.STARTUP_CPU_PROFILING_ENABLED);
+    myMemoryRecordingRadio.setSelected(state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED);
     myStartupCpuProfilerDescription.setBackground(myDescription.getBackground());
 
     String name = state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
@@ -134,9 +157,15 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   public void applyTo(ProfilerState state) {
     state.ADVANCED_PROFILING_ENABLED = myAdvancedProfilingCheckBox.isSelected();
 
-    state.STARTUP_CPU_PROFILING_ENABLED = StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get() && myStartupCpuProfileCheckBox.isSelected();
+    state.STARTUP_CPU_PROFILING_ENABLED = StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get() && myCpuRecordingRadio.isSelected();
     assert myStartupCpuConfigsComboBox.getSelectedItem() instanceof CpuProfilerConfig;
     state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME = ((CpuProfilerConfig)myStartupCpuConfigsComboBox.getSelectedItem()).getName();
+    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = myMemoryRecordingRadio.isSelected();
+    try {
+      state.NATIVE_MEMORY_SAMPLE_RATE_BYTES = Math.max(1, Integer.parseInt(myNativeMemoryProfilerSampleRate.getComponent().getText()));
+    } catch (NumberFormatException ex) {
+      state.NATIVE_MEMORY_SAMPLE_RATE_BYTES = ProfilerState.DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES;
+    }
   }
 
   private void createUIComponents() {
@@ -159,7 +188,6 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     }
     myHyperlinkLabel.setHyperlinkText("This feature can only be enabled with a gradle plugin version of 2.4 or greater. ","Update project", "");
     myHyperlinkLabel.setVisible(!supported);
-    mySyncStatusMessage.setText(message);
     myHyperlinkLabel.setVisible(!supported);
     myDescription.setEnabled(supported);
     myAdvancedProfilingCheckBox.setEnabled(supported);

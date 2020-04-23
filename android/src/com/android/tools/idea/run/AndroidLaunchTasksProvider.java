@@ -23,7 +23,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -230,8 +229,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     Logger logger = Logger.getInstance(AndroidLaunchTasksProvider.class);
 
     Set<String> packageIds = Sets.newHashSet();
+    String packageName = null;
     try {
-      String packageName = myApplicationIdProvider.getPackageName();
+      packageName = myApplicationIdProvider.getPackageName();
       packageIds.add(packageName);
     }
     catch (ApkProvisionException e) {
@@ -239,9 +239,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
 
     try {
-      String packageName = myApplicationIdProvider.getTestPackageName();
-      if (packageName != null) {
-        packageIds.add(packageName);
+      String testPackageName = myApplicationIdProvider.getTestPackageName();
+      if (testPackageName != null) {
+        packageIds.add(testPackageName);
       }
     }
     catch (ApkProvisionException e) {
@@ -267,9 +267,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
                                              myFacet,
                                              androidDebuggerState,
                                              myRunConfig.getType().getId(),
-                                             // TODO(b/153664218): Replace the usage of getPackageNameIfGradleProject with
-                                             //                    myApplicationIdProvider.getPackageName().
-                                             GradleUtil.getPackageNameIfGradleProject(myFacet));
+                                             packageName);
     }
 
     return null;

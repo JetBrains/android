@@ -19,7 +19,7 @@
 package com.android.tools.idea.mlkit
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.mlkit.MetadataExtractor
+import com.android.tools.mlkit.MlConstants
 import com.android.tools.mlkit.ModelInfo
 import com.google.common.hash.Hashing
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -32,8 +32,6 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.ByteBuffer
 
-// The max file size that we're allowed to calculate the file hash and set up hasMetadata field in logging.
-private const val MAX_SUPPORTED_FILE_SIZE = 1024 * 1024 * 200 // 200 MB
 private val MODEL_METADATA_KEY = Key.create<ModelMetadata>("model_metadata")
 
 fun logEvent(eventType: EventType, modelFile: VirtualFile) {
@@ -55,11 +53,11 @@ private fun getModelMetadata(modelFile: VirtualFile): ModelMetadata {
   }
 
   val metadataBuilder = ModelMetadata.newBuilder().setFileSize(modelFile.length)
-  if (modelFile.length < MAX_SUPPORTED_FILE_SIZE) {
+  if (modelFile.length <= MlConstants.MAX_SUPPORTED_MODEL_FILE_SIZE_IN_BYTES) {
     try {
       val bytes = VfsUtilCore.virtualToIoFile(modelFile).readBytes()
       metadataBuilder.fileHash = Hashing.sha256().hashBytes(bytes).toString()
-      val modelInfo = ModelInfo.buildFrom(MetadataExtractor(ByteBuffer.wrap(bytes)))
+      val modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(bytes))
       metadataBuilder.isValidModel = true
       metadataBuilder.hasMetadata = modelInfo.isMetadataExisted
     }

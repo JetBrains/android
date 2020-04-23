@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.sqlite.model
 
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
+import com.android.tools.idea.sqlite.sqlLanguage.getSqliteStatementType
+import com.android.tools.idea.sqlite.sqlLanguage.inlineParameterValues
+import com.intellij.openapi.project.Project
+import java.util.LinkedList
+
 /**
  * Returns a valid [RowIdName] in the context of the list of columns passed as argument.
  *
@@ -42,8 +48,19 @@ fun getRowIdName(columns: List<SqliteColumn>): RowIdName? {
  * Returns a new [SqliteStatement], the text of which is obtained applying [func] to the text of the original [SqliteStatement].
  * The parameters are the same of the original [SqliteStatement].
  */
-fun SqliteStatement.transform(func: (String) -> String): SqliteStatement {
+fun SqliteStatement.transform(newStatementType: SqliteStatementType, func: (String) -> String): SqliteStatement {
   val newStatement = func(this.sqliteStatementText)
   val newStatementStringRepresentation = func(this.sqliteStatementWithInlineParameters)
-  return SqliteStatement(newStatement, parametersValues, newStatementStringRepresentation)
+  return SqliteStatement(newStatementType, newStatement, parametersValues, newStatementStringRepresentation)
+}
+
+fun createSqliteStatement(
+  project: Project,
+  sqliteStatementText: String,
+  parametersValues: List<SqliteValue> = emptyList()
+): SqliteStatement {
+  val psiElement = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatementText)
+  val statementStringRepresentation = inlineParameterValues(psiElement, LinkedList(parametersValues))
+  val statementType = getSqliteStatementType(project, sqliteStatementText)
+  return SqliteStatement(statementType, sqliteStatementText, parametersValues, statementStringRepresentation)
 }

@@ -17,9 +17,9 @@ package com.android.tools.idea.lint.common;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
+import com.android.tools.lint.model.LmModule;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -50,15 +50,6 @@ import org.jetbrains.annotations.Nullable;
  * but can also correspond to a library "project" such as an {@link AndroidLibrary}.
  */
 public class LintIdeProject extends Project {
-  /**
-   * Whether we support running .class file checks. No class file checks are currently registered as inspections.
-   * Since IntelliJ doesn't perform background compilation (e.g. only parsing, so there are no bytecode checks)
-   * this might need some work before we enable it.
-   */
-  public static final boolean SUPPORT_CLASS_FILES = false;
-
-  protected AndroidVersion myMinSdkVersion;
-  protected AndroidVersion myTargetSdkVersion;
 
   protected LintIdeProject(@NonNull LintClient client,
                            @NonNull File dir,
@@ -198,7 +189,7 @@ public class LintIdeProject extends Project {
    * Checks whether we have a file filter (e.g. a set of specific files to check in the module rather than all files,
    * and if so, and if all the files have been found, returns true)
    */
-  public static boolean processFileFilter(@NonNull Module module, @Nullable List<VirtualFile> files, @NonNull LintModuleProject project) {
+  public static boolean processFileFilter(@NonNull Module module, @Nullable List<VirtualFile> files, @NonNull Project project) {
     if (files != null && !files.isEmpty()) {
       ListIterator<VirtualFile> iterator = files.listIterator();
       while (iterator.hasNext()) {
@@ -225,8 +216,8 @@ public class LintIdeProject extends Project {
   private static LintModuleProject createModuleProject(@NonNull LintClient client, @NonNull Module module) {
     File dir = getLintProjectDirectory(module);
     if (dir == null) return null;
-    LintModuleProject project;
-    project = new LintModuleProject(client, dir, dir, module);
+    LintModuleProject project = new LintModuleProject(client, dir, dir, module);
+    project.setIdeaProject(module.getProject());
     client.registerProject(dir, project);
     return project;
   }
@@ -263,10 +254,6 @@ public class LintIdeProject extends Project {
   public static class LintModuleProject extends LintIdeProject {
     private final Module myModule;
 
-    public void setDirectLibraries(List<Project> libraries) {
-      directLibraries = libraries;
-    }
-
     public LintModuleProject(@NonNull LintClient client, @NonNull File dir, @NonNull File referenceDir, Module module) {
       super(client, dir, referenceDir);
       myModule = module;
@@ -278,6 +265,10 @@ public class LintIdeProject extends Project {
     }
 
     protected boolean includeTests() {
+      LmModule model = getBuildModule();
+      if (model != null) {
+        return model.getLintOptions().getCheckTestSources();
+      }
       return false;
     }
 
@@ -345,7 +336,7 @@ public class LintIdeProject extends Project {
     @NonNull
     @Override
     public List<File> getJavaClassFolders() {
-      if (SUPPORT_CLASS_FILES) {
+      if (LintIdeClient.SUPPORT_CLASS_FILES) {
         if (javaClassFolders == null) {
           CompilerModuleExtension extension = CompilerModuleExtension.getInstance(myModule);
           VirtualFile folder = extension != null ? extension.getCompilerOutputPath() : null;
@@ -366,7 +357,7 @@ public class LintIdeProject extends Project {
     @NonNull
     @Override
     public List<File> getJavaLibraries(boolean includeProvided) {
-      if (SUPPORT_CLASS_FILES) {
+      if (LintIdeClient.SUPPORT_CLASS_FILES) {
         if (javaLibraries == null) {
           javaLibraries = Lists.newArrayList();
 

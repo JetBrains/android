@@ -47,7 +47,7 @@ import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ItemEvent
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CancellationException
 import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.SwingConstants
@@ -90,8 +90,6 @@ class AppInspectionView(
 
   private lateinit var currentProcess: ProcessDescriptor
 
-  private val activeClients = CopyOnWriteArrayList<AppInspectorClient.CommandMessenger>()
-
   init {
     component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
 
@@ -124,10 +122,7 @@ class AppInspectionView(
   @UiThread
   private fun clearTabs() {
     inspectorTabs.removeAll()
-    activeClients.removeAll {
-      it.disposeInspector()
-      true
-    }
+    appInspectionDiscoveryHost.disposeClients(project.name)
     updateUi()
   }
 
@@ -150,13 +145,11 @@ class AppInspectionView(
             project.name
           )
         ) { messenger ->
-          val tab = invokeAndWaitIfNeeded {
+          invokeAndWaitIfNeeded {
             provider.createTab(project, messenger, appInspectionCallbacks)
               .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
               .also { updateUi() }
-          }
-          activeClients.add(tab.client.messenger)
-          tab.client
+          }.client
         }.transform { client ->
           client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
             override fun onCrashEvent(message: String) {
@@ -166,7 +159,13 @@ class AppInspectionView(
           }, MoreExecutors.directExecutor())
         }.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Unit> {
           override fun onSuccess(result: Unit?) {}
-          override fun onFailure(t: Throwable) = Logger.getInstance(AppInspectionView::class.java).error(t)
+          override fun onFailure(t: Throwable) {
+            // We don't log cancellation exceptions because they are expected as part of the operation. For example: the service cancels all
+            // outstanding futures when it is turned off.
+            if (t !is CancellationException) {
+              Logger.getInstance(AppInspectionView::class.java).error(t)
+            }
+          }
         })
       }
   }
@@ -181,6 +180,7 @@ class AppInspectionView(
       else -> inspectorTabs
     }
     inspectorPanel.add(inspectorComponent)
+    inspectorPanel.repaint()
   }
 
   override fun dispose() {

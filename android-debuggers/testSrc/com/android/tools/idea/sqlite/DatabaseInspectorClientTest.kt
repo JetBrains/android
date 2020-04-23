@@ -16,9 +16,14 @@
 package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
+import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
@@ -26,7 +31,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
   private lateinit var databaseInspectorClient: DatabaseInspectorClient
   private lateinit var mockMessenger: AppInspectorClient.CommandMessenger
 
-  private lateinit var openDatabaseFunction: (AppInspectorClient.CommandMessenger, Int, String) -> Unit
+  private lateinit var openDatabaseFunction: (SqliteDatabase) -> Unit
   private var openDatabaseInvoked = false
 
   private lateinit var handleErrorFunction: (String) -> Unit
@@ -39,9 +44,8 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     super.setUp()
 
     mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-
     openDatabaseInvoked = false
-    openDatabaseFunction = { _, _, _ -> openDatabaseInvoked = true }
+    openDatabaseFunction = { _ -> openDatabaseInvoked = true }
 
     handleErrorInvoked = false
     handleErrorFunction = { _ -> handleErrorInvoked = true }
@@ -53,12 +57,16 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
       mockMessenger,
       handleErrorFunction,
       openDatabaseFunction,
-      hasDatabasePossiblyChangedFunction
+      hasDatabasePossiblyChangedFunction,
+      /* not used in test */ MoreExecutors.directExecutor()
     )
   }
 
   fun testStartTrackingDatabaseConnectionSendsMessage() {
     // Prepare
+    val emptyResponse = SqliteInspectorProtocol.Response.newBuilder().build().toByteArray()
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(emptyResponse))
+
     val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
       .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
       .build()

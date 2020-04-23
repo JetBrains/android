@@ -18,12 +18,14 @@ package com.android.tools.idea.gradle.structure;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.structure.actions.AndroidShowStructureSettingsAction;
 import com.android.tools.idea.startup.Actions;
+import com.intellij.openapi.actionSystem.ActionManager;
 
 public class PsdActionsInitializer implements Runnable {
   @Override
   public void run() {
+    ActionManager actionManager = ActionManager.getInstance();
     if (IdeInfo.getInstance().isAndroidStudio()) {
-      Actions.replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
+      Actions.replaceAction(actionManager, "ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
     }
   }
 }

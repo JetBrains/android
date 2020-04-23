@@ -40,11 +40,15 @@ public class AtraceCpuCapture extends BaseCpuCapture {
   @NotNull
   private final AtraceFrameManager myFrameManager;
 
+  @NotNull
+  private final AtraceSurfaceflingerManager mySurfaceflingerManager;
+
   public AtraceCpuCapture(long traceId,
                           @NotNull Cpu.CpuTraceType type,
                           @NotNull Range range,
                           @NotNull AtraceParser parser,
-                          @NotNull AtraceFrameManager frameManager) {
+                          @NotNull AtraceFrameManager frameManager,
+                          @NotNull AtraceSurfaceflingerManager surfaceflingerManager) {
     super(traceId, type, range, parser.getCaptureTrees());
 
     myThreadStateDataSeries = parser.getThreadStateDataSeries();
@@ -53,6 +57,7 @@ public class AtraceCpuCapture extends BaseCpuCapture {
     myIsMissingData = parser.isMissingData();
 
     myFrameManager = frameManager;
+    mySurfaceflingerManager = surfaceflingerManager;
   }
 
   /**
@@ -95,6 +100,18 @@ public class AtraceCpuCapture extends BaseCpuCapture {
   @NotNull
   public List<SeriesData<AtraceFrame>> getFrames(AtraceFrame.FrameThread threadType) {
     return myFrameManager.getFrames(threadType);
+  }
+
+  @NotNull
+  @Override
+  public List<SeriesData<SurfaceflingerEvent>> getSurfaceflingerEvents() {
+    return mySurfaceflingerManager.getSurfaceflingerEvents();
+  }
+
+  @NotNull
+  @Override
+  public List<SeriesData<Long>> getVsyncCounterValues() {
+    return mySurfaceflingerManager.getVsyncCounterValues();
   }
 
   @Override

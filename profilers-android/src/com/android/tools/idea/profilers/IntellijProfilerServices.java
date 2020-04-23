@@ -26,6 +26,7 @@ import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
@@ -227,6 +228,16 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
+      @Override
+      public int getNativeMemorySamplingRateForCurrentConfig() {
+        RunnerAndConfigurationSettings settings = RunManager.getInstance(myProject).getSelectedConfiguration();
+        if (settings != null && settings.getConfiguration() instanceof AndroidRunConfigurationBase) {
+          AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)settings.getConfiguration();
+          return runConfig.getProfilerState().NATIVE_MEMORY_SAMPLE_RATE_BYTES;
+        }
+        return ProfilerState.DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES;
+      }
+
       @Override
       public boolean isCpuApiTracingEnabled() {
         return StudioFlags.PROFILER_CPU_API_TRACING.get();

@@ -36,8 +36,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.BrowserHyperlinkListener
 import com.intellij.ui.UIBundle
+import com.intellij.ui.tabs.JBTabsBorder
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.UiDecorator
+import com.intellij.ui.tabs.impl.JBEditorTabsBorder
 import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -61,22 +63,23 @@ class DatabaseInspectorViewImpl(
   private val centerPanel = JPanel(BorderLayout())
   private val leftPanelView = LeftPanelView(this)
   private val viewContext = SqliteViewContext(leftPanelView.component)
-  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null, parentDisposable)
-  private val tabs = JBTabsImpl(project, IdeFocusManager.getInstance(project), project)
+  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Database Inspector", null, parentDisposable)
+  private val tabs = BorderedTabs(project, IdeFocusManager.getInstance(project), project)
 
   override val component: JComponent = workBench
 
   private val openTabs = mutableMapOf<TabId, TabInfo>()
+  private val defaultEmptyStateMessage = "Open a table or run a query to begin inspecting your app's databases."
 
   init {
     workBench.init(centerPanel, viewContext, listOf(createToolWindowDefinition()), false)
 
-    addEmptyStatePanel()
+    addEmptyStatePanel("Waiting for the app to open a connection to the database...")
 
     tabs.name = "right-panel-tabs-panel"
     tabs.apply {
       isTabDraggingEnabled = true
-      setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(5, 10, 6, 10)) }
+      setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(5, 10, 5, 10)) }
       addTabMouseListener(object : MouseAdapter() {
         override fun mousePressed(e: MouseEvent) {
           if (UIUtil.isCloseClick(e)) {
@@ -110,11 +113,7 @@ class DatabaseInspectorViewImpl(
   override fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema, index: Int) {
     leftPanelView.addDatabaseSchema(database, schema, index)
 
-    centerPanel.removeAll()
-    centerPanel.layout = BorderLayout()
-    centerPanel.add(tabs, BorderLayout.CENTER)
-    centerPanel.revalidate()
-    centerPanel.repaint()
+    addEmptyStatePanel(defaultEmptyStateMessage)
   }
 
   override fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) {
@@ -125,11 +124,19 @@ class DatabaseInspectorViewImpl(
     val databaseCount = leftPanelView.removeDatabaseSchema(database)
 
     if (databaseCount == 0) {
-      addEmptyStatePanel()
+      addEmptyStatePanel(defaultEmptyStateMessage)
     }
   }
 
   override fun openTab(tabId: TabId, tabName: String, component: JComponent) {
+    if (openTabs.isEmpty()) {
+      centerPanel.removeAll()
+      centerPanel.layout = BorderLayout()
+      centerPanel.add(tabs, BorderLayout.CENTER)
+      centerPanel.revalidate()
+      centerPanel.repaint()
+    }
+
     val tab = createTab(tabId, tabName, component)
     tabs.addTab(tab)
     tabs.select(tab, true)
@@ -143,6 +150,10 @@ class DatabaseInspectorViewImpl(
   override fun closeTab(tabId: TabId) {
     val tab = openTabs.remove(tabId)
     tabs.removeTab(tab)
+
+    if (openTabs.isEmpty()) {
+      addEmptyStatePanel(defaultEmptyStateMessage)
+    }
   }
 
   override fun reportError(message: String, throwable: Throwable?) {
@@ -152,12 +163,12 @@ class DatabaseInspectorViewImpl(
   override fun reportSyncProgress(message: String) {
   }
 
-  private fun addEmptyStatePanel() {
-    // TODO(b/150307735) replace URL with relevant website.
+  private fun addEmptyStatePanel(text: String) {
+    val escapedText = text.replace("&", "&amp").replace("<", "&lt").replace(">", "&gt")
     val editorPane = JEditorPane(
       "text/html",
       "<h2>Database Inspector</h2>" +
-      "Waiting for the app to open a connection to the database..." +
+       escapedText +
       "<p><a href=\"https://d.android.com/r/studio-ui/db-inspector-help\">Learn more</a></p>"
     )
     val document = editorPane.document as HTMLDocument
@@ -232,4 +243,16 @@ class DatabaseInspectorViewImpl(
   }
 
   data class SqliteViewContext(val component: JComponent)
+
+  /**
+   * Extends [JBTabsImpl] by using a [JBEditorTabsBorder], which adds a tab border to all the tabs.
+   * The [JBTabsBorder] used by [JBTabsImpl] does not add a border to the first tab, if there is only one tab.
+   */
+  private class BorderedTabs(
+    project: Project,
+    focusManager: IdeFocusManager,
+    parent: Disposable
+  ) : JBTabsImpl(project, focusManager, parent) {
+    override fun createTabBorder() = JBEditorTabsBorder(this)
+  }
 }

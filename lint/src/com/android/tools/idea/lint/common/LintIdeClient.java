@@ -18,9 +18,6 @@ package com.android.tools.idea.lint.common;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.LintOptions;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeLintOptions;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.Configuration;
 import com.android.tools.lint.client.api.DefaultConfiguration;
@@ -40,6 +37,9 @@ import com.android.tools.lint.detector.api.Severity;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.android.tools.lint.helpers.DefaultUastParser;
+import com.android.tools.lint.model.LmLintOptions;
+import com.android.tools.lint.model.LmModule;
+import com.android.tools.lint.model.LmSeverity;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
@@ -95,6 +95,12 @@ import org.jetbrains.annotations.Nullable;
  * reading files, reporting issues, logging errors, etc.
  */
 public class LintIdeClient extends LintClient implements Disposable {
+  /**
+   * Whether we support running .class file checks. No class file checks are currently registered as inspections.
+   * Since IntelliJ doesn't perform background compilation (e.g. only parsing, so there are no bytecode checks)
+   * this might need some work before we enable it.
+   */
+  public static final boolean SUPPORT_CLASS_FILES = false;
   protected static final Logger LOG = Logger.getInstance("#com.android.tools.idea.lint.common.LintIdeClient");
 
   @NonNull protected Project myProject;
@@ -118,12 +124,12 @@ public class LintIdeClient extends LintClient implements Disposable {
     Collection<com.android.tools.lint.detector.api.Project> projects = request.getProjects();
     if (projects != null && !projects.isEmpty()) {
       com.android.tools.lint.detector.api.Project main = request.getMainProject(projects.iterator().next());
-      IdeAndroidProject model = main.getGradleProjectModel();
+      LmModule model = main.getBuildModule();
       if (model != null) {
         try {
-          IdeLintOptions lintOptions = model.getLintOptions();
-          driver.setCheckTestSources(lintOptions.isCheckTestSources());
-          driver.setCheckDependencies(lintOptions.isCheckDependencies());
+          LmLintOptions lintOptions = model.getLintOptions();
+          driver.setCheckTestSources(lintOptions.getCheckTestSources());
+          driver.setCheckDependencies(lintOptions.getCheckDependencies());
         }
         catch (Exception e) {
           LOG.error(e);
@@ -262,30 +268,30 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project, @Nullable final LintDriver driver) {
     if (project.isGradleProject() && project.isAndroidProject() && !project.isLibrary()) {
-      IdeAndroidProject model = project.getGradleProjectModel();
+      LmModule model = project.getBuildModule();
       if (model != null) {
         try {
-          IdeLintOptions lintOptions = model.getLintOptions();
-          final Map<String, Integer> overrides = lintOptions.getSeverityOverrides();
+          LmLintOptions lintOptions = model.getLintOptions();
+          final Map<String, LmSeverity> overrides = lintOptions.getSeverityOverrides();
           if (overrides != null && !overrides.isEmpty()) {
             return new DefaultConfiguration(this, project, null) {
               @NonNull
               @Override
               public Severity getSeverity(@NonNull Issue issue) {
-                Integer severity = overrides.get(issue.getId());
+                LmSeverity severity = overrides.get(issue.getId());
                 if (severity != null) {
-                  switch (severity.intValue()) {
-                    case LintOptions.SEVERITY_FATAL:
+                  switch (severity) {
+                    case FATAL:
                       return Severity.FATAL;
-                    case LintOptions.SEVERITY_ERROR:
+                    case ERROR:
                       return Severity.ERROR;
-                    case LintOptions.SEVERITY_WARNING:
+                    case WARNING:
                       return Severity.WARNING;
-                    case LintOptions.SEVERITY_INFORMATIONAL:
+                    case INFORMATIONAL:
                       return Severity.INFORMATIONAL;
-                    case LintOptions.SEVERITY_DEFAULT_ENABLED:
+                    case DEFAULT_ENABLED:
                       return issue.getDefaultSeverity();
-                    case LintOptions.SEVERITY_IGNORE:
+                    case IGNORE:
                     default:
                       return Severity.IGNORE;
                   }

@@ -31,7 +31,6 @@ import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryCustomPermissionGroupsFromManifestIndex
 import com.android.tools.idea.model.queryCustomPermissionsFromManifestIndex
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -39,12 +38,10 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.XmlRecursiveElementVisitor
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -180,7 +177,14 @@ fun <T> AndroidFacet.cachedValueFromPrimaryManifest(valueSelector: AndroidManife
 fun AndroidFacet.getPrimaryManifestXml(): AndroidManifestXmlFile? {
   if (isDisposed) return null
   val psiFile = SourceProviderManager.getInstance(this).mainManifestFile?.let { AndroidPsiUtils.getPsiFileSafely(module.project, it) }
-  return (psiFile as? XmlFile)?.let(::AndroidManifestXmlFile)
+  return (psiFile as? XmlFile)?.let {
+    if (it.rootTag?.name == TAG_MANIFEST) {
+      AndroidManifestXmlFile(it)
+    }
+    else {
+      null
+    }
+  }
 }
 
 /**
