@@ -55,7 +55,7 @@ import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -620,17 +620,15 @@ public final class PsiResourceItem implements ResourceItem {
 
     @Override
     public String getRawXmlValue() {
-      XmlTag tag = getTag();
+      return ReadAction.compute(() -> {
+        XmlTag tag = getTag();
 
-      if (tag == null || !tag.isValid()) {
-        return getValue();
-      }
+        if (tag == null || !tag.isValid()) {
+          return getValue();
+        }
 
-      if (ApplicationManager.getApplication().isReadAccessAllowed()) {
         return tag.getValue().getText();
-      }
-
-      return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> tag.getValue().getText());
+      });
     }
   }
 }
