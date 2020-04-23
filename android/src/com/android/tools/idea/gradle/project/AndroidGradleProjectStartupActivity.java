@@ -117,7 +117,7 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
       Logger.getInstance(AndroidGradleProjectStartupActivity.class)
         .info("Up-to-date models found in the cache. Not invoking Gradle sync.");
       GradleSyncState syncState = GradleSyncState.getInstance(project);
-      syncState.syncStarted(request, null);
+      syncState.syncStarted(request);
       projectsData.forEach((data) -> {
         attachModelsToFacets(project, data);
       });
