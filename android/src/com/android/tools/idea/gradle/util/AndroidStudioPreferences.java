@@ -45,8 +45,7 @@ public final class AndroidStudioPreferences {
       return;
     }
 
-    ExtensionsArea area = project.getExtensionArea();
-    ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = area.getExtensionPoint(PROJECT_CONFIGURABLE);
+    ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = PROJECT_CONFIGURABLE.getPoint(project);
 
     List<ConfigurableEP<Configurable>> nonStudioExtensions = Lists.newArrayList();
     for (ConfigurableEP<Configurable> extension : projectConfigurable.getExtensionList()) {
