@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.property.panel.api.SelectedComponentModel
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
@@ -28,12 +29,12 @@ private const val UNNAMED_COMPONENT = "<unnamed>"
  * For displaying which component is being edited.
  * Intended for being shown at the top of the properties panel.
  */
-class SelectedViewModel(view: ViewNode?) : SelectedComponentModel {
+class SelectedViewModel(name: InspectorPropertyItem, id: InspectorPropertyItem?) : SelectedComponentModel {
 
-  override val icon: Icon? = view?.unqualifiedName?.let { AndroidDomElementDescriptorProvider.getIconForViewTag(it) }
+  override val icon: Icon? = name.value?.let { AndroidDomElementDescriptorProvider.getIconForViewTag(it) }
                              ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
 
-  override val id: String = view?.viewId?.name ?: UNNAMED_COMPONENT
+  override val id: String = id?.value ?: UNNAMED_COMPONENT
 
-  override val description: String = view?.unqualifiedName ?: ""
+  override val description: String = name.value ?: ""
 }

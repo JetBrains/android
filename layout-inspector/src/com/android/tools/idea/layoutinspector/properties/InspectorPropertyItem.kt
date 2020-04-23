@@ -64,6 +64,10 @@ open class InspectorPropertyItem(
 
 ) : PropertyItem {
 
+  constructor(namespace: String, attrName: String, type: Type, value: String?, group: PropertySection, source: ResourceReference?,
+              view: ViewNode, resourceLookup: ResourceLookup?) :
+    this(namespace, attrName, attrName, type, value, group, source, view, resourceLookup)
+
   override fun hashCode(): Int = HashCodes.mix(namespace.hashCode(), attrName.hashCode(), source?.hashCode() ?: 0)
 
   override fun equals(other: Any?): Boolean =

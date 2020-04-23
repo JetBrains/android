@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyI
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.properties.addInternalProperties
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.res.colorToString
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.FlagValue
@@ -67,9 +68,14 @@ class DefaultPropertiesProvider(
   override val resultListeners = mutableListOf<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>()
 
   override fun requestProperties(view: ViewNode): Future<*> {
-    if (!client.isConnected || !view.hasProperties) {
+    if (!client.isConnected) {
       lastRequestedView = null
       firePropertiesProvided(view, PropertiesTable.emptyTable())
+      return Futures.immediateFuture(null)
+    }
+    if (!view.hasProperties) {
+      val generator = Generator(PropertyEvent.getDefaultInstance(), view, resourceLookup)
+      firePropertiesProvided(view, PropertiesTable.create(generator.generate()))
       return Futures.immediateFuture(null)
     }
     lastRequestedView = view
@@ -140,10 +146,10 @@ class DefaultPropertiesProvider(
           else -> ""
         }
         // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
-        add(
-          InspectorPropertyItem(ANDROID_URI, name, name, property.type, value, group, source, view, resourceLookup))
+        add(InspectorPropertyItem(ANDROID_URI, name, property.type, value, group, source, view, resourceLookup))
       }
       ApplicationManager.getApplication().runReadAction { generateItemsForResolutionStack() }
+      addInternalProperties(table, view)
       return table
     }
 

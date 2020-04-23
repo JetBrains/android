@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
@@ -92,6 +93,11 @@ class DefaultPropertiesProviderTest {
     assertThat(result.provider).isSameAs(provider)
     assertThat(result.view).isSameAs(view)
     val table = result.table
+    checkProperty(table, view, "name", Type.STRING, "android.widget.TextView", PropertySection.VIEW, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "x", Type.INT32, "200", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "y", Type.INT32, "400", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "width", Type.INT32, "400", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "height", Type.INT32, "100", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
     checkProperty(table, view, "focused", Type.BOOLEAN, "true", PropertySection.DEFAULT, null)
     checkProperty(table, view, "byte", Type.BYTE, "7", PropertySection.DEFAULT, null)
     checkProperty(table, view, "char", Type.CHAR, "g", PropertySection.DEFAULT, null)
@@ -100,8 +106,8 @@ class DefaultPropertiesProviderTest {
     checkProperty(table, view, "scrollX", Type.INT32, "10", PropertySection.DEFAULT, null)
     checkProperty(table, view, "long", Type.INT64, "7000", PropertySection.DEFAULT, null)
     checkProperty(table, view, "short", Type.INT16, "70", PropertySection.DEFAULT, null)
-    checkProperty(table, view, "text", Type.STRING, "Hello My World!", PropertySection.DECLARED, demo, true)
-    checkProperty(table, view, "textColor", Type.COLOR, "#FF0000", PropertySection.DECLARED, demo, true,
+    checkProperty(table, view, "text", Type.STRING, "Hello My World!", PropertySection.DECLARED, demo, ANDROID_URI, true)
+    checkProperty(table, view, "textColor", Type.COLOR, "#FF0000", PropertySection.DECLARED, demo, ANDROID_URI, true,
                   detail = listOf(PropertyDetail("#888800", textAppearanceExtra), PropertyDetail("#2122F8", textAppearance)))
     checkProperty(table, view, "foregroundGravity", Type.GRAVITY, "top|fill_horizontal", PropertySection.DEFAULT, null)
     checkProperty(table, view, "visibility", Type.INT_ENUM, "invisible", PropertySection.DEFAULT, null)
@@ -110,43 +116,43 @@ class DefaultPropertiesProviderTest {
     checkProperty(table, view, "layout_width", Type.INT_ENUM, "match_parent", PropertySection.LAYOUT, null)
     checkProperty(table, view, "layout_height", Type.INT32, "400", PropertySection.LAYOUT, null)
     checkProperty(table, view, "anim", Type.ANIM, "@anim/?", PropertySection.DEFAULT, null)
-    checkProperty(table, view, "anim_wcn", Type.ANIM, "@anim/?", PropertySection.DEFAULT, null, true,
+    checkProperty(table, view, "anim_wcn", Type.ANIM, "@anim/?", PropertySection.DEFAULT, null, ANDROID_URI, true,
                   SourceLocation("AlphaAnimation", findNavigatableFor("android.view.animation.AlphaAnimation")))
     checkProperty(table, view, "animator", Type.ANIMATOR, "@animator/?", PropertySection.DEFAULT, null)
-    checkProperty(table, view, "animator_wcn", Type.ANIMATOR, "@animator/?", PropertySection.DEFAULT, null, true,
+    checkProperty(table, view, "animator_wcn", Type.ANIMATOR, "@animator/?", PropertySection.DEFAULT, null, ANDROID_URI, true,
                   SourceLocation("TimeAnimator", findNavigatableFor("android.animation.TimeAnimator")))
     checkProperty(table, view, "drawable", Type.DRAWABLE, "@drawable/?", PropertySection.DEFAULT, null)
-    checkProperty(table, view, "drawable_wcn", Type.DRAWABLE, "@drawable/?", PropertySection.DEFAULT, null, true,
+    checkProperty(table, view, "drawable_wcn", Type.DRAWABLE, "@drawable/?", PropertySection.DEFAULT, null, ANDROID_URI, true,
                   SourceLocation("VectorDrawable", findNavigatableFor("android.graphics.drawable.VectorDrawable")))
     checkProperty(table, view, "interpolator1", Type.INTERPOLATOR, "@interpolator/?", PropertySection.DEFAULT, null)
-    checkProperty(table, view, "interpolator2", Type.INTERPOLATOR, "@interpolator/?", PropertySection.DEFAULT, null, true,
+    checkProperty(table, view, "interpolator2", Type.INTERPOLATOR, "@interpolator/?", PropertySection.DEFAULT, null, ANDROID_URI, true,
                   SourceLocation("DecelerateInterpolator", findNavigatableFor("android.view.animation.DecelerateInterpolator")))
     checkProperty(table, view, "interpolator3", Type.INTERPOLATOR, "@android:interpolator/accelerate_decelerate",
-                  PropertySection.DEFAULT, null, true,
+                  PropertySection.DEFAULT, null, ANDROID_URI, true,
                   SourceLocation("AccelerateDecelerateInterpolator",
                                  findNavigatableFor("android.view.animation.AccelerateDecelerateInterpolator")))
     checkProperty(table, view, "interpolator4", Type.INTERPOLATOR, "@android:interpolator/anticipate",
-                  PropertySection.DEFAULT, null, true,
+                  PropertySection.DEFAULT, null, ANDROID_URI, true,
                   SourceLocation("AnticipateInterpolator",
                                  findNavigatableFor("android.view.animation.AnticipateInterpolator")))
     checkProperty(table, view, "interpolator5", Type.INTERPOLATOR, "@android:interpolator/anticipate_overshoot",
-                  PropertySection.DEFAULT, null, true,
+                  PropertySection.DEFAULT, null, ANDROID_URI, true,
                   SourceLocation("AnticipateOvershootInterpolator",
                                  findNavigatableFor("android.view.animation.AnticipateOvershootInterpolator")))
     checkProperty(table, view, "interpolator6", Type.INTERPOLATOR, "@android:interpolator/bounce",
-                  PropertySection.DEFAULT, null, true,
+                  PropertySection.DEFAULT, null, ANDROID_URI, true,
                   SourceLocation("BounceInterpolator",
                                  findNavigatableFor("android.view.animation.BounceInterpolator")))
     checkProperty(table, view, "interpolator7", Type.INTERPOLATOR, "@android:interpolator/cycle",
-                  PropertySection.DEFAULT, null, true,
+                  PropertySection.DEFAULT, null, ANDROID_URI, true,
                   SourceLocation("CycleInterpolator",
                                  findNavigatableFor("android.view.animation.CycleInterpolator")))
     checkProperty(table, view, "interpolator8", Type.INTERPOLATOR, "@android:interpolator/linear",
-                  PropertySection.DEFAULT, null, true,
+                  PropertySection.DEFAULT, null, ANDROID_URI, true,
                   SourceLocation("LinearInterpolator",
                                  findNavigatableFor("android.view.animation.LinearInterpolator")))
     checkProperty(table, view, "interpolator9", Type.INTERPOLATOR, "@android:interpolator/overshoot",
-                  PropertySection.DEFAULT, null, true,
+                  PropertySection.DEFAULT, null, ANDROID_URI, true,
                   SourceLocation("OvershootInterpolator",
                                  findNavigatableFor("android.view.animation.OvershootInterpolator")))
     checkProperty(table, view, "int32_zero", Type.INT32, "0", PropertySection.DEFAULT, null)
@@ -157,7 +163,7 @@ class DefaultPropertiesProviderTest {
     checkProperty(table, view, "double_null", Type.DOUBLE, null, PropertySection.DEFAULT, null)
     checkProperty(table, view, "float_zero", Type.FLOAT, "0.0", PropertySection.DEFAULT, null)
     checkProperty(table, view, "float_null", Type.FLOAT, null, PropertySection.DEFAULT, null)
-    assertThat(table.size).isEqualTo(39)
+    assertThat(table.size).isEqualTo(44)
   }
 
   private fun findNavigatableFor(className: String): Navigatable {
@@ -165,19 +171,34 @@ class DefaultPropertiesProviderTest {
     return ClassUtil.findPsiClass(psiManager, className) as Navigatable
   }
 
-  private fun checkProperty(table: PropertiesTable<InspectorPropertyItem>, view: ViewNode,
-                            name: String, type: Type, value: String?, group: PropertySection, source: ResourceReference?,
-                            expandable: Boolean = false, className: SourceLocation? = null, detail: List<PropertyDetail> = listOf()) {
-    val property = table[ANDROID_URI, name]
+  private fun checkProperty(
+    table: PropertiesTable<InspectorPropertyItem>,
+    view: ViewNode,
+    name: String,
+    type: Type,
+    value: String?,
+    group: PropertySection,
+    source: ResourceReference?,
+    namespace: String = ANDROID_URI,
+    expandable: Boolean = false,
+    className: SourceLocation? = null,
+    detail: List<PropertyDetail> = listOf()
+  ) {
+    val property = table[namespace, name]
     assertThat(property.name).isEqualTo(name)
     assertThat(property.attrName).isEqualTo(name)
-    assertThat(property.namespace).isEqualTo(ANDROID_URI)
+    assertThat(property.namespace).isEqualTo(namespace)
     assertThat(property.type).isEqualTo(type)
     assertThat(property.value).isEqualTo(value)
     assertThat(property.group).isEqualTo(group)
     assertThat(property.source).isEqualTo(source)
     assertThat(property.view).isSameAs(view)
-    assertThat(property.resourceLookup).isSameAs(inspectorRule.inspectorModel.resourceLookup)
+    if (namespace == NAMESPACE_INTERNAL) {
+      assertThat(property.resourceLookup).isNull()
+    }
+    else {
+      assertThat(property.resourceLookup).isSameAs(inspectorRule.inspectorModel.resourceLookup)
+    }
     if (!expandable) {
       assertThat(property).isNotInstanceOf(InspectorGroupPropertyItem::class.java)
     }

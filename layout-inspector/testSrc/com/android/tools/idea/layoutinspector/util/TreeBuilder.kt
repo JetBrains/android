@@ -30,7 +30,7 @@ class TreeBuilder(private val strings: TestStringTable) {
       width = view.width
       height = view.height
       className = strings.add(view.unqualifiedName)
-      packageName = strings.add(view.qualifiedName)
+      packageName = strings.add(view.qualifiedName.substringBeforeLast(".", ""))
       textValue = strings.add(view.textValue)
       layoutFlags = view.layoutFlags
     }
