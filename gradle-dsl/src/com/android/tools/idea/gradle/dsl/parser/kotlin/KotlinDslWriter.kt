@@ -123,6 +123,9 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     if (needToCreateParent(element)) {
       anchorAfter = null
     }
+    else if (anchorAfter == null) {
+      anchorAfter = (element.parent as? ExtDslElement)?.anchor
+    }
 
     var parentPsiElement = getParentPsi(element) ?: return null
 
