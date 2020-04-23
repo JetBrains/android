@@ -22,4 +22,5 @@ android {
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.ui:ui-tooling:+'
+    implementation 'androidx.ui:ui-framework:+'
 }
