@@ -43,11 +43,12 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.memory.MemoryProfiler;
-import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
+import com.android.tools.profilers.memory.CaptureSelectionAspect;
+import com.android.tools.profilers.memory.MemoryCaptureSelection;
 import com.android.tools.profilers.stacktrace.ThreadId;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -92,7 +93,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
   @VisibleForTesting static final String SAMPLING_INFO_MESSAGE = "Selected region does not have full tracking. Data may be inaccurate.";
 
-  @Nullable private MemoryProfilerStage myStage;
+  @NotNull private final MemoryProfilerStage myStage;
 
   @VisibleForTesting final ExecutorService myExecutorService;
   private final ClassDb myClassDb;
@@ -126,7 +127,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
                                      @NotNull Common.Session session,
                                      long captureStartTime,
                                      @Nullable ExecutorService loadService,
-                                     @Nullable MemoryProfilerStage stage) {
+                                     @NotNull MemoryProfilerStage stage) {
     if (loadService == null) {
       myExecutorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("profiler-live-allocation").build());
     }
@@ -346,7 +347,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           myStage.getStudioProfilers(), mySession, TimeUnit.NANOSECONDS.toMicros(newStartTimeNs),
           TimeUnit.NANOSECONDS.toMicros(newEndTimeNs));
 
-        joiner.execute(() -> myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING));
+        joiner.execute(() -> myStage.getCaptureSelection().getAspect().changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATING));
         updateAllocationContexts(newEndTimeNs);
 
         // Snapshots data
@@ -424,14 +425,15 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         // the range between (last-seen sample, newEndTimeNs).
         myPreviousQueryEndTimeNs = Math.min(newEndTimeNs, myLastSeenTimestampNs);
 
+        MemoryCaptureSelection selection = myStage.getCaptureSelection();
         joiner.execute(() -> {
-          myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATED);
+          selection.getAspect().changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATED);
           if (clear ||
               deltaAllocationList.size() + deltaFreeList.size() + resetDeltaAllocationList.size() + resetDeltaFreeList.size() > 0) {
             if (clear) {
               myHeapSets.forEach(heap -> heap.clearClassifierSets());
-              if (myStage.getSelectedClassSet() != null) {
-                myStage.selectClassSet(ClassSet.EMPTY_SET);
+              if (selection.getSelectedClassSet() != null) {
+                selection.selectClassSet(ClassSet.EMPTY_SET);
               }
             }
             if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isMemorySnapshotEnabled()) {
@@ -444,7 +446,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             resetDeltaFreeList.forEach(instance -> myHeapSets.get(instance.getHeapId()).removeFreedDeltaInstanceObject(instance));
 
             myInfoMessage = hasNonFullTrackingRegion ? SAMPLING_INFO_MESSAGE : null;
-            myStage.refreshSelectedHeap();
+            selection.refreshSelectedHeap();
           }
         });
         return null;

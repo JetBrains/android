@@ -30,8 +30,10 @@ import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.ProfilerCombobox
 import com.android.tools.profilers.memory.CapturePanelTabContainer
+import com.android.tools.profilers.memory.CaptureSelectionAspect
+import com.android.tools.profilers.memory.ClassGrouping
+import com.android.tools.profilers.memory.MemoryCaptureSelection
 import com.android.tools.profilers.memory.MemoryProfilerAspect
-import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping
 import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
 import com.android.tools.profilers.memory.chart.MemoryVisualizationModel.XAxisFilter
@@ -53,7 +55,7 @@ import javax.swing.JPanel
  * Class that manages the memory HTreeChart (CallChart). The UI has a dropdown that allows the user to change the X axis of the
  * chart. This class is responsible for rebuilding the chart when the dropdown changes or a filter is applied.
  */
-class MemoryVisualizationView(private val stage: MemoryProfilerStage) : AspectObserver(), CapturePanelTabContainer {
+class MemoryVisualizationView(private val selection: MemoryCaptureSelection) : AspectObserver(), CapturePanelTabContainer {
   private val panel: JPanel = JPanel(BorderLayout())
   private val orderingDropdown: JComboBox<XAxisFilter> = ProfilerCombobox()
   private val model = MemoryVisualizationModel()
@@ -70,7 +72,7 @@ class MemoryVisualizationView(private val stage: MemoryProfilerStage) : AspectOb
     val comboBoxModel: ComboBoxModel<XAxisFilter> = DefaultComboBoxModel(XAxisFilter.values())
     orderingDropdown.model = comboBoxModel
     orderingDropdown.selectedIndex = XAxisFilter.ALLOC_SIZE.ordinal
-    stage.aspect.addDependency(this).onChange(MemoryProfilerAspect.CURRENT_FILTER) { rebuildUI() }
+    selection.aspect.addDependency(this).onChange(CaptureSelectionAspect.CURRENT_FILTER) { rebuildUI() }
   }
 
   val toolbarComponents: List<Component>
@@ -82,11 +84,11 @@ class MemoryVisualizationView(private val stage: MemoryProfilerStage) : AspectOb
 
   override fun onSelectionChanged(selected: Boolean) {
     if (selected) {
-      initialClassGrouping = stage.selectedHeapSet?.classGrouping ?: return
+      initialClassGrouping = selection.selectedHeapSet?.classGrouping ?: return
       rebuildUI()
     }
     else {
-      stage.selectedHeapSet?.classGrouping = initialClassGrouping ?: return
+      selection.selectedHeapSet?.classGrouping = initialClassGrouping ?: return
     }
   }
 
@@ -94,7 +96,7 @@ class MemoryVisualizationView(private val stage: MemoryProfilerStage) : AspectOb
     // This is not CPU efficient however it is memory efficient. To make this CPU efficient a copy of the HeapSet would need to be
     // maintained for the Visualization view. Instead of managing a duplicate copy of the HeapSet when the visualization tab is activated,
     // the class grouping is updated. This update forces a rebuild of the model in a hierarchical way as is expected by the HTreeChart.
-    stage.selectedHeapSet?.classGrouping = if (stage.selectedCapture is NativeAllocationSampleCaptureObject)
+    selection.selectedHeapSet?.classGrouping = if (selection.selectedCapture is NativeAllocationSampleCaptureObject)
       ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK else ClassGrouping.ARRANGE_BY_CALLSTACK
     panel.removeAll()
     panel.add(createChartPanel(), BorderLayout.CENTER)
@@ -105,9 +107,9 @@ class MemoryVisualizationView(private val stage: MemoryProfilerStage) : AspectOb
 
   private fun createChartPanel(): JPanel {
     // If we don't have a heap selected return an empty panel.
-    stage.selectedHeapSet ?: return JPanel()
+    selection.selectedHeapSet ?: return JPanel()
 
-    val selected = ClassifierSetHNode(model, stage.selectedHeapSet!!, 0)
+    val selected = ClassifierSetHNode(model, selection.selectedHeapSet!!, 0)
     selected.updateChildrenOffsets()
     val captureRange = Range(0.0, selected.end.toDouble())
     // We use selectionRange here instead of nodeRange, because nodeRange synchronises with selectionRange and vice versa.

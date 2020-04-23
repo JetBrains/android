@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers;
 
-import com.android.tools.profilers.memory.MemoryProfilerConfiguration;
+import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +24,7 @@ public class NativeMemoryHeapSet extends HeapSet {
 
   public NativeMemoryHeapSet(@NotNull CaptureObject captureObject) {
     super(captureObject, CaptureObject.NATIVE_HEAP_NAME, DEFAULT_HEAP_ID);
-    setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.NATIVE_ARRANGE_BY_ALLOCATION_METHOD);
+    setClassGrouping(ClassGrouping.NATIVE_ARRANGE_BY_ALLOCATION_METHOD);
   }
 
   @NotNull

@@ -44,6 +44,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.MemoryCaptureSelection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +69,7 @@ public class HeapDumpInstanceObjectTest {
     StudioProfilers profilers = new StudioProfilers(profilerClient, profilerServices, new FakeTimer());
     MemoryProfilerStage stage = new MemoryProfilerStage(new StudioProfilers(profilerClient, profilerServices, new FakeTimer()),
                                                         new FakeCaptureObjectLoader());
-    myCaptureObject = new FakeHeapDumpCaptureObject(profilers.getClient(), stage);
+    myCaptureObject = new FakeHeapDumpCaptureObject(profilers.getClient(), stage.getCaptureSelection());
   }
 
   /**
@@ -277,9 +278,9 @@ public class HeapDumpInstanceObjectTest {
     private Map<Instance, HeapDumpInstanceObject> myInstanceObjectMap = new HashMap<>();
 
     public FakeHeapDumpCaptureObject(@NotNull ProfilerClient client,
-                                     MemoryProfilerStage stage) {
+                                     MemoryCaptureSelection selection) {
       super(client, Common.Session.getDefaultInstance(), HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build(), null,
-            new FakeFeatureTracker(), stage);
+            new FakeFeatureTracker(), selection);
     }
 
     public void addInstance(@NotNull Instance instance, @NotNull HeapDumpInstanceObject instanceObject) {

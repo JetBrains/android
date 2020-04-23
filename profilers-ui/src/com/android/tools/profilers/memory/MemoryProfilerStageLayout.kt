@@ -78,7 +78,7 @@ internal abstract class MemoryProfilerStageLayout(val capturePanel: CapturePanel
 internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponent?,
                                                          capturePanel: CapturePanel,
                                                          makeLoadingPanel: () -> LoadingPanel,
-                                                         private val myStage: MemoryProfilerStage,
+                                                         private val selection: MemoryCaptureSelection,
                                                          private val myTimelineShowingCallback: Runnable,
                                                          private val myCaptureShowingCallback: Runnable,
                                                          private val myLoadingShowingCallback: Runnable)
@@ -98,7 +98,7 @@ internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponen
     val headingPanel = JPanel(BorderLayout()).apply {
       border = DEFAULT_HORIZONTAL_BORDERS
       add(myTitle, BorderLayout.WEST)
-      add(CloseButton{ myStage.selectClassSet(null) }, BorderLayout.EAST)
+      add(CloseButton{ selection.selectClassSet(null) }, BorderLayout.EAST)
     }
     add(headingPanel, BorderLayout.NORTH)
     add(instanceDetailsSplitter, BorderLayout.CENTER)
@@ -121,8 +121,8 @@ internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponen
   private val myObserver = AspectObserver()
 
   init {
-    myStage.aspect.addDependency(myObserver)
-      .onChange(MemoryProfilerAspect.CURRENT_CLASS, ::updateInstanceDetailsSplitter)
+    selection.aspect.addDependency(myObserver)
+      .onChange(CaptureSelectionAspect.CURRENT_CLASS, ::updateInstanceDetailsSplitter)
     updateInstanceDetailsSplitter()
   }
 
@@ -151,7 +151,7 @@ internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponen
     //noinspection StopShip
     get() = TODO("remove on full migration")
 
-  private fun updateInstanceDetailsSplitter() = when (val cs = myStage.selectedClassSet) {
+  private fun updateInstanceDetailsSplitter() = when (val cs = selection.selectedClassSet) {
     null -> instanceDetailsWrapper.isVisible = false
     else -> {
       myTitle.text = "Instance List - " + cs.name

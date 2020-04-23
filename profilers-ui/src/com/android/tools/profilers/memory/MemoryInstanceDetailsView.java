@@ -25,6 +25,7 @@ import static com.android.tools.profilers.memory.SimpleColumnRenderer.onSubclass
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
@@ -93,7 +94,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
   private static final String TITLE_TAB_DEALLOCATION_CALLSTACK = "Deallocation Call Stack";
   private static final int LABEL_COLUMN_WIDTH = 500;
 
-  @NotNull private final MemoryProfilerStage myStage;
+  @NotNull private final MemoryCaptureSelection mySelection;
 
   @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
 
@@ -115,31 +116,33 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final List<InstanceViewer> myInstanceViewers = new ArrayList<>();
 
-  MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
-    myStage = stage;
-    myStage.getAspect().addDependency(this)
-      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged)
-      .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::instanceChanged);
+  MemoryInstanceDetailsView(@NotNull MemoryCaptureSelection selection,
+                            @NotNull IdeProfilerComponents ideProfilerComponents,
+                            @NotNull StreamingTimeline timeline) {
+    mySelection = selection;
+    mySelection.getAspect().addDependency(this)
+      .onChange(CaptureSelectionAspect.CURRENT_INSTANCE, this::instanceChanged)
+      .onChange(CaptureSelectionAspect.CURRENT_FIELD_PATH, this::instanceChanged);
     myIdeProfilerComponents = ideProfilerComponents;
 
     myTabsPanel = new CommonTabbedPane();
     myTabsPanel.addChangeListener(this::trackActiveTab);
-    myAllocationStackTraceView = ideProfilerComponents.createStackView(stage.getAllocationStackTraceModel());
-    myDeallocationStackTraceView = ideProfilerComponents.createStackView(stage.getDeallocationStackTraceModel());
+    myAllocationStackTraceView = ideProfilerComponents.createStackView(selection.getAllocationStackTraceModel());
+    myDeallocationStackTraceView = ideProfilerComponents.createStackView(selection.getDeallocationStackTraceModel());
 
     JPanel titleWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     titleWrapper.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, DEFAULT_BORDER_COLOR));
     myTitle.setBorder(new JBEmptyBorder(4, 0, 4, 0));
     titleWrapper.add(myTitle);
     myPanel.add(myTabsPanel, BorderLayout.CENTER);
-    if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+    if (selection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
       myPanel.add(titleWrapper, BorderLayout.NORTH);
     }
 
     myInstanceViewers.add(new BitmapViewer());
 
     LongFunction<String> timeFormatter = t ->
-      TimeFormatter.getSemiSimplifiedClockString(stage.getTimeline().convertToRelativeTimeUs(t));
+      TimeFormatter.getSemiSimplifiedClockString(timeline.convertToRelativeTimeUs(t));
 
     myAttributeColumns.put(
       InstanceAttribute.LABEL,
@@ -198,7 +201,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       return;
     }
 
-    FeatureTracker featureTracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
+    FeatureTracker featureTracker = mySelection.getIdeServices().getFeatureTracker();
     switch (myTabsPanel.getTitleAt(myTabsPanel.getSelectedIndex())) {
       case TITLE_TAB_REFERENCES:
         featureTracker.trackSelectMemoryReferences();
@@ -231,9 +234,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
   }
 
   private void instanceChanged() {
-    CaptureObject capture = myStage.getSelectedCapture();
-    InstanceObject instance = myStage.getSelectedInstanceObject();
-    List<FieldObject> fieldPath = myStage.getSelectedFieldObjectPath();
+    CaptureObject capture = mySelection.getSelectedCapture();
+    InstanceObject instance = mySelection.getSelectedInstanceObject();
+    List<FieldObject> fieldPath = mySelection.getSelectedFieldObjectPath();
 
     if (capture == null || instance == null) {
       myReferenceTree = null;
@@ -254,7 +257,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     }
 
     // Populate fields
-    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() &&
+    if (mySelection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() &&
         instance.getFieldCount() > 0) {
       JTree fieldTree = buildFieldTree(instance);
       JComponent fieldColumnTree = buildFieldColumnTree(fieldTree, capture, instance);
@@ -463,7 +466,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     });
 
     ContextMenuInstaller contextMenuInstaller = myIdeProfilerComponents.createContextMenuInstaller();
-    contextMenuInstaller.installNavigationContextMenu(tree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+    contextMenuInstaller.installNavigationContextMenu(tree, mySelection.getIdeServices().getCodeNavigator(), () -> {
       TreePath selection = tree.getSelectionPath();
       if (selection == null) {
         return null;
@@ -499,12 +502,12 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
       @Override
       public void run() {
-        CaptureObject captureObject = myStage.getSelectedCapture();
+        CaptureObject captureObject = mySelection.getSelectedCapture();
         TreePath selection = tree.getSelectionPath();
         assert captureObject != null && selection != null;
         MemoryObject memoryObject = ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
         if (memoryObject instanceof InstanceObject) {
-          assert memoryObject == myStage.getSelectedInstanceObject();
+          assert memoryObject == mySelection.getSelectedInstanceObject();
           // don't do anything because the only instance object in the tree is the one already selected
         }
         else {
@@ -512,11 +515,11 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           InstanceObject targetInstance = ((ReferenceObject)memoryObject).getReferenceInstance();
           HeapSet heapSet = captureObject.getHeapSet(targetInstance.getHeapId());
           assert heapSet != null;
-          myStage.selectHeapSet(heapSet);
+          mySelection.selectHeapSet(heapSet);
           ClassifierSet classifierSet = heapSet.findContainingClassifierSet(targetInstance);
           assert classifierSet instanceof ClassSet;
-          myStage.selectClassSet((ClassSet)classifierSet);
-          myStage.selectInstanceObject(targetInstance);
+          mySelection.selectClassSet((ClassSet)classifierSet);
+          mySelection.selectInstanceObject(targetInstance);
         }
       }
     });

@@ -92,7 +92,7 @@ public class HeapDumpCaptureObjectTest {
       HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
-                                dumpInfo, null, myIdeProfilerServices.getFeatureTracker(), myStage);
+                                dumpInfo, null, myIdeProfilerServices.getFeatureTracker(), myStage.getCaptureSelection());
 
     // Verify values associated with the HeapDumpInfo object.
     assertEquals(startTimeNs, capture.getStartTimeNs());
@@ -154,7 +154,7 @@ public class HeapDumpCaptureObjectTest {
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA, dumpInfo,
                                 null,
-                                myIdeProfilerServices.getFeatureTracker(), myStage);
+                                myIdeProfilerServices.getFeatureTracker(), myStage.getCaptureSelection());
 
     // Verify values associated with the HeapDumpInfo object.
     assertEquals(startTimeNs, capture.getStartTimeNs());
@@ -188,7 +188,7 @@ public class HeapDumpCaptureObjectTest {
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA, dumpInfo,
                                 null,
-                                myIdeProfilerServices.getFeatureTracker(), myStage);
+                                myIdeProfilerServices.getFeatureTracker(), myStage.getCaptureSelection());
 
     assertFalse(capture.isDoneLoading());
     assertFalse(capture.isError());
@@ -204,7 +204,7 @@ public class HeapDumpCaptureObjectTest {
     HeapDumpInfo dumpInfo = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build();
     HeapDumpCaptureObject capture =
       new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
-                                dumpInfo, null, myIdeProfilerServices.getFeatureTracker(), myStage);
+                                dumpInfo, null, myIdeProfilerServices.getFeatureTracker(), myStage.getCaptureSelection());
 
     File hprof = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData/hprofs/displayingbitmaps_leakedActivity.hprof");
     FileInputStream inputStream = new FileInputStream(hprof);
