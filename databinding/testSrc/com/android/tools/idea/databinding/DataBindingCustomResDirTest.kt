@@ -74,6 +74,8 @@ class DataBindingCustomResDirTest(private val projectPath: String) {
       .findGradleModule(":app")!!
       .fileUnderGradleRoot("src/main/java/com/android/example/appwithdatabinding/ResAltActivity.java")!!
     fixture.configureFromExistingVirtualFile(file)
+/* b/154652005
     fixture.checkHighlighting(false, false, false)
+b/154652005 */
   }
 }
