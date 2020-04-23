@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.util
 
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.SdkConstants.FQCN_RELATIVE_LAYOUT
+import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
@@ -54,8 +56,8 @@ object DemoExample {
     val relativeLayoutId = ResourceReference(namespace, ResourceType.ID, "relativeLayout")
     val textViewId = ResourceReference(namespace, ResourceType.ID, "title")
     this.also {
-      view(0, 0, 0, 1200, 1600, "RelativeLayout", relativeLayoutId, layout = layout) {
-        view(1, 200, 400, 400, 100, "TextView", textViewId, "@drawable/battery", layout = layout)
+      view(0, 0, 0, 1200, 1600, FQCN_RELATIVE_LAYOUT, relativeLayoutId, layout = layout) {
+        view(1, 200, 400, 400, 100, FQCN_TEXT_VIEW, textViewId, "@drawable/battery", layout = layout)
       }
     }
   }

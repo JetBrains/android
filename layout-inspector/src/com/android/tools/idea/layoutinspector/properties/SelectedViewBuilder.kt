@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_NAME
 import com.android.tools.idea.layoutinspector.model.SelectedViewModel
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.api.SelectedComponentPanel
 
-class SelectedViewBuilder(val model: InspectorPropertiesModel) : InspectorBuilder<InspectorPropertyItem> {
+object SelectedViewBuilder : InspectorBuilder<InspectorPropertyItem> {
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
-    val view = model.layoutInspector?.layoutInspectorModel?.selection ?: return
-    val panel = SelectedComponentPanel(SelectedViewModel(view))
+    val name = properties.getOrNull(NAMESPACE_INTERNAL, ATTR_NAME) ?: return
+    val id = properties.getOrNull(ANDROID_URI, ATTR_ID)
+    val panel = SelectedComponentPanel(SelectedViewModel(name, id))
     inspector.addComponent(panel, null)
   }
 }

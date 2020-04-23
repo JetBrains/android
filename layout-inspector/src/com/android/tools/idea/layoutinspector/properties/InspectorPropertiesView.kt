@@ -53,13 +53,14 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
 
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
-    main.builders.add(SelectedViewBuilder(model))
+    main.builders.add(SelectedViewBuilder)
     val tab = addTab("")
-    tab.builders.add(DimensionBuilder(model))
+    tab.builders.add(DimensionBuilder)
     tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.group == PropertySection.DECLARED },
                                            model, enumSupportProvider, controlTypeProvider))
     tab.builders.add(InspectorTableBuilder("Layout", { it.group == PropertySection.LAYOUT },
                                            model, enumSupportProvider, controlTypeProvider, androidSortOrder))
-    tab.builders.add(InspectorTableBuilder("All Attributes", { true }, model, enumSupportProvider, controlTypeProvider, searchable = true))
+    tab.builders.add(InspectorTableBuilder("All Attributes", { it.group != PropertySection.DIMENSION && it.group != PropertySection.VIEW },
+                                           model, enumSupportProvider, controlTypeProvider, searchable = true))
   }
 }

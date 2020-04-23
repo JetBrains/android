@@ -22,4 +22,6 @@ enum class PropertySection {
   DEFAULT,    // Use this value if an item is not in any of the groups mentioned below
   DECLARED,   // This attribute was specified by the user in a layout file in the application
   LAYOUT,     // This attribute is a layout attribute i.e. defined by the parent view
+  DIMENSION,  // This attribute is intended for the Dimension section only
+  VIEW,       // This attribute is intended for the SelectedView section only
 }
