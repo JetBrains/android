@@ -344,7 +344,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     table.setBackground(UIUtil.getTextFieldBackground());
     table.setDefaultEditor(String.class, new MetadataCellComponentProvider());
     table.setDefaultRenderer(String.class, new MetadataCellComponentProvider());
-    table.setFocusable(false);
     table.setRowSelectionAllowed(false);
     table.setShowGrid(false);
     table.setShowColumns(true);
@@ -675,7 +674,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return null;
+    return myRootPane;
   }
 
   @NotNull
