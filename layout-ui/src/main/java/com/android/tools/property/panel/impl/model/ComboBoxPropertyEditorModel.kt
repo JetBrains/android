@@ -15,12 +15,15 @@
  */
 package com.android.tools.property.panel.impl.model
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.property.panel.api.ActionEnumValue
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.PropertyItem
+import com.google.common.util.concurrent.Futures
+import java.util.concurrent.Future
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 import kotlin.properties.Delegates
@@ -34,9 +37,17 @@ import kotlin.properties.Delegates
  * @property editable True if the value is editable with a text editor (ComboBox) or false (DropDown).
  * @property isPopupVisible Controls the visibility of the popup in the ComboBox / DropDown.
  */
-class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSupport: EnumSupport, override val editable: Boolean) :
-  BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
-
+class ComboBoxPropertyEditorModel(
+  property: PropertyItem,
+  private val enumSupport: EnumSupport,
+  override val editable: Boolean
+) : BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
+  /** Object for synchronizing access to [newValues] */
+  private val syncNewValues = Object()
+  private val loading = listOf(EnumValue.LOADING)
+  private var values: List<EnumValue> = loading
+  @GuardedBy("syncNewValues")
+  private var newValues: List<EnumValue> = loading
   private var selectedValue: EnumValue? = null
   private val listListeners = mutableListOf<ListDataListener>()
 
@@ -138,9 +149,52 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
     return false
   }
 
-  fun popupMenuWillBecomeVisible() {
-    selectedItem = value
+  fun popupMenuWillBecomeVisible(updatePopup: () -> Unit): Future<*> {
     _popupVisible = true
+    var result: Future<*> = Futures.immediateFuture(null)
+    if (values === loading) {
+      result = editingSupport.execution(Runnable {
+        // The call to enumSupport.values may be slow.
+        // Call it from a non UI thread:
+        val newEnumValues = enumSupport.values
+        synchronized(syncNewValues) {
+          // The "newValues" property is accessed from multiple threads.
+          // Make the update inside a synchronized section.
+          newValues = newEnumValues
+
+          // Notify the UI thread that newValues has been updated.
+          syncNewValues.notify()
+        }
+        editingSupport.uiExecution(Runnable {
+          if (values === loading) {
+            // New values have been loaded but the list model has not been updated.
+            synchronized(syncNewValues) {
+              values = newValues
+              selectedItem = value
+            }
+            // Update the data in the list of the popup.
+            fireListDataInserted()
+
+            // Notify the UI that there are new items in the list.
+            updatePopup()
+          }
+        })
+      })
+      if (values === loading) {
+        synchronized(syncNewValues) {
+          // To avoid flickering from quick enumSupport.values call:
+          // check if the values are ready after a small delay.
+          if (newValues === loading) {
+            syncNewValues.wait(100L)
+          }
+          if (values === loading && newValues !== loading) {
+            values = newValues
+            selectedItem = value
+          }
+        }
+      }
+    }
+    return result
   }
 
   fun popupMenuWillBecomeInvisible(ignoreChanges: Boolean) {
@@ -160,11 +214,11 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
   }
 
   override fun getSize(): Int {
-    return enumSupport.values.size
+    return values.size
   }
 
   override fun getElementAt(index: Int): EnumValue? {
-    return enumSupport.values.elementAt(index)
+    return values.elementAt(index)
   }
 
   override fun addListDataListener(listener: ListDataListener) {
@@ -176,11 +230,13 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
   }
 
   override fun setSelectedItem(item: Any?) {
+    if (values === loading) {
+      return
+    }
     var newValue = item as? EnumValue
     if (newValue == null && item != null) {
       val strValue = item.toString()
-      val enumValues = enumSupport.values
-      for (enumValue in enumValues) {
+      for (enumValue in values) {
         if (enumValue !is ActionEnumValue && strValue == enumValue.value) {
           newValue = enumValue
           break
@@ -197,6 +253,11 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
 
   private fun fireListDataChanged() {
     val event = ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, size)
+    listListeners.toTypedArray().forEach { it.contentsChanged(event) }
+  }
+
+  private fun fireListDataInserted() {
+    val event = ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, 0, size)
     listListeners.toTypedArray().forEach { it.contentsChanged(event) }
   }
 }

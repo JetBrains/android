@@ -93,6 +93,7 @@ interface EnumValue {
     val DEFAULT_RENDERER: ListCellRenderer<EnumValue> = EnumValueListCellRenderer()
     val EMPTY: EnumValue = ItemEnumValue(null)
     val SEPARATOR: EnumValue = object : EnumValue, CommonElementSelectability {}
+    val LOADING: EnumValue = object : EnumValue, CommonElementSelectability { override val display = "Loading..." }
   }
 }
 
