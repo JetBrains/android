@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.model.util
 
 import com.android.SdkConstants
+import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.property.panel.api.ActionIconButton
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.utils.HashCodes
@@ -30,7 +31,8 @@ open class FakePropertyItem(
   override var name: String,
   initialValue: String? = null,
   override var browseButton: ActionIconButton? = null,
-  override var colorButton: ActionIconButton? = null
+  override var colorButton: ActionIconButton? = null,
+  override val editingSupport: EditingSupport = EditingSupport.INSTANCE
 ) : PropertyItem {
 
   override var isReference: Boolean = false
