@@ -81,7 +81,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
       val request = invocation.getArgument<GradleSyncInvoker.Request>(1)
 
       ApplicationManager.getApplication().invokeAndWait {
-        gradleSyncState.syncStarted(request, null)
+        gradleSyncState.syncStarted(request)
 
         if (syncSuccessful) {
           gradleSyncState.syncSucceeded()

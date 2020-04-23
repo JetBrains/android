@@ -200,51 +200,11 @@ public class GradleSyncInvoker {
     // And any changes to gradle files after sync started will result in another sync needed.
     myPreSyncProjectCleanUp.cleanUp(project);
 
-    if (!GradleSyncState.getInstance(project).syncStarted(request, listener)) {
+    if (!GradleSyncState.getInstance(project).syncStarted(request)) {
       return;
     }
 
     new GradleSyncExecutor(project).sync(request, listener);
-  }
-
-  private static void handlePreSyncCheckFailure(@NotNull Project project,
-                                                @NotNull String failureCause,
-                                                @Nullable GradleSyncListener syncListener,
-                                                @NotNull GradleSyncInvoker.Request request) {
-    GradleSyncState syncState = GradleSyncState.getInstance(project);
-
-    // Create an external task so we can display messages associated to it in the build view
-    ExternalSystemTaskId taskId = createFailedPreCheckSyncTaskWithStartMessage(project);
-    syncState.setExternalSystemTaskId(taskId);
-    if (syncState.syncStarted(request, syncListener)) {
-      syncState.syncFailed(failureCause, null, syncListener);
-    }
-
-    // Let build view know there were issues
-    GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
-    List<Failure> failures = messages.showEvents(taskId);
-    EventResult result = new FailureResultImpl(failures);
-    FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), failureCause, result);
-    ServiceManager.getService(project, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
-  }
-
-  /**
-   * Create a new {@link ExternalSystemTaskId} when sync cannot start due to pre check failures and add a StartBuildEvent to build view.
-   *
-   * @param project
-   * @return
-   */
-  @NotNull
-  public static ExternalSystemTaskId createFailedPreCheckSyncTaskWithStartMessage(@NotNull Project project) {
-    // Create taskId
-    ExternalSystemTaskId taskId = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
-
-    // Create StartBuildEvent
-    String workingDir = toCanonicalPath(getBaseDirPath(project).getPath());
-    DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(taskId, "Preparing for sync", workingDir, currentTimeMillis());
-    SyncViewManager syncManager = ServiceManager.getService(project, SyncViewManager.class);
-    syncManager.onEvent(taskId, new StartBuildEventImpl(buildDescriptor, "Running pre sync checks..."));
-    return taskId;
   }
 
   @NotNull
