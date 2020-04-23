@@ -55,7 +55,7 @@ class ExistingNewModuleModelData(
 ) : ModuleModelData, ProjectModelData by existingProjectModelData {
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(template)
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
-  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
+  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false), false)
 
   override val formFactor: ObjectValueProperty<FormFactor> get() = TODO("not implemented")
   override val isLibrary: Boolean = false

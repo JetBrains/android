@@ -50,7 +50,7 @@ val log: Logger get() = logger<ProjectTemplateDataBuilder>()
  *
  * Extracts information from various data sources.
  */
-class ProjectTemplateDataBuilder(private val isNewProject: Boolean) {
+class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var androidXSupport: Boolean? = null
   var gradlePluginVersion: GradleVersion? = null
   var javaVersion: JavaVersion? = null
