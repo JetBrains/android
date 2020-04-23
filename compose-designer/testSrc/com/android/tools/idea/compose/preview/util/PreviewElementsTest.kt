@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.util
 
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import org.junit.Test
@@ -81,5 +82,35 @@ $t
         }
 
       }
+  }
+
+  @Test
+  fun testAffinity() {
+    val composable0 = SinglePreviewElementInstance("composableMethodName",
+      PreviewDisplaySettings("A name", null, false, false, null), null, null,
+      PreviewConfiguration.cleanAndGet(null, null, null, null, null))
+
+    // The same as composable0, just a different instance
+    val composable0b = SinglePreviewElementInstance("composableMethodName",
+                                                   PreviewDisplaySettings("A name", null, false, false, null), null, null,
+                                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null))
+
+    // Same as composable0 but with different display settings
+    val composable1 = SinglePreviewElementInstance("composableMethodName",
+                                                  PreviewDisplaySettings("Different name", null, false, false, null), null, null,
+                                                  PreviewConfiguration.cleanAndGet(null, null, null, null, null))
+
+    // Same as composable0 but with different display settings
+    val composable2 = SinglePreviewElementInstance("composableMethodName",
+                                                   PreviewDisplaySettings("Different name", null, false, false, null), null, null,
+                                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null))
+
+    val result = listOf(composable2, composable1, composable0b)
+      .shuffled()
+      .sortedBy { modelAffinity(composable0, it) }
+      .toTypedArray()
+
+    // The more similar, the lower result of modelAffinity.
+    assertArrayEquals(arrayOf(composable0b, composable1, composable2), result)
   }
 }

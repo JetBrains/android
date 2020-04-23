@@ -23,6 +23,7 @@ import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.atrace.AtraceFrame;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
+import com.android.tools.profilers.cpu.atrace.SurfaceflingerEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -155,6 +156,22 @@ public interface CpuCapture extends ConfigurableDurationData {
    */
   @NotNull
   default List<SeriesData<AtraceFrame>> getFrames(AtraceFrame.FrameThread threadType) {
+    return new ArrayList<>();
+  }
+
+  /**
+   * @return a data series with Surfaceflinger events.
+   */
+  @NotNull
+  default List<SeriesData<SurfaceflingerEvent>> getSurfaceflingerEvents() {
+    return new ArrayList<>();
+  }
+
+  /**
+   * @return a data series with VSYNC-sf counter (0 or 1).
+   */
+  @NotNull
+  default List<SeriesData<Long>> getVsyncCounterValues() {
     return new ArrayList<>();
   }
 

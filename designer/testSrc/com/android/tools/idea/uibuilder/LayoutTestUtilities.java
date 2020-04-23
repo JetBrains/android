@@ -65,6 +65,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -234,7 +235,7 @@ public class LayoutTestUtilities {
     NlDesignSurface surface = (NlDesignSurface) model.getSurface();
     LayoutlibSceneManager spy = spy(surface.getSceneManager());
     when(surface.getSceneManager()).thenReturn(spy);
-    ScreenView screenView = new ScreenView(surface, spy) {
+    ScreenView screenView = new ScreenView(surface, spy, DEVICE_CONTENT_SIZE_POLICY) {
       @Override
       public double getScale() {
         return scale;

@@ -431,6 +431,27 @@ public class MemoryProfiler extends StudioProfiler {
     return infos;
   }
 
+  public static List<Memory.MemoryNativeTrackingData> getNativeHeapStatusForSession(@NotNull ProfilerClient client,
+                                                                                   @NotNull Common.Session session,
+                                                                                   @NotNull Range rangeUs) {
+    Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
+      .setStreamId(session.getStreamId())
+      .setPid(session.getPid())
+      .setKind(Common.Event.Kind.MEMORY_NATIVE_SAMPLE_STATUS)
+      .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
+      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()))
+      .build();
+    Transport.GetEventGroupsResponse response = client.getTransportClient().getEventGroups(request);
+
+    List<Memory.MemoryNativeTrackingData> infos = new ArrayList<>();
+    for (Transport.EventGroup group : response.getGroupsList()) {
+      // We only need the last event to get the most recent info
+      Common.Event lastEvent = group.getEvents(group.getEventsCount() - 1);
+      infos.add(lastEvent.getMemoryNativeTrackingStatus());
+    }
+    return infos;
+  }
+
   public static List<HeapDumpInfo> getHeapDumpsForSession(@NotNull ProfilerClient client,
                                                           @NotNull Common.Session session,
                                                           @NotNull Range rangeUs,

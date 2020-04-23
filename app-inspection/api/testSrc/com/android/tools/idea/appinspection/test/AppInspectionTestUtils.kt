@@ -19,10 +19,13 @@ import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.JarCopierCreator
+import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.manager.TransportStreamManager
+import com.android.tools.profiler.proto.Common
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
@@ -86,6 +89,11 @@ object AppInspectionTestUtils {
       ), jarCopierCreator
     )
   }
+
+  fun createFakeProcessDescriptor(
+    device: Common.Device = FakeTransportService.FAKE_DEVICE,
+    process: Common.Process = FakeTransportService.FAKE_PROCESS
+  ): ProcessDescriptor = ProcessDescriptor(Common.Stream.newBuilder().setDevice(device).setStreamId(device.deviceId).build(), process)
 
   /**
    * Keeps track of the copied jar so tests could verify the operation happened.

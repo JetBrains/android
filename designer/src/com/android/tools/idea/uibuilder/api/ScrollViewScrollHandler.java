@@ -132,26 +132,6 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
   public void commit(int scrollAmount) {
     // To make sure we correctly update the view hierarchy scrolling values
     update(scrollAmount);
-
-    // TODO: layoutlib currently handles the scroll attributes both on inflate and render.
-    //       If a scroll value is set in the XML, it will override any changes we've made to the
-    //       View object. Uncomment this after scroll attributes are only handled during inflate.
-    //View scrollView = (View)myComponent.viewInfo.getViewObject();
-    //final int currentScrollY = scrollView.getScrollY();
-    //
-    //new WriteCommandAction.Simple<Void>(myComponent.getModel().getProject(), "Updating scroll position",
-    //                                    myComponent.getTag().getContainingFile()) {
-    //  @Override
-    //  protected void run() throws Throwable {
-    //    if (currentScrollY <= 0) {
-    //      myComponent.setAttribute(TOOLS_URI, "scrollY", null);
-    //    }
-    //    else {
-    //      myComponent.getRoot().ensureNamespace(TOOLS_PREFIX, TOOLS_URI);
-    //      myComponent.setAttribute(TOOLS_URI, "scrollY", currentScrollY + "px");
-    //    }
-    //  }
-    //}.execute();
   }
 
   @Override

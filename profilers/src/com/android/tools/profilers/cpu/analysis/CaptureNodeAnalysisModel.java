@@ -45,22 +45,33 @@ public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalys
   @NotNull
   @Override
   public CpuAnalysisModel<CaptureNodeAnalysisModel> getAnalysisModel() {
+    CpuAnalysisModel<CaptureNodeAnalysisModel> model = new CpuAnalysisModel<>(myNode.getData().getName(), "%d events");
     Range nodeRange = getNodeRange();
     Collection<CaptureNode> nodes = Collections.singleton(myNode);
+
+    // Summary
+    CaptureNodeAnalysisSummaryTabModel summary = new CaptureNodeAnalysisSummaryTabModel(myCapture.getRange());
+    summary.getDataSeries().add(this);
+    model.addTabModel(summary);
+
+    // Flame Chart
     CpuAnalysisChartModel<CaptureNodeAnalysisModel> flameChart =
       new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.FLAME_CHART, nodeRange, myCapture, unused -> nodes);
+    flameChart.getDataSeries().add(this);
+    model.addTabModel(flameChart);
+
+    // Top Down
     CpuAnalysisChartModel<CaptureNodeAnalysisModel> topDown =
       new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.TOP_DOWN, nodeRange, myCapture, unused -> nodes);
+    topDown.getDataSeries().add(this);
+    model.addTabModel(topDown);
+
+    // Bottom Up
     CpuAnalysisChartModel<CaptureNodeAnalysisModel> bottomUp =
       new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.BOTTOM_UP, nodeRange, myCapture, unused -> nodes);
-    flameChart.getDataSeries().add(this);
-    topDown.getDataSeries().add(this);
     bottomUp.getDataSeries().add(this);
-
-    CpuAnalysisModel<CaptureNodeAnalysisModel> model = new CpuAnalysisModel<>(myNode.getData().getName(), "%d events");
-    model.addTabModel(flameChart);
-    model.addTabModel(topDown);
     model.addTabModel(bottomUp);
+
     return model;
   }
 

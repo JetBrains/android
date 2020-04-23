@@ -17,21 +17,34 @@ package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.sqlite.databaseConnection.live.DatabaseInspectorMessenger
+import com.android.tools.idea.sqlite.databaseConnection.live.ErrorsSideChannel
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
+import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.intellij.openapi.application.ApplicationManager
+import java.util.concurrent.Executor
 
 /**
  * Class used to receive asynchronous events from the on-device inspector.
  * @param messenger Communication channel with the on-device inspector.
- * @param handleError Function called when a ErrorOccurred event is received.
- * @param openDatabase Function called when a DatabaseOpened event is received.
+ * @param onErrorEventListener Function called when a ErrorOccurred event is received.
+ * @param onDatabaseAddedListener Function called when a DatabaseOpened event is received.
+ * @param taskExecutor to parse responses from on-device inspector
+ * @param errorsSideChannel side channel to error logging
  */
 class DatabaseInspectorClient constructor(
   messenger: CommandMessenger,
-  private val handleError: (errorMessage: String) -> Unit,
-  private val openDatabase: (messenger: CommandMessenger, databaseConnectionId: Int, databasePath: String) -> Unit,
-  private val onDatabasePossiblyChanged: () -> Unit
+  private val onErrorEventListener: (errorMessage: String) -> Unit,
+  private val onDatabaseAddedListener: (SqliteDatabase) -> Unit,
+  private val onDatabasePossiblyChanged: () -> Unit,
+  private val taskExecutor: Executor,
+  errorsSideChannel: ErrorsSideChannel = {}
 ) : AppInspectorClient(messenger) {
+
+  private val dbMessenger = DatabaseInspectorMessenger(messenger, taskExecutor, errorsSideChannel)
+
   override val rawEventListener = object : RawEventListener {
     override fun onRawEvent(eventData: ByteArray) {
       val event = SqliteInspectorProtocol.Event.parseFrom(eventData)
@@ -39,7 +52,8 @@ class DatabaseInspectorClient constructor(
         event.hasDatabaseOpened() -> {
           val openedDatabase = event.databaseOpened
           ApplicationManager.getApplication().invokeLater {
-            openDatabase(messenger, openedDatabase.databaseId, openedDatabase.name)
+            val connection = LiveDatabaseConnection(dbMessenger, openedDatabase.databaseId, taskExecutor)
+            onDatabaseAddedListener(LiveSqliteDatabase(openedDatabase.name, connection))
           }
         }
         event.hasDatabasePossiblyChanged() -> {
@@ -48,7 +62,7 @@ class DatabaseInspectorClient constructor(
         event.hasErrorOccurred() -> {
           val errorContent = event.errorOccurred.content
           val errorMessage = getErrorMessage((errorContent))
-          handleError(errorMessage)
+          onErrorEventListener(errorMessage)
         }
       }
     }
@@ -59,11 +73,10 @@ class DatabaseInspectorClient constructor(
    * When the on-device inspector discovers a connection, it sends back an asynchronous databaseOpen event.
    */
   fun startTrackingDatabaseConnections() {
-    messenger.sendRawCommand(
+    dbMessenger.sendCommand(
       SqliteInspectorProtocol.Command.newBuilder()
         .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
         .build()
-        .toByteArray()
     )
   }
 }

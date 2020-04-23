@@ -20,17 +20,25 @@ import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlBindParameter
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlColumnRefExpression
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlComparisonExpression
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlDeleteStatement
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlEquivalenceExpression
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlExplainPrefix
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlInExpression
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlInsertStatement
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlSelectStatement
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlUpdateStatement
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlVisitor
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.intellij.lang.ASTFactory
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runUndoTransparentWriteAction
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import java.util.Deque
@@ -152,6 +160,23 @@ fun needsBinding(psiElement: PsiElement): Boolean {
     }
   }
   return needsBinding
+}
+
+/**
+ * Returns the [SqliteStatementType] of [sqliteStatement].
+ */
+fun getSqliteStatementType(project: Project, sqliteStatement: String): SqliteStatementType {
+  val psiFile = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatement)
+
+  return when {
+    PsiTreeUtil.getChildOfType(psiFile, PsiErrorElement::class.java) != null -> SqliteStatementType.UNKNOWN
+    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlExplainPrefix::class.java) != null -> SqliteStatementType.EXPLAIN
+    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlSelectStatement::class.java) != null -> SqliteStatementType.SELECT
+    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlDeleteStatement::class.java) != null -> SqliteStatementType.DELETE
+    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlInsertStatement::class.java) != null -> SqliteStatementType.INSERT
+    PsiTreeUtil.getChildOfType(psiFile, AndroidSqlUpdateStatement::class.java) != null -> SqliteStatementType.UPDATE
+    else -> SqliteStatementType.UNKNOWN
+  }
 }
 
 private fun parentIsInExpression(bindParameter: AndroidSqlBindParameter): Boolean {

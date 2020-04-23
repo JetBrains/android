@@ -388,6 +388,12 @@ public class AndroidProjectStub implements AndroidProject {
   }
 
   @Override
+  @NotNull
+  public String getNdkVersion() {
+    return "21.0.0";
+  }
+
+  @Override
   public int getPluginGeneration() {
     return myPluginGeneration;
   }

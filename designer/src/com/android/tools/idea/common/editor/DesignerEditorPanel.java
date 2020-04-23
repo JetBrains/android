@@ -52,6 +52,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.swing.JComponent;
@@ -63,6 +64,16 @@ import org.jetbrains.annotations.TestOnly;
 
 /**
  * Assembles a designer editor from various components.
+ *
+ * This panel has three states:
+ * <li>
+ *   <ul>{@link State#FULL}: The panel is in a state designed to be displayed occupying a full editor.
+ *   <ul>{@link State#SPLIT}: The panel is in a state designed to share the screen with a text editor.
+ *   <ul>{@link State#DEACTIVATED}: The panel completely hidden.
+ * </li>
+ *
+ * The panel will start in the {@link State#DEACTIVATED}. Some heavy initialization might be deferred until the panel changes to one of the
+ * other states.
  */
 public class DesignerEditorPanel extends JPanel implements Disposable {
 
@@ -91,6 +102,17 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   @NotNull private final Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> myToolWindowDefinitions;
 
   /**
+   * Current {@link State} of the panel.
+   */
+  @NotNull private State myState;
+
+  /**
+   * Whether the {@link NlModel} has been already initialized. If the preview is not visible, we will delay the full initialization and this
+   * will be false until the preview is visible.
+   */
+  @NotNull private final AtomicBoolean myIsModelInitializated = new AtomicBoolean(false);
+
+  /**
    * Creates a new {@link DesignerEditorPanel}.
    *
    * @param editor the editor containing this panel.
@@ -102,11 +124,13 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
    * @param bottomModelComponent function that receives a {@link DesignSurface} and an {@link NlModel}, and returns a {@link JComponent} to
    *                             be added on the bottom of this panel. The component might be associated with the model, so we need to
    *                             listen to modelChanged events and update it as needed.
+   * @param defaultEditorPanelState default {@link State] to initialize the panel to.
    */
   public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
                              @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
                              @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
-                             @Nullable BiFunction<? super DesignSurface, ? super NlModel, JComponent> bottomModelComponent) {
+                             @Nullable BiFunction<? super DesignSurface, ? super NlModel, JComponent> bottomModelComponent,
+                             @NotNull State defaultEditorPanelState) {
     super(new BorderLayout());
     myEditor = editor;
     myProject = project;
@@ -116,22 +140,22 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     myContentPanel = new MyContentPanel();
     mySurface = surface.apply(this);
     Disposer.register(this, mySurface);
-    // Update the workbench context on state change, so we can have different contexts for each mode.
-    mySurface.setStateChangeListener((state) -> {
-      myWorkBench.setContext(mySurface.getState().name());
-      myWorkBench.setDefaultPropertiesForContext(mySurface.getState() == DesignSurface.State.SPLIT);
-    });
 
     myAccessoryPanel = mySurface.getAccessoryPanel();
     myContentPanel.add(createSurfaceToolbar(mySurface), BorderLayout.NORTH);
 
     myWorkBench.setLoadingText("Loading...");
 
+    myState = defaultEditorPanelState;
+    onStateChange();
+
+    // The rest of the initialization is done once the state of the surface is set to a visible state. This allows to defer the heavy
+    // initialization of the model to when the user actually needs it.
+
     mySplitter = new IssuePanelSplitter(mySurface, myWorkBench);
     add(mySplitter);
 
     myToolWindowDefinitions = toolWindowDefinitions;
-    ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(this::initNeleModel, this::buildError);
 
     if (bottomModelComponent != null) {
       mySurface.addListener(new DesignSurfaceListener() {
@@ -149,10 +173,43 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     }
   }
 
+  /**
+   * Sets the {@link State} of the {@link DesignSurface}.
+   */
+  public void setState(@NotNull State state) {
+    // This is the only method that can change the state. We will forward the information to the DesignAnalyticsManager but it will not
+    // record any actions. The actual user action will be recorded by the UI actions using DesignAnalyticsManager#trackEditorModeChange.
+    mySurface.getAnalyticsManager().setEditorModeWithoutTracking(state);
+
+    if (myState != state) {
+      myState = state;
+      onStateChange();
+    }
+  }
+
+  private void onStateChange() {
+    State currentState = getState();
+
+    // Update the workbench context on state change, so we can have different contexts for each mode.
+    myWorkBench.setContext(currentState.name());
+    myWorkBench.setDefaultPropertiesForContext(currentState == State.SPLIT);
+
+    if (currentState != State.DEACTIVATED && !myIsModelInitializated.getAndSet(true)) {
+      // We might have delayed some initialization until the surface was not in the DEACTIVATED state. Run it now.
+      ClearResourceCacheAfterFirstBuild.getInstance(myProject).runWhenResourceCacheClean(this::initNeleModel, this::buildError);
+    }
+  }
+
+  @NotNull
+  public State getState() {
+    return myState;
+  }
+
   public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
                              @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
-                             @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions) {
-    this(editor, project, file, workBench, surface, toolWindowDefinitions, null);
+                             @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
+                             @NotNull State defaultState) {
+    this(editor, project, file, workBench, surface, toolWindowDefinitions, null, defaultState);
   }
 
   @NotNull
@@ -194,6 +251,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
           mySurface.goingToSetModel(model).join();
           myWorkBench.setLoadingText("Waiting for build to finish...");
           SyncUtil.runWhenSmartAndSyncedOnEdt(myProject, this, result -> {
+            myWorkBench.setLoadingText("Initializing...");
             if (result.isSuccessful()) {
               initNeleModelOnEventDispatchThread(model);
             }
@@ -284,10 +342,10 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
     modelSetFuture.whenCompleteAsync(
       (result, ex) -> {
-        // Update the workbench context to make sure it initializes accordingly to the current surface state.
-        myWorkBench.setContext(mySurface.getState().name());
+        // Update the workbench context on state change, so we can have different contexts for each mode.
+        myWorkBench.setContext(getState().name());
         myWorkBench.init(myContentPanel, mySurface, myToolWindowDefinitions.apply(model.getFacet()),
-                         mySurface.getState() == DesignSurface.State.SPLIT);
+                         getState() == State.SPLIT);
       },
       EdtExecutorService.getInstance());
   }
@@ -331,6 +389,19 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     return myWorkBench;
   }
 
+  /**
+   * Represents the {@link DesignerEditorPanel} state within the split editor. The state can be changed by the user or automatically based
+   * on saved preferences.
+   */
+  public enum State {
+    /** Surface is taking the total space of the design editor. */
+    FULL,
+    /** Surface is sharing the design editor horizontal space with a text editor. */
+    SPLIT,
+    /** Surface is deactivated and not being displayed. */
+    DEACTIVATED
+  }
+
   private static class WaitingForGradleSyncException extends RuntimeException {
     private WaitingForGradleSyncException(@NotNull String message) {
       super(message);
@@ -347,8 +418,8 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     public Object getData(@NotNull String dataId) {
       // This class is the parent of ActionToolBar, DesignSurface, and Accessory Panel. The data of editor actions should be provided here.
       // For example, the refresh action can be performed when focusing ActionToolBar or DesignSurface.
-      if (DesignerDataKeys.DESIGN_EDITOR.is(dataId)) {
-        return DesignerEditorPanel.this;
+      if (DesignerDataKeys.DESIGN_SURFACE.is(dataId)) {
+        return getSurface();
       }
       else if (NlActionManager.LAYOUT_EDITOR.is(dataId)) {
         DesignSurface surface = getSurface();

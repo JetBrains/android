@@ -26,6 +26,7 @@ import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.io.File
 import java.util.regex.Pattern
 
@@ -35,8 +36,9 @@ class MissingAndroidSdkIssueChecker : GradleIssueChecker {
   private val SDK_NOT_FOUND_PATTERN = Pattern.compile("The SDK directory '(.*?)' does not exist.")
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
-    if (issueData.error !is RuntimeException || message.isEmpty() ||
+    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val message = rootCause.message ?: return null
+    if (rootCause !is RuntimeException || message.isEmpty() ||
         message != SDK_DIR_PROPERTY_MISSING && !SDK_NOT_FOUND_PATTERN.matcher(message).matches()) return null
 
     // Log metrics.

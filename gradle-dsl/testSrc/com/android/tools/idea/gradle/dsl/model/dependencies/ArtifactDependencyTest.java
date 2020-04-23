@@ -1544,6 +1544,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     model.name().setValue(new ReferenceTo("guavaGroup"));
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_FULL_REFERENCE_MAP_EXPECTED);
 
     dependencies = buildModel.dependencies();
     artifacts = dependencies.artifacts();
@@ -2108,6 +2109,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     ARTIFACT_NOTATION_EDGE_CASES("artifactNotationEdgeCases"),
     INSERTION_ORDER("insertionOrder"),
     INSERTION_ORDER_EXPECTED("insertionOrderExpected"),
+    SET_FULL_REFERENCE_MAP_EXPECTED("setFullReferenceMapExpected"),
     ;
 
     @NotNull private @SystemDependent String path;

@@ -362,12 +362,25 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   private static TrackGroupModel createDisplayTrackGroup(@NotNull CpuCapture cpuCapture, @NotNull Timeline timeline) {
     TrackGroupModel display = TrackGroupModel.newBuilder().setTitle("Display").build();
+
+    // Frame
     CpuFramesModel.FrameState mainFrames = new CpuFramesModel.FrameState(
       "Main", cpuCapture.getMainThreadId(), AtraceFrame.FrameThread.MAIN, cpuCapture, timeline.getViewRange());
     CpuFrameTooltip mainFrameTooltip = new CpuFrameTooltip(timeline);
     mainFrameTooltip.setFrameSeries(mainFrames.getSeries());
     display.addTrackModel(
       TrackModel.newBuilder(mainFrames, ProfilerTrackRendererType.FRAMES, "Frames").setDefaultTooltipModel(mainFrameTooltip));
+
+    // Surfaceflinger
+    SurfaceflingerTrackModel sfModel = new SurfaceflingerTrackModel(cpuCapture, timeline.getViewRange());
+    SurfaceflingerTooltip sfTooltip = new SurfaceflingerTooltip(timeline, sfModel.getSurfaceflingerEvents());
+    display.addTrackModel(
+      TrackModel.newBuilder(sfModel, ProfilerTrackRendererType.SURFACEFLINGER, "Surfaceflinger").setDefaultTooltipModel(sfTooltip));
+
+    // VSYNC
+    VsyncTrackModel vsyncModel = new VsyncTrackModel(cpuCapture, timeline.getViewRange());
+    VsyncTooltip vsyncTooltip = new VsyncTooltip(timeline, vsyncModel.getVsyncCounterSeries());
+    display.addTrackModel(TrackModel.newBuilder(vsyncModel, ProfilerTrackRendererType.VSYNC, "VSYNC").setDefaultTooltipModel(vsyncTooltip));
     return display;
   }
 

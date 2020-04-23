@@ -18,14 +18,10 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.tools.adtui.common.SwingLength
 import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.primaryPanelBackground
-import com.android.tools.adtui.common.toSwingLength
-import com.android.tools.adtui.common.toSwingPoint
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.TARGET_LEVEL
 import com.android.tools.idea.common.scene.draw.FillShape
-import com.android.tools.idea.common.scene.draw.buildString
-import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.android.tools.idea.naveditor.scene.makeCircle
 import com.android.tools.idea.naveditor.scene.makeCircleLerp
@@ -35,14 +31,6 @@ class DrawActionHandleDrag(private val center: SwingPoint,
                                 private val finalOuterRadius: SwingLength,
                                 private val innerRadius: SwingLength,
                                 private val duration: Int) : CompositeDrawCommand(TARGET_LEVEL) {
-  private constructor(tokens: Array<String>) : this(tokens[0].toSwingPoint(), tokens[1].toSwingLength(), tokens[2].toSwingLength(),
-                                                    tokens[3].toSwingLength(), tokens[4].toInt())
-
-  constructor(s: String) : this(parse(s, 5))
-
-  override fun serialize() = buildString(javaClass.simpleName, center, initialOuterRadius, finalOuterRadius,
-                                         innerRadius, duration)
-
   override fun buildCommands(): List<DrawCommand> {
     val outerCircle = makeCircleLerp(center, initialOuterRadius, finalOuterRadius, duration)
     val innerCircle = makeCircle(center, innerRadius)

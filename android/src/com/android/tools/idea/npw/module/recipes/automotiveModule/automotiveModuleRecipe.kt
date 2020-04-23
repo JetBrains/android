@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.module.recipes.automotiveModule
 
-import com.android.tools.idea.npw.module.recipes.basicStylesXml
+import com.android.tools.idea.npw.module.recipes.basicThemesXml
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
@@ -33,9 +33,14 @@ fun RecipeExecutor.generateAutomotiveModule(
 """
   generateCommonModule(
     data = data, appTitle = appTitle, useKts = useKts,
-    manifestXml = generateManifest(data.packageName, !data.isLibrary, usesFeatureBlock = usesFeatureBlock),
+    manifestXml = generateManifest(
+      packageName = data.packageName,
+      hasApplicationBlock = !data.isLibrary,
+      theme = "@style/${data.themesData.main.name}",
+      usesFeatureBlock = usesFeatureBlock
+    ),
     generateTests = true,
-    stylesXml = basicStylesXml("android:Theme.Material.Light.DarkActionBar"),
+    themesXml = basicThemesXml("android:Theme.Material.Light.DarkActionBar", data.themesData.main.name),
     colorsXml = null
   )
   addDependency("com.android.support:appcompat-v7:${data.apis.appCompatVersion}.+")

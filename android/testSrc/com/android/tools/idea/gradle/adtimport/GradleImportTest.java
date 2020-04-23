@@ -3331,7 +3331,7 @@ public class GradleImportTest extends AndroidTestCase {
   }
 
   protected static void updateGradle(File projectRoot) throws IOException {
-    GradleWrapper wrapper = GradleWrapper.create(projectRoot);
+    GradleWrapper wrapper = GradleWrapper.create(projectRoot, null);
     File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);

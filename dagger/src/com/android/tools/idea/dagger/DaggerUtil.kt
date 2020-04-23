@@ -20,10 +20,8 @@ import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getResolveScope
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiArrayInitializerMemberValue
@@ -40,8 +38,6 @@ import com.intellij.psi.PsiVariable
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.EmptyQuery
 import com.intellij.util.Query
 import org.jetbrains.kotlin.asJava.toLightClass
@@ -237,22 +233,13 @@ internal fun PsiElement?.isClassAnnotatedWith(annotationFQName: String): Boolean
  */
 internal val PsiElement?.isDaggerModule get() = isClassAnnotatedWith(DAGGER_MODULE_ANNOTATION)
 
-internal val PsiElement.isDaggerComponentMethod: Boolean
+internal val PsiElement?.isDaggerComponentMethod: Boolean
   get() = this is PsiMethod && this.containingClass.isDaggerComponent ||
           this is KtNamedFunction && this.containingClass().isDaggerComponent
 
 internal val PsiElement?.isDaggerComponent get() = isClassAnnotatedWith(DAGGER_COMPONENT_ANNOTATION)
 
 internal val PsiElement?.isDaggerSubcomponent get() = isClassAnnotatedWith(DAGGER_SUBCOMPONENT_ANNOTATION)
-
-fun Module.isDaggerPresent(): Boolean = CachedValuesManager.getManager(this.project).getCachedValue(this) {
-  CachedValueProvider.Result(calculateIsDaggerPresent(this), ProjectRootModificationTracker.getInstance(this.project))
-}
-
-private fun calculateIsDaggerPresent(module: Module): Boolean {
-  val psiFacade = JavaPsiFacade.getInstance(module.project)
-  return psiFacade.findClass(DAGGER_MODULE_ANNOTATION, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)) != null
-}
 
 /**
  * Returns pair of a type and an optional [QualifierInfo] for [PsiElement].
@@ -323,6 +310,39 @@ internal fun getDaggerParentComponentsForSubcomponent(subcomponent: PsiClass): C
 }
 
 /**
+ * Returns subcomponents of a [component].
+ *
+ * A subcomponents can be associated with a [component] in two ways:
+ * 1. Component's methods that return the class annotated [DAGGER_SUBCOMPONENT_ANNOTATION] or [DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION] or
+ * [DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION]
+ * 2. Classes from [SUBCOMPONENTS_ATTR_NAME] attribute of a @Module that a [component] installs.
+ *
+ * See [Dagger doc](https://dagger.dev/subcomponents.html).
+ */
+internal fun getSubcomponents(component: PsiClass): Collection<PsiClass> {
+  val modules = component.getAnnotation(DAGGER_COMPONENT_ANNOTATION)?.getClassesFromAttribute(MODULES_ATTR_NAME)
+  val subcomponentFromModules = modules?.flatMap {
+    it.getAnnotation(DAGGER_MODULE_ANNOTATION)?.getClassesFromAttribute(SUBCOMPONENTS_ATTR_NAME) ?: emptyList()
+  } ?: emptyList()
+
+  val subcomponentFromMethods: Collection<PsiClass> = component.methods.mapNotNull {
+    val returnClazz = (it.returnType as? PsiClassType)?.resolve() ?: return@mapNotNull null
+
+    if (returnClazz.hasAnnotation(DAGGER_SUBCOMPONENT_ANNOTATION) ||
+        returnClazz.hasAnnotation(DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION) ||
+        returnClazz.hasAnnotation(DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION)
+    ) {
+      returnClazz
+    }
+    else {
+      null
+    }
+  }
+
+  return subcomponentFromModules + subcomponentFromMethods
+}
+
+/**
  * Returns classes annotated [DAGGER_MODULE_ANNOTATION] that in [SUBCOMPONENTS_ATTR_NAME] attribute have subcomponents class.
  */
 private fun getDaggerModulesForSubcomponent(subcomponent: PsiClass): Collection<PsiClass> {
@@ -373,6 +393,12 @@ fun getDependantComponentsForComponent(component: PsiClass): Collection<PsiClass
   return components.filter {
     it.getAnnotation(DAGGER_COMPONENT_ANNOTATION)?.isClassPresentedInAttribute(DEPENDENCIES_ATTR_NAME, component.qualifiedName!!) == true
   }
+}
+
+private fun PsiAnnotation.getClassesFromAttribute(attrName: String): Collection<PsiClass> {
+  val attr = findAttributeValue(attrName) as? PsiArrayInitializerMemberValue ?: return emptyList()
+  val classes = attr.initializers
+  return classes.mapNotNull { ((it as? PsiClassObjectAccessExpression)?.operand?.type as? PsiClassType)?.resolve() }
 }
 
 /**

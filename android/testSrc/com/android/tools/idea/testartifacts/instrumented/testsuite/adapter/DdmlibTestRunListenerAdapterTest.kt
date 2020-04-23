@@ -21,6 +21,7 @@ import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter.Companion.BENCHMARK_TEST_METRICS_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
@@ -168,12 +169,55 @@ class DdmlibTestRunListenerAdapterTest {
       any(AndroidTestSuite::class.java),
       testCase.capture() ?: AndroidTestCase("", ""))  // Workaround for https://github.com/mockito/mockito/issues/1255
 
-    adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1"), mutableMapOf(DDMLIB_LOGCAT to "test logcat message"))
+    adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1"),
+                      mutableMapOf(
+                        DDMLIB_LOGCAT to "test logcat message",
+                        BENCHMARK_TEST_METRICS_KEY to "test benchmark output message"))
     adapter.testRunEnded(/*elapsedTime=*/1000, mutableMapOf())
 
     assertThat(testCase.value.result).isEqualTo(AndroidTestCaseResult.PASSED)
     assertThat(testCase.value.logcat).isEqualTo("test logcat message")
+    assertThat(testCase.value.benchmark).isEqualTo("test benchmark output message")
     assertThat(testSuite.value.result).isEqualTo(AndroidTestSuiteResult.PASSED)
+  }
+
+  @Test
+  fun benchmarkPrefixIsStripped() {
+    val benchmarkOutputFromAndroidX = """
+      benchmark: WARNING: Not using IsolationActivity via AndroidBenchmarkRunner
+      benchmark:     AndroidBenchmarkRunner should be used to isolate benchmarks from interference
+      benchmark:     from other visible apps. To fix this, add the following to your module-level
+      benchmark:     build.gradle:
+      benchmark:         android.defaultConfig.testInstrumentationRunner
+      benchmark:             = "androidx.benchmark.junit4.AndroidBenchmarkRunner"
+      benchmark:
+      benchmark:    30,233,969 ns DEBUGGABLE_EMULATOR_UNLOCKED_ACTIVITY-MISSING_MyBenchmarkTest.benchmarkSomeWork
+    """.trimIndent()
+    val expectedBenchmarkText = """
+      WARNING: Not using IsolationActivity via AndroidBenchmarkRunner
+          AndroidBenchmarkRunner should be used to isolate benchmarks from interference
+          from other visible apps. To fix this, add the following to your module-level
+          build.gradle:
+              android.defaultConfig.testInstrumentationRunner
+                  = "androidx.benchmark.junit4.AndroidBenchmarkRunner"
+
+         30,233,969 ns DEBUGGABLE_EMULATOR_UNLOCKED_ACTIVITY-MISSING_MyBenchmarkTest.benchmarkSomeWork
+    """.trimIndent()
+
+    val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener)
+
+    adapter.testRunStarted("exampleTestSuite", /*testCount=*/1)
+    adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest1"))
+    val testCase = ArgumentCaptor.forClass(AndroidTestCase::class.java)
+    verify(mockListener).onTestCaseStarted(
+      any(AndroidDevice::class.java),
+      any(AndroidTestSuite::class.java),
+      testCase.capture() ?: AndroidTestCase("", ""))
+    adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1"),
+                      mutableMapOf(BENCHMARK_TEST_METRICS_KEY to benchmarkOutputFromAndroidX))
+    adapter.testRunEnded(/*elapsedTime=*/1000, mutableMapOf())
+
+    assertThat(testCase.value.benchmark).isEqualTo(expectedBenchmarkText)
   }
 
   private fun device(id: String = "mockDeviceSerialNumber",

@@ -26,8 +26,10 @@ import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtil;
+import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidDeviceSpec;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
@@ -82,6 +84,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import kotlin.sequences.SequencesKt;
 import org.jetbrains.android.dom.manifest.Instrumentation;
@@ -250,9 +253,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @NotNull
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
                                        @NotNull ApplicationIdProvider applicationIdProvider,
-                                       @NotNull List<AndroidDevice> targetDevices) {
+                                       @Nullable AndroidDeviceSpec targetDeviceSpec) {
     if (AndroidModel.get(facet) != null && AndroidModel.get(facet) instanceof AndroidModuleModel) {
-      return createGradleApkProvider(facet, applicationIdProvider, true, targetDevices);
+      return createGradleApkProvider(facet, applicationIdProvider, true, targetDeviceSpec);
     }
     return new NonGradleApkProvider(facet, applicationIdProvider, null);
   }

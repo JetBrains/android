@@ -17,11 +17,9 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.ui.DialogWrapper;
-import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
 import org.junit.Rule;
@@ -38,9 +36,6 @@ public final class ModifyDeviceSetActionTest {
   @Test
   public void actionPerformed() {
     // Arrange
-    PropertiesComponent properties = Mockito.mock(PropertiesComponent.class);
-    Mockito.when(properties.getBoolean(DeviceAndSnapshotComboBoxAction.MULTIPLE_DEVICES_SELECTED)).thenReturn(true);
-
     ExecutionTargetService executionTargetService = Mockito.mock(ExecutionTargetService.class);
 
     Device device1 = new VirtualDevice.Builder()
@@ -57,14 +52,14 @@ public final class ModifyDeviceSetActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    SelectedDevicesService selectedDevicesService = Mockito.mock(SelectedDevicesService.class);
-    Mockito.when(selectedDevicesService.getSelectedDevices()).thenReturn(Arrays.asList(device1, device2));
+    DevicesSelectedService devicesSelectedService = Mockito.mock(DevicesSelectedService.class);
+
+    Mockito.when(devicesSelectedService.isMultipleDevicesSelectedInComboBox()).thenReturn(true);
+    Mockito.when(devicesSelectedService.getDevicesSelectedWithDialog()).thenReturn(Arrays.asList(device1, device2));
 
     DeviceAndSnapshotComboBoxAction comboBoxAction = new DeviceAndSnapshotComboBoxAction.Builder()
-      .setGetProperties(project -> properties)
-      .setClock(Mockito.mock(Clock.class))
       .setExecutionTargetServiceGetInstance(project -> executionTargetService)
-      .setSelectedDevicesServiceGetInstance(project -> selectedDevicesService)
+      .setDevicesSelectedServiceGetInstance(project -> devicesSelectedService)
       .build();
 
     DialogWrapper dialog = Mockito.mock(DialogWrapper.class);

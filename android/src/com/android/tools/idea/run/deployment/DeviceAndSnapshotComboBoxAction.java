@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
@@ -26,7 +27,6 @@ import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunProfile;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -37,21 +37,17 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.UserDataHolder;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
-import java.time.Clock;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
@@ -68,19 +64,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
-  @VisibleForTesting
-  static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
-
-  @VisibleForTesting
-  static final String SELECTION_TIME = "DeviceAndSnapshotComboBoxAction.selectionTime";
-
-  /**
-   * This <a href="http://www.jetbrains.org/intellij/sdk/docs/basics/persisting_state_of_components.html">persisted value</a> is true when a
-   * developer selects Multiple Devices with the combo box and unset otherwise.
-   */
-  @VisibleForTesting
-  static final String MULTIPLE_DEVICES_SELECTED = "DeviceAndSnapshotComboBoxAction.multipleDevicesSelected";
-
   /**
    * Run configurations that aren't {@link AndroidRunConfiguration} or {@link AndroidTestRunConfiguration} can use this key
    * to express their applicability for DeviceAndSnapshotComboBoxAction by setting it to true in their user data.
@@ -95,16 +78,10 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private final Function<Project, AsyncDevicesGetter> myDevicesGetterGetter;
 
   @NotNull
-  private final Function<Project, PropertiesComponent> myGetProperties;
-
-  @NotNull
-  private final Clock myClock;
-
-  @NotNull
   private final Function<Project, ExecutionTargetService> myExecutionTargetServiceGetInstance;
 
   @NotNull
-  private final Function<Project, SelectedDevicesService> mySelectedDevicesServiceGetInstance;
+  private final Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
 
   @NotNull
   private final Function<Project, RunManager> myGetRunManager;
@@ -124,16 +101,10 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     private Function<Project, AsyncDevicesGetter> myDevicesGetterGetter;
 
     @Nullable
-    private Function<Project, PropertiesComponent> myGetProperties;
-
-    @Nullable
-    private Clock myClock;
-
-    @Nullable
     private Function<Project, ExecutionTargetService> myExecutionTargetServiceGetInstance;
 
     @Nullable
-    private Function<Project, SelectedDevicesService> mySelectedDevicesServiceGetInstance;
+    private Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
 
     @Nullable
     private Function<Project, RunManager> myGetRunManager;
@@ -141,9 +112,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     Builder() {
       mySelectDeviceSnapshotComboBoxSnapshotsEnabled = () -> false;
       myDevicesGetterGetter = project -> null;
-      myGetProperties = project -> null;
       myExecutionTargetServiceGetInstance = project -> null;
-      mySelectedDevicesServiceGetInstance = project -> null;
+      myDevicesSelectedServiceGetInstance = project -> null;
       myGetRunManager = project -> null;
     }
 
@@ -160,26 +130,14 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     @NotNull
-    Builder setGetProperties(@NotNull Function<Project, PropertiesComponent> getProperties) {
-      myGetProperties = getProperties;
-      return this;
-    }
-
-    @NotNull
-    Builder setClock(@NotNull Clock clock) {
-      myClock = clock;
-      return this;
-    }
-
-    @NotNull
     Builder setExecutionTargetServiceGetInstance(@NotNull Function<Project, ExecutionTargetService> executionTargetServiceGetInstance) {
       myExecutionTargetServiceGetInstance = executionTargetServiceGetInstance;
       return this;
     }
 
     @NotNull
-    Builder setSelectedDevicesServiceGetInstance(@NotNull Function<Project, SelectedDevicesService> selectedDevicesServiceGetInstance) {
-      mySelectedDevicesServiceGetInstance = selectedDevicesServiceGetInstance;
+    Builder setDevicesSelectedServiceGetInstance(@NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
+      myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
       return this;
     }
 
@@ -200,10 +158,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     this(new Builder()
            .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get())
            .setDevicesGetterGetter(AsyncDevicesGetter::getInstance)
-           .setGetProperties(PropertiesComponent::getInstance)
-           .setClock(Clock.systemDefaultZone())
            .setExecutionTargetServiceGetInstance(ExecutionTargetService::getInstance)
-           .setSelectedDevicesServiceGetInstance(SelectedDevicesService::getInstance)
+           .setDevicesSelectedServiceGetInstance(DevicesSelectedService::getInstance)
            .setGetRunManager(RunManager::getInstance));
   }
 
@@ -215,22 +171,16 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     assert builder.myDevicesGetterGetter != null;
     myDevicesGetterGetter = builder.myDevicesGetterGetter;
 
-    assert builder.myGetProperties != null;
-    myGetProperties = builder.myGetProperties;
-
-    assert builder.myClock != null;
-    myClock = builder.myClock;
-
     assert builder.myExecutionTargetServiceGetInstance != null;
     myExecutionTargetServiceGetInstance = builder.myExecutionTargetServiceGetInstance;
 
-    assert builder.mySelectedDevicesServiceGetInstance != null;
-    mySelectedDevicesServiceGetInstance = builder.mySelectedDevicesServiceGetInstance;
+    assert builder.myDevicesSelectedServiceGetInstance != null;
+    myDevicesSelectedServiceGetInstance = builder.myDevicesSelectedServiceGetInstance;
 
     assert builder.myGetRunManager != null;
     myGetRunManager = builder.myGetRunManager;
 
-    myMultipleDevicesAction = new MultipleDevicesAction(this);
+    myMultipleDevicesAction = new MultipleDevicesAction();
     myModifyDeviceSetAction = new ModifyDeviceSetAction(this);
   }
 
@@ -266,86 +216,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @Nullable
   @VisibleForTesting
   Device getSelectedDevice(@NotNull Project project) {
-    return getSelectedDevice(project, getDevices(project));
-  }
-
-  @Nullable
-  private Device getSelectedDevice(@NotNull Project project, @NotNull List<Device> devices) {
-    if (devices.isEmpty()) {
-      return null;
-    }
-
-    PropertiesComponent properties = myGetProperties.apply(project);
-    String keyAsString = properties.getValue(SELECTED_DEVICE);
-
-    Object key = keyAsString == null ? null : new Key(keyAsString);
-
-    Optional<Device> optionalSelectedDevice = devices.stream()
-      .filter(device -> device.getKey().equals(key))
-      .findFirst();
-
-    if (!optionalSelectedDevice.isPresent()) {
-      return devices.get(0);
-    }
-
-    Device selectedDevice = optionalSelectedDevice.get();
-
-    Optional<Device> optionalConnectedDevice = devices.stream()
-      .filter(Device::isConnected)
-      .findFirst();
-
-    if (optionalConnectedDevice.isPresent()) {
-      Device connectedDevice = optionalConnectedDevice.get();
-
-      Instant connectionTime = connectedDevice.getConnectionTime();
-      assert connectionTime != null : "connected device \"" + connectedDevice + "\" has a null connection time";
-
-      if (getSelectionTime(selectedDevice, properties).isBefore(connectionTime)) {
-        return connectedDevice;
-      }
-    }
-
-    return selectedDevice;
-  }
-
-  @NotNull
-  private static Instant getSelectionTime(@NotNull Device device, @NotNull PropertiesComponent properties) {
-    CharSequence time = properties.getValue(SELECTION_TIME);
-
-    if (time == null) {
-      // I don't know why this happens
-      Logger.getInstance(DeviceAndSnapshotComboBoxAction.class).warn("selected device \"" + device + "\" has a null selection time string");
-
-      return Instant.MIN;
-    }
-
-    return Instant.parse(time);
-  }
-
-  /**
-   * {@link SelectDeviceAction#actionPerformed} calls this when a developer selects a single device with the combo box. Unit tests also call
-   * this to simulate the same thing.
-   */
-  void setSelectedDevice(@NotNull Project project, @Nullable Device selectedDevice) {
-    PropertiesComponent properties = myGetProperties.apply(project);
-    properties.unsetValue(MULTIPLE_DEVICES_SELECTED);
-
-    ExecutionTarget target;
-
-    if (selectedDevice == null) {
-      properties.unsetValue(SELECTED_DEVICE);
-      properties.unsetValue(SELECTION_TIME);
-
-      target = new DeviceAndSnapshotComboBoxExecutionTarget();
-    }
-    else {
-      properties.setValue(SELECTED_DEVICE, selectedDevice.getKey().toString());
-      properties.setValue(SELECTION_TIME, myClock.instant().toString());
-
-      target = new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevice);
-    }
-
-    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(target);
+    return myDevicesSelectedServiceGetInstance.apply(project).getDeviceSelectedWithComboBox(getDevices(project));
   }
 
   @NotNull
@@ -355,11 +226,13 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NotNull
   private List<Device> getSelectedDevices(@NotNull Project project, @NotNull List<Device> devices) {
-    if (isMultipleDevicesSelected(project)) {
-      return mySelectedDevicesServiceGetInstance.apply(project).getSelectedDevices();
+    DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
+
+    if (service.isMultipleDevicesSelectedInComboBox()) {
+      return service.getDevicesSelectedWithDialog();
     }
 
-    Device device = getSelectedDevice(project, devices);
+    Device device = service.getDeviceSelectedWithComboBox(devices);
 
     if (device == null) {
       return Collections.emptyList();
@@ -368,37 +241,15 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return Collections.singletonList(device);
   }
 
-  private boolean isMultipleDevicesSelected(@NotNull Project project) {
-    return myGetProperties.apply(project).getBoolean(MULTIPLE_DEVICES_SELECTED);
-  }
-
-  void setMultipleDevicesSelected(@NotNull Project project, boolean multipleDevicesSelected) {
-    PropertiesComponent properties = myGetProperties.apply(project);
-
-    properties.unsetValue(SELECTION_TIME);
-    properties.unsetValue(SELECTED_DEVICE);
-
-    ExecutionTarget target;
-
-    if (!multipleDevicesSelected) {
-      properties.unsetValue(MULTIPLE_DEVICES_SELECTED);
-      target = new DeviceAndSnapshotComboBoxExecutionTarget();
-    }
-    else {
-      properties.setValue(MULTIPLE_DEVICES_SELECTED, true);
-      target = new DeviceAndSnapshotComboBoxExecutionTarget(mySelectedDevicesServiceGetInstance.apply(project).getSelectedDevices());
-    }
-
-    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(target);
-  }
-
   void modifyDeviceSet(@NotNull Project project) {
-    if (!isMultipleDevicesSelected(project)) {
+    DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
+
+    if (!service.isMultipleDevicesSelectedInComboBox()) {
       return;
     }
 
-    List<Device> devices = mySelectedDevicesServiceGetInstance.apply(project).getSelectedDevices();
-    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(devices));
+    ExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(service.getDevicesSelectedWithDialog());
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(target);
   }
 
   @NotNull
@@ -476,6 +327,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     group.add(myMultipleDevicesAction);
     group.add(myModifyDeviceSetAction);
+    group.add(manager.getAction(PairDevicesUsingWiFiAction.ID));
     group.add(manager.getAction(RunAndroidAvdManagerAction.ID));
 
     AnAction action = manager.getAction("DeveloperServices.ConnectionAssistant");
@@ -600,7 +452,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
         break;
       case ActionPlaces.MAIN_TOOLBAR:
       case ActionPlaces.NAVIGATION_BAR_TOOLBAR:
-        if (isMultipleDevicesSelected(project)) {
+        if (myDevicesSelectedServiceGetInstance.apply(project).isMultipleDevicesSelectedInComboBox()) {
           updateInToolbarForMultipleDevices(presentation, project, devices);
         }
         else {
@@ -652,19 +504,19 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private void updateInToolbarForMultipleDevices(@NotNull Presentation presentation,
                                                  @NotNull Project project,
                                                  @NotNull List<Device> devices) {
-    SelectedDevicesService service = mySelectedDevicesServiceGetInstance.apply(project);
-    Set<Key> selectedKeys = service.getSelectedDeviceKeys();
+    DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
+    Set<Key> selectedKeys = service.getDeviceKeysSelectedWithDialog();
 
     Set<Key> keys = devices.stream()
       .map(Device::getKey)
       .collect(Collectors.toSet());
 
     if (selectedKeys.retainAll(keys)) {
-      service.setSelectedDeviceKeys(selectedKeys);
+      service.setDeviceKeysSelectedWithDialog(selectedKeys);
 
       if (selectedKeys.isEmpty()) {
-        setMultipleDevicesSelected(project, false);
-        setSelectedDevice(project, getSelectedDevice(project, devices));
+        service.setMultipleDevicesSelectedInComboBox(false);
+        service.setDeviceSelectedWithComboBox(service.getDeviceSelectedWithComboBox(devices));
 
         updateInToolbarForSingleDevice(presentation, project, devices);
         return;
@@ -683,7 +535,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return;
     }
 
-    Device device = getSelectedDevice(project, devices);
+    Device device = myDevicesSelectedServiceGetInstance.apply(project).getDeviceSelectedWithComboBox(devices);
     assert device != null;
 
     presentation.setIcon(device.getIcon());

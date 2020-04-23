@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidDeviceSpec;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkFileUnit;
@@ -337,7 +338,7 @@ public class DynamicAppUtils {
    */
   public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
                                                        @NotNull AndroidRunConfigurationBase configuration,
-                                                       @NotNull List<AndroidDevice> targetDevices) {
+                                                       @Nullable AndroidDeviceSpec targetDeviceSpec) {
     if (configuration instanceof AndroidRunConfiguration) {
       AndroidRunConfiguration androidConfiguration = (AndroidRunConfiguration)configuration;
       if (androidConfiguration.DEPLOY_APK_FROM_BUNDLE) {
@@ -347,7 +348,7 @@ public class DynamicAppUtils {
     }
 
     // If any device is pre-L *and* module has a dynamic feature, we need to use the bundle tool
-    if (targetDevices.stream().anyMatch(device -> device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP) &&
+    if (targetDeviceSpec != null && targetDeviceSpec.getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP &&
         !getDependentFeatureModulesForBase(module).isEmpty()) {
       return true;
     }
@@ -370,15 +371,15 @@ public class DynamicAppUtils {
    */
   public static boolean shouldCollectListOfLanguages(@NotNull Module module,
                                                      @NotNull AndroidRunConfigurationBase configuration,
-                                                     @NotNull List<AndroidDevice> targetDevices) {
+                                                     @Nullable AndroidDeviceSpec targetDeviceSpec) {
     // Don't collect if not using the bundle tool
-    if (!useSelectApksFromBundleBuilder(module, configuration, targetDevices)) {
+    if (!useSelectApksFromBundleBuilder(module, configuration, targetDeviceSpec)) {
       return false;
     }
 
     // Only collect if all devices are L or later devices, because pre-L devices don't support split apks, meaning
     // they don't support install on demand, meaning all languages should be installed.
-    return targetDevices.stream().allMatch(device -> device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP);
+    return targetDeviceSpec == null || targetDeviceSpec.getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
   }
 
   /**

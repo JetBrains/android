@@ -38,13 +38,15 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
   /**
    * Adds a listener to the list to poll for and be notified of changes. Listeners are polled in insertion order.
    */
+  @Synchronized
   fun registerListener(listener: TransportEventListener) {
     eventListeners.add(listener)
   }
 
   /**
-   * Removes a listener from the list
+   * Removes a listener from the list, or do nothing if it is not in the list
    */
+  @Synchronized
   fun unregisterListener(listener: TransportEventListener) {
     eventListeners.remove(listener)
     listenersToLastTimestamp.remove(listener)
@@ -68,7 +70,6 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
       eventListener.groupId?.invoke()?.let { builder.groupId = it }
 
       val request = builder.build()
-      var removeListener = false
 
       // Order by timestamp
       val response = transportClient.getEventGroups(request)
@@ -77,14 +78,19 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
           .flatMap { group -> group.eventsList }
           .sortedWith(sortOrder)
           .filter { event -> event.timestamp >= startTimestamp && eventListener.filter(event) }
-        filtered.forEach { event -> eventListener.executor.execute { removeListener = eventListener.callback(event) } }
+        filtered.forEach { event ->
+          eventListener.executor.execute {
+            if(eventListener.callback(event)) {
+              // Previous code collected the flag and unregistered once in the main thread,
+              // but there was a concurrency bug if the main thread finishes before the listeners.
+              // We unregister from here instead. Unregistering the same listener multiple times is harmless.
+              unregisterListener(eventListener)
+            }
+          }
+        }
         val maxTimeEvent = filtered.maxBy {it.timestamp}
         // Update last timestamp per listener
         maxTimeEvent?.let { listenersToLastTimestamp[eventListener] = max(startTimestamp, it.timestamp + 1) }
-      }
-
-      if (removeListener) {
-        unregisterListener(eventListener)
       }
     }
   }

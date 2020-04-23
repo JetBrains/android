@@ -18,20 +18,20 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 import com.android.tools.idea.concurrency.executeAsync
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.getRowIdName
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.sql.Connection
-import java.sql.ResultSet
 import java.util.concurrent.Executor
 
 /**
@@ -75,6 +75,26 @@ class JdbcDatabaseConnection(
     SqliteSchema(sqliteTables).apply { logger.info("Successfully read database schema: ${sqliteFile.path}") }
   }
 
+  override fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
+    val resultSet = when (sqliteStatement.statementType) {
+      SqliteStatementType.SELECT -> PagedJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
+      SqliteStatementType.EXPLAIN -> LazyJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
+      else -> throw IllegalArgumentException("SqliteStatement must be of type SELECT or EXPLAIN, but is ${sqliteStatement.statementType}")
+    }
+    return Futures.immediateFuture(resultSet)
+  }
+
+  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+    return sequentialTaskExecutor.executeAsync {
+      connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
+        preparedStatement.executeUpdate().also {
+          logger.info("SQL statement \"${sqliteStatement.sqliteStatementText}\" executed with success.")
+        }
+      }
+      Unit
+    }
+  }
+
   private fun readColumnDefinitions(connection: Connection, tableName: String): List<SqliteColumn> {
     connection.createStatement().use { statement ->
       statement.executeQuery("PRAGMA table_info(${AndroidSqlLexer.getValidName(tableName)})").use {
@@ -94,29 +114,6 @@ class JdbcDatabaseConnection(
             colPk.toInt() > 0
           )
         }.toList()
-      }
-    }
-  }
-
-  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
-    return sequentialTaskExecutor.executeAsync {
-      connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
-        var resultSet: ResultSet? = null
-        try {
-          val hasResultSet = preparedStatement.execute().also {
-            logger.info("SQL statement \"${sqliteStatement.sqliteStatementText}\" executed with success.")
-            resultSet = preparedStatement.resultSet
-          }
-
-          if (hasResultSet) {
-            JdbcSqliteResultSet(this, connection, sqliteStatement)
-          }
-          else {
-            EmptySqliteResultSet()
-          }
-        } finally {
-          resultSet?.close()
-        }
       }
     }
   }

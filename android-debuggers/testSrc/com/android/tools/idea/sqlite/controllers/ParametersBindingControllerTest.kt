@@ -20,6 +20,7 @@ import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockParametersBindingDialogView
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.toSqliteValues
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.intellij.openapi.util.Disposer
@@ -118,6 +119,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar = ? and baz = ?",
         listOf("1", "2").toSqliteValues(),
         "select * from Foo where bar = '1' and baz = '2'"
@@ -142,6 +144,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar = ? and baz = ?",
         listOf(null, "null").toSqliteValues(),
         "select * from Foo where bar = null and baz = 'null'"
@@ -166,6 +169,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar = '?' and baz = ?",
         listOf("42").toSqliteValues(),
         "select * from Foo where bar = '?' and baz = '42'"
@@ -189,6 +193,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar = '?1' and baz = ?",
         listOf("42").toSqliteValues(),
         "select * from Foo where bar = '?1' and baz = '42'"
@@ -212,6 +217,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar = ':bar' and baz = ?",
         listOf("42").toSqliteValues(),
         "select * from Foo where bar = ':bar' and baz = '42'"
@@ -235,6 +241,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar = '@bar' and baz = ?",
         listOf("42").toSqliteValues(),
         "select * from Foo where bar = '@bar' and baz = '42'"
@@ -258,6 +265,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar = '\$bar' and baz = ?",
         listOf("42").toSqliteValues(),
         "select * from Foo where bar = '\$bar' and baz = '42'"
@@ -281,6 +289,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar in (?, ?, ?)",
         listOf("1", "2", "3").toSqliteValues(),
         "select * from Foo where bar in ('1', '2', '3')"
@@ -304,6 +313,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar in (?, ?, ?)",
         listOf("1", "2", "3").toSqliteValues(),
         "select * from Foo where bar in ('1', '2', '3')"
@@ -327,6 +337,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar in (?, ?, ?)",
         listOf("1", "2", "3").toSqliteValues(),
         "select * from Foo where bar in ('1', '2', '3')"
@@ -350,6 +361,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar in (?, ?, ?)",
         listOf("1", "2", "3").toSqliteValues(),
         "select * from Foo where bar in ('1', '2', '3')"
@@ -373,6 +385,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar in (?, ?, ?)",
         listOf("1", "2", "3").toSqliteValues(),
         "select * from Foo where bar in ('1', '2', '3')"
@@ -399,6 +412,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from foo where bar in (select id from baz where bax > ?)",
         listOf("1").toSqliteValues(),
         "select * from foo where bar in (select id from baz where bax > '1')"
@@ -422,6 +436,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar = ? and baz = ?",
         listOf("1", "1").toSqliteValues(),
         "select * from Foo where bar = '1' and baz = '1'"
@@ -445,6 +460,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar = ?",
         listOf("te'st").toSqliteValues(),
         "select * from Foo where bar = 'te''st'"
@@ -468,6 +484,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar = ?",
         listOf("'test'").toSqliteValues(),
         "select * from Foo where bar = '''test'''"
@@ -491,6 +508,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     assertContainsElements(ranStatements, listOf(
       SqliteStatement(
+        SqliteStatementType.SELECT,
         "select * from Foo where bar = ?",
         listOf("\"test\"").toSqliteValues(),
         "select * from Foo where bar = '\"test\"'"

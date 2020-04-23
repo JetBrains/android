@@ -109,7 +109,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
     }
     myIndicator.onRefreshStart("Refreshing...");
     final List<SystemImageDescription> items = Lists.newArrayList();
-    RepoManager.RepoLoadedCallback localComplete = packages ->
+    RepoManager.RepoLoadedListener localComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
         // getLocalImages() doesn't use SdkPackages, so it's ok that we're not using what's passed in.
         items.addAll(getLocalImages());
@@ -118,7 +118,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         // Assume the remote has not completed yet
         completedDownload("");
       }, ModalityState.any());
-    RepoManager.RepoLoadedCallback remoteComplete = packages ->
+    RepoManager.RepoLoadedListener remoteComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
         List<SystemImageDescription> remotes = getRemoteImages(packages);
         if (remotes != null) {

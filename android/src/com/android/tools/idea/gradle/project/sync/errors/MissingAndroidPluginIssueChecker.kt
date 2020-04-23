@@ -30,13 +30,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.concurrent.CompletableFuture
 
 class MissingAndroidPluginIssueChecker : GradleIssueChecker {
   private val PATTERN = "Could not find com.android.tools.build:gradle:"
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
+    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (!message.startsWith(PATTERN)) return null
 
     val description = MessageComposer(message).apply {

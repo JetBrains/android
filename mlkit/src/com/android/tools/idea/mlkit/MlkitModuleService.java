@@ -17,6 +17,9 @@ package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.mlkit.MlkitNames;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.project.DumbService;
@@ -70,9 +73,20 @@ public class MlkitModuleService {
     }
 
     return myLightModelClassMap.computeIfAbsent(modelMetadata.myModelFileUrl, fileUrl -> {
-      LightModelClassConfig classConfig = MlModelClassGenerator.generateLightModelClass(myModule, modelMetadata);
+      String packageName = ProjectSystemUtil.getModuleSystem(myModule).getPackageName();
+      if (packageName == null) {
+        Logger.getInstance(MlkitModuleService.class).warn("Can not determine the package name for module: " + myModule.getName());
+        return null;
+      }
+
       VirtualFile modelFile = VirtualFileManager.getInstance().findFileByUrl(fileUrl);
-      return classConfig != null && modelFile != null ? new LightModelClass(myModule, modelFile, classConfig) : null;
+      if (modelFile == null) {
+        Logger.getInstance(MlkitModuleService.class).warn("Failed to find the virtual file for: " + fileUrl);
+        return null;
+      }
+
+      LightModelClassConfig classConfig = new LightModelClassConfig(modelMetadata, packageName + MlkitNames.PACKAGE_SUFFIX);
+      return new LightModelClass(myModule, modelFile, classConfig);
     });
   }
 

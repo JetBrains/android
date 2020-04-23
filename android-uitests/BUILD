@@ -391,6 +391,7 @@ java_test(
 # sanity test
 java_test(
     name = "CreateDefaultActivityTest",
+    size = "enormous",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([

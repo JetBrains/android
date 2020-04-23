@@ -37,7 +37,7 @@ class CreateGradleWrapperQuickFix : BuildIssueQuickFix {
     invokeLater {
       val projectDirPath = Projects.getBaseDirPath(project)
       try {
-        GradleWrapper.create(projectDirPath)
+        GradleWrapper.create(projectDirPath, project)
         val settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)
         if (settings != null) {
           settings.distributionType = DistributionType.DEFAULT_WRAPPED

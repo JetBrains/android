@@ -36,6 +36,24 @@ val PRIMARY_KEY_NAMES = setOf("rowid", "oid", "_rowid_")
 val PRIMARY_KEY_NAMES_FOR_FTS = PRIMARY_KEY_NAMES + "docid"
 
 /**
+ * Internal table with the name "sqlite_sequence" that is used to keep track of the maximum historical INTEGER PRIMARY KEY for a table using
+ * AUTOINCREMENT
+ *
+ * See [https://www.sqlite.org/fileformat2.html#intschema]
+ */
+internal const val SQLITE_SEQUENCE_SCHEMA_NAME = "sqlite_sequence"
+
+/**
+ * Names of internal tables created by SQLite that we support in editor.
+ *
+ * In addition to the tables, indexes, views, and triggers created by the application and/or the developer using CREATE statements SQL,
+ * the sqlite_master table may contain zero or more tables that are created by SQLite for its own internal use.
+ *
+ * See [https://www.sqlite.org/fileformat2.html#intschema]
+ */
+internal val SQLITE_INTERNAL_TABLES = setOf(SQLITE_SEQUENCE_SCHEMA_NAME)
+
+/**
  * Describes a bind parameter available in a query, e.g. in `select * from t where id = :id`.
  */
 data class BindParameter(val name: String, val definingElement: PsiElement?)

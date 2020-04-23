@@ -23,9 +23,9 @@ import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
@@ -42,6 +42,7 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.AddColumns
 import com.android.tools.idea.sqlite.ui.mainView.AddTable
@@ -70,6 +71,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import org.mockito.InOrder
+import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
@@ -147,7 +149,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     mockDatabaseConnection = mock(DatabaseConnection::class.java)
     `when`(mockDatabaseConnection.close()).thenReturn(Futures.immediateFuture(null))
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
     sqliteDatabase1 = LiveSqliteDatabase("db1", mockDatabaseConnection)
     sqliteDatabase2 = LiveSqliteDatabase("db2", mockDatabaseConnection)
@@ -347,7 +349,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   fun testCloseTabInvokedFromEvaluatorViewClosesTab() {
     // Prepare
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    `when`(mockDatabaseConnection.execute(SqliteStatement("SELECT * FROM tab")))
+    `when`(mockDatabaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tab")))
       .thenReturn(Futures.immediateFuture(MockSqliteResultSet()))
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
@@ -355,7 +357,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     runDispatching {
-      sqliteController.runSqlStatement(sqliteDatabase1, SqliteStatement("SELECT * FROM tab"))
+      sqliteController.runSqlStatement(sqliteDatabase1, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tab"))
     }
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     mockViewFactory.tableView.listeners.single().cancelRunningStatementInvoked()
@@ -548,9 +550,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val evaluatorView = mockViewFactory.sqliteEvaluatorView
 
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    `when`(mockDatabaseConnection.execute(SqliteStatement("INSERT")))
-      .thenReturn(Futures.immediateFuture(
-        EmptySqliteResultSet()))
+    `when`(mockDatabaseConnection.execute(SqliteStatement(SqliteStatementType.INSERT, "INSERT INTO t VALUES (42)")))
+      .thenReturn(Futures.immediateFuture(Unit))
 
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
@@ -561,7 +562,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(newSchema))
-    evaluatorView.listeners.forEach { it.evaluateSqlActionInvoked(sqliteDatabase1, "INSERT") }
+    evaluatorView.listeners.forEach { it.evaluateSqlActionInvoked(sqliteDatabase1, "INSERT INTO t VALUES (42)") }
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -581,7 +582,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     runDispatching {
-      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("CREATE TABLE t2 (c1 int not null primary key)"))
+      sqliteController.runSqlStatement(
+        sqliteDatabase, SqliteStatement(SqliteStatementType.UNKNOWN, "CREATE TABLE t2 (c1 int not null primary key)")
+      )
     }
 
     // Assert
@@ -600,7 +603,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     runDispatching {
-      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("CREATE TABLE t2 (c1 int not null primary key)"))
+      sqliteController.runSqlStatement(
+        sqliteDatabase, SqliteStatement(SqliteStatementType.UNKNOWN, "CREATE TABLE t2 (c1 int not null primary key)")
+      )
     }
 
     // Assert
@@ -623,7 +628,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     runDispatching {
-      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t1 RENAME TO t2"))
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 RENAME TO t2"))
     }
 
     // Assert
@@ -647,7 +652,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     runDispatching {
-      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t1 ADD c2 TEXT"))
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 ADD c2 TEXT"))
     }
 
     // Assert
@@ -672,7 +677,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     runDispatching {
-      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t1 ADD c2 TEXT"))
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 ADD c2 TEXT"))
     }
 
     // Assert
@@ -688,7 +693,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     runDispatching {
-      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t1 RENAME TO t2"))
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 RENAME TO t2"))
     }
 
     // Assert
@@ -719,7 +724,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     runDispatching {
-      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("DROP TABLE t1"))
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement(SqliteStatementType.UNKNOWN, "DROP TABLE t1"))
     }
 
     // Assert
@@ -742,7 +747,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     runDispatching {
-      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("CREATE TABLE t0 (c1 TEXT)"))
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement(SqliteStatementType.UNKNOWN, "CREATE TABLE t0 (c1 TEXT)"))
     }
 
     // Assert
@@ -756,7 +761,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     runDispatching {
-      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t0 ADD c2 TEXT"))
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t0 ADD c2 TEXT"))
     }
 
     // Assert
@@ -770,7 +775,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     runDispatching {
-      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t0 RENAME TO t2"))
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t0 RENAME TO t2"))
     }
 
     // Assert
@@ -790,7 +795,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     runDispatching {
-      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t2 ADD c0 TEXT"))
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t2 ADD c0 TEXT"))
     }
 
     // Assert
@@ -904,14 +909,14 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
     }
     val executionFuture = SettableFuture.create<SqliteResultSet>()
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(executionFuture)
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(executionFuture)
 
     // Act
     mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     //verify that future is in use now
-    verify(mockDatabaseConnection).execute(any(SqliteStatement::class.java))
+    verify(mockDatabaseConnection).query(any(SqliteStatement::class.java))
 
     mockSqliteView.viewListeners.single().closeTabActionInvoked(TabId.TableTab(sqliteDatabase1, testSqliteTable.name))
 
@@ -948,7 +953,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema(emptyList())))
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
@@ -961,7 +966,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     runDispatching {
       // open evaluator tab
-      sqliteController.runSqlStatement(sqliteDatabase1, SqliteStatement("fake stmt"))
+      sqliteController.runSqlStatement(sqliteDatabase1, SqliteStatement(SqliteStatementType.SELECT, "fake stmt"))
     }
 
     // enable live updates in table tab
@@ -992,5 +997,117 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(mockViewFactory.tableView, times(4)).updateRows(emptyList())
     // invocation by setUp
     verify(mockViewFactory.tableView, times(2)).startTableLoading()
+  }
+
+  fun testOpenDatabasesWithSameName() {
+    // Prepare
+    val model = DatabaseInspectorProjectServiceImpl.ModelImpl()
+    val databaseInspectorController = DatabaseInspectorControllerImpl(
+      project,
+      model,
+      mockViewFactory,
+      edtExecutor,
+      taskExecutor
+    )
+    databaseInspectorController.setUp()
+
+    val sqliteSchema = SqliteSchema(listOf(SqliteTable("t1", emptyList(), null, false)))
+    val databaseConnection1 = mock(DatabaseConnection::class.java)
+    val databaseConnection2 = mock(DatabaseConnection::class.java)
+    `when`(databaseConnection1.readSchema()).thenReturn(Futures.immediateFuture(sqliteSchema))
+    `when`(databaseConnection2.readSchema()).thenReturn(Futures.immediateFuture(sqliteSchema))
+
+    val sqliteDatabase1 = LiveSqliteDatabase("my/db", databaseConnection1)
+    val sqliteDatabase2 = LiveSqliteDatabase("my/db", databaseConnection2)
+
+    // Act
+    runDispatching {
+      databaseInspectorController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+      databaseInspectorController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
+    }
+
+    // Assert
+    assertEquals(listOf(sqliteDatabase1, sqliteDatabase2), model.getOpenDatabases())
+
+    Disposer.dispose(databaseInspectorController)
+  }
+
+  fun testTabsAreRestored() {
+    // Prepare
+    val table1 = SqliteTable("table1", emptyList(), null, false)
+    val table2 = SqliteTable("table2", emptyList(), null, false)
+    val schema = SqliteSchema(listOf(table1, table2, testSqliteTable))
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, table1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, table2)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    val savedState = sqliteController.saveState()
+    runDispatching {
+      sqliteController.closeDatabase(sqliteDatabase1)
+    }
+
+    // Assert that tabs closed
+    verify(mockSqliteView).closeTab(eq(TabId.TableTab(sqliteDatabase1, testSqliteTable.name)))
+    verify(mockSqliteView).closeTab(eq(TabId.TableTab(sqliteDatabase1, table1.name)))
+    verify(mockSqliteView).closeTab(eq(TabId.TableTab(sqliteDatabase1, table2.name)))
+    Mockito.reset(mockSqliteView)
+
+    // Act: restore state and re-add db
+    sqliteController.restoreSavedState(savedState)
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+
+    // Assert that tabs are readded
+    verify(mockSqliteView)
+      .openTab(
+        eq(TabId.TableTab(sqliteDatabase1, testSqliteTable.name)),
+        eq(testSqliteTable.name), any(JComponent::class.java)
+      )
+
+    verify(mockSqliteView)
+      .openTab(
+        eq(TabId.TableTab(sqliteDatabase1, table1.name)),
+        eq(table1.name), any(JComponent::class.java)
+      )
+
+    verify(mockSqliteView)
+      .openTab(
+        eq(TabId.TableTab(sqliteDatabase1, table2.name)),
+        eq(table2.name), any(JComponent::class.java)
+      )
+  }
+
+  fun testUpdateSchemaAddsNewTableOnlyOnceIfCalledConcurrently() {
+    // Prepare
+    mockSqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    val newSchema = SqliteSchema(listOf(SqliteTable("tab", emptyList(), null, false)))
+
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+
+    // Act
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(newSchema))
+    mockSqliteView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
+    mockSqliteView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockSqliteView, times(1)).updateDatabaseSchema(
+      sqliteDatabase1,
+      listOf(AddTable(IndexedSqliteTable(SqliteTable("tab", emptyList(), null, false), 0), emptyList()))
+    )
   }
 }

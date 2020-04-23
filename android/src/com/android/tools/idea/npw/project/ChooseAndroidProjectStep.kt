@@ -163,9 +163,8 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       when (selectedTemplate) {
         is NewTemplateRendererWithDescription -> {
           newRenderTemplate.setNullableValue(selectedTemplate.template)
-          if (selectedFormFactorInfo.formFactor == FormFactor.THINGS) {
-            newProjectModuleModel!!.extraRenderTemplateModel.newTemplate = selectedTemplate.template
-          }
+          newProjectModuleModel!!.extraRenderTemplateModel.newTemplate =
+            if (selectedFormFactorInfo.formFactor == FormFactor.THINGS) selectedTemplate.template else Template.NoActivity
         }
         is CppTemplateRendererWithDescription -> {
           newRenderTemplate.value = TemplateResolver.getAllTemplates().first { it.name == EMPTY_ACTIVITY }.apply {

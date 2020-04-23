@@ -27,6 +27,7 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
+import com.android.tools.profilers.cpu.analysis.CpuThreadAnalysisSummaryTabModel;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
 import java.util.Collection;
@@ -88,21 +89,32 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   @NotNull
   @Override
   public CpuAnalysisModel<CpuThreadTrackModel> getAnalysisModel() {
+    CpuAnalysisModel<CpuThreadTrackModel> model = new CpuAnalysisModel<>(myThreadInfo.getName(), "%d threads");
     Range selectionRange = myTimeline.getSelectionRange().isEmpty() ? myTimeline.getViewRange() : myTimeline.getSelectionRange();
+
+    // Summary
+    CpuThreadAnalysisSummaryTabModel summary = new CpuThreadAnalysisSummaryTabModel(myCapture.getRange(), selectionRange);
+    summary.getDataSeries().add(this);
+    model.addTabModel(summary);
+
+    // Flame Chart
     CpuAnalysisChartModel<CpuThreadTrackModel> flameChart =
       new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.FLAME_CHART, selectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
+    flameChart.getDataSeries().add(this);
+    model.addTabModel(flameChart);
+
+    // Top Down
     CpuAnalysisChartModel<CpuThreadTrackModel> topDown =
       new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.TOP_DOWN, selectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
+    topDown.getDataSeries().add(this);
+    model.addTabModel(topDown);
+
+    // Bottom Up
     CpuAnalysisChartModel<CpuThreadTrackModel> bottomUp =
       new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.BOTTOM_UP, selectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
-    flameChart.getDataSeries().add(this);
-    topDown.getDataSeries().add(this);
     bottomUp.getDataSeries().add(this);
-
-    CpuAnalysisModel<CpuThreadTrackModel> model = new CpuAnalysisModel<>(myThreadInfo.getName(), "%d threads");
-    model.addTabModel(flameChart);
-    model.addTabModel(topDown);
     model.addTabModel(bottomUp);
+
     return model;
   }
 
@@ -130,6 +142,11 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   @NotNull
   public MultiSelectionModel<CpuAnalyzable> getMultiSelectionModel() {
     return myMultiSelectionModel;
+  }
+
+  @NotNull
+  public CpuThreadInfo getThreadInfo() {
+    return myThreadInfo;
   }
 
   private Collection<CaptureNode> getCaptureNode() {

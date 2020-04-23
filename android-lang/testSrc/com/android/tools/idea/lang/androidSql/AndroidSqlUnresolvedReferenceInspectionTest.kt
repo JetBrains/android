@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.androidSql
 
 import com.android.tools.idea.testing.highlightedAs
+import com.android.tools.idea.testing.loadNewFile
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 
 class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
@@ -600,6 +601,22 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
         @DatabaseView("SELECT name, ${"age" highlightedAs ERROR} FROM user")
         public class NamesView {
           String name;
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testResolveBuildInTable() {
+    myFixture.loadNewFile("com/example/SomeDao.kt", """
+        package com.example
+
+        import androidx.room.Dao
+        import androidx.room.Query
+
+        interface SomeDao {
+          @Query("SELECT seq FROM sqlite_sequence WHERE name = :tableName")
+          suspend fun getSequenceNumber(tableName:String) : Long?
         }
     """.trimIndent())
 

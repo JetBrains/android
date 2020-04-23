@@ -160,6 +160,15 @@ class AppInspectionDiscoveryHost(
   }
 
   /**
+   * Disposes all of the currently active inspectors associated to project with provided [projectName].
+   *
+   * This is used by the service to clean up after projects when they are no longer interested in a process, or when they exit.
+   */
+  fun disposeClients(projectName: String) {
+    discovery.disposeClients(projectName)
+  }
+
+  /**
    * Register listeners to receive stream and process events from transport pipeline.
    */
   private fun registerListenersForDiscovery() {
@@ -224,8 +233,9 @@ class AppInspectionDiscoveryHost(
    */
   private fun removeProcess(streamId: Long, processId: Int) {
     synchronized(processData) {
-      processData.processesMap.remove(StreamProcessIdPair(streamId, processId))?.let {
-        processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessDisconnected(it) } }
+      processData.processesMap.remove(StreamProcessIdPair(streamId, processId))?.let { descriptor ->
+        discovery.removeProcess(descriptor)
+        processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessDisconnected(descriptor) } }
       }
     }
   }
@@ -263,10 +273,7 @@ class AppInspectionDiscovery internal constructor(
     return targets.computeIfAbsent(processDescriptor) {
       val transport =
         AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, executor, streamChannel)
-      attachAppInspectionTarget(transport, jarCopier).transform { target ->
-        target.addTargetTerminatedListener(executor) { targets.remove(it) }
-        target
-      }
+      attachAppInspectionTarget(transport, jarCopier)
     }.also {
       it.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<AppInspectionTarget> {
         override fun onSuccess(result: AppInspectionTarget?) {}
@@ -308,6 +315,32 @@ class AppInspectionDiscovery internal constructor(
           }
         })
       }
+    }
+  }
+
+  /**
+   * Called when a process has terminated. This will clean up [AppInspectionTarget] and all clients associated with the process.
+   *
+   * Note: this does not try to dispose clients because it's too late.
+   */
+  internal fun removeProcess(process: ProcessDescriptor) {
+    synchronized(lock) {
+      targets.remove(process)?.let {
+        clients.keys.removeAll { launchParam ->
+          launchParam.processDescriptor == process
+        }
+      }
+    }
+  }
+
+  /**
+   * Dispose clients belonging to the project that matches the provided [projectName].
+   */
+  internal fun disposeClients(projectName: String) {
+    synchronized(lock) {
+      clients.filterKeys { it.projectName == projectName }
+        .values.forEach { if (it.isDone) it.get().messenger.disposeInspector() else it.cancel(false) }
+      clients.keys.removeAll { it.projectName == projectName }
     }
   }
 }

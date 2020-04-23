@@ -16,11 +16,8 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingPoint
-import com.android.tools.adtui.common.toSwingPoint
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
-import com.android.tools.idea.common.scene.draw.buildString
-import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
@@ -32,12 +29,6 @@ private val LINE_TO_MOUSE_STROKE: Stroke = BasicStroke(JBUI.scale(3.0f))
 
 class DrawLineToMouse(private val center: SwingPoint) : DrawCommandBase() {
   private val line = Line2D.Float(center.x.value, center.y.value, 0f, 0f)
-
-  private constructor(tokens: Array<String>) : this(tokens[0].toSwingPoint())
-
-  constructor(serialized: String) : this(parse(serialized, 1))
-
-  override fun serialize() = buildString(javaClass.simpleName, center)
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     line.x2 = sceneContext.mouseX.toFloat()

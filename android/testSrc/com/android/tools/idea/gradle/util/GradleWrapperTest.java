@@ -42,7 +42,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);
     createIfNotExists(wrapperFilePath);
 
-    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath);
+    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath, myProject);
     gradleWrapper.updateDistributionUrlAndDisplayFailure("1.6");
 
     Properties properties = getProperties(wrapperFilePath);
@@ -61,7 +61,7 @@ public class GradleWrapperTest extends PlatformTestCase {
           "zipStorePath=wrapper/dists\n" +
           "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-all.zip", wrapperFilePath, Charsets.UTF_8);
 
-    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath);
+    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath, myProject);
     gradleWrapper.updateDistributionUrlAndDisplayFailure("1.9");
 
     Properties properties = getProperties(wrapperFilePath);
@@ -81,7 +81,7 @@ public class GradleWrapperTest extends PlatformTestCase {
           "zipStorePath=wrapper/dists\n" +
           "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapperFilePath, Charsets.UTF_8);
 
-    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath);
+    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath, myProject);
     gradleWrapper.updateDistributionUrlAndDisplayFailure("1.9");
 
     Properties properties = getProperties(wrapperFilePath);
@@ -100,7 +100,7 @@ public class GradleWrapperTest extends PlatformTestCase {
           "zipStorePath=wrapper/dists\n" +
           "distributionUrl=https\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapperFilePath, Charsets.UTF_8);
 
-    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath);
+    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperFilePath, myProject);
     gradleWrapper.updateDistributionUrlAndDisplayFailure("1.6");
 
     Properties properties = getProperties(wrapperFilePath);
@@ -121,7 +121,7 @@ public class GradleWrapperTest extends PlatformTestCase {
           wrapperFilePath,
           Charsets.UTF_8);
 
-    GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath);
+    GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath, myProject);
     gradlewrapper.updateDistributionUrlAndDisplayFailure("6.1.1");
 
     Properties properties = getProperties(wrapperFilePath);
@@ -146,7 +146,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     assertFalse(projectWrapperDirPath.exists());
 
     String gradleVersion = "1.5";
-    GradleWrapper gradleWrapper = GradleWrapper.create(projectPath, gradleVersion);
+    GradleWrapper gradleWrapper = GradleWrapper.create(projectPath, gradleVersion, myProject);
     assertNotNull(gradleWrapper);
     assertWrapperCreated(projectWrapperDirPath, gradleVersion);
   }
@@ -157,7 +157,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     File projectWrapperDirPath = new File(projectPath, FD_GRADLE_WRAPPER);
     assertFalse(projectWrapperDirPath.exists());
 
-    GradleWrapper gradleWrapper = GradleWrapper.create(projectPath);
+    GradleWrapper gradleWrapper = GradleWrapper.create(projectPath, myProject);
     assertNotNull(gradleWrapper);
     assertWrapperCreated(projectWrapperDirPath, SdkConstants.GRADLE_LATEST_VERSION);
   }

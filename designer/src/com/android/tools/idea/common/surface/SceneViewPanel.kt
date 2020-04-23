@@ -23,7 +23,9 @@ import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
+import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
@@ -33,6 +35,7 @@ import java.awt.Graphics2D
 import java.awt.Insets
 import java.awt.LayoutManager
 import java.awt.Rectangle
+import java.awt.geom.Dimension2D
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -61,10 +64,9 @@ abstract class PositionableContentLayoutManager : LayoutManager {
     // Now position all the wrapper panels to match the position of the SceneViews
     sceneViewPeerPanels
       .forEach {
-        val sceneView = it.sceneView
         val peerPreferredSize = it.preferredSize
-        it.setBounds(sceneView.x - sceneView.margin.left,
-                     sceneView.y - sceneView.margin.top,
+        it.setBounds(it.positionableAdapter.x - it.positionableAdapter.margin.left,
+                     it.positionableAdapter.y - it.positionableAdapter.margin.top,
                      peerPreferredSize.width,
                      peerPreferredSize.height)
       }
@@ -128,7 +130,8 @@ private data class LayoutData private constructor(
  * used to paint Swing elements on top of the [SceneView].
  */
 @VisibleForTesting
-class SceneViewPeerPanel(val sceneView: SceneView, private val sceneViewToolbar: JComponent?) : JPanel() {
+class SceneViewPeerPanel(val sceneView: SceneView,
+                         private val sceneViewToolbar: JComponent?) : JPanel() {
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
    * without having to explicitly call [revalidate]
@@ -145,9 +148,36 @@ class SceneViewPeerPanel(val sceneView: SceneView, private val sceneViewToolbar:
   val positionableAdapter = object : PositionableContent() {
     override val x: Int get() = sceneView.x
     override val y: Int get() = sceneView.y
-    override val margin: Insets = sceneView.margin
+    override val margin: Insets
+      get() {
+        // If there is no content, or the content is smaller than the minimum size, pad the margins to occupy the empty space
+        val contentSize = if (sceneView.hasContent()) sceneView.getScaledContentSize(null) else JBUI.emptySize()
+        return if (contentSize.width < minimumSize.width &&
+                   contentSize.height < minimumSize.height) {
+          val hSpace = (minimumSize.width - contentSize.width) / 2
+          val vSpace = (minimumSize.height - contentSize.height) / 2
+          val originalMargin = sceneView.margin
+          Insets(originalMargin.top + vSpace,
+                 originalMargin.left + hSpace,
+                 originalMargin.bottom + vSpace,
+                 originalMargin.right + hSpace)
+        }
+        else {
+          sceneView.margin
+        }
+      }
+
     override fun getContentSize(dimension: Dimension?): Dimension = sceneView.getContentSize(dimension)
-    override fun getScaledContentSize(dimension: Dimension?): Dimension = sceneView.getScaledContentSize(dimension)
+    override fun getScaledContentSize(dimension: Dimension?): Dimension {
+      val outputDimension = dimension ?: Dimension()
+
+      val contentSize = getContentSize(outputDimension)
+      val scale: Double = sceneView.scale
+
+      outputDimension.setSize((scale * contentSize.width).toInt(), (scale * contentSize.height).toInt())
+      return outputDimension
+    }
+
     override fun setLocation(x: Int, y: Int) = sceneView.setLocation(x, y)
   }
 
@@ -188,7 +218,9 @@ class SceneViewPeerPanel(val sceneView: SceneView, private val sceneViewToolbar:
     else {
       modelNameLabel.text = layoutData.modelName
       modelNameLabel.toolTipText = layoutData.modelName
-      sceneViewTopPanel.setBounds(0, 0, width + insets.left + insets.right, sceneView.margin.top - 2)
+      sceneViewTopPanel.setBounds(0, 0,
+                                  width + insets.horizontal,
+                                  positionableAdapter.margin.top - 2 + positionableAdapter.margin.bottom)
       sceneViewTopPanel.isVisible = true
     }
 
@@ -197,10 +229,13 @@ class SceneViewPeerPanel(val sceneView: SceneView, private val sceneViewToolbar:
 
   /** [Dimension] used to avoid extra allocations calculating [getPreferredSize] */
   private val cachedContentSize = Dimension()
-  override fun getPreferredSize(): Dimension = sceneView.getScaledContentSize(cachedContentSize).also {
-    it.width = it.width + sceneView.margin.left + sceneView.margin.right
-    it.height = it.height + sceneView.margin.top + sceneView.margin.bottom
+  override fun getPreferredSize(): Dimension = positionableAdapter.getScaledContentSize(cachedContentSize).also {
+    it.width = it.width + positionableAdapter.margin.left + positionableAdapter.margin.right
+    it.height = it.height + positionableAdapter.margin.top + positionableAdapter.margin.bottom
   }
+
+  override fun getMinimumSize(): Dimension =
+    Dimension(sceneViewTopPanel.minimumSize.width, sceneViewTopPanel.minimumSize.height + JBUI.scale(20))
 }
 
 /**
@@ -213,6 +248,15 @@ class SceneViewPeerPanel(val sceneView: SceneView, private val sceneViewToolbar:
 internal class SceneViewPanel(private val interactionLayersProvider: () -> List<Layer>,
                               val layoutManager: PositionableContentLayoutManager) :
   JPanel(layoutManager) {
+
+  /**
+   * Returns the components of this panel that are [PositionableContent]
+   */
+  val positionableContent: Collection<PositionableContent>
+    get() = components.filterIsInstance<SceneViewPeerPanel>()
+      .map { it.positionableAdapter }
+      .toList()
+
   override fun paintComponent(graphics: Graphics) {
     super.paintComponent(graphics)
     val sceneViewPeerPanels = components.filterIsInstance<SceneViewPeerPanel>()

@@ -58,6 +58,7 @@ iml_module(
         "//tools/idea/plugins/gradle/tooling-extension-api:intellij.gradle.toolingExtension[module]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+        "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
     ],
 )
 

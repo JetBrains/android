@@ -17,11 +17,8 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.common.SwingPoint
-import com.android.tools.adtui.common.toSwingPoint
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
-import com.android.tools.idea.common.scene.draw.buildString
-import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.naveditor.scene.NavColors.TEXT
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
@@ -36,10 +33,6 @@ private val FONT_SIZE = JBUI.scale(13)
 private val VERTICAL_OFFSET = JBUI.scale(3)
 
 class DrawEmptyDesigner(private val point: SwingPoint) : DrawCommandBase() {
-  private constructor(tokens: Array<String>) : this(tokens[0].toSwingPoint())
-
-  constructor(serialized: String) : this(parse(serialized, 1))
-
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.color = TEXT
     g.font = Font("Default", 0, JBUI.scale(FONT_SIZE))
@@ -55,6 +48,4 @@ class DrawEmptyDesigner(private val point: SwingPoint) : DrawCommandBase() {
 
     g.drawString(text2, x, y)
   }
-
-  override fun serialize() = buildString(javaClass.simpleName, point.toString())
 }

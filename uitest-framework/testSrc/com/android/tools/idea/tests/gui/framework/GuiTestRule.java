@@ -390,7 +390,7 @@ public class GuiTestRule implements TestRule {
   }
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
-    GradleWrapper wrapper = GradleWrapper.create(projectDirPath, gradleVersion);
+    GradleWrapper wrapper = GradleWrapper.create(projectDirPath, gradleVersion, null);
     File path = TestUtils.runningFromBazel() ?
                 getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip") :
                 EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);

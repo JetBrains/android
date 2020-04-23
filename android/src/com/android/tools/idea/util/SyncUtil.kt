@@ -25,6 +25,7 @@ import com.android.tools.idea.projectsystem.getSyncManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -68,6 +69,7 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
                                   runOnEdt: Boolean = false,
                                   syncManager: ProjectSystemSyncManager = this.getSyncManager()) {
   val dumbService = DumbService.getInstance(this)
+  LOG.debug { "runWhenSmartAndSynced isDumb=${dumbService.isDumb} runOnEdt=${runOnEdt} callback=${callback}" }
   if (dumbService.isDumb) {
     if (runOnEdt) {
       dumbService.smartInvokeLater { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
@@ -86,6 +88,7 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
   }
 
   if (syncManager.isSyncInProgress()) {
+    LOG.debug { "runWhenSmartAndSynced waiting for sync callback=${callback}" }
     listenUntilNextSync(parentDisposable, object : SyncResultListener {
       override fun syncEnded(result: SyncResult) {
         runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager)
@@ -95,11 +98,16 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
   }
 
   if (runOnEdt && !ApplicationManager.getApplication().isDispatchThread) {
+    LOG.debug { "runWhenSmartAndSynced needs EDT callback=${callback}" }
     UIUtil.invokeLaterIfNeeded { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
     return
   }
 
-  if (Disposer.isDisposed(parentDisposable)) return
+  if (Disposer.isDisposed(parentDisposable)) {
+    LOG.warn("parentDisposable was already disposed, callback will not be called.")
+    return
+  }
+  LOG.debug { "runWhenSmartAndSynced all conditions met callback=${callback}" }
   callback.accept(syncManager.getLastSyncResult())
 }
 

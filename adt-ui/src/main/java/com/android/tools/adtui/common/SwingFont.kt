@@ -17,18 +17,9 @@ package com.android.tools.adtui.common
 
 import java.awt.Font
 
-private const val SEPARATOR = ':'
-
 /**
  * Represents a Font whose size is measured the [SwingCoordinate] system
  */
 inline class SwingFont(val value: Font) {
   constructor(name: String, style: Int, size: SwingLength) : this(Font(name, style, size.toInt()))
-
-  override fun toString() = "${this.value.name}$SEPARATOR${this.value.style}$SEPARATOR${this.value.size}"
-}
-
-fun String.toSwingFont(): SwingFont {
-  val (name, style, size) = split(SEPARATOR)
-  return SwingFont(name, style.toInt(), size.toSwingLength())
 }

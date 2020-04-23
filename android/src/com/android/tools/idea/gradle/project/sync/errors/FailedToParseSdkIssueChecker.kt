@@ -35,12 +35,14 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.SystemProperties.getUserName
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.io.File
 
 open class FailedToParseSdkIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
-    if (issueData.error !is RuntimeException || message.isEmpty() || !message.contains("failed to parse SDK")) return null
+    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val message = rootCause.message ?: return null
+    if (rootCause !is RuntimeException || message.isEmpty() || !message.contains("failed to parse SDK")) return null
 
     // Log metrics.
     invokeLater {

@@ -18,8 +18,8 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.sqlLanguage.expandCollectionParameters
-import com.android.tools.idea.sqlite.sqlLanguage.inlineParameterValues
 import com.android.tools.idea.sqlite.sqlLanguage.replaceNamedParametersWithPositionalParameters
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.intellij.openapi.Disposable
@@ -75,8 +75,7 @@ class ParametersBindingController(
         }
       }
 
-      val stringRepresentation = inlineParameterValues(newPsi, LinkedList(sqliteValues))
-      runStatement(SqliteStatement(sqliteStatement, sqliteValues, stringRepresentation))
+      runStatement(createSqliteStatement(sqliteStatementPsi.project, sqliteStatement, sqliteValues))
     }
   }
 }

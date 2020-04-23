@@ -40,21 +40,14 @@ class AppInspectionDiscoveryTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  private val FAKE_PROCESS = ProcessDescriptor(
-    Common.Stream.newBuilder()
-      .setType(Common.Stream.Type.DEVICE)
-      .setStreamId(FakeTransportService.FAKE_DEVICE_ID)
-      .setDevice(FakeTransportService.FAKE_DEVICE)
-      .build(),
-    FakeTransportService.FAKE_PROCESS
-  )
+  private val FAKE_PROCESS = AppInspectionTestUtils.createFakeProcessDescriptor()
 
   private val ATTACH_HANDLER = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
       events.add(
         Common.Event.newBuilder()
           .setKind(Common.Event.Kind.AGENT)
-          .setPid(FakeTransportService.FAKE_PROCESS.pid)
+          .setPid(command.pid)
           .setAgentData(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build())
           .build()
       )
@@ -114,7 +107,7 @@ class AppInspectionDiscoveryTest {
   }
 
   @Test
-  fun processTerminationRemovesTargetAndClientFromCache() {
+  fun processTerminationDisposesClient() {
     // Setup
     val discovery = AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client)
 
@@ -126,19 +119,13 @@ class AppInspectionDiscoveryTest {
       appInspectionServiceRule.streamChannel
     ).get()
 
-    // Verify there is one new target.
-    assertThat(discovery.targets).hasSize(1)
+    // Verify there is one new client.
     assertThat(discovery.clients).hasSize(1)
 
-    // Set up latches to wait for target and client termination
-    // Note: The callbacks below must use the same executor as discovery service because we rely on the knowledge that the single threaded
-    // executor will execute them AFTER executing the system's cleanup code. Otherwise, the latches may get released too early due to race,
-    // and cause flaky tests.
-    val targetTerminatedLatch = CountDownLatch(1)
-    discovery.targets.values.first().get().addTargetTerminatedListener(appInspectionServiceRule.executorService) {
-      targetTerminatedLatch.countDown()
-    }
-
+    // Set up latch to wait for client disposal.
+    // Note: The callback below must use the same executor as discovery service because we rely on the knowledge that the single threaded
+    // executor will execute them AFTER executing the system's cleanup code. Otherwise, the latch may get released too early due to race,
+    // and cause the test to flake.
     val clientDisposedLatch = CountDownLatch(1)
     discovery.clients.values.first().get().addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
       override fun onDispose() {
@@ -146,7 +133,7 @@ class AppInspectionDiscoveryTest {
       }
     }, appInspectionServiceRule.executorService)
 
-    // Fake target termination to dispose of both target and client
+    // Fake target termination to dispose of client.
     transportService.addEventToStream(
       FakeTransportService.FAKE_DEVICE_ID,
       Common.Event.newBuilder()
@@ -159,10 +146,67 @@ class AppInspectionDiscoveryTest {
     )
 
     // Wait and verify
-    targetTerminatedLatch.await()
-    assertThat(discovery.targets).isEmpty()
-
     clientDisposedLatch.await()
     assertThat(discovery.clients).isEmpty()
+  }
+
+  @Test
+  fun disposeClients() {
+    val discovery = AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client)
+
+    discovery.launchInspector(
+      AppInspectionDiscoveryHost.LaunchParameters(FAKE_PROCESS, INSPECTOR_ID, TEST_JAR, "project_to_dispose"),
+      { StubTestAppInspectorClient(it) },
+      AppInspectionTestUtils.TestTransportJarCopier,
+      appInspectionServiceRule.streamChannel
+    ).get()
+
+    discovery.launchInspector(
+      AppInspectionDiscoveryHost.LaunchParameters(FAKE_PROCESS, INSPECTOR_ID, TEST_JAR, "other_project"),
+      { StubTestAppInspectorClient(it) },
+      AppInspectionTestUtils.TestTransportJarCopier,
+      appInspectionServiceRule.streamChannel
+    ).get()
+
+    assertThat(discovery.clients).hasSize(2)
+
+    discovery.disposeClients("project_to_dispose")
+
+    assertThat(discovery.clients).hasSize(1)
+    assertThat(discovery.clients.keys.first().projectName).isEqualTo("other_project")
+  }
+
+  @Test
+  fun removeProcess() {
+    val discovery = AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client)
+
+    val terminatedProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setName("terminate").setPid(1).build()
+    val terminateProcessDescriptor = AppInspectionTestUtils.createFakeProcessDescriptor(process = terminatedProcess)
+
+    val otherProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setName("other").setPid(2).build()
+    val otherProcessDescriptor = AppInspectionTestUtils.createFakeProcessDescriptor(process = otherProcess)
+
+    discovery.launchInspector(
+      AppInspectionDiscoveryHost.LaunchParameters(terminateProcessDescriptor, INSPECTOR_ID, TEST_JAR, "project"),
+      { StubTestAppInspectorClient(it) },
+      AppInspectionTestUtils.TestTransportJarCopier,
+      appInspectionServiceRule.streamChannel
+    ).get()
+
+    discovery.launchInspector(
+      AppInspectionDiscoveryHost.LaunchParameters(otherProcessDescriptor, INSPECTOR_ID, TEST_JAR, "project"),
+      { StubTestAppInspectorClient(it) },
+      AppInspectionTestUtils.TestTransportJarCopier,
+      appInspectionServiceRule.streamChannel
+    ).get()
+
+    assertThat(discovery.clients).hasSize(2)
+    assertThat(discovery.targets).hasSize(2)
+
+    discovery.removeProcess(terminateProcessDescriptor)
+
+    assertThat(discovery.targets).hasSize(1)
+    assertThat(discovery.clients).hasSize(1)
+    assertThat(discovery.clients.keys.first().processDescriptor).isSameAs(otherProcessDescriptor)
   }
 }

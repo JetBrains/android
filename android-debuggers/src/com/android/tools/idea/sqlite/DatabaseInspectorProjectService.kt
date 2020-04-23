@@ -19,7 +19,6 @@ package com.android.tools.idea.sqlite
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.transform
@@ -27,6 +26,7 @@ import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorControllerImpl
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactory
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactoryImpl
@@ -57,7 +57,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
-import java.util.TreeMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executor
 import java.util.concurrent.locks.ReentrantLock
@@ -92,21 +91,10 @@ interface DatabaseInspectorProjectService {
   fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabase>
 
   /**
-   * Creates a [com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection]
-   * and shows the database content in the Database Inspector.
-   *
-   * @param id Unique identifier of a connection to a database.
-   * @param path Path of the database on device. It can be the string ":memory:" in case of in-memory databases.
-   * @param messenger The [AppInspectorClient.CommandMessenger] used to send messages between studio and an on-device inspector.
+   * Shows the given [sqliteDatabase] in the inspector
    */
   @AnyThread
-  fun openSqliteDatabase(messenger: AppInspectorClient.CommandMessenger, id: Int, path: String): ListenableFuture<SqliteDatabase>
-
-  /**
-   * Closes all open live databases in [DatabaseInspectorController].
-   */
-  @AnyThread
-  fun closeAllLiveDatabase()
+  fun openSqliteDatabase(sqliteDatabase: SqliteDatabase) : ListenableFuture<Unit>
 
   /**
    * Runs the query passed as argument in the Sqlite Inspector.
@@ -150,6 +138,21 @@ interface DatabaseInspectorProjectService {
    */
   @AnyThread
   fun databasePossiblyChanged()
+
+  /**
+   * Called when Database Inspector is connected to new process.
+   *
+   * @param previousState state of UI from previous session if available
+   */
+  @UiThread
+  fun startAppInspectionSession(previousState: SavedUiState?)
+
+  /**
+   * Called when Database Inspector is disconnected from app.
+   * @return an object that describes state of UI on this moment. This object can be passed later in [startAppInspectionSession]
+   */
+  @UiThread
+  fun stopAppInspectionSession(): SavedUiState
 }
 
 class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
@@ -253,30 +256,25 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   @AnyThread
-  override fun openSqliteDatabase(
-    messenger: AppInspectorClient.CommandMessenger,
-    id: Int,
-    path: String
-  ): ListenableFuture<SqliteDatabase> = projectScope.future {
-    val database = async {
-      val connection = databaseConnectionFactory.getLiveDatabaseConnection(project, messenger, id, taskExecutor).await()
-      LiveSqliteDatabase(path, connection)
-    }
-
-    withContext(uiThread) {
-      controller.addSqliteDatabase(database)
-    }
-
-    database.await()
+  override fun openSqliteDatabase(database: SqliteDatabase): ListenableFuture<Unit> = projectScope.future {
+    controller.addSqliteDatabase(database)
   }
 
-  @AnyThread
-  override fun closeAllLiveDatabase() {
+  @UiThread
+  override fun startAppInspectionSession(previousState: SavedUiState?) {
+      controller.restoreSavedState(previousState)
+  }
+
+  @UiThread
+  override fun stopAppInspectionSession(): SavedUiState {
+    val savedState = controller.saveState()
+
     projectScope.launch(uiThread) {
       model.getOpenDatabases().filterIsInstance<LiveSqliteDatabase>().forEach {
         controller.closeDatabase(it)
       }
     }
+    return savedState
   }
 
   @UiThread
@@ -314,25 +312,20 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     projectScope.launch(uiThread) { controller.databasePossiblyChanged() }
   }
 
-  private class ModelImpl : DatabaseInspectorController.Model {
+  class ModelImpl : DatabaseInspectorController.Model {
 
     private val lock = ReentrantLock()
 
     private val listeners = CopyOnWriteArrayList<DatabaseInspectorController.Model.Listener>()
 
     @GuardedBy("lock")
-    private val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(
-      Comparator.comparing { database: SqliteDatabase -> database.name }
-    )
+    private val openDatabases = mutableMapOf<SqliteDatabase, SqliteSchema>()
 
     @AnyThread
     override fun getOpenDatabases() = lock.withLock { openDatabases.keys.toList() }
 
     @AnyThread
     override fun getDatabaseSchema(database: SqliteDatabase) = lock.withLock { openDatabases[database] }
-
-    @AnyThread
-    override fun getSortedIndexOf(database: SqliteDatabase) = lock.withLock { openDatabases.headMap(database).size }
 
     @AnyThread
     override fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema) {

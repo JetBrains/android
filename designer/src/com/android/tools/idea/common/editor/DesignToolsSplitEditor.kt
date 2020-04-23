@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.editor
 
-import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.codeHighlighting.HighlightingPass
 import com.intellij.ide.util.PropertiesComponent
@@ -26,7 +25,6 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
-import javax.swing.JComponent
 
 private const val SPLIT_MODE_PROPERTY_PREFIX = "SPLIT_EDITOR_MODE"
 
@@ -54,8 +52,6 @@ open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: De
       return String.format("%s_%s", SPLIT_MODE_PROPERTY_PREFIX, file.path)
     }
 
-  private var stateRestored = false
-
   init {
     clearLastModeProperty()
   }
@@ -67,19 +63,6 @@ open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: De
     // Note: "${editorName}Layout" is the current format used by TextEditorWithPreview. Check TextEditorWithPreview#getLayoutPropertyName in
     // the unlikely event this starts to fail, since the property name might have changed.
     PropertiesComponent.getInstance().setValue("${EDITOR_NAME}Layout", null)
-  }
-
-  override fun getComponent(): JComponent {
-    val thisComponent = super.getComponent()
-    if (!stateRestored) {
-      stateRestored = true
-      restoreSurfaceState()
-    }
-    return thisComponent
-  }
-
-  private fun restoreSurfaceState() {
-    (getSelectedAction() as? MyToolBarAction)?.let { designerEditor.component.surface.state = it.surfaceState }
   }
 
   override fun getBackgroundHighlighter(): BackgroundEditorHighlighter {
@@ -106,21 +89,21 @@ open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: De
 
   override fun getShowEditorAction(): SplitEditorAction {
     if (textViewToolbarAction == null) {
-      textViewToolbarAction = MyToolBarAction(super.getShowEditorAction(), DesignSurface.State.DEACTIVATED)
+      textViewToolbarAction = MyToolBarAction(super.getShowEditorAction(), DesignerEditorPanel.State.DEACTIVATED)
     }
     return textViewToolbarAction!!
   }
 
   override fun getShowEditorAndPreviewAction(): SplitEditorAction {
     if (splitViewToolbarAction == null) {
-      splitViewToolbarAction = MyToolBarAction(super.getShowEditorAndPreviewAction(), DesignSurface.State.SPLIT)
+      splitViewToolbarAction = MyToolBarAction(super.getShowEditorAndPreviewAction(), DesignerEditorPanel.State.SPLIT)
     }
     return splitViewToolbarAction!!
   }
 
   override fun getShowPreviewAction(): SplitEditorAction {
     if (designViewToolbarAction == null) {
-      designViewToolbarAction = MyToolBarAction(super.getShowPreviewAction(), DesignSurface.State.FULL)
+      designViewToolbarAction = MyToolBarAction(super.getShowPreviewAction(), DesignerEditorPanel.State.FULL)
     }
     return designViewToolbarAction!!
   }
@@ -128,7 +111,7 @@ open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: De
   /**
    * Persist the mode in order to restore it next time we open the editor.
    */
-  private fun setModeProperty(state: DesignSurface.State) = modePropertyName?.let { propertiesComponent.setValue(it, state.name) }
+  private fun setModeProperty(state: DesignerEditorPanel.State) = modePropertyName?.let { propertiesComponent.setValue(it, state.name) }
 
   override fun getState(level: FileEditorStateLevel): FileEditorState {
     // Override getState to make sure getState(FileEditorStateLevel.UNDO) works properly, otherwise we'd be defaulting to the implementation
@@ -154,19 +137,19 @@ open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: De
       return
     }
     // Select the action saved if the mode saved is different than the current one.
-    val surfaceState = DesignSurface.State.valueOf(propertyValue)
-    if (surfaceState == designerEditor.component.surface.state) {
+    val panelState = DesignerEditorPanel.State.valueOf(propertyValue)
+    if (panelState == designerEditor.component.state) {
       return
     }
-    actions.firstOrNull { it is MyToolBarAction && it.surfaceState == surfaceState }?.let { selectAction(it, false) }
+    actions.firstOrNull { it is MyToolBarAction && it.panelState == panelState }?.let { selectAction(it, false) }
   }
 
-  private inner class MyToolBarAction internal constructor(delegate: SplitEditorAction, internal val surfaceState: DesignSurface.State)
+  private inner class MyToolBarAction internal constructor(delegate: SplitEditorAction, internal val panelState: DesignerEditorPanel.State)
     : SplitEditor<DesignerEditor>.SplitEditorAction(delegate.name, delegate.icon, delegate.delegate) {
 
     override fun setSelected(e: AnActionEvent, state: Boolean, userExplicitlySelected: Boolean) {
-      designerEditor.component.surface.state = surfaceState
-      setModeProperty(surfaceState)
+      designerEditor.component.state = panelState
+      setModeProperty(panelState)
       super.setSelected(e, state, userExplicitlySelected)
       clearLastModeProperty() // clear the property as it might have been set by TextEditorWithPreview selection.
     }
@@ -174,7 +157,7 @@ open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: De
     override fun onUserSelectedAction() {
       // We only want to track actions when users explicitly trigger them, i.e. when they click on the action to change the mode. An example
       // of indirectly changing the mode is triggering "Go to XML" when in design-only mode, as we change the mode to text-only.
-      designerEditor.component.surface.analyticsManager.trackSelectEditorMode()
+      designerEditor.component.surface.analyticsManager.trackSelectEditorMode(panelState)
     }
   }
 
@@ -193,8 +176,8 @@ open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: De
   }
 }
 
-private fun defaultLayout(designerEditor: DesignerEditor) = when(designerEditor.component.surface.state) {
-  DesignSurface.State.FULL -> TextEditorWithPreview.Layout.SHOW_PREVIEW
-  DesignSurface.State.SPLIT -> TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW
-  DesignSurface.State.DEACTIVATED -> TextEditorWithPreview.Layout.SHOW_EDITOR
+private fun defaultLayout(designerEditor: DesignerEditor) = when(designerEditor.component.state) {
+  DesignerEditorPanel.State.FULL -> TextEditorWithPreview.Layout.SHOW_PREVIEW
+  DesignerEditorPanel.State.SPLIT -> TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW
+  DesignerEditorPanel.State.DEACTIVATED -> TextEditorWithPreview.Layout.SHOW_EDITOR
 }

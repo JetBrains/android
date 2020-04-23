@@ -45,7 +45,6 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SinglePositionableContentLayoutManager;
 import com.android.tools.idea.configurations.Configuration;
@@ -162,7 +161,7 @@ public class NavDesignSurface extends DesignSurface {
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new,
-          getDefaultSurfaceState(), true, (surface) -> new SinglePositionableContentLayoutManager(),
+          true, (surface) -> new SinglePositionableContentLayoutManager(),
           (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface));
     setBackground(JBColor.white);
 
@@ -179,21 +178,6 @@ public class NavDesignSurface extends DesignSurface {
     });
 
     getSelectionModel().addListener((unused, selection) -> updateCurrentNavigation(selection));
-  }
-
-  private static State getDefaultSurfaceState() {
-    AndroidEditorSettings.EditorMode preferredMode = AndroidEditorSettings.getInstance().getGlobalState().getPreferredEditorMode();
-    if (preferredMode == null) {
-      return State.FULL;
-    }
-    switch (preferredMode) {
-      case CODE:
-        return State.DEACTIVATED;
-      case SPLIT:
-        return State.SPLIT;
-      default:
-        return State.FULL;
-    }
   }
 
   @NotNull

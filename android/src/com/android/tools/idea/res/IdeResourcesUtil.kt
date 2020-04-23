@@ -48,6 +48,7 @@ import com.android.SdkConstants.TAG_ITEM
 import com.android.SdkConstants.TAG_SELECTOR
 import com.android.builder.model.AaptOptions
 import com.android.builder.model.AaptOptions.Namespacing
+import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -83,7 +84,6 @@ import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.crea
 import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
-import com.android.tools.lint.detector.api.computeResourcePrefix
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.android.utils.SdkUtils
 import com.google.common.base.Joiner
@@ -895,7 +895,7 @@ fun prependResourcePrefix(module: Module?, name: String?, folderType: ResourceFo
   }
   val facet = AndroidFacet.getInstance(module) ?: return name
   val androidModel = AndroidModuleModel.get(facet) ?: return name
-  val resourcePrefix = computeResourcePrefix(androidModel.androidProject) ?: return name
+  val resourcePrefix = androidModel.androidProject.resourcePrefix ?: return name
   return if (name != null) {
     if (name.startsWith(resourcePrefix)) name else computeResourceName(resourcePrefix, name, folderType)
   }

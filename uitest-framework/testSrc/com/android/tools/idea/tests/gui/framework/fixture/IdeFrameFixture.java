@@ -629,7 +629,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         Project project = getProject();
         ShowSettingsUtil.getInstance().showSettingsDialog(project, ShowSettingsUtilImpl.getConfigurableGroups(project, true));
       });
-    return IdeSettingsDialogFixture.find(robot());
+    IdeSettingsDialogFixture settings = IdeSettingsDialogFixture.find(robot());
+    robot().waitForIdle();
+    return settings;
   }
 
   @NotNull

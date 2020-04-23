@@ -93,9 +93,9 @@ class TableViewImpl : TableView {
 
   private val pageSizeComboBox = ComboBox<Int>()
 
-  private val refreshButton = CommonButton("Refresh table", AllIcons.Actions.Refresh)
+  private val refreshButton = CommonButton("Refresh Table", AllIcons.Actions.Refresh)
 
-  private val liveUpdatesCheckBox = JBCheckBox("Live updates")
+  private val liveUpdatesCheckBox = JBCheckBox("Live Updates")
 
   private val table = JBTable()
   private val tableScrollPane = JBScrollPane(table)
@@ -223,6 +223,8 @@ class TableViewImpl : TableView {
     columns = null
     table.model = MyTableModel(emptyList())
     table.emptyText.text = "Table is empty"
+
+    setEditable(false)
   }
 
   override fun startTableLoading() {

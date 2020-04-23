@@ -95,6 +95,14 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       "void"
     )
 
+    private val KEEP_OPTION_MODIFIER = setOf(
+      "includedescriptorclasses",
+      "includecode",
+      "allowshrinking",
+      "allowoptimization",
+      "allowobfuscation"
+    )
+
     private val flagCompletionProvider = object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(
         parameters: CompletionParameters,
@@ -189,6 +197,16 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       }
     }
 
+    private val keepOptionModifierCompletionProvider = object : CompletionProvider<CompletionParameters>() {
+      override fun addCompletions(
+        parameters: CompletionParameters,
+        processingContext: ProcessingContext,
+        resultSet: CompletionResultSet
+      ) {
+        resultSet.addAllElements(KEEP_OPTION_MODIFIER.map { LookupElementBuilder.create(it) })
+      }
+    }
+
     private val anyProguardElement = psiElement().withLanguage(ProguardR8Language.INSTANCE)
 
     private val insideClassSpecification = psiElement().inside(psiElement(ProguardR8PsiTypes.CLASS_SPECIFICATION_BODY))
@@ -275,6 +293,16 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       psiElement().inside(psiElement(ProguardR8QualifiedName::class.java)).withText(string().endsWith(beforeInnerClass)),
       nonStaticInnerClassProvider
+    )
+
+    // Add completion for [ProguardR8KeepOptionModifier].
+    extend(
+      CompletionType.BASIC,
+      or(
+        psiElement().afterLeaf(psiElement(ProguardR8PsiTypes.COMMA).afterLeaf(psiElement(ProguardR8PsiTypes.FLAG_TOKEN))),
+        psiElement().afterLeaf(psiElement(ProguardR8PsiTypes.COMMA).afterLeaf(psiElement().withText(string().oneOf(KEEP_OPTION_MODIFIER))))
+      ),
+      keepOptionModifierCompletionProvider
     )
   }
 

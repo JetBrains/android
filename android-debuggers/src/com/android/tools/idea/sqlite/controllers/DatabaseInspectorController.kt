@@ -24,12 +24,15 @@ import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.mainView.AddColumns
 import com.android.tools.idea.sqlite.ui.mainView.AddTable
@@ -73,6 +76,7 @@ class DatabaseInspectorControllerImpl(
   private val uiThread = edtExecutor.asCoroutineDispatcher()
   private val workerThread = taskExecutor.asCoroutineDispatcher()
   private val view = viewFactory.createDatabaseInspectorView(project)
+  private val tabsToRestore = mutableListOf<TabDescription>()
 
   /**
    * Controllers for all open tabs, keyed by id.
@@ -107,8 +111,13 @@ class DatabaseInspectorControllerImpl(
       view.reportError("Error getting database", e)
       throw e
     }
+    addSqliteDatabase(database)
+  }
+
+  override suspend fun addSqliteDatabase(database: SqliteDatabase) = withContext(uiThread) {
     Disposer.register(this@DatabaseInspectorControllerImpl, database.databaseConnection)
-    addNewDatabase(database, readDatabaseSchema(database))
+    val schema = readDatabaseSchema(database) ?: return@withContext
+    addNewDatabase(database, schema)
   }
 
   override suspend fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) = withContext(uiThread) {
@@ -133,7 +142,7 @@ class DatabaseInspectorControllerImpl(
 
     tabsToClose.forEach { closeTab(it) }
 
-    val index = model.getSortedIndexOf(database)
+    val index = model.getOpenDatabases().sortedBy { it.name }.indexOf(database)
     resultSetControllers.values
       .asSequence()
       .filterIsInstance<SqliteEvaluatorController>()
@@ -153,6 +162,22 @@ class DatabaseInspectorControllerImpl(
     view.reportError(message, throwable)
   }
 
+  override fun restoreSavedState(previousState: SavedUiState?) {
+    val savedState = previousState as? SavedUiStateImpl
+    tabsToRestore.clear()
+    savedState?.let { tabsToRestore.addAll(savedState.tabs) }
+  }
+
+  override fun saveState(): SavedUiState {
+    val tabs = resultSetControllers.mapNotNull {
+      when (val tabId = it.key) {
+        is TabId.TableTab -> TabDescription.TableTab(tabId.database.path, tabId.tableName)
+        is TabId.AdHocQueryTab -> null
+      }
+    }
+    return SavedUiStateImpl(tabs)
+  }
+
   override suspend fun databasePossiblyChanged() = withContext(uiThread) {
     // update schemas
     model.getOpenDatabases().forEach { updateDatabaseSchema(it) }
@@ -169,11 +194,18 @@ class DatabaseInspectorControllerImpl(
       .forEach { it.removeListeners() }
   }
 
-  private suspend fun readDatabaseSchema(database: SqliteDatabase): SqliteSchema = withContext(workerThread) {
+  private suspend fun readDatabaseSchema(database: SqliteDatabase): SqliteSchema? = withContext(workerThread) {
     try {
       val schema = database.databaseConnection.readSchema().await()
       withContext(uiThread) { view.stopLoading() }
       schema
+    }
+    catch (e: LiveInspectorException) {
+      ensureActive()
+      withContext(uiThread) {
+        view.reportError("Error reading Sqlite database", e)
+      }
+      null
     }
     catch (e: Exception) {
       ensureActive()
@@ -185,7 +217,7 @@ class DatabaseInspectorControllerImpl(
   }
 
   private fun addNewDatabase(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
-    val index = model.getSortedIndexOf(database)
+    val index = (model.getOpenDatabases() + database).sortedBy { it.name }.indexOf(database)
     view.addDatabaseSchema(database, sqliteSchema, index)
 
     resultSetControllers.values
@@ -194,6 +226,15 @@ class DatabaseInspectorControllerImpl(
       .forEach { it.addDatabase(database, index) }
 
     model.add(database, sqliteSchema)
+    restoreTabs(database, sqliteSchema)
+  }
+
+  private fun restoreTabs(database: SqliteDatabase, schema: SqliteSchema) {
+    tabsToRestore.filter { it.databasePath == database.path }
+      .also { tabsToRestore.removeAll(it) }
+      .filterIsInstance<TabDescription.TableTab>()
+      .mapNotNull { tabDescription -> schema.tables.find { tabDescription.tableName == it.name } }
+      .forEach { openTableTab(database, it) }
   }
 
   private fun closeTab(tabId: TabId) {
@@ -203,8 +244,9 @@ class DatabaseInspectorControllerImpl(
   }
 
   private suspend fun updateDatabaseSchema(database: SqliteDatabase) {
+    // TODO(b/154733971) this only works because the suspending function is called first, otherwise we have concurrency issues
+    val newSchema = readDatabaseSchema(database) ?: return
     val oldSchema = model.getDatabaseSchema(database) ?: return
-    val newSchema = readDatabaseSchema(database)
     withContext(uiThread) {
       if (oldSchema != newSchema) {
         model.add(database, newSchema)
@@ -255,7 +297,7 @@ class DatabaseInspectorControllerImpl(
     } catch (e: Exception) {
       view.removeDatabaseSchema(database)
 
-      val index = model.getSortedIndexOf(database)
+      val index = model.getOpenDatabases().sortedBy { it.name }.indexOf(database)
       view.addDatabaseSchema(database, newSchema, index)
     }
   }
@@ -288,11 +330,46 @@ class DatabaseInspectorControllerImpl(
 
     resultSetControllers[tabId] = sqliteEvaluatorController
 
-    model.getOpenDatabases().forEachIndexed { index, sqliteDatabase ->
+    model.getOpenDatabases().sortedBy { it.name }.forEachIndexed { index, sqliteDatabase ->
       sqliteEvaluatorController.addDatabase(sqliteDatabase, index)
     }
 
     return sqliteEvaluatorController
+  }
+
+  @UiThread
+  private fun openTableTab(database: SqliteDatabase, table: SqliteTable) {
+    val tabId = TabId.TableTab(database, table.name)
+    if (tabId in resultSetControllers) {
+      view.focusTab(tabId)
+      return
+    }
+
+    val tableView = viewFactory.createTableView()
+    view.openTab(tabId, table.name, tableView.component)
+
+    val tableController = TableController(
+      closeTabInvoked = { closeTab(tabId) },
+      project = project,
+      view = tableView,
+      tableSupplier = { model.getDatabaseSchema(database)?.tables?.firstOrNull{ it.name == table.name } },
+      databaseConnection = database.databaseConnection,
+      sqliteStatement = createSqliteStatement(project, selectAllAndRowIdFromTable(table)),
+      edtExecutor = edtExecutor,
+      taskExecutor = taskExecutor
+    )
+    Disposer.register(project, tableController)
+    resultSetControllers[tabId] = tableController
+
+    tableController.setUp().addCallback(edtExecutor, object : FutureCallback<Unit> {
+      override fun onSuccess(result: Unit?) {
+      }
+
+      override fun onFailure(t: Throwable) {
+        view.reportError("Error reading Sqlite table \"${table.name}\"", t)
+        closeTab(tabId)
+      }
+    })
   }
 
   private inner class SqliteViewListenerImpl : DatabaseInspectorView.Listener {
@@ -304,40 +381,7 @@ class DatabaseInspectorControllerImpl(
       databaseInspectorAnalyticsTracker.trackStatementExecuted(
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.SCHEMA_STATEMENT_CONTEXT
       )
-
-      val tabId = TabId.TableTab(database, table.name)
-      if (tabId in resultSetControllers) {
-        view.focusTab(tabId)
-        return
-      }
-
-      val databaseConnection = database.databaseConnection
-
-      val tableView = viewFactory.createTableView()
-      view.openTab(tabId, table.name, tableView.component)
-
-      val tableController = TableController(
-        closeTabInvoked = { closeTab(tabId) },
-        project = project,
-        view = tableView,
-        tableSupplier = { model.getDatabaseSchema(database)?.tables?.firstOrNull{ it.name == table.name } },
-        databaseConnection = databaseConnection,
-        sqliteStatement = SqliteStatement(selectAllAndRowIdFromTable(table)),
-        edtExecutor = edtExecutor,
-        taskExecutor = taskExecutor
-      )
-      Disposer.register(project, tableController)
-      resultSetControllers[tabId] = tableController
-
-      tableController.setUp().addCallback(edtExecutor, object : FutureCallback<Unit> {
-        override fun onSuccess(result: Unit?) {
-        }
-
-        override fun onFailure(t: Throwable) {
-          view.reportError("Error reading Sqlite table \"${table.name}\"", t)
-          closeTab(tabId)
-        }
-      })
+      openTableTab(database, table)
     }
 
     override fun openSqliteEvaluatorTabActionInvoked() {
@@ -388,6 +432,13 @@ class DatabaseInspectorControllerImpl(
       }
     }
   }
+
+  private class SavedUiStateImpl(val tabs: List<TabDescription>) : SavedUiState
+
+  @UiThread
+  private sealed class TabDescription(val databasePath: String) {
+    class TableTab(path: String, val tableName: String) : TabDescription(path)
+  }
 }
 
 /**
@@ -406,6 +457,11 @@ interface DatabaseInspectorController : Disposable {
    */
   suspend fun addSqliteDatabase(deferredDatabase: Deferred<SqliteDatabase>)
 
+  /**
+   * Adds a database that is immediately ready
+   */
+  suspend fun addSqliteDatabase(database: SqliteDatabase)
+
   suspend fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement)
   suspend fun closeDatabase(database: SqliteDatabase)
 
@@ -423,21 +479,22 @@ interface DatabaseInspectorController : Disposable {
   @UiThread
   fun showError(message: String, throwable: Throwable?)
 
+  @UiThread
+  fun restoreSavedState(previousState: SavedUiState?)
+
+  @UiThread
+  fun saveState(): SavedUiState
+
   /**
    * Model for DatabaseInspectorController. Used to store and access currently open [SqliteDatabase]s and their [SqliteSchema]s.
    * Implementations of this interface can be accessed from different threads, therefore should be thread-safe.
    */
   interface Model {
-    /**
-     * A list of open databases sorted in alphabetical order by the name of the database.
-     */
     @AnyThread
     fun getOpenDatabases(): List<SqliteDatabase>
     @AnyThread
     fun getDatabaseSchema(database: SqliteDatabase): SqliteSchema?
 
-    @AnyThread
-    fun getSortedIndexOf(database: SqliteDatabase): Int
     @AnyThread
     fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema)
     @AnyThread
@@ -470,6 +527,11 @@ interface DatabaseInspectorController : Disposable {
      */
     fun notifyDataMightBeStale()
   }
+
+  /**
+   * Marker interface for opaque object that has UI state that should be restored once DatabaseInspector is reconnected.
+   */
+  interface SavedUiState
 }
 
 sealed class TabId {

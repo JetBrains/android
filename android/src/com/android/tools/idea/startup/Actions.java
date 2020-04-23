@@ -26,15 +26,14 @@ public final class Actions {
   private Actions() {
   }
 
-  public static void hideAction(@NotNull String actionId) {
-    AnAction oldAction = ActionManager.getInstance().getAction(actionId);
+  public static void hideAction(@NotNull ActionManager actionManager, @NotNull String actionId) {
+    AnAction oldAction = actionManager.getAction(actionId);
     if (oldAction != null) {
-      replaceAction(actionId, new EmptyAction());
+      replaceAction(actionManager, actionId, new EmptyAction());
     }
   }
 
-  public static void replaceAction(@NotNull String actionId, @NotNull AnAction newAction) {
-    ActionManager actionManager = ActionManager.getInstance();
+  public static void replaceAction(@NotNull ActionManager actionManager, @NotNull String actionId, @NotNull AnAction newAction) {
     AnAction oldAction = actionManager.getAction(actionId);
     if (oldAction != null) {
       newAction.getTemplatePresentation().setIcon(oldAction.getTemplatePresentation().getIcon());
@@ -45,14 +44,18 @@ public final class Actions {
     }
   }
 
-  public static void moveAction(@NotNull String actionId, @NotNull String oldGroupId, @NotNull String groupId, @NotNull Constraints constraints) {
-    ActionManager actionManager = ActionManager.getInstance();
+  public static void moveAction(
+      @NotNull ActionManager actionManager,
+      @NotNull String actionId,
+      @NotNull String oldGroupId,
+      @NotNull String groupId,
+      @NotNull Constraints constraints) {
     AnAction action = actionManager.getActionOrStub(actionId);
     AnAction group = actionManager.getAction(groupId);
     AnAction oldGroup = actionManager.getAction(oldGroupId);
     if (action != null && oldGroup instanceof DefaultActionGroup && group instanceof DefaultActionGroup) {
-      ((DefaultActionGroup)oldGroup).remove(action);
-      ((DefaultActionGroup)group).add(action, constraints);
+      ((DefaultActionGroup)oldGroup).remove(action, actionManager);
+      ((DefaultActionGroup)group).add(action, constraints, actionManager);
     }
   }
 }

@@ -20,21 +20,14 @@ import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.adtui.common.SwingRoundRectangle
 import com.android.tools.adtui.common.SwingStroke
 import com.android.tools.adtui.common.scaledSwingLength
-import com.android.tools.adtui.common.toSwingLength
-import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.model.scaledAndroidLength
-import com.android.tools.idea.common.model.toScale
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
 import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.common.scene.draw.FillShape
-import com.android.tools.idea.common.scene.draw.buildString
-import com.android.tools.idea.common.scene.draw.colorToString
-import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.naveditor.scene.NavColors.ACTIVITY_BORDER
 import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.RefinableImage
@@ -54,17 +47,6 @@ class DrawActivity(private val rectangle: SwingRectangle,
                    private val frameThickness: SwingLength,
                    private val textColor: Color,
                    private val image: RefinableImage? = null) : CompositeDrawCommand(COMPONENT_LEVEL) {
-
-  constructor(serialized: String) : this(parse(serialized, 6))
-
-  private constructor(tokens: Array<String>) : this(tokens[0].toSwingRect(), tokens[1].toSwingRect(),
-                                                    tokens[2].toScale(), stringToColor(tokens[3]),
-                                                    tokens[4].toSwingLength(), stringToColor(tokens[5]))
-
-  override fun serialize() = buildString(javaClass.simpleName, rectangle.toString(),
-                                         imageRectangle.toString(), scale,
-                                         colorToString(frameColor), frameThickness, colorToString(textColor))
-
   override fun buildCommands(): List<DrawCommand> {
     val list = mutableListOf<DrawCommand>()
 

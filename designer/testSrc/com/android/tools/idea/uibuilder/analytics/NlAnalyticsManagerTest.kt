@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.analytics
 
 import com.android.tools.idea.common.analytics.CommonUsageTracker
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.type.DefaultDesignerFileType
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
@@ -73,11 +73,11 @@ class NlAnalyticsManagerTest : AndroidTestBase() {
   }
 
   fun testSurfaceMode() {
-    surface.state = DesignSurface.State.FULL
-    assertThat(analyticsManager.surfaceMode).isEqualTo(LayoutEditorState.Mode.DESIGN_MODE)
+    analyticsManager.setEditorModeWithoutTracking(DesignerEditorPanel.State.FULL)
+    assertThat(analyticsManager.editorMode).isEqualTo(LayoutEditorState.Mode.DESIGN_MODE)
 
-    surface.state = DesignSurface.State.SPLIT
+    analyticsManager.setEditorModeWithoutTracking(DesignerEditorPanel.State.SPLIT)
     // Split mode is mapped to PREVIEW_MODE when using the split editor
-    assertThat(analyticsManager.surfaceMode).isEqualTo(LayoutEditorState.Mode.PREVIEW_MODE)
+    assertThat(analyticsManager.editorMode).isEqualTo(LayoutEditorState.Mode.PREVIEW_MODE)
   }
 }

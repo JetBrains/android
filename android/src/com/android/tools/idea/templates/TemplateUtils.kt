@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.EditorUtil.openEditor
 import com.android.tools.idea.util.EditorUtil.selectEditor
+import com.android.utils.usLocaleCapitalize
 import com.google.common.base.Charsets
 import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
@@ -262,3 +263,6 @@ fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: St
   return maxOf(resolved, minCoordinate, GradleCoordinate.COMPARE_PLUS_LOWER).toString()
 }
 
+fun capitalizeAppName(appName: String?) = appName?.split(" ")?.joinToString("") {
+  it.usLocaleCapitalize()
+}

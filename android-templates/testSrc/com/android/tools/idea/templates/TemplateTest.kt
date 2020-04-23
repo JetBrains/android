@@ -28,6 +28,7 @@ import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.StringParameter
+import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.util.SystemInfo
 import kotlin.reflect.full.findAnnotation
@@ -87,19 +88,24 @@ open class TemplateTest : AndroidGradleTestCase() {
     category: Category? = null,
     formFactor: FormFactor? = null
   ) {
-    if (DISABLED) {
+    if (DISABLED || isBroken(name)) {
       return
     }
     ensureSdkManagerAvailable()
     val template = TemplateResolver.getTemplateByName(name, category, formFactor)!!
 
+    // Description and help should not end with spaces or "."
+    assertThat(template.description).doesNotContainMatch("[\\. ]$")
+    template.parameters
+      .map {parameter -> parameter.help }
+      .filter { it != null && !it.endsWith("etc.") }
+      .forEach {
+        assertThat(it).doesNotContainMatch("[\\. ]$")
+      }
+
     templateStateCustomizer.forEach { (parameterName: String, overrideValue: String) ->
       val p = template.parameters.find { it.name == parameterName }!! as StringParameter
       p.value = overrideValue
-    }
-
-    if (isBroken(name)) {
-      return
     }
 
     val msToCheck = measureTimeMillis {

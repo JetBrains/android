@@ -50,6 +50,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableCollection;
@@ -85,12 +86,14 @@ import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
+import java.awt.Rectangle;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -99,7 +102,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import javax.annotation.concurrent.GuardedBy;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
@@ -128,14 +130,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private static final Predicate<SceneManager> FILTER_DISPOSED_SCENE_MANAGERS =
     input -> input != null && FILTER_DISPOSED_MODELS.apply(input.getModel());
 
-  public enum State {
-    /** Surface is taking the total space of the design editor. */
-    FULL,
-    /** Surface is sharing the design editor horizontal space with a text editor. */
-    SPLIT,
-    /** Surface is deactivated and not being displayed. */
-    DEACTIVATED
-  }
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10;
 
   private final Project myProject;
@@ -199,11 +193,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private final DesignerAnalyticsManager myAnalyticsManager;
 
-  @NotNull
-  private State myState;
-  @Nullable
-  private StateChangeListener myStateChangeListener;
-
   private float myMaxFitIntoScale = Float.MAX_VALUE;
 
   private final Timer myRepaintTimer = new Timer(15, (actionEvent) -> {
@@ -218,11 +207,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
-    @NotNull State defaultSurfaceState,
     boolean isEditable,
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider) {
-    this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, defaultSurfaceState, isEditable, ZoomType.FIT_INTO,
+    this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, isEditable, ZoomType.FIT_INTO,
          positionableLayoutManagerProvider, designSurfaceActionHandlerProvider);
   }
 
@@ -231,7 +219,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
-    @NotNull State defaultSurfaceState,
     boolean isEditable,
     @NotNull ZoomType onChangedZoom,
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
@@ -247,7 +234,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     Disposer.register(parentDisposable, this);
     myProject = project;
     myIsEditable = isEditable;
-    myState = defaultSurfaceState;
 
     setOpaque(true);
     setFocusable(false);
@@ -669,26 +655,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public JComponent getPreferredFocusedComponent() {
     return getInteractionPane();
-  }
-
-  public final void setState(@NotNull State state) {
-    myState = state;
-    if (myStateChangeListener != null) {
-      myStateChangeListener.onStateChange(state);
-    }
-  }
-
-  @NotNull
-  public final State getState() {
-    return myState;
-  }
-
-  public void setStateChangeListener(@Nullable StateChangeListener stateChangeListener) {
-    myStateChangeListener = stateChangeListener;
-  }
-
-  public interface StateChangeListener {
-    void onStateChange(@NotNull State newState);
   }
 
   /**
@@ -1333,6 +1299,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return getLayoutType().isEditable() && myIsEditable;
   }
 
+  /**
+   * Returns all the {@link PositionableContent} in this surface.
+   */
+  @NotNull
+  protected Collection<PositionableContent> getPositionableContent() {
+    return mySceneViewPanel.getPositionableContent();
+  }
+
   private static class MyScrollPane extends JBScrollPane {
     private MyScrollPane() {
       super(0);
@@ -1564,10 +1538,31 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     }
 
+    List<SceneManager> invisibleSceneManagers = new ArrayList<>();
+    List<SceneManager> visibleSceneManagers = new ArrayList<>();
+    for (SceneManager manager : getSceneManagers()) {
+      if (manager.getSceneViews().stream().anyMatch(view -> isSceneViewVisible(view))) {
+        visibleSceneManagers.add(manager);
+      }
+      else {
+        invisibleSceneManagers.add(manager);
+      }
+    }
+
+    // Release the resources of invisible SceneManagers first to make sure we have enough memories for rendering.
+    for (SceneManager manager : invisibleSceneManagers) {
+      manager.onNotVisible();
+    }
+
     // Cascading the CompletableFuture to make them executing sequentially.
     CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
-    for (SceneManager manager : getSceneManagers()) {
+    for (SceneManager manager : visibleSceneManagers) {
       renderFuture = renderFuture.thenCompose(it -> {
+        // The visible SceneView may become invisible during sequential rendering, check it again.
+        if (manager.getSceneViews().stream().noneMatch(view -> isSceneViewVisible(view))) {
+          manager.onNotVisible();
+          return CompletableFuture.completedFuture(null);
+        }
         CompletableFuture<Void> future = renderRequest.apply(manager);
         invalidate();
         return future;
@@ -1746,5 +1741,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public void setMaxFitIntoScale(float maxFitIntoScale) {
     myMaxFitIntoScale = maxFitIntoScale;
+  }
+
+  private boolean isSceneViewVisible(@NotNull SceneView view) {
+    Dimension size = view.getScaledContentSize();
+    Rectangle place = new Rectangle(view.getX(), view.getY(), size.width, size.height);
+    return place.intersects(myScrollPane.getViewport().getViewRect());
   }
 }

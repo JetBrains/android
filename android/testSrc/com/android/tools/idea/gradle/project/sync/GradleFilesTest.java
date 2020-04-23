@@ -40,6 +40,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -56,7 +57,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 /**
@@ -211,14 +211,16 @@ public class GradleFilesTest extends AndroidGradleTestCase {
 
   public void testNotModifiedWhenAddingWhitespaceInWrapperPropertiesFile() throws Exception {
     loadSimpleApplication();
-    GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(getProject()));
+    Project project = getProject();
+    GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(project), project);
     VirtualFile virtualFile = wrapper.getPropertiesFile();
     runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
   }
 
   public void testModifiedWhenAddingTextChildInWrapperPropertiesFile() throws Exception {
     loadSimpleApplication();
-    GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(getProject()));
+    Project project = getProject();
+    GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(project), project);
     VirtualFile virtualFile = wrapper.getPropertiesFile();
     runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
                             virtualFile);
@@ -334,7 +336,8 @@ public class GradleFilesTest extends AndroidGradleTestCase {
   }
 
   public void testIsGradleFileWithWrapperPropertiesFile() throws IOException {
-    GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(getProject()));
+    Project project = getProject();
+    GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(project), project);
     VirtualFile propertiesFile = wrapper.getPropertiesFile();
     PsiFile psiFile = findPsiFile(propertiesFile);
     assertTrue(myGradleFiles.isGradleFile(psiFile));

@@ -16,23 +16,34 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.visual.ColorBlindModeView
-import com.android.tools.idea.uibuilder.visual.VisualizationView
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
 
 enum class SceneMode(val displayName: String,
-                     val primary: (NlDesignSurface, LayoutlibSceneManager) -> ScreenView,
-                     val secondary: ((NlDesignSurface, LayoutlibSceneManager) -> ScreenView)? = null,
+                     val primary: (NlDesignSurface, LayoutlibSceneManager, Boolean) -> ScreenView,
+                     val secondary: ((NlDesignSurface, LayoutlibSceneManager, Boolean) -> ScreenView)? = null,
                      val visibleToUser: Boolean = true) {
-  RENDER("Design", ::ScreenView),
-  BLUEPRINT("Blueprint", ::BlueprintView),
-  RENDER_AND_BLUEPRINT("Design + Blueprint", ::ScreenView, ::BlueprintView),
-  COMPOSE("Compose", { surface, manager -> ScreenView(surface, manager, true, false) }, visibleToUser = false),
-  RESIZABLE_PREVIEW("Preview", { surface, manager -> ScreenView(surface, manager, true, true) }, visibleToUser = false),
-  VISUALIZATION("Visualization", ::VisualizationView, visibleToUser = false),
-  COLOR_BLIND("Color Blind Mode", ::ColorBlindModeView, visibleToUser = false);
+  RENDER("Design", ::defaultProvider),
+  BLUEPRINT("Blueprint", ::blueprintProvider),
+  RENDER_AND_BLUEPRINT("Design + Blueprint", ::defaultProvider, ::blueprintProvider),
+  COMPOSE("Compose",
+          { surface, manager, _ ->
+            ScreenView.newBuilder(surface, manager)
+              .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
+              .build()
+          },
+          visibleToUser = false),
+  RESIZABLE_PREVIEW("Preview",
+                    { surface, manager, _ ->
+                      ScreenView.newBuilder(surface, manager)
+                        .resizeable()
+                        .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
+                        .build()
+                    },
+                    visibleToUser = false),
+  VISUALIZATION("Visualization", ::visualizationProvider, visibleToUser = false),
+  COLOR_BLIND("Color Blind Mode", ::colorBlindProvider, visibleToUser = false);
 
   operator fun next(): SceneMode {
     val values = values().filter { it.visibleToUser }
@@ -40,10 +51,10 @@ enum class SceneMode(val displayName: String,
   }
 
   fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView =
-      primary(surface, manager)
+    primary(surface, manager, false)
 
   fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? =
-      secondary?.invoke(surface, manager)?.apply { isSecondary = true }
+    secondary?.invoke(surface, manager, true)?.apply { isSecondary = true }
 
   companion object {
 
@@ -55,7 +66,8 @@ enum class SceneMode(val displayName: String,
 
     var cachedSceneMode: SceneMode? = null
 
-    @Synchronized fun loadPreferredMode(): SceneMode {
+    @Synchronized
+    fun loadPreferredMode(): SceneMode {
       if (cachedSceneMode != null) {
         return cachedSceneMode!!
       }
@@ -69,7 +81,7 @@ enum class SceneMode(val displayName: String,
         // If the code reach here, that means some of unexpected SceneMode is saved as user's preference.
         // In this case, return the default mode instead.
         Logger.getInstance(NlDesignSurface::class.java)
-            .warn("The mode $modeName is not recognized, use default mode $SCREEN_MODE_PROPERTY instead")
+          .warn("The mode $modeName is not recognized, use default mode $SCREEN_MODE_PROPERTY instead")
         DEFAULT_SCREEN_MODE
       }
 
@@ -84,7 +96,8 @@ enum class SceneMode(val displayName: String,
       return cachedSceneMode!!
     }
 
-    @Synchronized  fun savePreferredMode(mode: SceneMode) {
+    @Synchronized
+    fun savePreferredMode(mode: SceneMode) {
       // See comment about SCREEN_COMPOSE_ONLY on loadPreferredMode
       if (cachedSceneMode == mode || mode == COMPOSE) {
         return

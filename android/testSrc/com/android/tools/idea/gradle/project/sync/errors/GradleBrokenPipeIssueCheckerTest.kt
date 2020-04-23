@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -30,6 +31,6 @@ class GradleBrokenPipeIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue!!.description).contains("Broken pipe.\nThe Gradle daemon may be trying to use ipv4 instead of ipv6.")
     // Verify quickFixes.
     assertThat(buildIssue.quickFixes).hasSize(1)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(ConnectionPermissionDeniedIssueChecker.OpenLinkQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
   }
 }
