@@ -20,7 +20,6 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -132,7 +131,11 @@ public class FutureCallbackExecutor implements Executor {
   @NotNull
   public <I, O> ListenableFuture<O> transform(@NotNull ListenableFuture<I> input,
                                               @NotNull ThrowableFunction<? super I, ? extends O> function) {
-    return Futures.transform(input, wrapThrowableFunction(function)::apply, myExecutor);
+    return Futures.transformAsync(input, in -> {
+      SettableFuture<O> futureResult = SettableFuture.create();
+      futureResult.set(function.apply(in));
+      return futureResult;
+    }, myExecutor);
   }
 
   /**
@@ -148,14 +151,11 @@ public class FutureCallbackExecutor implements Executor {
   /**
    * Similar to {@link Futures#catching(ListenableFuture, Class, com.google.common.base.Function, Executor)},
    * using this instance as the executor.
-   * <p>Unlike {@link Futures#transform(ListenableFuture, com.google.common.base.Function, Executor) Futures.transform},
-   * the {@link ThrowableFunction function} can throw checked exceptions.
-   * See {@link Futures.AbstractChainingFuture#run} implementation.
    */
   @NotNull
   public <V, X extends Throwable> ListenableFuture<V> catching(@NotNull ListenableFuture<? extends V> input, Class<X> exceptionType,
-                                                               @NotNull ThrowableFunction<? super X, ? extends V> fallback) {
-    return Futures.catching(input, exceptionType, wrapThrowableFunction(fallback)::apply, this);
+                                                               @NotNull Function<? super X, ? extends V> fallback) {
+    return Futures.catching(input, exceptionType, fallback::apply, this);
   }
 
   /**
@@ -268,24 +268,6 @@ public class FutureCallbackExecutor implements Executor {
     else {
       finalResult.set(null);
     }
-  }
-
-  /**
-   * Wrap a {@link ThrowableFunction} into a {@link Function} using a {@link UndeclaredThrowableException}.
-   *
-   * <p>See {@link Futures.AbstractChainingFuture#run} implementation: the {@link UndeclaredThrowableException} in unwrapped
-   * to the cause exception when caught, so callers don't see the UndeclaredThrowableException.
-   */
-  @NotNull
-  private static <I, O> Function<I, O> wrapThrowableFunction(@NotNull ThrowableFunction<I, O> function) {
-    return input -> {
-      try {
-        return function.apply(input);
-      }
-      catch (Exception e) {
-        throw new UndeclaredThrowableException(e);
-      }
-    };
   }
 
   /**
