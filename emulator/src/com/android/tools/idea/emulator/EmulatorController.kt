@@ -146,7 +146,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(config.skinFolder)
 
     // TODO: Change 4 to 3 after b/150494232 is fixed.
-    maxInboundMessageSize = config.displayWidth * config.displayWidth * 4 + 100
+    maxInboundMessageSize = config.displayWidth * config.displayHeight * 4 + 100
 
     connectionState = ConnectionState.CONNECTING
     val channel = NettyChannelBuilder
