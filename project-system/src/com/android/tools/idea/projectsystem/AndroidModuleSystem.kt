@@ -17,11 +17,16 @@
 
 package com.android.tools.idea.projectsystem
 
+import com.android.ddmlib.IDevice
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.Library
+import com.android.tools.idea.run.AndroidDeviceSpec
+import com.android.tools.idea.run.ApkInfo
+import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.ValidationError
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -194,6 +199,15 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
     override fun getPackageName(): String = throw ApkProvisionException("The project system cannot obtain the package name at this moment.")
     override fun getTestPackageName(): String? = null
   }
+
+  /**
+   * Returns the [ApkProvider] for the given [runConfiguration] such that describes APKs suitable for [targetDeviceSpec].
+   *
+   * Returns `null`, if the project system does not recognize the [runConfiguration] as a supported one.
+   */
+  @JvmDefault
+  // TODO(b/154038950): Move to AndroidProjectSystem together with getApplicationIdProvider(). It is here for the sake of consistency.
+  fun getApkProvider(runConfiguration: RunConfiguration, targetDeviceSpec: AndroidDeviceSpec?): ApkProvider? = null
 
   /**
    * Returns the [GlobalSearchScope] for a given module that should be used to resolving references.

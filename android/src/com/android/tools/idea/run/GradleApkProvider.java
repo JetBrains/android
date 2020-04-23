@@ -52,6 +52,8 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -467,7 +469,12 @@ public class GradleApkProvider implements ApkProvider {
   @Override
   public List<ValidationError> validate() {
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myFacet);
-    assert androidModuleModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
+    if (androidModuleModel == null) {
+      Runnable requestProjectSync =
+        () -> ProjectSystemUtil.getSyncManager(myFacet.getModule().getProject())
+          .syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST);
+      return ImmutableList.of(ValidationError.fatal("The project has not yet been synced with Gradle configuration", requestProjectSync));
+    }
     // Note: Instant apps and app bundles outputs are assumed to be signed
     if (androidModuleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP ||
         myOutputKindProvider.compute() == OutputKind.AppBundleOutputModel ||
@@ -477,7 +484,8 @@ public class GradleApkProvider implements ApkProvider {
 
     File outputFile = GradleUtil.getOutputFile(androidModuleModel);
     String outputFileName = outputFile == null ? "Unknown output" : outputFile.getName();
-    final String message = AndroidBundle.message("run.error.apk.not.signed", outputFileName, androidModuleModel.getSelectedVariant().getDisplayName());
+    final String message =
+      AndroidBundle.message("run.error.apk.not.signed", outputFileName, androidModuleModel.getSelectedVariant().getDisplayName());
 
     Runnable quickFix = () -> {
       Module module = myFacet.getModule();

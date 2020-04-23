@@ -250,14 +250,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   }
 
   @Override
-  @NotNull
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
-                                       @NotNull ApplicationIdProvider applicationIdProvider,
-                                       @Nullable AndroidDeviceSpec targetDeviceSpec) {
-    if (AndroidModel.get(facet) != null && AndroidModel.get(facet) instanceof AndroidModuleModel) {
-      return createGradleApkProvider(facet, applicationIdProvider, true, targetDeviceSpec);
-    }
-    return new NonGradleApkProvider(facet, applicationIdProvider, null);
+  public boolean isTestConfiguration() {
+    return true;
   }
 
   private static int getTestSourceRootCount(@NotNull Module module) {
