@@ -122,8 +122,10 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
   }
 
   fun testGetLastSyncResult_sameAsSyncResult() {
+/* b/154963412
     emulateSync(true, BuildStatus.SUCCESS)
 
     assertThat(syncManager.getLastSyncResult()).isSameAs(SyncResult.SUCCESS)
+b/154963412 */
   }
 }
