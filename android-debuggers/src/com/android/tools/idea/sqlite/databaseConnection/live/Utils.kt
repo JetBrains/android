@@ -68,8 +68,7 @@ internal fun List<SqliteInspectorProtocol.Table>.toSqliteSchema(): SqliteSchema 
   val tables = map { table ->
     val columns = table.columnsList.map { it.toSqliteColumn() }
     val rowIdName = getRowIdName(columns)
-    // TODO(blocked): set isView
-    SqliteTable(table.name, columns, rowIdName, false)
+    SqliteTable(table.name, columns, rowIdName, table.isView)
   }
   return SqliteSchema(tables)
 }
