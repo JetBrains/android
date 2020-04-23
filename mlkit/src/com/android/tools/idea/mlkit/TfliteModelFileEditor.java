@@ -23,6 +23,7 @@ import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.ModelVerifier;
 import com.android.tools.mlkit.TensorInfo;
 import com.android.tools.mlkit.exception.TfliteModelException;
+import com.android.tools.mlkit.exception.UnsupportedTfliteException;
 import com.android.tools.mlkit.exception.UnsupportedTfliteMetadataException;
 import com.android.utils.StringHelper;
 import com.google.common.annotations.VisibleForTesting;
@@ -158,17 +159,21 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
 
     JPanel contentPanel = createPanelWithYAxisBoxLayout(Borders.empty(20));
-    ByteBuffer byteBuffer = null;
-
+    ByteBuffer byteBuffer;
     try {
       byteBuffer = ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath()));
       ModelVerifier.verifyModel(byteBuffer);
     }
+    catch (UnsupportedTfliteException e) {
+      return createWarningMessagePanel("Unsupported TensorFlow Lite Model: " + e.getMessage());
+    }
+    catch (UnsupportedTfliteMetadataException e) {
+      return createWarningMessagePanel("Unsupported TensorFlow Lite Model Metadata: " + e.getMessage());
+    }
     catch (TfliteModelException e) {
-      if (!(e instanceof UnsupportedTfliteMetadataException)) {
-        return createWarningMessagePanel("Invalid TensorFlow Lite Model: " + e.getMessage());
-      }
-    } catch (IOException e) {
+      return createWarningMessagePanel("Invalid TensorFlow Lite Model: " + e.getMessage());
+    }
+    catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
       return createWarningMessagePanel("Something goes wrong while reading model file.");
     }
