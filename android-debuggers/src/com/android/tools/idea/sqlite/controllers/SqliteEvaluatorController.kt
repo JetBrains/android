@@ -135,9 +135,7 @@ class SqliteEvaluatorController(
       taskExecutor = taskExecutor
     )
     Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
-    currentTableController!!.setUp()
-
-    return Futures.immediateFuture(Unit)
+    return currentTableController!!.setUp()
   }
 
   private fun runUpdate(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
