@@ -87,8 +87,8 @@ public class CpuThreadStateDataSeriesTest {
   @Test
   public void emptyRange() {
     // Create a series with empty range and arbitrary tid
-    DataSeries<CpuProfilerStage.ThreadState> series = createThreadSeries(10);
-    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForRange(new Range());
+    DataSeries<ThreadState> series = createThreadSeries(10);
+    List<SeriesData<ThreadState>> dataSeries = series.getDataForRange(new Range());
     assertNotNull(dataSeries);
     // No data within given range
     assertTrue(dataSeries.isEmpty());
@@ -99,18 +99,18 @@ public class CpuThreadStateDataSeriesTest {
     // Range of the threads from FakeCpuService#buildThreads
     Range range = new Range(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(15));
     // Create a series with the range that contains both thread1 and thread2 and thread2 tid
-    DataSeries<CpuProfilerStage.ThreadState> series = createThreadSeries(2);
-    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForRange(range);
+    DataSeries<ThreadState> series = createThreadSeries(2);
+    List<SeriesData<ThreadState>> dataSeries = series.getDataForRange(range);
     assertNotNull(dataSeries);
     // thread2 state changes are RUNNING, STOPPED, SLEEPING, WAITING and DEAD
     assertEquals(5, dataSeries.size());
 
-    assertEquals(CpuProfilerStage.ThreadState.RUNNING, dataSeries.get(0).value);
+    assertEquals(ThreadState.RUNNING, dataSeries.get(0).value);
     // Any state different than RUNNING, SLEEPING, WAITING or DEAD (expected states) is mapped to UNKNOWN
-    assertEquals(CpuProfilerStage.ThreadState.UNKNOWN, dataSeries.get(1).value);
-    assertEquals(CpuProfilerStage.ThreadState.SLEEPING, dataSeries.get(2).value);
-    assertEquals(CpuProfilerStage.ThreadState.WAITING, dataSeries.get(3).value);
-    assertEquals(CpuProfilerStage.ThreadState.DEAD, dataSeries.get(4).value);
+    assertEquals(ThreadState.UNKNOWN, dataSeries.get(1).value);
+    assertEquals(ThreadState.SLEEPING, dataSeries.get(2).value);
+    assertEquals(ThreadState.WAITING, dataSeries.get(3).value);
+    assertEquals(ThreadState.DEAD, dataSeries.get(4).value);
   }
 
   @Test
@@ -125,7 +125,7 @@ public class CpuThreadStateDataSeriesTest {
     int tid = capture.getMainThreadId();
 
     // Create a series with trace file's main thread tid and the capture range
-    DataSeries<CpuProfilerStage.ThreadState> series = createThreadSeries(tid);
+    DataSeries<ThreadState> series = createThreadSeries(tid);
 
     // Create the thread activities to be 2 seconds before the capture start and 2 seconds before the capture finishes
     myService.addThreads(tid, "main", Arrays.asList(
@@ -135,14 +135,14 @@ public class CpuThreadStateDataSeriesTest {
       CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
         .setTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax()) - TimeUnit.SECONDS.toNanos(2))
         .setNewState(Cpu.CpuThreadData.State.SLEEPING).build()));
-    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForRange(new Range(Long.MIN_VALUE, Long.MAX_VALUE));
+    List<SeriesData<ThreadState>> dataSeries = series.getDataForRange(new Range(Long.MIN_VALUE, Long.MAX_VALUE));
     assertNotNull(dataSeries);
     // We expect the portions of the thread activities that are within the capture range to be duplicated with a "_CAPTURED" suffix.
     assertEquals(4, dataSeries.size());
-    assertEquals(CpuProfilerStage.ThreadState.RUNNING, dataSeries.get(0).value);
-    assertEquals(CpuProfilerStage.ThreadState.RUNNING_CAPTURED, dataSeries.get(1).value);
-    assertEquals(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED, dataSeries.get(2).value);
-    assertEquals(CpuProfilerStage.ThreadState.SLEEPING, dataSeries.get(3).value);
+    assertEquals(ThreadState.RUNNING, dataSeries.get(0).value);
+    assertEquals(ThreadState.RUNNING_CAPTURED, dataSeries.get(1).value);
+    assertEquals(ThreadState.SLEEPING_CAPTURED, dataSeries.get(2).value);
+    assertEquals(ThreadState.SLEEPING, dataSeries.get(3).value);
   }
 
   @Test
@@ -157,7 +157,7 @@ public class CpuThreadStateDataSeriesTest {
     int tid = capture.getMainThreadId();
 
     // Create a series with trace file's main thread tid and the capture range
-    DataSeries<CpuProfilerStage.ThreadState> series = createThreadSeries(tid);
+    DataSeries<ThreadState> series = createThreadSeries(tid);
 
     // Create the thread activities to be 1 second after the capture
     myService.addThreads(tid, "main", Arrays.asList(
@@ -168,18 +168,18 @@ public class CpuThreadStateDataSeriesTest {
         .setTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()) + TimeUnit.SECONDS.toNanos(2))
         .setNewState(Cpu.CpuThreadData.State.SLEEPING).build()));
 
-    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForRange(new Range(Long.MIN_VALUE, Long.MAX_VALUE));
+    List<SeriesData<ThreadState>> dataSeries = series.getDataForRange(new Range(Long.MIN_VALUE, Long.MAX_VALUE));
     assertNotNull(dataSeries);
 
     // We expect the portions of the thread activities that are within the capture range to be duplicated with a "_CAPTURED" suffix.
     // The first activity happens inside the capture, therefore it has only the "_CAPTURED" state.
     assertEquals(3, dataSeries.size());
-    assertEquals(CpuProfilerStage.ThreadState.RUNNING_CAPTURED, dataSeries.get(0).value);
-    assertEquals(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED, dataSeries.get(1).value);
-    assertEquals(CpuProfilerStage.ThreadState.SLEEPING, dataSeries.get(2).value);
+    assertEquals(ThreadState.RUNNING_CAPTURED, dataSeries.get(0).value);
+    assertEquals(ThreadState.SLEEPING_CAPTURED, dataSeries.get(1).value);
+    assertEquals(ThreadState.SLEEPING, dataSeries.get(2).value);
   }
 
-  private DataSeries<CpuProfilerStage.ThreadState> createThreadSeries(int tid) {
+  private DataSeries<ThreadState> createThreadSeries(int tid) {
     return myIsUnifiedPipeline
            ? new CpuThreadStateDataSeries(myProfilerStage.getStudioProfilers().getClient().getTransportClient(),
                                           ProfilersTestData.SESSION_DATA.getStreamId(),
