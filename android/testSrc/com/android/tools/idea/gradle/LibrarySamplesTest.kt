@@ -74,6 +74,7 @@ class LibrarySamplesTest : AndroidGradleTestCase() {
 
     val file = VfsUtil.findFile(Paths.get(project.basePath, "/app/src/main/java/com/example/appforsamplestest/Main.kt"), false)
     assume().that(file).isNotNull()
+/* b/154963473
     myFixture.configureFromExistingVirtualFile(file!!)
 
     myFixture.moveCaret("myFuncti|on")
@@ -85,5 +86,6 @@ class LibrarySamplesTest : AndroidGradleTestCase() {
     assume().that(sample).isNotNull()
     // For library structure see testData/projects/psdSampleRepo/com/example/libraryWithSamples/lib1/1.0.0
     assertThat(sample!!.getKotlinFqName()!!.asString()).isEqualTo("androidx.samples.sampleFunction")
+b/154963473 */
   }
 }
