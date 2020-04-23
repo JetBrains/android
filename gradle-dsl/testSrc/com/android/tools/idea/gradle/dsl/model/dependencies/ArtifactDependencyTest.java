@@ -1323,6 +1323,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     secondModel.name().setValue(new ReferenceTo(name));
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.COMPACT_NOTATION_SET_TO_REFERENCE_EXPECTED);
 
     dependencies = buildModel.dependencies();
     artifacts = dependencies.artifacts();
@@ -2083,6 +2084,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     METHOD_CALL_MULTIPLE_COMPACT_PSI_ELEMENT("methodCallMultipleCompactPsiElement"),
     MAP_NOTATION_PSI_ELEMENT("mapNotationPsiElement"),
     COMPACT_NOTATION_SET_TO_REFERENCE("compactNotationSetToReference"),
+    COMPACT_NOTATION_SET_TO_REFERENCE_EXPECTED("compactNotationSetToReferenceExpected"),
     COMPACT_NOTATION_ELEMENT_UNSUPPORTED_OPERATIONS("compactNotationElementUnsupportedOperations"),
     SET_I_STR_IN_COMPACT_NOTATION("setIStrInCompactNotation"),
     SET_I_STR_IN_COMPACT_NOTATION_EXPECTED("setIStrInCompactNotationExpected"),
