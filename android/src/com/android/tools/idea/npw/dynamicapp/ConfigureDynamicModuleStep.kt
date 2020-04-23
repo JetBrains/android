@@ -77,11 +77,6 @@ class ConfigureDynamicModuleStep(
     }
 
     row {
-      labelFor("Bytecode Level", bytecodeCombo)
-      bytecodeCombo()
-    }
-
-    row {
       labelFor("Minimum SDK", apiLevelCombo)
       apiLevelCombo()
     }
