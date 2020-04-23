@@ -98,7 +98,7 @@ class TableController(
 
   fun setUp(): ListenableFuture<Unit> {
     view.startTableLoading()
-    return databaseConnection.query(sqliteStatement).transform(edtExecutor) { newResultSet ->
+    return databaseConnection.query(sqliteStatement).transformAsync(edtExecutor) { newResultSet ->
       lastExecutedQuery = sqliteStatement
       view.setEditable(isEditable())
       view.showPageSizeValue(rowBatchSize)
@@ -108,8 +108,6 @@ class TableController(
       Disposer.register(this, newResultSet)
 
       fetchAndDisplayTableData()
-
-      return@transform
     }.cancelOnDispose(this)
   }
 

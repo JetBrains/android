@@ -247,9 +247,10 @@ class TableControllerTest : PlatformTestCase() {
     Disposer.register(testRootDisposable, tableController)
 
     // Act
-    pumpEventsAndWaitForFuture(tableController.setUp())
+    val error = pumpEventsAndWaitForFutureException(tableController.setUp())
 
     // Assert
+    assertEquals(error.cause, throwable)
     orderVerifier.verify(tableView).startTableLoading()
     orderVerifier.verify(tableView).reportError(eq("Error retrieving data from table."), refEq(throwable))
     orderVerifier.verify(tableView).stopTableLoading()
