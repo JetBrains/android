@@ -2022,6 +2022,42 @@ class TableControllerTest : PlatformTestCase() {
     verify(tableView, times(1)).startTableLoading()
   }
 
+  fun testViewsAreNotEditable() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (c1 INT); CREATE VIEW my_view AS SELECT * FROM t1",
+      insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
+    )
+    customDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    val schema = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema())
+    val myView = schema.tables.find { it.name == "my_view" }!!
+
+    val tableProvider = object {
+      var table: SqliteTable? = myView
+    }
+
+    tableController = TableController(
+      project,
+      10,
+      tableView,
+      { tableProvider.table },
+      customDatabaseConnection!!,
+      SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(myView)),
+      {},
+      edtExecutor,
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Assert
+    verify(tableView, times(3)).setEditable(false)
+    verify(tableView, times(0)).setEditable(true)
+  }
+
   private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
     // Prepare
     customDatabaseConnection = pumpEventsAndWaitForFuture(

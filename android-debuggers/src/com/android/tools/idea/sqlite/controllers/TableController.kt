@@ -250,7 +250,7 @@ class TableController(
     return future
   }
 
-  private fun isEditable() = tableSupplier() != null && !liveUpdatesEnabled
+  private fun isEditable() = tableSupplier() != null && !liveUpdatesEnabled && !(tableSupplier()?.isView ?: false)
 
   private inner class TableViewListenerImpl : TableView.Listener {
     override fun toggleOrderByColumnInvoked(sqliteColumn: ResultSetSqliteColumn) {
