@@ -214,7 +214,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val debug = buildModel.android().buildTypes()[0]!!
     val debugProperties = debug.declaredProperties
     assertSize(1, debugProperties)
-    verifyPropertyModel(debugProperties[0], STRING_TYPE, "sneaky", REFERENCE, VARIABLE, 0, "var")
+    verifyPropertyModel(debugProperties[0], STRING_TYPE, "sneaky", REFERENCE, VARIABLE, 0, "var1")
 
     // Delete one and edit one to make sure the PsiElements are still valid for these operations.
     extProperties[0].delete()
@@ -665,6 +665,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     verifyPropertyModel(extModel.findProperty("prop1").resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_LIST_DEPENDENCY_WITH_EXISTING_INDEX_REFERENCE_EXPECTED)
 
     verifyPropertyModel(buildModel.ext().findProperty("prop1").resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")
   }
@@ -681,6 +682,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     verifyPropertyModel(extModel.findProperty("prop1").resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1, "prop1")
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_MAP_DEPENDENCY_WITH_EXISTING_KEY_REFERENCE_EXPECTED)
 
     verifyPropertyModel(buildModel.ext().findProperty("prop1").resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1, "prop1")
   }
@@ -696,6 +698,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     verifyPropertyModel(buildModel.ext().findProperty("prop1").resolve(), STRING_TYPE, "boo", STRING, REGULAR, 1, "prop1")
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_QUALIFIED_DEPENDENCY_WITH_EXISTING_REFERENCE_EXPECTED)
 
     verifyPropertyModel(buildModel.ext().findProperty("prop1").resolve(), STRING_TYPE, "boo", STRING, REGULAR, 1, "prop1")
   }
@@ -790,8 +793,11 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     CHANGE_REFERENCE_VALUE_REORDERS_PROPERTIES("changeReferenceValueReordersProperties"),
     CHANGE_REFERENCE_VALUE_REORDERS_PROPERTIES_EXPECTED("changeReferenceValueReordersPropertiesExpected"),
     ADD_LIST_DEPENDENCY_WITH_EXISTING_INDEX_REFERENCE("addListDependencyWithExistingIndexReference"),
+    ADD_LIST_DEPENDENCY_WITH_EXISTING_INDEX_REFERENCE_EXPECTED("addListDependencyWithExistingIndexReferenceExpected"),
     ADD_MAP_DEPENDENCY_WITH_EXISTING_KEY_REFERENCE("addMapDependencyWithExistingKeyReference"),
+    ADD_MAP_DEPENDENCY_WITH_EXISTING_KEY_REFERENCE_EXPECTED("addMapDependencyWithExistingKeyReferenceExpected"),
     ADD_QUALIFIED_DEPENDENCY_WITH_EXISTING_REFERENCE("addQualifiedDependencyWithExistingReference"),
+    ADD_QUALIFIED_DEPENDENCY_WITH_EXISTING_REFERENCE_EXPECTED("addQualifiedDependencyWithExistingReferenceExpected"),
     ADD_EXT_BLOCK_AFTER_APPLY("addExtBlockAfterApply"),
     ADD_EXT_BLOCK_AFTER_APPLY_EXPECTED("addExtBlockAfterApplyExpected"),
     ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES("addExtBlockAfterMultipleApplies"),
