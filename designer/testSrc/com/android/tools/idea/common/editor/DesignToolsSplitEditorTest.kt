@@ -25,6 +25,7 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.LeakHunter
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -72,6 +73,11 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
       }
     }
     CommonUsageTracker.NOP_TRACKER.resetLastTrackedEvent()
+  }
+
+  override fun tearDown() {
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
+    super.tearDown()
   }
 
   fun testTrackingModeChange() {
