@@ -105,7 +105,7 @@ class NewAndroidModuleModel(
   template,
   moduleParent
 ) {
-  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
+  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder, true)
   override val renderer = ModuleTemplateRenderer()
 
   init {

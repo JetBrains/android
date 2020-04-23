@@ -225,12 +225,11 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     overridePathCheck = true // To disable android plugin checking for ascii in paths (windows tests)
   }
 
-  return ModuleTemplateDataBuilder(projectStateBuilder).apply {
+  return ModuleTemplateDataBuilder(projectStateBuilder, true).apply {
     name = "Template test module"
     packageName = defaultPackage
     val paths = createDefaultTemplateAt(project.basePath!!, name!!).paths
     setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
-    isNew = true
     isLibrary = false
     formFactor = FormFactor.Mobile // FIXME
     themesData = ThemesData()
