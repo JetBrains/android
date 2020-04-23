@@ -214,4 +214,10 @@ class UtilsTest : LightPlatformTestCase() {
     assertEquals(SqliteStatementType.INSERT, getSqliteStatementType(project, "INSERT INTO tab VALUES (42)"))
     assertEquals(SqliteStatementType.UNKNOWN, getSqliteStatementType(project, "SELECT * FROM t1; EXPLAIN SELECT * FROM t1;"))
   }
+
+  fun testRemoveTrailingSemicolon() {
+    assertEquals("SELECT * FROM t1", removeTrailingSemicolon(project, "SELECT * FROM t1"))
+    assertEquals("SELECT * FROM t1", removeTrailingSemicolon(project, "SELECT * FROM t1;"))
+    assertEquals("SELECT * FROM t1; SELECT * FROM t2", removeTrailingSemicolon(project, "SELECT * FROM t1; SELECT * FROM t2;"))
+  }
 }
