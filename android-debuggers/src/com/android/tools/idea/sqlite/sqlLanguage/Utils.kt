@@ -40,6 +40,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import java.util.Deque
 
@@ -177,6 +178,17 @@ fun getSqliteStatementType(project: Project, sqliteStatement: String): SqliteSta
     PsiTreeUtil.getChildOfType(psiFile, AndroidSqlUpdateStatement::class.java) != null -> SqliteStatementType.UPDATE
     else -> SqliteStatementType.UNKNOWN
   }
+}
+
+/**
+ * Removes a semicolon from the end of [sqliteStatement], if present, and returns a new string.
+ */
+fun removeTrailingSemicolon(project: Project, sqliteStatement: String): String {
+  val psiElement = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatement)
+  if (psiElement.lastChild.elementType == AndroidSqlPsiTypes.SEMICOLON) {
+    psiElement.node.removeChild(psiElement.lastChild.node)
+  }
+  return psiElement.text
 }
 
 private fun parentIsInExpression(bindParameter: AndroidSqlBindParameter): Boolean {
