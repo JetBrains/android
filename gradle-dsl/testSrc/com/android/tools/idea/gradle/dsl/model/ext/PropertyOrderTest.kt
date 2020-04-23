@@ -15,55 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext
 
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ABOVE_EXT
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ABOVE_EXT_QUALIFIED_REFERENCE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ADD_EXT_BLOCK_AFTER_APPLY
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ADD_EXT_BLOCK_AFTER_APPLY_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ADD_EXT_BLOCK_TO_TOP
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ADD_EXT_BLOCK_TO_TOP_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ADD_LIST_DEPENDENCY_WITH_EXISTING_INDEX_REFERENCE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ADD_MAP_DEPENDENCY_WITH_EXISTING_KEY_REFERENCE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ADD_PROPERTIES_TO_EMPTY_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ADD_PROPERTY_WITH_EXISTING_DEPENDENCY
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ADD_PROPERTY_WITH_EXISTING_DEPENDENCY_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_ADD_QUALIFIED_DEPENDENCY_WITH_EXISTING_REFERENCE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CHANGE_REFERENCE_VALUE_REORDERS_PROPERTIES
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CHANGE_REFERENCE_VALUE_REORDERS_PROPERTIES_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CHANGE_VALUE_TO_OUT_OF_SCOPE_REF
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CHANGE_VALUE_TO_OUT_OF_SCOPE_REF_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CREATE_BLOCK_ELEMENT
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CREATE_BLOCK_ELEMENT_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CREATE_PROPERTY_MIDDLE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CREATE_PROPERTY_MIDDLE_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CREATE_PROPERTY_START_AND_END
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CREATE_PROPERTY_START_AND_END_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CREATE_THEN_MOVE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CREATE_THEN_MOVE_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CREATE_THEN_MOVE_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_CREATE_THEN_MOVE_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_DIRECT_REFERENCE_EXT_CORRECT_ORDER
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_EDIT_BEFORE_MOVE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_EDIT_BEFORE_MOVE_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_EXT_REFERENCE_TO_VAR
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_MOVE_BASIC_STATEMENT
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_MOVE_BASIC_STATEMENT_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_MOVE_BASIC_WITH_COMMENTS
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_MOVE_BASIC_WITH_COMMENTS_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_MOVE_BEFORE_EDIT
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_MOVE_BEFORE_EDIT_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_MOVE_BLOCK_STATEMENT
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_MOVE_BLOCK_STATEMENT_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_MOVE_BLOCK_STATEMENT_EXPECTED_TWO
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_MOVE_BLOCK_WITH_UNPARSED_CONTENT
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_MOVE_BLOCK_WITH_UNPARSED_CONTENT_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_MOVE_COMMENTS_IN_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_MOVE_COMMENTS_IN_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_RENAME_REORDERS_PROPERTIES
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_RENAME_REORDERS_PROPERTIES_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_RESOLVE_TO_LAST_PROPERTY
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_ORDER_WRONG_ORDER_NO_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
@@ -85,8 +37,10 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import org.jetbrains.annotations.SystemDependent
 import org.junit.Ignore
 import org.junit.Test
+import java.io.File
 
 class PropertyOrderTest : GradleFileModelTestCase() {
   private fun GradleDslModel.dslElement(): GradlePropertiesDslElement {
@@ -149,13 +103,13 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_ADD_PROPERTIES_TO_EMPTY_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.ADD_PROPERTIES_TO_EMPTY_EXPECTED)
     verify()
   }
 
   @Test
   fun testCreatePropertyMiddle() {
-    writeToBuildFile(PROPERTY_ORDER_CREATE_PROPERTY_MIDDLE)
+    writeToBuildFile(TestFile.CREATE_PROPERTY_MIDDLE)
 
     val buildModel = gradleBuildModel
 
@@ -175,13 +129,13 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_CREATE_PROPERTY_MIDDLE_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.CREATE_PROPERTY_MIDDLE_EXPECTED)
     verify()
   }
 
   @Test
   fun testCreatePropertyStartAndEnd() {
-    writeToBuildFile(PROPERTY_ORDER_CREATE_PROPERTY_START_AND_END)
+    writeToBuildFile(TestFile.CREATE_PROPERTY_START_AND_END)
 
     val buildModel = gradleBuildModel
 
@@ -204,13 +158,13 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_CREATE_PROPERTY_START_AND_END_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.CREATE_PROPERTY_START_AND_END_EXPECTED)
     verify()
   }
 
   @Test
   fun testCreateBlockElement() {
-    writeToBuildFile(PROPERTY_ORDER_CREATE_BLOCK_ELEMENT)
+    writeToBuildFile(TestFile.CREATE_BLOCK_ELEMENT)
 
     val buildModel = gradleBuildModel
     val dslElement = buildModel.ext().dslElement()
@@ -234,12 +188,12 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     dslElement.addNewElementAt(1, middleBlock)
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_CREATE_BLOCK_ELEMENT_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.CREATE_BLOCK_ELEMENT_EXPECTED)
   }
 
   @Test
   fun testMoveBlockStatement() {
-    writeToBuildFile(PROPERTY_ORDER_MOVE_BLOCK_STATEMENT)
+    writeToBuildFile(TestFile.MOVE_BLOCK_STATEMENT)
 
     val buildModel = gradleBuildModel
     val extElement = buildModel.ext().dslElement()
@@ -249,7 +203,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_MOVE_BLOCK_STATEMENT_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.MOVE_BLOCK_STATEMENT_EXPECTED)
 
     // Check that the build model still works.
     val ext = buildModel.ext()
@@ -274,12 +228,12 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
 
     // Check the resulting file again.
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_MOVE_BLOCK_STATEMENT_EXPECTED_TWO)
+    verifyFileContents(myBuildFile, TestFile.MOVE_BLOCK_STATEMENT_EXPECTED_TWO)
   }
 
   @Test
   fun testMoveBasicStatement() {
-    writeToBuildFile(PROPERTY_ORDER_MOVE_BASIC_STATEMENT)
+    writeToBuildFile(TestFile.MOVE_BASIC_STATEMENT)
 
     val buildModel = gradleBuildModel
     val extElement = buildModel.ext().dslElement()
@@ -311,13 +265,13 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_MOVE_BASIC_STATEMENT_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.MOVE_BASIC_STATEMENT_EXPECTED)
     verify()
   }
 
   @Test
   fun testCreateThenMoveBlock() {
-    writeToBuildFile(PROPERTY_ORDER_CREATE_THEN_MOVE_BLOCK)
+    writeToBuildFile(TestFile.CREATE_THEN_MOVE_BLOCK)
 
     val buildModel = gradleBuildModel
 
@@ -332,12 +286,12 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_CREATE_THEN_MOVE_BLOCK_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.CREATE_THEN_MOVE_BLOCK_EXPECTED)
   }
 
   @Test
   fun testCreateThenMove() {
-    writeToBuildFile(PROPERTY_ORDER_CREATE_THEN_MOVE)
+    writeToBuildFile(TestFile.CREATE_THEN_MOVE)
 
     val buildModel = gradleBuildModel
     val extElement = buildModel.ext().dslElement()
@@ -357,12 +311,12 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     extElement.moveElementTo(1, elementMap["prop1"]!!)
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_CREATE_THEN_MOVE_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.CREATE_THEN_MOVE_EXPECTED)
   }
 
   @Test
   fun testEditBeforeMove() {
-    writeToBuildFile(PROPERTY_ORDER_EDIT_BEFORE_MOVE)
+    writeToBuildFile(TestFile.EDIT_BEFORE_MOVE)
 
     val buildModel = gradleBuildModel
 
@@ -384,12 +338,12 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     extElement.moveElementTo(0, extElementMap["prop3"]!!)
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_EDIT_BEFORE_MOVE_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.EDIT_BEFORE_MOVE_EXPECTED)
   }
 
   @Test
   fun testMoveBeforeEdit() {
-    writeToBuildFile(PROPERTY_ORDER_MOVE_BEFORE_EDIT)
+    writeToBuildFile(TestFile.MOVE_BEFORE_EDIT)
 
     val buildModel = gradleBuildModel
 
@@ -409,12 +363,12 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     secondModel.setValue(true)
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_MOVE_BEFORE_EDIT_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.MOVE_BEFORE_EDIT_EXPECTED)
   }
 
   @Test
   fun testMoveCommentsInBlock() {
-    writeToBuildFile(PROPERTY_ORDER_MOVE_COMMENTS_IN_BLOCK)
+    writeToBuildFile(TestFile.MOVE_COMMENTS_IN_BLOCK)
 
     val buildModel = gradleBuildModel
 
@@ -425,13 +379,13 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     fileElement.moveElementTo(1, extElement)
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_MOVE_COMMENTS_IN_BLOCK_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.MOVE_COMMENTS_IN_BLOCK_EXPECTED)
   }
 
   @Ignore("Comments don't get moved with the line they are on")
   @Test
   fun testMoveBasicWithComments() {
-    writeToBuildFile(PROPERTY_ORDER_MOVE_BASIC_WITH_COMMENTS)
+    writeToBuildFile(TestFile.MOVE_BASIC_WITH_COMMENTS)
 
     val buildModel = gradleBuildModel
     val extElement = buildModel.ext().dslElement()
@@ -455,13 +409,13 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     verify()
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_MOVE_BASIC_WITH_COMMENTS_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.MOVE_BASIC_WITH_COMMENTS_EXPECTED)
     verify()
   }
 
   @Test
   fun testMoveBlockWithUnparsedContent() {
-    writeToBuildFile(PROPERTY_ORDER_MOVE_BLOCK_WITH_UNPARSED_CONTENT)
+    writeToBuildFile(TestFile.MOVE_BLOCK_WITH_UNPARSED_CONTENT)
 
     val buildModel = gradleBuildModel
     val extElement = buildModel.ext().dslElement()
@@ -479,12 +433,12 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     extElement.moveElementTo(4, extElementMap["var"]!!)
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_MOVE_BLOCK_WITH_UNPARSED_CONTENT_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.MOVE_BLOCK_WITH_UNPARSED_CONTENT_EXPECTED)
   }
 
   @Test
   fun testWrongOrderNoDependency() {
-    writeToBuildFile(PROPERTY_ORDER_WRONG_ORDER_NO_DEPENDENCY)
+    writeToBuildFile(TestFile.WRONG_ORDER_NO_DEPENDENCY)
 
     val buildModel = gradleBuildModel
     run {
@@ -497,7 +451,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testDirectReferenceExtCorrectOrder() {
-    writeToBuildFile(PROPERTY_ORDER_DIRECT_REFERENCE_EXT_CORRECT_ORDER)
+    writeToBuildFile(TestFile.DIRECT_REFERENCE_EXT_CORRECT_ORDER)
 
     val buildModel = gradleBuildModel
     val propertyModel = buildModel.android().defaultConfig().minSdkVersion()
@@ -506,7 +460,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testAboveExt() {
-    writeToBuildFile(PROPERTY_ORDER_ABOVE_EXT)
+    writeToBuildFile(TestFile.ABOVE_EXT)
 
     val buildModel = gradleBuildModel
 
@@ -519,7 +473,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testAboveExtQualifiedReference() {
-    writeToBuildFile(PROPERTY_ORDER_ABOVE_EXT_QUALIFIED_REFERENCE)
+    writeToBuildFile(TestFile.ABOVE_EXT_QUALIFIED_REFERENCE)
 
     val buildModel = gradleBuildModel
 
@@ -532,7 +486,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testResolveToLastProperty() {
-    writeToBuildFile(PROPERTY_ORDER_RESOLVE_TO_LAST_PROPERTY)
+    writeToBuildFile(TestFile.RESOLVE_TO_LAST_PROPERTY)
 
     val buildModel = gradleBuildModel
     val configModel = buildModel.android().signingConfigs()[0]!!
@@ -545,7 +499,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddPropertyWithExistingDependency() {
-    writeToBuildFile(PROPERTY_ORDER_ADD_PROPERTY_WITH_EXISTING_DEPENDENCY)
+    writeToBuildFile(TestFile.ADD_PROPERTY_WITH_EXISTING_DEPENDENCY)
 
     val buildModel = gradleBuildModel
 
@@ -575,12 +529,12 @@ class PropertyOrderTest : GradleFileModelTestCase() {
       verifyPropertyModel(afterPropModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop2")
     }
 
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_ADD_PROPERTY_WITH_EXISTING_DEPENDENCY_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.ADD_PROPERTY_WITH_EXISTING_DEPENDENCY_EXPECTED)
   }
 
   @Test
   fun testChangeValueToOutOfScopeRef() {
-    writeToBuildFile(PROPERTY_ORDER_CHANGE_VALUE_TO_OUT_OF_SCOPE_REF)
+    writeToBuildFile(TestFile.CHANGE_VALUE_TO_OUT_OF_SCOPE_REF)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -609,12 +563,12 @@ class PropertyOrderTest : GradleFileModelTestCase() {
       verifyPropertyModel(thirdPropertyModel.resolve(), INTEGER_TYPE, 24, INTEGER, REGULAR, 1, "prop2")
     }
 
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_CHANGE_VALUE_TO_OUT_OF_SCOPE_REF_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.CHANGE_VALUE_TO_OUT_OF_SCOPE_REF_EXPECTED)
   }
 
   @Test
   fun testRenameReordersProperties() {
-    writeToBuildFile(PROPERTY_ORDER_RENAME_REORDERS_PROPERTIES)
+    writeToBuildFile(TestFile.RENAME_REORDERS_PROPERTIES)
 
     val buildModel = gradleBuildModel
 
@@ -643,12 +597,12 @@ class PropertyOrderTest : GradleFileModelTestCase() {
       verifyPropertyModel(thirdPropertyModel.resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1, "prop2")
     }
 
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_RENAME_REORDERS_PROPERTIES_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.RENAME_REORDERS_PROPERTIES_EXPECTED)
   }
 
   @Test
   fun testChangeReferenceValueReordersProperties() {
-    writeToBuildFile(PROPERTY_ORDER_CHANGE_REFERENCE_VALUE_REORDERS_PROPERTIES)
+    writeToBuildFile(TestFile.CHANGE_REFERENCE_VALUE_REORDERS_PROPERTIES)
 
     val buildModel = gradleBuildModel
 
@@ -696,12 +650,12 @@ class PropertyOrderTest : GradleFileModelTestCase() {
       verifyPropertyModel(seventhPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop6")
     }
 
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_CHANGE_REFERENCE_VALUE_REORDERS_PROPERTIES_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.CHANGE_REFERENCE_VALUE_REORDERS_PROPERTIES_EXPECTED)
   }
 
   @Test
   fun testAddListDependencyWithExistingIndexReference() {
-    writeToBuildFile(PROPERTY_ORDER_ADD_LIST_DEPENDENCY_WITH_EXISTING_INDEX_REFERENCE)
+    writeToBuildFile(TestFile.ADD_LIST_DEPENDENCY_WITH_EXISTING_INDEX_REFERENCE)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -717,7 +671,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddMapDependencyWithExistingKeyReference() {
-    writeToBuildFile(PROPERTY_ORDER_ADD_MAP_DEPENDENCY_WITH_EXISTING_KEY_REFERENCE)
+    writeToBuildFile(TestFile.ADD_MAP_DEPENDENCY_WITH_EXISTING_KEY_REFERENCE)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -733,7 +687,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddQualifiedDependencyWithExistingReference() {
-    writeToBuildFile(PROPERTY_ORDER_ADD_QUALIFIED_DEPENDENCY_WITH_EXISTING_REFERENCE)
+    writeToBuildFile(TestFile.ADD_QUALIFIED_DEPENDENCY_WITH_EXISTING_REFERENCE)
 
     val buildModel = gradleBuildModel
     val newPropertyModel = buildModel.ext().findProperty("prop")
@@ -748,7 +702,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddExtBlockAfterApply() {
-    writeToBuildFile(PROPERTY_ORDER_ADD_EXT_BLOCK_AFTER_APPLY)
+    writeToBuildFile(TestFile.ADD_EXT_BLOCK_AFTER_APPLY)
 
     val buildModel = gradleBuildModel
 
@@ -756,12 +710,12 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_ADD_EXT_BLOCK_AFTER_APPLY_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.ADD_EXT_BLOCK_AFTER_APPLY_EXPECTED)
   }
 
   @Test
   fun testAddExtBlockAfterMultipleApplies() {
-    writeToBuildFile(PROPERTY_ORDER_ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES)
+    writeToBuildFile(TestFile.ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES)
 
     val buildModel = gradleBuildModel
 
@@ -769,12 +723,12 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES_EXPECTED)
   }
 
   @Test
   fun testAddExtBlockToTop() {
-    writeToBuildFile(PROPERTY_ORDER_ADD_EXT_BLOCK_TO_TOP)
+    writeToBuildFile(TestFile.ADD_EXT_BLOCK_TO_TOP)
 
     val buildModel = gradleBuildModel
 
@@ -782,16 +736,73 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    verifyFileContents(myBuildFile, PROPERTY_ORDER_ADD_EXT_BLOCK_TO_TOP_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.ADD_EXT_BLOCK_TO_TOP_EXPECTED)
   }
 
   @Test
   fun testExtReferenceToVar() {
-    writeToBuildFile(PROPERTY_ORDER_EXT_REFERENCE_TO_VAR)
+    writeToBuildFile(TestFile.EXT_REFERENCE_TO_VAR)
 
     val buildModel = gradleBuildModel
 
     val propertyModel = buildModel.ext().findProperty("value")
     verifyPropertyModel(propertyModel.resolve(), STRING_TYPE, "com.android.support:appcompat-v7:1.0", STRING, REGULAR, 1)
+  }
+
+  enum class TestFile(val path: @SystemDependent String): TestFileName {
+    ADD_PROPERTIES_TO_EMPTY_EXPECTED("addPropertiesToEmptyExpected"),
+    CREATE_PROPERTY_MIDDLE("createPropertyMiddle"),
+    CREATE_PROPERTY_MIDDLE_EXPECTED("createPropertyMiddleExpected"),
+    CREATE_PROPERTY_START_AND_END("createPropertyStartAndEnd"),
+    CREATE_PROPERTY_START_AND_END_EXPECTED("createPropertyStartAndEndExpected"),
+    CREATE_BLOCK_ELEMENT("createBlockElement"),
+    CREATE_BLOCK_ELEMENT_EXPECTED("createBlockElementExpected"),
+    MOVE_BLOCK_STATEMENT("moveBlockStatement"),
+    MOVE_BLOCK_STATEMENT_EXPECTED("moveBlockStatementExpected"),
+    MOVE_BLOCK_STATEMENT_EXPECTED_TWO("moveBlockStatementExpectedTwo"),
+    MOVE_BASIC_STATEMENT("moveBasicStatement"),
+    MOVE_BASIC_STATEMENT_EXPECTED("moveBasicStatementExpected"),
+    CREATE_THEN_MOVE_BLOCK("createThenMoveBlock"),
+    CREATE_THEN_MOVE_BLOCK_EXPECTED("createThenMoveBlockExpected"),
+    CREATE_THEN_MOVE("createThenMove"),
+    CREATE_THEN_MOVE_EXPECTED("createThenMoveExpected"),
+    EDIT_BEFORE_MOVE("editBeforeMove"),
+    EDIT_BEFORE_MOVE_EXPECTED("editBeforeMoveExpected"),
+    MOVE_BEFORE_EDIT("moveBeforeEdit"),
+    MOVE_BEFORE_EDIT_EXPECTED("moveBeforeEditExpected"),
+    MOVE_COMMENTS_IN_BLOCK("moveCommentsInBlock"),
+    MOVE_COMMENTS_IN_BLOCK_EXPECTED("moveCommentsInBlockExpected"),
+    MOVE_BASIC_WITH_COMMENTS("moveBasicWithComments"),
+    MOVE_BASIC_WITH_COMMENTS_EXPECTED("moveBasicWithCommentsExpected"),
+    MOVE_BLOCK_WITH_UNPARSED_CONTENT("moveBlockWithUnparsedContent"),
+    MOVE_BLOCK_WITH_UNPARSED_CONTENT_EXPECTED("moveBlockWithUnparsedContentExpected"),
+    WRONG_ORDER_NO_DEPENDENCY("wrongOrderNoDependency"),
+    DIRECT_REFERENCE_EXT_CORRECT_ORDER("directReferenceExtCorrectOrder"),
+    ABOVE_EXT("aboveExt"),
+    ABOVE_EXT_QUALIFIED_REFERENCE("aboveExtQualifiedReference"),
+    RESOLVE_TO_LAST_PROPERTY("resolveToLastProperty"),
+    ADD_PROPERTY_WITH_EXISTING_DEPENDENCY("addPropertyWithExistingDependency"),
+    ADD_PROPERTY_WITH_EXISTING_DEPENDENCY_EXPECTED("addPropertyWithExistingDependencyExpected"),
+    CHANGE_VALUE_TO_OUT_OF_SCOPE_REF("changeValueToOutOfScopeRef"),
+    CHANGE_VALUE_TO_OUT_OF_SCOPE_REF_EXPECTED("changeValueToOutOfScopeRefExpected"),
+    RENAME_REORDERS_PROPERTIES("renameReordersProperties"),
+    RENAME_REORDERS_PROPERTIES_EXPECTED("renameReordersPropertiesExpected"),
+    CHANGE_REFERENCE_VALUE_REORDERS_PROPERTIES("changeReferenceValueReordersProperties"),
+    CHANGE_REFERENCE_VALUE_REORDERS_PROPERTIES_EXPECTED("changeReferenceValueReordersPropertiesExpected"),
+    ADD_LIST_DEPENDENCY_WITH_EXISTING_INDEX_REFERENCE("addListDependencyWithExistingIndexReference"),
+    ADD_MAP_DEPENDENCY_WITH_EXISTING_KEY_REFERENCE("addMapDependencyWithExistingKeyReference"),
+    ADD_QUALIFIED_DEPENDENCY_WITH_EXISTING_REFERENCE("addQualifiedDependencyWithExistingReference"),
+    ADD_EXT_BLOCK_AFTER_APPLY("addExtBlockAfterApply"),
+    ADD_EXT_BLOCK_AFTER_APPLY_EXPECTED("addExtBlockAfterApplyExpected"),
+    ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES("addExtBlockAfterMultipleApplies"),
+    ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES_EXPECTED("addExtBlockAfterMultipleAppliesExpected"),
+    ADD_EXT_BLOCK_TO_TOP("addExtBlockToTop"),
+    ADD_EXT_BLOCK_TO_TOP_EXPECTED("addExtBlockToTopExpected"),
+    EXT_REFERENCE_TO_VAR("extReferenceToVar"),
+    ;
+
+    override fun toFile(basePath: @SystemDependent String, extension: String): File {
+      return super.toFile("$basePath/propertyOrder/$path", extension)
+    }
   }
 }
