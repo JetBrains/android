@@ -67,9 +67,11 @@ class ConfigureAndroidModuleStep(
       languageCombo()
     }
 
-    row {
-      labelFor("Bytecode Level", bytecodeCombo)
-      bytecodeCombo()
+    if (model.isLibrary) {
+      row {
+        labelFor("Bytecode Level", bytecodeCombo)
+        bytecodeCombo()
+      }
     }
 
     row {
