@@ -102,6 +102,10 @@ class SqliteEvaluatorController(
     return execute(database, sqliteStatement)
   }
 
+  fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: String): ListenableFuture<Unit> {
+    return evaluateSqlStatement(database, createSqliteStatement(project, sqliteStatement))
+  }
+
   private fun execute(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     resetTable()
 
@@ -155,7 +159,7 @@ class SqliteEvaluatorController(
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
       )
 
-      evaluateSqlStatement(database, createSqliteStatement(project, sqliteStatement))
+      evaluateSqlStatement(database, sqliteStatement)
     }
   }
 

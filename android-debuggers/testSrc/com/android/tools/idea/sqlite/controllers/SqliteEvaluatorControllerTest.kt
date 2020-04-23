@@ -20,17 +20,24 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureCancellation
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
+import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
+import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockSqliteEvaluatorView
 import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteAffinity
+import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
+import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.google.common.util.concurrent.Futures
@@ -39,8 +46,10 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
+import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
@@ -56,6 +65,9 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
   private lateinit var sqliteEvaluatorController: SqliteEvaluatorController
   private lateinit var sqliteDatabase: SqliteDatabase
   private lateinit var viewFactory: MockDatabaseInspectorViewsFactory
+
+  private lateinit var sqliteUtil: SqliteTestUtil
+  private var realDatabaseConnection: DatabaseConnection? = null
 
   override fun setUp() {
     super.setUp()
@@ -74,6 +86,22 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     Disposer.register(testRootDisposable, sqliteEvaluatorController)
 
     sqliteDatabase = LiveSqliteDatabase("db", mockDatabaseConnection)
+
+    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    sqliteUtil.setUp()
+  }
+
+  override fun tearDown() {
+    try {
+      if (realDatabaseConnection != null) {
+        pumpEventsAndWaitForFuture(realDatabaseConnection!!.close())
+      }
+
+      sqliteUtil.tearDown()
+    }
+    finally {
+      super.tearDown()
+    }
   }
 
   fun testSetUp() {
@@ -409,6 +437,73 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     // Assert
     verify(sqliteEvaluatorView.tableView).showTableColumns(mockSqliteResultSet1._columns)
     verify(sqliteEvaluatorView.tableView, times(2)).showTableColumns(mockSqliteResultSet2._columns)
+  }
+
+  fun testRunSelectStatementWithSemicolon() {
+    val sqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      "db",
+      "create table t1 (c1 int)",
+      "insert into t1 values (42)"
+    )
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+    val sqliteDatabase = LiveSqliteDatabase("db", realDatabaseConnection!!)
+    val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
+    sqliteEvaluatorController.addDatabase(sqliteDatabase, 0)
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, "SELECT * FROM t1;"))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(sqliteEvaluatorView).showSqliteStatement("SELECT * FROM t1;")
+    verify(sqliteEvaluatorView.tableView).showTableColumns(listOf(ResultSetSqliteColumn("c1", SqliteAffinity.INTEGER, true, false)))
+    verify(sqliteEvaluatorView.tableView).updateRows(listOf(RowDiffOperation.AddRow(sqliteRow)))
+  }
+
+  fun testRunInsertStatementWithSemicolon() {
+    val sqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      "db",
+      "create table t1 (c1 int)",
+      "insert into t1 values (42)"
+    )
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+    val sqliteDatabase = LiveSqliteDatabase("db", realDatabaseConnection!!)
+    sqliteEvaluatorController.addDatabase(sqliteDatabase, 0)
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, "INSERT INTO t1 VALUES (0);"))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(sqliteEvaluatorView).showSqliteStatement("INSERT INTO t1 VALUES (0);")
+    verify(sqliteEvaluatorView.tableView).setEmptyText("The statement was run successfully.")
+  }
+
+  fun testRunSelectStatementWithoutSemicolon() {
+    val sqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      "db",
+      "create table t1 (c1 int)",
+      "insert into t1 values (42)"
+    )
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+    val sqliteDatabase = LiveSqliteDatabase("db", realDatabaseConnection!!)
+    val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
+    sqliteEvaluatorController.addDatabase(sqliteDatabase, 0)
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, "SELECT * FROM t1"))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(sqliteEvaluatorView).showSqliteStatement("SELECT * FROM t1")
+    verify(sqliteEvaluatorView.tableView).showTableColumns(listOf(ResultSetSqliteColumn("c1", SqliteAffinity.INTEGER, true, false)))
+    verify(sqliteEvaluatorView.tableView).updateRows(listOf(RowDiffOperation.AddRow(sqliteRow)))
   }
 
   private fun evaluateSqlActionFailure(sqliteStatementType: SqliteStatementType, sqliteStatement: String) {
