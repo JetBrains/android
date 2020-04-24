@@ -387,7 +387,7 @@ public class LightBindingClass extends AndroidLightClassBase {
       return;
     }
 
-    String javaName = DataBindingUtil.convertToJavaFieldName(variable.getName());
+    String javaName = DataBindingUtil.convertVariableNameToJavaFieldName(variable.getName());
     String capitalizedName = StringUtil.capitalize(javaName);
     LightMethodBuilder setter = createPublicMethod("set" + capitalizedName, PsiType.VOID);
     setter.addParameter(javaName, type);
@@ -519,7 +519,7 @@ public class LightBindingClass extends AndroidLightClassBase {
 
   @Nullable
   private PsiField createPsiField(@NotNull ViewIdData viewIdData, boolean isNonNull) {
-    String name = DataBindingUtil.convertToJavaFieldName(viewIdData.getId());
+    String name = DataBindingUtil.convertAndroidIdToJavaFieldName(viewIdData.getId());
     PsiType type = LayoutBindingTypeUtil.resolveViewPsiType(viewIdData, this);
     if (type == null) {
       return null;
