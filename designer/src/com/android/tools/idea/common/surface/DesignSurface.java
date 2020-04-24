@@ -131,6 +131,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     input -> input != null && FILTER_DISPOSED_MODELS.apply(input.getModel());
 
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10;
+  private static final Integer LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10;
 
   private final Project myProject;
 
@@ -138,6 +139,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull protected final JScrollPane myScrollPane;
   @NotNull private final JLayeredPane myLayeredPane;
   @NotNull private final SceneViewPanel mySceneViewPanel;
+  @NotNull private final MouseClickDisplayPanel myMouseClickDisplayPanel;
   @VisibleForTesting
   private final InteractionManager myInteractionManager;
   protected final List<DesignSurfaceListener> myListeners = new ArrayList<>();
@@ -277,19 +279,23 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myScrollPane.getVerticalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
     myScrollPane.getViewport().setBackground(getBackground());
 
+    myMouseClickDisplayPanel = new MouseClickDisplayPanel(this);
+
     // Setup the layers for the DesignSurface
     // We use three layers:
     //
     // 1. ScrollPane layer: Layer that contains the ScreenViews and does all the rendering, including the interaction layers.
     // 2. Progress layer: Displays the progress icon while a rendering is happening
-    // 3. Zoom controls layer: Used to display the zoom controls of the surface
+    // 3. Mouse click display layer: It allows displaying clicks on the surface with a translucent bubble
+    // 4. Zoom controls layer: Used to display the zoom controls of the surface
     //
-    // (3) sits at the top of the stack so is the first one to receive events like clicks.
+    // (4) sits at the top of the stack so is the first one to receive events like clicks.
     myLayeredPane = new JLayeredPane();
     myLayeredPane.setLayout(new MatchParentLayoutManager());
     myLayeredPane.setFocusable(true);
     myLayeredPane.add(myScrollPane, JLayeredPane.POPUP_LAYER);
     myLayeredPane.add(myProgressPanel, LAYER_PROGRESS);
+    myLayeredPane.add(myMouseClickDisplayPanel, LAYER_MOUSE_CLICK);
     myLayeredPane.add(myZoomControlsLayerPane, JLayeredPane.DRAG_LAYER);
 
     myIssuePanel = new IssuePanel(this, myIssueModel);
@@ -1747,5 +1753,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     Dimension size = view.getScaledContentSize();
     Rectangle place = new Rectangle(view.getX(), view.getY(), size.width, size.height);
     return place.intersects(myScrollPane.getViewport().getViewRect());
+  }
+
+  /**
+   * Enables the mouse click display. If enabled, the clicks of the user are displayed in the surface.
+   */
+  public void enableMouseClickDisplay() {
+    myMouseClickDisplayPanel.setEnabled(true);
+  }
+
+  /**
+   * Disables the mouse click display.
+   */
+  public void disableMouseClickDisplay() {
+    myMouseClickDisplayPanel.setEnabled(false);
   }
 }

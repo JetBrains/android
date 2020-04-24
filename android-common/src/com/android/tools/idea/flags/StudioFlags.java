@@ -907,6 +907,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK = Flag.create(
+    COMPOSE, "preview.animated.click.enable",
+    "Enable displaying clicks on the animated preview",
+    "If enabled, clicking on the animated preview will generate a ripple",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = Flag.create(
     COMPOSE, "preview.debug.bounds",
     "Enable the debug bounds switch controls",
