@@ -24,6 +24,7 @@ import com.android.tools.idea.npw.project.getSourceProvider
 import com.android.tools.idea.npw.template.components.CheckboxProvider
 import com.android.tools.idea.npw.template.components.ComponentProvider
 import com.android.tools.idea.npw.template.components.EnumComboProvider
+import com.android.tools.idea.npw.template.components.LabelFieldProvider
 import com.android.tools.idea.npw.template.components.LabelWithEditButtonProvider
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvider
@@ -63,6 +64,7 @@ import com.android.tools.idea.wizard.template.Constraint.STRING
 import com.android.tools.idea.wizard.template.Constraint.URI_AUTHORITY
 import com.android.tools.idea.wizard.template.EnumParameter
 import com.android.tools.idea.wizard.template.EnumWidget
+import com.android.tools.idea.wizard.template.LabelWidget
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.LanguageWidget
 import com.android.tools.idea.wizard.template.PackageNameWidget
@@ -270,6 +272,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
    */
   private fun createRowForWidget(module: Module?, widget: Widget<*>): RowEntry<*> = when (widget) {
     is TextFieldWidget -> RowEntry(widget.p.name, TextFieldProvider(widget.parameter))
+    is LabelWidget -> RowEntry(LabelFieldProvider(widget.text))
     is LanguageWidget -> RowEntry(message("android.wizard.language.combo.header"), LanguageComboProvider()).also {
       val language = (it.property as SelectedItemProperty<Language>)
       bindings.bindTwoWay(language, model.language)
