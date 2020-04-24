@@ -28,7 +28,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <lang.documentationProvider language="kotlin" implementationClass="com.android.tools.idea.compose.documentation.ComposeDocumentationProvider" order="first"/>
 
-    <fileEditorProvider implementation="com.android.tools.idea.compose.preview.ComposeFileEditorProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationProvider" />
 
     <!--
