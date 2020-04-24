@@ -254,12 +254,12 @@ b/154963231 */
     }
 
     fun applySettings(settings: ProjectViewSettings) {
-      ProjectView.getInstance(project).apply {
+      ProjectView.getInstance(this).apply {
         setHideEmptyPackages(AndroidProjectViewPane.ID, settings.hideEmptyPackages)
       }
     }
 
-    fun getCurrentSettings(): ProjectViewSettings = ProjectView.getInstance(project).let { view ->
+    fun getCurrentSettings(): ProjectViewSettings = ProjectView.getInstance(this).let { view ->
       ProjectViewSettings(hideEmptyPackages = view.isHideEmptyMiddlePackages(AndroidProjectViewPane.ID))
     }
 
