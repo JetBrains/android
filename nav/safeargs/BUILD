@@ -58,6 +58,7 @@ iml_module(
         "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs[module, test]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/idea/.idea/libraries:protobuf[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
@@ -66,7 +67,10 @@ iml_module(
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
+        "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module, test]",
+        "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
     ],
 )
 
@@ -119,9 +123,12 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/idea/.idea/libraries:NanoXML",
         "//tools/idea/.idea/libraries:jcip",
         "//tools/idea/.idea/libraries:Guava",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 
