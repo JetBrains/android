@@ -47,4 +47,6 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
   override fun getSqliteStatement(): String { TODO("not implemented") }
 
   override fun schemaChanged(database: SqliteDatabase) { }
+
+  override fun setRunSqliteStatementEnabled(enabled: Boolean) { }
 }

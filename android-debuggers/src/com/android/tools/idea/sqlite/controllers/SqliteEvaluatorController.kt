@@ -24,6 +24,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.createSqliteStatement
+import com.android.tools.idea.sqlite.sqlLanguage.hasParsingError
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.Futures
@@ -160,6 +161,10 @@ class SqliteEvaluatorController(
       )
 
       evaluateSqlStatement(database, sqliteStatement)
+    }
+
+    override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
+      view.setRunSqliteStatementEnabled(!hasParsingError(project, newSqliteStatement))
     }
   }
 

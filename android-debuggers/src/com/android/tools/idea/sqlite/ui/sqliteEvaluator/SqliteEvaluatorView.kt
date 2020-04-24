@@ -67,10 +67,20 @@ interface SqliteEvaluatorView {
    */
   fun schemaChanged(database: SqliteDatabase)
 
+  /**
+   * Toggles on and off the ability to run sqlite statements
+   */
+  fun setRunSqliteStatementEnabled(enabled: Boolean)
+
   interface Listener {
     /**
      * Method invoked when an sql statement needs to be evaluated.
      */
     fun evaluateSqliteStatementActionInvoked(database: SqliteDatabase, sqliteStatement: String)
+
+    /**
+     * Called when the sqlite statement changes
+     */
+    fun sqliteStatementTextChangedInvoked(newSqliteStatement: String)
   }
 }
