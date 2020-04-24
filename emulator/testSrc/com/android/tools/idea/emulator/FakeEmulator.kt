@@ -129,7 +129,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, configuration: Config
       val avdId = "Android_Wear_Round_API_28"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
-      val skinFolder = getSkinFolder("AndroidWearRound")
+      val skinFolder = getSkinFolder("wear_round")
 
       val configIni = """
           AvdId=${avdId}
@@ -206,10 +206,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, configuration: Config
     }
 
     @JvmStatic
-    private fun getSkinFolder(skinName: String): Path {
-      return TestUtils.getWorkspaceRoot().toPath().resolve("${TEST_DATA_PATH}/skins/${skinName}")
+    fun getSkinFolder(skinName: String): Path {
+      return TestUtils.getWorkspaceRoot().toPath().resolve("tools/adt/idea/artwork/resources/device-art-resources/${skinName}")
     }
-
-    private const val TEST_DATA_PATH = "tools/adt/idea/emulator/testData"
   }
 }

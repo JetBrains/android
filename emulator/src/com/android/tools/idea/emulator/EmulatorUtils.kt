@@ -24,6 +24,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Dimension
+import java.awt.Point
 import kotlin.math.ceil
 
 /**
@@ -93,6 +94,18 @@ internal fun Dimension.scaled(scale: Double): Dimension {
 internal fun Dimension.rotated(rotation: SkinRotation): Dimension {
   return when (rotation) {
     SkinRotation.LANDSCAPE, SkinRotation.REVERSE_LANDSCAPE -> Dimension(height, width)
+    else -> this
+  }
+}
+
+/**
+ * Returns this [Point] rotated according to [rotation].
+ */
+internal fun Point.rotated(rotation: SkinRotation): Point {
+  return when (rotation) {
+    SkinRotation.LANDSCAPE -> Point(y, -x)
+    SkinRotation.REVERSE_PORTRAIT -> Point(-x, -y)
+    SkinRotation.REVERSE_LANDSCAPE -> Point(-y, x)
     else -> this
   }
 }

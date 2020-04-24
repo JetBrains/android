@@ -101,7 +101,7 @@ class EmulatorConfigurationTest {
     // Act.
     val config = EmulatorConfiguration.readAvdDefinition("Pixel_3_XL_API_29", avdFolder)
 
-    // Asset.
+    // Assert.
     assertThat(config).isNotNull()
     assertThat(config?.avdFolder).isEqualTo(avdFolder)
     assertThat(config?.avdName).isEqualTo("Custom name")
