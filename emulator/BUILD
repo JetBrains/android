@@ -67,7 +67,9 @@ iml_module(
     test_class = "com.android.tools.idea.emulator.EmbeddedEmulatorTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/emulator/testData",
         "//tools/idea/java/mockJDK-1.7",
     ],
@@ -109,6 +111,8 @@ iml_module(
     deps = [
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/emulator:intellij.android.emulator[module]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",
         "//tools/idea:intellij.platform.jps.build_and_others[module]",
