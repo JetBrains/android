@@ -17,6 +17,8 @@ package com.android.tools.idea.appinspection.api
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
@@ -63,21 +65,6 @@ class AppInspectionDiscoveryHost(
   private val manager: TransportStreamManager,
   private val createJarCopier: JarCopierCreator
 ) {
-  /**
-   * Defines a listener that is fired when a new inspectable process is available or an existing one is disconnected.
-   */
-  interface ProcessListener {
-    /**
-     * Called when a new process on device is available.
-     */
-    fun onProcessConnected(descriptor: ProcessDescriptor)
-
-    /**
-     * Called when an existing process is disconnected.
-     */
-    fun onProcessDisconnected(descriptor: ProcessDescriptor)
-  }
-
   /**
    * Encapsulates all of the parameters that are required for launching an inspector.
    */

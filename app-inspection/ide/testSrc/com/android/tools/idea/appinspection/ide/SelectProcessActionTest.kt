@@ -1,8 +1,8 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
-import com.android.tools.idea.appinspection.api.ProcessDescriptor
+import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
@@ -84,7 +84,7 @@ class SelectProcessActionTest {
 
     val model = AppInspectionProcessModel(discoveryHost) { listOf("B") }
     val selectProcessAction = SelectProcessAction(model)
-    discoveryHost.addProcessListener(EdtExecutorService.getInstance(), object : AppInspectionDiscoveryHost.ProcessListener {
+    discoveryHost.addProcessListener(EdtExecutorService.getInstance(), object : ProcessListener {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         processReadyLatch.countDown()
       }
