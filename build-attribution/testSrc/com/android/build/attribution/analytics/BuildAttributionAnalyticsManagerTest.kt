@@ -200,8 +200,8 @@ class BuildAttributionAnalyticsManagerTest {
     return when (pluginData.pluginType) {
       PluginData.PluginType.UNKNOWN -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.UNKNOWN_TYPE &&
                                        pluginIdentifier.pluginDisplayName == ""
-      PluginData.PluginType.PLUGIN -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.BINARY_PLUGIN &&
-                                      pluginIdentifier.pluginDisplayName == pluginData.displayName
+      PluginData.PluginType.BINARY_PLUGIN, PluginData.PluginType.BUILDSRC_PLUGIN -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.BINARY_PLUGIN &&
+                                                                                    pluginIdentifier.pluginDisplayName == pluginData.displayName
       PluginData.PluginType.SCRIPT -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.BUILD_SCRIPT &&
                                       pluginIdentifier.pluginDisplayName == ""
     }

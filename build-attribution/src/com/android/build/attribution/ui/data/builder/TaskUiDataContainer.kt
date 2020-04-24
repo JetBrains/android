@@ -47,6 +47,7 @@ class TaskUiDataContainer(
         isAndroidPlugin(task.originPlugin) -> PluginSourceType.ANDROID_PLUGIN
         isKotlinPlugin(task.originPlugin) -> PluginSourceType.ANDROID_PLUGIN
         isGradlePlugin(task.originPlugin) -> PluginSourceType.ANDROID_PLUGIN
+        task.originPlugin.pluginType == PluginData.PluginType.BUILDSRC_PLUGIN ||
         task.originPlugin.pluginType == PluginData.PluginType.SCRIPT -> PluginSourceType.BUILD_SRC
         else -> PluginSourceType.THIRD_PARTY
       }
