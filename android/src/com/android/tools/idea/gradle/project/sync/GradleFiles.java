@@ -273,10 +273,15 @@ public class GradleFiles {
    * Schedules an update to the currently stored hashes for each of the gradle build files.
    */
   private void scheduleUpdateFileHashes() {
-    TransactionGuard.getInstance().submitTransactionLater(myProject, () -> {
+    ApplicationManager.getApplication().invokeLater(() -> {
+      Project project = myProject;
+      if (project.isDisposed()) {
+        return;
+      }
+
       // Local map to minimize time holding myLock
       Map<VirtualFile, Integer> fileHashes = new HashMap<>();
-      GradleWrapper gradleWrapper = GradleWrapper.find(myProject);
+      GradleWrapper gradleWrapper = GradleWrapper.find(project);
       if (gradleWrapper != null) {
         File propertiesFilePath = gradleWrapper.getPropertiesFilePath();
         if (propertiesFilePath.isFile()) {
@@ -291,7 +296,7 @@ public class GradleFiles {
       removeExternalBuildFiles();
       List<VirtualFile> externalBuildFiles = new ArrayList<>();
 
-      List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(myProject).getModules());
+      List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(project).getModules());
       ExecutorService executorService = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
       ProgressManager progressManager = ProgressManager.getInstance();
       ProgressIndicator progressIndicator = progressManager.getProgressIndicator();
