@@ -15,44 +15,17 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
-import com.android.tools.idea.common.editor.ToolbarActionGroups
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
-import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
-import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
-import com.android.tools.idea.compose.preview.actions.ToggleAutoBuildAction
-import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
-import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.isKotlinFileType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
-import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
-import com.google.wireless.android.sdk.stats.LayoutEditorState
-import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.FileEditorPolicy
-import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.TextEditor
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
-import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
 
 private const val PREFIX = "ComposePreview"
 internal val COMPOSE_PREVIEW_MANAGER = DataKey.create<ComposePreviewManager>("$PREFIX.Manager")
@@ -66,27 +39,6 @@ internal fun findComposePreviewManagersForContext(context: DataContext): List<Co
   val project = context.getData(CommonDataKeys.PROJECT) ?: return emptyList()
   val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return emptyList()
   return FileEditorManager.getInstance(project)?.getEditors(file)?.mapNotNull { it.getComposePreviewManager() } ?: emptyList()
-}
-
-/**
- * [ToolbarActionGroups] that includes the [ForceCompileAndRefreshAction]
- */
-private class ComposePreviewToolbar(private val surface: DesignSurface) :
-  ToolbarActionGroups(surface) {
-
-  override fun getNorthGroup(): ActionGroup = DefaultActionGroup(
-    listOfNotNull(
-      GroupSwitchAction(),
-      if (StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD.get()) ToggleAutoBuildAction() else null,
-      ForceCompileAndRefreshAction(surface),
-      if (StudioFlags.COMPOSE_DEBUG_BOUNDS.get()) ShowDebugBoundaries() else null
-    )
-  )
-
-  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
-    addAll(getZoomActionsWithShortcuts(surface, this@ComposePreviewToolbar))
-    add(IssueNotificationAction.getInstance())
-  }
 }
 
 internal class ComposeTextEditorWithPreview constructor(

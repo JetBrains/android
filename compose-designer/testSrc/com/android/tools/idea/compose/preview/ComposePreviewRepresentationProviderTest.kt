@@ -18,24 +18,31 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.util.ThrowableRunnable
 import org.intellij.lang.annotations.Language
 
-private fun ComposeFileEditorProvider.accept(file: PsiFile) =
+private fun ComposePreviewRepresentationProvider.accept(file: PsiFile) =
   accept(file.project, file.virtualFile)
 
-class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
+class ComposePreviewRepresentationProviderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
+  override fun setUp() {
+    super.setUp()
+
+    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(true)
+    StudioFlags.COMPOSE_PREVIEW.override(true)
+  }
+
   override fun tearDown() {
     StudioFlags.NELE_SOURCE_CODE_EDITOR.clearOverride()
+    StudioFlags.COMPOSE_PREVIEW.clearOverride()
 
     super.tearDown()
   }
 
   fun testAcceptFile() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
-
-    val provider = ComposeFileEditorProvider()
+    val provider = ComposePreviewRepresentationProvider()
 
     @Language("kotlin")
     val noPreviewFile = myFixture.addFileToProject("src/NoPreviews.kt", """
@@ -65,13 +72,17 @@ class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase
 
     assertFalse(provider.accept(noPreviewFile))
     assertTrue(provider.accept(previewFile))
+
+    val editor = provider.createRepresentation(previewFile)
+    Disposer.dispose(editor)
   }
 
   /**
-   * This test ensures that we fail if we disable source code editor back.
+   * This test ensures that we fail if we disable the preview.
    */
   fun testDoesNotAcceptByDefault() {
-    val provider = ComposeFileEditorProvider()
+    StudioFlags.COMPOSE_PREVIEW.override(false)
+    val provider = ComposePreviewRepresentationProvider()
 
     @Language("kotlin")
     val previewFile = myFixture.addFileToProject("src/Preview.kt", """
@@ -93,9 +104,7 @@ class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase
    * [ComposeFileEditorProvider#accept] might be called on dumb mode. Make sure that we do not run any smart mode operations.
    */
   fun testAcceptOnDumbMode() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
-
-    val provider = ComposeFileEditorProvider()
+    val provider = ComposePreviewRepresentationProvider()
 
     @Language("kotlin")
     val previewFile = myFixture.addFileToProject("src/Preview.kt", """
@@ -122,9 +131,7 @@ class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase
   }
 
   fun testOnlyAcceptKotlinFiles() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
-
-    val provider = ComposeFileEditorProvider()
+    val provider = ComposePreviewRepresentationProvider()
 
     @Language("java")
     val previewFile = myFixture.addFileToProject("src/KOnly.java", """

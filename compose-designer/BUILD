@@ -65,6 +65,7 @@ iml_module(
 iml_module(
     name = "intellij.android.compose-designer.tests",
     iml_files = ["intellij.android.compose-designer.tests.iml"],
+    resources = ["testSrc/META-INF"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.compose.preview.ComposePreviewTestSuite",
     # keep sorted
@@ -136,5 +137,6 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/designer:intellij.android.designer[module, test]",
     ],
 )
