@@ -16,16 +16,35 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
 
 class CaptureNodeSummaryDetailsViewTest {
+
+  @get:Rule
+  val grpcChannel = FakeGrpcChannel("CaptureNodeSummaryDetailsViewTest")
+
+  private lateinit var profilersView: StudioProfilersView
+
+  @Before
+  fun setUp() {
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices())
+    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+  }
+
   @Test
   fun componentsArePopulated() {
     val captureNode = CaptureNode(SingleNameModel("Foo")).apply {
@@ -35,7 +54,7 @@ class CaptureNodeSummaryDetailsViewTest {
     val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, Double.MAX_VALUE)).apply {
       dataSeries.add(CaptureNodeAnalysisModel(captureNode, Mockito.mock(CpuCapture::class.java)))
     }
-    val view = CaptureNodeSummaryDetailsView(JPanel(), model)
+    val view = CaptureNodeSummaryDetailsView(profilersView, model)
     assertThat(view.timeRangeLabel.text).isEqualTo("10.000 - 20.000")
     assertThat(view.durationLabel.text).isEqualTo("10 s")
     assertThat(view.dataTypeLabel.text).isEqualTo("Trace Event")

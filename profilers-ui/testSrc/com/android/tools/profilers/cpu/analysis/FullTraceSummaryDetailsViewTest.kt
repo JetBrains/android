@@ -16,16 +16,34 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCapture
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
 
 class FullTraceSummaryDetailsViewTest {
   companion object {
     private val CAPTURE_RANGE = Range(0.0, Double.MAX_VALUE)
+  }
+
+  @get:Rule
+  val grpcChannel = FakeGrpcChannel("FullTraceSummaryDetailsViewTest")
+
+  private lateinit var profilersView: StudioProfilersView
+
+  @Before
+  fun setUp() {
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices())
+    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
   }
 
   @Test
@@ -34,7 +52,7 @@ class FullTraceSummaryDetailsViewTest {
     val model = FullTraceAnalysisSummaryTabModel(CAPTURE_RANGE, selectionRange).apply {
       dataSeries.add(Mockito.mock(CpuCapture::class.java))
     }
-    val view = FullTraceSummaryDetailsView(JPanel(), model)
+    val view = FullTraceSummaryDetailsView(profilersView, model)
 
     assertThat(view.timeRangeLabel.text).isEqualTo("01.000 - 01:00.000")
     assertThat(view.durationLabel.text).isEqualTo("59 s")
@@ -46,7 +64,7 @@ class FullTraceSummaryDetailsViewTest {
     val model = FullTraceAnalysisSummaryTabModel(CAPTURE_RANGE, selectionRange).apply {
       dataSeries.add(Mockito.mock(CpuCapture::class.java))
     }
-    val view = FullTraceSummaryDetailsView(JPanel(), model)
+    val view = FullTraceSummaryDetailsView(profilersView, model)
 
     assertThat(view.timeRangeLabel.text).isEqualTo("00.000 - 00.000")
     assertThat(view.durationLabel.text).isEqualTo("0 μs")

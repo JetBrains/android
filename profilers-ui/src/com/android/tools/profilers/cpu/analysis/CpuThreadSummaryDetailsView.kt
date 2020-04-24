@@ -17,11 +17,11 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.formatter.TimeFormatter
+import com.android.tools.profilers.StudioProfilersView
 import com.google.common.annotations.VisibleForTesting
-import javax.swing.JComponent
 import javax.swing.JLabel
 
-class CpuThreadSummaryDetailsView(parentView: JComponent,
+class CpuThreadSummaryDetailsView(parentView: StudioProfilersView,
                                   tabModel: CpuThreadAnalysisSummaryTabModel) : SummaryDetailsViewBase<CpuThreadAnalysisSummaryTabModel>(
   parentView, tabModel) {
   @get:VisibleForTesting
@@ -37,6 +37,7 @@ class CpuThreadSummaryDetailsView(parentView: JComponent,
   val threadIdLabel = JLabel()
 
   init {
+    // Common section
     addRowToCommonSection("Time Range", timeRangeLabel)
     addRowToCommonSection("Duration", durationLabel)
     addRowToCommonSection("Data Type", dataTypeLabel)
@@ -46,6 +47,14 @@ class CpuThreadSummaryDetailsView(parentView: JComponent,
     }
     tabModel.selectionRange.addDependency(observer).onChange(Range.Aspect.RANGE) { updateRangeLabels() }
     updateRangeLabels()
+
+    // Thread states section
+    // Merge thread state data series from all threads.
+    tabModel.dataSeries.map { it.threadStateSeries }.let { threadStateSeriesList ->
+      if (threadStateSeriesList.isNotEmpty()) {
+        addSection(CpuThreadStateTable(parentView.studioProfilers, threadStateSeriesList, tabModel.selectionRange).component)
+      }
+    }
   }
 
   private fun updateRangeLabels() {
