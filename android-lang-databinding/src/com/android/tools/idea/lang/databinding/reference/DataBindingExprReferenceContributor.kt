@@ -153,7 +153,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
           }
 
           val attribute = bindingData.viewIds
-            .firstOrNull { simpleName == DataBindingUtil.convertToJavaFieldName(it.id) }
+            .firstOrNull { simpleName == DataBindingUtil.convertAndroidIdToJavaFieldName(it.id) }
             ?.let { xmlFile.findIdAttribute(it.id) }
           if (attribute != null) {
             return arrayOf(XmlAttributeReference(element, attribute))

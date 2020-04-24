@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding
 
-import com.android.ide.common.resources.stripPrefixFromId
+import com.android.resources.ResourceUrl
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
@@ -114,7 +114,9 @@ class LightBindingClassTest {
 
   private fun verifyLightFieldsMatchXml(fields: List<PsiField>, vararg tags: XmlTag) {
     val fieldIds = fields.map(PsiField::getName).toList()
-    val tagIds = tags.map { DataBindingUtil.convertToJavaFieldName(stripPrefixFromId(it.getAttribute ("android:id")!!.value!!)) }
+    val tagIds = tags
+      .map { tag -> tag.getAttribute("android:id")!!.value!! }
+      .map { id -> DataBindingUtil.convertAndroidIdToJavaFieldName(ResourceUrl.parse(id)!!.name) }
       .toList()
     assertThat(fieldIds).isEqualTo(tagIds)
   }
@@ -165,6 +167,26 @@ class LightBindingClassTest {
     val fields = binding.fields
     val tags = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
+  }
+
+  @Test
+  fun androidIdsWithDotSyntaxAreSupported() {
+    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+            android:id="@+id/test.id"
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+        </LinearLayout>
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val field = binding.fields.first { it.name == "testId" }
+    assertThat(field.type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("android.view.LinearLayout", context))
   }
 
   @Test
