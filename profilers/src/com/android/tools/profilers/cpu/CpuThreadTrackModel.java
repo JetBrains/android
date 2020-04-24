@@ -54,13 +54,6 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
                              @NotNull MultiSelectionModel<CpuAnalyzable> multiSelectionModel) {
     myThreadStateChartModel = new StateChartModel<>();
     myThreadStateTooltip = new CpuThreadsTooltip(timeline);
-    if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
-      DataSeries<ThreadState> threadStateDataSeries =
-        new LazyDataSeries<>(() -> capture.getThreadStatesForThread(threadInfo.getId()));
-      myThreadStateChartModel.addSeries(new RangedSeries<>(timeline.getViewRange(), threadStateDataSeries));
-      myThreadStateTooltip.setThread(threadInfo.getName(), threadStateDataSeries);
-    }
-
     myCallChartModel =
       new CaptureDetails.CallChart(timeline.getViewRange(), Collections.singletonList(capture.getCaptureNode(threadInfo.getId())), capture);
     myCapture = capture;
@@ -68,6 +61,11 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     myTimeline = timeline;
     myMultiSelectionModel = multiSelectionModel;
 
+    if (capture.getType() == Cpu.CpuTraceType.ATRACE || capture.getType() == Cpu.CpuTraceType.PERFETTO) {
+      DataSeries<ThreadState> threadStateSeries = getThreadStateSeries();
+      myThreadStateChartModel.addSeries(new RangedSeries<>(timeline.getViewRange(), threadStateSeries));
+      myThreadStateTooltip.setThread(threadInfo.getName(), threadStateSeries);
+    }
     myTraceEventTooltipBuilder = captureNode -> new CpuCaptureNodeTooltip(timeline, captureNode);
   }
 
@@ -147,6 +145,14 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   @NotNull
   public CpuThreadInfo getThreadInfo() {
     return myThreadInfo;
+  }
+
+  /**
+   * @return data series of thread states, if the capture contains thread state data (e.g. SysTrace). Empty otherwise.
+   */
+  @NotNull
+  public DataSeries<ThreadState> getThreadStateSeries() {
+    return new LazyDataSeries<>(() -> myCapture.getThreadStatesForThread(myThreadInfo.getId()));
   }
 
   private Collection<CaptureNode> getCaptureNode() {

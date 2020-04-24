@@ -15,21 +15,42 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.CpuThreadTrackModel
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
+import javax.swing.JTable
 
 class CpuThreadSummaryDetailsViewTest {
   companion object {
     private val CAPTURE_RANGE = Range(0.0, Double.MAX_VALUE)
+  }
+
+  @get:Rule
+  val grpcChannel = FakeGrpcChannel("CpuThreadSummaryDetailsViewTest")
+
+  private lateinit var profilersView: StudioProfilersView
+
+  @Before
+  fun setUp() {
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices())
+    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
   }
 
   @Test
@@ -45,7 +66,7 @@ class CpuThreadSummaryDetailsViewTest {
     val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply {
       dataSeries.add(cpuThreadTrackModel)
     }
-    val view = CpuThreadSummaryDetailsView(JPanel(), model)
+    val view = CpuThreadSummaryDetailsView(profilersView, model)
 
     assertThat(view.timeRangeLabel.text).isEqualTo("00.100 - 00.200")
     assertThat(view.durationLabel.text).isEqualTo("100 ms")
@@ -66,7 +87,7 @@ class CpuThreadSummaryDetailsViewTest {
     val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply {
       dataSeries.add(cpuThreadTrackModel)
     }
-    val view = CpuThreadSummaryDetailsView(JPanel(), model)
+    val view = CpuThreadSummaryDetailsView(profilersView, model)
 
     assertThat(view.timeRangeLabel.text).isEqualTo("00.000 - 00.000")
     assertThat(view.durationLabel.text).isEqualTo("0 μs")
@@ -74,5 +95,26 @@ class CpuThreadSummaryDetailsViewTest {
     timeline.viewRange.set(TimeUnit.SECONDS.toMicros(1).toDouble(), TimeUnit.SECONDS.toMicros(2).toDouble())
     assertThat(view.timeRangeLabel.text).isEqualTo("01.000 - 02.000")
     assertThat(view.durationLabel.text).isEqualTo("1 s")
+  }
+
+  @Test
+  fun threadStatesArePopulatedForSysTrace() {
+    val timeline = DefaultTimeline().apply {
+      viewRange.set(0.0, 0.0)
+    }
+    val sysTrace = Mockito.mock(CpuCapture::class.java).apply {
+      Mockito.`when`(type).thenReturn(Cpu.CpuTraceType.PERFETTO)
+      Mockito.`when`(getThreadStatesForThread(123)).thenReturn(listOf())
+    }
+    val cpuThreadTrackModel = CpuThreadTrackModel(
+      sysTrace,
+      CpuThreadInfo(123, "foo"),
+      timeline,
+      MultiSelectionModel())
+    val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply {
+      dataSeries.add(cpuThreadTrackModel)
+    }
+    val view = CpuThreadSummaryDetailsView(profilersView, model)
+    assertThat(TreeWalker(view.component).descendants().filterIsInstance<JTable>()).isNotEmpty()
   }
 }

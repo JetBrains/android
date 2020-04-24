@@ -17,13 +17,13 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.formatter.TimeFormatter
+import com.android.tools.profilers.StudioProfilersView
 import com.google.common.annotations.VisibleForTesting
-import javax.swing.JComponent
 import javax.swing.JLabel
 
-class FullTraceSummaryDetailsView(parentView: JComponent,
+class FullTraceSummaryDetailsView(profilersView: StudioProfilersView,
                                   tabModel: FullTraceAnalysisSummaryTabModel) : SummaryDetailsViewBase<FullTraceAnalysisSummaryTabModel>(
-  parentView, tabModel) {
+  profilersView, tabModel) {
   @get: VisibleForTesting
   val timeRangeLabel = JLabel()
 
