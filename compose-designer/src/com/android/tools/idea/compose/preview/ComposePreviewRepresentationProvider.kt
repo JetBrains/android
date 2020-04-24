@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.actions.IssueNotificationAction
+import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
@@ -29,12 +30,20 @@ import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
+import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
@@ -126,4 +135,42 @@ class ComposePreviewRepresentationProvider(
 
   override val displayName = message("representation.name")
 
+}
+
+private const val PREFIX = "ComposePreview"
+internal val COMPOSE_PREVIEW_MANAGER = DataKey.create<ComposePreviewManager>(
+  "$PREFIX.Manager")
+internal val COMPOSE_PREVIEW_ELEMENT = DataKey.create<PreviewElement>(
+  "$PREFIX.PreviewElement")
+
+/**
+ * Returns a list of all [ComposePreviewManager]s related to the current context (which is implied to be bound to a particular file).
+ * The search is done among the open preview parts and [PreviewRepresentation]s (if any) of open file editors.
+ */
+internal fun findComposePreviewManagersForContext(context: DataContext): List<ComposePreviewManager> {
+  val project = context.getData(CommonDataKeys.PROJECT) ?: return emptyList()
+  val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return emptyList()
+  return FileEditorManager.getInstance(project)?.getEditors(file)?.mapNotNull { it.getComposePreviewManager() } ?: emptyList()
+}
+
+internal class ComposeTextEditorWithPreview constructor(
+  composeTextEditor: TextEditor,
+  preview: PreviewEditor) :
+  SeamlessTextEditorWithPreview<PreviewEditor>(composeTextEditor, preview, "Compose Editor") {
+
+  init {
+    preview.registerShortcuts(component)
+  }
+}
+
+/**
+ * Returns the Compose [PreviewEditor] or null if this [FileEditor] is not a Compose preview.
+ */
+fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = when (this) {
+  is PreviewEditor -> this
+  is MultiRepresentationPreview -> this.currentRepresentation as? ComposePreviewManager
+  is ComposeTextEditorWithPreview -> this.preview
+  is TextEditorWithMultiRepresentationPreview<out MultiRepresentationPreview> ->
+    this.preview.currentRepresentation as? ComposePreviewManager
+  else -> null
 }
