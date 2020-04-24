@@ -3074,29 +3074,41 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
 
-    assertThat(extModel.findProperty("prop1").expressionPsiElement!!.text, equalTo("'value'"))
-    assertThat(extModel.findProperty("prop1").fullExpressionPsiElement!!.text, equalTo("'value'"))
+    (if (isGroovy) "'value'" else "\"value\"").let {
+      assertThat(extModel.findProperty("prop1").expressionPsiElement!!.text, equalTo(it))
+      assertThat(extModel.findProperty("prop1").fullExpressionPsiElement!!.text, equalTo(it))
+    }
     assertThat(extModel.findProperty("prop2").expressionPsiElement!!.text, equalTo("25"))
     assertThat(extModel.findProperty("prop2").fullExpressionPsiElement!!.text, equalTo("25"))
     assertThat(extModel.findProperty("prop3").expressionPsiElement!!.text, equalTo("true"))
     assertThat(extModel.findProperty("prop3").fullExpressionPsiElement!!.text, equalTo("true"))
-    assertThat(extModel.findProperty("prop4").expressionPsiElement!!.text, equalTo("[\"key\": 'val']"))
-    assertThat(extModel.findProperty("prop4").fullExpressionPsiElement!!.text, equalTo("[\"key\": 'val']"))
-    assertThat(extModel.findProperty("prop5").expressionPsiElement!!.text, equalTo("['val1', 'val2', \"val3\"]"))
-    assertThat(extModel.findProperty("prop5").fullExpressionPsiElement!!.text, equalTo("['val1', 'val2', \"val3\"]"))
+    (if (isGroovy) "[\"key\": 'val']" else "mapOf(\"key\" to \"val\")").let {
+      assertThat(extModel.findProperty("prop4").expressionPsiElement!!.text, equalTo(it))
+      assertThat(extModel.findProperty("prop4").fullExpressionPsiElement!!.text, equalTo(it))
+    }
+    (if (isGroovy) "['val1', 'val2', \"val3\"]" else "listOf(\"val1\", \"val2\", \"val3\")").let {
+      assertThat(extModel.findProperty("prop5").expressionPsiElement!!.text, equalTo(it))
+      assertThat(extModel.findProperty("prop5").fullExpressionPsiElement!!.text, equalTo(it))
+    }
     assertThat(extModel.findProperty("prop6").expressionPsiElement!!.text, equalTo("25.3"))
     assertThat(extModel.findProperty("prop6").fullExpressionPsiElement!!.text, equalTo("25.3"))
 
     val mapItem = extModel.findProperty("prop4").getMapValue("key")
     val listItem = extModel.findProperty("prop5").getListValue("val2")!!
-    assertThat(mapItem.expressionPsiElement!!.text, equalTo("'val'"))
-    assertThat(mapItem.fullExpressionPsiElement!!.text, equalTo("'val'"))
-    assertThat(listItem.expressionPsiElement!!.text, equalTo("'val2'"))
-    assertThat(listItem.fullExpressionPsiElement!!.text, equalTo("'val2'"))
+    (if (isGroovy) "'val'" else "\"val\"").let {
+      assertThat(mapItem.expressionPsiElement!!.text, equalTo(it))
+      assertThat(mapItem.fullExpressionPsiElement!!.text, equalTo(it))
+    }
+    (if (isGroovy) "'val2'" else "\"val2\"").let {
+      assertThat(listItem.expressionPsiElement!!.text, equalTo(it))
+      assertThat(listItem.fullExpressionPsiElement!!.text, equalTo(it))
+    }
 
     val configModel = buildModel.android().signingConfigs()[0]!!
-    assertThat(configModel.storeFile().expressionPsiElement!!.text, equalTo("'my_file.txt'"))
-    assertThat(configModel.storeFile().fullExpressionPsiElement!!.text, equalTo("file('my_file.txt')"))
+    (if (isGroovy) listOf("'my_file.txt'", "file('my_file.txt')") else listOf("\"my_file.txt\"", "file(\"my_file.txt\")")).let {
+      assertThat(configModel.storeFile().expressionPsiElement!!.text, equalTo(it[0]))
+      assertThat(configModel.storeFile().fullExpressionPsiElement!!.text, equalTo(it[1]))
+    }
     assertThat(configModel.storePassword().expressionPsiElement!!.text, equalTo("\"KSTOREPWD\""))
     assertThat(configModel.storePassword().fullExpressionPsiElement!!.text, equalTo("System.getenv(\"KSTOREPWD\")"))
   }
