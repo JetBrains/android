@@ -1765,6 +1765,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(artifacts.get(6).configurationName()).isEqualTo("release");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_CONFIGURATION_WHEN_SINGLE_EXPECTED);
 
     artifacts = buildModel.dependencies().artifacts();
     assertSize(7, artifacts);
@@ -2109,6 +2110,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     CONFIGURE_CLOSURE_WITH_PARENS("configureClosureWithParens"),
     CONFIGURE_CLOSURE_PARENS("configureClosureParens"),
     SET_CONFIGURATION_WHEN_SINGLE("setConfigurationWhenSingle"),
+    SET_CONFIGURATION_WHEN_SINGLE_EXPECTED("setConfigurationWhenSingleExpected"),
     SET_CONFIGURATION_WHEN_MULTIPLE("setConfigurationWhenMultiple"),
     SET_CONFIGURATION_TO_EMPTY("setConfigurationToEmpty"),
     SET_CONFIGURATION_TO_NON_STANDARD("setConfigurationToNonStandard"),
