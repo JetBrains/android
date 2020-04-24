@@ -49,10 +49,7 @@ public final class DeviceExplorerToolWindowFactory implements DumbAware, ToolWin
     Executor edtExecutor = EdtExecutorService.getInstance();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
 
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(project),
-                                                                        edtExecutor,
-                                                                        taskExecutor,
-                                                                        project);
+    AdbDeviceFileSystemService service = AdbDeviceFileSystemService.getInstance(project);
 
     DeviceFileSystemRendererFactory deviceFileSystemRendererFactory = new AdbDeviceFileSystemRendererFactory(service);
     DeviceExplorerFileManager fileManager = new DeviceExplorerFileManagerImpl(project, edtExecutor);

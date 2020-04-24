@@ -23,16 +23,19 @@ import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemServiceListener;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.components.Service;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.intellij.serviceContainer.NonInjectable;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -40,14 +43,19 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * Abstraction over ADB devices and their file system.
  * The service is meant to be called on the EDT thread, where
  * long running operations either raise events or return a Future.
  */
+@Service
 public final class AdbDeviceFileSystemService implements DeviceFileSystemService<AdbDeviceFileSystem> {
-  public static Logger LOGGER = Logger.getInstance(AdbDeviceFileSystemService.class);
+  private static final Logger LOGGER = Logger.getInstance(AdbDeviceFileSystemService.class);
 
   @NotNull private final Function<Void, File> myAdbProvider;
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
@@ -60,10 +68,24 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
   @Nullable private DebugBridgeChangeListener myDebugBridgeChangeListener;
   @Nullable private File myAdb;
 
+  @NotNull
+  public static AdbDeviceFileSystemService getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, AdbDeviceFileSystemService.class);
+  }
+
+  public AdbDeviceFileSystemService(@NotNull Project project) {
+    this(aVoid -> AndroidSdkUtils.getAdb(project),
+         EdtExecutorService.getInstance(),
+         PooledThreadExecutor.INSTANCE,
+         project);
+  }
+
+  @NonInjectable
+  @VisibleForTesting
   public AdbDeviceFileSystemService(@NotNull Function<Void, File> adbProvider,
-                                    @NotNull Executor edtExecutor,
-                                    @NotNull Executor taskExecutor,
-                                    @NonNull Disposable parent) {
+                             @NotNull Executor edtExecutor,
+                             @NotNull Executor taskExecutor,
+                             @NonNull Disposable parent) {
     myAdbProvider = adbProvider;
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
     myTaskExecutor = new FutureCallbackExecutor(taskExecutor);
