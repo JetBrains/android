@@ -34,17 +34,9 @@ import java.lang.reflect.UndeclaredThrowableException;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 
 public class GradleNotificationExtension implements ExternalSystemNotificationExtension {
-  @NotNull private final SyncErrorHandler[] myErrorHandlers;
 
-  @SuppressWarnings("unused")
-  public GradleNotificationExtension() {
-    this(SyncErrorHandler.getExtensions());
-  }
-
-  @VisibleForTesting
-  @TestOnly
-  GradleNotificationExtension(@NotNull SyncErrorHandler... errorHandlers) {
-    myErrorHandlers = errorHandlers;
+  protected SyncErrorHandler[] getSyncErrorHandlers() {
+    return SyncErrorHandler.getExtensions();
   }
 
   @Override
@@ -71,7 +63,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   }
 
   private void handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    for (SyncErrorHandler errorHandler : myErrorHandlers) {
+    for (SyncErrorHandler errorHandler : getSyncErrorHandlers()) {
       if (errorHandler.handleError(error, notification, project)) {
         GradleSyncMessages.getInstance(project).report(notification);
         return;

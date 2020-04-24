@@ -48,7 +48,12 @@ public class GradleNotificationExtensionTest extends PlatformTestCase {
     myNotification = new NotificationData("Title", "Message", ERROR, PROJECT_SYNC);
     ServiceContainerUtil
       .replaceService(getProject(), GradleSyncMessages.class, mySyncMessages, getTestRootDisposable());
-    myNotificationExtension = new GradleNotificationExtension(myHandler1, myHandler2);
+    myNotificationExtension = new GradleNotificationExtension() {
+      @Override
+      protected SyncErrorHandler[] getSyncErrorHandlers() {
+        return new SyncErrorHandler[] {myHandler1, myHandler2};
+      }
+    };
   }
 
   public void testCustomizeWithExternalSystemException() throws Exception {
