@@ -596,8 +596,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @NotNull
   @Override
   protected LaunchOptions.Builder getLaunchOptions() {
+    LaunchOptions.Builder builder = super.getLaunchOptions();
     // `am instrument` force stops the target package anyway, so there's no need for an explicit `am force-stop` for every APK involved.
-    return super.getLaunchOptions().setForceStopRunningApp(false);
+    builder.setForceStopRunningApp(false);
+    // -t: Allow test APKs to be installed.
+    // -g: Grant all permissions listed in the app manifest.
+    builder.setPmInstallOptions("-t -g");
+    return builder;
   }
 
   /**
