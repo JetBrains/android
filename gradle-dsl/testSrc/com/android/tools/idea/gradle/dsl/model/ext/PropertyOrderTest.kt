@@ -38,6 +38,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import org.jetbrains.annotations.SystemDependent
+import org.junit.Assume
+import org.junit.Assume.assumeTrue
 import org.junit.Ignore
 import org.junit.Test
 import java.io.File
@@ -193,6 +195,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testMoveBlockStatement() {
+    assumeTrue("no ext block in KotlinScript", !isKotlinScript) // TODO(b/154902406)
     writeToBuildFile(TestFile.MOVE_BLOCK_STATEMENT)
 
     val buildModel = gradleBuildModel
@@ -233,6 +236,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testMoveBasicStatement() {
+    assumeTrue("no ext block in KotlinScript", !isKotlinScript) // TODO(b/154902406)
     writeToBuildFile(TestFile.MOVE_BASIC_STATEMENT)
 
     val buildModel = gradleBuildModel
@@ -368,6 +372,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testMoveCommentsInBlock() {
+    assumeTrue("no ext block in KotlinScript", !isKotlinScript) // TODO(b/154902406)
     writeToBuildFile(TestFile.MOVE_COMMENTS_IN_BLOCK)
 
     val buildModel = gradleBuildModel
@@ -415,6 +420,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testMoveBlockWithUnparsedContent() {
+    assumeTrue("no ext block in KotlinScript", !isKotlinScript) // TODO(b/154902406)
     writeToBuildFile(TestFile.MOVE_BLOCK_WITH_UNPARSED_CONTENT)
 
     val buildModel = gradleBuildModel
@@ -744,6 +750,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testExtReferenceToVar() {
+    assumeTrue("no ext block in KotlinScript", !isKotlinScript) // TODO(b/154902406)
     writeToBuildFile(TestFile.EXT_REFERENCE_TO_VAR)
 
     val buildModel = gradleBuildModel

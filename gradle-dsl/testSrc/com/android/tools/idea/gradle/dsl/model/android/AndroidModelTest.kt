@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.annotations.SystemDependent
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
 
@@ -70,6 +71,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithApplicationStatementsWithParentheses() {
+    isIrrelevantForKotlinScript("no distinction between method calls and application statements")
     runBasicAndroidBlockTest(TestFile.ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES)
   }
 
@@ -1291,6 +1293,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyIntegerLiteralElements() {
+    assumeTrue("can't assign an int to compileSdkVersion in KotlinScript", !isKotlinScript) // TODO(b/143196166), TODO(b/143196529)
     writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1306,8 +1309,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
 
     applyChanges(buildModel)
-    // TODO(b/143196166): blocking Kotlinscript version
-    // TODO(b/143196529): blocking Kotlinscript version
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED)
 
     assertEquals("buildToolsVersion", "22", android.buildToolsVersion())
