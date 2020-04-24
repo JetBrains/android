@@ -30,6 +30,7 @@ import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvide
 import com.android.tools.idea.npw.template.components.PackageComboProvider
 import com.android.tools.idea.npw.template.components.SeparatorProvider
 import com.android.tools.idea.npw.template.components.TextFieldProvider
+import com.android.tools.idea.npw.template.components.UrlLinkProvider
 import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.BindingsManager
@@ -72,6 +73,7 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.TextFieldWidget
+import com.android.tools.idea.wizard.template.UrlLinkWidget
 import com.android.tools.idea.wizard.template.Widget
 import com.google.common.base.Joiner
 import com.google.common.cache.CacheBuilder
@@ -292,6 +294,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       rowEntry
     }
     is CheckBoxWidget -> RowEntry(CheckboxProvider(widget.p))
+    is UrlLinkWidget -> RowEntry(UrlLinkProvider(widget.urlName, widget.urlAddress))
     is Separator -> RowEntry(SeparatorProvider())
     is EnumWidget<*> -> RowEntry(widget.p.name, EnumComboProvider(widget.p))
     else -> TODO("Only string and bool parameters are supported for now")

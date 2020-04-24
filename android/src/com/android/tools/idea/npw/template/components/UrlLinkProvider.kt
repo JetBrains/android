@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import com.intellij.ui.HyperlinkLabel
 
 
 /**
- * Provides a [HyperlinkLabel] for and external website.
+ * Provides a [HyperlinkLabel] for an external website.
  */
 class UrlLinkProvider(private val urlName: String, private val urlAddress: String) : ComponentProvider<HyperlinkLabel>() {
   override fun createComponent(): HyperlinkLabel = HyperlinkLabel().apply {
