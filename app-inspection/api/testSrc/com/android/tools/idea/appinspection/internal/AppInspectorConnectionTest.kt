@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.internal
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
 import com.android.tools.app.inspection.AppInspection.CrashEvent
+import com.android.tools.idea.appinspection.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
@@ -125,7 +126,7 @@ class AppInspectorConnectionTest {
       connection.messenger.sendRawCommand("Test".toByteArray()).get()
       fail()
     } catch (e: ExecutionException) {
-      assertThat(e.cause).isInstanceOf(IllegalStateException::class.java)
+      assertThat(e.cause).isInstanceOf(AppInspectionConnectionException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Failed to send a command because the $INSPECTOR_ID connection is already closed.")
     }
   }
@@ -163,7 +164,7 @@ class AppInspectorConnectionTest {
       client.messenger.disposeInspector().get()
       fail()
     } catch (e: ExecutionException) {
-      assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
+      assertThat(e.cause).isInstanceOf(AppInspectionConnectionException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
     }
   }
@@ -193,7 +194,7 @@ class AppInspectorConnectionTest {
       client.messenger.disposeInspector().get()
       fail()
     } catch (e: ExecutionException) {
-      assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
+      assertThat(e.cause).isInstanceOf(AppInspectionConnectionException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID was disposed, because app process terminated.")
     }
   }
@@ -223,7 +224,7 @@ class AppInspectorConnectionTest {
       client.messenger.sendRawCommand("Data".toByteArray()).get()
       fail()
     } catch (e: ExecutionException) {
-      assertThat(e.cause).isInstanceOf(IllegalStateException::class.java)
+      assertThat(e.cause).isInstanceOf(AppInspectionConnectionException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Failed to send a command because the $INSPECTOR_ID connection is already closed.")
     }
   }
@@ -266,7 +267,7 @@ class AppInspectorConnectionTest {
       disposeFuture.get()
       fail()
     } catch (e: ExecutionException) {
-      assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
+      assertThat(e.cause).isInstanceOf(AppInspectionConnectionException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
     }
 
@@ -274,7 +275,7 @@ class AppInspectorConnectionTest {
       commandFuture.get()
       fail()
     } catch (e: ExecutionException) {
-      assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
+      assertThat(e.cause).isInstanceOf(AppInspectionConnectionException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
     }
   }
