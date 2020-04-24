@@ -12,6 +12,7 @@ import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.application.options.CodeStyle;
 import com.intellij.codeInspection.CommonProblemDescriptor;
 import com.intellij.codeInspection.GlobalInspectionTool;
 import com.intellij.codeInspection.InspectionManager;
@@ -153,7 +154,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     ArrayList<String> allowedRoots = new ArrayList<>();
     collectAllowedRoots(allowedRoots);
     registerAllowedRoots(allowedRoots, getTestRootDisposable());
-    mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
+    mySettings = CodeStyle.createTestSettings(CodeStyleSettingsManager.getSettings(getProject()));
     // Note: we apply the Android Studio code style so that tests running as the Android plugin in IDEA behave the same.
     applyAndroidCodeStyleSettings(mySettings);
     CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
