@@ -18,9 +18,9 @@ package com.android.tools.idea.mlkit.lightpsi;
 import com.android.SdkConstants;
 import com.android.tools.idea.mlkit.LightModelClassConfig;
 import com.android.tools.idea.mlkit.LoggingUtils;
-import com.android.tools.idea.mlkit.MlkitModuleService;
 import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
 import com.android.tools.mlkit.MlkitNames;
+import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
@@ -44,7 +44,6 @@ import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,32 +90,26 @@ public class LightModelClass extends AndroidLightClassBase {
 
     setModuleInfo(module, false);
 
-    ModificationTracker modificationTracker = MlkitModuleService.getInstance(module).getModelFileModificationTracker();
     myCachedMembers = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
-        List<TensorInfo> inputTensorInfos = myClassConfig.myModelMetadata.getInputTensorInfos();
-        List<TensorInfo> outputTensorInfos = myClassConfig.myModelMetadata.getOutputTensorInfos();
+        ModelInfo modelInfo = getModelInfo();
 
         //Build methods
         List<PsiMethod> methods = new ArrayList<>();
-        methods.add(buildProcessMethod(inputTensorInfos));
+        methods.add(buildProcessMethod(modelInfo.getInputs()));
         methods.addAll(buildNewInstanceStaticMethods());
 
         //Build inner class
         Map<String, PsiClass> innerClassMap = new HashMap<>();
-        MlkitOutputLightClass mlkitOutputClass = new MlkitOutputLightClass(module, outputTensorInfos, this);
+        MlkitOutputLightClass mlkitOutputClass = new MlkitOutputLightClass(module, modelInfo.getOutputs(), this);
         innerClassMap.putIfAbsent(mlkitOutputClass.getName(), mlkitOutputClass);
 
         MyClassMembers data =
           new MyClassMembers(methods.toArray(PsiMethod.EMPTY_ARRAY), innerClassMap.values().toArray(PsiClass.EMPTY_ARRAY));
-        return CachedValueProvider.Result.create(data, modificationTracker);
+        return CachedValueProvider.Result.create(data, ModificationTracker.NEVER_CHANGED);
       }, false);
 
-    LoggingUtils.logEvent(EventType.MODEL_API_GEN, modelFile);
-  }
-
-  public static List<String> getInnerClassNames() {
-    return Collections.singletonList(MlkitNames.OUTPUTS);
+    LoggingUtils.logEvent(EventType.MODEL_API_GEN, getModelInfo());
   }
 
   @NotNull
@@ -179,7 +172,6 @@ public class LightModelClass extends AndroidLightClassBase {
   @NotNull
   @Override
   public PsiMethod[] getMethods() {
-    //TODO(jackqdyulei): Also return constructors here.
     return myCachedMembers.getValue().myMethods;
   }
 
@@ -234,6 +226,21 @@ public class LightModelClass extends AndroidLightClassBase {
   public PsiElement getNavigationElement() {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(myModelFile);
     return psiFile != null ? psiFile : super.getNavigationElement();
+  }
+
+  @NotNull
+  public VirtualFile getModelFile() {
+    return myModelFile;
+  }
+
+  @NotNull
+  public ModelInfo getModelInfo() {
+    return myClassConfig.myModelMetadata.myModelInfo;
+  }
+
+  @Override
+  public boolean equals(@Nullable Object o) {
+    return o instanceof LightModelClass && myClassConfig.myModelMetadata.equals(((LightModelClass)o).myClassConfig.myModelMetadata);
   }
 
   private static class MyClassMembers {

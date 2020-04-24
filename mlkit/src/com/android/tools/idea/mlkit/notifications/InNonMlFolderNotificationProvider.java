@@ -93,6 +93,7 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
                   if (!CopyFilesOrDirectoriesHandler.checkFileExist(
                     mlPsiDir, null, PsiManager.getInstance(project).findFile(file), file.getName(), "Move")) {
                     file.move(this, mlVirtualDir);
+                    EditorNotifications.getInstance(project).updateNotifications(file);
                     LoggingUtils.logEvent(EventType.MODEL_IMPORT_FROM_MOVE_FILE_BUTTON, file);
                   }
                 }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
-import com.android.tools.idea.mlkit.MlkitModuleService;
-import com.android.tools.idea.psi.NullabilityUtils;
 import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.TensorInfo;
@@ -39,7 +37,6 @@ import com.intellij.psi.util.CachedValuesManager;
 import java.util.List;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Output class for output tensors. For each tensor it has a private field to store data and a getter method.
@@ -60,7 +57,6 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
     setModuleInfo(module, false);
 
     // Cache getter methods for output class
-    ModificationTracker modificationTracker = MlkitModuleService.getInstance(module).getModelFileModificationTracker();
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
         PsiMethod[] methods = new PsiMethod[tensorInfos.size()];
@@ -68,17 +64,18 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
           methods[i] = buildGetterMethod(tensorInfos.get(i));
         }
 
-        return CachedValueProvider.Result.create(methods, modificationTracker);
+        return CachedValueProvider.Result.create(methods, ModificationTracker.NEVER_CHANGED);
       }
       , false);
   }
 
-  @Nullable
+  @NotNull
   @Override
   public String getQualifiedName() {
     return qualifiedName;
   }
 
+  @NotNull
   @Override
   public String getName() {
     return MlkitNames.OUTPUTS;
@@ -90,7 +87,8 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
     return myMethodCache.getValue();
   }
 
-  private PsiMethod buildGetterMethod(TensorInfo tensorInfo) {
+  @NotNull
+  private PsiMethod buildGetterMethod(@NotNull TensorInfo tensorInfo) {
     Project project = getProject();
     GlobalSearchScope scope = getResolveScope();
     PsiClassType returnType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), project, scope);
@@ -103,7 +101,7 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
     return method;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public PsiClass getContainingClass() {
     return containingClass;
