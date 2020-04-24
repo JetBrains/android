@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
+import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
@@ -62,9 +63,15 @@ import java.lang.UnsupportedOperationException
 class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
   override fun moveDslElement(element: GradleDslElement): PsiElement? {
     val anchorAfter = element.anchor ?: return null
-    val parentPsiElement = getParentPsi(element) ?: return null
+    val parentPsiElement = when (element.parent) {
+      is ExtDslElement -> findLastPsiElementIn(anchorAfter)?.parent ?: return null
+      else -> getParentPsi(element) ?: return null
+    }
 
-    val anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter)
+    val anchor = when (element.parent) {
+      is ExtDslElement -> findLastPsiElementIn(anchorAfter)
+      else -> getPsiElementForAnchor(parentPsiElement, anchorAfter)
+    }
 
     // Create a dummy element to move the element to.
     val psiFactory = KtPsiFactory(parentPsiElement.project)
