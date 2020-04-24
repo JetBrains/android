@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.mlkit.LightModelClassConfig;
 import com.android.tools.idea.mlkit.LoggingUtils;
 import com.android.tools.idea.mlkit.MlkitModuleService;
-import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.idea.psi.NullabilityUtils;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.TensorInfo;
@@ -29,7 +28,6 @@ import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -76,7 +74,6 @@ public class LightModelClass extends AndroidLightClassBase {
   private final LightModelClassConfig myClassConfig;
   private final PsiJavaFile myContainingFile;
   private final CachedValue<MyClassMembers> myCachedMembers;
-  private final String myClassName;
   private PsiMethod[] myConstructors;
 
   public LightModelClass(@NotNull Module module, @NotNull VirtualFile modelFile, @NotNull LightModelClassConfig classConfig) {
@@ -84,10 +81,8 @@ public class LightModelClass extends AndroidLightClassBase {
     myModelFile = modelFile;
     myClassConfig = classConfig;
 
-    myClassName = MlkitUtils.computeModelClassName(module, modelFile);
-
     myContainingFile = (PsiJavaFile)PsiFileFactory.getInstance(module.getProject()).createFileFromText(
-      myClassName + SdkConstants.DOT_JAVA,
+      myClassConfig.myClassName + SdkConstants.DOT_JAVA,
       StdFileTypes.JAVA,
       "// This class is generated on-the-fly by the IDE.");
     myContainingFile.setPackageName(classConfig.myPackageName);
@@ -139,7 +134,7 @@ public class LightModelClass extends AndroidLightClassBase {
 
   @Override
   public String getName() {
-    return myClassName;
+    return myClassConfig.myClassName;
   }
 
   @NotNull
@@ -194,7 +189,7 @@ public class LightModelClass extends AndroidLightClassBase {
   private PsiMethod buildProcessMethod(@NotNull List<TensorInfo> tensorInfos) {
     GlobalSearchScope scope = getResolveScope();
     String outputClassName =
-      String.join(".", myClassConfig.myPackageName, myClassName, MlkitNames.OUTPUTS);
+      String.join(".", myClassConfig.myPackageName, myClassConfig.myClassName, MlkitNames.OUTPUTS);
 
     PsiType nonNullReturnType =
       NullabilityUtils.annotateType(getProject(), PsiType.getTypeByName(outputClassName, getProject(), scope), true, this);

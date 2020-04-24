@@ -65,9 +65,13 @@ public class MlkitUtils {
              .anyMatch(mlDir -> VfsUtilCore.isAncestor(mlDir, file, true));
   }
 
+  /**
+   * Computes the class name based on the file name and location, returns empty string if it can not be determined.
+   */
   @NotNull
   public static String computeModelClassName(@NotNull Module module, @NotNull VirtualFile file) {
-    return MlkitNames.computeModelClassName(relativePathToMlModelsFolder(module, file));
+    String relativePath = relativePathToMlModelsFolder(module, file);
+    return relativePath != null ? MlkitNames.computeModelClassName(relativePath) : "";
   }
 
   @Nullable
@@ -76,16 +80,13 @@ public class MlkitUtils {
     if (androidFacet == null || file.getFileType() != TfliteModelFileType.INSTANCE) {
       return null;
     }
+
     Optional<VirtualFile> ancestor =
       SourceProviders.getInstance(androidFacet).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream()
         .flatMap(sourceProvider -> sourceProvider.getMlModelsDirectories().stream())
         .filter(mlDir -> VfsUtilCore.isAncestor(mlDir, file, true))
         .findFirst();
-    if (!ancestor.isPresent()) {
-      return null;
-    }
-
-    return VfsUtilCore.getRelativePath(file, ancestor.get());
+    return ancestor.map(virtualFile -> VfsUtilCore.getRelativePath(file, virtualFile)).orElse(null);
   }
 
   @NotNull

@@ -86,9 +86,12 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
             String className = file.getUserData(ML_CLASS_NAME_KEY);
             if (Strings.isNullOrEmpty(className)) {
               className = MlkitUtils.computeModelClassName(module, file);
-              file.putUserData(ML_CLASS_NAME_KEY, className);
             }
-            classNameList.add(className);
+
+            if (!Strings.isNullOrEmpty(className)) {
+              file.putUserData(ML_CLASS_NAME_KEY, className);
+              classNameList.add(className);
+            }
             return false;
           }
           return true;
