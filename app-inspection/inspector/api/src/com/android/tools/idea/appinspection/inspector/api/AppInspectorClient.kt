@@ -34,14 +34,19 @@ abstract class AppInspectorClient(
     /**
      * Disposes the inspector and returns a future of the service response.
      *
-     * Upon the response this inspector will be considered disposed, no matter if the call succeeded or failed. (In case of the error
-     * response the inspector is considered unusable). All pending commands on the moment of disposal are resolved with an exception.
+     * Upon response this inspector will be considered disposed, no matter if the call succeeded or failed (completed exceptionally with
+     * [AppInspectionConnectionException]). The inspector will be considered unusable in either case. All pending commands at the moment of
+     * disposal are resolved exceptionally.
      */
     @WorkerThread
     fun disposeInspector(): ListenableFuture<Unit>
 
     /**
      * Sends a raw command using the provided [rawData]. Returns a future of a raw response.
+     *
+     * The result future can complete exceptionally with an [AppInspectionConnectionException] when App Inspection framework encounters an
+     * issue with the underlying connection to the process. Clients must be able to handle it gracefully.
+     * An example would be the connection ended because the app crashed.
      */
     @WorkerThread
     fun sendRawCommand(rawData: ByteArray): ListenableFuture<ByteArray>

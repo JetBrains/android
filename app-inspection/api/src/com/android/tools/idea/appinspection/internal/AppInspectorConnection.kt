@@ -19,6 +19,7 @@ import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.DisposeInspectorCommand
 import com.android.tools.app.inspection.AppInspection.RawCommand
+import com.android.tools.idea.appinspection.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_EVENT
@@ -140,7 +141,7 @@ internal class AppInspectorConnection(
 
   override fun sendRawCommand(rawData: ByteArray): ListenableFuture<ByteArray> {
     if (isDisposed.get()) {
-      return Futures.immediateFailedFuture(IllegalStateException(connectionClosedMessage))
+      return Futures.immediateFailedFuture(AppInspectionConnectionException(connectionClosedMessage))
     }
     val settableFuture = SettableFuture.create<ByteArray>()
     val rawCommand = RawCommand.newBuilder().setContent(ByteString.copyFrom(rawData)).build()
@@ -168,7 +169,7 @@ internal class AppInspectorConnection(
     // if it isn't disposed, then cleanup didn't happen yet and it will be able properly clear [pendingCommands].
     if (isDisposed.get()) {
       pendingCommands.remove(commandId)
-      settableFuture.setException(IllegalStateException(connectionClosedMessage))
+      settableFuture.setException(AppInspectionConnectionException(connectionClosedMessage))
     }
 
     return settableFuture
@@ -184,10 +185,10 @@ internal class AppInspectorConnection(
       transport.unregisterEventListener(inspectorEventListener)
       transport.unregisterEventListener(processEndListener)
       transport.unregisterEventListener(responsesListener)
-      pendingCommands.values.forEach { it.setException(RuntimeException(futureExceptionMessage)) }
+      pendingCommands.values.forEach { it.setException(AppInspectionConnectionException(futureExceptionMessage)) }
       pendingCommands.clear()
       if (disposeResponse == null) {
-        disposeFuture.setException(RuntimeException(futureExceptionMessage))
+        disposeFuture.setException(AppInspectionConnectionException(futureExceptionMessage))
       } else {
         disposeFuture.set(Unit)
       }
