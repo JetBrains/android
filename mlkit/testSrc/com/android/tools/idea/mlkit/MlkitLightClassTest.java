@@ -48,6 +48,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.VfsTestUtil;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.indexing.FileBasedIndex;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
@@ -101,6 +102,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
     myFixture.copyFileToProject("style_transfer_quant_metadata.tflite", "/ml/style_transfer_model.tflite");
     VirtualFile ssdModelFile = myFixture.copyFileToProject("ssd_mobilenet_odt_metadata.tflite", "/ml/ssd_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, ssdModelFile.getParent());
+    FileBasedIndex.getInstance().requestRebuild(MlModelFileIndex.INDEX_ID);
 
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
@@ -263,11 +265,11 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testHighlighting_kotlin() {
-    VirtualFile mobilenetModelFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/mobilenet_model.tflite");
+    myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/mobilenet_model.tflite");
+    myFixture.copyFileToProject("style_transfer_quant_metadata.tflite", "/ml/style_transfer_model.tflite");
     VirtualFile ssdModelFile = myFixture.copyFileToProject("ssd_mobilenet_odt_metadata.tflite", "/ml/ssd_model.tflite");
-    VirtualFile styleTransferModelFile =
-      myFixture.copyFileToProject("style_transfer_quant_metadata.tflite", "/ml/style_transfer_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, ssdModelFile.getParent());
+    FileBasedIndex.getInstance().requestRebuild(MlModelFileIndex.INDEX_ID);
 
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.kt",
@@ -384,8 +386,10 @@ public class MlkitLightClassTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
     myFixture.checkHighlighting();
 
-    // Overwrites the target model file and then verify the light class gets upated.
-    myFixture.copyFileToProject("style_transfer_quant_metadata.tflite", targetModelFilePath);
+    // Overwrites the target model file and then verify the light class gets updated.
+    modelFile = myFixture.copyFileToProject("style_transfer_quant_metadata.tflite", targetModelFilePath);
+    PsiTestUtil.addSourceContentToRoots(myModule, modelFile.getParent());
+    FileBasedIndex.getInstance().requestRebuild(MlModelFileIndex.INDEX_ID);
 
     activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity2.java",

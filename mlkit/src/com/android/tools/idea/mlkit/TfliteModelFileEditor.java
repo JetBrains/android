@@ -16,17 +16,16 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.mlkit.lightpsi.ClassNames;
+import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.ModelInfo;
-import com.android.tools.mlkit.ModelVerifier;
 import com.android.tools.mlkit.TensorInfo;
 import com.android.tools.mlkit.exception.TfliteModelException;
 import com.android.tools.mlkit.exception.UnsupportedTfliteException;
 import com.android.tools.mlkit.exception.UnsupportedTfliteMetadataException;
 import com.android.utils.StringHelper;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -46,9 +45,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.newvfs.BulkFileListener;
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
@@ -126,30 +122,22 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private final UiStyleTracker myUiStyleTracker;
   private final JBScrollPane myRootPane;
 
-  @VisibleForTesting
-  boolean myIsSampleCodeSectionVisible;
+  @Nullable private LightModelClass myLightModelClass;
 
   public TfliteModelFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myProject = project;
     myFile = file;
     myModule = ModuleUtilCore.findModuleForFile(file, project);
     myUiStyleTracker = new UiStyleTracker();
-    myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
+    myLightModelClass = getLatestLightModelClass();
     myRootPane = new JBScrollPane(createContentPanel());
 
-    project.getMessageBus().connect(project).subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
-      @Override
-      public void after(@NotNull List<? extends VFileEvent> events) {
-        for (VFileEvent event : events) {
-          if (myFile.equals(event.getFile())) {
-            myRootPane.setViewportView(createContentPanel());
-            return;
-          }
-        }
-      }
-    });
-
-    LoggingUtils.logEvent(EventType.MODEL_VIEWER_OPEN, file);
+    if (myLightModelClass != null) {
+      LoggingUtils.logEvent(EventType.MODEL_VIEWER_OPEN, myLightModelClass.getModelInfo());
+    }
+    else {
+      LoggingUtils.logEvent(EventType.MODEL_VIEWER_OPEN, file);
+    }
   }
 
   @NotNull
@@ -158,11 +146,29 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       return createWarningMessagePanel("This file is over the maximum supported size 200 MB.");
     }
 
-    JPanel contentPanel = createPanelWithYAxisBoxLayout(Borders.empty(20));
-    ByteBuffer byteBuffer;
     try {
-      byteBuffer = ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath()));
-      ModelVerifier.verifyModel(byteBuffer);
+      JPanel contentPanel = createPanelWithYAxisBoxLayout(Borders.empty(20));
+      ModelInfo modelInfo;
+      if (myLightModelClass != null) {
+        modelInfo = myLightModelClass.getModelInfo();
+      } else {
+        // Falls back to build model info from model file.
+        modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath())));
+      }
+
+      if (modelInfo.isMetadataExisted()) {
+        contentPanel.add(createModelSection(modelInfo));
+        contentPanel.add(createTensorsSection(modelInfo));
+      }
+      else {
+        contentPanel.add(createNoMetadataSection());
+      }
+
+      if (myLightModelClass != null) {
+        contentPanel.add(createSampleCodeSection(myLightModelClass, modelInfo));
+      }
+
+      return contentPanel;
     }
     catch (UnsupportedTfliteException e) {
       return createWarningMessagePanel("Unsupported TensorFlow Lite Model: " + e.getMessage());
@@ -177,24 +183,17 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
       return createWarningMessagePanel("Something goes wrong while reading model file.");
     }
+  }
 
-    ModelInfo modelInfo = ModelInfo.buildWithoutVerification(byteBuffer);
-    if (modelInfo.isMetadataExisted()) {
-      contentPanel.add(createModelSection(modelInfo));
-      contentPanel.add(createTensorsSection(modelInfo));
+  @Nullable
+  private LightModelClass getLatestLightModelClass() {
+    if (myModule != null) {
+      return MlkitModuleService.getInstance(myModule).getLightModelClassList().stream()
+        .filter(lightModelClass -> lightModelClass.getModelFile().getUrl().equals(myFile.getUrl()))
+        .findFirst()
+        .orElse(null);
     }
-    else {
-      contentPanel.add(createNoMetadataSection());
-    }
-    if (myModule != null && myIsSampleCodeSectionVisible) {
-      PsiClass modelClass = MlkitModuleService.getInstance(myModule)
-        .getOrCreateLightModelClass(new MlModelMetadata(myFile.getUrl()));
-      if (modelClass != null) {
-        contentPanel.add(createSampleCodeSection(modelClass, modelInfo));
-      }
-    }
-
-    return contentPanel;
+    return null;
   }
 
   @NotNull
@@ -479,7 +478,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         .append(LINE_SEPARATOR);
     }
 
-    PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
+    PsiClass outputsClass = getInnerOutputsClass(modelClass);
     if (outputsClass != null) {
       Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
@@ -534,7 +533,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         .append(LINE_SEPARATOR);
     }
 
-    PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
+    PsiClass outputsClass = getInnerOutputsClass(modelClass);
     if (outputsClass != null) {
       Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
@@ -542,7 +541,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         codeBuilder
           .append(String.format("val %s = outputs.%s", tensorName, convertToKotlinPropertyName(psiMethod.getName())))
           .append(LINE_SEPARATOR);
-        switch (psiMethod.getReturnType().getCanonicalText()) {
+        switch (Objects.requireNonNull(psiMethod.getReturnType()).getCanonicalText()) {
           case ClassNames.TENSOR_LABEL:
             codeBuilder.append(String.format("val %sMap = %s.mapWithFloatValue", tensorName, tensorName)).append(LINE_SEPARATOR);
             break;
@@ -653,9 +652,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @Nullable
-  private static PsiClass getInnerClass(@NotNull PsiClass modelClass, @NotNull String innerClassName) {
+  private static PsiClass getInnerOutputsClass(@NotNull PsiClass modelClass) {
     for (PsiClass innerClass : modelClass.getInnerClasses()) {
-      if (innerClassName.equals(innerClass.getName())) {
+      if (MlkitNames.OUTPUTS.equals(innerClass.getName())) {
         return innerClass;
       }
     }
@@ -665,8 +664,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   @Override
   public JComponent getComponent() {
-    if (myUiStyleTracker.isUiStyleChanged() || myIsSampleCodeSectionVisible != shouldDisplaySampleCodeSection()) {
-      myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
+    LightModelClass lightModelClass = getLatestLightModelClass();
+    if (myUiStyleTracker.isUiStyleChanged() || !Objects.equals(myLightModelClass, lightModelClass)) {
+      myLightModelClass = lightModelClass;
       myRootPane.setViewportView(createContentPanel());
     }
     return myRootPane;
@@ -728,12 +728,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @Override
   public void dispose() {
-  }
-
-  private boolean shouldDisplaySampleCodeSection() {
-    return myModule != null &&
-           MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule) &&
-           MlkitUtils.isModelFileInMlModelsFolder(myModule, myFile);
   }
 
   @NotNull

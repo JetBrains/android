@@ -46,21 +46,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 
 public class TfliteModelFileEditorTest extends AndroidTestCase {
 
-  private VirtualFile modelFile;
-  private VirtualFile modelFileNotInMlFolder;
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
     StudioFlags.ML_MODEL_BINDING.override(true);
     ((DefaultModuleSystem)ProjectSystemUtil.getModuleSystem(myModule)).setMlModelBindingEnabled(true);
     myFixture.setTestDataPath(TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData/models").getPath());
-
-    // Add models to project.
-    modelFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
-    PsiTestUtil.addSourceContentToRoots(myModule, modelFile.getParent());
-    modelFileNotInMlFolder = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "assets/my_model.tflite");
-    PsiTestUtil.addSourceContentToRoots(myModule, modelFileNotInMlFolder.getParent());
 
     // Set it up as an Android project.
     AndroidFacet androidFacet = AndroidFacet.getInstance(myModule);
@@ -83,21 +74,13 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
     }
   }
 
-  public void testShouldDisplaySampleCodeSection_normalModel_returnTrue() {
-    TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
-    assertThat(editor.myIsSampleCodeSectionVisible).isTrue();
-  }
-
-  public void testShouldDisplaySampleCodeSection_ModelInWrongPath_returnFalse() {
-    TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFileNotInMlFolder);
-    assertThat(editor.myIsSampleCodeSectionVisible).isFalse();
-  }
-
   public void testViewerOpenEventIsLogged() throws Exception {
     TestUsageTracker usageTracker = new TestUsageTracker(new VirtualTimeScheduler());
     UsageTracker.setWriterForTest(usageTracker);
+    VirtualFile modelFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelFile.getParent());
 
-    TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
+    new TfliteModelFileEditor(myFixture.getProject(), modelFile);
     new WaitFor((int)TimeUnit.SECONDS.toMillis(5)) {
       @Override
       protected boolean condition() {
@@ -116,6 +99,8 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
   }
 
   public void testCreateHtmlBody_normalModel() {
+    VirtualFile modelFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelFile.getParent());
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
     JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
     assertThat(contentPanel.getComponentCount()).isEqualTo(3);
@@ -125,7 +110,8 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
   }
 
   public void testCreateHtmlBody_modelWithoutMetadata() {
-    modelFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_model.tflite");
+    VirtualFile modelFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelFile.getParent());
     TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
     JPanel contentPanel = ((JPanel)((JScrollPane)editor.getComponent()).getViewport().getView());
     assertThat(contentPanel.getComponentCount()).isEqualTo(2);
