@@ -65,6 +65,8 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   private DataContext myContext;
 
+  private ActionManager myActionManager;
+
   @Before
   public void newDevicesSelectedService() {
     myProperties = new ProjectPropertiesComponentImpl();
@@ -103,6 +105,11 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Mockito.when(myContext.getData(CommonDataKeys.PROJECT)).thenReturn(myRule.getProject());
   }
 
+  @Before
+  public void initActionManager() {
+    myActionManager = ActionManager.getInstance();
+  }
+
   @Test
   public void createCustomComponent() {
     // Arrange
@@ -137,10 +144,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
-      action.getMultipleDevicesAction(),
-      action.getModifyDeviceSetAction(),
-      ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID),
-      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
+      myActionManager.getAction(MultipleDevicesAction.ID),
+      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -167,13 +174,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
-      new Heading("Available devices"),
-      SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
+      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
+      SelectDeviceAction.newSelectDeviceAction(builder.build(), action),
       Separator.getInstance(),
-      action.getMultipleDevicesAction(),
-      action.getModifyDeviceSetAction(),
-      ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID),
-      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
+      myActionManager.getAction(MultipleDevicesAction.ID),
+      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -200,13 +207,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
-      new Heading("Running devices"),
-      SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
+      myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
+      SelectDeviceAction.newSelectDeviceAction(builder.build(), action),
       Separator.getInstance(),
-      action.getMultipleDevicesAction(),
-      action.getModifyDeviceSetAction(),
-      ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID),
-      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
+      myActionManager.getAction(MultipleDevicesAction.ID),
+      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -240,16 +247,16 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
-      new Heading("Running devices"),
-      SelectDeviceAction.newSelectDeviceAction(action, myProject, physicalDeviceBuilder.build()),
+      myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
+      SelectDeviceAction.newSelectDeviceAction(physicalDeviceBuilder.build(), action),
       Separator.getInstance(),
-      new Heading("Available devices"),
-      SelectDeviceAction.newSelectDeviceAction(action, myProject, virtualDeviceBuilder.build()),
+      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
+      SelectDeviceAction.newSelectDeviceAction(virtualDeviceBuilder.build(), action),
       Separator.getInstance(),
-      action.getMultipleDevicesAction(),
-      action.getModifyDeviceSetAction(),
-      ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID),
-      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
+      myActionManager.getAction(MultipleDevicesAction.ID),
+      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -277,13 +284,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
-      new Heading("Available devices"),
-      SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
+      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
+      SelectDeviceAction.newSelectDeviceAction(builder.build(), action),
       Separator.getInstance(),
-      action.getMultipleDevicesAction(),
-      action.getModifyDeviceSetAction(),
-      ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID),
-      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
+      myActionManager.getAction(MultipleDevicesAction.ID),
+      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -312,13 +319,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
-      new Heading("Available devices"),
-      SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
+      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
+      SelectDeviceAction.newSelectDeviceAction(builder.build(), action),
       Separator.getInstance(),
-      action.getMultipleDevicesAction(),
-      action.getModifyDeviceSetAction(),
-      ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID),
-      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
+      myActionManager.getAction(MultipleDevicesAction.ID),
+      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
+      myActionManager.getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }

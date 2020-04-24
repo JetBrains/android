@@ -25,23 +25,23 @@ import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 final class ModifyDeviceSetAction extends AnAction {
+  static final String ID = "ModifyDeviceSet";
+
   @NotNull
   private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
 
   @NotNull
   private final Function<Project, DialogWrapper> myNewModifyDeviceSetDialog;
 
-  @NonInjectable
-  ModifyDeviceSetAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
-    this(comboBoxAction, ModifyDeviceSetDialog::new);
+  @SuppressWarnings("unused")
+  private ModifyDeviceSetAction() {
+    this(DeviceAndSnapshotComboBoxAction.getInstance(), ModifyDeviceSetDialog::new);
   }
 
   @VisibleForTesting
   @NonInjectable
   ModifyDeviceSetAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
                         @NotNull Function<Project, DialogWrapper> newModifyDeviceSetDialog) {
-    super("Modify Device Set...");
-
     myComboBoxAction = comboBoxAction;
     myNewModifyDeviceSetDialog = newModifyDeviceSetDialog;
   }

@@ -19,60 +19,36 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.project.Project;
+import java.util.Collection;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class SelectDeviceAction extends AnAction {
   @NotNull
-  private final Project myProject;
-
-  @NotNull
   private final Device myDevice;
 
   @NotNull
-  static AnAction newSelectDeviceAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
-                                        @NotNull Project project,
-                                        @NotNull Device device) {
-    return new SelectDeviceAction(comboBoxAction, project, device, false);
+  private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
+
+  private final boolean mySnapshotActionGroupChild;
+
+  @NotNull
+  static AnAction newSelectDeviceAction(@NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
+    return new SelectDeviceAction(device, comboBoxAction, false);
   }
 
   @NotNull
-  static AnAction newSnapshotActionGroupChild(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
-                                              @NotNull Project project,
-                                              @NotNull Device device) {
-    return new SelectDeviceAction(comboBoxAction, project, device, true);
+  static AnAction newSnapshotActionGroupChild(@NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
+    return new SelectDeviceAction(device, comboBoxAction, true);
   }
 
-  private SelectDeviceAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
-                             @NotNull Project project,
-                             @NotNull Device device,
+  private SelectDeviceAction(@NotNull Device device,
+                             @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
                              boolean snapshotActionGroupChild) {
-    configurePresentation(comboBoxAction, project, device, snapshotActionGroupChild);
-
-    myProject = project;
     myDevice = device;
-  }
-
-  private void configurePresentation(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
-                                     @NotNull Project project,
-                                     @NotNull Device device,
-                                     boolean snapshotActionGroupChild) {
-    Presentation presentation = getTemplatePresentation();
-
-    if (snapshotActionGroupChild) {
-      Snapshot snapshot = device.getSnapshot();
-      presentation.setText(snapshot == null ? "No Snapshot" : snapshot.toString(), false);
-
-      return;
-    }
-
-    presentation.setIcon(device.getIcon());
-
-    Key key = Devices.containsAnotherDeviceWithSameName(comboBoxAction.getDevices(project), device) ? device.getKey() : null;
-    Snapshot snapshot = comboBoxAction.areSnapshotsEnabled() ? device.getSnapshot() : null;
-
-    presentation.setText(Devices.getText(device, key, snapshot), false);
+    mySnapshotActionGroupChild = snapshotActionGroupChild;
+    myComboBoxAction = comboBoxAction;
   }
 
   @NotNull
@@ -82,8 +58,28 @@ public final class SelectDeviceAction extends AnAction {
   }
 
   @Override
+  public void update(@NotNull AnActionEvent event) {
+    Presentation presentation = event.getPresentation();
+
+    if (mySnapshotActionGroupChild) {
+      Snapshot snapshot = myDevice.getSnapshot();
+      presentation.setText(snapshot == null ? "No Snapshot" : snapshot.toString(), false);
+
+      return;
+    }
+
+    presentation.setIcon(myDevice.getIcon());
+
+    Collection<Device> devices = myComboBoxAction.getDevices(Objects.requireNonNull(event.getProject()));
+    Key key = Devices.containsAnotherDeviceWithSameName(devices, myDevice) ? myDevice.getKey() : null;
+    Snapshot snapshot = myComboBoxAction.areSnapshotsEnabled() ? myDevice.getSnapshot() : null;
+
+    presentation.setText(Devices.getText(myDevice, key, snapshot), false);
+  }
+
+  @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    DevicesSelectedService.getInstance(myProject).setDeviceSelectedWithComboBox(myDevice);
+    DevicesSelectedService.getInstance(Objects.requireNonNull(event.getProject())).setDeviceSelectedWithComboBox(myDevice);
   }
 
   @Override
@@ -93,11 +89,19 @@ public final class SelectDeviceAction extends AnAction {
     }
 
     SelectDeviceAction action = (SelectDeviceAction)object;
-    return myProject.equals(action.myProject) && myDevice.equals(action.myDevice);
+
+    return myDevice.equals(action.myDevice) &&
+           myComboBoxAction.equals(action.myComboBoxAction) &&
+           mySnapshotActionGroupChild == action.mySnapshotActionGroupChild;
   }
 
   @Override
   public int hashCode() {
-    return 31 * myProject.hashCode() + myDevice.hashCode();
+    int hashCode = myDevice.hashCode();
+
+    hashCode = 31 * hashCode + myComboBoxAction.hashCode();
+    hashCode = 31 * hashCode + Boolean.hashCode(mySnapshotActionGroupChild);
+
+    return hashCode;
   }
 }
