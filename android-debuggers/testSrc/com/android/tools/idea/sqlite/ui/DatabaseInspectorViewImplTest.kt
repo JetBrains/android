@@ -334,6 +334,24 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     assertFalse(runSqlButtonAfterRemovingDb.isEnabled)
   }
 
+  fun testTabsAreNotHiddenIfANewDatabaseIsAdded() {
+    // Prepare
+    val database1 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1"))
+    val database2 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db2"))
+    view.addDatabaseSchema(database1, SqliteSchema(emptyList()), 0)
+
+    // Act
+    view.openTab(TabId.AdHocQueryTab(), "tab", JPanel())
+    view.addDatabaseSchema(database2, SqliteSchema(emptyList()), 0)
+
+    // Assert
+    val emptyStateRightPanel = TreeWalker(view.component).descendants().firstOrNull() { it.name == "right-panel-empty-state" }
+    val tabsPanel = TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
+
+    assertNull(emptyStateRightPanel)
+    assertTrue(tabsPanel.isVisible)
+  }
+
   private fun assertTreeContainsNodes(tree: Tree, databases: Map<SqliteDatabase, List<SqliteTable>>) {
     val root = tree.model.root
     assertEquals(databases.size, tree.model.getChildCount(root))

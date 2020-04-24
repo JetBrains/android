@@ -113,7 +113,9 @@ class DatabaseInspectorViewImpl(
   override fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema, index: Int) {
     leftPanelView.addDatabaseSchema(database, schema, index)
 
-    addEmptyStatePanel(defaultEmptyStateMessage)
+    if (openTabs.isEmpty()) {
+      addEmptyStatePanel(defaultEmptyStateMessage)
+    }
   }
 
   override fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) {
