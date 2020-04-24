@@ -529,6 +529,28 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     verify(sqliteEvaluatorView.tableView).updateRows(listOf(RowDiffOperation.AddRow(sqliteRow)))
   }
 
+  fun testSqliteStatementChangedEnablesRunStatement() {
+    // Prepare
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    sqliteEvaluatorView.listeners.first().sqliteStatementTextChangedInvoked("SELECT * FROM tab")
+
+    // Assert
+    verify(sqliteEvaluatorView).setRunSqliteStatementEnabled(true)
+  }
+
+  fun testSqliteStatementChangedDisablesRunStatement() {
+    // Prepare
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    sqliteEvaluatorView.listeners.first().sqliteStatementTextChangedInvoked("random string")
+
+    // Assert
+    verify(sqliteEvaluatorView).setRunSqliteStatementEnabled(false)
+  }
+
   private fun evaluateSqlActionFailure(sqliteStatementType: SqliteStatementType, sqliteStatement: String) {
     // Prepare
     val throwable = Throwable()

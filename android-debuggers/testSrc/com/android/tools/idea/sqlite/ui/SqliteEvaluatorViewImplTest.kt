@@ -30,6 +30,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
+import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.testing.IdeComponents
@@ -39,7 +40,9 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import com.intellij.ui.EditorTextField
 import com.intellij.util.concurrency.EdtExecutorService
+import junit.framework.TestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
@@ -223,5 +226,51 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("c1", table.model.getColumnName(1))
     assertEquals(1, table.model.rowCount)
     assertEquals("42", table.model.getValueAt(0, 1))
+  }
+
+  fun testEnableRunSqliteStatementsEnablesRunButton() {
+    // Prepare
+    val runButton = TreeWalker(view.component).descendants().first { it.name == "run-button" }
+
+    // Act
+    view.setRunSqliteStatementEnabled(true)
+
+    // Assert
+    TestCase.assertTrue(runButton.isEnabled)
+  }
+
+  fun testDisableRunSqliteStatementsDisablesRunButton() {
+    // Prepare
+    val runButton = TreeWalker(view.component).descendants().first { it.name == "run-button" }
+    view.setRunSqliteStatementEnabled(true)
+
+    // Act
+    view.setRunSqliteStatementEnabled(false)
+
+    // Assert
+    assertFalse(runButton.isEnabled)
+  }
+
+  fun testSqliteStatementTextChanged() {
+    // Prepare
+    val collapsedEditor = TreeWalker(view.component).descendants().first { it.name == "collapsed-editor" } as EditorTextField
+
+    val invocations = mutableListOf<String>()
+    val mockListener = object : SqliteEvaluatorView.Listener {
+      override fun evaluateSqliteStatementActionInvoked(database: SqliteDatabase, sqliteStatement: String) { }
+
+      override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
+        invocations.add(newSqliteStatement)
+      }
+    }
+
+    view.addListener(mockListener)
+
+    // Act
+    collapsedEditor.text = "test1"
+    collapsedEditor.text = "test2"
+
+    // Assert
+    assertEquals(listOf("test1", "test2"), invocations)
   }
 }
