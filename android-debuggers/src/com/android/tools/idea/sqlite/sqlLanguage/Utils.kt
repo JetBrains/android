@@ -181,11 +181,16 @@ fun getSqliteStatementType(project: Project, sqliteStatement: String): SqliteSta
 }
 
 /**
- * Removes a semicolon from the end of [sqliteStatement], if present, and returns a new string.
+ * Returns a version of [sqliteStatement] that has the same semantic meaning but is safe to wrap in other SQLite statements.
+ *
+ * Eg: `SELECT * FROM t;` becomes `SELECT * FROM t`, that can be safely wrapped like `SELECT COUNT(*) FROM (SELECT * FROM t)`
  */
-fun removeTrailingSemicolon(project: Project, sqliteStatement: String): String {
+fun getWrappableStatement(project: Project, sqliteStatement: String): String {
   val psiElement = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatement)
-  if (psiElement.lastChild.elementType == AndroidSqlPsiTypes.SEMICOLON) {
+  if (
+    psiElement.lastChild.elementType == AndroidSqlPsiTypes.SEMICOLON ||
+    psiElement.lastChild.elementType == AndroidSqlPsiTypes.LINE_COMMENT
+  ) {
     psiElement.node.removeChild(psiElement.lastChild.node)
   }
   return psiElement.text

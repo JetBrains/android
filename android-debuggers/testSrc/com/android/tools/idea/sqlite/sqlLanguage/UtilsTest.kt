@@ -215,9 +215,13 @@ class UtilsTest : LightPlatformTestCase() {
     assertEquals(SqliteStatementType.UNKNOWN, getSqliteStatementType(project, "SELECT * FROM t1; EXPLAIN SELECT * FROM t1;"))
   }
 
-  fun testRemoveTrailingSemicolon() {
-    assertEquals("SELECT * FROM t1", removeTrailingSemicolon(project, "SELECT * FROM t1"))
-    assertEquals("SELECT * FROM t1", removeTrailingSemicolon(project, "SELECT * FROM t1;"))
-    assertEquals("SELECT * FROM t1; SELECT * FROM t2", removeTrailingSemicolon(project, "SELECT * FROM t1; SELECT * FROM t2;"))
+  fun testGetWrappableStatement() {
+    assertEquals("SELECT * FROM t1", getWrappableStatement(project, "SELECT * FROM t1"))
+    assertEquals("SELECT * FROM t1", getWrappableStatement(project, "SELECT * FROM t1;"))
+    assertEquals("SELECT * FROM t1; SELECT * FROM t2", getWrappableStatement(project, "SELECT * FROM t1; SELECT * FROM t2;"))
+    assertEquals("SELECT * FROM t1 ", getWrappableStatement(project, "SELECT * FROM t1 -- comment"))
+    assertEquals("SELECT * FROM t1 ", getWrappableStatement(project, "SELECT * FROM t1 --comment"))
+    assertEquals("SELECT * FROM t1", getWrappableStatement(project, "SELECT * FROM t1--comment"))
+    assertEquals("SELECT * FROM t1 /* comment */", getWrappableStatement(project, "SELECT * FROM t1 /* comment */"))
   }
 }

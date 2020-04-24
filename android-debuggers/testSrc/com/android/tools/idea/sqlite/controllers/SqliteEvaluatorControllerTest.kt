@@ -506,6 +506,29 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     verify(sqliteEvaluatorView.tableView).updateRows(listOf(RowDiffOperation.AddRow(sqliteRow)))
   }
 
+  fun testRunSelectStatementWithTrailingLineComment() {
+    val sqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      "db",
+      "create table t1 (c1 int)",
+      "insert into t1 values (42)"
+    )
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+    val sqliteDatabase = LiveSqliteDatabase("db", realDatabaseConnection!!)
+    val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
+    sqliteEvaluatorController.addDatabase(sqliteDatabase, 0)
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, "SELECT * FROM t1 --comment"))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(sqliteEvaluatorView).showSqliteStatement("SELECT * FROM t1 --comment")
+    verify(sqliteEvaluatorView.tableView).showTableColumns(listOf(ResultSetSqliteColumn("c1", SqliteAffinity.INTEGER, true, false)))
+    verify(sqliteEvaluatorView.tableView).updateRows(listOf(RowDiffOperation.AddRow(sqliteRow)))
+  }
+
   private fun evaluateSqlActionFailure(sqliteStatementType: SqliteStatementType, sqliteStatement: String) {
     // Prepare
     val throwable = Throwable()
