@@ -150,7 +150,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorView.listeners.first().evaluateSqlActionInvoked(sqliteDatabase, "SELECT * FROM foo WHERE id = 42")
+    sqliteEvaluatorView.listeners.first().evaluateSqliteStatementActionInvoked(sqliteDatabase, "SELECT * FROM foo WHERE id = 42")
 
     // Assert
     verify(parametersBindingDialogView, times(0)).show()
@@ -365,7 +365,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorView.listeners.first().evaluateSqlActionInvoked(sqliteDatabase, "SELECT * FROM foo")
+    sqliteEvaluatorView.listeners.first().evaluateSqliteStatementActionInvoked(sqliteDatabase, "SELECT * FROM foo")
 
     // Assert
     verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT)

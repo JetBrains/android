@@ -154,7 +154,7 @@ class SqliteEvaluatorController(
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {
-    override fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String) {
+    override fun evaluateSqliteStatementActionInvoked(database: SqliteDatabase, sqliteStatement: String) {
       DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
       )
