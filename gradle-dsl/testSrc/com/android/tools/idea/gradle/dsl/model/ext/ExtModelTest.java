@@ -432,6 +432,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testMultipleDefDeclarations() throws IOException {
+    isIrrelevantForKotlinScript("no multiple declaration syntax in KotlinScript");
     writeToBuildFile(EXT_MODEL_MULTIPLE_DEF_DECLARATIONS);
 
     GradleBuildModel buildModel = getGradleBuildModel();

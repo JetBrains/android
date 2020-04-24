@@ -229,6 +229,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetConfigurationWhenMultiple() throws Exception {
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(FILE_TREE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE);
     GradleBuildModel buildModel = getGradleBuildModel();
 

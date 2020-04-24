@@ -155,6 +155,16 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     return myLanguageName.equals(GROOVY_LANGUAGE);
   }
 
+  protected boolean isKotlinScript() { return myLanguageName.equals(KOTLIN_LANGUAGE); }
+
+  protected void isIrrelevantForGroovy(String reason) {
+    assumeTrue("test irrelevant for Groovy: " + reason, !isGroovy());
+  }
+
+  protected void isIrrelevantForKotlinScript(String reason) {
+    assumeTrue("test irrelevant for KotlinScript: " + reason, !isKotlinScript());
+  }
+
   /**
    * @param name the name of an extra property
    *

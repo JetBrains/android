@@ -38,6 +38,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.annotations.SystemDependent
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
 
@@ -69,6 +70,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   }
 
   private fun setupSingleFile() {
+    assumeTrue("requires interleaved extra properties and variables in a block", !isKotlinScript) // TODO(b/154902406)
     writeToBuildFile(TestFile.SETUP_SINGLE_FILE)
   }
 
