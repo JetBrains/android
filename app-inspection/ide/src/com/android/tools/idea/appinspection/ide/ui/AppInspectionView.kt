@@ -20,7 +20,7 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
-import com.android.tools.idea.appinspection.api.ProcessDescriptor
+import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient

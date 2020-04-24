@@ -16,8 +16,8 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
-import com.android.tools.idea.appinspection.api.ProcessDescriptor
+import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
@@ -110,7 +110,7 @@ class AppInspectionProcessesModelTest {
 
     val model = AppInspectionProcessModel(discoveryHost) { listOf("preferred") }
 
-    discoveryHost.addProcessListener(EdtExecutorService.getInstance(), object : AppInspectionDiscoveryHost.ProcessListener {
+    discoveryHost.addProcessListener(EdtExecutorService.getInstance(), object : ProcessListener {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         addedLatch.countDown()
       }
@@ -142,7 +142,7 @@ class AppInspectionProcessesModelTest {
     val processReadyLatch = CountDownLatch(2)
 
     val model = AppInspectionProcessModel(discoveryHost) { listOf("A", "B") }
-    discoveryHost.addProcessListener(EdtExecutorService.getInstance(), object : AppInspectionDiscoveryHost.ProcessListener {
+    discoveryHost.addProcessListener(EdtExecutorService.getInstance(), object : ProcessListener {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         processReadyLatch.countDown()
       }
@@ -174,7 +174,7 @@ class AppInspectionProcessesModelTest {
     val processReadyLatch = CountDownLatch(1)
 
     val model = AppInspectionProcessModel(discoveryHost) { emptyList() }
-    discoveryHost.addProcessListener(EdtExecutorService.getInstance(), object : AppInspectionDiscoveryHost.ProcessListener {
+    discoveryHost.addProcessListener(EdtExecutorService.getInstance(), object : ProcessListener {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         processReadyLatch.countDown()
       }
@@ -204,7 +204,7 @@ class AppInspectionProcessesModelTest {
     val processRemovedLatch = CountDownLatch(1)
 
     val model = AppInspectionProcessModel(discoveryHost) { emptyList() }
-    discoveryHost.addProcessListener(EdtExecutorService.getInstance(), object : AppInspectionDiscoveryHost.ProcessListener {
+    discoveryHost.addProcessListener(EdtExecutorService.getInstance(), object : ProcessListener {
       override fun onProcessConnected(descriptor: ProcessDescriptor) {
         processReadyLatch.countDown()
       }

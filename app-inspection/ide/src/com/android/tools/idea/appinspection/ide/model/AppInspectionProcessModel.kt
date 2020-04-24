@@ -16,7 +16,8 @@
 package com.android.tools.idea.appinspection.ide.model
 
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
-import com.android.tools.idea.appinspection.api.ProcessDescriptor
+import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.intellij.openapi.Disposable
 import com.intellij.util.concurrency.EdtExecutorService
 
@@ -38,7 +39,7 @@ class AppInspectionProcessModel(private val appInspectionDiscoveryHost: AppInspe
       }
     }
 
-  private val processListener = object : AppInspectionDiscoveryHost.ProcessListener {
+  private val processListener = object : ProcessListener {
     override fun onProcessConnected(descriptor: ProcessDescriptor) {
       processes.add(descriptor)
       if (isProcessPreferred(descriptor) && !isProcessPreferred(selectedProcess)) {
