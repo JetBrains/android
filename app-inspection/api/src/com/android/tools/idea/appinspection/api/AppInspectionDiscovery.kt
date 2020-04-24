@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.process.ProcessListener
+import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
@@ -64,7 +65,7 @@ class AppInspectionDiscoveryHost(
   client: TransportClient,
   private val manager: TransportStreamManager,
   private val createJarCopier: JarCopierCreator
-) {
+): ProcessNotifier {
   /**
    * Encapsulates all of the parameters that are required for launching an inspector.
    */
@@ -112,7 +113,7 @@ class AppInspectionDiscoveryHost(
    *
    * This has the side effect of notifying users of all existing live targets the discovery service is aware of.
    */
-  fun addProcessListener(
+  override fun addProcessListener(
     executor: Executor,
     listener: ProcessListener
   ) {
@@ -126,7 +127,7 @@ class AppInspectionDiscoveryHost(
   /**
    * Removes a [ProcessListener] and so stops it from hearing future process events.
    */
-  fun removeProcessListener(listener: ProcessListener) = synchronized(processData) { processData.processListeners.remove(listener) }
+  override fun removeProcessListener(listener: ProcessListener): Unit = synchronized(processData) { processData.processListeners.remove(listener) }
 
 
   /**

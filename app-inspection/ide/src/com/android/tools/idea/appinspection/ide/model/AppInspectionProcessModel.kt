@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.appinspection.ide.model
 
-import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.process.ProcessListener
+import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.intellij.openapi.Disposable
 import com.intellij.util.concurrency.EdtExecutorService
 
@@ -25,7 +25,7 @@ import com.intellij.util.concurrency.EdtExecutorService
  * Model class that owns a list of active [ProcessDescriptor] targets with listeners that trigger
  * when one is added or removed.
  */
-class AppInspectionProcessModel(private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
+class AppInspectionProcessModel(private val processNotifier: ProcessNotifier,
                                 private val getPreferredProcessNames: () -> List<String>) : Disposable {
   private val selectedProcessListeners = mutableListOf<() -> Unit>()
   fun addSelectedProcessListeners(listener: () -> Unit) = selectedProcessListeners.add(listener)
@@ -56,11 +56,11 @@ class AppInspectionProcessModel(private val appInspectionDiscoveryHost: AppInspe
   }
 
   init {
-    appInspectionDiscoveryHost.addProcessListener(EdtExecutorService.getInstance(), processListener)
+    processNotifier.addProcessListener(EdtExecutorService.getInstance(), processListener)
   }
 
   override fun dispose() {
-    appInspectionDiscoveryHost.removeProcessListener(processListener)
+    processNotifier.removeProcessListener(processListener)
   }
 
   fun isProcessPreferred(processDescriptor: ProcessDescriptor?) =
