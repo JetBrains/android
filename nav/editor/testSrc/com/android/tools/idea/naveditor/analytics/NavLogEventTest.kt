@@ -311,19 +311,6 @@ class NavLogEventTest : NavTestCase() {
                        "\n" +
                        "@Navigator.Name(\"fragment\")\n" +
                        "public class CustomFragmentNavigator extends FragmentNavigator {}\n")
-    myFixture.addFileToProject("res/values/attrs2.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                                        "<resources>\n" +
-                                                        "    <declare-styleable name=\"CustomNavigator\">\n" +
-                                                        "        <attr format=\"string\" name=\"myString\"/>\n" +
-                                                        "        <attr format=\"boolean\" name=\"myBoolean\"/>\n" +
-                                                        "        <attr format=\"integer\" name=\"myInteger\"/>\n" +
-                                                        "    </declare-styleable>\n" +
-                                                        "    <declare-styleable name=\"CustomActivityNavigator\">\n" +
-                                                        "        <attr format=\"string\" name=\"myString2\"/>\n" +
-                                                        "        <attr format=\"boolean\" name=\"myBoolean2\"/>\n" +
-                                                        "        <attr format=\"integer\" name=\"myInteger2\"/>\n" +
-                                                        "    </declare-styleable>\n" +
-                                                        "</resources>\n")
 
     ResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
     ResourceRepositoryManager.getAppResources(myFacet).sync()
@@ -339,7 +326,6 @@ class NavLogEventTest : NavTestCase() {
       .withSchemaInfo()
       .getProtoForTest().schemaInfo
     assertEquals(NavSchemaInfo.newBuilder()
-                   .setCustomAttributes(6)
                    .setCustomDestinations(1)
                    .setCustomNavigators(3)
                    .setCustomTags(2).toString(), proto.toString())
