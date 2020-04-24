@@ -17,17 +17,25 @@ package com.android.tools.idea.npw.module.recipes.androidModule.res.values_night
 
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.DARK_ACTION_BAR_APPCOMPAT
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.DARK_ACTION_BAR_MATERIAL_COMPONENTS
+import com.android.tools.idea.wizard.template.MaterialColor.*
 
 fun androidModuleThemes(useAndroidX: Boolean, themeName: String = "Theme.App"): String {
   val parent = if (useAndroidX) DARK_ACTION_BAR_MATERIAL_COMPONENTS else DARK_ACTION_BAR_APPCOMPAT
   return """
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
   <!-- Application theme for dark theme. -->
   <style name="$themeName" parent="$parent">
+      <!-- Primary brand color. -->
+      <item name="colorPrimary">@color/${PURPLE_200.colorName}</item>
+      <item name="colorPrimaryDark">@color/${PURPLE_700.colorName}</item>
+      <item name="colorOnPrimary">@color/${BLACK.colorName}</item>
+      <!-- Secondary brand color. -->
+      <item name="colorSecondary">@color/${TEEL_200.colorName}</item>
+      <item name="colorSecondaryVariant">@color/${TEEL_200.colorName}</item>
+      <item name="colorOnSecondary">@color/${BLACK.colorName}</item>
+      <!-- Status bar color. -->
+      <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
       <!-- Customize your theme here. -->
-      <item name="colorPrimary">@color/purple200</item>
-      <item name="colorPrimaryDark">@color/purple700</item>
-      <item name="colorAccent">@color/teal200</item>
   </style>
 
 </resources>
