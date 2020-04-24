@@ -203,7 +203,7 @@ public class LightModelClass extends AndroidLightClassBase {
       PsiType nonNullPsiType = NullabilityUtils
         .annotateType(getProject(), PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), getProject(), getResolveScope()),
                       true, this);
-      method.addParameter(tensorInfo.getName(), nonNullPsiType);
+      method.addParameter(tensorInfo.getIdentifierName(), nonNullPsiType);
     }
     method.setNavigationElement(this);
 

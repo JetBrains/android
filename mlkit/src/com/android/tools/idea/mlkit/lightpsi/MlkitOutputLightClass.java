@@ -95,7 +95,7 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
     PsiClassType nonNullReturnType = NullabilityUtils
       .annotateType(getProject(), PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), project, scope), true, this);
     LightMethodBuilder method =
-      new LightMethodBuilder(myManager, MlkitNames.formatGetterName(tensorInfo.getName(), nonNullReturnType.getClassName()))
+      new LightMethodBuilder(myManager, MlkitNames.formatGetterName(tensorInfo.getIdentifierName(), nonNullReturnType.getClassName()))
         .setMethodReturnType(nonNullReturnType)
         .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
         .setContainingClass(this);
