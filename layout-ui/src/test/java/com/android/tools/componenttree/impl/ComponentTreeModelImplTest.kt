@@ -32,6 +32,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.SwingUtilities
@@ -106,6 +107,7 @@ class ComponentTreeModelImplTest {
     assertThat(model.toSearchString(style2)).isEqualTo("style2")
   }
 
+  @Ignore("b/154910152")
   @Test
   fun testRenderer() {
     val itemRenderer = model.rendererOf(item1)
@@ -117,6 +119,7 @@ class ComponentTreeModelImplTest {
     assertThat(model.rendererOf(style2)).isSameAs(styleRenderer)
   }
 
+  @Ignore("b/154910152")
   @Test
   fun testClearRenderer() {
     val itemRenderer1 = model.rendererOf(item1)
