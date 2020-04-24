@@ -196,6 +196,14 @@ fun getWrappableStatement(project: Project, sqliteStatement: String): String {
   return psiElement.text
 }
 
+/**
+ * Returns true if the parser can't parse [sqliteStatement] successfully, false otherwise.
+ */
+fun hasParsingError(project: Project, sqliteStatement: String): Boolean {
+  val psiFile = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatement)
+  return PsiTreeUtil.hasErrorElements(psiFile)
+}
+
 private fun parentIsInExpression(bindParameter: AndroidSqlBindParameter): Boolean {
   return bindParameter.parent.parent is AndroidSqlInExpression
 }
