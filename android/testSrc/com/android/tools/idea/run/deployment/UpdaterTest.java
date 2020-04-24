@@ -339,7 +339,7 @@ public final class UpdaterTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new Key("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshot(new Snapshot(fileSystem.getPath("snap_2018-08-07_16-27-58"), fileSystem))
       .build();
@@ -369,7 +369,7 @@ public final class UpdaterTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new Key("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshot(new Snapshot(fileSystem.getPath("snap_2018-08-07_16-27-58"), fileSystem))
       .build();

@@ -80,12 +80,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   private final Function<Project, RunManager> myGetRunManager;
 
-  @NotNull
-  private final AnAction myMultipleDevicesAction;
-
-  @NotNull
-  private final AnAction myModifyDeviceSetAction;
-
   @VisibleForTesting
   static final class Builder {
     @Nullable
@@ -173,9 +167,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     assert builder.myGetRunManager != null;
     myGetRunManager = builder.myGetRunManager;
-
-    myMultipleDevicesAction = new MultipleDevicesAction();
-    myModifyDeviceSetAction = new ModifyDeviceSetAction(this);
   }
 
   @NotNull
@@ -185,18 +176,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   boolean areSnapshotsEnabled() {
     return mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get();
-  }
-
-  @NotNull
-  @VisibleForTesting
-  AnAction getMultipleDevicesAction() {
-    return myMultipleDevicesAction;
-  }
-
-  @NotNull
-  @VisibleForTesting
-  AnAction getModifyDeviceSetAction() {
-    return myModifyDeviceSetAction;
   }
 
   @NotNull
@@ -302,8 +281,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     ActionManager manager = ActionManager.getInstance();
 
-    group.add(myMultipleDevicesAction);
-    group.add(myModifyDeviceSetAction);
+    group.add(manager.getAction(MultipleDevicesAction.ID));
+    group.add(manager.getAction(ModifyDeviceSetAction.ID));
     group.add(manager.getAction(PairDevicesUsingWiFiAction.ID));
     group.add(manager.getAction(RunAndroidAvdManagerAction.ID));
 
@@ -328,13 +307,14 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     boolean connectedDevicesPresent = !connectedDevices.isEmpty();
     Collection<AnAction> actions = new ArrayList<>(connectedDevices.size() + disconnectedDevices.size() + 3);
+    ActionManager manager = ActionManager.getInstance();
 
     if (connectedDevicesPresent) {
-      actions.add(new Heading("Running devices"));
+      actions.add(manager.getAction(Heading.RUNNING_DEVICES_ID));
     }
 
     connectedDevices.stream()
-      .map(device -> SelectDeviceAction.newSelectDeviceAction(this, project, device))
+      .map(device -> SelectDeviceAction.newSelectDeviceAction(device, this))
       .forEach(actions::add);
 
     boolean disconnectedDevicesPresent = !disconnectedDevices.isEmpty();
@@ -344,11 +324,11 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     if (disconnectedDevicesPresent) {
-      actions.add(new Heading("Available devices"));
+      actions.add(manager.getAction(Heading.AVAILABLE_DEVICES_ID));
     }
 
     disconnectedDevices.stream()
-      .map(device -> SelectDeviceAction.newSelectDeviceAction(this, project, device))
+      .map(device -> SelectDeviceAction.newSelectDeviceAction(device, this))
       .forEach(actions::add);
 
     return actions;
@@ -361,12 +341,12 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     Collection<AnAction> actions = new ArrayList<>(deviceKeys.size() + 1);
 
     if (!deviceKeys.isEmpty()) {
-      actions.add(new Heading("Available devices"));
+      actions.add(ActionManager.getInstance().getAction(Heading.AVAILABLE_DEVICES_ID));
     }
 
     deviceKeys.stream()
       .map(multimap::get)
-      .map(devices -> newAction(devices, project))
+      .map(this::newAction)
       .forEach(actions::add);
 
     return actions;
@@ -392,12 +372,12 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @NotNull
-  private AnAction newAction(@NotNull List<Device> devices, @NotNull Project project) {
+  private AnAction newAction(@NotNull List<Device> devices) {
     if (devices.size() == 1) {
-      return SelectDeviceAction.newSelectDeviceAction(this, project, devices.get(0));
+      return SelectDeviceAction.newSelectDeviceAction(devices.get(0), this);
     }
 
-    return new SnapshotActionGroup(devices, this, project);
+    return new SnapshotActionGroup(devices);
   }
 
   @Override
