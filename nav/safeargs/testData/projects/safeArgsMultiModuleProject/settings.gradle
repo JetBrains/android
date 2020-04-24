@@ -1,0 +1,1 @@
+include ':appWithoutSafeArgs', ':appUsingJavaPlugin', ':appUsingKotlinPlugin'
