@@ -15,6 +15,8 @@
  */
 package com.android.tools.property.testing
 
+import com.intellij.ide.ui.NotRoamableUiSettings
+import com.intellij.ide.ui.UISettings
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -62,6 +64,25 @@ open class ApplicationRule : ExternalResource() {
     rootDisposable = Disposer.newDisposable("ApplicationRule::rootDisposable")
     application = TestApplication(rootDisposable!!, testName)
     ApplicationManager.setApplication(application!!, rootDisposable!!)
+
+    // Needed to avoid this kotlin.KotlinNullPointerException:
+    //  at com.intellij.ide.ui.UISettings$Companion.getInstance(UISettings.kt:423)
+    //  at com.intellij.ide.ui.UISettings$Companion.getInstanceOrNull(UISettings.kt:434)
+    //  at com.intellij.ide.ui.AntialiasingType.getAAHintForSwingComponent(AntialiasingType.java:17)
+    //  at com.intellij.ide.ui.UISettings$Companion.setupComponentAntialiasing(UISettings.kt:483)
+    //  at com.intellij.ide.ui.UISettings.setupComponentAntialiasing(UISettings.kt)
+    //  at com.intellij.ui.SimpleColoredComponent.updateUI(SimpleColoredComponent.java:107)
+    //  at com.intellij.ui.SimpleColoredComponent.<init>(SimpleColoredComponent.java:102)
+    //
+    // And from here:
+    //  ...
+    //  at com.intellij.ide.ui.UISettings.setupComponentAntialiasing(UISettings.kt)
+    //  at com.intellij.ui.components.JBLabel.updateUI(JBLabel.java:241)
+    //  at javax.swing.JLabel.<init>(JLabel.java:164)
+    //
+    // Which can happen if the following settings has changed in a different test:
+    //  LoadingState.CONFIGURATION_STORE_INITIALIZED.isOccurred
+    application!!.registerService(UISettings::class.java, UISettings(NotRoamableUiSettings()))
   }
 
   override fun after() {
