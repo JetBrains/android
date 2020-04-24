@@ -46,15 +46,6 @@ class ApplicationIdProviderIntegrationTest : GradleIntegrationTest {
   var testName = TestName()
 
   @Test
-  fun testApplicationIdWithoutRunConfiguration() {
-    prepareGradleProject(TestProjectPaths.APPLICATION_ID_SUFFIX, "project")
-    openPreparedProject("project") { project ->
-      val applicationId = project.gradleModule(":app")?.getModuleSystem()?.getApplicationIdProvider(null)?.packageName
-      assertThat(applicationId).isEqualTo("one.name.debug")
-    }
-  }
-
-  @Test
   fun testApplicationIdBeforeBuild() {
     prepareGradleProject(TestProjectPaths.APPLICATION_ID_SUFFIX, "project")
     openPreparedProject("project") { project ->

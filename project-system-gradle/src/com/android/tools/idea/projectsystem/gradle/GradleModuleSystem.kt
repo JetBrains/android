@@ -478,10 +478,16 @@ class GradleModuleSystem(
     return getPackageNameByParsingPrimaryManifest(facet)
   }
 
-  override fun getApplicationIdProvider(runConfiguration: RunConfiguration?): ApplicationIdProvider {
+  override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
     return GradleApplicationIdProvider(
       AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"),
       { (runConfiguration as? UserDataHolder)?.let { it.getUserData(GradleApkProvider.POST_BUILD_MODEL) } }
+    )
+  }
+
+  override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider {
+    return GradleApplicationIdProvider(
+      AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"), { null }
     )
   }
 
