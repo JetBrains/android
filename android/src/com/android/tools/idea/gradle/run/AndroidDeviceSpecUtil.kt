@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.run
 
 import com.android.ide.common.util.getLanguages
 import com.android.resources.Density
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.AndroidDeviceSpec
 import com.google.common.collect.Ordering
@@ -28,9 +29,6 @@ import java.io.File
 import java.io.StringWriter
 import java.io.Writer
 import java.time.Duration
-import java.util.ArrayList
-import java.util.Collections
-import java.util.SortedSet
 import java.util.concurrent.TimeUnit
 
 const val DEVICE_SPEC_TIMEOUT_SECONDS = 10L
@@ -54,42 +52,26 @@ fun createSpec(
     return null
   }
 
-  val apiLevel: Int
-  val featureLevel: Int
-  var apiCodeName: String? = null
-  var buildDensity: Density? = null
-  val buildAbis: ArrayList<String> = ArrayList()
+  var density: Density? = null
+  var abis: List<String> = emptyList()
 
   // Find the minimum value of the build API level and pass it to Gradle as a property
   val minVersion = devices.map { it.version }.minWith(Ordering.natural())!!
-  apiLevel = minVersion.apiLevel
-  featureLevel = minVersion.featureLevel
-  if (minVersion.codename != null) {
-    apiCodeName = minVersion.codename
-  }
 
   // If we are building for only one device, pass the density and the ABI
   if (devices.size == 1) {
     val device = devices[0]
-    val density = Density.getEnum(device.density)
-    if (density != null) {
-      buildDensity = density
-    }
+    density = Density.getEnum(device.density)
 
     // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
-    val abis = device.abis.map { it.toString() }
-    if (!abis.isEmpty()) {
-      buildAbis.addAll(abis)
-    }
+    abis = device.abis.map { it.toString() }
   }
 
   return object : AndroidDeviceSpec {
-    override val apiLevel: Int = apiLevel
-    override val featureLevel: Int = featureLevel
-    override val apiCodeName: String? = apiCodeName
-    override val buildDensity: Density? = buildDensity
-    override val buildAbis: List<String> = buildAbis
-    override val languages: SortedSet<String> by lazy { combineDeviceLanguages(devices, timeout, unit) }
+    override val version: AndroidVersion = minVersion
+    override val density: Density? = density
+    override val abis: List<String> = abis
+    override val languages: List<String> by lazy { combineDeviceLanguages(devices, timeout, unit) }
   }
 }
 
@@ -100,8 +82,7 @@ fun createSpec(
  * i.e. to avoid issuing an ADB call every time, but we first need to define a
  * reasonable cache validation policy, which is not trivial. See b/78452155.
  */
-private fun combineDeviceLanguages(devices: List<AndroidDevice>,
-                                   timeout: Long, unit: TimeUnit): SortedSet<String> {
+private fun combineDeviceLanguages(devices: List<AndroidDevice>, timeout: Long, unit: TimeUnit): List<String> {
   return try {
     // Note: the "getLanguages" method below uses Duration.Zero as an infinite timeout value.
     // So we must ensure to never use 0 "nanos" if the caller wants the minimal timeout.
@@ -111,10 +92,10 @@ private fun combineDeviceLanguages(devices: List<AndroidDevice>,
     // Note: If we get an empty list from any device, we want to return an empty list instead of the
     // union of all languages, to ensure we don't have missing language splits on that device.
     if (languageSets.any { it.isEmpty() }) {
-      Collections.emptySortedSet()
+      emptyList()
     }
     else {
-      languageSets.flatMap { it }.toSortedSet()
+      languageSets.flatten().sorted()
     }
   }
   catch (e: Exception) {
@@ -147,16 +128,16 @@ private fun combineDeviceLanguages(devices: List<AndroidDevice>,
 private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
   JsonWriter(out).use { writer ->
     writer.beginObject()
-    writer.name("sdk_version").value(apiLevel.toLong())
-    buildDensity?.let {
+    writer.name("sdk_version").value(version.apiLevel.toLong())
+    density?.let {
       if (it.dpiValue > 0) {
         writer.name("screen_density").value(it.dpiValue.toLong())
       }
     }
-    if (!buildAbis.isEmpty()) {
+    if (!abis.isEmpty()) {
       writer.name("supported_abis")
       writer.beginArray()
-      buildAbis.forEach {
+      abis.forEach {
         writer.value(it)
       }
       writer.endArray()

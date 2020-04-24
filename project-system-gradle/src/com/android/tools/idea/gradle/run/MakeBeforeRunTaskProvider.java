@@ -471,16 +471,17 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
     else {
       // For non bundle tool deploy tasks, we have one argument per device spec property
-      properties.add(createProjectProperty(PROPERTY_BUILD_API, Integer.toString(deviceSpec.getApiLevel())));
-      if (deviceSpec.getApiCodeName() != null) {
-        properties.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, deviceSpec.getApiCodeName()));
+      AndroidVersion version = deviceSpec.getVersion();
+      properties.add(createProjectProperty(PROPERTY_BUILD_API, Integer.toString(version.getApiLevel())));
+      if (version.getCodename() != null) {
+        properties.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, version.getCodename()));
       }
 
-      if (deviceSpec.getBuildDensity() != null) {
-        properties.add(createProjectProperty(PROPERTY_BUILD_DENSITY, deviceSpec.getBuildDensity().getResourceValue()));
+      if (deviceSpec.getDensity() != null) {
+        properties.add(createProjectProperty(PROPERTY_BUILD_DENSITY, deviceSpec.getDensity().getResourceValue()));
       }
-      if (!deviceSpec.getBuildAbis().isEmpty()) {
-        properties.add(createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.getBuildAbis())));
+      if (!deviceSpec.getAbis().isEmpty()) {
+        properties.add(createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.getAbis())));
       }
       if (configuration instanceof AndroidRunConfiguration) {
         if (((AndroidRunConfiguration)configuration).DEPLOY_AS_INSTANT) {
@@ -517,7 +518,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     // Find the minimum API version in case both a pre-O and post-O devices are selected.
     // TODO: if a post-O app happened to be transformed, the agent needs to account for that.
-    int minFeatureLevel = targetDeviceSpec.getFeatureLevel();
+    int minFeatureLevel = targetDeviceSpec.getVersion().getFeatureLevel();
     List<String> arguments = new LinkedList<>();
     ProfilerState state = configuration.getProfilerState();
     if (state.ADVANCED_PROFILING_ENABLED && minFeatureLevel >= AndroidVersion.VersionCodes.LOLLIPOP &&

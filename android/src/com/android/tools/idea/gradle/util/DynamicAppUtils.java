@@ -348,7 +348,7 @@ public class DynamicAppUtils {
     }
 
     // If any device is pre-L *and* module has a dynamic feature, we need to use the bundle tool
-    if (targetDeviceSpec != null && targetDeviceSpec.getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP &&
+    if (targetDeviceSpec != null && targetDeviceSpec.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP &&
         !getDependentFeatureModulesForBase(module).isEmpty()) {
       return true;
     }
@@ -379,7 +379,7 @@ public class DynamicAppUtils {
 
     // Only collect if all devices are L or later devices, because pre-L devices don't support split apks, meaning
     // they don't support install on demand, meaning all languages should be installed.
-    return targetDeviceSpec == null || targetDeviceSpec.getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
+    return targetDeviceSpec == null || targetDeviceSpec.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
   }
 
   /**
