@@ -121,7 +121,7 @@ class SqliteEvaluatorViewImpl(
 
   private fun evaluateSqliteExpression() {
     listeners.forEach {
-      it.evaluateSqlActionInvoked(
+      it.evaluateSqliteStatementActionInvoked(
         (databaseComboBox.selectedItem as SqliteDatabase),
         expandableEditor.activeEditor.text
       )

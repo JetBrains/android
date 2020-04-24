@@ -71,6 +71,6 @@ interface SqliteEvaluatorView {
     /**
      * Method invoked when an sql statement needs to be evaluated.
      */
-    fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String)
+    fun evaluateSqliteStatementActionInvoked(database: SqliteDatabase, sqliteStatement: String)
   }
 }
