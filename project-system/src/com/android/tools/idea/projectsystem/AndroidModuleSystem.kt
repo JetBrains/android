@@ -189,13 +189,29 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
   /**
    * Returns the best effort [ApplicationIdProvider] for the given module and [runConfiguration].
    *
-   * Some project systems may be unable to retrieve the package name if no [runConfiguration] is provided or before
-   * the project has been successfully built. The returned [ApplicationIdProvider] will throw [ApkProvisionException]'s
-   * or return a name derived from incomplete configuration in this case.
+   * Some project systems may be unable to retrieve the package name before the project has been successfully
+   * built. The returned [ApplicationIdProvider] will throw [ApkProvisionException]'s or return a name derived
+   * from incomplete configuration in this case.
    */
   // TODO(b/154038950): Move to AndroidProjectSystem when runConfiguration made non-nullable.
   @JvmDefault
-  fun getApplicationIdProvider(runConfiguration: RunConfiguration?): ApplicationIdProvider = object : ApplicationIdProvider {
+  fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider = object : ApplicationIdProvider {
+    override fun getPackageName(): String = throw ApkProvisionException("The project system cannot obtain the package name at this moment.")
+    override fun getTestPackageName(): String? = null
+  }
+
+  /**
+   * DO NOT USE!
+   * Returns the best effort [ApplicationIdProvider] for the given module.
+   *
+   * Some project systems may be unable to retrieve the package name if no run configuration is provided or before
+   * the project has been successfully built. The returned [ApplicationIdProvider] will throw [ApkProvisionException]'s
+   * or return a name derived from incomplete configuration in this case.
+   */
+  // TODO(b/153975895): Delete when even logging usage is resolved.
+  @JvmDefault
+  @Deprecated("Use the version with runtimeConfiguration parameter (b/153975895)")
+  fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider = object : ApplicationIdProvider {
     override fun getPackageName(): String = throw ApkProvisionException("The project system cannot obtain the package name at this moment.")
     override fun getTestPackageName(): String? = null
   }
