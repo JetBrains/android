@@ -92,7 +92,7 @@ public class MemoryProfiler extends StudioProfiler {
                                               () -> {
                                                 MemoryProfilerStage stage = new MemoryProfilerStage(myProfilers);
                                                 myProfilers.setStage(stage);
-                                                stage.setPendingCaptureStartTime(myProfilers.getSession().getStartTimestamp());
+                                                stage.setPendingCaptureStartTimeGuarded(myProfilers.getSession().getStartTimestamp());
                                                 StreamingTimeline timeline = myProfilers.getTimeline();
                                                 timeline.reset(myProfilers.getSession().getStartTimestamp(),
                                                                myProfilers.getSession().getEndTimestamp());
