@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
+import com.android.tools.idea.gradle.project.sync.setup.post.ModuleSetup;
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.model.AndroidModel;
@@ -124,6 +125,7 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
       });
       ConflictSet.findConflicts(project).showSelectionConflicts();
       ProjectStructure.getInstance(project).analyzeProjectStructure();
+      ModuleSetup.setUpModules(project);
       syncState.syncSkipped(null);
     }
   }
