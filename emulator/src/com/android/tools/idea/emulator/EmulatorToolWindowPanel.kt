@@ -164,6 +164,9 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
       loadingPanel.add(layeredPane, BorderLayout.CENTER)
       addToCenter(loadingPanel)
 
+      loadingPanel.setLoadingText("Connecting to the Emulator")
+      loadingPanel.startLoading() // stopLoading is called by EmulatorView after receiving the first screen image.
+
       loadingPanel.repaint()
     }
     catch (e: Exception) {
