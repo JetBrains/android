@@ -31,7 +31,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.components.JBLoadingPanel
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics
@@ -50,6 +50,7 @@ import java.awt.image.MemoryImageSource
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -69,7 +70,7 @@ class EmulatorView(
   cropFrame: Boolean
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
-  private var connectionStateLabel: JLabel
+  private var disconnectedStateLabel: JLabel
   private var screenshotFeed: Cancelable? = null
   private var displayImage: Image? = null
   private var displayWidth = 0
@@ -83,9 +84,9 @@ class EmulatorView(
   init {
     Disposer.register(parentDisposable, this)
 
-    connectionStateLabel = JLabel(getConnectionStateText(ConnectionState.NOT_INITIALIZED))
-    connectionStateLabel.border = JBUI.Borders.emptyLeft(20)
-    connectionStateLabel.font = connectionStateLabel.font.deriveFont(connectionStateLabel.font.size * 1.2F)
+    disconnectedStateLabel = JLabel()
+    disconnectedStateLabel.horizontalAlignment = SwingConstants.CENTER
+    disconnectedStateLabel.font = disconnectedStateLabel.font.deriveFont(disconnectedStateLabel.font.size * 1.2F)
 
     isFocusable = true // Must be focusable to receive keyboard events.
 
@@ -311,26 +312,29 @@ class EmulatorView(
 
   private fun updateConnectionState(connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
-      remove(connectionStateLabel)
+      remove(disconnectedStateLabel)
       if (isVisible) {
         requestScreenshotFeed()
       }
     }
-    else {
+    else if (connectionState == ConnectionState.DISCONNECTED) {
       displayImage = null
-      connectionStateLabel.text = getConnectionStateText(connectionState)
-      add(connectionStateLabel)
+      disconnectedStateLabel.text = "Disconnected from the Emulator"
+      add(disconnectedStateLabel)
     }
     revalidate()
     repaint()
   }
 
-  private fun getConnectionStateText(connectionState: ConnectionState): String {
-    return when (connectionState) {
-      ConnectionState.CONNECTED -> "Connected"
-      ConnectionState.DISCONNECTED -> "Disconnected from the Emulator"
-      else -> "Connecting to the Emulator"
+  private fun findLoadingPanel(): JBLoadingPanel? {
+    var component = parent
+    while (component != null) {
+      if (component is JBLoadingPanel) {
+        return component
+      }
+      component = component.parent
     }
+    return null
   }
 
   override fun dispose() {
@@ -487,6 +491,7 @@ class EmulatorView(
         skinLayout = SkinLayout(Dimension(w, h))
       }
 
+      val firstTime = displayImage == null
       displayRotationInternal = screenshot.rotation
       displayWidth = displayShape.width
       displayHeight = displayShape.height
@@ -503,6 +508,11 @@ class EmulatorView(
       else {
         imageSource.newPixels(screenshot.pixels, ColorModel.getRGBdefault(), 0, w)
       }
+
+      if (firstTime) {
+        findLoadingPanel()?.run { stopLoading() }
+      }
+
       repaint()
     }
   }
