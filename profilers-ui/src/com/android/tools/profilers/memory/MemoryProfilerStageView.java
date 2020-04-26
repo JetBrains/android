@@ -59,7 +59,6 @@ import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerScrollbar;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
-import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.event.EventMonitorView;
@@ -75,7 +74,6 @@ import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import com.android.tools.profilers.memory.adapters.ValueObject;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
-import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
@@ -107,11 +105,10 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import kotlin.jvm.functions.Function0;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
+public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryProfilerStage> {
   private static Logger getLogger() {
     return Logger.getInstance(MemoryProfilerStageView.class);
   }
@@ -165,17 +162,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
                                                  getStage().getRangeSelectionModel().getSelectionRange(),
                                                  getIdeComponents(),
                                                  getStage().getTimeline());
-    Function0<LoadingPanel> makeLoadingPanel = () -> {
-      LoadingPanel loadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
-      loadingPanel.setLoadingText("Fetching results");
-      return loadingPanel;
-    };
+
     myLayout = getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() ?
-               new SeparateHeapDumpMemoryProfilerStageLayout(monitorUi, capturePanel, makeLoadingPanel, stage.getCaptureSelection(),
+               new SeparateHeapDumpMemoryProfilerStageLayout(monitorUi, capturePanel, this::makeLoadingPanel, stage.getCaptureSelection(),
                                                              this::setUpToolbarForTimeline,
                                                              this::setUpToolbarForCapture,
                                                              this::setUpToolbarForLoading) :
-               new LegacyMemoryProfilerStageLayout(monitorUi, capturePanel, makeLoadingPanel);
+               new LegacyMemoryProfilerStageLayout(monitorUi, capturePanel, this::makeLoadingPanel);
     getComponent().add(myLayout.getComponent(), BorderLayout.CENTER);
 
     myForceGarbageCollectionButton = new CommonButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
