@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.android;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedInIncludeFolders;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_JAVA;
@@ -267,7 +268,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     }
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet.getModule());
     if (ndkModuleModel != null) {
-      return NdkModuleNode.containedInIncludeFolders(ndkModuleModel, file);
+      return containedInIncludeFolders(ndkModuleModel, file);
     }
     return false;
   }
