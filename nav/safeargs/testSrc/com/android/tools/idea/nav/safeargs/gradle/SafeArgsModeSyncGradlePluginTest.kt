@@ -40,7 +40,7 @@ import org.junit.runners.Parameterized
  */
 @RunsInEdt
 @RunWith(Parameterized::class)
-class KotlinSyncGradlePluginTest(val params: TestParams) {
+class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
   data class TestParams(val project: String, val flagEnabled: Boolean, val mode: SafeArgsMode)
 
   companion object {
