@@ -39,16 +39,18 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, configuration: Config
       """.trimIndent()
   private val registrationFile = configuration.emulatorRegistrationDirectory.resolve("pid_${grpcPort + 12345}.ini")
 
+  /**
+   * Starts the Emulator. The Emulator is fully initialized when the method returns.
+   */
   fun start() {
-    ApplicationManager.getApplication().executeOnPooledThread {
-      Files.write(registrationFile, registration.toByteArray(UTF_8), CREATE)
-    }
+    Files.write(registrationFile, registration.toByteArray(UTF_8), CREATE)
   }
 
+  /**
+   * Stops the Emulator. The Emulator is completely shut down when the method returns.
+   */
   fun stop() {
-    ApplicationManager.getApplication().executeOnPooledThread {
-      Files.delete(registrationFile)
-    }
+    Files.delete(registrationFile)
   }
 
   companion object {
