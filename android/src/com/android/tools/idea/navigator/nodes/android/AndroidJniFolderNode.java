@@ -17,7 +17,6 @@ package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
-import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
 import com.android.tools.idea.navigator.nodes.ndk.NdkSourceFolderNode;
 import com.google.common.collect.Iterables;
 import com.intellij.ide.projectView.PresentationData;
@@ -40,7 +39,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode.getNativeSourceNodes;
+import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedInIncludeFolders;
+import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.getNativeSourceNodes;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static org.jetbrains.android.facet.AndroidSourceType.CPP;
@@ -113,7 +113,7 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
       return false;
     }
 
-    return NdkModuleNode.containedInIncludeFolders(moduleModel, file);
+    return containedInIncludeFolders(moduleModel, file);
   }
 
   @Override

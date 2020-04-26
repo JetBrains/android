@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptsGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.ExternalBuildFilesGroupNode;
-import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -46,6 +45,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedInIncludeFolders;
 
 public class AndroidViewProjectNode extends ProjectViewNode<Project> {
   private final AndroidProjectViewPane myProjectViewPane;
@@ -126,7 +126,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       NdkFacet ndkFacet = NdkFacet.getInstance(module);
       if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
-        return NdkModuleNode.containedInIncludeFolders(ndkFacet.getNdkModuleModel(), file);
+        return containedInIncludeFolders(ndkFacet.getNdkModuleModel(), file);
       }
     }
     return false;
