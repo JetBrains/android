@@ -25,11 +25,9 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
 
-// TODO(b/152556591): Rename back to "App Inspection"
-internal const val APP_INSPECTION_TITLE = "Database Inspector"
-
 // This must match the toolwindow id in app-inspection.xml
-internal const val APP_INSPECTION_ID = "Android App Inspection"
+// TODO(b/152556591): Rename back to "App Inspection"
+internal const val APP_INSPECTION_ID = "Database Inspector"
 
 class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory, Condition<Project> {
 
@@ -44,7 +42,7 @@ class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory, Condition<P
     Disposer.register(project, appInspectionToolWindow)
     toolWindow.show(null)
     toolWindow.isShowStripeButton = false
-    toolWindow.stripeTitle = APP_INSPECTION_TITLE
+    toolWindow.stripeTitle = APP_INSPECTION_ID
   }
 
   override fun init(toolWindow: ToolWindow) {
