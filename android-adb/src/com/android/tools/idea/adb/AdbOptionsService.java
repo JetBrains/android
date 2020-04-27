@@ -26,7 +26,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class AdbOptionsService implements Getter<AdbOptionsService> {
   /**
-   * Default ADB port +1 to avoid conflict.
+   * Default user managed adb port. Same as {@link #USER_MANAGED_ADB_PORT_MIN_VALUE}.
+   */
+  public static final int USER_MANAGED_ADB_PORT_DEFAULT = 5038;
+
+  /**
+   * Default adb port +1 to avoid conflict.
    */
   static final int USER_MANAGED_ADB_PORT_MIN_VALUE = 5038;
 
@@ -34,8 +39,6 @@ public class AdbOptionsService implements Getter<AdbOptionsService> {
    * Max ephemeral port number for most modern operating systems.
    */
   static final int USER_MANAGED_ADB_PORT_MAX_VALUE = 65535;
-
-  static final int USER_MANAGED_ADB_PORT_DEFAULT = 5038;
 
   private static final String USE_LIBUSB = "adb.use.libusb";
   private static final String USE_USER_MANAGED_ADB = "AdbOptionsService.use.user.managed.adb";
