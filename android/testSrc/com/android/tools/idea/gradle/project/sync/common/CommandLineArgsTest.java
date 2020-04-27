@@ -36,18 +36,19 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.openapi.application.ApplicationInfo;
+
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.BuildNumber;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.model.Build;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link CommandLineArgs}.
  */
 public class CommandLineArgsTest extends HeavyPlatformTestCase {
-  @Mock private ApplicationInfo myApplicationInfo;
   @Mock private IdeInfo myIdeInfo;
   @Mock private GradleInitScripts myInitScripts;
   @Mock private GradleProjectInfo myGradleProjectInfo;
@@ -60,7 +61,7 @@ public class CommandLineArgsTest extends HeavyPlatformTestCase {
     initMocks(this);
     new IdeComponents(getProject(), getTestRootDisposable()).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
 
-    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts);
+    myArgs = new CommandLineArgs(myIdeInfo, myInitScripts);
   }
 
   public void testGetWithDefaultOptions() {
@@ -82,27 +83,25 @@ public class CommandLineArgsTest extends HeavyPlatformTestCase {
 
   public void testGetWithAndroidStudio() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
-    when(myApplicationInfo.getStrictVersion()).thenReturn("100");
     List<String> args = myArgs.get(getProject());
     check(args);
-    assertThat(args).contains("-P" + PROPERTY_STUDIO_VERSION + "=100");
+    // In tests the version of the plugin is reported as the build number.
+    assertThat(args).contains("-P" + PROPERTY_STUDIO_VERSION + "=" + BuildNumber.currentVersion().asString());
     assertThat(args).contains("-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks");
   }
 
   public void testGetWithAndroidStudioDevBuild() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
-    when(myApplicationInfo.getStrictVersion()).thenReturn("0.0.0.0");
     List<String> args = myArgs.get(getProject());
     check(args);
-    assertThat(args).doesNotContain("-P" + PROPERTY_STUDIO_VERSION + "=0.0.0.0");
+    assertThat(args).doesNotContain("-P" + PROPERTY_STUDIO_VERSION + "=dev build");
   }
 
   public void testGetWithIdeNotAndroidStudio() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(false);
-    when(myApplicationInfo.getStrictVersion()).thenReturn("100");
     List<String> args = myArgs.get(getProject());
     check(args);
-    assertThat(args).doesNotContain("-P" + PROPERTY_STUDIO_VERSION + "=100");
+    assertThat(args).contains("-P" + PROPERTY_STUDIO_VERSION + "=" + BuildNumber.currentVersion().asString());
   }
 
   public void testGetWithExtraCommandLineOptions() {

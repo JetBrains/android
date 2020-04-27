@@ -37,9 +37,11 @@ import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.util.ArrayList;
@@ -51,19 +53,16 @@ import org.jetbrains.annotations.Nullable;
 public class CommandLineArgs {
   private static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
 
-  @NotNull private final ApplicationInfo myApplicationInfo;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;
 
   public CommandLineArgs() {
-    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance());
+    this(IdeInfo.getInstance(), GradleInitScripts.getInstance());
   }
 
   @VisibleForTesting
-  CommandLineArgs(@NotNull ApplicationInfo applicationInfo,
-                  @NotNull IdeInfo ideInfo,
+  CommandLineArgs(@NotNull IdeInfo ideInfo,
                   @NotNull GradleInitScripts initScripts) {
-    myApplicationInfo = applicationInfo;
     myIdeInfo = ideInfo;
     myInitScripts = initScripts;
   }
@@ -96,9 +95,12 @@ public class CommandLineArgs {
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, GradleSyncState.isLevel4Model()
                                                                         ? MODEL_LEVEL_4_NEW_DEP_MODEL
                                                                         : MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD));
-    if (myIdeInfo.isAndroidStudio() && !isDevBuild(myApplicationInfo.getStrictVersion())) {
+
+    // Obtains the version of the Android Support plugin.
+    IdeaPluginDescriptor androidSupport = PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.android"));
+    if (androidSupport != null && !isDevBuild(androidSupport.getVersion())) {
       // Example of version to pass: 2.4.0.6
-      args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, myApplicationInfo.getStrictVersion()));
+      args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, androidSupport.getVersion()));
     }
     // Skip download of source and javadoc jars during Gradle sync, this flag only has effect on AGP 3.5.
     //noinspection deprecation AGP 3.6 and above do not download sources at all.
@@ -133,7 +135,7 @@ public class CommandLineArgs {
   }
 
   private static boolean isDevBuild(String version) {
-    return version.equals("0.0.0.0");  // set in AndroidStudioApplicationInfo.xml
+    return version.equals("dev build");  // set in org.jetbrains.android plugin.xml
   }
 
   public static boolean isInTestingMode() {

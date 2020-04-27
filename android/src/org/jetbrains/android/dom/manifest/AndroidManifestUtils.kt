@@ -131,7 +131,14 @@ fun <T> AndroidFacet.cachedValueFromPrimaryManifest(valueSelector: AndroidManife
 fun AndroidFacet.getPrimaryManifestXml(): AndroidManifestXmlFile? {
   if (isDisposed) return null
   val psiFile = SourceProviderManager.getInstance(this).mainManifestFile?.let { AndroidPsiUtils.getPsiFileSafely(module.project, it) }
-  return (psiFile as? XmlFile)?.let(::AndroidManifestXmlFile)
+  return (psiFile as? XmlFile)?.let {
+    if (it.rootTag?.name == TAG_MANIFEST) {
+      AndroidManifestXmlFile(it)
+    }
+    else {
+      null
+    }
+  }
 }
 
 /**
