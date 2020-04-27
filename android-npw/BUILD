@@ -35,6 +35,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module, test]",
         "//tools/idea/.idea/libraries:kotlin-plugin[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
