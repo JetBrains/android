@@ -41,4 +41,6 @@ class BuildAnalyzerViewModel(
         dataSetSelectionListener?.invoke()
       }
     }
+
+  val tasksPageModel: TasksDataPageModel = TasksDataPageModelImpl(reportUiData)
 }
