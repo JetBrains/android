@@ -43,13 +43,12 @@ class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory, Condition<P
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR)
     Disposer.register(project, appInspectionToolWindow)
     toolWindow.show(null)
+    toolWindow.isShowStripeButton = false
+    toolWindow.stripeTitle = APP_INSPECTION_TITLE
   }
 
   override fun init(toolWindow: ToolWindow) {
     toolWindow.setToHideOnEmptyContent(true)
-    toolWindow.hide(null)
-    toolWindow.isShowStripeButton = false
-    toolWindow.stripeTitle = APP_INSPECTION_TITLE
   }
 
   override fun value(project: Project) = StudioFlags.ENABLE_APP_INSPECTION_TOOL_WINDOW.get()
