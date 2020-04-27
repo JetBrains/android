@@ -61,11 +61,14 @@ private const val UPDATE_DELAY_MILLI_SECONDS = 250
 /**
  * [PropertiesModel] for Nele design surface properties.
  */
-open class NelePropertiesModel(parentDisposable: Disposable,
-                               val provider: PropertiesProvider,
-                               val facet: AndroidFacet,
-                               private val updateQueue: MergingUpdateQueue,
-                               private val updateOnComponentSelectionChanges: Boolean) : PropertiesModel<NelePropertyItem>, Disposable {
+open class NelePropertiesModel(
+  parentDisposable: Disposable,
+  val provider: PropertiesProvider,
+  val facet: AndroidFacet,
+  @VisibleForTesting
+  val updateQueue: MergingUpdateQueue,
+  private val updateOnComponentSelectionChanges: Boolean
+) : PropertiesModel<NelePropertyItem>, Disposable {
   val project: Project = facet.module.project
 
   private val listeners: MutableList<PropertiesModelListener<NelePropertyItem>> = mutableListOf()
