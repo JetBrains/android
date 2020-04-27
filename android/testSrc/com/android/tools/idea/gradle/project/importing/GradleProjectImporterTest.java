@@ -89,7 +89,6 @@ public class GradleProjectImporterTest extends PlatformTestCase {
 
     // Verify project setup before syncing.
     verifyProjectFilesCreation();
-    verifyProjectCreation(never());
     verifyProjectPreparation(JDK_1_8);
     verifyGradleVmOptionsCleanup(never());
 
@@ -102,10 +101,6 @@ public class GradleProjectImporterTest extends PlatformTestCase {
   private void verifyProjectFilesCreation() throws IOException {
     verify(myProjectFolder, times(1)).createTopLevelBuildFile();
     verify(myProjectFolder, times(1)).createIdeaProjectFolder();
-  }
-
-  private void verifyProjectCreation(@NotNull VerificationMode verificationMode) {
-    verify(myProjectSetup, verificationMode).createProject(myProjectName, myProjectFolderPath.getPath());
   }
 
   private void verifyProjectPreparation(@Nullable LanguageLevel languageLevel) {

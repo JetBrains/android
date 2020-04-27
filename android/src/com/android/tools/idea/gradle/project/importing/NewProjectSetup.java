@@ -58,16 +58,6 @@ public class NewProjectSetup {
     myTopLevelModuleFactory = topLevelModuleFactory;
   }
 
-  @NotNull
-  public Project createProject(@NotNull String projectName, @NotNull String projectPath) {
-    ProjectManager projectManager = ProjectManager.getInstance();
-    Project newProject = projectManager.createProject(projectName, projectPath);
-    if (newProject == null) {
-      throw new NullPointerException("Failed to create a new project");
-    }
-    return newProject;
-  }
-
   void prepareProjectForImport(@NotNull Project project, @Nullable LanguageLevel languageLevel) {
     submitTransaction(project, () -> openProjectAndActivateProjectView(project));
     CommandProcessor.getInstance().executeCommand(project, () -> ApplicationManager.getApplication().runWriteAction(() -> {
