@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.emulator.control.VmRunState
 import com.android.tools.idea.concurrency.AndroidIoManager
 import com.android.tools.idea.emulator.ConfigurationOverrider.getDefaultConfiguration
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.collect.ImmutableSet
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
@@ -182,6 +183,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
               if (emulatorId != null && emulatorId.isEmbedded) {
                 emulator = oldEmulators[emulatorId]
                 if (emulator == null) {
+                  if (StudioFlags.EMBEDDED_EMULATOR_TRACE_DISCOVERY.get()) {
+                    logger.info("Discovered emulator ${emulatorId}")
+                  }
                   emulator = EmulatorController(emulatorId, this)
                   created = true
                 }
@@ -223,6 +227,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
       // Notify listeners.
       if (listenersSnapshot.isNotEmpty()) {
         for (emulator in removedEmulators) {
+          if (StudioFlags.EMBEDDED_EMULATOR_TRACE_DISCOVERY.get()) {
+            logger.info("Emulator ${emulator.emulatorId} stopped")
+          }
           for (listener in listenersSnapshot) {
             if (isDisposing) break
             listener.emulatorRemoved(emulator)
