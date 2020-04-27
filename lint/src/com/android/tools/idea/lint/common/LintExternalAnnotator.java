@@ -47,13 +47,9 @@ import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
-import com.intellij.openapi.keymap.Keymap;
-import com.intellij.openapi.keymap.KeymapManager;
-import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbService;
@@ -339,25 +335,6 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
 
     String tooltip = XmlStringUtil.wrapInHtml(descriptionLink + RAW.convertTo(message, HTML));
     return holder.createAnnotation(severity, range, message, tooltip);
-  }
-
-  // Based on similar code in the LocalInspectionsPass constructor
-  private String myShortcutText;
-
-  private String getShowMoreShortCut() {
-    if (myShortcutText == null) {
-      final KeymapManager keymapManager = KeymapManager.getInstance();
-      if (keymapManager != null) {
-        final Keymap keymap = keymapManager.getActiveKeymap();
-        myShortcutText =
-          "(" + KeymapUtil.getShortcutsText(keymap.getShortcuts(IdeActions.ACTION_SHOW_ERROR_DESCRIPTION)) + ")";
-      }
-      else {
-        myShortcutText = "";
-      }
-    }
-
-    return myShortcutText;
   }
 
   @Nullable
