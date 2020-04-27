@@ -61,7 +61,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
 
       val gradleImporter = GradleProjectImporter.getInstance()
       val projectFolder = if (virtualFile.isDirectory) virtualFile else virtualFile.parent
-      return gradleImporter.importProjectCore(projectFolder)
+      return gradleImporter.importAndOpenProjectCore(projectToClose, forceOpenInNewFrame, projectFolder)
     }
 
     return ProjectUtil.openProject(adjustedOpenTarget.path, projectToClose, forceOpenInNewFrame)

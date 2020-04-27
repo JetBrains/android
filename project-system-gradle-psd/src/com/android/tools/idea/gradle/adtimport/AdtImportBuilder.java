@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.util.EditorUtil;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -36,9 +37,11 @@ import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.ModifiableArtifactModel;
+import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.projectImport.ProjectImportBuilder;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.Icon;
@@ -168,6 +171,8 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
         request.isNewProject = true;
         importer.importProjectNoSync(request);
+        Path projectDir = getBaseDirPath(request.project).getAbsoluteFile().toPath();
+        PlatformProjectOpenProcessor.openExistingProject(projectDir, projectDir, new OpenProjectTask(true, null, false, false, project));
       }
       else {
         GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_IMPORT_ADT_MODULE, syncListener);

@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -35,6 +36,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
@@ -80,7 +82,19 @@ public class GradleProjectImporter {
    * storage to force their re-import.
    */
   @Nullable
+  @Deprecated
   public Project importProjectCore(@NotNull VirtualFile projectFolder) {
+    return importAndOpenProjectCore(null, true, projectFolder);
+  }
+
+  /**
+   * Ensures presence of the top level Gradle build file and the .idea directory and, additionally, performs cleanup of the libraries
+   * storage to force their re-import.
+   */
+  @Nullable
+  public Project importAndOpenProjectCore(@Nullable Project projectToClose,
+                                          boolean forceOpenInNewFrame,
+                                          @NotNull VirtualFile projectFolder) {
     Project newProject;
     File projectFolderPath = virtualToIoFile(projectFolder);
     try {
@@ -88,6 +102,10 @@ public class GradleProjectImporter {
       String projectName = projectFolder.getName();
       newProject = createProject(projectName, projectFolderPath);
       importProjectNoSync(new Request(newProject));
+      PlatformProjectOpenProcessor.openExistingProject(projectFolderPath.toPath(),
+                                                       projectFolderPath.toPath(),
+                                                       new OpenProjectTask(forceOpenInNewFrame, projectToClose, false, false,
+                                                                           newProject));
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
