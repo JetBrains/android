@@ -100,6 +100,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     super.setUp();
     initMocks(this);
     myModel = createModel();
+    myModel.getUpdateQueue().setPassThrough(true);
     // If using a lambda, it can be reused by the JVM and causing an exception because the Disposable is already disposed.
     //noinspection Convert2Lambda
     myDisposable = new Disposable() {
@@ -120,6 +121,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
       .build();
     mySurface.setModel(myModel);
     myTree = new NlComponentTree(getProject(), mySurface);
+    myTree.getUpdateQueue().setPassThrough(true);
+    myTree.getUpdateQueue().flush();
     registerApplicationService(BrowserLauncher.class, myBrowserLauncher);
     myActionHandler = getActionHandler(myTree);
     myDataContext = mock(DataContext.class);
