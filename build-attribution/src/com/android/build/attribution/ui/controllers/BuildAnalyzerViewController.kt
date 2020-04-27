@@ -16,12 +16,23 @@
 package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
+import com.android.build.attribution.ui.data.TaskIssueType
+import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
+import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer.AlwaysRunNoOutputIssue
+import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer.AlwaysRunUpToDateOverride
+import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer.TaskSetupIssue
+import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDescriptor
+import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescriptor
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TaskDetailsPageType
+import com.android.build.attribution.ui.model.TaskWarningDetailsNodeDescriptor
+import com.android.build.attribution.ui.model.TaskWarningTypeNodeDescriptor
 import com.android.build.attribution.ui.model.TasksDataPageModel.Grouping
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
+import com.android.build.attribution.ui.model.WarningsTreeNode
+import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
@@ -66,6 +77,14 @@ class BuildAnalyzerViewController(
     analytics.pageChange(pageId, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
   }
 
+  override fun warningsTreeNodeSelected(warningTreeNode: WarningsTreeNode) {
+    // Update selection in the model.
+    model.warningsPageModel.selectNode(warningTreeNode)
+    // Track page change in analytics.
+    val pageId = warningTreeNode.descriptor.toAnalyticsPage()
+    analytics.pageChange(pageId, BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
+  }
+
   override fun helpLinkClicked() {
     //TODO (b/154988129): currently it is tracked only by currently opened page.
     // If we have more links on the page it will not be tracked properly.
@@ -95,5 +114,27 @@ class BuildAnalyzerViewController(
       else -> PageType.UNKNOWN_PAGE
     }
     return BuildAttributionUiAnalytics.AnalyticsPageId(type, this.id)
+  }
+
+  private fun WarningsTreePresentableNodeDescriptor.toAnalyticsPage(): BuildAttributionUiAnalytics.AnalyticsPageId {
+    val type: PageType = when (this) {
+      is TaskWarningTypeNodeDescriptor -> this.warningTypeData.type.toAnalyticsType()
+      is TaskWarningDetailsNodeDescriptor -> this.issueData.toAnalyticsType()
+      is AnnotationProcessorsRootNodeDescriptor -> PageType.ANNOTATION_PROCESSOR_PAGE
+      is AnnotationProcessorDetailsNodeDescriptor -> PageType.ANNOTATION_PROCESSORS_ROOT
+    }
+    return BuildAttributionUiAnalytics.AnalyticsPageId(type, pageId.id)
+  }
+
+  private fun TaskIssueType.toAnalyticsType(): PageType = when (this) {
+    TaskIssueType.ALWAYS_RUN_TASKS -> PageType.ALWAYS_RUN_ISSUE_ROOT
+    TaskIssueType.TASK_SETUP_ISSUE -> PageType.TASK_SETUP_ISSUE_ROOT
+  }
+
+  private fun TaskIssueUiData.toAnalyticsType(): PageType = when (this) {
+    is TaskSetupIssue -> PageType.TASK_SETUP_ISSUE_PAGE
+    is AlwaysRunNoOutputIssue -> PageType.ALWAYS_RUN_NO_OUTPUTS_PAGE
+    is AlwaysRunUpToDateOverride -> PageType.ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
+    else -> PageType.UNKNOWN_PAGE
   }
 }

@@ -17,12 +17,14 @@ package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
+import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TaskDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
+import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
@@ -49,7 +51,9 @@ class BuildAnalyzerViewControllerTest {
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
-  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000)
+  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
+    issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
+  }
   val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
   val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000)
 
@@ -201,6 +205,27 @@ class BuildAnalyzerViewControllerTest {
       assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_PAGE)
     }
   }
+
+  @Test
+  @RunsInEdt
+  fun testWarningsNodeSelectionUpdated() {
+    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+    // Second node in current (ungrouped) tasks tree.
+    val nodeToSelect = model.warningsPageModel.selectedNode!!.nextNode as WarningsTreeNode
+
+    // Act
+    controller.warningsTreeNodeSelected(nodeToSelect)
+
+    // Assert
+    assertThat(model.warningsPageModel.selectedNode).isEqualTo(nodeToSelect)
+    // Verify metrics sent
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.ALWAYS_RUN_NO_OUTPUTS_PAGE)
+    }
+  }
+
 
   @Test
   @RunsInEdt

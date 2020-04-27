@@ -26,7 +26,6 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.event.ItemEvent
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 /**
  * Main view of Build Analyzer report that is based on ComboBoxes navigation on the top level.
@@ -52,11 +51,7 @@ class BuildAnalyzerComboBoxView(
 
   private val overviewPage = BuildOverviewPageView(model)
   private val tasksPage = TasksPageView(model.tasksPageModel, actionHandlers)
-
-  private val warningsPage = object : BuildAnalyzerDataPageView {
-    override val component = JPanel().apply { name = "warnings-view" }
-    override val additionalControls = JPanel().apply { name = "warnings-view-additional-controls" }
-  }
+  private val warningsPage = WarningsPageView(model.warningsPageModel, actionHandlers)
 
   private fun pageViewByDataSet(dataSet: BuildAnalyzerViewModel.DataSet): BuildAnalyzerDataPageView = when (dataSet) {
     BuildAnalyzerViewModel.DataSet.OVERVIEW -> overviewPage

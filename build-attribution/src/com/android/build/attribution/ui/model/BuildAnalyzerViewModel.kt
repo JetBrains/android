@@ -43,4 +43,5 @@ class BuildAnalyzerViewModel(
     }
 
   val tasksPageModel: TasksDataPageModel = TasksDataPageModelImpl(reportUiData)
+  val warningsPageModel: WarningsDataPageModel = WarningsDataPageModelImpl(reportUiData)
 }
