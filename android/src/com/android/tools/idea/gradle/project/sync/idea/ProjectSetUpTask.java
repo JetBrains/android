@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.idea;
 
 import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.FORCE_CREATE_DIRS_KEY;
-import static com.android.tools.idea.gradle.util.GradleProjects.open;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
@@ -63,13 +62,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     doPopulateProject(projectInfo);
 
     Runnable runnable = () -> {
-      boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
-      if (!isTest) {
-        if (importedProject) {
-          open(myProject);
-        }
-      }
-
       if (importedProject) {
         // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
         // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
