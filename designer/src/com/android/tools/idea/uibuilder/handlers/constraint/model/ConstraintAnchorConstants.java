@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.model;
 
-/**
- * Simple rect class
- */
-public class Rectangle {
-    public int x;
-    public int y;
-    public int width;
-    public int height;
+public class ConstraintAnchorConstants {
+  /**
+   * Type of creator
+   */
+  public static final int USER_CREATOR = 0;
+  public static final int AUTO_CONSTRAINT_CREATOR = 2;
 
-    public void setBounds(int x, int y, int width, int height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-    }
+  /**
+   * Define the type of anchor
+   */
+  public enum Type { NONE, LEFT, TOP, RIGHT, BOTTOM, BASELINE, CENTER, CENTER_X, CENTER_Y }
 
-    public boolean contains(int x, int y) {
-        return x >= this.x && x < this.x + this.width
-                && y >= this.y && y < this.y + this.height;
-    }
+  /**
+   * Define the strength of an anchor connection
+   */
+  public enum Strength { NONE, STRONG, WEAK }
 
-    public int getCenterX() { return (x + width) / 2; }
-    public int getCenterY() { return (y + height) / 2; }
+  /**
+   * Define the type of connection - either relaxed (allow +/- errors) or strict (only allow positive errors)
+   */
+  public enum ConnectionType { RELAXED, STRICT }
 }
