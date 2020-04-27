@@ -40,8 +40,8 @@ import javax.swing.JPanel
  * This is a temporary solution for maintaining both the new and legacy UIs.
  * The right solution in the long run should be separating the heap-dump out into its own stage.
  */
-internal abstract class MemoryProfilerStageLayout(val capturePanel: CapturePanel,
-                                                  private val makeLoadingPanel: () -> LoadingPanel) {
+abstract class MemoryProfilerStageLayout(val capturePanel: CapturePanel,
+                                         private val makeLoadingPanel: () -> LoadingPanel) {
   abstract val component: JComponent
   val toolbar = JPanel(createToolbarLayout())
 
@@ -73,97 +73,6 @@ internal abstract class MemoryProfilerStageLayout(val capturePanel: CapturePanel
   // TODO: Below are just for legacy tests. Remove them once fully migrated to new Ui
   abstract val chartCaptureSplitter: Splitter
   abstract val mainSplitter: Splitter
-}
-
-internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponent?,
-                                                         capturePanel: CapturePanel,
-                                                         makeLoadingPanel: () -> LoadingPanel,
-                                                         private val selection: MemoryCaptureSelection,
-                                                         private val myTimelineShowingCallback: Runnable,
-                                                         private val myCaptureShowingCallback: Runnable,
-                                                         private val myLoadingShowingCallback: Runnable)
-      : MemoryProfilerStageLayout(capturePanel, makeLoadingPanel) {
-  private val myLayout = CardLayout()
-  private val myTitle = JBLabel().apply {
-    border = JBEmptyBorder(0, 5, 0, 0)
-  }
-
-  private val instanceDetailsSplitter = JBSplitter(false).apply {
-    isOpaque = true
-    firstComponent = capturePanel.classSetView.component
-    secondComponent = capturePanel.instanceDetailsView.component
-  }
-
-  private val instanceDetailsWrapper = JBPanel<Nothing>(BorderLayout()).apply {
-    val headingPanel = JPanel(BorderLayout()).apply {
-      border = DEFAULT_HORIZONTAL_BORDERS
-      add(myTitle, BorderLayout.WEST)
-      add(CloseButton{ selection.selectClassSet(null) }, BorderLayout.EAST)
-    }
-    add(headingPanel, BorderLayout.NORTH)
-    add(instanceDetailsSplitter, BorderLayout.CENTER)
-  }
-
-  override val chartCaptureSplitter = JBSplitter(true).apply {
-    border = DEFAULT_VERTICAL_BORDERS
-    firstComponent = capturePanel.component
-    secondComponent = instanceDetailsWrapper
-  }
-
-  override val component = JPanel(myLayout).apply {
-    if (timelineView != null) {
-      add(timelineView, CARD_TIMELINE)
-    }
-    add(chartCaptureSplitter, CARD_CAPTURE)
-    myLayout.show(this, CARD_TIMELINE)
-  }
-
-  private val myObserver = AspectObserver()
-
-  init {
-    selection.aspect.addDependency(myObserver)
-      .onChange(CaptureSelectionAspect.CURRENT_CLASS, ::updateInstanceDetailsSplitter)
-    updateInstanceDetailsSplitter()
-  }
-
-  override var isShowingCaptureUi = false
-    set(isShown) {
-      field = isShown
-      if (isShown) {
-        myLayout.show(component, CARD_CAPTURE)
-        myCaptureShowingCallback.run()
-      } else {
-        myLayout.show(component, CARD_TIMELINE)
-        myTimelineShowingCallback.run()
-      }
-    }
-
-  override fun showLoadingView(loadingPanel: LoadingPanel) {
-    component.add(loadingPanel.component, CARD_LOADING)
-    myLayout.show(component, CARD_LOADING)
-    myLoadingShowingCallback.run()
-  }
-
-  override fun hideLoadingView(loadingPanel: LoadingPanel) = component.remove(loadingPanel.component)
-
-
-  override val mainSplitter: Splitter
-    //noinspection StopShip
-    get() = TODO("remove on full migration")
-
-  private fun updateInstanceDetailsSplitter() = when (val cs = selection.selectedClassSet) {
-    null -> instanceDetailsWrapper.isVisible = false
-    else -> {
-      myTitle.text = "Instance List - " + cs.name
-      instanceDetailsWrapper.isVisible = true
-    }
-  }
-
-  private companion object {
-    const val CARD_TIMELINE = "timeline"
-    const val CARD_CAPTURE = "capture"
-    const val CARD_LOADING = "loading"
-  }
 }
 
 internal class LegacyMemoryProfilerStageLayout(timelineView: JComponent?,

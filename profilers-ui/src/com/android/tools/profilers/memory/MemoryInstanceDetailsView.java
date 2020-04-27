@@ -87,7 +87,7 @@ import org.jetbrains.annotations.Nullable;
  * information is available. If no detailed information can be obtained from the InstanceObject, this UI is responsible
  * for automatically hiding itself.
  */
-final class MemoryInstanceDetailsView extends AspectObserver {
+public final class MemoryInstanceDetailsView extends AspectObserver {
   private static final String TITLE_TAB_FIELDS = "Fields";
   private static final String TITLE_TAB_REFERENCES = "References";
   private static final String TITLE_TAB_ALLOCATION_CALLSTACK = "Allocation Call Stack";

@@ -21,17 +21,35 @@ import org.jetbrains.annotations.NotNull;
 
 public class CaptureDurationData<T extends CaptureObject> extends DefaultConfigurableDurationData {
   @NotNull private final CaptureEntry<T> myCaptureEntry;
+  private final boolean myIsHeapDumpData;
 
   public CaptureDurationData(long duration,
                              boolean selectableWhenUnspecifiedDuration,
                              boolean selectPartialRange,
                              @NotNull CaptureEntry<T> captureEntry) {
+    this(duration, selectableWhenUnspecifiedDuration, selectPartialRange, captureEntry, false);
+  }
+
+  public CaptureDurationData(long duration,
+                             boolean selectableWhenUnspecifiedDuration,
+                             boolean selectPartialRange,
+                             @NotNull CaptureEntry<T> captureEntry,
+                             boolean isHeapDumpData) {
     super(duration, selectableWhenUnspecifiedDuration, selectPartialRange);
     myCaptureEntry = captureEntry;
+    myIsHeapDumpData = isHeapDumpData;
   }
 
   @NotNull
   public CaptureEntry<T> getCaptureEntry() {
     return myCaptureEntry;
+  }
+
+  /**
+   * TODO: better property name
+   * @return whether the data should be displayed in a separate UI
+   */
+  public final boolean isHeapDumpData() {
+    return myIsHeapDumpData;
   }
 }

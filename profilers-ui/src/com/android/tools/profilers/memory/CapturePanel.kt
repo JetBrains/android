@@ -46,16 +46,17 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-internal class CapturePanel(selection: MemoryCaptureSelection,
-                            selectionTimeLabel: JLabel?,
-                            selectionRange: Range,
-                            ideComponents: IdeProfilerComponents,
-                            timeline: StreamingTimeline): AspectObserver() {
+class CapturePanel(selection: MemoryCaptureSelection,
+                   selectionTimeLabel: JLabel?,
+                   selectionRange: Range,
+                   ideComponents: IdeProfilerComponents,
+                   timeline: StreamingTimeline,
+                   isFullScreenHeapDumpUi: Boolean): AspectObserver() {
   val heapView = MemoryHeapView(selection)
   val captureView = MemoryCaptureView(selection, ideComponents) // TODO: remove after full migration. Only needed for legacy tests
   val classGrouping = MemoryClassGrouping(selection)
   val classifierView = MemoryClassifierView(selection, ideComponents)
-  val classSetView = MemoryClassSetView(selection, ideComponents, selectionRange, timeline)
+  val classSetView = MemoryClassSetView(selection, ideComponents, selectionRange, timeline, isFullScreenHeapDumpUi)
   val instanceDetailsView = MemoryInstanceDetailsView(selection, ideComponents, timeline)
 
   val captureInfoMessage = JLabel(StudioIcons.Common.WARNING).apply {

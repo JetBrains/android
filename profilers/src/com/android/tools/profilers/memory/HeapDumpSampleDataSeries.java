@@ -53,7 +53,8 @@ class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
           getDurationUs(info.getStartTime(), info.getEndTime()), false, false,
           new CaptureEntry<>(
             info,
-            () -> new HeapDumpCaptureObject(myClient, mySession, info, null, myFeatureTracker, myIdeProfilerServices)))));
+            () -> new HeapDumpCaptureObject(myClient, mySession, info, null, myFeatureTracker, myIdeProfilerServices)),
+          true)));
     }
 
     return seriesData;

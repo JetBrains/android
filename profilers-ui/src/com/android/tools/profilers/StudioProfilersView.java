@@ -41,6 +41,8 @@ import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStageView;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStageView;
+import com.android.tools.profilers.memory.HeapDumpStage;
+import com.android.tools.profilers.memory.HeapDumpStageView;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStage;
@@ -162,6 +164,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myBinder.bind(CpuProfilerStage.class, CpuProfilerStageView::new);
     myBinder.bind(CpuCaptureStage.class, CpuCaptureStageView::new);
     myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
+    myBinder.bind(HeapDumpStage.class, HeapDumpStageView::new);
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
     myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);
     myBinder.bind(EnergyProfilerStage.class, EnergyProfilerStageView::new);

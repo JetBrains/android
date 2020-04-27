@@ -97,6 +97,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -496,6 +497,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
    * The following is a regression test against implementation where 'myRangeSelectionComponent' in MemoryProfilerStageView is a null
    * pointer when profiler is importing a heap dump file. (Regression bug: b/117796712)
    */
+  @Ignore("Scenario no longer possible or relevant for separate heap dump stage")
   @Test
   public void testLoadHeapDumpFromFileFinishLoading() throws Exception {
     myIdeProfilerServices.enableSeparateHeapDumpUi(true);
@@ -796,23 +798,6 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       view2.getAllocationSamplingRateLabel(),
       view2.getAllocationSamplingRateDropDown()
     );
-  }
-
-  @Test
-  public void testNavigationButtonNameIsCaptureInNewUi() {
-    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
-    Executor joiner = MoreExecutors.directExecutor();
-    // Load a fake capture
-    FakeCaptureObject fakeCapture =
-      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setStartTime(0).setEndTime(10).setInfoMessage("Foo").build();
-    myStage.selectCaptureDuration(
-      new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> fakeCapture)), joiner);
-    myStage.getCaptureSelection().refreshSelectedHeap();
-    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
-    view.getLayout().setShowingCaptureUi(true);
-    TreeWalker walker = new TreeWalker(view.getToolbar());
-    JLabel label = (JLabel)walker.descendantStream().filter(c -> c instanceof JLabel).findFirst().get();
-    assertThat(label.getText()).startsWith(fakeCapture.getName());
   }
 
   @Test
