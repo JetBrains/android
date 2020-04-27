@@ -112,8 +112,6 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
 
     layeredPane.add(zoomControlsLayerPane, BorderLayout.CENTER)
     layeredPane.add(scrollPane, BorderLayout.CENTER)
-
-    addToolbars()
   }
 
   private fun addToolbars() {
@@ -158,6 +156,8 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
       scrollPane.setViewportView(emulatorView)
       mainToolbar.setTargetComponent(emulatorView)
       secondaryToolbar.setTargetComponent(emulatorView)
+
+      addToolbars()
 
       val loadingPanel = JBLoadingPanel(BorderLayout(), disposable)
       this.loadingPanel = loadingPanel
