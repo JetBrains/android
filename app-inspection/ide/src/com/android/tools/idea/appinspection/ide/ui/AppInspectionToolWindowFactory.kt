@@ -18,7 +18,6 @@ package com.android.tools.idea.appinspection.ide.ui
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
@@ -29,7 +28,9 @@ import icons.StudioIcons
 // TODO(b/152556591): Rename back to "App Inspection"
 internal const val APP_INSPECTION_ID = "Database Inspector"
 
-class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory, Condition<Project> {
+class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory {
+
+  override fun isApplicable(project: Project) = StudioFlags.ENABLE_APP_INSPECTION_TOOL_WINDOW.get()
 
   override fun createToolWindowContent(project: Project,
                                        toolWindow: ToolWindow) {
@@ -48,6 +49,4 @@ class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory, Condition<P
   override fun init(toolWindow: ToolWindow) {
     toolWindow.setToHideOnEmptyContent(true)
   }
-
-  override fun value(project: Project) = StudioFlags.ENABLE_APP_INSPECTION_TOOL_WINDOW.get()
 }
