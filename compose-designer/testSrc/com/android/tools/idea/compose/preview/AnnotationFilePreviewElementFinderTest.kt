@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
@@ -25,41 +26,57 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.impl.source.tree.injected.changesHandler.range
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
-import org.junit.Assert
+import org.junit.After
 import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Asserts that the given [methodName] body has the actual given [actualBodyRange]
  */
 private fun assertMethodTextRange(file: UFile, methodName: String, actualBodyRange: TextRange) {
-  val range = file
-    .method(methodName)
-    ?.uastBody
-    ?.sourcePsi
-    ?.textRange!!
-  Assert.assertNotEquals(range, TextRange.EMPTY_RANGE)
-  Assert.assertEquals(range, actualBodyRange)
+  val range = ReadAction.compute<TextRange, Throwable> {
+    file.method(methodName)
+      ?.uastBody
+      ?.sourcePsi
+      ?.textRange!!
+  }
+  assertNotEquals(range, TextRange.EMPTY_RANGE)
+  assertEquals(range, actualBodyRange)
 }
 
 private fun <T> computeOnBackground(computable: () -> T): T =
   AppExecutorUtil.getAppExecutorService().submit(computable).get()
 
-class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
-  override fun setUp() {
-    super.setUp()
+class AnnotationFilePreviewElementFinderTest {
+  @get:Rule
+  val projectRule = ComposeProjectRule()
+  private val project get() = projectRule.project
+  private val fixture get() = projectRule.fixture
+
+  @Before
+  fun setUp() {
     StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.override(true)
   }
 
-  override fun tearDown() {
-    super.tearDown()
+  @After
+  fun tearDown() {
     StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.clearOverride()
   }
 
+  @Test
   fun testFindPreviewAnnotations() {
-    val composeTest = myFixture.addFileToProject(
+    val composeTest = fixture.addFileToProject(
       "src/Test.kt",
       // language=kotlin
       """
@@ -120,9 +137,11 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       assertTrue(it.displaySettings.showBackground)
       assertFalse(it.displaySettings.showDecoration)
 
-      assertMethodTextRange(composeTest, "Preview2", it.previewBodyPsi?.psiRange?.range!!)
-      assertEquals("@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\", showBackground = true)",
-                   it.previewElementDefinitionPsi?.element?.text)
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview2", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\", showBackground = true)",
+                     it.previewElementDefinitionPsi?.element?.text)
+      }
     }
 
     elements[2].let {
@@ -134,9 +153,11 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       assertFalse(it.displaySettings.showBackground)
       assertTrue(it.displaySettings.showDecoration)
 
-      assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange?.range!!)
-      assertEquals("@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true)",
-                   it.previewElementDefinitionPsi?.element?.text)
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true)",
+                     it.previewElementDefinitionPsi?.element?.text)
+      }
     }
 
     elements[0].let {
@@ -147,8 +168,10 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       assertFalse(it.displaySettings.showBackground)
       assertFalse(it.displaySettings.showDecoration)
 
-      assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
-      assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
+      }
     }
 
     elements[3].let {
@@ -160,8 +183,9 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
     }
   }
 
+  @Test
   fun testFindPreviewAnnotationsWithoutImport() {
-    val composeTest = myFixture.addFileToProject(
+    val composeTest = fixture.addFileToProject(
       "src/Test.kt",
       // language=kotlin
       """
@@ -181,8 +205,9 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
     }
   }
 
+  @Test
   fun testNoDuplicatePreviewElements() {
-    val composeTest = myFixture.addFileToProject(
+    val composeTest = fixture.addFileToProject(
       "src/Test.kt",
       // language=kotlin
       """
@@ -205,8 +230,9 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
     assertEquals("Preview1", element.displaySettings.name)
   }
 
+  @Test
   fun testFindPreviewPackage() {
-    myFixture.addFileToProject(
+    fixture.addFileToProject(
       "src/com/android/notpreview/Preview.kt",
       // language=kotlin
       """
@@ -219,7 +245,7 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
                                  val heightDp: Int = -1)
        """.trimIndent())
 
-    val composeTest = myFixture.addFileToProject(
+    val composeTest = fixture.addFileToProject(
       "src/Test.kt",
       // language=kotlin
       """
@@ -249,13 +275,13 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
    * Ensures that calling findPreviewMethods returns an empty. Although the method is guaranteed to be called under smart mode,
    *
    */
+  @Test
   fun testDumbMode() {
-    val composeTest = myFixture.addFileToProject(
+    val composeTest = fixture.addFileToProject(
       "src/Test.kt",
       // language=kotlin
       """
-        import androidx.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import androidx.compose.Composableimport androidx.ui.tooling.preview.Preview
 
         @Composable
         @Preview
@@ -268,18 +294,21 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
         }
       """.trimIndent()).toUElement() as UFile
 
-    DumbServiceImpl.getInstance(myFixture.project).isDumb = true
-    try {
-      val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
-      assertEquals(0, elements.count())
-    }
-    finally {
-      DumbServiceImpl.getInstance(myFixture.project).isDumb = false
+    runInEdtAndWait {
+      DumbServiceImpl.getInstance(project).isDumb = true
+      try {
+        val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
+        assertEquals(0, elements.count())
+      }
+      finally {
+        DumbServiceImpl.getInstance(project).isDumb = false
+      }
     }
   }
 
+  @Test
   fun testPreviewParameters() {
-    val composeTest = myFixture.addFileToProject(
+    val composeTest = fixture.addFileToProject(
       "src/Test.kt",
       // language=kotlin
       """
@@ -350,8 +379,9 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
     }
   }
 
+  @Test
   fun testOrdering() {
-    val composeTest = myFixture.addFileToProject(
+    val composeTest = fixture.addFileToProject(
       "src/Test.kt",
       // language=kotlin
       """

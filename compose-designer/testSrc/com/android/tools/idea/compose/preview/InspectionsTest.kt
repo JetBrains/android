@@ -15,28 +15,40 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.containers.toArray
 import org.intellij.lang.annotations.Language
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Returns the [HighlightInfo] description adding the relative line number
  */
-private fun HighlightInfo.descriptionWithLineNumber() =
+private fun HighlightInfo.descriptionWithLineNumber() = ReadAction.compute<String, Throwable> {
   "${StringUtil.offsetToLineNumber(highlighter.document.text, startOffset)}: ${description}"
+}
 
-class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
-  override fun tearDown() {
-    super.tearDown()
+class InspectionsTest  {
+  @get:Rule
+  val projectRule = ComposeProjectRule()
+  private val fixture get() = projectRule.fixture
+
+  @After
+  fun tearDown() {
     StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.clearOverride()
   }
 
+  @Test
   fun testNeedsComposableInspection() {
-    myFixture.enableInspections(PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry)
+    fixture.enableInspections(PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
@@ -55,14 +67,15 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       }
     """.trimIndent()
 
-    myFixture.configureByText("Test.kt", fileContent)
+    fixture.configureByText("Test.kt", fileContent)
     assertEquals("9: Preview only works with Composable functions.",
-                 myFixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber())
+                 fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber())
   }
 
+  @Test
   fun testNoParametersInPreview() {
     StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.override(true)
-    myFixture.enableInspections(PreviewAnnotationInFunctionWithParametersInspection() as InspectionProfileEntry)
+    fixture.enableInspections(PreviewAnnotationInFunctionWithParametersInspection() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
@@ -107,8 +120,8 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       }
     """.trimIndent()
 
-    myFixture.configureByText("Test.kt", fileContent)
-    val inspections = myFixture.doHighlighting(HighlightSeverity.ERROR)
+    fixture.configureByText("Test.kt", fileContent)
+    val inspections = fixture.doHighlighting(HighlightSeverity.ERROR)
       // Filter out UNRESOLVED_REFERENCE caused by the standard library not being available.
       // sequence and sequenceOf are not available. We can safely ignore them.
       .filter { !it.description.contains("[UNRESOLVED_REFERENCE]") }
@@ -123,8 +136,9 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       inspections)
   }
 
+  @Test
   fun testPreviewMustBeTopLevel() {
-    myFixture.enableInspections(PreviewMustBeTopLevelFunction() as InspectionProfileEntry)
+    fixture.enableInspections(PreviewMustBeTopLevelFunction() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName", "ClassName")
     @Language("kotlin")
@@ -183,8 +197,8 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       }
     """.trimIndent()
 
-    myFixture.configureByText("Test.kt", fileContent)
-    val inspections = myFixture.doHighlighting(HighlightSeverity.ERROR)
+    fixture.configureByText("Test.kt", fileContent)
+    val inspections = fixture.doHighlighting(HighlightSeverity.ERROR)
       .sortedByDescending { -it.startOffset }
       .joinToString("\n") { it.descriptionWithLineNumber() }
 
@@ -196,8 +210,9 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
                  inspections)
   }
 
+  @Test
   fun testWidthShouldntExceedApiLimit() {
-    myFixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
+    fixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
@@ -216,8 +231,8 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       }
     """.trimIndent()
 
-    myFixture.configureByText("Test.kt", fileContent)
-    val inspections = myFixture.doHighlighting(HighlightSeverity.WARNING)
+    fixture.configureByText("Test.kt", fileContent)
+    val inspections = fixture.doHighlighting(HighlightSeverity.WARNING)
       .sortedByDescending { -it.startOffset }
       .joinToString("\n") { it.descriptionWithLineNumber() }
 
@@ -225,8 +240,9 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     assertEquals("4: Preview width is limited to 2,000. Setting a higher number will not increase the preview width.", inspections)
   }
 
+  @Test
   fun testHeightShouldntExceedApiLimit() {
-    myFixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
+    fixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
@@ -245,8 +261,8 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       }
     """.trimIndent()
 
-    myFixture.configureByText("Test.kt", fileContent)
-    val inspections = myFixture.doHighlighting(HighlightSeverity.WARNING)
+    fixture.configureByText("Test.kt", fileContent)
+    val inspections = fixture.doHighlighting(HighlightSeverity.WARNING)
       .sortedByDescending { -it.startOffset }
       .joinToString("\n") { it.descriptionWithLineNumber() }
 
@@ -254,8 +270,9 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     assertEquals("4: Preview height is limited to 2,000. Setting a higher number will not increase the preview height.", inspections)
   }
 
+  @Test
   fun testOnlyParametersAndValuesAreHighlighted() {
-    myFixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
+    fixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
@@ -269,8 +286,8 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       }
     """.trimIndent()
 
-    myFixture.configureByText("Test.kt", fileContent)
-    val inspections = myFixture.doHighlighting(HighlightSeverity.WARNING)
+    fixture.configureByText("Test.kt", fileContent)
+    val inspections = fixture.doHighlighting(HighlightSeverity.WARNING)
       .sortedByDescending { -it.startOffset }
       .toArray(emptyArray())
 
@@ -285,8 +302,9 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     assertEquals("widthDp = 2001".length, highlightLength)
   }
 
+  @Test
   fun testInspectionsWithNoImport() {
-    myFixture.enableInspections(PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry)
+    fixture.enableInspections(PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
@@ -304,8 +322,8 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       }
     """.trimIndent()
 
-    myFixture.configureByText("Test.kt", fileContent)
+    fixture.configureByText("Test.kt", fileContent)
     assertEquals("8: Preview only works with Composable functions.",
-                 myFixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber())
+                 fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber())
   }
 }

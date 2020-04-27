@@ -15,37 +15,46 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.project.DumbServiceImpl
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.util.ThrowableRunnable
 import org.intellij.lang.annotations.Language
+import org.junit.After
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 private fun ComposePreviewRepresentationProvider.accept(file: PsiFile) =
   accept(file.project, file.virtualFile)
 
-class ComposePreviewRepresentationProviderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
-  override fun setUp() {
-    super.setUp()
+class ComposePreviewRepresentationProviderTest {
+  @get:Rule
+  val projectRule = ComposeProjectRule()
+  private val project get() = projectRule.project
+  private val fixture get() = projectRule.fixture
 
+  @Before
+  fun setUp() {
     StudioFlags.NELE_SOURCE_CODE_EDITOR.override(true)
-    StudioFlags.COMPOSE_PREVIEW.override(true)
   }
 
-  override fun tearDown() {
+  @After
+  fun tearDown() {
     StudioFlags.NELE_SOURCE_CODE_EDITOR.clearOverride()
-    StudioFlags.COMPOSE_PREVIEW.clearOverride()
-
-    super.tearDown()
   }
 
+  @Test
   fun testAcceptFile() {
     val provider = ComposePreviewRepresentationProvider()
 
     @Language("kotlin")
-    val noPreviewFile = myFixture.addFileToProject("src/NoPreviews.kt", """
+    val noPreviewFile = fixture.addFileToProject("src/NoPreviews.kt", """
       import androidx.compose.Composable
 
       fun method() {
@@ -58,7 +67,7 @@ class ComposePreviewRepresentationProviderTest : ComposeLightJavaCodeInsightFixt
     """.trimIndent())
 
     @Language("kotlin")
-    val previewFile = myFixture.addFileToProject("src/Preview.kt", """
+    val previewFile = fixture.addFileToProject("src/Preview.kt", """
       import androidx.ui.tooling.preview.Preview
       import androidx.ui.tooling.preview.Configuration
       import androidx.compose.Composable
@@ -73,19 +82,20 @@ class ComposePreviewRepresentationProviderTest : ComposeLightJavaCodeInsightFixt
     assertFalse(provider.accept(noPreviewFile))
     assertTrue(provider.accept(previewFile))
 
-    val editor = provider.createRepresentation(previewFile)
-    Disposer.dispose(editor)
+    // Exercise the representation initialization to make sure no exception is thrown
+    ReadAction.compute<ComposePreviewRepresentation, Throwable> { provider.createRepresentation(previewFile) }
   }
 
   /**
    * This test ensures that we fail if we disable the preview.
    */
+  @Test
   fun testDoesNotAcceptByDefault() {
     StudioFlags.COMPOSE_PREVIEW.override(false)
     val provider = ComposePreviewRepresentationProvider()
 
     @Language("kotlin")
-    val previewFile = myFixture.addFileToProject("src/Preview.kt", """
+    val previewFile = fixture.addFileToProject("src/Preview.kt", """
       import androidx.ui.tooling.preview.Preview
       import androidx.ui.tooling.preview.Configuration
       import androidx.compose.Composable
@@ -103,11 +113,12 @@ class ComposePreviewRepresentationProviderTest : ComposeLightJavaCodeInsightFixt
   /**
    * [ComposeFileEditorProvider#accept] might be called on dumb mode. Make sure that we do not run any smart mode operations.
    */
+  @Test
   fun testAcceptOnDumbMode() {
     val provider = ComposePreviewRepresentationProvider()
 
     @Language("kotlin")
-    val previewFile = myFixture.addFileToProject("src/Preview.kt", """
+    val previewFile = fixture.addFileToProject("src/Preview.kt", """
       import androidx.ui.tooling.preview.Preview
       import androidx.compose.Composable
 
@@ -123,18 +134,20 @@ class ComposePreviewRepresentationProviderTest : ComposeLightJavaCodeInsightFixt
     })
     try {
       assertTrue(provider.accept(previewFile))
-    } finally {
+    }
+    finally {
       WriteAction.runAndWait(ThrowableRunnable<Exception> {
         DumbServiceImpl.getInstance(project).isDumb = false
       })
     }
   }
 
+  @Test
   fun testOnlyAcceptKotlinFiles() {
     val provider = ComposePreviewRepresentationProvider()
 
     @Language("java")
-    val previewFile = myFixture.addFileToProject("src/KOnly.java", """
+    val previewFile = fixture.addFileToProject("src/KOnly.java", """
       import androidx.ui.tooling.preview.Preview;
       import androidx.compose.Composable;
 
