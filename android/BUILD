@@ -168,7 +168,7 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
-        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.1-dev:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.2-dev:jar",
     ],
 )
 
@@ -461,7 +461,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
-        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.1-dev:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/test/platform/core-proto/0.0.2-dev:jar",
     ],
 )
 
