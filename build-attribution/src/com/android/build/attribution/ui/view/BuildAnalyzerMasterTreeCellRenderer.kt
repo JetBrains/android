@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.ui.model.TasksTreePresentableNodeDescriptor
+import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.warningIcon
 import com.intellij.ide.ui.UISettings.Companion.setupAntialiasing
 import com.intellij.ide.util.treeView.NodeRenderer
@@ -52,6 +53,9 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
     val node = value as DefaultMutableTreeNode
     val userObj = node.userObject
     if (userObj is TasksTreePresentableNodeDescriptor) {
+      customize(userObj.presentation, selected, hasFocus)
+    }
+    else if (userObj is WarningsTreePresentableNodeDescriptor) {
       customize(userObj.presentation, selected, hasFocus)
     }
     else {

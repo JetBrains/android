@@ -20,6 +20,7 @@ import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
+import com.android.build.attribution.ui.model.WarningsTreeNode
 
 /**
  * Handlers that are called by the view on the corresponding action from the user.
@@ -34,11 +35,14 @@ interface ViewActionHandlers {
   /** Called when selection in tasks grouping combo box is changed by the user. */
   fun tasksGroupingSelectionUpdated(grouping: TasksDataPageModel.Grouping)
 
-  /** Called on tree node selection. */
+  /** Called on tasks page tree node selection. */
   fun tasksTreeNodeSelected(tasksTreeNode: TasksTreeNode)
 
   /** Called on a link to another task details page click. */
   fun tasksDetailsLinkClicked(taskPageId: TasksPageId)
+
+  /** Called on warnings page tree node selection. */
+  fun warningsTreeNodeSelected(warningTreeNode: WarningsTreeNode)
 
   /** Called on help link click. */
   fun helpLinkClicked()
