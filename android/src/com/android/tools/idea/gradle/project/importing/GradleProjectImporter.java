@@ -33,6 +33,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
@@ -137,9 +138,11 @@ public class GradleProjectImporter {
 
   @NotNull
   public Project createProject(@NotNull String projectName, @NotNull File projectFolderPath) {
-    Project newProject;
-    newProject = myNewProjectSetup.createProject(projectName, projectFolderPath.getPath());
-
+    ProjectManager projectManager = ProjectManager.getInstance();
+    Project newProject = projectManager.createProject(projectName, projectFolderPath.getPath());
+    if (newProject == null) {
+      throw new NullPointerException("Failed to create a new project");
+    }
     String externalProjectPath = toCanonicalPath(projectFolderPath.getPath());
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     GradleProjectImportUtil.setupGradleSettings(projectSettings, externalProjectPath, newProject, null);
