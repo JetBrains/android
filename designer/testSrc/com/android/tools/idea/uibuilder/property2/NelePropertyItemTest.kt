@@ -93,12 +93,10 @@ private val ERROR = EditingErrorCategory.ERROR
 
 class NelePropertyItemTest {
 
-  @JvmField
-  @Rule
+  @get:Rule
   val projectRule = AndroidProjectRule.withSdk()
 
-  @JvmField
-  @Rule
+  @get:Rule
   val edtRule = EdtRule()
 
   private var componentStack: ComponentStack? = null
@@ -608,7 +606,7 @@ class NelePropertyItemTest {
     val fileManager = mock(FileEditorManager::class.java)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
+    `when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(mock(FileEditor::class.java)))
 
     property.helpSupport.browse()
@@ -800,7 +798,7 @@ class NelePropertyItemTest {
 
   @Language("XML")
   private val MOTION_LAYOUT = """<?xml version="1.0" encoding="utf-8"?>
-    <android.support.constraint.motion.MotionLayout 
+    <android.support.constraint.motion.MotionLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/mlo"
@@ -814,7 +812,7 @@ class NelePropertyItemTest {
             android:text="run"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
-    
+
         <Button
             android:id="@+id/button"
             android:layout_width="64dp"

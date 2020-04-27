@@ -32,8 +32,6 @@ import org.junit.runner.RunWith;
   com.android.tools.idea.uibuilder.handlers.constraint.ConstraintPlaceholderTest.class,  // b/154962720
   com.android.tools.idea.uibuilder.handlers.linear.LinearPlaceholderTest.class,  // b/154962720
   com.android.tools.idea.uibuilder.palette.PalettePanelTest.class,  // b/154962720
-  com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.class,  // b/154962720
-  com.android.tools.idea.uibuilder.property2.NelePropertyItemTest.class,  // b/154962720
   com.android.tools.idea.uibuilder.structure.NlComponentTreeTest.class,  // b/154962720
 })
 public class DesignerTestSuite extends IdeaTestSuiteBase {
