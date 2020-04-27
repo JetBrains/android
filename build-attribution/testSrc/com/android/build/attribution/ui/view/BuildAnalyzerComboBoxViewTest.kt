@@ -19,20 +19,36 @@ import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.utils.keysToMap
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Dimension
 
 class BuildAnalyzerComboBoxViewTest {
+  @get:Rule
+  val applicationRule: ApplicationRule = ApplicationRule()
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   val model = BuildAnalyzerViewModel(MockUiData())
   val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
-  val view = BuildAnalyzerComboBoxView(model, mockHandlers).apply {
-    wholePanel.size = Dimension(600, 200)
+  lateinit var view: BuildAnalyzerComboBoxView
+
+  @Before
+  fun setUp() {
+    view = BuildAnalyzerComboBoxView(model, mockHandlers).apply {
+      wholePanel.size = Dimension(600, 200)
+    }
   }
 
   @Test
+  @RunsInEdt
   fun testViewCreated() {
     // Assert
     val expectedElementsVisibility = mapOf(
@@ -49,6 +65,7 @@ class BuildAnalyzerComboBoxViewTest {
   }
 
   @Test
+  @RunsInEdt
   fun testViewChangedToTasks() {
     // Act
     model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
@@ -68,6 +85,7 @@ class BuildAnalyzerComboBoxViewTest {
   }
 
   @Test
+  @RunsInEdt
   fun testViewChangedToWarnings() {
     // Act
     model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
@@ -87,6 +105,7 @@ class BuildAnalyzerComboBoxViewTest {
   }
 
   @Test
+  @RunsInEdt
   fun testActionHandlerTriggeredOnDataSetChangeToNew() {
     // Pre-requirement
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.OVERVIEW)
@@ -97,6 +116,7 @@ class BuildAnalyzerComboBoxViewTest {
   }
 
   @Test
+  @RunsInEdt
   fun testActionHandlerNotTriggeredOnDataSetChangeToAlreadySelected() {
     // Pre-requirement
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.OVERVIEW)

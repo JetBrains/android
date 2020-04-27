@@ -16,10 +16,15 @@
 package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
+import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
-
+import com.android.build.attribution.ui.model.TaskDetailsPageType
+import com.android.build.attribution.ui.model.TasksDataPageModel.Grouping
+import com.android.build.attribution.ui.model.TasksPageId
+import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
+import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 
 class BuildAnalyzerViewController(
   val model: BuildAnalyzerViewModel,
@@ -34,16 +39,61 @@ class BuildAnalyzerViewController(
 
   override fun dataSetComboBoxSelectionUpdated(newSelectedData: BuildAnalyzerViewModel.DataSet) {
     model.selectedData = newSelectedData
-    val pageId = newSelectedData.toAnalyticsPage()
-    analytics.pageChange(pageId, BuildAttributionUiEvent.EventType.UNKNOWN_TYPE)
+    val analyticsPageId = newSelectedData.toAnalyticsPage()
+    analytics.pageChange(analyticsPageId, BuildAttributionUiEvent.EventType.UNKNOWN_TYPE)
+  }
+
+  override fun tasksGroupingSelectionUpdated(grouping: Grouping) {
+    model.tasksPageModel.selectGrouping(grouping)
+    // TODO (b/154988129): what metrics to track on such action?
+  }
+
+  override fun tasksTreeNodeSelected(tasksTreeNode: TasksTreeNode) {
+    // Update selection in the model.
+    model.tasksPageModel.selectNode(tasksTreeNode)
+    // Track page change in analytics.
+    val pageId = tasksTreeNode.descriptor.pageId.toAnalyticsPage()
+    analytics.pageChange(pageId, BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
+  }
+
+  override fun tasksDetailsLinkClicked(taskPageId: TasksPageId) {
+    // Make sure tasks page open.
+    model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
+    // Update selection in the tasks page model.
+    model.tasksPageModel.selectPageById(taskPageId)
+    // Track page change in analytics.
+    val pageId = taskPageId.toAnalyticsPage()
+    analytics.pageChange(pageId, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
+  }
+
+  override fun helpLinkClicked() {
+    //TODO (b/154988129): currently it is tracked only by currently opened page.
+    // If we have more links on the page it will not be tracked properly.
+    // Change to track the link context.
+    analytics.helpLinkClicked()
+  }
+
+  override fun generateReportClicked(taskData: TaskUiData) {
+    analytics.bugReportLinkClicked()
+    issueReporter.reportIssue(taskData)
   }
 
   private fun BuildAnalyzerViewModel.DataSet.toAnalyticsPage(): BuildAttributionUiAnalytics.AnalyticsPageId {
     val type = when (this) {
-      BuildAnalyzerViewModel.DataSet.OVERVIEW -> BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY
-      BuildAnalyzerViewModel.DataSet.TASKS -> BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT
-      BuildAnalyzerViewModel.DataSet.WARNINGS -> BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT
+      BuildAnalyzerViewModel.DataSet.OVERVIEW -> PageType.BUILD_SUMMARY
+      BuildAnalyzerViewModel.DataSet.TASKS -> PageType.CRITICAL_PATH_TASKS_ROOT
+      BuildAnalyzerViewModel.DataSet.WARNINGS -> PageType.WARNINGS_ROOT
     }
     return BuildAttributionUiAnalytics.AnalyticsPageId(type, this.name)
+  }
+
+  private fun TasksPageId.toAnalyticsPage(): BuildAttributionUiAnalytics.AnalyticsPageId {
+    val type: PageType = when {
+      grouping == Grouping.UNGROUPED && pageType == TaskDetailsPageType.TASK_DETAILS -> PageType.CRITICAL_PATH_TASK_PAGE
+      grouping == Grouping.BY_PLUGIN && pageType == TaskDetailsPageType.TASK_DETAILS -> PageType.PLUGIN_CRITICAL_PATH_TASK_PAGE
+      grouping == Grouping.BY_PLUGIN && pageType == TaskDetailsPageType.PLUGIN_DETAILS -> PageType.PLUGIN_PAGE
+      else -> PageType.UNKNOWN_PAGE
+    }
+    return BuildAttributionUiAnalytics.AnalyticsPageId(type, this.id)
   }
 }

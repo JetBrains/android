@@ -15,7 +15,11 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
+import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.build.attribution.ui.model.TasksPageId
+import com.android.build.attribution.ui.model.TasksTreeNode
 
 /**
  * Handlers that are called by the view on the corresponding action from the user.
@@ -26,4 +30,19 @@ interface ViewActionHandlers {
    * Called when selection in data set combo box is changed by the user.
    */
   fun dataSetComboBoxSelectionUpdated(newSelectedData: BuildAnalyzerViewModel.DataSet)
+
+  /** Called when selection in tasks grouping combo box is changed by the user. */
+  fun tasksGroupingSelectionUpdated(grouping: TasksDataPageModel.Grouping)
+
+  /** Called on tree node selection. */
+  fun tasksTreeNodeSelected(tasksTreeNode: TasksTreeNode)
+
+  /** Called on a link to another task details page click. */
+  fun tasksDetailsLinkClicked(taskPageId: TasksPageId)
+
+  /** Called on help link click. */
+  fun helpLinkClicked()
+
+  /** Called on 'generate report' link click. */
+  fun generateReportClicked(taskData: TaskUiData)
 }
