@@ -83,7 +83,7 @@ import javax.swing.tree.TreeSelectionModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class MemoryClassSetView extends AspectObserver {
+public final class MemoryClassSetView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 500;
 
   @NotNull private final MemoryCaptureSelection mySelection;
@@ -112,12 +112,16 @@ final class MemoryClassSetView extends AspectObserver {
 
   @Nullable private List<FieldObject> myFieldObjectPath;
 
+  private final boolean myIsFullScreenHeapDumpUi;
+
   MemoryClassSetView(@NotNull MemoryCaptureSelection selection,
                      @NotNull IdeProfilerComponents ideProfilerComponents,
                      @NotNull Range selectionRange,
-                     @NotNull StreamingTimeline timeline) {
+                     @NotNull StreamingTimeline timeline,
+                     boolean isFullScreenHeapDumpUi) {
     mySelection = selection;
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
+    myIsFullScreenHeapDumpUi = isFullScreenHeapDumpUi;
 
     mySelection.getAspect().addDependency(this)
       .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, this::refreshCaptureObject)
@@ -186,7 +190,7 @@ final class MemoryClassSetView extends AspectObserver {
       makeSizeColumn("Retained Size", ValueObject::getRetainedSize));
 
 
-    if (!selection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+    if (!isFullScreenHeapDumpUi) {
       JPanel headingPanel = new JPanel(new BorderLayout());
       JLabel instanceViewLabel = new JLabel("Instance View");
       instanceViewLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
@@ -441,7 +445,7 @@ final class MemoryClassSetView extends AspectObserver {
                                                   InstanceNodeKt.addChild(
                                                     this,
                                                     subAdapter,
-                                                    mySelection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() ?
+                                                    myIsFullScreenHeapDumpUi ?
                                                     LeafNode::new :
                                                     InstanceDetailsTreeNode::new));
 

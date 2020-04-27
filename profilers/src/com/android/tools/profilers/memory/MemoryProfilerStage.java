@@ -57,6 +57,7 @@ import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -639,7 +640,14 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
   @VisibleForTesting
   void selectCaptureDuration(@Nullable CaptureDurationData<? extends CaptureObject> durationData,
                              @Nullable Executor joiner) {
-    doSelectCaptureDuration(durationData, joiner);
+    StudioProfilers profilers = getStudioProfilers();
+    if (durationData != null &&
+        durationData.isHeapDumpData() &&
+        getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+      profilers.setStage(new HeapDumpStage(profilers, getLoader(), durationData, joiner));
+    } else {
+      doSelectCaptureDuration(durationData, joiner);
+    }
   }
 
   @NotNull
