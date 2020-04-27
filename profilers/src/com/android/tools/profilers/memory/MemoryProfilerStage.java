@@ -139,7 +139,6 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
     this(profilers, new CaptureObjectLoader());
   }
 
-  @VisibleForTesting
   public MemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
     super(profilers, loader);
     myIsMemoryCaptureOnly =
