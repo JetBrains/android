@@ -54,7 +54,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
+import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchorConstants;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -453,7 +453,7 @@ public class WidgetConstraintModel implements SelectionListener {
     modification.commit();
   }
 
-  public void killConstraint(@NotNull ConstraintAnchor.Type type) {
+  public void killConstraint(@NotNull ConstraintAnchorConstants.Type type) {
     switch (type) {
       case LEFT:
         removeAttribute(CONNECTION_LEFT);
@@ -729,7 +729,7 @@ public class WidgetConstraintModel implements SelectionListener {
   }
 
   public void killBaselineConstraint() {
-    killConstraint(ConstraintAnchor.Type.BASELINE);
+    killConstraint(ConstraintAnchorConstants.Type.BASELINE);
   }
 
   public void setHorizontalConstraint(int horizontalConstraint) {

@@ -33,28 +33,6 @@ public class WidgetContainer extends ConstraintWidget {
     public WidgetContainer() {
     }
 
-    /**
-     * Constructor
-     *
-     * @param x      x position
-     * @param y      y position
-     * @param width  width of the layout
-     * @param height height of the layout
-     */
-    public WidgetContainer(int x, int y, int width, int height) {
-        super(x, y, width, height);
-    }
-
-    /**
-     * Constructor
-     *
-     * @param width  width of the layout
-     * @param height height of the layout
-     */
-    public WidgetContainer(int width, int height) {
-        super(width, height);
-    }
-
     @Override
     public void reset() {
         mChildren.clear();
@@ -95,93 +73,6 @@ public class WidgetContainer extends ConstraintWidget {
     }
 
     /**
-     * Return the top-level ConstraintWidgetContainer
-     *
-     * @return top-level ConstraintWidgetContainer
-     */
-    public ConstraintWidgetContainer getRootConstraintContainer() {
-        ConstraintWidget item = this;
-        ConstraintWidget parent = item.getParent();
-        ConstraintWidgetContainer container = null;
-        if (item instanceof ConstraintWidgetContainer) {
-            container = (ConstraintWidgetContainer)this;
-        }
-        while (parent != null) {
-            item = parent;
-            parent = item.getParent();
-            if (item instanceof ConstraintWidgetContainer) {
-                container = (ConstraintWidgetContainer)item;
-            }
-        }
-        return container;
-    }
-
-    /*-----------------------------------------------------------------------*/
-    // Operations on children
-    /*-----------------------------------------------------------------------*/
-
-    /**
-     * Find a widget at the coordinate (x, y)
-     *
-     * @param x x position
-     * @param y y position
-     * @return a widget if found, null otherwise
-     */
-    public ConstraintWidget findWidget(float x, float y) {
-        ConstraintWidget found = null;
-        int l = getDrawX();
-        int t = getDrawY();
-        int r = l + getWidth();
-        int b = t + getHeight();
-        if (x >= l && x <= r && y >= t && y <= b) {
-            found = this;
-        }
-        for (int i = 0, mChildrenSize = mChildren.size(); i < mChildrenSize; i++) {
-            final ConstraintWidget widget = mChildren.get(i);
-            if (widget instanceof WidgetContainer) {
-                ConstraintWidget f = ((WidgetContainer) widget).findWidget(x, y);
-                if (f != null) {
-                    found = f;
-                }
-            } else {
-                l = widget.getDrawX();
-                t = widget.getDrawY();
-                r = l + widget.getWidth();
-                b = t + widget.getHeight();
-                if (x >= l && x <= r && y >= t && y <= b) {
-                    found = widget;
-                }
-            }
-        }
-        return found;
-    }
-
-    /**
-     * Gather all the widgets contained in the area specified and return them as an array
-     *
-     * @param x      x position of the selection area
-     * @param y      y position of the selection area
-     * @param width  width of the selection area
-     * @param height height of the selection area
-     * @return an array containing the widgets inside the selection area
-     */
-    public ArrayList<ConstraintWidget> findWidgets(int x, int y, int width, int height) {
-        ArrayList<ConstraintWidget> found = new ArrayList<ConstraintWidget>();
-        Rectangle area = new Rectangle();
-        area.setBounds(x, y, width, height);
-        for (int i = 0, mChildrenSize = mChildren.size(); i < mChildrenSize; i++) {
-            final ConstraintWidget widget = mChildren.get(i);
-            Rectangle bounds = new Rectangle();
-            bounds.setBounds(widget.getDrawX(), widget.getDrawY(),
-                    widget.getWidth(), widget.getHeight());
-            if (area.intersects(bounds)) {
-                found.add(widget);
-            }
-        }
-        return found;
-    }
-
-    /**
      * Return the bounds of the selected group of widgets
      *
      * @param widgets
@@ -189,7 +80,7 @@ public class WidgetContainer extends ConstraintWidget {
      */
     public static Rectangle getBounds(ArrayList<ConstraintWidget> widgets) {
         Rectangle bounds = new Rectangle();
-        if (widgets.size() == 0) {
+        if (widgets.isEmpty()) {
             return bounds;
         }
         int minX = Integer.MAX_VALUE;
@@ -271,9 +162,5 @@ public class WidgetContainer extends ConstraintWidget {
                 ((WidgetContainer)widget).layout();
             }
         }
-    }
-
-    public void removeAllChildren() {
-        mChildren.clear();
     }
 }

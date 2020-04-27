@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.model;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
@@ -25,48 +24,20 @@ import java.util.HashSet;
  */
 public class ConstraintAnchor {
 
-    private static final boolean ALLOW_BINARY = false;
-
-    /**
-     * Define the type of anchor
-     */
-    public enum Type { NONE, LEFT, TOP, RIGHT, BOTTOM, BASELINE, CENTER, CENTER_X, CENTER_Y }
-
-    /**
-     * Define the strength of an anchor connection
-     */
-    public enum Strength { NONE, STRONG, WEAK }
-
-    /**
-     * Define the type of connection - either relaxed (allow +/- errors) or strict (only allow positive errors)
-     */
-    public enum ConnectionType { RELAXED, STRICT }
-
-    /**
-     * Type of creator
-     */
-    public static final int USER_CREATOR = 0;
-    public static final int SCOUT_CREATOR = 1;
-    public static final int AUTO_CONSTRAINT_CREATOR = 2;
-
-    private static final int UNSET_GONE_MARGIN = -1;
+  private static final int UNSET_GONE_MARGIN = -1;
 
     final ConstraintWidget mOwner;
-    final Type mType;
+    final ConstraintAnchorConstants.Type mType;
     ConstraintAnchor mTarget;
     public int mMargin = 0;
     int mGoneMargin = UNSET_GONE_MARGIN;
-
-    private Strength mStrength = Strength.NONE;
-    private ConnectionType mConnectionType = ConnectionType.RELAXED;
-    private int mConnectionCreator = USER_CREATOR;
 
     /**
      * Constructor
      * @param owner the widget owner of this anchor.
      * @param type the anchor type.
      */
-    public ConstraintAnchor(ConstraintWidget owner, Type type) {
+    public ConstraintAnchor(ConstraintWidget owner, ConstraintAnchorConstants.Type type) {
         mOwner = owner;
         mType = type;
     }
@@ -81,27 +52,22 @@ public class ConstraintAnchor {
      * Return the type of the anchor
      * @return type of the anchor.
      */
-    public Type getType() { return mType; }
+    public ConstraintAnchorConstants.Type getType() { return mType; }
 
     /**
      * Return the connection's margin from this anchor to its target.
      * @return the margin value. 0 if not connected.
      */
     public int getMargin() {
-        if (mOwner.getVisibility() == ConstraintWidget.GONE) {
+        if (mOwner.getVisibility() == ConstraintWidgetConstants.GONE) {
             return 0;
         }
         if (mGoneMargin > UNSET_GONE_MARGIN && mTarget != null
-                && mTarget.mOwner.getVisibility() == ConstraintWidget.GONE) {
+                && mTarget.mOwner.getVisibility() == ConstraintWidgetConstants.GONE) {
             return mGoneMargin;
         }
         return mMargin;
     }
-
-    /**
-     * Return the connection's strength (NONE if not connected)
-     */
-    public Strength getStrength() { return mStrength; }
 
     /**
      * Return the connection's target (null if not connected)
@@ -110,40 +76,12 @@ public class ConstraintAnchor {
     public ConstraintAnchor getTarget() { return mTarget; }
 
     /**
-     * Return the type of connection
-     * @return type connection type (relaxed or strict)
-     */
-    public ConnectionType getConnectionType() { return mConnectionType; }
-
-    /**
-     * Set the type of connection, either relaxed or strict
-     * @param type
-     */
-    public void setConnectionType(ConnectionType type ) {
-        mConnectionType = type;
-    }
-
-    /**
-     * Return the creator of this connection
-     */
-    public int getConnectionCreator() { return mConnectionCreator; }
-
-    /**
-     * Set the creator for this connection
-     * @param creator For now, values can be USER_CREATOR or SCOUT_CREATOR
-     */
-    public void setConnectionCreator(int creator) { mConnectionCreator = creator; }
-
-    /**
      * Resets the anchor's connection.
      */
     public void reset() {
         mTarget = null;
         mMargin = 0;
         mGoneMargin = UNSET_GONE_MARGIN;
-        mStrength = Strength.STRONG;
-        mConnectionCreator = USER_CREATOR;
-        mConnectionType = ConnectionType.RELAXED;
     }
 
     /**
@@ -154,7 +92,7 @@ public class ConstraintAnchor {
      * @param creator
      * @return true if the connection succeeds.
      */
-    public boolean connect(ConstraintAnchor toAnchor, int margin, Strength strength,
+    public boolean connect(ConstraintAnchor toAnchor, int margin, ConstraintAnchorConstants.Strength strength,
             int creator) {
         return connect(toAnchor, margin, -1, strength, creator, false);
     }
@@ -171,14 +109,12 @@ public class ConstraintAnchor {
      * @return true if the connection succeeds.
      */
     public boolean connect(ConstraintAnchor toAnchor, int margin, int goneMargin,
-                           Strength strength, int creator, boolean forceConnection) {
+                           ConstraintAnchorConstants.Strength strength, int creator, boolean forceConnection) {
         if (toAnchor == null) {
             mTarget = null;
             mMargin = 0;
             mGoneMargin = UNSET_GONE_MARGIN;
-            mStrength = Strength.NONE;
-            mConnectionCreator = AUTO_CONSTRAINT_CREATOR;
-            return true;
+                  return true;
         }
         if (!forceConnection && !isValidConnection(toAnchor)) {
             return false;
@@ -190,8 +126,6 @@ public class ConstraintAnchor {
             mMargin = 0;
         }
         mGoneMargin = goneMargin;
-        mStrength = strength;
-        mConnectionCreator = creator;
         return true;
     }
 
@@ -203,7 +137,7 @@ public class ConstraintAnchor {
      * @return true if the connection succeeds.
      */
     public boolean connect(ConstraintAnchor toAnchor, int margin, int creator) {
-        return connect(toAnchor, margin, UNSET_GONE_MARGIN, Strength.STRONG, creator, false);
+        return connect(toAnchor, margin, UNSET_GONE_MARGIN, ConstraintAnchorConstants.Strength.STRONG, creator, false);
     }
 
     /**
@@ -213,7 +147,7 @@ public class ConstraintAnchor {
      * @return true if the connection succeeds.
      */
     public boolean connect(ConstraintAnchor toAnchor, int margin) {
-        return connect(toAnchor, margin, UNSET_GONE_MARGIN, Strength.STRONG, USER_CREATOR, false);
+        return connect(toAnchor, margin, UNSET_GONE_MARGIN, ConstraintAnchorConstants.Strength.STRONG, ConstraintAnchorConstants.USER_CREATOR, false);
     }
 
     /**
@@ -233,9 +167,9 @@ public class ConstraintAnchor {
         if (anchor == null) {
             return false;
         }
-        Type target = anchor.getType();
+        ConstraintAnchorConstants.Type target = anchor.getType();
         if (target == mType) {
-            if (mType == Type.BASELINE
+            if (mType == ConstraintAnchorConstants.Type.BASELINE
                     && (!anchor.getOwner().hasBaseline() || !getOwner().hasBaseline())) {
                 return false;
             }
@@ -244,22 +178,22 @@ public class ConstraintAnchor {
         switch (mType) {
             case CENTER: {
                 // allow everything but baseline and center_x/center_y
-                return target != Type.BASELINE && target != Type.CENTER_X
-                        && target != Type.CENTER_Y;
+                return target != ConstraintAnchorConstants.Type.BASELINE && target != ConstraintAnchorConstants.Type.CENTER_X
+                       && target != ConstraintAnchorConstants.Type.CENTER_Y;
             }
             case LEFT:
             case RIGHT: {
-                boolean isCompatible = target == Type.LEFT || target == Type.RIGHT;
+                boolean isCompatible = target == ConstraintAnchorConstants.Type.LEFT || target == ConstraintAnchorConstants.Type.RIGHT;
                 if (anchor.getOwner() instanceof Guideline) {
-                    isCompatible = isCompatible || target == Type.CENTER_X;
+                    isCompatible = isCompatible || target == ConstraintAnchorConstants.Type.CENTER_X;
                 }
                 return isCompatible;
             }
             case TOP:
             case BOTTOM: {
-                boolean isCompatible = target == Type.TOP || target == Type.BOTTOM;
+                boolean isCompatible = target == ConstraintAnchorConstants.Type.TOP || target == ConstraintAnchorConstants.Type.BOTTOM;
                 if (anchor.getOwner() instanceof Guideline) {
-                    isCompatible = isCompatible || target == Type.CENTER_Y;
+                    isCompatible = isCompatible || target == ConstraintAnchorConstants.Type.CENTER_Y;
                 }
                 return isCompatible;
             }
@@ -270,71 +204,6 @@ public class ConstraintAnchor {
                 return false;
         }
         throw new AssertionError(mType.name());
-    }
-
-    /**
-     * Return true if this anchor is a side anchor
-     *
-     * @return true if side anchor
-     */
-    public boolean isSideAnchor() {
-        switch (mType) {
-            case LEFT:
-            case RIGHT:
-            case TOP:
-            case BOTTOM:
-                return true;
-            case BASELINE:
-            case CENTER:
-            case CENTER_X:
-            case CENTER_Y:
-            case NONE:
-                return false;
-        }
-        throw new AssertionError(mType.name());
-    }
-
-    /**
-     * Return true if the connection to the given anchor is in the
-     * same dimension (horizontal or vertical)
-     *
-     * @param anchor the anchor we want to connect to
-     * @return true if it's an anchor on the same dimension
-     */
-    public boolean isSimilarDimensionConnection(ConstraintAnchor anchor) {
-        Type target = anchor.getType();
-        if (target == mType) {
-            return true;
-        }
-        switch (mType) {
-            case CENTER: {
-                return target != Type.BASELINE;
-            }
-            case LEFT:
-            case RIGHT:
-            case CENTER_X: {
-                return target == Type.LEFT || target == Type.RIGHT || target == Type.CENTER_X;
-            }
-            case TOP:
-            case BOTTOM:
-            case CENTER_Y:
-            case BASELINE: {
-                return target == Type.TOP || target == Type.BOTTOM || target == Type.CENTER_Y || target == Type.BASELINE;
-            }
-            case NONE:
-                return false;
-        }
-        throw new AssertionError(mType.name());
-    }
-
-    /**
-     * Set the strength of the connection (if there's one)
-     * @param strength the new strength of the connection.
-     */
-    public void setStrength(Strength strength) {
-        if (isConnected()) {
-            mStrength = strength;
-        }
     }
 
     /**
@@ -345,38 +214,6 @@ public class ConstraintAnchor {
         if (isConnected()) {
             mMargin = margin;
         }
-    }
-
-    /**
-     * Set the gone margin of the connection (if there's one)
-     * @param margin the new margin of the connection
-     */
-    public void setGoneMargin(int margin) {
-        if (isConnected()) {
-            mGoneMargin = margin;
-        }
-    }
-
-    /**
-     * Utility function returning true if this anchor is a vertical one.
-     *
-     * @return true if vertical anchor, false otherwise
-     */
-    public boolean isVerticalAnchor() {
-        switch (mType) {
-            case LEFT:
-            case RIGHT:
-            case CENTER:
-            case CENTER_X:
-                return false;
-            case CENTER_Y:
-            case TOP:
-            case BOTTOM:
-            case BASELINE:
-            case NONE:
-                return true;
-        }
-        throw new AssertionError(mType.name());
     }
 
     /**
@@ -395,186 +232,6 @@ public class ConstraintAnchor {
             return mOwner.getDebugName() + ":" + mType.toString() + (mTarget != null ? " connected to " + mTarget.toString(visited) : "");
         }
         return "<-";
-    }
-    /**
-     * Return the priority level of the anchor (higher is stronger).
-     * This method is used to pick an anchor among many when there's a choice (we use it
-     * for the snapping decisions)
-     *
-     * @return priority level
-     */
-    public int getSnapPriorityLevel() {
-        switch (mType) {
-            case LEFT: return 1;
-            case RIGHT: return 1;
-            case CENTER_X: return 0;
-            case TOP: return 0;
-            case BOTTOM: return 0;
-            case CENTER_Y: return 1;
-            case BASELINE: return 2;
-            case CENTER: return 3;
-            case NONE: return 0;
-        }
-        throw new AssertionError(mType.name());
-    }
-
-    /**
-     * Return the priority level of the anchor (higher is stronger).
-     * This method is used to pick an anchor among many when there's a choice (we use it
-     * for finding the closest anchor)
-     *
-     * @return priority level
-     */
-    public int getPriorityLevel() {
-        switch (mType) {
-            case CENTER_X: return 0;
-            case CENTER_Y: return 0;
-            case BASELINE: return 1;
-            case LEFT: return 2;
-            case RIGHT: return 2;
-            case TOP: return 2;
-            case BOTTOM: return 2;
-            case CENTER: return 2;
-            case NONE: return 0;
-        }
-        throw new AssertionError(mType.name());
-    }
-
-    /**
-     * Utility function to check if the anchor is compatible with another one.
-     * Used for snapping.
-     *
-     * @param anchor the anchor we are checking against
-     * @return true if compatible, false otherwise
-     */
-    public boolean isSnapCompatibleWith(ConstraintAnchor anchor) {
-        if (mType == Type.CENTER) {
-            return false;
-        }
-        if (mType == anchor.getType()) {
-            return true;
-        }
-        switch (mType) {
-            case LEFT: {
-                switch (anchor.getType()) {
-                    case RIGHT: return true;
-                    case CENTER_X: return true;
-                    default: return false;
-                }
-            }
-            case RIGHT: {
-                switch (anchor.getType()) {
-                    case LEFT: return true;
-                    case CENTER_X: return true;
-                    default: return false;
-                }
-            }
-            case CENTER_X: {
-                switch (anchor.getType()) {
-                    case LEFT: return true;
-                    case RIGHT: return true;
-                    default: return false;
-                }
-            }
-            case TOP: {
-                switch (anchor.getType()) {
-                    case BOTTOM: return true;
-                    case CENTER_Y: return true;
-                    default: return false;
-                }
-            }
-            case BOTTOM: {
-                switch (anchor.getType()) {
-                    case TOP: return true;
-                    case CENTER_Y: return true;
-                    default: return false;
-                }
-            }
-            case CENTER_Y: {
-                switch (anchor.getType()) {
-                    case TOP: return true;
-                    case BOTTOM: return true;
-                    default: return false;
-                }
-            }
-            case BASELINE:
-            case CENTER:
-            case NONE:
-                return false;
-        }
-        throw new AssertionError(mType.name());
-    }
-
-    /**
-     *
-     *  Return true if we can connect this anchor to this target.
-     * We recursively follow connections in order to detect eventual cycles; if we
-     * do we disallow the connection.
-     * We also only allow connections to direct parent, siblings, and descendants.
-     *
-     * @param target the ConstraintWidget we are trying to connect to
-     * @param anchor Allow anchor if it loops back to me directly
-     * @return if the connection is allowed, false otherwise
-     */
-    public boolean isConnectionAllowed(ConstraintWidget target, ConstraintAnchor anchor) {
-        if (ALLOW_BINARY) {
-            if (anchor != null && anchor.getTarget() == this) {
-                return true;
-            }
-        }
-        return isConnectionAllowed(target);
-    }
-
-    /**
-     * Return true if we can connect this anchor to this target.
-     * We recursively follow connections in order to detect eventual cycles; if we
-     * do we disallow the connection.
-     * We also only allow connections to direct parent, siblings, and descendants.
-     *
-     * @param target the ConstraintWidget we are trying to connect to
-     * @return true if the connection is allowed, false otherwise
-     */
-    public boolean isConnectionAllowed(ConstraintWidget target) {
-        HashSet<ConstraintWidget> checked = new HashSet<>();
-        if (isConnectionToMe(target, checked)) {
-            return false;
-        }
-        ConstraintWidget parent = getOwner().getParent();
-        if (parent == target) { // allow connections to parent
-            return true;
-        }
-        if (target.getParent() == parent) { // allow if we share the same parent
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Recursive with check for loop
-     *
-     * @param target
-     * @param checked set of things already checked
-     * @return true if it is connected to me
-     */
-    private boolean isConnectionToMe(ConstraintWidget target, HashSet<ConstraintWidget> checked) {
-        if (checked.contains(target)) {
-            return false;
-        }
-        checked.add(target);
-
-        if (target == getOwner()) {
-            return true;
-        }
-        ArrayList<ConstraintAnchor> targetAnchors = target.getAnchors();
-        for (int i = 0, targetAnchorsSize = targetAnchors.size(); i < targetAnchorsSize; i++) {
-            ConstraintAnchor anchor = targetAnchors.get(i);
-            if (anchor.isSimilarDimensionConnection(this) && anchor.isConnected()) {
-                if (isConnectionToMe(anchor.getTarget().getOwner(), checked)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**

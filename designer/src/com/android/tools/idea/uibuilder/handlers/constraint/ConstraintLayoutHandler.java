@@ -107,7 +107,7 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.WidgetDraw;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecoratorConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
@@ -141,7 +141,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.LafIconLookup;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import java.awt.Color;
 import java.awt.Component;
@@ -211,17 +210,17 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   private static void loadWidgetDecoratorImages() {
-    if (WidgetDecorator.sLockImageIcon == null) {
-      WidgetDecorator.sLockImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.LOCK);
+    if (WidgetDecoratorConstants.sLockImageIcon == null) {
+      WidgetDecoratorConstants.sLockImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.LOCK);
     }
-    if (WidgetDecorator.sUnlockImageIcon == null) {
-      WidgetDecorator.sUnlockImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.UNLOCK);
+    if (WidgetDecoratorConstants.sUnlockImageIcon == null) {
+      WidgetDecoratorConstants.sUnlockImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.UNLOCK);
     }
-    if (WidgetDecorator.sDeleteConnectionsImageIcon == null) {
-      WidgetDecorator.sDeleteConnectionsImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
+    if (WidgetDecoratorConstants.sDeleteConnectionsImageIcon == null) {
+      WidgetDecoratorConstants.sDeleteConnectionsImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
     }
-    if (WidgetDecorator.sPackChainImageIcon == null) {
-      WidgetDecorator.sPackChainImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_PACKED);
+    if (WidgetDecoratorConstants.sPackChainImageIcon == null) {
+      WidgetDecoratorConstants.sPackChainImageIcon = iconToImage(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_PACKED);
     }
     if (WidgetDraw.sGuidelineArrowLeft == null) {
       WidgetDraw.sGuidelineArrowLeft = iconToImage(StudioIcons.LayoutEditor.Toolbar.ARROW_LEFT);
