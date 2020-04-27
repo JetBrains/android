@@ -47,6 +47,7 @@ import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -165,7 +166,7 @@ public class ModelBuilder {
   public SyncNlModel build() {
     // Creates a design-time version of a model
     final Project project = myFacet.getModule().getProject();
-    return WriteCommandAction.runWriteCommandAction(project, (Computable<SyncNlModel>)() -> {
+    return WriteAction.compute(() -> {
       String xml = toXml();
       try {
         assertNotNull(xml, XmlUtils.parseDocument(xml, true));
