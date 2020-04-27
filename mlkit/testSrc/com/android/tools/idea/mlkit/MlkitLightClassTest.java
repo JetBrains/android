@@ -47,6 +47,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.VfsTestUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
@@ -681,7 +682,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
 
     MlkitModuleService mlkitService = MlkitModuleService.getInstance(myModule);
     List<LightModelClass> lightClasses = mlkitService.getLightModelClassList();
-    List<String> classNameList = lightClasses.stream().map(psiClass -> psiClass.getName()).collect(Collectors.toList());
+    List<String> classNameList = ContainerUtil.map(lightClasses, psiClass -> psiClass.getName());
     assertThat(classNameList).containsExactly("MyModel", "MyPlainModel");
     assertThat(ModuleUtilCore.findModuleForPsiElement(lightClasses.get(0))).isEqualTo(myModule);
   }
@@ -691,10 +692,11 @@ public class MlkitLightClassTest extends AndroidTestCase {
     VfsTestUtil.createFile(ProjectUtil.guessModuleDir(myModule), "ml/broken.tflite", new byte[]{1, 2, 3});
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
 
-    assertThat(myFixture.getJavaFacade().findClass("p1.p2.ml.MyModel", GlobalSearchScope.projectScope(getProject())))
+    GlobalSearchScope searchScope = myFixture.addClass("public class MainActivity {}").getResolveScope();
+    assertThat(myFixture.getJavaFacade().findClass("p1.p2.ml.MyModel", searchScope))
       .named("Class for valid model")
       .isNotNull();
-    assertThat(myFixture.getJavaFacade().findClass("p1.p2.ml.Broken", GlobalSearchScope.projectScope(getProject())))
+    assertThat(myFixture.getJavaFacade().findClass("p1.p2.ml.Broken", searchScope))
       .named("Class for invalid model")
       .isNull();
   }
