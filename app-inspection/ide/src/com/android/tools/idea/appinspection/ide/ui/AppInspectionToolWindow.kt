@@ -46,7 +46,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
     AppInspectionHostService.instance.discoveryHost,
     appInspectionCallbacks,
     ::getPreferredProcesses,
-    DefaultAppInspectionNotificationFactory(NotificationGroup.toolWindowGroup(APP_INSPECTION_TITLE, APP_INSPECTION_ID))
+    DefaultAppInspectionNotificationFactory(NotificationGroup.toolWindowGroup(APP_INSPECTION_ID, APP_INSPECTION_ID))
   )
   val component: JComponent = appInspectionView.component
 
