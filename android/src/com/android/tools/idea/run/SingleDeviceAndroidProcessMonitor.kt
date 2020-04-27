@@ -175,8 +175,8 @@ class SingleDeviceAndroidProcessMonitor(
 
     when (myState) {
       WAITING_FOR_PROCESS, PROCESS_IS_RUNNING -> {
-        // Kill target process if it's still running.
-        targetDevice.kill(targetApplicationId)
+        // force-stop target process if it's still running.
+        targetDevice.forceStop(targetApplicationId)
         deploymentApplicationService.findClient(targetDevice, targetApplicationId).forEach { client ->
           client.kill()
         }
