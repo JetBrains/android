@@ -300,7 +300,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     JButton button = new CommonButton(AllIcons.Actions.Back);
     button.addActionListener(action -> {
-      myProfiler.setMonitoringStage();
+      myProfiler.setStage(myProfiler.getStage().getParentStage());
       myProfiler.getIdeServices().getFeatureTracker().trackGoBack();
     });
     myCommonToolbar.add(button);
@@ -314,7 +314,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
                                                  // Track first, so current stage is sent with the event
                                                  myProfiler.getIdeServices().getFeatureTracker().trackSelectMonitor();
                                                  myProfiler.setNewStage(stage);
-                                               });
+                                               },
+                                               () -> myProfiler.getStage().getHomeStageClass());
     stageCombo.setRenderer(new StageComboBoxRenderer());
     stages.bind();
     myCommonToolbar.add(stageCombo);
