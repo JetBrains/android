@@ -165,16 +165,17 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private JPanel myStatusPanel;
   private MyItemSeparator myStatusSeparator;
   private JPanel myFilterPanel;
-  private CommonToggleButton myAllToggleButton;
-  private CommonToggleButton myFailedToggleButton;
   private MyItemSeparator myFilterSeparator;
   private ComboBox<DeviceFilterComboBoxItem> myDeviceFilterComboBox;
   @VisibleForTesting SortedComboBoxModel<DeviceFilterComboBoxItem> myDeviceFilterComboBoxModel;
   private MyItemSeparator myDeviceFilterSeparator;
   private ComboBox<ApiLevelFilterComboBoxItem> myApiLevelFilterComboBox;
   @VisibleForTesting SortedComboBoxModel<ApiLevelFilterComboBoxItem> myApiLevelFilterComboBoxModel;
+  @VisibleForTesting CommonToggleButton myAllToggleButton;
   @VisibleForTesting CommonToggleButton myPassedToggleButton;
-  private CommonToggleButton myInProgressToggleButton;
+  @VisibleForTesting CommonToggleButton myFailedToggleButton;
+  @VisibleForTesting CommonToggleButton myInProgressToggleButton;
+  @VisibleForTesting CommonToggleButton mySkippedToggleButton;
 
   private final ThreeComponentsSplitter myComponentsSplitter;
   private final AndroidTestResultsTableView myTable;
@@ -199,6 +200,8 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myFailedToggleButton.setBorder(JBUI.Borders.empty(10));
     myPassedToggleButton = new CommonToggleButton(null, AllIcons.RunConfigurations.TestPassed);
     myPassedToggleButton.setBorder(JBUI.Borders.empty(10));
+    mySkippedToggleButton = new CommonToggleButton(null, AllIcons.RunConfigurations.TestSkipped);
+    mySkippedToggleButton.setBorder(JBUI.Borders.empty(10));
     myInProgressToggleButton = new CommonToggleButton(null, AllIcons.Process.Step_1);
     myInProgressToggleButton.setBorder(JBUI.Borders.empty(10));
 
@@ -232,6 +235,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
         if (e.getStateChange() == ItemEvent.SELECTED) {
           myFailedToggleButton.setSelected(false);
           myPassedToggleButton.setSelected(false);
+          mySkippedToggleButton.setSelected(false);
           myInProgressToggleButton.setSelected(false);
         }
       }
@@ -245,6 +249,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
           // If all test result filters are deselected, select "All" toggle button automatically.
           if (!myFailedToggleButton.isSelected()
               && !myPassedToggleButton.isSelected()
+              && !mySkippedToggleButton.isSelected()
               && !myInProgressToggleButton.isSelected()) {
             myAllToggleButton.setSelected(true);
           }
@@ -253,6 +258,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     };
     myFailedToggleButton.addItemListener(resultFilterButtonItemListener);
     myPassedToggleButton.addItemListener(resultFilterButtonItemListener);
+    mySkippedToggleButton.addItemListener(resultFilterButtonItemListener);
     myInProgressToggleButton.addItemListener(resultFilterButtonItemListener);
 
     myTable = new AndroidTestResultsTableView(this);
@@ -266,6 +272,10 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
       }
       if (myPassedToggleButton.isSelected()
           && testResults.getTestResultSummary() == AndroidTestCaseResult.PASSED) {
+        return true;
+      }
+      if (mySkippedToggleButton.isSelected()
+          && testResults.getTestResultSummary() == AndroidTestCaseResult.SKIPPED) {
         return true;
       }
       if (myInProgressToggleButton.isSelected()
@@ -299,6 +309,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myAllToggleButton.addItemListener(tableUpdater);
     myFailedToggleButton.addItemListener(tableUpdater);
     myPassedToggleButton.addItemListener(tableUpdater);
+    mySkippedToggleButton.addItemListener(tableUpdater);
     myInProgressToggleButton.addItemListener(tableUpdater);
     myDeviceFilterComboBox.addItemListener(tableUpdater);
     myApiLevelFilterComboBox.addItemListener(tableUpdater);
