@@ -24,7 +24,7 @@
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
   </extensions>
   <actions>
-    <group id="Internal.Android.Gradle">
+    <group id="Internal.Android.Gradle" internal="true">
       <action id="Android.FixAndroidRunConfigurations"
               class="com.android.tools.idea.projectsystem.gradle.actions.FixAndroidRunConfigurationsAction"
               text="Fix Android Run Configurations"
