@@ -573,20 +573,24 @@ public final class StudioFlags {
   //region Embedded Emulator
   private static final FlagGroup EMBEDDED_EMULATOR = new FlagGroup(FLAGS, "embedded.emulator", "Embedded Emulator");
   public static final Flag<Boolean> EMBEDDED_EMULATOR_ENABLED = Flag.create(
-    EMBEDDED_EMULATOR, "embedded.emulator.enabled", "Enable Embedded Emulator",
+    EMBEDDED_EMULATOR, "enabled", "Enable Embedded Emulator",
     "Enables the Embedded Emulator tool window",
     true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
-    EMBEDDED_EMULATOR, "embedded.emulator.trace.grpc.calls", "Enable Emulator gRPC Tracing",
+    EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",
     false);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS = Flag.create(
-    EMBEDDED_EMULATOR, "embedded.emulator.trace.high.volume.grpc.calls", "Enable High Volume Emulator gRPC Tracing",
+    EMBEDDED_EMULATOR, "trace.high.volume.grpc.calls", "Enable High Volume Emulator gRPC Tracing",
     "Enables tracing of high volume Emulator gRPC calls",
     false);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_SCREENSHOTS = Flag.create(
-    EMBEDDED_EMULATOR, "embedded.emulator.trace.screenshots", "Enable Emulator Screenshot Tracing",
+    EMBEDDED_EMULATOR, "trace.screenshots", "Enable Emulator Screenshot Tracing",
     "Enables tracing of received Emulator screenshots",
+    false);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_DISCOVERY = Flag.create(
+    EMBEDDED_EMULATOR, "trace.discovery", "Enable Tracing of Emulator Discovery",
+    "Enables tracing of Emulator discovery",
     false);
   //endregion
 
