@@ -398,9 +398,6 @@ public final class AndroidSdkUtils {
       if (adb.exists()) {
         return adb;
       }
-      else {
-        LOG.warn(String.format("%1$s was set to \"%2$s\", but no such file exists.", ADB_PATH_PROPERTY, path));
-      }
     }
 
     File adb = null;
