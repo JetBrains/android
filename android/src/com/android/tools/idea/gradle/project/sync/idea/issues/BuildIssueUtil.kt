@@ -27,7 +27,7 @@ import com.intellij.openapi.project.ProjectManager
 /**
  * Helper class to conditionally construct the buildIssue containing all the information about a sync exception handling.
  */
-class BuildIssueComposer(baseMessage: String) {
+class BuildIssueComposer(baseMessage: String, val issueTitle: String = "Gradle Sync issues.") {
   private val descriptionBuilder = StringBuilder(baseMessage)
   val issueQuickFixes = mutableListOf<BuildIssueQuickFix>()
 
@@ -50,7 +50,7 @@ class BuildIssueComposer(baseMessage: String) {
 
   fun composeBuildIssue(): BuildIssue {
     return object : BuildIssue {
-      override val title = "Gradle Sync issues."
+      override val title: String = issueTitle
       override val description = descriptionBuilder.toString()
       override val quickFixes = issueQuickFixes
       override fun getNavigatable(project: Project) = null
