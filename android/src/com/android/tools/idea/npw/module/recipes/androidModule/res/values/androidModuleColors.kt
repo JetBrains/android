@@ -23,8 +23,8 @@ fun androidModuleColors() = """
       ${MaterialColor.PURPLE_200.xmlElement()}
       ${MaterialColor.PURPLE_500.xmlElement()}
       ${MaterialColor.PURPLE_700.xmlElement()}
-      ${MaterialColor.TEEL_200.xmlElement()}
-      ${MaterialColor.TEEL_700.xmlElement()}
+      ${MaterialColor.TEAL_200.xmlElement()}
+      ${MaterialColor.TEAL_700.xmlElement()}
       ${MaterialColor.BLACK.xmlElement()}
       ${MaterialColor.WHITE.xmlElement()}
   </resources>
