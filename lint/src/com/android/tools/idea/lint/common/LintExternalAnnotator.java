@@ -34,16 +34,18 @@ import com.android.tools.lint.detector.api.Scope;
 import com.google.common.collect.Sets;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.InspectionProfile;
 import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.SuppressQuickFix;
 import com.intellij.codeInspection.ex.CustomEditInspectionToolsSettingsAction;
 import com.intellij.codeInspection.ex.DisableInspectionToolAction;
-import com.intellij.lang.annotation.Annotation;
+import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -257,84 +259,66 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
                 displayLevel = configuredLevel;
               }
             }
-            final Annotation annotation = createAnnotation(holder, message, range, displayLevel, issue);
 
+            HighlightSeverity severity = displayLevel.getSeverity();
+            ProblemHighlightType type;
+            if (issue == DeprecationDetector.ISSUE ||
+                issue == GradleDetector.DEPRECATED ||
+                issue == GradleDetector.DEPRECATED_CONFIGURATION) {
+              type = ProblemHighlightType.LIKE_DEPRECATED;
+            } else {
+              type = HighlightInfo.convertSeverityToProblemHighlight(severity);
+            }
+
+            // This description link is not displayed. It is parsed by IDEA to
+            // populate the "Show Inspection Description" action.
+            String descriptionLink = "<a href=\"" + LINK_PREFIX + issue.getId() + "\"></a>";
+            String tooltip = XmlStringUtil.wrapInHtml(descriptionLink + RAW.convertTo(message, HTML));
+
+            AnnotationBuilder builder = holder
+              .newAnnotation(severity, message)
+              .highlightType(type)
+              .range(range)
+              .tooltip(tooltip);
 
             LintIdeQuickFix[] fixes = inspection.getAllFixes(startElement, endElement, message, quickfixData, fixProviders, issue);
             for (LintIdeQuickFix fix : fixes) {
               if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)) {
-                annotation.registerFix(new MyFixingIntention(fix, startElement, endElement));
+                builder = builder.withFix(new MyFixingIntention(fix, startElement, endElement));
               }
             }
 
             for (IntentionAction intention : inspection.getIntentions(startElement, endElement)) {
-              annotation.registerFix(intention);
+              builder = builder.withFix(intention);
             }
 
             if (ideSupport.canRequestFeedback()) {
-              annotation.registerFix(ideSupport.requestFeedbackIntentionAction(issue));
+              builder = builder.withFix(ideSupport.requestFeedbackIntentionAction(issue));
             }
 
             String id = key.getID();
-            annotation.registerFix(new SuppressLintIntentionAction(id, startElement));
+            builder = builder.withFix(new SuppressLintIntentionAction(id, startElement));
             if (INCLUDE_IDEA_SUPPRESS_ACTIONS) {
-              annotation.registerFix(new MyDisableInspectionFix(key));
-              annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));
-            }
-
-            if (issue == DeprecationDetector.ISSUE ||
-                issue == GradleDetector.DEPRECATED ||
-                issue == GradleDetector.DEPRECATED_CONFIGURATION) {
-              annotation.setHighlightType(ProblemHighlightType.LIKE_DEPRECATED);
+              builder = builder.withFix(new MyDisableInspectionFix(key));
+              builder = builder.withFix(new MyEditInspectionToolsSettingsAction(key, inspection));
             }
 
             if (INCLUDE_IDEA_SUPPRESS_ACTIONS) {
               final SuppressQuickFix[] suppressActions = inspection.getBatchSuppressActions(startElement);
               for (SuppressQuickFix action : suppressActions) {
                 if (action.isAvailable(project, startElement)) {
-                  ProblemHighlightType type = annotation.getHighlightType();
-                  annotation.registerFix(action, null, key, InspectionManager.getInstance(project).createProblemDescriptor(
-                    startElement, endElement, message, type, true, LocalQuickFix.EMPTY_ARRAY));
+                  ProblemDescriptor descriptor = InspectionManager.getInstance(project).createProblemDescriptor(
+                    startElement, endElement, message, type, true, LocalQuickFix.EMPTY_ARRAY);
+                  builder = builder.newLocalQuickFix(action, descriptor).key(key).registerFix();
                 }
               }
             }
+
+            builder.create();
           }
         }
       }
     }
-  }
-
-  @SuppressWarnings("deprecation")
-  @NotNull
-  private Annotation createAnnotation(@NotNull AnnotationHolder holder,
-                                      @NotNull String message,
-                                      @NotNull TextRange range,
-                                      @NotNull HighlightDisplayLevel displayLevel,
-                                      @NotNull Issue issue) {
-    // Convert from inspection severity to annotation severity
-    HighlightSeverity severity;
-    if (displayLevel == HighlightDisplayLevel.ERROR) {
-      severity = HighlightSeverity.ERROR;
-    }
-    else if (displayLevel == HighlightDisplayLevel.WARNING) {
-      severity = HighlightSeverity.WARNING;
-    }
-    else if (displayLevel == HighlightDisplayLevel.WEAK_WARNING) {
-      severity = HighlightSeverity.WEAK_WARNING;
-    }
-    else if (displayLevel == HighlightDisplayLevel.INFO) {
-      severity = HighlightSeverity.INFO;
-    }
-    else {
-      severity = HighlightSeverity.WARNING;
-    }
-
-    // This description link is not displayed. It is parsed by IDEA to
-    // populate the "Show Inspection Description" action.
-    String descriptionLink = "<a href=\"" + LINK_PREFIX + issue.getId() + "\"></a>";
-
-    String tooltip = XmlStringUtil.wrapInHtml(descriptionLink + RAW.convertTo(message, HTML));
-    return holder.createAnnotation(severity, range, message, tooltip);
   }
 
   @Nullable
