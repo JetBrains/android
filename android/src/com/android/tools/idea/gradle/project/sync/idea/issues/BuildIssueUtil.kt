@@ -15,33 +15,42 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
+import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
+import com.intellij.openapi.project.Project
 
 /**
- * Helper class to conditionally construct the message containing all the links.
+ * Helper class to conditionally construct the buildIssue containing all the information about a sync exception handling.
  */
-class MessageComposer(baseMessage: String) {
-  private val messageBuilder = StringBuilder(baseMessage)
-  val quickFixes = mutableListOf<BuildIssueQuickFix>()
+class BuildIssueComposer(baseMessage: String) {
+  private val descriptionBuilder = StringBuilder(baseMessage)
+  val issueQuickFixes = mutableListOf<BuildIssueQuickFix>()
 
   fun addDescription(message: String) {
-    messageBuilder.appendln()
-    messageBuilder.appendln(message)
+    descriptionBuilder.appendln()
+    descriptionBuilder.appendln(message)
   }
 
   fun addQuickFix(quickFix: DescribedBuildIssueQuickFix) {
-    quickFixes.add(quickFix)
-    messageBuilder.appendln()
-    messageBuilder.append(quickFix.html)
+    issueQuickFixes.add(quickFix)
+    descriptionBuilder.appendln()
+    descriptionBuilder.append(quickFix.html)
   }
 
   fun addQuickFix(text: String, quickFix: BuildIssueQuickFix) {
-    quickFixes.add(quickFix)
-    messageBuilder.appendln()
-    messageBuilder.append("<a href=\"${quickFix.id}\">$text</a>")
+    issueQuickFixes.add(quickFix)
+    descriptionBuilder.appendln()
+    descriptionBuilder.append("<a href=\"${quickFix.id}\">$text</a>")
   }
 
-  fun buildMessage() = messageBuilder.toString()
+  fun composeBuildIssue(): BuildIssue {
+    return object : BuildIssue {
+      override val title = "Gradle Sync issues."
+      override val description = descriptionBuilder.toString()
+      override val quickFixes = issueQuickFixes
+      override fun getNavigatable(project: Project) = null
+    }
+  }
 }
 
 

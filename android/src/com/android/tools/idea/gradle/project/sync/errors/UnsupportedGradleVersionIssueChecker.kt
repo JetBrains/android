@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.fetchIdeaProjectForGradleProject
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.CreateGradleWrapperQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
@@ -35,7 +35,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.pom.Navigatable
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -69,7 +68,7 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
     invokeLater {
       SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION)
     }
-    val description = MessageComposer(message)
+    val buildIssueComposer = BuildIssueComposer(message)
 
     // Get QuickFixes.
     val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectPath)
@@ -79,27 +78,24 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
       val gradleVersion = getSupportedGradleVersion(message)
       if (gradleWrapper != null) {
         // It's likely that we need to fix the model version as well.
-        description.addQuickFix("Fix Gradle wrapper and re-import project", FixGradleVersionInWrapperQuickFix(gradleWrapper, gradleVersion))
+        buildIssueComposer.addQuickFix("Fix Gradle wrapper and re-import project", FixGradleVersionInWrapperQuickFix(gradleWrapper, gradleVersion))
         val propertiesFile = gradleWrapper.propertiesFilePath
-        if (propertiesFile.exists()) description.addQuickFix(
-          "Open Gradle wrapper properties", OpenFileAtLocationQuickFix(FilePosition(propertiesFile, -1, -1)))
+        if (propertiesFile.exists()) {
+          buildIssueComposer.addQuickFix(
+            "Open Gradle wrapper properties", OpenFileAtLocationQuickFix(FilePosition(propertiesFile, -1, -1)))
+        }
       }
       else {
         val gradleProjectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(ideaProject)
         if (gradleProjectSettings != null && gradleProjectSettings.distributionType == DistributionType.LOCAL) {
-          description.addQuickFix("Migrate to Gradle wrapper and sync project", CreateGradleWrapperQuickFix())
+          buildIssueComposer.addQuickFix("Migrate to Gradle wrapper and sync project", CreateGradleWrapperQuickFix())
         }
       }
     }
     // Also offer quickFix to open Gradle settings. In case we can't find IDEA project, we can still offer this one.
-    description.addQuickFix("Gradle Settings.", OpenGradleSettingsQuickFix())
+    buildIssueComposer.addQuickFix("Gradle Settings.", OpenGradleSettingsQuickFix())
 
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
-      override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project): Navigatable? = null
-    }
+    return buildIssueComposer.composeBuildIssue()
   }
 
   private fun formatMessage(message: String?) : String? {

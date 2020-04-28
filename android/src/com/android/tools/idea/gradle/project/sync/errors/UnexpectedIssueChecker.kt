@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.actions.SendFeedbackAction
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
@@ -43,16 +43,11 @@ class UnexpectedIssueChecker: GradleIssueChecker {
     invokeLater {
       updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNEXPECTED_ERROR)
     }
-    val description = MessageComposer(message).apply {
+    val buildIssueComposer = BuildIssueComposer(message).apply {
       addQuickFix("File a bug", FileBugQuickFix())
       addQuickFix("Show log file", ShowLogQuickFix())
     }
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
-      override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
+    return buildIssueComposer.composeBuildIssue()
   }
 
   class FileBugQuickFix: BuildIssueQuickFix {
