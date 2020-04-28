@@ -21,7 +21,6 @@ import com.android.tools.app.inspection.AppInspection.CrashEvent
 import com.android.tools.idea.appinspection.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawAppInspectionEvent
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
@@ -38,10 +37,8 @@ import junit.framework.TestCase.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.junit.rules.Timeout
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
 
 class AppInspectorConnectionTest {
   private val timer = FakeTimer()
@@ -52,9 +49,6 @@ class AppInspectorConnectionTest {
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionRule)!!
-
-  @get:Rule
-  val timeoutRule = Timeout(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
 
   @Test
   fun disposeInspectorSucceeds() {

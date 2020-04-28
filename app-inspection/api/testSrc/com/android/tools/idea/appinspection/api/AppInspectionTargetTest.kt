@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
-import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createSuccessfulServiceResponse
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
@@ -33,9 +32,7 @@ import com.google.common.util.concurrent.Futures
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.junit.rules.Timeout
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 private const val TEST_PROJECT_NAME = "TestProject"
 
@@ -48,9 +45,6 @@ class AppInspectionTargetTest {
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(gRpcServerRule).around(appInspectionRule)!!
-
-  @get:Rule
-  val timeoutRule = Timeout(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
 
   @Test
   fun launchInspector() {
