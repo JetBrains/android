@@ -164,12 +164,6 @@ final class Updater {
     updateDependingOnConfiguration();
 
     switch (myPlace) {
-      case ActionPlaces.MAIN_MENU:
-      case ActionPlaces.ACTION_SEARCH:
-        myPresentation.setIcon(null);
-        myPresentation.setText("Select Device...");
-
-        break;
       case ActionPlaces.MAIN_TOOLBAR:
       case ActionPlaces.NAVIGATION_BAR_TOOLBAR:
         if (myDevicesSelectedService.isMultipleDevicesSelectedInComboBox()) {
@@ -181,7 +175,10 @@ final class Updater {
 
         break;
       default:
-        assert false : myPlace;
+        myPresentation.setIcon(null);
+        myPresentation.setText("Select Device...");
+
+        break;
     }
 
     List<Device> selectedDevices = myDevicesSelectedService.getSelectedDevices(myDevices);

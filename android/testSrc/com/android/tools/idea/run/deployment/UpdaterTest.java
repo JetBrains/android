@@ -150,46 +150,6 @@ public final class UpdaterTest {
   }
 
   @Test
-  public void updatePlaceEqualsMainMenu() {
-    // Arrange
-    Updater updater = new Updater.Builder()
-      .setProject(myRule.getProject())
-      .setPresentation(myPresentation)
-      .setPlace(ActionPlaces.MAIN_MENU)
-      .setDevicesSelectedService(myDevicesSelectedService)
-      .setExecutionTargetService(myExecutionTargetService)
-      .build();
-
-    // Act
-    updater.update();
-
-    // Assert
-    assertTrue(myPresentation.isVisible());
-    assertNull(myPresentation.getIcon());
-    assertEquals("Select Device...", myPresentation.getText());
-  }
-
-  @Test
-  public void updatePlaceEqualsActionSearch() {
-    // Arrange
-    Updater updater = new Updater.Builder()
-      .setProject(myRule.getProject())
-      .setPresentation(myPresentation)
-      .setPlace(ActionPlaces.ACTION_SEARCH)
-      .setDevicesSelectedService(myDevicesSelectedService)
-      .setExecutionTargetService(myExecutionTargetService)
-      .build();
-
-    // Act
-    updater.update();
-
-    // Assert
-    assertTrue(myPresentation.isVisible());
-    assertNull(myPresentation.getIcon());
-    assertEquals("Select Device...", myPresentation.getText());
-  }
-
-  @Test
   public void updateInToolbarForMultipleDevicesSelectedKeysIsEmptyDevicesIsEmpty() {
     // Arrange
     DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
@@ -461,5 +421,65 @@ public final class UpdaterTest {
 
     // Assert
     assertEquals("LGE Nexus 5X [00fff9d2279fa601]", myPresentation.getText());
+  }
+
+  @Test
+  public void updatePlaceEqualsMainMenu() {
+    // Arrange
+    Updater updater = new Updater.Builder()
+      .setProject(myRule.getProject())
+      .setPresentation(myPresentation)
+      .setPlace(ActionPlaces.MAIN_MENU)
+      .setDevicesSelectedService(myDevicesSelectedService)
+      .setExecutionTargetService(myExecutionTargetService)
+      .build();
+
+    // Act
+    updater.update();
+
+    // Assert
+    assertTrue(myPresentation.isVisible());
+    assertNull(myPresentation.getIcon());
+    assertEquals("Select Device...", myPresentation.getText());
+  }
+
+  @Test
+  public void updatePlaceEqualsActionSearch() {
+    // Arrange
+    Updater updater = new Updater.Builder()
+      .setProject(myRule.getProject())
+      .setPresentation(myPresentation)
+      .setPlace(ActionPlaces.ACTION_SEARCH)
+      .setDevicesSelectedService(myDevicesSelectedService)
+      .setExecutionTargetService(myExecutionTargetService)
+      .build();
+
+    // Act
+    updater.update();
+
+    // Assert
+    assertTrue(myPresentation.isVisible());
+    assertNull(myPresentation.getIcon());
+    assertEquals("Select Device...", myPresentation.getText());
+  }
+
+  @Test
+  public void updatePlaceEqualsKeyboardShortcut() {
+    // Arrange
+    Updater updater = new Updater.Builder()
+      .setProject(myRule.getProject())
+      .setPresentation(myPresentation)
+      .setPlace(ActionPlaces.KEYBOARD_SHORTCUT)
+      .setDevicesSelectedService(myDevicesSelectedService)
+      .setExecutionTargetService(myExecutionTargetService)
+      .build();
+
+    // Act
+    updater.update();
+
+    // Assert
+    assertTrue(myPresentation.isVisible());
+    assertNull(myPresentation.getIcon());
+    assertEquals("Select Device...", myPresentation.getText());
   }
 }
