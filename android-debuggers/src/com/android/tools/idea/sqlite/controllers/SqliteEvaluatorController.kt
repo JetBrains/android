@@ -25,7 +25,6 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.sqlLanguage.hasParsingError
-import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.Futures
@@ -43,8 +42,8 @@ import java.util.concurrent.Executor
 @UiThread
 class SqliteEvaluatorController(
   private val project: Project,
+  private val model: DatabaseInspectorController.Model,
   private val view: SqliteEvaluatorView,
-  private val viewFactory: DatabaseInspectorViewsFactory,
   override val closeTabInvoked: () -> Unit,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
@@ -53,13 +52,27 @@ class SqliteEvaluatorController(
   private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener = SqliteEvaluatorViewListenerImpl()
   private val listeners = mutableListOf<Listener>()
 
+  private val modelListener = object : DatabaseInspectorController.Model.Listener {
+    private var currentDatabases = listOf<SqliteDatabase>()
+
+    override fun onChanged(newDatabases: List<SqliteDatabase>) {
+      val sortedNewDatabase = newDatabases.sortedBy { it.name }
+
+      val toAdd = sortedNewDatabase
+        .filter { !currentDatabases.contains(it) }
+        .map { DatabaseDiffOperation.AddDatabase(it, model.getDatabaseSchema(it)!!, sortedNewDatabase.indexOf(it)) }
+      val toRemove = currentDatabases.filter { !sortedNewDatabase.contains(it) }.map { DatabaseDiffOperation.RemoveDatabase(it) }
+
+      view.updateDatabases(toAdd + toRemove)
+
+      currentDatabases = newDatabases
+    }
+  }
+
   fun setUp() {
     view.addListener(sqliteEvaluatorViewListener)
     view.tableView.setEditable(false)
-  }
-
-  fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) {
-    view.updateDatabases(databaseDiffOperations)
+    model.addListener(modelListener)
   }
 
   /**
@@ -80,6 +93,7 @@ class SqliteEvaluatorController(
   override fun dispose() {
     view.removeListener(sqliteEvaluatorViewListener)
     listeners.clear()
+    model.removeListener(modelListener)
   }
 
   fun addListener(listener: Listener) {

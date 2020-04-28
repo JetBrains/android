@@ -54,6 +54,7 @@ open class MockDatabaseInspectorModel : DatabaseInspectorController.Model {
   override fun addListener(modelListener: DatabaseInspectorController.Model.Listener) {
     ApplicationManager.getApplication().assertIsDispatchThread()
     listeners.add(modelListener)
+    modelListener.onChanged(openDatabases.keys.toList())
   }
 
   override fun removeListener(modelListener: DatabaseInspectorController.Model.Listener) {

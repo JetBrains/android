@@ -24,7 +24,7 @@ import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
+import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -172,8 +172,8 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val evaluatorController = SqliteEvaluatorController(
       project,
+      MockDatabaseInspectorModel(),
       view,
-      MockDatabaseInspectorViewsFactory(),
       {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
@@ -200,8 +200,8 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val controller = SqliteEvaluatorController(
       project,
+      MockDatabaseInspectorModel(),
       view,
-      MockDatabaseInspectorViewsFactory(),
       {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()

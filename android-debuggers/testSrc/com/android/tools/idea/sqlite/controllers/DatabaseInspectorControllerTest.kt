@@ -476,7 +476,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     mockSqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
-    val evaluatorView = mockViewFactory.createEvaluatorView(project, MockSchemaProvider(), mockViewFactory.tableView)
+    val evaluatorView = mockViewFactory.sqliteEvaluatorView
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act

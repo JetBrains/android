@@ -327,6 +327,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
       ApplicationManager.getApplication().assertIsDispatchThread()
 
       listeners.add(modelListener)
+      modelListener.onChanged(openDatabases.keys.toList())
     }
 
     override fun removeListener(modelListener: DatabaseInspectorController.Model.Listener) {
