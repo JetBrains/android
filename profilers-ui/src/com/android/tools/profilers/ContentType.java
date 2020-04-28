@@ -17,9 +17,10 @@ package com.android.tools.profilers;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.ide.highlighter.HtmlFileType;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,9 +46,9 @@ public enum ContentType {
   private static final ImmutableSet<ContentType> TEXT_TYPES = ImmutableSet.of(CSV, HTML, JSON, XML);
   private static final Map<ContentType, FileType> FILE_TYPE_MAP = new ImmutableMap.Builder<ContentType, FileType>()
     .put(CSV, FileTypeManager.getInstance().getStdFileType("CSV"))
-    .put(HTML, StdFileTypes.HTML)
+    .put(HTML, HtmlFileType.INSTANCE)
     .put(JSON, FileTypeManager.getInstance().getStdFileType("JSON"))
-    .put(XML, StdFileTypes.XML)
+    .put(XML, XmlFileType.INSTANCE)
     .build();
 
   private String myType = "";

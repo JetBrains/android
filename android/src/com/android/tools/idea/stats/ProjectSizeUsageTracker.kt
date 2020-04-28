@@ -17,16 +17,16 @@ package com.android.tools.idea.stats
 
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.IntellijProjectSizeStats
 import com.intellij.ide.highlighter.JavaClassFileType
+import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.fileTypes.PlainTextFileType
-import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
@@ -49,8 +49,8 @@ class ProjectSizeUsageTrackerListener(private val project: Project) : SyncResult
 class ReportProjectSizeTask(val project: Project) : Runnable {
   private enum class FileType(private val fileType: com.intellij.openapi.fileTypes.FileType,
                               private val statsFileType: IntellijProjectSizeStats.FileType) {
-    JAVA(StdFileTypes.JAVA, IntellijProjectSizeStats.FileType.JAVA),
-    XML(StdFileTypes.XML, IntellijProjectSizeStats.FileType.XML),
+    JAVA(JavaFileType.INSTANCE, IntellijProjectSizeStats.FileType.JAVA),
+    XML(XmlFileType.INSTANCE, IntellijProjectSizeStats.FileType.XML),
     JAVA_CLASS(JavaClassFileType.INSTANCE, IntellijProjectSizeStats.FileType.DOT_CLASS),
     KOTLIN(FileTypeRegistry.getInstance().findFileTypeByName("Kotlin") ?: PlainTextFileType.INSTANCE,
            IntellijProjectSizeStats.FileType.KOTLIN),
