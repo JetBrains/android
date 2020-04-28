@@ -34,7 +34,7 @@ class ConnectionPermissionDeniedIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: return null
-    if (rootCause !is SocketException || message.isEmpty() || !message.contains("Permission denied: connect")) return null
+    if (rootCause !is SocketException || message.isBlank() || !message.contains("Permission denied: connect")) return null
 
     // Log metrics.
     invokeLater {

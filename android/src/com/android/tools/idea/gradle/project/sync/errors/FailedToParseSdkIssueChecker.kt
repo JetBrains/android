@@ -42,7 +42,7 @@ open class FailedToParseSdkIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: return null
-    if (rootCause !is RuntimeException || message.isEmpty() || !message.contains("failed to parse SDK")) return null
+    if (rootCause !is RuntimeException || message.isBlank() || !message.contains("failed to parse SDK")) return null
 
     // Log metrics.
     invokeLater {

@@ -32,7 +32,7 @@ class DaemonContextMismatchIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     val messageLines = message.lines()
-    if (messageLines[0].isEmpty() ||
+    if (messageLines[0].isBlank() ||
         !messageLines[0].contains("The newly created daemon process has a different context than expected.") ||
         messageLines.size <= 3 || messageLines[2] != "Java home is different.") return null
 

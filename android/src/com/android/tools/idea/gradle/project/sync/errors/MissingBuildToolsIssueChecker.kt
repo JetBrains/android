@@ -42,7 +42,7 @@ class MissingBuildToolsIssueChecker: GradleIssueChecker {
   private val MISSING_BUILD_TOOLS_PATTERN = Pattern.compile("(Cause: )?([Ff])ailed to find Build Tools revision (.*)")
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (message.isEmpty() ||
+    if (message.isBlank() ||
         issueData.error !is IllegalStateException && issueData.error !is ExternalSystemException) return null
     val matcher = MISSING_BUILD_TOOLS_PATTERN.matcher(message.lines()[0])
     if (!matcher.matches()) return null

@@ -35,7 +35,7 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (message.isEmpty() || !(message.startsWith("Plugin is too old, please update to a more recent version") ||
+    if (message.isBlank() || !(message.startsWith("Plugin is too old, please update to a more recent version") ||
         PATTERN.matcher(message.lines()[0]).matches())) return null
 
     // Log metrics.

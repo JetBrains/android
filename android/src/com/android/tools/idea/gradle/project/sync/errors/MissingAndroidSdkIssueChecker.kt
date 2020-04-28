@@ -38,7 +38,7 @@ class MissingAndroidSdkIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: return null
-    if (rootCause !is RuntimeException || message.isEmpty() ||
+    if (rootCause !is RuntimeException || message.isBlank() ||
         message != SDK_DIR_PROPERTY_MISSING && !SDK_NOT_FOUND_PATTERN.matcher(message).matches()) return null
 
     // Log metrics.

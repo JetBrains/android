@@ -37,7 +37,7 @@ class UnexpectedIssueChecker: GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message= GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (message.isEmpty() || !message.contains(UNEXPECTED_ERROR_FILE_BUG)) return null
+    if (message.isBlank() || !message.contains(UNEXPECTED_ERROR_FILE_BUG)) return null
 
     // Log metrics.
     invokeLater {

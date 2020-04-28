@@ -29,7 +29,7 @@ import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandle
 class GradleBrokenPipeIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (message.isEmpty() || !message.startsWith("Broken pipe")) return null
+    if (message.isBlank() || !message.startsWith("Broken pipe")) return null
 
     // Log metrics.
     invokeLater {
