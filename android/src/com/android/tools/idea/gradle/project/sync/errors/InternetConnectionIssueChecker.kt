@@ -16,12 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -37,14 +36,8 @@ class InternetConnectionIssueChecker : GradleIssueChecker {
     invokeLater {
       updateUsageTracker(issueData.projectPath, GradleSyncFailure.INTERNET_CONNECTION_ERROR)
     }
-    val description = MessageComposer(message).apply {
+    return BuildIssueComposer(message).apply {
       addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(true))
-    }
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
-      override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
+    }.composeBuildIssue()
   }
 }

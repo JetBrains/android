@@ -76,7 +76,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
       else -> return null
     }
 
-    val messageComposer = MessageComposer(message).apply {
+    return BuildIssueComposer(message).apply {
       if (IdeInfo.getInstance().isAndroidStudio) {
         val ideSdks = IdeSdks.getInstance()
         if (!ideSdks.isUsingJavaHomeJdk) {
@@ -86,7 +86,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
           }
         }
 
-        if (quickFixes.isEmpty()) {
+        if (issueQuickFixes.isEmpty()) {
           val embeddedJdkPath = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath()
           // TODO: Check we REALLY need to check isJdkRunnableOnPlatform. This spawns a process.
           if (embeddedJdkPath != null && Jdks.isJdkRunnableOnPlatform(embeddedJdkPath.absolutePath)) {
@@ -99,14 +99,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
 
       addQuickFix(SelectJdkFromFileSystemQuickFix())
       addQuickFix(DownloadJdk8QuickFix())
-    }
-
-    return object : BuildIssue {
-      override val title: String = "Invalid Jdk"
-      override val description: String = messageComposer.buildMessage()
-      override val quickFixes: List<BuildIssueQuickFix> = messageComposer.quickFixes
-      override fun getNavigatable(project: Project): Navigatable? = null
-    }
+    }.composeBuildIssue()
   }
 }
 

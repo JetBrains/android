@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.sdk.AndroidSdks
@@ -28,7 +28,6 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.io.FileUtil
@@ -49,29 +48,19 @@ open class FailedToParseSdkIssueChecker: GradleIssueChecker {
       SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.FAILED_TO_PARSE_SDK)
     }
 
-    val description = MessageComposer(message)
+    val buildIssueComposer = BuildIssueComposer(message)
     val pathOfBrokenSdk = findPathOfSdkWithoutAddonsFolder(issueData.projectPath)
-                          ?: return object : BuildIssue {
-                            override val title = "Gradle Sync issues."
-                            override val description = description.apply {
-                              addDescription("The Android SDK may be missing the directory 'add-ons'.")
-                            }.buildMessage()
-                            override val quickFixes = description.quickFixes  // Empty.
-                            override fun getNavigatable(project: Project) = null
-                            }
+                          ?: return buildIssueComposer.apply { addDescription("The Android SDK may be missing the directory 'add-ons'.")
+                          }.composeBuildIssue()
 
-
-    description.addDescription(
+    buildIssueComposer.addDescription(
       "The directory '${SdkConstants.FD_ADDONS}', in the Android SDK at '${pathOfBrokenSdk.path}', is either missing or empty")
-    if (!pathOfBrokenSdk.canWrite())
-      description.addDescription("Current user ('${getUserName()}') does not have write access to the SDK directory.")
 
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
-      override val quickFixes = description.quickFixes  // Empty.
-      override fun getNavigatable(project: Project) = null
+    if (!pathOfBrokenSdk.canWrite()) {
+      buildIssueComposer.addDescription("Current user ('${getUserName()}') does not have write access to the SDK directory.")
     }
+
+    return buildIssueComposer.composeBuildIssue()
   }
 
   @VisibleForTesting

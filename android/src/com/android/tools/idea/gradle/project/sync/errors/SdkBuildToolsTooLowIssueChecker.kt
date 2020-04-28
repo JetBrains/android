@@ -19,7 +19,7 @@ import com.android.repository.Revision
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.fetchIdeaProjectForGradleProject
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallBuildToolsQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
@@ -60,26 +60,20 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
       SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.SDK_BUILD_TOOLS_TOO_LOW)
     }
 
-    val description = getBuildIssueDescriptionAndQuickFixes(message, issueData.projectPath) ?: return null
+    return getBuildIssueDescriptionAndQuickFixes(message, issueData.projectPath)?.composeBuildIssue()
 
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
-      override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
   }
 
-  private fun getBuildIssueDescriptionAndQuickFixes(message: String, projectPath: String): MessageComposer? {
+  private fun getBuildIssueDescriptionAndQuickFixes(message: String, projectPath: String): BuildIssueComposer? {
     val matcher = SDK_BUILD_TOOLS_TOO_LOW_PATTERN.matcher(message)
     if (!matcher.matches()) return null
 
-    val description = MessageComposer(message)
+    val buildIssueComposer = BuildIssueComposer(message)
     val gradlePath = matcher.group(2)
     val minVersion = matcher.group(3)
 
     // Get IDEA project that contains the current Gradle project instance.
-    val ideaProject = fetchIdeaProjectForGradleProject(projectPath) ?: return description
+    val ideaProject = fetchIdeaProjectForGradleProject(projectPath) ?: return buildIssueComposer
 
     val modules = listOfNotNull(GradleUtil.findModuleByGradlePath(ideaProject, gradlePath))
     val buildFiles = listOfNotNull(if (modules.isEmpty()) null else GradleUtil.getGradleBuildFile(modules[0]))
@@ -93,20 +87,20 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
         val linkMessage = "Install Build Tools $minVersion " +
                           if (buildFiles.isNotEmpty()) ", update version in build file and sync project" else " and sync project"
 
-        description.addQuickFix(linkMessage,
+        buildIssueComposer.addQuickFix(linkMessage,
                                 InstallBuildToolsQuickFix(minVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(modules)))
       }
       else if(buildFiles.isNotEmpty()) {
         val removeBuildTools = doesAndroidGradlePluginPackageBuildTools(modules)
-        description.addQuickFix("${if (removeBuildTools) "Remove" else "Update"} Build Tools version and sync project",
+        buildIssueComposer.addQuickFix("${if (removeBuildTools) "Remove" else "Update"} Build Tools version and sync project",
                                 FixBuildToolsVersionQuickFix(minVersion, buildFiles, removeBuildTools))
       }
     }
 
     if (buildFiles.isNotEmpty()) {
-      description.addQuickFix("Open file.", OpenFileAtLocationQuickFix(FilePosition(File(buildFiles[0].path), -1, -1)))
+      buildIssueComposer.addQuickFix("Open file.", OpenFileAtLocationQuickFix(FilePosition(File(buildFiles[0].path), -1, -1)))
     }
-    return description
+    return buildIssueComposer
   }
 }
 

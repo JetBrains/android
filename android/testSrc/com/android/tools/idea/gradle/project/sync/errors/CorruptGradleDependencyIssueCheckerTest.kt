@@ -30,7 +30,7 @@ class CorruptGradleDependencyIssueCheckerTest : AndroidGradleTestCase() {
     val buildIssue = corruptGradleDependencyIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.title).contains("Gradle's dependency cache seems to be corrupt or out of sync.")
+    assertThat(buildIssue!!.description).contains("Gradle's dependency cache seems to be corrupt or out of sync.")
 
     // Verify Quickfixes
     val quickFixes = buildIssue.quickFixes

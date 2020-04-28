@@ -21,14 +21,13 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallBuildToolsQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.MISSING_BUILD_TOOLS
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
-import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -52,27 +51,22 @@ class MissingBuildToolsIssueChecker: GradleIssueChecker {
       updateUsageTracker(issueData.projectPath, MISSING_BUILD_TOOLS)
     }
     val version = matcher.group(3)
-    val description = getBuildIssueDescription(message, issueData.projectPath, version)
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
-      override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
+    val buildIssueComposer = getBuildIssueDescription(message, issueData.projectPath, version)
+    return buildIssueComposer.composeBuildIssue()
   }
 
-  private fun getBuildIssueDescription(message: String, projectPath: String, version: String): MessageComposer {
-    val description = MessageComposer(message)
-    val ideaProject = fetchIdeaProjectForGradleProject(projectPath) ?: return description
+  private fun getBuildIssueDescription(message: String, projectPath: String, version: String): BuildIssueComposer {
+    val buildIssueComposer = BuildIssueComposer(message)
+    val ideaProject = fetchIdeaProjectForGradleProject(projectPath) ?: return buildIssueComposer
     val currentAGPVersion = findFromBuildFiles(ideaProject)?.pluginVersion
     val recommendedAGPVersion = tryParseAndroidGradlePluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get())
-    description.addQuickFix("Install Build Tools $version and sync project",
+    buildIssueComposer.addQuickFix("Install Build Tools $version and sync project",
                             InstallBuildToolsQuickFix(version, emptyList(), false))
     if (currentAGPVersion == null || recommendedAGPVersion == null || currentAGPVersion < recommendedAGPVersion) {
-      description.addQuickFix(
+      buildIssueComposer.addQuickFix(
         "Upgrade plugin to version ${GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())} and sync project",
         FixAndroidGradlePluginVersionQuickFix(null, null))
     }
-    return description
+    return buildIssueComposer
   }
 }

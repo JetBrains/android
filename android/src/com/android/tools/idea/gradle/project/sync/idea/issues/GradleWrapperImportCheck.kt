@@ -97,7 +97,7 @@ private class GradleWrapperImportChecker : GradleIssueChecker {
       For more details, see https://github.com/gradle/gradle/issues/9361.
     """.trimIndent()
 
-    val messageComposer = MessageComposer(message).apply {
+    return BuildIssueComposer(message).apply {
       try {
         val distUrl = wrapper.distributionUrl
         val distSHA = wrapper.distributionSha256Sum
@@ -109,14 +109,7 @@ private class GradleWrapperImportChecker : GradleIssueChecker {
       } catch (e: IOException) {
         Logger.getInstance(GradleWrapperImportChecker::class.java).warn(e)
       }
-    }
-
-    return object : BuildIssue {
-      override val title: String = "Invalid Gradle wrapper"
-      override val description: String = messageComposer.buildMessage()
-      override val quickFixes: List<BuildIssueQuickFix> = messageComposer.quickFixes
-      override fun getNavigatable(project: Project): Navigatable? = null
-    }
+    }.composeBuildIssue()
   }
 }
 

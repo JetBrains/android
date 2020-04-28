@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
@@ -60,34 +60,30 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
     }
 
     val matcher = MISSING_METHOD_PATTERN.matcher(message)
-    val description = MessageComposer("$GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX: '${if (matcher.find()) matcher.group(1) else ""}'")
+    val buildIssueComposer =
+      BuildIssueComposer("$GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX: '${if (matcher.find()) matcher.group(1) else ""}'")
 
     // Create QuickFix to open the file where the error is located.
     when {
       issueData.filePosition != null && isDefaultGradleBuildFile(issueData.filePosition!!.file) ->
-        updateNotificationWithBuildFile(issueData.filePosition!!, description)
-      issueData.filePosition != null -> description.addQuickFix("Open file", OpenFileAtLocationQuickFix(issueData.filePosition!!))
+        updateNotificationWithBuildFile(issueData.filePosition!!, buildIssueComposer)
+      issueData.filePosition != null -> buildIssueComposer.addQuickFix("Open file", OpenFileAtLocationQuickFix(issueData.filePosition!!))
     }
 
-    return object : BuildIssue {
-      override val title = "Gradle Sync Issues."
-      override val description = description.buildMessage()
-      override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
+    return buildIssueComposer.composeBuildIssue()
   }
 
-  private fun updateNotificationWithBuildFile(filePosition: FilePosition, description: MessageComposer) {
-    description.addDescription("\nPossible causes:")
+  private fun updateNotificationWithBuildFile(filePosition: FilePosition, buildIssueComposer: BuildIssueComposer) {
+    buildIssueComposer.addDescription("\nPossible causes:")
     // TODO: Can I rely on project name from path ?.
-    description.addDescription("Your project may be using a version of the Android Gradle plug-in that does not contain the " +
+    buildIssueComposer.addDescription("Your project may be using a version of the Android Gradle plug-in that does not contain the " +
                                "method (e.g. 'testCompile' was added in 1.1.0).")
 
     val pluginVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-    description.addQuickFix("Upgrade plugin to version ${pluginVersion} and sync project",
+    buildIssueComposer.addQuickFix("Upgrade plugin to version ${pluginVersion} and sync project",
                             FixAndroidGradlePluginVersionQuickFix(pluginVersion, GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)))
-    description.addQuickFix("Open Gradle wrapper file", GetGradleSettingsQuickFix())
-    description.addQuickFix("Apply Gradle plugin", ApplyGradlePluginQuickFix(filePosition))
+    buildIssueComposer.addQuickFix("Open Gradle wrapper file", GetGradleSettingsQuickFix())
+    buildIssueComposer.addQuickFix("Apply Gradle plugin", ApplyGradlePluginQuickFix(filePosition))
   }
 
   class GetGradleSettingsQuickFix : BuildIssueQuickFix {
