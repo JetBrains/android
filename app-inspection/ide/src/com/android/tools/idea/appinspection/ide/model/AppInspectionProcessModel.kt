@@ -15,48 +15,87 @@
  */
 package com.android.tools.idea.appinspection.ide.model
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.process.ProcessListener
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
-import com.intellij.util.concurrency.EdtExecutorService
+import org.jetbrains.annotations.TestOnly
+import java.util.concurrent.Executor
 
 /**
  * Model class that owns a list of active [ProcessDescriptor] targets with listeners that trigger
  * when one is added or removed.
+ *
+ * The constructor takes an [executor] which gives it affinity to a particular thread (defaulting
+ * to the current thread mainly for testing, but in production, an EDT executor is more likely to
+ * be useful for UI-related work). This executor will be used to respond to external process updates.
+ *
+ * Additionally, [selectedProcess] is thread-safe to set.
  */
-class AppInspectionProcessModel(private val processNotifier: ProcessNotifier,
+class AppInspectionProcessModel(private val executor: Executor,
+                                private val processNotifier: ProcessNotifier,
                                 private val getPreferredProcessNames: () -> List<String>) : Disposable {
-  private val selectedProcessListeners = mutableListOf<() -> Unit>()
-  fun addSelectedProcessListeners(listener: () -> Unit) = selectedProcessListeners.add(listener)
 
-  val processes = mutableSetOf<ProcessDescriptor>()
+  @TestOnly
+  constructor(processNotifier: ProcessNotifier, getPreferredProcessNames: () -> List<String>) :
+    this(MoreExecutors.directExecutor(), processNotifier, getPreferredProcessNames)
+
+  private val lock = Any()
+
+  @GuardedBy("lock")
+  private val selectedProcessListeners = mutableMapOf<() -> Unit, Executor>()
+
+  @GuardedBy("lock")
+  private val _processes = mutableSetOf<ProcessDescriptor>()
+  val processes: Set<ProcessDescriptor> = _processes
+
+  @GuardedBy("lock")
   var selectedProcess: ProcessDescriptor? = null
     set(value) {
-      if (field != value) {
-        field = value
-        selectedProcessListeners.forEach { listener -> listener() }
+      synchronized(lock) {
+        if (field != value) {
+          field = value
+          selectedProcessListeners.forEach { (listener, executor) -> executor.execute(listener) }
+        }
       }
     }
 
+  /**
+   * Add a listener which will be triggered with the selected process when it changes.
+   */
+  fun addSelectedProcessListeners(executor: Executor, listener: () -> Unit) {
+    synchronized(lock) {
+      selectedProcessListeners[listener] = executor
+    }
+  }
+
+  @TestOnly
+  fun addSelectedProcessListeners(listener: () -> Unit) = addSelectedProcessListeners(MoreExecutors.directExecutor(), listener)
+
   private val processListener = object : ProcessListener {
     override fun onProcessConnected(descriptor: ProcessDescriptor) {
-      processes.add(descriptor)
-      if (isProcessPreferred(descriptor) && !isProcessPreferred(selectedProcess)) {
-        selectedProcess = descriptor
+      synchronized(lock) {
+        _processes.add(descriptor)
+        if (isProcessPreferred(descriptor) && !isProcessPreferred(selectedProcess)) {
+          selectedProcess = descriptor
+        }
       }
     }
 
     override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
-      processes.remove(descriptor)
-      if (descriptor == selectedProcess) {
-        selectedProcess = null
+      synchronized(lock) {
+        _processes.remove(descriptor)
+        if (descriptor == selectedProcess) {
+          selectedProcess = null
+        }
       }
     }
   }
 
   init {
-    processNotifier.addProcessListener(EdtExecutorService.getInstance(), processListener)
+    processNotifier.addProcessListener(executor, processListener)
   }
 
   override fun dispose() {

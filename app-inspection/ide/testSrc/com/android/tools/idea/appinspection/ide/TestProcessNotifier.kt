@@ -34,7 +34,7 @@ class TestProcessNotifier: ProcessNotifier {
   fun fireDisconnected(descriptor: ProcessDescriptor) = fire { listener-> listener.onProcessDisconnected(descriptor) }
   private fun fire(block: (ProcessListener) -> Unit) {
     listeners.forEach { (listener, executor) ->
-      executor.run {
+      executor.execute {
         block(listener)
       }
     }
