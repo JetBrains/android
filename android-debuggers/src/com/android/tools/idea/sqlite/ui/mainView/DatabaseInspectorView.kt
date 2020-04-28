@@ -43,12 +43,9 @@ interface DatabaseInspectorView {
   fun stopLoading()
 
   /**
-   * Adds a new [SqliteSchema] at a specific position among other schemas.
-   * @param database The database containing the schema.
-   * @param schema The schema to add.
-   * @param index The index at which the schema should be added.
+   * Updates the UI by applying [DatabaseDiffOperation]s.
    */
-  fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema, index: Int)
+  fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>)
 
   /**
    * Updates the UI for an existing database, by adding and removing tables from its schema and columns from its tables.
@@ -57,10 +54,6 @@ interface DatabaseInspectorView {
    */
   fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>)
 
-  /**
-   * Removes the [SqliteSchema] corresponding to the [SqliteDatabase] passed as argument.
-   */
-  fun removeDatabaseSchema(database: SqliteDatabase)
   fun openTab(tabId: TabId, tabName: String, component: JComponent)
   fun focusTab(tabId: TabId)
   fun closeTab(tabId: TabId)
@@ -100,3 +93,9 @@ data class AddTable(val indexedSqliteTable: IndexedSqliteTable, val columns: Lis
 data class RemoveTable(val tableName: String) : SchemaDiffOperation()
 data class AddColumns(val tableName: String, val columns: List<IndexedSqliteColumn>, val newTable: SqliteTable) : SchemaDiffOperation()
 data class RemoveColumns(val tableName: String, val columnsToRemove: List<SqliteColumn>, val newTable: SqliteTable) : SchemaDiffOperation()
+
+/** Subclasses of this class represent operations to do in the UI in order to perform the diff of visible databases */
+sealed class DatabaseDiffOperation {
+  data class AddDatabase(val database: SqliteDatabase, val schema: SqliteSchema?, val index: Int) : DatabaseDiffOperation()
+  data class RemoveDatabase(val database: SqliteDatabase) : DatabaseDiffOperation()
+}

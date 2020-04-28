@@ -40,13 +40,15 @@ open class MockDatabaseInspectorModel : DatabaseInspectorController.Model {
   override fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
     ApplicationManager.getApplication().assertIsDispatchThread()
     openDatabases[database] = sqliteSchema
-    listeners.forEach { it.onDatabaseAdded(database) }
+    val newDatabases = openDatabases.keys.toList()
+    listeners.forEach { it.onChanged(newDatabases) }
   }
 
   override fun remove(database: SqliteDatabase) {
     ApplicationManager.getApplication().assertIsDispatchThread()
     openDatabases.remove(database)
-    listeners.forEach { it.onDatabaseRemoved(database) }
+    val newDatabases = openDatabases.keys.toList()
+    listeners.forEach { it.onChanged(newDatabases) }
   }
 
   override fun addListener(modelListener: DatabaseInspectorController.Model.Listener) {

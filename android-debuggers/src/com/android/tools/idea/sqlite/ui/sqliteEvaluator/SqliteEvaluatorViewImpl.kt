@@ -19,6 +19,7 @@ import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
+import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.application.TransactionGuard
@@ -165,9 +166,18 @@ class SqliteEvaluatorViewImpl(
     })
   }
 
-  override fun addDatabase(database: SqliteDatabase, index: Int) {
-    databaseComboBox.insertItemAt(database, index)
-    if (databaseComboBox.selectedIndex == -1) databaseComboBox.selectedIndex = 0
+  override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) {
+    for (databaseDiffOperation in databaseDiffOperations) {
+      when (databaseDiffOperation) {
+        is DatabaseDiffOperation.AddDatabase -> {
+          databaseComboBox.insertItemAt(databaseDiffOperation.database, databaseDiffOperation.index)
+          if (databaseComboBox.selectedIndex == -1) databaseComboBox.selectedIndex = 0
+        }
+        is DatabaseDiffOperation.RemoveDatabase -> {
+          databaseComboBox.removeItem(databaseDiffOperation.database)
+        }
+      }
+    }
   }
 
   override fun selectDatabase(database: SqliteDatabase) {
@@ -176,10 +186,6 @@ class SqliteEvaluatorViewImpl(
     if (database != currentlySelectedItem) {
       databaseComboBox.selectedItem = database
     }
-  }
-
-  override fun removeDatabase(index: Int) {
-    databaseComboBox.removeItemAt(index)
   }
 
   override fun getActiveDatabase(): SqliteDatabase {

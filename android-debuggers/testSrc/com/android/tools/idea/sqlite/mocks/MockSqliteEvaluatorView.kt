@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
@@ -36,9 +37,7 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
 
   override fun showSqliteStatement(sqliteStatement: String) {  }
 
-  override fun addDatabase(database: SqliteDatabase, index: Int) { }
-
-  override fun removeDatabase(index: Int) { }
+  override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) { }
 
   override fun selectDatabase(database: SqliteDatabase) { }
 

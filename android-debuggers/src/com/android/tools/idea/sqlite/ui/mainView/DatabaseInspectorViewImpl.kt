@@ -24,7 +24,6 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -110,24 +109,23 @@ class DatabaseInspectorViewImpl(
   override fun stopLoading() {
   }
 
-  override fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema, index: Int) {
-    leftPanelView.addDatabaseSchema(database, schema, index)
+  override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) {
+    for (databaseDiffOperation in databaseDiffOperations) {
+      when (databaseDiffOperation) {
+        is DatabaseDiffOperation.AddDatabase -> {
+          leftPanelView.addDatabaseSchema(databaseDiffOperation.database, databaseDiffOperation.schema, databaseDiffOperation.index)
+        }
+        is DatabaseDiffOperation.RemoveDatabase -> leftPanelView.removeDatabaseSchema(databaseDiffOperation.database)
+      }
+    }
 
-    if (openTabs.isEmpty()) {
+    if (openTabs.isEmpty() || leftPanelView.databasesCount == 0) {
       addEmptyStatePanel(defaultEmptyStateMessage)
     }
   }
 
   override fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) {
     leftPanelView.updateDatabase(database, diffOperations)
-  }
-
-  override fun removeDatabaseSchema(database: SqliteDatabase) {
-    val databaseCount = leftPanelView.removeDatabaseSchema(database)
-
-    if (databaseCount == 0) {
-      addEmptyStatePanel(defaultEmptyStateMessage)
-    }
   }
 
   override fun openTab(tabId: TabId, tabName: String, component: JComponent) {

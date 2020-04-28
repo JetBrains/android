@@ -46,6 +46,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.AddColumns
 import com.android.tools.idea.sqlite.ui.mainView.AddTable
+import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteColumn
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
@@ -409,9 +410,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Assert
-    orderVerifier.verify(mockSqliteView).addDatabaseSchema(sqliteDatabase1, testSqliteSchema1, 0)
-    orderVerifier.verify(mockSqliteView).addDatabaseSchema(sqliteDatabase2, testSqliteSchema2, 1)
-    orderVerifier.verify(mockSqliteView).addDatabaseSchema(sqliteDatabase3, testSqliteSchema3, 0)
+    orderVerifier.verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(sqliteDatabase1, testSqliteSchema1, 0)))
+    orderVerifier.verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(sqliteDatabase2, testSqliteSchema2, 1)))
+    orderVerifier.verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(sqliteDatabase3, testSqliteSchema3, 0)))
   }
 
   fun testNewDatabaseIsAddedToEvaluator() {
@@ -437,9 +438,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     val evaluatorView = mockViewFactory.createEvaluatorView(project, MockSchemaProvider(), mockViewFactory.tableView)
-    verify(evaluatorView).addDatabase(sqliteDatabase1, 0)
-    verify(evaluatorView).addDatabase(sqliteDatabase2, 1)
-    verify(evaluatorView).addDatabase(sqliteDatabase3, 0)
+    verify(evaluatorView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase (sqliteDatabase1, testSqliteSchema1, 0)))
+    verify(evaluatorView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase (sqliteDatabase2, testSqliteSchema1, 1)))
+    verify(evaluatorView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase (sqliteDatabase3, testSqliteSchema1, 0)))
   }
 
   fun testDatabaseIsUpdatedInEvaluatorTabAfterSchemaChanges() {
@@ -485,8 +486,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).dispose()
-    verify(evaluatorView).removeDatabase(0)
-    verify(mockSqliteView).removeDatabaseSchema(sqliteDatabase1)
+    verify(evaluatorView).updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(sqliteDatabase1)))
+    verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(sqliteDatabase1)))
   }
 
   fun testTabsAssociatedWithDatabaseAreRemovedWhenDatabasedIsRemoved() {
@@ -902,8 +903,10 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Verify
-    verify(mockSqliteView).removeDatabaseSchema(sqliteDatabase)
-    verify(mockSqliteView).addDatabaseSchema(sqliteDatabase, SqliteSchema(listOf(testSqliteTable)), 0)
+    verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(sqliteDatabase)))
+    verify(mockSqliteView).updateDatabases(
+      listOf(DatabaseDiffOperation.AddDatabase(sqliteDatabase, SqliteSchema(listOf(testSqliteTable)), 0))
+    )
   }
 
   fun testDisposeCancelsExecutionFuture() {
