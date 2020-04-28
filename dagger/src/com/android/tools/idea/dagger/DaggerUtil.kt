@@ -40,6 +40,7 @@ import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import com.intellij.util.EmptyQuery
 import com.intellij.util.Query
+import org.jetbrains.kotlin.asJava.elements.KtLightField
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
@@ -181,7 +182,7 @@ private val PsiModifierListOwner.isInjected get() = hasAnnotation(INJECT_ANNOTAT
 /**
  * True if KtProperty has @Inject annotation.
  */
-private val KtProperty.isInjected get() = findAnnotation(FqName(INJECT_ANNOTATION)) != null
+private val KtAnnotated.isInjected get() = findAnnotation(FqName(INJECT_ANNOTATION)) != null
 
 /**
  * True if PsiElement is @Provide-annotated method.
@@ -218,7 +219,8 @@ val PsiElement?.isDaggerProvider get() = isProvidesMethod || isBindsMethod || is
  */
 val PsiElement?.isDaggerConsumer: Boolean
   get() {
-    return this is PsiField && isInjected ||
+    return this is KtLightField && lightMemberOrigin?.originalElement?.isInjected == true ||
+           this is PsiField && isInjected ||
            this is KtProperty && isInjected ||
            this is PsiParameter && declarationScope.isDaggerProvider ||
            this is KtParameter && this.ownerFunction.isDaggerProvider
@@ -242,8 +244,10 @@ internal val PsiElement?.isDaggerComponentMethod: Boolean
 
 internal val PsiElement?.isDaggerComponent get() = isClassOrObjectAnnotatedWith(DAGGER_COMPONENT_ANNOTATION)
 
-internal val PsiElement?.isDaggerSubcomponent get() = isClassOrObjectAnnotatedWith(DAGGER_SUBCOMPONENT_ANNOTATION)
-
+internal val PsiElement?.isDaggerSubcomponent
+  get() = isClassOrObjectAnnotatedWith(DAGGER_SUBCOMPONENT_ANNOTATION) ||
+          isClassOrObjectAnnotatedWith(DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION) ||
+          isClassOrObjectAnnotatedWith(DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION)
 /**
  * Returns pair of a type and an optional [QualifierInfo] for [PsiElement].
  *

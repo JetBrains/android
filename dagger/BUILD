@@ -63,6 +63,9 @@ iml_module(
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
     ],
 )
 
@@ -124,5 +127,8 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
     ],
 )

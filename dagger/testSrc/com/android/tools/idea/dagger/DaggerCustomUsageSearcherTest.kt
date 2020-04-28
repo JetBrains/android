@@ -19,13 +19,34 @@ import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.find.FindManager
+import com.intellij.find.impl.FindManagerImpl
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.parentOfType
+import com.intellij.testFramework.registerServiceInstance
+import com.intellij.usages.Usage
+import com.intellij.usages.UsageInfo2UsageAdapter
+import com.intellij.usages.impl.UsageViewImpl
 import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.junit.Assert
 
 class DaggerCustomUsageSearcherTest : DaggerTestCase() {
+
+  private fun findAllUsages(targetElement: PsiElement): MutableSet<Usage> {
+    val usagesManager = (FindManager.getInstance(project) as FindManagerImpl).findUsagesManager
+    val handler = usagesManager.getFindUsagesHandler(targetElement, false)
+    Assert.assertNotNull("Cannot find handler for: $targetElement", handler)
+    val usageView = usagesManager.doFindUsages(handler!!.primaryElements,
+                                               handler.secondaryElements,
+                                               handler,
+                                               handler.findUsagesOptions,
+                                               false) as UsageViewImpl
+
+    return usageView.usages
+  }
 
   fun testProviders() {
     myFixture.addClass(
@@ -57,6 +78,9 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       """.trimIndent()
     )
 
+    val trackerService = TestDaggerAnalyticsTracker()
+    project.registerServiceInstance(DaggerAnalyticsTracker::class.java, trackerService)
+
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
@@ -69,6 +93,17 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |       8@Provides String provider() {}
       """.trimMargin()
     )
+
+    assertThat(trackerService.calledMethods).hasSize(1)
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackFindUsagesNodeWasDisplayed CONSUMER")
+
+    val usage = findAllUsages(myFixture.elementAtCaret).filterIsInstance<UsageInfo2UsageAdapter>().first()
+
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackFindUsagesNodeWasDisplayed CONSUMER")
+
+    usage.navigate(false)
+
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_USAGES CONSUMER PROVIDER")
   }
 
   fun testProvidersFromKotlin() {

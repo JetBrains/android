@@ -22,5 +22,8 @@
     <codeInsight.lineMarkerProvider language="kotlin"
                                     implementationClass="com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider"/>
     <consoleFilterProvider implementation="com.android.tools.idea.dagger.DaggerConsoleFilterProvider"/>
+    <projectService
+        serviceInterface="com.android.tools.idea.dagger.DaggerAnalyticsTracker"
+        serviceImplementation="com.android.tools.idea.dagger.DaggerAnalyticsTrackerImpl"/>
   </extensions>
 </idea-plugin>
