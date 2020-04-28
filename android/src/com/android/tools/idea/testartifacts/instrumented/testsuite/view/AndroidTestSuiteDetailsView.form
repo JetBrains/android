@@ -33,7 +33,9 @@
             <constraints>
               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <toolTipText value="Close test result details"/>
+            </properties>
           </component>
         </children>
       </grid>
