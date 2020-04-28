@@ -38,6 +38,7 @@ import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.google.common.util.concurrent.Futures
@@ -450,7 +451,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     )
     val sqliteDatabase = LiveSqliteDatabase("db", realDatabaseConnection!!)
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
-    sqliteEvaluatorController.addDatabase(sqliteDatabase, 0)
+    sqliteEvaluatorController.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(sqliteDatabase, null, 0)))
 
     // Act
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, "SELECT * FROM t1;"))
@@ -472,7 +473,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
     val sqliteDatabase = LiveSqliteDatabase("db", realDatabaseConnection!!)
-    sqliteEvaluatorController.addDatabase(sqliteDatabase, 0)
+    sqliteEvaluatorController.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(sqliteDatabase, null, 0)))
 
     // Act
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, "INSERT INTO t1 VALUES (0);"))
@@ -494,7 +495,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     )
     val sqliteDatabase = LiveSqliteDatabase("db", realDatabaseConnection!!)
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
-    sqliteEvaluatorController.addDatabase(sqliteDatabase, 0)
+    sqliteEvaluatorController.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(sqliteDatabase, null, 0)))
 
     // Act
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, "SELECT * FROM t1"))
@@ -517,7 +518,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     )
     val sqliteDatabase = LiveSqliteDatabase("db", realDatabaseConnection!!)
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
-    sqliteEvaluatorController.addDatabase(sqliteDatabase, 0)
+    sqliteEvaluatorController.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(sqliteDatabase, null, 0)))
 
     // Act
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, "SELECT * FROM t1 --comment"))

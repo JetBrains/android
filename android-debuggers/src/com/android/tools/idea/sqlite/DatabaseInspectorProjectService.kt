@@ -309,14 +309,18 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
       ApplicationManager.getApplication().assertIsDispatchThread()
 
       openDatabases[database] = sqliteSchema
-      listeners.forEach { it.onDatabaseAdded(database) }
+      val newDatabaseList = openDatabases.keys.toList()
+
+      listeners.forEach { it.onChanged(newDatabaseList) }
     }
 
     override fun remove(database: SqliteDatabase) {
       ApplicationManager.getApplication().assertIsDispatchThread()
 
       openDatabases.remove(database)
-      listeners.forEach { it.onDatabaseRemoved(database) }
+      val newDatabaseList = openDatabases.keys.toList()
+
+      listeners.forEach { it.onChanged(newDatabaseList) }
     }
 
     override fun addListener(modelListener: DatabaseInspectorController.Model.Listener) {

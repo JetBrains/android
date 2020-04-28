@@ -26,6 +26,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.sqlLanguage.hasParsingError
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
+import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -57,8 +58,8 @@ class SqliteEvaluatorController(
     view.tableView.setEditable(false)
   }
 
-  fun removeDatabase(index: Int) {
-    view.removeDatabase(index)
+  fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) {
+    view.updateDatabases(databaseDiffOperations)
   }
 
   /**
@@ -91,10 +92,6 @@ class SqliteEvaluatorController(
 
   fun removeListeners() {
     listeners.clear()
-  }
-
-  fun addDatabase(database: SqliteDatabase, index: Int) {
-    view.addDatabase(database, index)
   }
 
   fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
