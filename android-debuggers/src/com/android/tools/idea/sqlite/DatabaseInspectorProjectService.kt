@@ -29,6 +29,8 @@ import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.Sav
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorControllerImpl
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactory
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactoryImpl
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
@@ -157,8 +159,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   private val databaseConnectionFactory: DatabaseConnectionFactory = DatabaseConnectionFactoryImpl(),
   private val fileOpener: Consumer<VirtualFile> = Consumer { OpenFileAction.openFile(it, project) },
   private val viewFactory: DatabaseInspectorViewsFactory = DatabaseInspectorViewsFactoryImpl(),
-  private val model: DatabaseInspectorController.Model = ModelImpl(),
-  private val createController: (DatabaseInspectorController.Model) -> DatabaseInspectorController = { myModel ->
+  private val model: DatabaseInspectorModel = DatabaseInspectorModelImpl(),
+  private val createController: (DatabaseInspectorModel) -> DatabaseInspectorController = { myModel ->
     DatabaseInspectorControllerImpl(
       project,
       myModel,
@@ -180,7 +182,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     DatabaseConnectionFactoryImpl(),
     Consumer { OpenFileAction.openFile(it, project) },
     viewFactory,
-    ModelImpl(),
+    DatabaseInspectorModelImpl(),
     { myModel ->
       DatabaseInspectorControllerImpl(
         project,
@@ -285,55 +287,5 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   @AnyThread
   override fun databasePossiblyChanged() {
     projectScope.launch(uiThread) { controller.databasePossiblyChanged() }
-  }
-
-  @UiThread
-  class ModelImpl : DatabaseInspectorController.Model {
-
-    private val listeners = mutableListOf<DatabaseInspectorController.Model.Listener>()
-    private val openDatabases = mutableMapOf<SqliteDatabase, SqliteSchema>()
-
-    override fun getOpenDatabases(): List<SqliteDatabase> {
-      ApplicationManager.getApplication().assertIsDispatchThread()
-
-      return openDatabases.keys.toList()
-    }
-
-    override fun getDatabaseSchema(database: SqliteDatabase): SqliteSchema? {
-      ApplicationManager.getApplication().assertIsDispatchThread()
-
-      return openDatabases[database]
-    }
-
-    override fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
-      ApplicationManager.getApplication().assertIsDispatchThread()
-
-      openDatabases[database] = sqliteSchema
-      val newDatabaseList = openDatabases.keys.toList()
-
-      listeners.forEach { it.onChanged(newDatabaseList) }
-    }
-
-    override fun remove(database: SqliteDatabase) {
-      ApplicationManager.getApplication().assertIsDispatchThread()
-
-      openDatabases.remove(database)
-      val newDatabaseList = openDatabases.keys.toList()
-
-      listeners.forEach { it.onChanged(newDatabaseList) }
-    }
-
-    override fun addListener(modelListener: DatabaseInspectorController.Model.Listener) {
-      ApplicationManager.getApplication().assertIsDispatchThread()
-
-      listeners.add(modelListener)
-      modelListener.onChanged(openDatabases.keys.toList())
-    }
-
-    override fun removeListener(modelListener: DatabaseInspectorController.Model.Listener) {
-      ApplicationManager.getApplication().assertIsDispatchThread()
-
-      listeners.remove(modelListener)
-    }
   }
 }

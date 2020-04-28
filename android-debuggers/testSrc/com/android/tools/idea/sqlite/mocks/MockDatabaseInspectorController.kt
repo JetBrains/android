@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite.mocks
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -26,7 +27,7 @@ import kotlinx.coroutines.withContext
 import javax.naming.OperationNotSupportedException
 import javax.swing.JComponent
 
-open class MockDatabaseInspectorController(val model: DatabaseInspectorController.Model) : DatabaseInspectorController {
+open class MockDatabaseInspectorController(val model: DatabaseInspectorModel) : DatabaseInspectorController {
 
   override val component: JComponent
     get() = throw OperationNotSupportedException()

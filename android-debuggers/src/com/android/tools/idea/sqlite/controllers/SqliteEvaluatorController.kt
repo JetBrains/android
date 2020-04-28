@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
@@ -42,7 +43,7 @@ import java.util.concurrent.Executor
 @UiThread
 class SqliteEvaluatorController(
   private val project: Project,
-  private val model: DatabaseInspectorController.Model,
+  private val model: DatabaseInspectorModel,
   private val view: SqliteEvaluatorView,
   override val closeTabInvoked: () -> Unit,
   private val edtExecutor: Executor,
@@ -52,11 +53,11 @@ class SqliteEvaluatorController(
   private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener = SqliteEvaluatorViewListenerImpl()
   private val listeners = mutableListOf<Listener>()
 
-  private val modelListener = object : DatabaseInspectorController.Model.Listener {
+  private val modelListener = object : DatabaseInspectorModel.Listener {
     private var currentDatabases = listOf<SqliteDatabase>()
 
-    override fun onChanged(newDatabases: List<SqliteDatabase>) {
-      val sortedNewDatabase = newDatabases.sortedBy { it.name }
+    override fun onChanged(databases: List<SqliteDatabase>) {
+      val sortedNewDatabase = databases.sortedBy { it.name }
 
       val toAdd = sortedNewDatabase
         .filter { !currentDatabases.contains(it) }
@@ -65,7 +66,7 @@ class SqliteEvaluatorController(
 
       view.updateDatabases(toAdd + toRemove)
 
-      currentDatabases = newDatabases
+      currentDatabases = databases
     }
   }
 
