@@ -34,7 +34,7 @@ class UnknownHostIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: return null
-    if (message.isEmpty() || rootCause !is UnknownHostException) return null
+    if (message.isBlank() || rootCause !is UnknownHostException) return null
 
     // Log metrics.
     invokeLater {

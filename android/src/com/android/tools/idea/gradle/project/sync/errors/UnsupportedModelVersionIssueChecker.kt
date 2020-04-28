@@ -39,7 +39,7 @@ class UnsupportedModelVersionIssueChecker: GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (message.isEmpty() || !message.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) return null
+    if (message.isBlank() || !message.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) return null
 
     // Log metrics.
     invokeLater {

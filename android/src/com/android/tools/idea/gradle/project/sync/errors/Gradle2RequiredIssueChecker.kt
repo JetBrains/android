@@ -30,7 +30,7 @@ import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandle
 class Gradle2RequiredIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (message.isEmpty() || !message.endsWith("org/codehaus/groovy/runtime/typehandling/ShortTypeHandling")) return null
+    if (message.isBlank() || !message.endsWith("org/codehaus/groovy/runtime/typehandling/ShortTypeHandling")) return null
 
     // Log metrics.
     invokeLater {

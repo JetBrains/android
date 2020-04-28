@@ -56,7 +56,7 @@ class MissingPlatformIssueChecker: GradleIssueChecker {
     val rootCause  = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: return null
     val missingPlatform = getMissingPlatform(message)
-    if (message.isEmpty() || missingPlatform == null ||
+    if (message.isBlank() || missingPlatform == null ||
         (rootCause !is IllegalStateException) && (rootCause !is ExternalSystemException)) return null
 
     // Log metrics.

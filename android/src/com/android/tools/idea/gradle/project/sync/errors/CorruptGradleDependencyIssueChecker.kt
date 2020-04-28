@@ -30,7 +30,7 @@ import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandle
 class CorruptGradleDependencyIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (message.isEmpty() || !message.startsWith("Premature end of Content-Length delimited message body")) return null
+    if (message.isBlank() || !message.startsWith("Premature end of Content-Length delimited message body")) return null
 
     // Log metrics.
     invokeLater {
