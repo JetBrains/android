@@ -1,12 +1,15 @@
 package org.jetbrains.android.database;
 
+import com.android.builder.model.Variant;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.FileListingService;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.MultiLineReceiver;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.ddms.DeviceRenderer;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.database.dataSource.AbstractDataSourceConfigurable;
 import com.intellij.database.dataSource.DatabaseNameComponent;
 import com.intellij.database.util.DbImplUtil;
@@ -44,7 +47,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurable<AndroidDataSourceManager, AndroidDataSource> implements Disposable {
+public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurable<AndroidDataSourceManager, AndroidDataSource>
+  implements Disposable {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSourcePropertiesDialog");
   private static final String[] DEFAULT_EXTERNAL_DB_PATTERNS = new String[]{"files/"};
 
@@ -267,20 +271,40 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     final FileListingService service = device.getFileListingService();
     if (service == null) return;
 
-    final Set<String> packages = new HashSet<>();
+    final Set<String> mainPackages = new HashSet<>();
+    final Set<String> extraPackages = new HashSet<>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID)) {
-      final Manifest manifest = Manifest.getMainManifest(facet);
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+      if (androidModuleModel != null) {
+        IdeAndroidProject androidProject = androidModuleModel.getAndroidProject();
 
-      if (manifest != null) {
-        final String aPackage = manifest.getPackage().getStringValue();
+        for (Variant variant : androidProject.getVariants()) {
+          mainPackages.add(variant.getMainArtifact().getApplicationId());
+          if (variant.getExtraAndroidArtifacts() != null) {
+            variant.getExtraAndroidArtifacts().forEach(artifact -> extraPackages.add(artifact.getApplicationId()));
+          }
+        }
+      }
+      else {
+        // Non-Gradle Android modules do not have AndroidModuleModel. Use manifest directly.
+        final Manifest manifest = Manifest.getMainManifest(facet);
 
-        if (aPackage != null && aPackage.length() > 0) {
-          packages.add(aPackage);
+        if (manifest != null) {
+          final String aPackage = manifest.getPackage().getStringValue();
+
+          if (aPackage != null && aPackage.length() > 0) {
+            mainPackages.add(aPackage);
+          }
         }
       }
     }
-    if (packages.isEmpty()) return;
+    if (mainPackages.isEmpty() && extraPackages.isEmpty()) return;
+
+    extraPackages.removeAll(mainPackages);
+    List<String> packages = new ArrayList<>(mainPackages.size() + extraPackages.size());
+    packages.addAll(mainPackages);
+    packages.addAll(extraPackages);
 
     final long startTime = System.currentTimeMillis();
     boolean tooLong = false;
