@@ -2,8 +2,8 @@ package org.jetbrains.android.compiler;
 
 import com.intellij.compiler.CompilerIOUtil;
 import com.intellij.ide.highlighter.ArchiveFileType;
+import com.intellij.ide.highlighter.JavaClassFileType;
 import com.intellij.openapi.compiler.ValidityState;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +25,7 @@ class ClassesAndJarsValidityState implements ValidityState {
         fillMap(child, visited);
       }
     }
-    else if (StdFileTypes.CLASS.equals(file.getFileType()) || file.getFileType() instanceof ArchiveFileType) {
+    else if (JavaClassFileType.INSTANCE.equals(file.getFileType()) || file.getFileType() instanceof ArchiveFileType) {
       if (file.isValid()) {
         myFiles.put(file.getPath(), file.getTimeStamp());
       }

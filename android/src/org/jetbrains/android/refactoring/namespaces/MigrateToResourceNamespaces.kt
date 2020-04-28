@@ -25,10 +25,10 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.progress.ProgressManager
@@ -196,7 +196,7 @@ class MigrateToResourceNamespacesProcessor(
       for (resourceDir in repositoryManager.moduleResources.resourceDirs) {
         // TODO(b/78765120): process the files in parallel?
         VfsUtil.processFilesRecursively(resourceDir) { vf ->
-          if (vf.fileType == StdFileTypes.XML) {
+          if (vf.fileType == XmlFileType.INSTANCE) {
             val psiFile = psiManager.findFile(vf)
             if (psiFile is XmlFile) {
               result += findXmlUsages(psiFile, facet)

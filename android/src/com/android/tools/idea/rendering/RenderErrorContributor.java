@@ -58,6 +58,8 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
+import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -65,7 +67,6 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -467,7 +468,7 @@ public class RenderErrorContributor {
     if (logger.seenTagPrefix(TAG_RESOURCES_PREFIX)) {
       // Do we have errors in the res/ files?
       // See if it looks like we have aapt problems
-      boolean haveResourceErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> virtualFile.getFileType() == StdFileTypes.XML);
+      boolean haveResourceErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> virtualFile.getFileType() == XmlFileType.INSTANCE);
       if (haveResourceErrors) {
         summary = "Resource errors";
         builder.addBold("This project contains resource errors, so aapt did not succeed, " +
@@ -476,7 +477,7 @@ public class RenderErrorContributor {
       }
     }
     else if (renderTask.getLayoutlibCallback().isUsed()) {
-      boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> virtualFile.getFileType() == StdFileTypes.JAVA);
+      boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> virtualFile.getFileType() == JavaFileType.INSTANCE);
       if (hasJavaErrors) {
         summary = "Compilation errors";
         builder.addBold("This project contains Java compilation errors, " +

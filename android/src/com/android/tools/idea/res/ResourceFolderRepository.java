@@ -73,6 +73,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
@@ -80,7 +81,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -496,7 +496,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                                      @NotNull PsiFile file, @NotNull FolderConfiguration folderConfiguration) {
     boolean added = false;
     FileType fileType = file.getFileType();
-    if (fileType == StdFileTypes.XML) {
+    if (fileType == XmlFileType.INSTANCE) {
       XmlFile xmlFile = (XmlFile)file;
       assert xmlFile.isValid();
       XmlDocument document = xmlFile.getDocument();
@@ -763,7 +763,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
     } else if (checkResourceFilename(file, folderType)) {
       ResourceItemSource<? extends ResourceItem> source = mySources.get(file.getVirtualFile());
-      if (source instanceof PsiResourceFile && file.getFileType() == StdFileTypes.XML) {
+      if (source instanceof PsiResourceFile && file.getFileType() == XmlFileType.INSTANCE) {
         // If the old file was a PsiResourceFile for an XML file, we can update ID ResourceItems in place.
         PsiResourceFile psiResourceFile = (PsiResourceFile)source;
         // Already seen this file; no need to do anything unless it's an XML file with generated ids;
@@ -850,7 +850,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           if (fileParent != null) {
             FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(fileParent.getName());
             if (folderConfiguration != null) {
-              boolean idGeneratingFile = idGeneratingFolder && file.getFileType() == StdFileTypes.XML;
+              boolean idGeneratingFile = idGeneratingFolder && file.getFileType() == XmlFileType.INSTANCE;
               scanFileResourceFileAsPsi(result, folderType, folderConfiguration, type, idGeneratingFile, file);
             }
           }
@@ -1097,7 +1097,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               return;
             }
             scheduleScan(psiFile, folderType);
-          } else if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) && psiFile.getFileType() == StdFileTypes.XML) {
+          } else if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) && psiFile.getFileType() == XmlFileType.INSTANCE) {
             if (parent instanceof XmlComment || child instanceof XmlComment) {
               return;
             }
@@ -1259,7 +1259,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               // Some other change: do full file rescan.
               scheduleScan(psiFile, folderType);
             }
-          } else if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) && psiFile.getFileType() == StdFileTypes.XML) {
+          } else if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) && psiFile.getFileType() == XmlFileType.INSTANCE) {
             // TODO: Handle removals of id's (values an attributes) incrementally.
             scheduleScan(psiFile, folderType);
           } else if (folderType == FONT) {
@@ -1286,7 +1286,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           // such as editing the content of a drawable XML file.
           ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
           if (folderType != null && FolderTypeRelationship.isIdGeneratingFolderType(folderType) &&
-              psiFile.getFileType() == StdFileTypes.XML) {
+              psiFile.getFileType() == XmlFileType.INSTANCE) {
             // The only way the edit affected the set of resources was if the user added or removed an
             // id attribute. Since these can be added redundantly we can't automatically remove the old
             // value if you renamed one, so we'll need a full file scan.
