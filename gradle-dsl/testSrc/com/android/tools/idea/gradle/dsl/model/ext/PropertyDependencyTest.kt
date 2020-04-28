@@ -111,9 +111,12 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   }
 
   private fun assertDependencyBetween(origin: GradleDslElement, dependency: GradleDslElement, dependencyName: String) {
-    val injections = origin.dependencies.filter { e -> e.originElement == origin && e.toBeInjected == dependency && e.name == dependencyName }
+    val injections = origin.dependencies.filter { e -> e.originElement == origin && e.toBeInjected == dependency }
     assertSize(1, injections)
     assertNotNull(injections[0])
+    if (isGroovy) {
+      assertEquals(injections[0].name, dependencyName)
+    }
 
     assertThat(dependency.dependents, hasItem(injections[0]))
   }
@@ -189,7 +192,8 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val projectModel = projectBuildModel
     val childModel = projectModel.getModuleBuildModel(mySubModule)!!
     val parentModel = projectModel.projectBuildModel!!
-    val appliedModel = childModel.involvedFiles.filter { f -> f.virtualFile.name == "defaults.gradle" }[0] as GradleBuildModel
+    val appliedFileName = "defaults${myTestDataExtension}"
+    val appliedModel = childModel.involvedFiles.filter { f -> f.virtualFile.name == appliedFileName }[0] as GradleBuildModel
 
     // Applied model
     val appliedExt = appliedModel.ext()
@@ -202,15 +206,17 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val storePModel = appliedSigningVarModel.toMap()!!["storeP"]!!
     val keyFModel = appliedSigningVarModel.toMap()!!["keyF"]!!
     val keyPModel = appliedSigningVarModel.toMap()!!["keyP"]!!
+
+    assertDependencyNumbers(varsModel, 2, 2, 0, 0)
     // TODO(b/149286032): at some point in some Gradle versions, there might have been some lazy evaluation permitting a construct of
     //  the form
     //     ext.vars = [ minSdk: 1, maxSdk: ext.vars.minSdk ]
     //  to work.  As far as I can tell, it doesn't as of Gradle 6.1.  We currently resolve the reference to the sibling entry, which is
     //  harmless in this case but would be wrong if there were a previous binding of ext.vars (for example, from buildscript).
-    assertDependencyNumbers(varsModel, 2, 2, 0, 0)
     assertDependencyNumbers(appliedMinSdkModel, 0, 0, 0, 2)
     assertDependencyNumbers(appliedMaxSdkModel, 1, 1, 0, 1)
     assertDependencyBetween(appliedMaxSdkModel, appliedMinSdkModel, "ext.vars.minSdk")
+
     assertDependencyNumbers(appliedSigningModel, 1, 1, 0, 0)
     assertDependencyBetween(appliedSigningModel, appliedSigningVarModel, "signing")
     assertDependencyNumbers(appliedSigningVarModel, 0, 0, 0, 1)
@@ -307,7 +313,8 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val projectModel = projectBuildModel
     val childModel = projectModel.getModuleBuildModel(mySubModule)!!
     val parentModel = projectModel.projectBuildModel!!
-    val appliedModel = childModel.involvedFiles.filter { f -> f.virtualFile.name == "defaults.gradle" }[0] as GradleBuildModel
+    val appliedFileName = "defaults${myTestDataExtension}"
+    val appliedModel = childModel.involvedFiles.filter { f -> f.virtualFile.name == appliedFileName }[0] as GradleBuildModel
 
     val maxSdkModel = appliedModel.ext().findProperty("vars").toMap()!!["maxSdk"]!!
     val number4Model = parentModel.ext().findProperty("numbers").toList()!![4]!!
@@ -349,7 +356,8 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val projectModel = projectBuildModel
     val childModel = projectModel.getModuleBuildModel(mySubModule)!!
     val parentModel = projectModel.projectBuildModel!!
-    val appliedModel = childModel.involvedFiles.filter { f -> f.virtualFile.name == "defaults.gradle" }[0] as GradleBuildModel
+    val appliedFileName = "defaults${myTestDataExtension}"
+    val appliedModel = childModel.involvedFiles.filter { f -> f.virtualFile.name == appliedFileName }[0] as GradleBuildModel
 
     // Swap min and max sdk names from the applied file.
     val appliedMinSdk = appliedModel.ext().findProperty("vars").toMap()!!["minSdk"]!!
@@ -360,24 +368,27 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     appliedMinSdk.rename("maxSdk")
     assertDependencyNumbers(appliedMaxSdk, 0, 1, 1, 1)
     appliedMaxSdk.rename("minSdk")
-    // Note: A cycle is now triggered here, this caused this model and any referencing is to not include the dependency.
-    assertDependencyNumbers(appliedMaxSdk, 0, 1, 1, 1)
-    assertDependencyNumbers(appliedMinSdk, 0, 0, 0, 1)
+    // TODO(b/149286032): see comment in testParsingDependenciesMultiFile above
+    if (isGroovy) {
+      // Note: A cycle is now triggered here, this caused this model and any referencing is to not include the dependency.
+      assertDependencyNumbers(appliedMaxSdk, 0, 1, 1, 1)
+      assertDependencyNumbers(appliedMinSdk, 0, 0, 0, 1)
 
-    assertDependencyNumbers(childMaxSdk, 1, 1, 0, 0)
-    assertDependencyNumbers(childMinSdk, 1, 1, 0, 0)
-
+      assertDependencyNumbers(childMaxSdk, 1, 1, 0, 0)
+      assertDependencyNumbers(childMinSdk, 1, 1, 0, 0)
+    }
     // Change the value to break the cycle.
     appliedMaxSdk.setValue(ReferenceTo("vars.maxSdk"))
-    assertDependencyNumbers(appliedMaxSdk, 1, 1, 0, 1)
-    assertDependencyBetween(childMaxSdk, appliedMinSdk, "vars.maxSdk")
-    assertDependencyNumbers(appliedMinSdk, 0, 0, 0, 2)
+    if (isGroovy) {
+      assertDependencyNumbers(appliedMaxSdk, 1, 1, 0, 1)
+      assertDependencyBetween(childMaxSdk, appliedMinSdk, "vars.maxSdk")
+      assertDependencyNumbers(appliedMinSdk, 0, 0, 0, 2)
 
-
-    assertDependencyNumbers(childMaxSdk, 1, 1, 0, 0)
-    assertDependencyBetween(childMaxSdk, appliedMinSdk, "vars.maxSdk")
-    assertDependencyNumbers(childMinSdk, 1, 1, 0, 0)
-    assertDependencyBetween(childMinSdk, appliedMaxSdk, "vars.minSdk")
+      assertDependencyNumbers(childMaxSdk, 1, 1, 0, 0)
+      assertDependencyBetween(childMaxSdk, appliedMinSdk, "vars.maxSdk")
+      assertDependencyNumbers(childMinSdk, 1, 1, 0, 0)
+      assertDependencyBetween(childMinSdk, appliedMaxSdk, "vars.minSdk")
+    }
 
     // Rename bool in the parent model to appId. This should break a dependency from varBool
     // and create one on applicationId.
