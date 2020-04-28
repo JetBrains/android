@@ -1013,6 +1013,14 @@ public final class StudioFlags {
     "Enables a WorkManager Inspector Tab in the App Inspection tool window",
     true
   );
+
+  //region Device Manager
+  private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
+  public static final Flag<Boolean> ENABLE_NEW_DEVICE_MANAGER_PANEL = Flag.create(
+    DEVICE_MANAGER, "enable.device.manager", "Enable new Device Manager panel",
+    "Enables the new Device Manager panel on the right. It will be a replacement for an AVD manager with additional functionality",
+    false
+  );
   // endregion
 
   private StudioFlags() { }
