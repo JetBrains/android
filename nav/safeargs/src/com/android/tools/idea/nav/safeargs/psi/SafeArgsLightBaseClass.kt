@@ -18,7 +18,6 @@ package com.android.tools.idea.nav.safeargs.psi
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.res.getSourceAsVirtualFile
-import com.android.tools.idea.nav.safeargs.index.NavFragmentData
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -26,6 +25,7 @@ import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiModifier
+import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.augment.AndroidLightClassBase
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -42,6 +42,7 @@ abstract class SafeArgsLightBaseClass(facet: AndroidFacet,
   private val name: String
   private val qualifiedName: String
   private val backingFile: PsiJavaFile
+  protected val backingResourceFile by lazy { findResourceFile() }
 
   init {
     val fileFactory = PsiFileFactory.getInstance(project)
@@ -64,8 +65,11 @@ abstract class SafeArgsLightBaseClass(facet: AndroidFacet,
   override fun getContainingClass(): PsiClass? = null
   override fun isValid() = true
   override fun getNavigationElement(): PsiElement {
-    val virtualFile = navigationResource.getSourceAsVirtualFile() ?: return super.getNavigationElement()
-    val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return super.getNavigationElement()
-    return psiFile
+    return backingResourceFile ?: return super.getNavigationElement()
+  }
+
+  private fun findResourceFile(): XmlFile? {
+    val virtualFile = navigationResource.getSourceAsVirtualFile() ?: return null
+    return PsiManager.getInstance(project).findFile(virtualFile) as XmlFile
   }
 }

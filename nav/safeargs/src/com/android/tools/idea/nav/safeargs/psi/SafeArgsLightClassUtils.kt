@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.nav.safeargs.psi
 
+import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.psi.annotateType
-import com.android.tools.idea.psi.createNullabilityAnnotation
+import com.android.tools.idea.psi.light.NullabilityLightFieldBuilder
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -24,8 +25,11 @@ import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
+import com.intellij.psi.impl.light.LightFieldBuilder
 import com.intellij.psi.impl.light.LightMethodBuilder
+import com.intellij.psi.xml.XmlTag
 import com.intellij.util.IncorrectOperationException
+import org.jetbrains.android.dom.navigation.NavigationSchema
 
 internal val MODIFIERS_PUBLIC_CONSTRUCTOR = arrayOf(PsiModifier.PUBLIC)
 internal val MODIFIERS_PUBLIC_METHOD = arrayOf(PsiModifier.PUBLIC, PsiModifier.FINAL)
@@ -95,7 +99,7 @@ private fun guessFromDefaultValue(defaultValue: String?): String? {
   if (unsignedIntTypeStr != null) return unsignedIntTypeStr
 
   val floatTypeStr = defaultValue.parseFloat()
-  if (floatTypeStr != null)  return floatTypeStr
+  if (floatTypeStr != null) return floatTypeStr
 
   val booleanTypeStr = defaultValue.parseBoolean()
   if (booleanTypeStr != null) return booleanTypeStr
@@ -137,10 +141,26 @@ private fun String.parseBoolean(): String? {
   return null
 }
 
-internal fun PsiClass.createConstructor(modifiers: Array<String> = MODIFIERS_PUBLIC_CONSTRUCTOR): LightMethodBuilder {
+internal fun PsiClass.createConstructor(
+  navigationElement: PsiElement? = null,
+  modifiers: Array<String> = MODIFIERS_PUBLIC_CONSTRUCTOR
+): LightMethodBuilder {
+  val fallback = this.navigationElement
   return LightMethodBuilder(this, JavaLanguage.INSTANCE)
     .setConstructor(true)
-    .addModifiers(*modifiers)
+    .addModifiers(*modifiers).apply {
+      this.navigationElement = navigationElement ?: fallback
+    }
+}
+
+internal fun PsiClass.createField(arg: NavArgumentData, modulePackage: String, xmlTag: XmlTag? = null): LightFieldBuilder {
+  val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
+  val nonNull = psiType is PsiPrimitiveType || arg.nullable != "true"
+  val navigationElement = xmlTag?.getChildTagElementByNameAttr(NavigationSchema.TAG_ARGUMENT, arg.name)
+  val fallback = this.navigationElement
+  return NullabilityLightFieldBuilder(manager, arg.name, psiType, nonNull, PsiModifier.PUBLIC, PsiModifier.FINAL).apply {
+    this.navigationElement = navigationElement ?: fallback
+  }
 }
 
 /**
@@ -153,11 +173,16 @@ internal fun PsiClass.annotateNullability(psiType: PsiType, nullable: String? = 
   return project.annotateType(psiType, nonNull, context)
 }
 
-internal fun PsiClass.createMethod(name: String,
-                                   modifiers: Array<String> = MODIFIERS_PUBLIC_METHOD,
-                                   returnType: PsiType = PsiType.VOID): LightMethodBuilder {
+internal fun PsiClass.createMethod(
+  name: String,
+  navigationElement: PsiElement? = null,
+  modifiers: Array<String> = MODIFIERS_PUBLIC_METHOD,
+  returnType: PsiType = PsiType.VOID
+): LightMethodBuilder {
   return LightMethodBuilder(manager, JavaLanguage.INSTANCE, name)
     .setContainingClass(this)
     .setModifiers(*modifiers)
-    .setMethodReturnType(returnType)
+    .setMethodReturnType(returnType).apply {
+      this.navigationElement = navigationElement ?: this@createMethod.navigationElement
+    }
 }
