@@ -26,6 +26,7 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -67,7 +68,7 @@ import javax.swing.JComponent
  */
 class DatabaseInspectorControllerImpl(
   private val project: Project,
-  private val model: DatabaseInspectorController.Model,
+  private val model: DatabaseInspectorModel,
   private val viewFactory: DatabaseInspectorViewsFactory,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
@@ -92,7 +93,7 @@ class DatabaseInspectorControllerImpl(
 
   private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
-  private val modelListener = object : DatabaseInspectorController.Model.Listener {
+  private val modelListener = object : DatabaseInspectorModel.Listener {
     private var currentDatabases = listOf<SqliteDatabase>()
 
     override fun onChanged(databases: List<SqliteDatabase>) {
@@ -483,26 +484,6 @@ interface DatabaseInspectorController : Disposable {
 
   @UiThread
   fun saveState(): SavedUiState
-
-  /**
-   * Model for DatabaseInspectorController. Used to store and access currently open [SqliteDatabase]s and their [SqliteSchema]s.
-   */
-  @UiThread
-  interface Model {
-    fun getOpenDatabases(): List<SqliteDatabase>
-    fun getDatabaseSchema(database: SqliteDatabase): SqliteSchema?
-
-    fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema)
-    fun remove(database: SqliteDatabase)
-
-    fun addListener(modelListener: Listener)
-    fun removeListener(modelListener: Listener)
-
-    @UiThread
-    interface Listener {
-      fun onChanged(databases: List<SqliteDatabase>)
-    }
-  }
 
   interface TabController : Disposable {
     val closeTabInvoked: () -> Unit

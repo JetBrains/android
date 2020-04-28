@@ -34,6 +34,7 @@ import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorView
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockSchemaProvider
 import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.RowIdName
@@ -1008,7 +1009,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testOpenDatabasesWithSameName() {
     // Prepare
-    val model = DatabaseInspectorProjectServiceImpl.ModelImpl()
+    val model = DatabaseInspectorModelImpl()
     val databaseInspectorController = DatabaseInspectorControllerImpl(
       project,
       model,
