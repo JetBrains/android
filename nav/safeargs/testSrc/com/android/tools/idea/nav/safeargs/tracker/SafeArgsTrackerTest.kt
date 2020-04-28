@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.tracker
 
-import com.android.builder.model.SyncIssue
 import com.android.flags.junit.RestoreFlagRule
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
@@ -23,15 +22,12 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.NavSafeArgsEvent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -100,12 +96,6 @@ class SafeArgsTrackerTest(private val params: TestParams) {
 
   private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
 
-  private val safeArgsIssueFilter = AndroidGradleTests.SyncIssueFilter {
-    // Test project doesn't currently include an AndroidManifest.xml because it isn't strictly
-    // necessary for Safe Args IDE support
-    it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
-  }
-
   @Test
   fun verifyExpectedAnalytics() {
     StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(params.flagEnabled)
@@ -114,8 +104,8 @@ class SafeArgsTrackerTest(private val params: TestParams) {
 
     try {
       UsageTracker.setWriterForTest(tracker)
-      projectRule.load(params.project, issueFilter = safeArgsIssueFilter)
-      projectRule.requestSyncAndWait(safeArgsIssueFilter)
+      projectRule.load(params.project)
+      projectRule.requestSyncAndWait()
 
       val safeArgsEvent = tracker.usages
         .map { it.studioEvent }
