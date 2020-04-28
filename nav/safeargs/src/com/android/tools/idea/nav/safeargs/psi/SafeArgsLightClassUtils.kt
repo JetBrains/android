@@ -186,3 +186,5 @@ internal fun PsiClass.createMethod(
       this.navigationElement = navigationElement ?: this@createMethod.navigationElement
     }
 }
+
+internal fun String.toCamelCase() = this.split("_").joinToString("") { it.capitalize() }.decapitalize()
