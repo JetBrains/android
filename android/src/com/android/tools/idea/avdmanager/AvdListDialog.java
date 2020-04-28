@@ -49,9 +49,9 @@ public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoPr
 
   @Override
   public void dispose() {
+    super.dispose();
     myProject = null;
     myAvdDisplayList = null;
-    super.dispose();
   }
 
   public void init() {
