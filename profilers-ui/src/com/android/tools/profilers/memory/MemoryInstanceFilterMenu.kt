@@ -17,10 +17,12 @@ package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.profilers.ProfilerCombobox
+import com.android.tools.profilers.ProfilerComboboxCellRenderer
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
 import com.intellij.openapi.application.ApplicationManager
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JLabel
+import javax.swing.JList
 import javax.swing.ListCellRenderer
 
 internal class MemoryInstanceFilterMenu(stage: MemoryProfilerStage): AspectObserver() {
@@ -40,9 +42,7 @@ internal class MemoryInstanceFilterMenu(stage: MemoryProfilerStage): AspectObser
             component.apply {
               isVisible = true
               model = DefaultComboBoxModel(allFilters)
-              renderer = ListCellRenderer<CaptureObjectInstanceFilter> { _, value, _, _, _ ->
-                JLabel("Show ${value?.displayName ?: "All Classes"}")
-              }
+              renderer = InstanceFilterMenuRenderer()
             }
           } else {
             component.isVisible = false
@@ -59,5 +59,16 @@ internal class MemoryInstanceFilterMenu(stage: MemoryProfilerStage): AspectObser
         else -> captureObject.setSingleFilter(filter, ApplicationManager.getApplication()::invokeLater)
       }
     }
+  }
+}
+
+// Inherit from `ProfilerComboboxCellRenderer` to properly render items for different selection states
+private class InstanceFilterMenuRenderer: ProfilerComboboxCellRenderer<CaptureObjectInstanceFilter?>() {
+  override fun customizeCellRenderer(list: JList<out CaptureObjectInstanceFilter?>,
+                                     value: CaptureObjectInstanceFilter?,
+                                     index: Int,
+                                     selected: Boolean,
+                                     hasFocus: Boolean) {
+    append("Show ${value?.displayName ?: "All Classes"}")
   }
 }
