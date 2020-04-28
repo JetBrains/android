@@ -237,7 +237,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
                                           ?.value as? String ?: return@forEach
           if (isAttributeNameMatched(annotationAttributeName) && annotatedMethod.parameterList.parametersCount == 1) {
             val annotationViewParameter = annotatedMethod.parameterList.parameters[0]
-            annotatedMethod.returnTypeElement ?: return@forEach
+            annotatedMethod.returnType ?: return@forEach
             if (!annotationViewParameter.type.isAssignableFrom(viewType)) {
               return@forEach
             }
