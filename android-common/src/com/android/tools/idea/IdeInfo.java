@@ -31,4 +31,8 @@ public final class IdeInfo {
   public boolean isAndroidStudio() {
     return "AndroidStudio".equals(getPlatformPrefix());
   }
+
+  public boolean isGameTool() {
+    return "AndroidStudioGameTools".equals(getPlatformPrefix());
+  }
 }
