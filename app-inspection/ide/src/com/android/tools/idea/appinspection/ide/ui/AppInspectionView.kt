@@ -44,6 +44,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.util.AndroidBundle
@@ -98,7 +99,8 @@ class AppInspectionView(
 
   init {
     component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
-    processModel = AppInspectionProcessModel(appInspectionDiscoveryHost, getPreferredProcesses)
+    val edtExecutor = EdtExecutorService.getInstance()
+    processModel = AppInspectionProcessModel(edtExecutor, appInspectionDiscoveryHost, getPreferredProcesses)
     Disposer.register(this, processModel)
     val group = DefaultActionGroup().apply { add(SelectProcessAction(processModel)) }
     val toolbar = ActionManager.getInstance().createActionToolbar("AppInspection", group, true)
@@ -111,7 +113,7 @@ class AppInspectionView(
     }, TabularLayout.Constraint(1, 0))
     component.add(inspectorPanel, TabularLayout.Constraint(2, 0))
 
-    processModel.addSelectedProcessListeners {
+    processModel.addSelectedProcessListeners(edtExecutor) {
       // Force a UI update NOW instead of waiting to poll.
       ActivityTracker.getInstance().inc()
       clearTabs()
