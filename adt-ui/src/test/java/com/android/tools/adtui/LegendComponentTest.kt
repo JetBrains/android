@@ -348,14 +348,32 @@ class LegendComponentTest {
     assertThat(legendComponent.preferredSize.height).isEqualTo(0)
   }
 
+  @Test
+  fun noTextInstructionForEmptyName() {
+    val range = Range(0.0, 0.0)
+    val model = LegendComponentModel(range)
+    val legendComponent = LegendComponent.Builder(model).build()
+    // Hack to force legendComponent's isShowing() to return true. The LegendComponent always early-return during an update if
+    // isShowing() == false, as an optimization to reduce the number of queries made to the dataseries/datastore.
+    legendComponent.addNotify()
+
+    // If name is empty (e.g. icon legend), we should not create an TextInstruction for it.
+    val legend = FakeLegend("", "Value")
+    model.add(legend)
+    modifyRange(range) // Some valid range that is different from what it was before (0.0, 0.0).
+
+    assertThat(legendComponent.instructions.size).isEqualTo(1)
+    assertText(legendComponent, listOf("Value"))
+  }
+
   private fun assertText(legend: LegendComponent, text: List<String>) {
     assertThat(legend.instructions.filterIsInstance<TextInstruction>().map { it.text })
-        .containsExactlyElementsIn(text).inOrder()
+      .containsExactlyElementsIn(text).inOrder()
   }
 
   private fun assertIcons(legend: LegendComponent, icons: List<LegendConfig.IconType>) {
     assertThat(legend.instructions.filterIsInstance<LegendIconInstruction>().map { it.myType })
-        .containsExactlyElementsIn(icons).inOrder()
+      .containsExactlyElementsIn(icons).inOrder()
   }
 
   // Modifies the Range such that it will change the Range.
