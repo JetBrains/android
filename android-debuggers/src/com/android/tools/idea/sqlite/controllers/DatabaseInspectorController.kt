@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.controllers
 
-import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
@@ -487,28 +486,21 @@ interface DatabaseInspectorController : Disposable {
 
   /**
    * Model for DatabaseInspectorController. Used to store and access currently open [SqliteDatabase]s and their [SqliteSchema]s.
-   * Implementations of this interface can be accessed from different threads, therefore should be thread-safe.
    */
+  @UiThread
   interface Model {
-    @AnyThread
     fun getOpenDatabases(): List<SqliteDatabase>
-    @AnyThread
     fun getDatabaseSchema(database: SqliteDatabase): SqliteSchema?
 
-    @AnyThread
     fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema)
-    @AnyThread
     fun remove(database: SqliteDatabase)
 
-    @AnyThread
     fun addListener(modelListener: Listener)
-    @AnyThread
     fun removeListener(modelListener: Listener)
 
+    @UiThread
     interface Listener {
-      @AnyThread
       fun onDatabaseAdded(database: SqliteDatabase)
-      @AnyThread
       fun onDatabaseRemoved(database: SqliteDatabase)
     }
   }
