@@ -279,6 +279,10 @@
                  defaultValue="false"
                  restartRequired="false"/>
 
+    <groupConfigurable id="build.android" parentId="build"
+                       displayNameKey="configurable.group.build.android.settings.display.name"
+                       descriptionKey="configurable.group.build.android.settings.description"/>
+
     <postStartupActivity implementation="com.android.tools.idea.stats.ProjectSizeUsageTracker"/>
     <postStartupActivity implementation="com.android.tools.idea.startup.ClearResourceCacheStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestRefreshListener$SubscriptionStartupActivity"/>
