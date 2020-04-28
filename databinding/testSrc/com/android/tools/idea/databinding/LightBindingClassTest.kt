@@ -130,7 +130,36 @@ class LightBindingClassTest {
       </manifest>
     """.trimIndent())
 
-    LayoutBindingModuleCache.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
+    // Add fake "View" and "ViewDataBinding" classes to this project so the light binding class can resolve its super class
+    val mode = DataBindingMode.ANDROIDX
+    with(fixture.addFileToProject("src/android/view/View.java",
+      // language=java
+      """
+        package android.view;
+
+        public abstract class View {}
+      """.trimIndent())) {
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
+    val databindingPackage = mode.packageName.removeSuffix(".") // Without trailing '.'
+    with(fixture.addFileToProject(
+      "src/${databindingPackage.replace('.', '/')}/ViewDataBinding.java",
+      // language=java
+      """
+        package $databindingPackage;
+
+        import android.view.View;
+
+        public abstract class ViewDataBinding {
+          void executePendingBindings() { }
+          View getRoot() { return null; }
+        }
+      """.trimIndent())) {
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
+    LayoutBindingModuleCache.getInstance(facet).dataBindingMode = mode
   }
 
   @Test
@@ -800,6 +829,33 @@ class LightBindingClassTest {
     dumbService.isDumb = false
     assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
       .containsExactly("ActivityFirstBinding", "ActivitySecondBinding")
+  }
+
+  @Test
+  fun superClassMethodsCanBeFound() {
+    fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+       // language=XML
+     """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+        </LinearLayout>
+      </layout>
+    """.trimIndent())
+
+    val context = fixture.addClass("public class MainActivity {}")
+
+    run {
+      val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)!!
+      assertThat(binding.supers.mapNotNull { it.qualifiedName }).containsExactly("androidx.databinding.ViewDataBinding")
+      assertThat(binding.findMethodsByName("getRoot", true)[0].returnType!!.canonicalText).isEqualTo("android.view.View")
+      assertThat(binding.findMethodsByName("executePendingBindings", true)).isNotEmpty()
+      assertThat(binding.findMethodsByName("getRoot", false)).isEmpty()
+      assertThat(binding.findMethodsByName("executePendingBindings", false)).isEmpty()
+    }
   }
 
   private fun PsiType.assertExpected(typeName: String, isNullable: Boolean = false) {
