@@ -78,6 +78,7 @@ public class DetailsViewContentView {
     Disposer.register(parentDisposable, myLogsView);
     TabInfo logsTab = new TabInfo(myLogsView.getComponent());
     logsTab.setText("Logs");
+    logsTab.setTooltipText("Show logcat output");
     tabs.addTab(logsTab);
 
     // Create benchmark tab.
@@ -85,6 +86,7 @@ public class DetailsViewContentView {
     Disposer.register(parentDisposable, myBenchmarkView);
     myBenchmarkTab = new TabInfo(myBenchmarkView.getComponent());
     myBenchmarkTab.setText("Benchmark");
+    myBenchmarkTab.setTooltipText("Show benchmark results");
     myBenchmarkTab.setHidden(true);
     tabs.addTab(myBenchmarkTab);
 
@@ -92,12 +94,14 @@ public class DetailsViewContentView {
     myDeviceInfoTableView = new AndroidDeviceInfoTableView();
     TabInfo deviceInfoTab = new TabInfo(myDeviceInfoTableView.getComponent());
     deviceInfoTab.setText("Device Info");
+    deviceInfoTab.setTooltipText("Show device information");
     tabs.addTab(deviceInfoTab);
 
     // Android Test Retention tab.
     myRetentionView = new RetentionView();
     myRetentionTab = new TabInfo(myRetentionView.getRootPanel());
     myRetentionTab.setText("Retention");
+    myRetentionTab.setTooltipText("Show emulator snapshots of failed tests");
     tabs.addTab(myRetentionTab);
     myRetentionTab.setHidden(true);
 
