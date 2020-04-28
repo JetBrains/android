@@ -18,7 +18,6 @@ package com.android.tools.idea.nav.safeargs.psi
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
-import com.google.common.base.CaseFormat
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import org.jetbrains.android.facet.AndroidFacet
@@ -83,7 +82,7 @@ class LightDirectionsClass(facet: AndroidFacet,
           arg to parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
         }
 
-        val methodName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, action.id)
+        val methodName = action.id.toCamelCase()
         createMethod(name = methodName,
                      navigationElement = backingResourceFile?.getXmlTagById(action.destination),
                      modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
