@@ -106,11 +106,6 @@ class DatabaseInspectorControllerImpl(
       view.updateDatabases(toAdd + toRemove)
 
       currentDatabases = databases
-
-      resultSetControllers.values
-        .asSequence()
-        .filterIsInstance<SqliteEvaluatorController>()
-        .forEach { it.updateDatabases(toAdd + toRemove) }
     }
   }
 
@@ -325,8 +320,8 @@ class DatabaseInspectorControllerImpl(
 
     val sqliteEvaluatorController = SqliteEvaluatorController(
       project,
+      model,
       sqliteEvaluatorView,
-      viewFactory,
       { closeTab(tabId) },
       edtExecutor,
       taskExecutor
@@ -337,10 +332,6 @@ class DatabaseInspectorControllerImpl(
     sqliteEvaluatorController.addListener(SqliteEvaluatorControllerListenerImpl())
 
     resultSetControllers[tabId] = sqliteEvaluatorController
-
-    model.getOpenDatabases().sortedBy { it.name }.forEachIndexed { index, sqliteDatabase ->
-      sqliteEvaluatorController.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase (sqliteDatabase, null, index)))
-    }
 
     return sqliteEvaluatorController
   }
