@@ -81,6 +81,7 @@ public class IssueView extends JPanel {
     myContainerIssuePanel = container;
     myDisplayPriority = getDisplayPriority(issue);
     mySelectedBorder.setColor(UIUtil.getTreeSelectionBorderColor());
+    myErrorDescription.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
     setupHeader(issue);
     setupDescriptionPanel(issue);
     setupFixPanel(issue);
