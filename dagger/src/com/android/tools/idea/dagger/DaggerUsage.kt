@@ -17,6 +17,7 @@ package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags.DAGGER_SUPPORT_ENABLED
+import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.find.findUsages.CustomUsageSearcher
 import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.openapi.application.runReadAction
@@ -74,73 +75,80 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
  * See a bug https://youtrack.jetbrains.com/issue/KT-36657.
  */
 class DaggerCustomUsageSearcher : CustomUsageSearcher() {
+  private class UsageWithAnalyticsTracking(
+    usageElement: PsiElement,
+    targetElement: PsiElement
+  ) : UsageInfo2UsageAdapter(UsageInfo(usageElement)) {
+    private val targetType = getTypeForMetrics(targetElement)
+    private val usageType = getTypeForMetrics(usageElement)
+
+    override fun navigate(focus: Boolean) {
+      element.project.service<DaggerAnalyticsTracker>()
+        .trackNavigation(
+          DaggerEditorEvent.NavigationMetadata.NavigationContext.CONTEXT_USAGES,
+          fromElement = targetType,
+          toElement = usageType
+        )
+      super.navigate(focus)
+    }
+  }
+
   @WorkerThread
   override fun processElementUsages(element: PsiElement, processor: Processor<Usage>, options: FindUsagesOptions) {
     runReadAction {
-      when {
+      val usages: Collection<PsiElement> = when {
         !DAGGER_SUPPORT_ENABLED.get() -> return@runReadAction
         !element.project.service<DaggerDependencyChecker>().isDaggerPresent() -> return@runReadAction
-        element.isDaggerConsumer -> processCustomUsagesForConsumers(element, processor)
-        element.isDaggerProvider -> processCustomUsagesForProvider(element, processor)
-        element.isDaggerModule -> processCustomUsagesForModule(element, processor)
-        element.isDaggerComponent -> processCustomUsagesForComponent(element, processor)
-        element.isDaggerSubcomponent -> processCustomUsagesForSubcomponent(element, processor)
+        element.isDaggerConsumer -> getCustomUsagesForConsumers(element)
+        element.isDaggerProvider -> getCustomUsagesForProvider(element)
+        element.isDaggerModule -> getCustomUsagesForModule(element)
+        element.isDaggerComponent -> getCustomUsagesForComponent(element)
+        element.isDaggerSubcomponent -> getCustomUsagesForSubcomponent(element)
         else -> return@runReadAction
+      }
+      if (usages.isNotEmpty()) {
+        usages.forEach { processor.process(UsageWithAnalyticsTracking(it, element)) }
+        element.project.service<DaggerAnalyticsTracker>().trackFindUsagesNodeWasDisplayed(getTypeForMetrics(element))
       }
     }
   }
 
   /**
-   * Adds Component that are parents to [subcomponent].
+   * Returns Components that are parents to [subcomponent].
+   *
+   * Note: [subcomponent] is always PsiClass or KtClass, see [isDaggerSubcomponent].
    */
-  private fun processCustomUsagesForSubcomponent(subcomponent: PsiElement, processor: Processor<Usage>) {
-    // subcomponent is always PsiClass or KtClass, see [isDaggerSubcomponent].
+  private fun getCustomUsagesForSubcomponent(subcomponent: PsiElement) =
     getDaggerParentComponentsForSubcomponent(subcomponent.toPsiClass()!!)
-      .forEach { processor.process(UsageInfo2UsageAdapter(UsageInfo(it))) }
-  }
 
   /**
-   *  Adds Components that use a [component] in "dependencies" attr.
+   * Returns Components that use a [component] in "dependencies" attr.
+   *
+   * Note: [component] is always PsiClass or KtClass, see [isDaggerComponent].
    */
-  private fun processCustomUsagesForComponent(component: PsiElement, processor: Processor<Usage>) {
-    // component is always PsiClass or KtClass, see [isDaggerComponent].
-    getDependantComponentsForComponent(component.toPsiClass()!!).forEach { processor.process(UsageInfo2UsageAdapter(UsageInfo(it))) }
-    getSubcomponents(component.toPsiClass()!!).forEach { processor.process(UsageInfo2UsageAdapter(UsageInfo(it))) }
+  private fun getCustomUsagesForComponent(component: PsiElement): Collection<PsiElement> {
+    return getDependantComponentsForComponent(component.toPsiClass()!!) +
+           getSubcomponents(component.toPsiClass()!!)
   }
 
   /**
-   * Adds Components and Subcomponents that uses a [module] in "modules" attr.
-   */
-  @WorkerThread
-  private fun processCustomUsagesForModule(module: PsiElement, processor: Processor<Usage>) {
-    // [module] is always PsiClass or KtClass, see [isDaggerModule].
-    getUsagesForDaggerModule(module.toPsiClass()!!).forEach { processor.process(UsageInfo2UsageAdapter(UsageInfo(it))) }
-  }
-
-  /**
-   * Adds Dagger providers of [element] to [element]'s usages.
+   * Returns Components and Subcomponents that uses a [module] in "modules" attr.
+   *
+   * Note: [module] is always PsiClass or KtClass, see [isDaggerModule].
    */
   @WorkerThread
-  private fun processCustomUsagesForConsumers(element: PsiElement, processor: Processor<Usage>) {
-    getDaggerProvidersFor(element).forEach {
-      val info = UsageInfo(it)
-      processor.process(UsageInfo2UsageAdapter(info))
-    }
-  }
+  private fun getCustomUsagesForModule(module: PsiElement) = getUsagesForDaggerModule(module.toPsiClass()!!)
 
   /**
-   * Adds Dagger consumers of [provider] to [provider]'s usages.
-   * Adds Dagger component's methods associated with [provider].
+   * Adds Dagger providers of [consumer] to [consumer]'s usages.
    */
   @WorkerThread
-  private fun processCustomUsagesForProvider(provider: PsiElement, processor: Processor<Usage>) {
-    getDaggerConsumersFor(provider).forEach {
-      val info = UsageInfo(it)
-      processor.process(UsageInfo2UsageAdapter(info))
-    }
-    getDaggerComponentMethodsForProvider(provider).forEach {
-      val info = UsageInfo(it)
-      processor.process(UsageInfo2UsageAdapter(info))
-    }
-  }
+  private fun getCustomUsagesForConsumers(consumer: PsiElement) = getDaggerProvidersFor(consumer)
+
+  /**
+   * Returns Dagger consumers of [provider] and Dagger component's methods associated with [provider].
+   */
+  @WorkerThread
+  private fun getCustomUsagesForProvider(provider: PsiElement): Collection<PsiElement> = getDaggerConsumersFor(provider) +
+                                                                                         getDaggerComponentMethodsForProvider(provider)
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.idea.flags.StudioFlags
+import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
@@ -53,6 +54,21 @@ internal object UIStrings {
  */
 class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
+  private class GotoItemWithAnalyticsTraking(
+    fromElement: PsiElement,
+    toElement: PsiElement,
+    group: String
+  ) : GotoRelatedItem(toElement, group) {
+    private val fromElementType = getTypeForMetrics(fromElement)
+    private val toElementType = getTypeForMetrics(toElement)
+
+    override fun navigate() {
+      element?.project?.service<DaggerAnalyticsTracker>()
+        ?.trackNavigation(DaggerEditorEvent.NavigationMetadata.NavigationContext.CONTEXT_GUTTER, fromElementType, toElementType)
+      super.navigate()
+    }
+  }
+
   override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<PsiElement>>) {
     if (!StudioFlags.DAGGER_SUPPORT_ENABLED.get() || !element.project.service<DaggerDependencyChecker>().isDaggerPresent()) return
 
@@ -70,13 +86,16 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       else -> return
     }
 
+    val typeForMetrics = getTypeForMetrics(parent)
+
     val info = RelatedItemLineMarkerInfo<PsiElement>(
       element,
       element.textRange,
       icon,
       Pass.LINE_MARKERS,
       { "Dependency Related Files" },
-      { mouseEvent, _ ->
+      { mouseEvent, elt ->
+        elt.project.service<DaggerAnalyticsTracker>().trackClickOnGutter(typeForMetrics)
         when (gotoTargets.value.size) {
           0 -> JBPopupFactory.getInstance()
             .createMessage("No related items")
@@ -95,7 +114,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
       // subcomponent is always PsiClass or KtClass, see [isDaggerSubcomponent].
       override fun compute() = getDaggerParentComponentsForSubcomponent(subcomponent.toPsiClass()!!).map {
-        GotoRelatedItem(it, UIStrings.PARENT_COMPONENTS)
+        GotoItemWithAnalyticsTraking(subcomponent, it, UIStrings.PARENT_COMPONENTS)
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
@@ -103,10 +122,12 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
   private fun getIconAndGoToItemsForComponent(component: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
-      // component is always PsiClass or KtClass, see [isDaggerComponent].
       override fun compute(): List<GotoRelatedItem> {
-        return getDependantComponentsForComponent(component.toPsiClass()!!).map { GotoRelatedItem(it, UIStrings.PARENT_COMPONENTS) } +
-               getSubcomponents(component.toPsiClass()!!).map { GotoRelatedItem(it, UIStrings.SUBCOMPONENTS) }
+        // component is always PsiClass or KtClass, see [isDaggerComponent].
+        val componentAsPsiClass = component.toPsiClass()!!
+        return getDependantComponentsForComponent(componentAsPsiClass)
+                 .map { GotoItemWithAnalyticsTraking(component, it, UIStrings.PARENT_COMPONENTS) } +
+               getSubcomponents(componentAsPsiClass).map { GotoItemWithAnalyticsTraking(component, it, UIStrings.SUBCOMPONENTS) }
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
@@ -118,7 +139,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
         // [module] is always PsiClass or KtClass, see [isDaggerModule].
         return getUsagesForDaggerModule(module.toPsiClass()!!).map {
           val group = if (it.isDaggerComponent) UIStrings.INCLUDED_IN_COMPONENTS else UIStrings.INCLUDED_IN_MODULES
-          GotoRelatedItem(it, group)
+          GotoItemWithAnalyticsTraking(module, it, group)
         }
       }
     }
@@ -128,8 +149,9 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
   private fun getIconAndGoToItemsForProvider(provider: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
       override fun compute(): List<GotoRelatedItem> {
-        return getDaggerConsumersFor(provider).map { GotoRelatedItem(it, UIStrings.CONSUMERS) } +
-               getDaggerComponentMethodsForProvider(provider).map { GotoRelatedItem(it, UIStrings.EXPOSED_BY_COMPONENTS) }
+        return getDaggerConsumersFor(provider).map { GotoItemWithAnalyticsTraking(provider, it, UIStrings.CONSUMERS) } +
+               getDaggerComponentMethodsForProvider(provider)
+                 .map { GotoItemWithAnalyticsTraking(provider, it, UIStrings.EXPOSED_BY_COMPONENTS) }
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
@@ -137,7 +159,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
   private fun getIconAndGoToItemsForConsumer(consumer: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
-      override fun compute() = getDaggerProvidersFor(consumer).map { GotoRelatedItem(it, UIStrings.PROVIDERS) }
+      override fun compute() = getDaggerProvidersFor(consumer).map { GotoItemWithAnalyticsTraking(consumer, it, UIStrings.PROVIDERS) }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_PROVIDER, gotoTargets)
   }

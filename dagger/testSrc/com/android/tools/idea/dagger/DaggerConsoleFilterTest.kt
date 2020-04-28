@@ -26,8 +26,10 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.registerServiceInstance
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
+
 
 class DaggerConsoleFilterTest : DaggerTestCase() {
   private fun navigateToResultInLine(filter: Filter, line: String, resultNum: Int = 0) {
@@ -167,6 +169,18 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
     navigateToResultInLine(filter, "example.MyClass.Inner")
     elementAtCaret = myFixture.elementAtCaret
     assertThat((elementAtCaret as KtClass).getQualifiedName()).isEqualTo("example.MyClass.Inner")
+  }
+
+  fun testAnalyticsTracker() {
+    val trackerService = TestDaggerAnalyticsTracker()
+    project.registerServiceInstance(DaggerAnalyticsTracker::class.java, trackerService)
+
+    val filter = DaggerConsoleFilter()
+
+    navigateToResultInLine(filter, "$ERROR_PREFIX example.MyClass.myMethod()")
+
+    assertThat(trackerService.calledMethods).hasSize(1)
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackOpenLinkFromError")
   }
 
 }
