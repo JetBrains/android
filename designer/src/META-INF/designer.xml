@@ -14,6 +14,8 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <depends optional="true" config-file="designer-androidstudio.xml">com.intellij.modules.androidstudio</depends>
+
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
   </extensions>
@@ -79,35 +81,6 @@
       <implementation-class>com.android.tools.idea.uibuilder.palette.NlPaletteModel</implementation-class>
     </component>
   </module-components>
-
-  <actions>
-    <action
-        id="LayoutEditor.HelpAssistant"
-        class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"
-        icon="StudioIcons.Common.HELP"
-        text="Show Help Panel"
-        description="Show/Hide Help Panel for Layout Editor">
-    </action>
-    <action
-        id="LayoutEditor.HelpAssistant.Full"
-        class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"
-        icon="StudioIcons.Common.HELP"
-        text="Show Help Panel"
-        description="Show/Hide Help Panel for Layout Editor">
-    </action>
-    <action
-        id="LayoutEditor.HelpAssistant.ConstraintLayout"
-        class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"
-        text="Constraint Layout Help Panel"
-        description="Create Help Panel for Constraint Layout Editor">
-    </action>
-    <action
-        id="LayoutEditor.HelpAssistant.MotionLayout"
-        class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"
-        text="Motion Layout Help Panel"
-        description="Create Help Panel for Motion Layout Editor">
-    </action>
-  </actions>
 
   <!-- The design tool actions which the shortcuts are configurable. -->
   <!-- The action ids should be listed in com.android.tools.idea.actions.DesignerActions.kt file  -->
