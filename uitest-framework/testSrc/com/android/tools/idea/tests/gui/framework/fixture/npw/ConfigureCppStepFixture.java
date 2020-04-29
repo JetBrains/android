@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
-import com.android.tools.idea.npw.cpp.CppStandardType;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import javax.swing.JRootPane;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class ConfigureCppStepFixture<W extends AbstractWizardFixture> extends AbstractWizardStepFixture<ConfigureCppStepFixture, W> {
   ConfigureCppStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
