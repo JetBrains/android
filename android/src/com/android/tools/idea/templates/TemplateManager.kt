@@ -34,6 +34,7 @@ import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardUiContext
@@ -207,9 +208,9 @@ class TemplateManager private constructor() {
         facet, initialPackageSuggestion, moduleTemplates[0],
         commandName, projectSyncInvoker, true
       )
-      val chooseTypeStep: SkippableWizardStep<RenderTemplateModel>
+      val chooseTypeStep: SkippableWizardStep<WizardModel>
       chooseTypeStep = when (category) {
-        CATEGORY_ACTIVITY -> ChooseActivityTypeStep.Factory.forActivityGallery(renderModel, targetDirectory)
+        CATEGORY_ACTIVITY -> ChooseActivityTypeStep.forActivityGallery(renderModel, targetDirectory)
         CATEGORY_FRAGMENT -> ChooseFragmentTypeStep(renderModel, FormFactor.MOBILE, targetDirectory)
         else -> throw RuntimeException("Invalid category name: $category")
       }
