@@ -32,15 +32,19 @@ import static com.android.SdkConstants.ATTR_MIN_HEIGHT;
 import static com.android.SdkConstants.ATTR_MIN_WIDTH;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_VALUE;
+import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
 import static com.android.SdkConstants.CLASS_MOTION_LAYOUT;
+import static com.android.SdkConstants.CLASS_VIEW;
+import static com.android.SdkConstants.CLASS_VIEWGROUP;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
+import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
 import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
 import static com.android.SdkConstants.ID_PREFIX;
@@ -801,6 +805,30 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
   }
 
+  /**
+   * Returns the list of selected ids in a string formatted:
+   * "${id1}, ${id2}, ${id3}".
+   * Returns null if there's no selected views.
+   */
+  @Nullable
+  static String getSelectedIds(List<NlComponent> selected) {
+    if (selected.isEmpty()) {
+      return null;
+    }
+
+    StringBuilder builder = new StringBuilder();
+    for (NlComponent component : selected) {
+      if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_VIEW) ||
+          NlComponentHelperKt.isOrHasSuperclass(component, CLASS_VIEWGROUP)) {
+        builder.append(component.getId()).append(",");
+      }
+    }
+    if (builder.length() == 0) {
+      return null;
+    }
+    return builder.toString().substring(0, builder.length() - 1);
+  }
+
   private static class AddElementAction extends DirectViewAction {
     public static final int HORIZONTAL_GUIDELINE = 0;
     public static final int VERTICAL_GUIDELINE = 1;
@@ -859,6 +887,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_GROUP.newName() : CLASS_CONSTRAINT_LAYOUT_GROUP.oldName(),
                            null, InsertType.CREATE);
             assert group != null;
+            String referencedIds = getSelectedIds(selectedChildren);
+            if (referencedIds != null) {
+              group.setAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS, referencedIds);
+            }
             group.ensureId();
           }
           break;
@@ -877,6 +909,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_LAYER.newName() : CLASS_CONSTRAINT_LAYOUT_LAYER.oldName(),
                            null, InsertType.CREATE);
             assert layer != null;
+
+            String referencedIds = getSelectedIds(selectedChildren);
+            if (referencedIds != null) {
+              layer.setAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS, referencedIds);
+            }
             layer.ensureId();
           }
           break;
@@ -885,6 +922,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_FLOW.newName() : CLASS_CONSTRAINT_LAYOUT_FLOW.oldName(),
                            null, InsertType.CREATE);
             assert layer != null;
+
+            String referencedIds = getSelectedIds(selectedChildren);
+            if (referencedIds != null) {
+              layer.setAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS, referencedIds);
+            }
             layer.ensureId();
           }
           break;
@@ -930,6 +972,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
                            InsertType.CREATE);
             assert barrier != null;
+
+            String referencedIds = getSelectedIds(selectedChildren);
+            if (referencedIds != null) {
+              barrier.setAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS, referencedIds);
+            }
             barrier.ensureId();
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "top");
             // TODO add getAnalyticsManager(editor).trackAddHorizontalBarrier
@@ -993,6 +1040,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
                            InsertType.CREATE);
             assert barrier != null;
+            String referencedIds = getSelectedIds(selectedChildren);
+            if (referencedIds != null) {
+              barrier.setAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS, referencedIds);
+            }
             barrier.ensureId();
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "left");
 
