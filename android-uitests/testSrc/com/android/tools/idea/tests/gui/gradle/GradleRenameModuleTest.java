@@ -24,6 +24,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.SelectRefactoringDialo
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
+import org.fest.swing.core.KeyPressInfo;
+import org.fest.swing.util.Platform;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -101,5 +103,60 @@ public class GradleRenameModuleTest {
       .enterText("library2")
       .clickOkAndRequireError("Module named 'library2' already exist")
       .clickCancel();
+  }
+
+  @Test
+  public void testUndoKeyAfterRenameModule() throws IOException {
+    guiTest
+      .importSimpleApplication()
+      .actAndWaitForGradleProjectSyncToFinish(it -> {
+        it.getProjectView()
+          .selectProjectPane()
+          .clickPath("SimpleApplication", "app")
+          .openFromMenu(SelectRefactoringDialogFixture::find, "Refactor", "Rename...")
+          .selectRenameModule()
+          .clickOk()
+          .enterText("app2")
+          .clickOk();
+      });
+    assertThat(guiTest.ideFrame().hasModule("app2")).named("app2 module exists").isTrue();
+    assertThat(guiTest.ideFrame().hasModule("app")).named("app module exists").isFalse();
+
+    KeyPressInfo undo = KeyPressInfo.keyCode(java.awt.event.KeyEvent.VK_Z).modifiers(Platform.controlOrCommandMask());
+    guiTest
+      .ideFrame()
+      .actAndWaitForGradleProjectSyncToFinish(it -> {
+        it.pressAndReleaseKey(undo);
+      });
+
+    assertThat(guiTest.ideFrame().hasModule("app")).named("app module exists").isTrue();
+    assertThat(guiTest.ideFrame().hasModule("app2")).named("app2 module exists").isFalse();
+  }
+
+  @Test
+  public void testUndoMenuAfterRenameModule() throws IOException {
+    guiTest
+      .importSimpleApplication()
+      .actAndWaitForGradleProjectSyncToFinish(it -> {
+        it.getProjectView()
+          .selectProjectPane()
+          .clickPath("SimpleApplication", "app")
+          .openFromMenu(SelectRefactoringDialogFixture::find, "Refactor", "Rename...")
+          .selectRenameModule()
+          .clickOk()
+          .enterText("app2")
+          .clickOk();
+      });
+    assertThat(guiTest.ideFrame().hasModule("app2")).named("app2 module exists").isTrue();
+    assertThat(guiTest.ideFrame().hasModule("app")).named("app module exists").isFalse();
+
+    guiTest
+      .ideFrame()
+      .actAndWaitForGradleProjectSyncToFinish(it -> {
+        it.invokeMenuPath("Edit", "Undo Renaming module app");
+      });
+
+    assertThat(guiTest.ideFrame().hasModule("app")).named("app module exists").isTrue();
+    assertThat(guiTest.ideFrame().hasModule("app2")).named("app2 module exists").isFalse();
   }
 }

@@ -37,7 +37,6 @@ import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.BasicUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
@@ -59,7 +58,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.rename.RenameHandler;
-import com.intellij.util.ThrowableRunnable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -176,7 +174,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
 
       String currentName = ModuleGrouper.instanceFor(project).getShortenedName(myModule);
       String msg = IdeBundle.message("command.renaming.module", currentName);
-      WriteCommandAction.Builder actionBuilder = WriteCommandAction.writeCommandAction(project).withName(msg);
+      WriteCommandAction.Builder actionBuilder = WriteCommandAction.writeCommandAction(project).withName(msg).withGlobalUndo();
       ThrowableComputable<Boolean,Throwable> action = () -> {
         if (!settingsModel.modulePaths().contains(oldModuleGradlePath)) {
           String settingsFileName = settingsModel.getVirtualFile().getName();
