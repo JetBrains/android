@@ -15,13 +15,36 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.CONSTRAINT_LAYOUT
+import com.android.SdkConstants.RECYCLER_VIEW
+import com.android.SdkConstants.TAG_LAYOUT
+import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture
 import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import com.intellij.testFramework.exceptionCases.AbstractExceptionCase
 
 class ConstraintLayoutHandlerTest: SceneTest() {
+
+  fun testClearConstraintAttributesWithNoComponents() {
+    val nlModel = model("constraint.xml",
+                        component(CONSTRAINT_LAYOUT.defaultName())
+                          .id("@+id/root")
+                          .withBounds(0, 0, 2000, 2000)
+                          .width("1000dp")
+                          .height("1000dp"))
+      .build()
+
+    val handler = nlModel.find("root")!!.viewGroupHandler!!
+    assertNoException(object : AbstractExceptionCase<IllegalArgumentException>() {
+      override fun getExpectedExceptionClass() = IllegalArgumentException::class.java
+
+      override fun tryClosure() {
+        handler.clearAttributes(listOf())
+      }
+    })
+  }
 
   fun testClearConstraintAttributes() {
     val handler = myModel.find("root")!!.viewGroupHandler!!
