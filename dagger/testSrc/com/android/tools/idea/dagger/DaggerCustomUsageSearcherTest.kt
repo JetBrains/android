@@ -114,12 +114,15 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         package example
 
         import dagger.Provides
+        import dagger.BindsInstance
         import dagger.Module
 
         @Module
         class MyModule {
           @Provides fun provider():String {}
           @Provides fun providerInt():Int {}
+          @BindsInstance fun bindsMethod():String {}
+          fun builder(@BindsInstance str:String) {}
         }
       """.trimIndent()
     )
@@ -141,13 +144,16 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-      | Found usages (1 usage)
-      |  Provider(s) (1 usage)
-      |   ${module.name} (1 usage)
-      |     (1 usage)
-      |     MyClass.kt (1 usage)
-      |      MyModule (1 usage)
-      |       8@Provides fun provider():String {}
+      | Found usages (3 usages)
+      |  Provider(s) (3 usages)
+      |   ${module.name} (3 usages)
+      |     (3 usages)
+      |     MyClass.kt (3 usages)
+      |      MyModule (3 usages)
+      |       builder (1 usage)
+      |        12fun builder(@BindsInstance str:String) {}
+      |       9@Provides fun provider():String {}
+      |       11@BindsInstance fun bindsMethod():String {}
       """.trimMargin()
     )
   }

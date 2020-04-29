@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
@@ -27,6 +28,7 @@ import com.intellij.navigation.GotoRelatedItem
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.registerServiceInstance
 import org.jetbrains.kotlin.asJava.LightClassUtil
@@ -523,5 +525,63 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     myFixture.moveCaret("ON|E")
 
     assertThat(myFixture.findGuttersAtCaret()).isEmpty()
+  }
+
+  fun testBindsInstance() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      import javax.inject.Qualifier;
+
+      @Qualifier
+      public @interface MyQualifier {}
+    """.trimIndent()
+    )
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import javax.inject.Inject;
+
+      class MyClass {
+        @Inject String injectedString;
+        @Inject @MyQualifier String injectedStringWithQualifier;
+      }
+
+    """.trimIndent())
+
+    myFixture.loadNewFile("test/MyModule.kt",
+      //language=kotlin
+                          """
+        package test
+        import dagger.Module
+        import dagger.BindsInstance
+        import test.MyQualifier
+
+        @Module
+        class MyModule {
+           fun bindString(@BindsInstance @MyQualifier str:String):String
+        }
+      """.trimIndent()
+    )
+
+    myFixture.moveCaret("st|r")
+
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isNotEmpty()
+
+    val icon = icons.find { it.tooltipText == "Dependency Related Files" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val gotoRelatedItems = getGotoElements(icon)
+    assertThat(gotoRelatedItems).hasSize(1)
+    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
+    assertThat(result).containsExactly("Consumer(s): injectedStringWithQualifier")
+
+    clickOnIcon(icon)
+    assertThat(trackerService.calledMethods).hasSize(2)
+    assertThat(trackerService.calledMethods.first()).isEqualTo("trackClickOnGutter PROVIDER")
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER CONSUMER")
   }
 }
