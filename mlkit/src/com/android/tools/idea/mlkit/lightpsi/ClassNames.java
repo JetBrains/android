@@ -21,4 +21,5 @@ public class ClassNames {
   public static final String TENSOR_IMAGE = "org.tensorflow.lite.support.image.TensorImage";
   public static final String TENSOR_BUFFER = "org.tensorflow.lite.support.tensorbuffer.TensorBuffer";
   public static final String TENSOR_LABEL = "org.tensorflow.lite.support.label.TensorLabel";
+  public static final String MODEL_OPTIONS = "org.tensorflow.lite.support.model.Model.Options";
 }
