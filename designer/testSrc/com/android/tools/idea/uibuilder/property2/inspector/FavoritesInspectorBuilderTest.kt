@@ -34,19 +34,19 @@ import com.android.tools.property.panel.api.EnumSupportProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import icons.StudioIcons
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class FavoritesInspectorBuilderTest {
 
-  @JvmField
-  @Rule
+  @get:Rule
   val projectRule = AndroidProjectRule.withSdk()
 
-  @JvmField
-  @Rule
+  @get:Rule
   val edtRule = EdtRule()
 
   @Before

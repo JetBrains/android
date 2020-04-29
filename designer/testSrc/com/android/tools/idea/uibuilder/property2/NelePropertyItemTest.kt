@@ -91,6 +91,7 @@ private const val HELLO_WORLD = "Hello World"
 
 private val ERROR = EditingErrorCategory.ERROR
 
+@RunsInEdt
 class NelePropertyItemTest {
 
   @get:Rule
@@ -115,7 +116,6 @@ class NelePropertyItemTest {
     componentStack = null
   }
 
-  @RunsInEdt
   @Test
   fun testTextProperty() {
     val util = SupportTestUtil(projectRule, createTextView())
@@ -137,7 +137,6 @@ class NelePropertyItemTest {
     assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
   }
 
-  @RunsInEdt
   @Test
   fun testUnboundTextProperty() {
     val util = SupportTestUtil(projectRule, createTextViewWithHardcodedValue())
@@ -153,7 +152,6 @@ class NelePropertyItemTest {
     assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
   }
 
-  @RunsInEdt
   @Test
   fun testTextDesignProperty() {
     val util = SupportTestUtil(projectRule, createTextView())
@@ -178,7 +176,6 @@ class NelePropertyItemTest {
     assertThat(design.designProperty).isEqualTo(design)
   }
 
-  @RunsInEdt
   @Test
   fun testColorPropertyWithColorWithoutValue() {
     val util = SupportTestUtil(projectRule, createTextView())
@@ -194,7 +191,6 @@ class NelePropertyItemTest {
     assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
   }
 
-  @RunsInEdt
   @Test
   fun testColorPropertyWithColorConstant() {
     val util = SupportTestUtil(projectRule, createTextViewWithTextColor("#FF990033"))
@@ -211,7 +207,6 @@ class NelePropertyItemTest {
     assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
   }
 
-  @RunsInEdt
   @Test
   fun testColorPropertyWithColorStateList() {
     val util = SupportTestUtil(projectRule, createTextViewWithTextColor("@android:color/primary_text_dark"))
@@ -229,7 +224,6 @@ class NelePropertyItemTest {
     assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
   }
 
-  @RunsInEdt
   @Test
   fun testIsReference() {
     val util = SupportTestUtil(projectRule, createTextView())
@@ -244,7 +238,6 @@ class NelePropertyItemTest {
     assertThat(isReferenceValue(property, "@android:id/hello")).isFalse()
   }
 
-  @RunsInEdt
   @Test
   fun testResolvedValues() {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
@@ -268,7 +261,6 @@ class NelePropertyItemTest {
     assertThat(resolvedValue(util, NelePropertyType.LAYOUT, "@layout/my_layout")).isEqualTo("@layout/my_layout")
   }
 
-  @RunsInEdt
   @Test
   fun testGetValueWhenDisplayingResolvedValues() {
     val util = SupportTestUtil(projectRule, createTextView())
@@ -279,7 +271,6 @@ class NelePropertyItemTest {
     assertThat(property.isReference).isTrue()
   }
 
-  @RunsInEdt
   @Test
   fun testGetSameValueFromMultipleComponents() {
     val util = SupportTestUtil(projectRule, createTextViewAndButtonWithSameTextValue())
@@ -290,7 +281,6 @@ class NelePropertyItemTest {
     assertThat(property.resolvedValue).isEqualTo("Demo String")
   }
 
-  @RunsInEdt
   @Test
   fun testGetDifferentValueFromMultipleComponents() {
     val util = SupportTestUtil(projectRule, createTextViewAndButtonWithDifferentTextValue())
@@ -300,7 +290,6 @@ class NelePropertyItemTest {
     assertThat(property.resolvedValue).isNull()
   }
 
-  @RunsInEdt
   @Test
   fun testSetValueOnMultipleComponents() {
     val util = SupportTestUtil(projectRule, createTextViewAndButtonWithDifferentTextValue())
@@ -315,7 +304,6 @@ class NelePropertyItemTest {
     assertThat(components[1].getAttribute(ANDROID_URI, ATTR_TEXT)).isEqualTo(HELLO_WORLD)
   }
 
-  @RunsInEdt
   @Test
   fun testSetNewToolsValue() {
     val util = SupportTestUtil(projectRule, createTextView())
@@ -329,7 +317,6 @@ class NelePropertyItemTest {
     assertThat(property.model.properties.getOrNull(TOOLS_URI, ATTR_TEXT) != null)
   }
 
-  @RunsInEdt
   @Test
   fun testGetDefaultValue() {
     val util = SupportTestUtil(projectRule, createTextView())
@@ -343,7 +330,6 @@ class NelePropertyItemTest {
     assertThat(property.defaultValue).isEqualTo("@android:style/TextAppearance.Material.Small")
   }
 
-  @RunsInEdt
   @Test
   fun testSetParentTagValue() {
     val util = SupportTestUtil(projectRule, VIEW_MERGE)
@@ -360,7 +346,6 @@ class NelePropertyItemTest {
     assertThat(propertiesGenerated).isTrue()
   }
 
-  @RunsInEdt
   @Test
   fun testToolTipForValue() {
     val util = SupportTestUtil(projectRule, createTextView())
@@ -435,7 +420,6 @@ class NelePropertyItemTest {
     assertThat(localValue).isLessThan(firstFrameworkValue)
   }
 
-  @RunsInEdt
   @Test
   fun testParentTagCompletion() {
     val util = SupportTestUtil(projectRule, VIEW_MERGE)
@@ -444,7 +428,6 @@ class NelePropertyItemTest {
     assertThat(values).containsAllOf(LINEAR_LAYOUT, ABSOLUTE_LAYOUT, FRAME_LAYOUT)
   }
 
-  @RunsInEdt
   @Test
   fun testColorValidation() {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
@@ -468,7 +451,6 @@ class NelePropertyItemTest {
     assertThat(color.editingSupport.validation("@color/no_color")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'no_color'"))
   }
 
-  @RunsInEdt
   @Test
   fun testDrawableValidation() {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
@@ -497,7 +479,6 @@ class NelePropertyItemTest {
     assertThat(srcCompat.editingSupport.validation("@mipmap/ic_not_found")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'ic_not_found'"))
   }
 
-  @RunsInEdt
   @Test
   fun testAnimatorValidation() {
     projectRule.fixture.addFileToProject("res/animator/my_animator.xml", ANIMATOR_RESOURCE)
@@ -526,7 +507,6 @@ class NelePropertyItemTest {
     assertThat(visibility.editingSupport.validation("blue")).isEqualTo(Pair(ERROR, "Invalid value: 'blue'"))
   }
 
-  @RunsInEdt
   @Test
   fun testSampleDataValidation() {
     val util = SupportTestUtil(projectRule, createTextView())
@@ -534,7 +514,6 @@ class NelePropertyItemTest {
     assertThat(src.editingSupport.validation("@tools:sample/avatars[1]")).isEqualTo(EDITOR_NO_ERROR)
   }
 
-  @RunsInEdt
   @Test
   fun testIdOrStringDataValidation() {
     projectRule.fixture.addFileToProject("res/layout/motion_layout.xml", MOTION_LAYOUT)
@@ -552,7 +531,6 @@ class NelePropertyItemTest {
     assertThat(src.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
   }
 
-  @RunsInEdt
   @Test
   fun testXmlDataValidation() {
     projectRule.fixture.addFileToProject("res/xml/motion_scene.xml", MOTION_SCENE)
@@ -567,8 +545,7 @@ class NelePropertyItemTest {
     assertThat(src.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
   }
 
-  @RunsInEdt
-  @Test
+@Test
   fun testColorIconOfBackgroundAttribute() {
     val util = SupportTestUtil(projectRule, createImageView())
     val background = util.makeProperty(ANDROID_URI, ATTR_BACKGROUND, NelePropertyType.DRAWABLE)
@@ -581,8 +558,7 @@ class NelePropertyItemTest {
     assertThat(background.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
   }
 
-  @RunsInEdt
-  @Test
+@Test
   fun testColorIconOfSrcAttribute() {
     val util = SupportTestUtil(projectRule, createImageView())
     val src = util.makeProperty(ANDROID_URI, ATTR_SRC, NelePropertyType.DRAWABLE)
@@ -596,8 +572,7 @@ class NelePropertyItemTest {
     assertThat(src.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
   }
 
-  @RunsInEdt
-  @Test
+@Test
   fun testBrowse() {
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE)
@@ -616,8 +591,7 @@ class NelePropertyItemTest {
     assertThat(findLineAtOffset(descriptor.file, descriptor.offset)).isEqualTo("<style name=\"TextAppearance.Material.Display2\">")
   }
 
-  @RunsInEdt
-  @Test
+@Test
   fun testSetValueIgnoredDuringUndo() {
     val undoManager = mock(UndoManagerImpl::class.java)
     componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
@@ -629,8 +603,7 @@ class NelePropertyItemTest {
     assertThat(property.value).isEqualTo("@string/demo")
   }
 
-  @RunsInEdt
-  @Test
+@Test
   fun testSetValueIgnoredDuringRedo() {
     val undoManager = mock(UndoManagerImpl::class.java)
     componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
