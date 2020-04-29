@@ -20,14 +20,21 @@ import com.android.ddmlib.DebugViewDumpHandler
 import com.android.ddmlib.DebugViewDumpHandler.CHUNK_VULW
 import com.android.ddmlib.DebugViewDumpHandler.CHUNK_VURT
 import com.android.ddmlib.FakeClientBuilder
+import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.ClientImpl
 import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.properties.DimensionUnits
+import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatcher
@@ -37,15 +44,26 @@ import org.mockito.ArgumentMatchers.argThat
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import java.nio.ByteBuffer
 
 class LegacyTreeLoaderTest {
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   @get:Rule
   val adb = FakeAdbRule()
 
   @get:Rule
   val disposableRule = DisposableRule()
+
+  @Before
+  fun init() {
+    val propertiesComponent = PropertiesComponentMock()
+    applicationRule.testApplication.registerService(PropertiesComponent::class.java, propertiesComponent)
+    PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
+  }
 
   private val treeSample = """
 com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1920 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
@@ -67,6 +85,7 @@ DONE.
   @Test
   fun testParseNodes() {
     val resourceLookup = mock(ResourceLookup::class.java)
+    `when`(resourceLookup.dpi).thenReturn(-1)
     val provider = LegacyPropertiesProvider()
     val propertiesUpdater = LegacyPropertiesProvider.Updater(resourceLookup)
     val (root, hash) = LegacyTreeLoader.parseLiveViewNode(treeSample.toByteArray(Charsets.UTF_8), propertiesUpdater)!!
@@ -134,8 +153,11 @@ DONE.
   fun testLoadComponentTree() {
     val resourceLookup = mock(ResourceLookup::class.java)
     val legacyClient = mock(LegacyClient::class.java)
+    val device = mock(IDevice::class.java)
     val client = mock(ClientImpl::class.java)
     `when`(legacyClient.selectedClient).thenReturn(client)
+    `when`(device.density).thenReturn(560)
+    `when`(client.device).thenReturn(device)
     `when`(client.send(argThat { argument ->
       argument?.payload?.int == CHUNK_VURT &&
       argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
@@ -151,5 +173,6 @@ DONE.
       mock(ResourceLookup::class.java), legacyClient, mock(Project::class.java))!!
     assertThat(windowId).isEqualTo("window1")
     assertThat(viewNode.drawId).isEqualTo(0x41673e3)
+    verify(resourceLookup).dpi = 560
   }
 }

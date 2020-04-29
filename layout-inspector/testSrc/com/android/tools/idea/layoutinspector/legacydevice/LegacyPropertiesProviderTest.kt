@@ -17,17 +17,34 @@ package com.android.tools.idea.layoutinspector.legacydevice
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
+import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.property.panel.api.PropertiesTable
+import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.util.PropertiesComponent
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 
 class LegacyPropertiesProviderTest {
+  @get:Rule
+  val applicationRule = ApplicationRule()
+
+  @Before
+  fun init() {
+    val propertiesComponent = PropertiesComponentMock()
+    applicationRule.testApplication.registerService(PropertiesComponent::class.java, propertiesComponent)
+    PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
+  }
+
   private val example =
     "text:mCurTextColor=11,-1979711488 text:mGravity=7,8388659 text:mText=21,Hello\\nWorld , =  @ : getEllipsize()=4,null " +
     "text:getScaledTextSize()=4,14.0 text:getSelectionEnd()=2,-1 text:getSelectionStart()=2,-1 text:getTextSize()=4,49.0 " +
@@ -83,20 +100,20 @@ class LegacyPropertiesProviderTest {
     assertThat(root.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=textView}")
     assertThat(root.isDimBehind).isTrue()
     check(properties, NAMESPACE_INTERNAL, SdkConstants.ATTR_NAME, "TextView", PropertySection.VIEW)
-    check(properties, NAMESPACE_INTERNAL, "x", "4", PropertySection.DIMENSION)
-    check(properties, NAMESPACE_INTERNAL, "y", "350", PropertySection.DIMENSION)
-    check(properties, NAMESPACE_INTERNAL, "width", "1432", PropertySection.DIMENSION)
-    check(properties, NAMESPACE_INTERNAL, "height", "123", PropertySection.DIMENSION)
+    check(properties, NAMESPACE_INTERNAL, "x", "4px", PropertySection.DIMENSION)
+    check(properties, NAMESPACE_INTERNAL, "y", "350px", PropertySection.DIMENSION)
+    check(properties, NAMESPACE_INTERNAL, "width", "1432px", PropertySection.DIMENSION)
+    check(properties, NAMESPACE_INTERNAL, "height", "123px", PropertySection.DIMENSION)
     check(properties, ANDROID_URI, SdkConstants.ATTR_ID, "@id/textView")
     check(properties, ANDROID_URI, SdkConstants.ATTR_TEXT, "Hello\\nWorld , =  @ :")
     check(properties, ANDROID_URI, SdkConstants.ATTR_TEXT_COLOR, "#8A000000")
     check(properties, ANDROID_URI, SdkConstants.ATTR_ALPHA, "1.0")
     check(properties, ANDROID_URI, SdkConstants.ATTR_GRAVITY, "top|start")
-    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, "0", PropertySection.LAYOUT)
-    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, "0", PropertySection.LAYOUT)
-    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, "0", PropertySection.LAYOUT)
-    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, "0", PropertySection.LAYOUT)
-    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, "1", PropertySection.LAYOUT)
+    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, "0px", PropertySection.LAYOUT)
+    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, "0px", PropertySection.LAYOUT)
+    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, "0px", PropertySection.LAYOUT)
+    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, "0px", PropertySection.LAYOUT)
+    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, "1px", PropertySection.LAYOUT)
   }
 
   private fun check(properties: PropertiesTable<InspectorPropertyItem>,

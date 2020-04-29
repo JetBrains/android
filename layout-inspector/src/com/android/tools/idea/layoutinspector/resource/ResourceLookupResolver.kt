@@ -16,14 +16,19 @@
 package com.android.tools.idea.layoutinspector.resource
 
 import com.android.SdkConstants.ANDROID_NS_NAME
+import com.android.SdkConstants.ANDROID_PKG_PREFIX
+import com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX
 import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.PREFIX_RESOURCE_REF
 import com.android.SdkConstants.PREFIX_THEME_REF
 import com.android.SdkConstants.TAG_ITEM
 import com.android.SdkConstants.TAG_SELECTOR
 import com.android.builder.model.AaptOptions
+import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
@@ -45,6 +50,8 @@ import com.android.tools.idea.res.ResourceNamespaceContext
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.StateList
 import com.android.tools.idea.res.colorToString
+import com.android.tools.idea.res.getItemPsiFile
+import com.android.tools.idea.res.getItemTag
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
@@ -59,17 +66,22 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiRecursiveElementVisitor
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.text.nullize
+import org.jetbrains.android.dom.AttributeProcessingUtil
+import org.jetbrains.android.dom.attrs.AttributeDefinition
+import org.jetbrains.android.dom.attrs.AttributeDefinitions
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import com.android.tools.idea.res.getItemPsiFile
-import com.android.tools.idea.res.getItemTag
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import javax.swing.Icon
 
 /**
@@ -128,6 +140,16 @@ class ResourceLookupResolver(
   private val androidResourceNamespaceResolver =
     ResourceNamespace.Resolver { namespacePrefix -> if (namespacePrefix == ANDROID_NS_NAME) ANDROID_URI else null }
   private val androidNamespaceContext = ResourceNamespaceContext(ResourceNamespace.ANDROID, androidResourceNamespaceResolver)
+  private val localAttrDefs: AttributeDefinitions
+  private val systemAttrDefs: AttributeDefinitions?
+
+  init {
+    val resourceManagers = ModuleResourceManagers.getInstance(appFacet)
+    val localResourceManager = resourceManagers.localResourceManager
+    val frameworkResourceManager = resourceManagers.frameworkResourceManager
+    localAttrDefs = localResourceManager.attributeDefinitions
+    systemAttrDefs = frameworkResourceManager?.attributeDefinitions
+  }
 
   /**
    * Find the attribute value from resource reference.
@@ -175,6 +197,44 @@ class ResourceLookupResolver(
     val (namespace, namespaceResolver) = getNamespacesContext(tag)
     val reference = url.resolve(namespace, namespaceResolver) ?: return null
     return resolver.resolveAsIcon(resolver.getUnresolvedResource(reference), project, appFacet)
+  }
+
+  /**
+   * Attempt to determine if [attributeName] refers to a dimension.
+   */
+  fun isDimension(view: ViewNode, attributeName: String): Boolean {
+    val isLayoutAttribute = attributeName.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX)
+    val qualifiedTagName = (if (isLayoutAttribute) view.parent?.qualifiedName else view.qualifiedName) ?: return false
+    var psiClass: PsiClass? = JavaPsiFacade.getInstance(project).findClass(qualifiedTagName, GlobalSearchScope.allScope(project))
+    while (psiClass != null) {
+      val attrValue = if (isLayoutAttribute)
+        findAttributeDefinition(psiClass, AttributeProcessingUtil.getLayoutStyleablePrimary(psiClass), attributeName) ?:
+        findAttributeDefinition(psiClass, AttributeProcessingUtil.getLayoutStyleableSecondary(psiClass), attributeName)
+      else findAttributeDefinition(psiClass, psiClass.name, attributeName)
+
+      if (attrValue != null) {
+        return attrValue.formats.contains(AttributeFormat.DIMENSION)
+      }
+      psiClass = psiClass.superClass
+    }
+    return false
+  }
+
+  private fun findAttributeDefinition(psiClass: PsiClass, styleableName: String?, attributeName: String): AttributeDefinition? {
+    val styleable = styleableName ?: return null
+    val namespace = findNamespaceFromPsiClass(psiClass) ?: return null
+    val reference = ResourceReference(namespace, ResourceType.STYLEABLE, styleable)
+    val attrDefs = if (namespace.xmlNamespaceUri == ANDROID_URI) systemAttrDefs else localAttrDefs
+    val styleableDefinition = attrDefs?.getStyleableDefinition(reference) ?: return null
+    return styleableDefinition.attributes.firstOrNull { it.name == attributeName }
+  }
+
+  // TODO: Fix the namespace computation below...
+  private fun findNamespaceFromPsiClass(psiClass: PsiClass): ResourceNamespace? {
+    val className = psiClass.qualifiedName ?: return null
+    val namespaceUri = if (className.startsWith(ANDROID_PKG_PREFIX) &&
+                           !className.startsWith(ANDROID_SUPPORT_PKG_PREFIX)) ANDROID_URI else AUTO_URI
+    return ResourceNamespace.fromNamespaceUri(namespaceUri)
   }
 
   private fun findFileLocationsFromViewTag(property: InspectorPropertyItem, layout: ResourceReference, max: Int): List<SourceLocation> {
