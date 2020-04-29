@@ -34,6 +34,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.messages.MessageBusConnection
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
@@ -122,10 +123,8 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
   }
 
   fun testGetLastSyncResult_sameAsSyncResult() {
-/* b/154963412
     emulateSync(true, BuildStatus.SUCCESS)
-
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     assertThat(syncManager.getLastSyncResult()).isSameAs(SyncResult.SUCCESS)
-b/154963412 */
   }
 }
