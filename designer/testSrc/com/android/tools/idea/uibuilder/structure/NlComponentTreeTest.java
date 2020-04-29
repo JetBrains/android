@@ -53,6 +53,7 @@ import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.util.MockCopyPasteManager;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.Disposable;
@@ -60,6 +61,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -99,6 +101,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
+    replaceApplicationService(CopyPasteManager.class, new MockCopyPasteManager());
     myModel = createModel();
     myModel.getUpdateQueue().setPassThrough(true);
     // If using a lambda, it can be reused by the JVM and causing an exception because the Disposable is already disposed.
