@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.editor
 
-import TreePanelDefinition
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
@@ -29,6 +28,7 @@ import com.android.tools.idea.naveditor.property2.NavPropertiesPanelDefinition
 import com.android.tools.idea.naveditor.structure.HostPanelDefinition
 import com.android.tools.idea.naveditor.structure.StructurePanel
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.naveditor.tree.TreePanelDefinition
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
