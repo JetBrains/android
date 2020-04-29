@@ -16,18 +16,20 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.uibuilder.property.AddPropertyItem;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.AddPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlResourceItem;
 import com.android.tools.property.ptable.PTableCellEditor;
 import com.android.tools.property.ptable.PTableCellEditorProvider;
 import com.android.tools.property.ptable.PTableItem;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public final class NlXmlEditors implements PTableCellEditorProvider, LafManagerListener {
+public final class NlXmlEditors implements PTableCellEditorProvider, LafManagerListener, Disposable {
   private final Project myProject;
   private NlTableCellEditor myPropertyEditor;
   private NlTableCellEditor myAddPropertyEditor;
@@ -41,7 +43,11 @@ public final class NlXmlEditors implements PTableCellEditorProvider, LafManagerL
   private NlXmlEditors(@NotNull Project project) {
     myProject = project;
 
-    project.getMessageBus().connect().subscribe(LafManagerListener.TOPIC, this);
+    ApplicationManager.getApplication().getMessageBus().connect(this).subscribe(LafManagerListener.TOPIC, this);
+  }
+
+  @Override
+  public void dispose() {
   }
 
   @Nullable
