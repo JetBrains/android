@@ -21,7 +21,6 @@ import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.adtui.validation.Validator.Severity.WARNING;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
-import static com.android.tools.idea.npw.ui.ActivityGallery.getCppIcon;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static java.lang.String.format;
@@ -196,7 +195,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myProjectLocation.addBrowseFolderListener(null, null, null, createSingleFolderDescriptor());
 
-    myListeners.listenAll(getModel().formFactor, myProjectModel.getEnableCppSupport()).withAndFire(() -> {
+    myListeners.listenAndFire(getModel().formFactor, () -> {
       FormFactor formFactor = getModel().formFactor.get();
 
       myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.MOBILE);
@@ -284,18 +283,14 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     setTemplateThumbnail(ActivityGallery.getTemplateIcon(template), template.getName(), template.getDescription());
   }
 
-  private void setTemplateThumbnail(@Nullable TemplateIcon defaultIcon, @NotNull String name, @NotNull String description) {
-    boolean isCppTemplate = myProjectModel.getEnableCppSupport().get();
-    TemplateIcon icon = isCppTemplate ? getCppIcon() : defaultIcon;
+  private void setTemplateThumbnail(@Nullable TemplateIcon icon, @NotNull String name, @NotNull String description) {
     if (icon != null) {
       icon.cropBlankWidth();
       icon.setHeight(256);
       myTemplateIconTitle.setIcon(icon);
-      myTemplateIconTitle.setText(isCppTemplate ? message("android.wizard.gallery.item.add.cpp") : name);
+      myTemplateIconTitle.setText(name);
 
-      myTemplateIconDetail.setText(
-        "<html>" + (isCppTemplate ? message("android.wizard.gallery.item.add.cpp.Desc") : description) + "</html>"
-      );
+      myTemplateIconDetail.setText("<html>" + description + "</html>");
     }
     myTemplateIconTitle.setVisible(icon != null);
     myTemplateIconDetail.setVisible(icon != null);
