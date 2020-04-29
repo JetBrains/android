@@ -372,7 +372,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     const val ID = "Emulator"
 
     private const val FRAME_CROPPED_PROPERTY = "com.android.tools.idea.emulator.frame.cropped"
-    private const val FRAME_CROPPED_DEFAULT = true
+    private const val FRAME_CROPPED_DEFAULT = false
     private const val ZOOM_TOOLBAR_VISIBLE_PROPERTY = "com.android.tools.idea.emulator.zoom.toolbar.visible"
     private const val ZOOM_TOOLBAR_VISIBLE_DEFAULT = true
     private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000
