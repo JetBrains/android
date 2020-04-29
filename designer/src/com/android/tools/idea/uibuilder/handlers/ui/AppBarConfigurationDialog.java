@@ -613,12 +613,12 @@ public class AppBarConfigurationDialog extends JDialog {
       }
     }
 
-    if (result == null || !result.hasImage()) {
+    if (result == null) {
       return null;
     }
 
     ImagePool.Image image = result.getRenderedImage();
-    if (image.getWidth() < MIN_WIDTH || image.getHeight() < MIN_HEIGHT) {
+    if (!image.isValid() || image.getWidth() < MIN_WIDTH || image.getHeight() < MIN_HEIGHT) {
       return null;
     }
 
