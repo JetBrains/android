@@ -241,7 +241,7 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
     }
   }
 
-  return if (externalName.isNotEmpty()) externalName.toString().trimEnd('.') else null
+  return if (externalName.isNotEmpty()) externalName.toString().trimEnd('.', '[', '"') else null
 }
 
 internal fun isValidBlockName(blockName : String?) =

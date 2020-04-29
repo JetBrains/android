@@ -1,0 +1,10 @@
+ext {
+  mP = [a: 'b', c: 'd']
+}
+
+android {
+  compileSdkVersion 30
+  defaultConfig {
+    targetSdkVersion 30
+  }
+}

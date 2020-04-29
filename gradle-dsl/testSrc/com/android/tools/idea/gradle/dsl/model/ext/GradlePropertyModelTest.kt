@@ -3263,6 +3263,20 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     assertThat(map["key1 "]!!.forceString(), equalTo("30"))
   }
 
+  @Test
+  fun testWriteReferenceToMap() {
+    writeToBuildFile(TestFile.WRITE_REFERENCE_TO_MAP)
+
+    val buildModel = gradleBuildModel
+    val mapModel = buildModel.ext().findProperty("mP")
+    assertContainsElements(listOf("a", "c"), mapModel.toMap()!!.keys)
+    assertEquals("b", mapModel.toMap()!!["a"]!!.forceString())
+    assertEquals("d", mapModel.toMap()!!["c"]!!.forceString())
+    buildModel.android().defaultConfig().manifestPlaceholders().setValue(ReferenceTo(mapModel))
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.WRITE_REFERENCE_TO_MAP_EXPECTED)
+  }
+
   private fun verifyDeleteAndResetProperty(buildModel : GradleBuildModel) {
     // Delete and reset the property
     run {
@@ -3871,6 +3885,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     IN_SCOPE_ELEMENT_SUB("inScopeElement_sub"),
     DUPLICATE_MAP_KEY("duplicateMapKey"),
     PARSE_MAP_WITH_SPACES_IN_KEYS("parseMapWithSpacesInKeys"),
+    WRITE_REFERENCE_TO_MAP("writeReferenceToMap"),
+    WRITE_REFERENCE_TO_MAP_EXPECTED("writeReferenceToMapExpected")
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
