@@ -16,18 +16,30 @@
 package com.android.tools.idea.testing;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.android.tools.idea.testing.DisposerExplorer.VisitResult;
 import com.android.tools.idea.testing.DisposerExplorer.Visitor;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Test;
 
 /** Tests for the {@link DisposerExplorer} class. */
 public class DisposerExplorerTest {
+  private final Set<Disposable> liveDisposables = new LinkedHashSet<>();
+
+  @After
+  public void checkEverythingWasDisposed() {
+    // If this check fails, then there may be leftover disposables in the disposer tree which may affect other tests.
+    assertWithMessage("Some test disposables were not disposed").that(liveDisposables).isEmpty();
+  }
+
   @Test
   public void testBasicMethods() {
     TestDisposable root1 = new TestDisposable("root1");
@@ -89,13 +101,19 @@ public class DisposerExplorerTest {
 
     assertThat(DisposerExplorer.findFirst(d -> d.toString().endsWith("a"))).isSameAs(a);
     assertThat(DisposerExplorer.findFirst(d -> d.toString().endsWith("x"))).isNull();
+
+    // Clean up to avoid interference with other tests.
+    Disposer.dispose(root1);
+    Disposer.dispose(root2);
+    Disposer.dispose(notRegistered);
   }
 
-  private static class TestDisposable implements Disposable {
+  private class TestDisposable implements Disposable {
     @NotNull private final String myName;
 
     TestDisposable(@NotNull String name) {
       myName = name;
+      liveDisposables.add(this);
     }
 
     @Override
@@ -106,6 +124,7 @@ public class DisposerExplorerTest {
 
     @Override
     public void dispose() {
+      liveDisposables.remove(this);
     }
   }
 
