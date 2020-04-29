@@ -70,11 +70,6 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     AndroidProfilerService.getInstance();
   }
 
-  @Override
-  public boolean shouldBeAvailable(@NotNull Project project) {
-    return false; // No tool window (and its stripe button) should be visible after startup.
-  }
-
   private static void createContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     AndroidProfilerToolWindow view = new AndroidProfilerToolWindow(new ToolWindowWrapperImpl(project, toolWindow), project);
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
