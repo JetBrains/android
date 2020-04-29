@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
-import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -50,6 +49,7 @@ import com.intellij.psi.PsiManager;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -72,20 +72,14 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     super(project, module, projectViewPane, settings);
   }
 
-  @NotNull
-  private Module getModule() {
-    Module module = getValue();
-    assert module != null;
-    return module;
-  }
-
   @Override
   @NotNull
   protected Collection<AbstractTreeNode<?>> getModuleChildren() {
-    if (getModule() == null) {
-      return platformGetChildren();
+    Module module = getValue();
+    if (module == null || module.isDisposed()) {
+      return Collections.emptyList();
     }
-    AndroidFacet facet = AndroidFacet.getInstance(getModule());
+    AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null || AndroidModel.get(facet) == null) {
       return platformGetChildren();
     }
@@ -259,10 +253,11 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     }
 
     // If there is a native-containing module then check it for externally referenced header files
-    if (getModule() == null) {
+    Module module = getValue();
+    if (module == null || module.isDisposed()) {
       return false;
     }
-    AndroidFacet facet = AndroidFacet.getInstance(getModule());
+    AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null || AndroidModel.get(facet) == null) {
       return false;
     }
@@ -276,26 +271,25 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   @Override
   @Nullable
   public Comparable getSortKey() {
-    if (getModule() == null) {
+    Module module = getValue();
+    if (module == null || module.isDisposed()) {
       return null;
     }
-    return getModule().getName();
+    return module.getName();
   }
 
   @Override
   @Nullable
   public Comparable getTypeSortKey() {
-    if (getModule() == null) {
-      return null;
-    }
     return getSortKey();
   }
 
   @Override
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    if (getModule() == null) {
-      return null;
+    Module module = getValue();
+    if (module == null || module.isDisposed()) {
+      return module == null ? "(null)" : "(Disposed)";
     }
     return String.format("%1$s (Android)", super.toTestString(printInfo));
   }
@@ -303,14 +297,12 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   @Override
   public void update(@NotNull PresentationData presentation) {
     super.update(presentation);
-    if (getModule() == null) {
+    Module module = getValue();
+    if (module == null || module.isDisposed()) {
       return;
     }
     // Use Android Studio Icons if module is available. If module was disposed, super.update will set the value of this node to null.
     // This can happen when a module was just deleted, see b/67838273.
-    Module module = getValue();
-    if (module != null) {
-      presentation.setIcon(getModuleIcon(module));
-    }
+    presentation.setIcon(getModuleIcon(module));
   }
 }
