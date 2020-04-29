@@ -16,8 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
 import com.intellij.build.issue.BuildIssue
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter.Companion.getInstance
+import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.ProjectManager
 
 /**
  * Helper class to conditionally construct the buildIssue containing all the information about a sync exception handling.
@@ -53,6 +58,25 @@ class BuildIssueComposer(baseMessage: String) {
   }
 }
 
+//TODO(karimai): This is a workaround until I refactor the services related to reporting sync Metrics to use Gradle project paths.
+fun updateUsageTracker(projectPath: String, gradleSyncFailure: GradleSyncFailure) {
+  for (project in ProjectManager.getInstance().openProjects) {
+    if (project.basePath == projectPath) {
+      getInstance(project).collect(gradleSyncFailure)
+      break
+    }
+  }
+}
+
+//TODO(karimai): Move when SyncIssueUsageReporter is re-worked.
+fun fetchIdeaProjectForGradleProject(projectPath: String): Project? {
+  for (project in ProjectManager.getInstance().openProjects) {
+    for (module in ModuleManager.getInstance(project!!).modules) {
+      if (AndroidProjectRootUtil.getModuleDirPath(module!!) == projectPath) return project
+    }
+  }
+  return null
+}
 
 /**
  * A [BuildIssueQuickFix] that contains an associated description which is used to display the quick fix.

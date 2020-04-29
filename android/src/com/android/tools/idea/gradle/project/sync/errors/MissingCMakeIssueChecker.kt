@@ -20,8 +20,8 @@ import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallCmakeQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetCmakeDirQuickFix
 import com.android.tools.idea.gradle.util.LocalProperties

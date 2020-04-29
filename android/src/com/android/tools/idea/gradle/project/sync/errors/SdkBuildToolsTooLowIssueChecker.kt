@@ -18,8 +18,9 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.repository.Revision
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallBuildToolsQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
@@ -57,7 +58,7 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
 
     // Log metrics.
     invokeLater {
-      SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.SDK_BUILD_TOOLS_TOO_LOW)
+      updateUsageTracker(issueData.projectPath, GradleSyncFailure.SDK_BUILD_TOOLS_TOO_LOW)
     }
 
     return getBuildIssueDescriptionAndQuickFixes(message, issueData.projectPath)?.composeBuildIssue()

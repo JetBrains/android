@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
@@ -42,7 +43,7 @@ class UnsupportedModelVersionIssueChecker: GradleIssueChecker {
 
     // Log metrics.
     invokeLater {
-      SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_MODEL_VERSION)
+      updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_MODEL_VERSION)
     }
     return BuildIssueComposer(message).apply {
       addQuickFix(

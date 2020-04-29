@@ -17,8 +17,9 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.CreateGradleWrapperQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
@@ -66,7 +67,7 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
 
     // Log metrics.
     invokeLater {
-      SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION)
+      updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION)
     }
     val buildIssueComposer = BuildIssueComposer(message)
 
