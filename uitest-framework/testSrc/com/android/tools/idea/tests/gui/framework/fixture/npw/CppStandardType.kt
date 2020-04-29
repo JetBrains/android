@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.cpp
+package com.android.tools.idea.tests.gui.framework.fixture.npw
 
 /**
  * Supported C++ standard versions that NDK code can use.
- *
- * @see ConfigureCppSupportStep
  */
 enum class CppStandardType(private val dialogName: String, /* null if no additional flag required*/ val compilerFlag: String?) {
   DEFAULT("Toolchain Default", null),
