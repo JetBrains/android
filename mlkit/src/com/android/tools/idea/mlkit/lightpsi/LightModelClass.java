@@ -43,6 +43,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -58,6 +59,7 @@ import org.jetbrains.annotations.Nullable;
  * <code>
  *   public final class ModelName {
  *     public static ModelName newInstance(Context context) throw IOException;
+ *     public static ModelName newInstance(Context context, Model.Options options) throw IOException;
  *     public final class Outputs {
  *       // different get methods
  *       public TensorBuffer getSomeOutput();
@@ -96,16 +98,17 @@ public class LightModelClass extends AndroidLightClassBase {
         List<TensorInfo> outputTensorInfos = myClassConfig.myModelMetadata.getOutputTensorInfos();
 
         //Build methods
-        PsiMethod[] methods = new PsiMethod[2];
-        methods[0] = buildProcessMethod(inputTensorInfos);
-        methods[1] = buildNewInstanceStaticMethod();
+        List<PsiMethod> methods = new ArrayList<>();
+        methods.add(buildProcessMethod(inputTensorInfos));
+        methods.addAll(buildNewInstanceStaticMethods());
 
         //Build inner class
         Map<String, PsiClass> innerClassMap = new HashMap<>();
         MlkitOutputLightClass mlkitOutputClass = new MlkitOutputLightClass(module, outputTensorInfos, this);
         innerClassMap.putIfAbsent(mlkitOutputClass.getName(), mlkitOutputClass);
 
-        MyClassMembers data = new MyClassMembers(methods, innerClassMap.values().toArray(PsiClass.EMPTY_ARRAY));
+        MyClassMembers data =
+          new MyClassMembers(methods.toArray(PsiMethod.EMPTY_ARRAY), innerClassMap.values().toArray(PsiClass.EMPTY_ARRAY));
         return CachedValueProvider.Result.create(data, modificationTracker);
       }, false);
 
@@ -117,9 +120,12 @@ public class LightModelClass extends AndroidLightClassBase {
   }
 
   @NotNull
-  private PsiMethod buildNewInstanceStaticMethod() {
+  private List<PsiMethod> buildNewInstanceStaticMethods() {
+    List<PsiMethod> methods = new ArrayList<>();
     PsiType thisType = PsiType.getTypeByName(getQualifiedName(), getProject(), getResolveScope());
     PsiType context = PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope());
+    PsiType options = PsiType.getTypeByName(ClassNames.MODEL_OPTIONS, getProject(), getResolveScope());
+
     LightMethodBuilder method = new NullabilityLightMethodBuilder(getManager(), "newInstance")
       .setMethodReturnType(thisType, true)
       .addNullabilityParameter("context", context, true)
@@ -127,7 +133,19 @@ public class LightModelClass extends AndroidLightClassBase {
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL, PsiModifier.STATIC)
       .setContainingClass(this);
     method.setNavigationElement(this);
-    return method;
+    methods.add(method);
+
+    LightMethodBuilder methodWithOptions = new NullabilityLightMethodBuilder(getManager(), "newInstance")
+      .setMethodReturnType(thisType, true)
+      .addNullabilityParameter("context", context, true)
+      .addNullabilityParameter("options", options, true)
+      .addException(ClassNames.IO_EXCEPTION)
+      .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL, PsiModifier.STATIC)
+      .setContainingClass(this);
+    methodWithOptions.setNavigationElement(this);
+    methods.add(methodWithOptions);
+
+    return methods;
   }
 
   @Override

@@ -574,9 +574,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       switch (parameter.getType().getCanonicalText()) {
         case ClassNames.TENSOR_IMAGE:
           codeBuilder
-            .append(String.format("  TensorImage %s = new TensorImage();", parameter.getName()))
-            .append(LINE_SEPARATOR)
-            .append(String.format("  %s.load(bitmap);", parameter.getName()))
+            .append(String.format("  TensorImage %s = TensorImage.fromBitmap(bitmap);", parameter.getName()))
             .append(LINE_SEPARATOR);
           break;
         case ClassNames.TENSOR_BUFFER:
@@ -607,9 +605,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       switch (parameter.getType().getCanonicalText()) {
         case ClassNames.TENSOR_IMAGE:
           codeBuilder
-            .append(String.format("val %s = TensorImage()", parameter.getName()))
-            .append(LINE_SEPARATOR)
-            .append(String.format("%s.load(bitmap)", parameter.getName()))
+            .append(String.format("val %s = TensorImage.fromBitmap(bitmap)", parameter.getName()))
             .append(LINE_SEPARATOR);
           break;
         case ClassNames.TENSOR_BUFFER:

@@ -72,6 +72,8 @@ public class MlkitLightClassTest extends AndroidTestCase {
                                "package org.tensorflow.lite.support.tensorbuffer; public class TensorBuffer {}");
     myFixture.addFileToProject("src/org/tensorflow/lite/support/label/TensorLabel.java",
                                "package org.tensorflow.lite.support.label; public class TensorLabel {}");
+    myFixture.addFileToProject("src/org/tensorflow/lite/support/model/Model.java",
+                               "package org.tensorflow.lite.support.model; public class Model { public static class Options {} }");
 
     AndroidFacet androidFacet = AndroidFacet.getInstance(myModule);
     VirtualFile manifestFile = ManifestUtils.getMainManifest(androidFacet).getVirtualFile();
@@ -113,6 +115,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import org.tensorflow.lite.support.image.TensorImage;\n" +
       "import org.tensorflow.lite.support.label.TensorLabel;\n" +
       "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
+      "import org.tensorflow.lite.support.model.Model;\n" +
       "import java.io.IOException;\n" +
       "import p1.p2.ml.MobilenetModel;\n" +
       "import p1.p2.ml.MobilenetModel219;\n" +
@@ -124,12 +127,13 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "    protected void onCreate(Bundle savedInstanceState) {\n" +
       "        super.onCreate(savedInstanceState);\n" +
       "        try {\n" +
+      "            Model.Options options = new Model.Options();\n" +
       "            MobilenetModel mobilenetModel = MobilenetModel.newInstance(this);\n" +
       "            TensorImage image = null;\n" +
       "            MobilenetModel.Outputs mobilenetOutputs = mobilenetModel.process(image);\n" +
       "            TensorLabel tensorLabel = mobilenetOutputs.getProbabilityAsTensorLabel();\n" +
       "\n" +
-      "            MobilenetModel219 mobilenetModel219 = MobilenetModel219.newInstance(this);\n" +
+      "            MobilenetModel219 mobilenetModel219 = MobilenetModel219.newInstance(this, options);\n" +
       "            MobilenetModel219.Outputs mobilenetOutputs2 = mobilenetModel219.process(image);\n" +
       "            TensorLabel tensorLabel2 = mobilenetOutputs2.getProbabilityAsTensorLabel();\n" +
       "\n" +
@@ -141,7 +145,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "            TensorBuffer numberofdetections = ssdOutputs.getNumberOfDetectionsAsTensorBuffer();\n" +
       "\n" +
       "            TensorBuffer stylearray = null;\n" +
-      "            StyleTransferModel styleTransferModel = StyleTransferModel.newInstance(this);\n" +
+      "            StyleTransferModel styleTransferModel = StyleTransferModel.newInstance(this, options);\n" +
       "            StyleTransferModel.Outputs outputs = styleTransferModel.process(image, stylearray);\n" +
       "            TensorImage styledimage = outputs.getStyledImageAsTensorImage();" +
       "        } catch (IOException e) {};\n" +
@@ -275,6 +279,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import android.util.Log\n" +
       "import org.tensorflow.lite.support.image.TensorImage;\n" +
       "import org.tensorflow.lite.support.label.TensorLabel;\n" +
+      "import org.tensorflow.lite.support.model.Model;\n" +
       "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
       "import p1.p2.ml.MobilenetModel;\n" +
       "import p1.p2.ml.SsdModel;\n" +
@@ -283,6 +288,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "class MainActivity : Activity() {\n" +
       "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
       "        super.onCreate(savedInstanceState)\n" +
+      "        val options = Model.Options()\n" +
       "        val tensorImage = TensorImage()\n" +
       "        val tensorBuffer = TensorBuffer()\n" +
       "\n" +
@@ -291,7 +297,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "        val probability = mobilenetOutputs.probabilityAsTensorLabel\n" +
       "        Log.d(\"TAG\", \"Result\" + probability)\n" +
       "\n" +
-      "        val ssdModel = SsdModel.newInstance(this)\n" +
+      "        val ssdModel = SsdModel.newInstance(this, options)\n" +
       "        val ssdOutputs = ssdModel.process(tensorImage)\n" +
       "        val locations = ssdOutputs.locationsAsTensorBuffer\n" +
       "        val classes = ssdOutputs.classesAsTensorBuffer\n" +
@@ -299,7 +305,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "        val numberofdetections = ssdOutputs.numberOfDetectionsAsTensorBuffer\n" +
       "        Log.d(\"TAG\", \"Result\" + locations + classes + scores + numberofdetections)\n" +
       "\n" +
-      "        val styleTransferModel = StyleTransferModel.newInstance(this)\n" +
+      "        val styleTransferModel = StyleTransferModel.newInstance(this, options)\n" +
       "        val styleTransferOutputs = styleTransferModel.process(tensorImage, tensorBuffer)\n" +
       "        val styledImage = styleTransferOutputs.styledImageAsTensorImage\n" +
       "        Log.d(\"TAG\", \"Result\" + styledImage)\n" +
@@ -556,11 +562,12 @@ public class MlkitLightClassTest extends AndroidTestCase {
 
     myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
     LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
-    assertThat(elements).hasLength(2);
+    assertThat(elements).hasLength(3);
     assertThat(elements[0].toString()).isEqualTo("MyModel.newInstance");
-    assertThat(elements[1].toString()).isEqualTo("MyModel.Outputs");
+    assertThat(elements[1].toString()).isEqualTo("MyModel.newInstance");
+    assertThat(elements[2].toString()).isEqualTo("MyModel.Outputs");
 
-    myFixture.getLookup().setCurrentItem(elements[1]);
+    myFixture.getLookup().setCurrentItem(elements[2]);
     myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR);
     myFixture.checkResult("package p1.p2;\n" +
                           "\n" +
