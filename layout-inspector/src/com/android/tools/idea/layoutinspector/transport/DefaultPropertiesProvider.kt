@@ -145,8 +145,12 @@ class DefaultPropertiesProvider(
           Type.INTERPOLATOR -> SOME_UNKNOWN_INTERPOLATOR_VALUE
           else -> ""
         }
+        var type = property.type
+        if ((type == Type.INT32 || type == Type.FLOAT) && resourceLookup.isDimension(view, name)) {
+          type = if (type == Type.INT32) Type.DIMENSION else Type.DIMENSION_FLOAT
+        }
         // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
-        add(InspectorPropertyItem(ANDROID_URI, name, property.type, value, group, source, view, resourceLookup))
+        add(InspectorPropertyItem(ANDROID_URI, name, type, value, group, source, view, resourceLookup))
       }
       ApplicationManager.getApplication().runReadAction { generateItemsForResolutionStack() }
       addInternalProperties(table, view, resourceLookup)
@@ -187,20 +191,20 @@ class DefaultPropertiesProvider(
           Type.DRAWABLE -> stringTable[property.int32Value].ifEmpty { null }
           else -> null  // TODO offer information from other object types
         }
-        val value: String? = when (property.type) {
+        val initialValue: String? = when (property.type) {
           // Attempt to find the drawable value from source code, since it is impossible to get from the agent.
           Type.ANIM,
           Type.ANIMATOR,
-          Type.DRAWABLE -> item.source?.let { resourceLookup.findAttributeValue(item, it) } ?: item.value
+          Type.DRAWABLE -> item.source?.let { resourceLookup.findAttributeValue(item, it) } ?: item.initialValue
           Type.INTERPOLATOR  -> item.source?.let { resourceLookup.findAttributeValue(item, it) } ?: valueFromInterpolatorClass(className)
-          else -> item.value
+          else -> item.initialValue
         }
         val classLocation = className?.let { resourceLookup.resolveClassNameAsSourceLocation(it) }
-        if (map.isNotEmpty() || item.source != null || className != null || value != item.value) {
+        if (map.isNotEmpty() || item.source != null || className != null || initialValue != item.initialValue) {
           add(InspectorGroupPropertyItem(ANDROID_URI,
                                          name,
-                                         property.type,
-                                         value,
+                                         item.type,
+                                         initialValue,
                                          classLocation,
                                          item.group,
                                          item.source,

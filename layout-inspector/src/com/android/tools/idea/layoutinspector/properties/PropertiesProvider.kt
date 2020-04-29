@@ -66,10 +66,10 @@ object EmptyPropertiesProvider : PropertiesProvider {
  */
 internal fun addInternalProperties(table: Table<String, String, InspectorPropertyItem>, view: ViewNode, lookup: ResourceLookup) {
   add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_NAME, Type.STRING, view.qualifiedName, VIEW, null, view, lookup))
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_X, Type.INT32, view.x.toString(), DIMENSION, null, view, lookup))
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_Y, Type.INT32, view.y.toString(), DIMENSION, null, view, lookup))
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_WIDTH, Type.INT32, view.width.toString(), DIMENSION, null, view, lookup))
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_HEIGHT, Type.INT32, view.height.toString(), DIMENSION, null, view, lookup))
+  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_X, Type.DIMENSION, view.x.toString(), DIMENSION, null, view, lookup))
+  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_Y, Type.DIMENSION, view.y.toString(), DIMENSION, null, view, lookup))
+  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_WIDTH, Type.DIMENSION, view.width.toString(), DIMENSION, null, view, lookup))
+  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_HEIGHT, Type.DIMENSION, view.height.toString(), DIMENSION, null, view, lookup))
 }
 
 private fun add(table: Table<String, String, InspectorPropertyItem>, item: InspectorPropertyItem) {

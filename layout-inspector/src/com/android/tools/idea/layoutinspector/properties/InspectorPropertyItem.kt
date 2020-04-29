@@ -28,6 +28,7 @@ import com.android.utils.HashCodes
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
+import java.text.DecimalFormat
 import javax.swing.Icon
 
 /**
@@ -48,7 +49,7 @@ open class InspectorPropertyItem(
   val type: Type,
 
   /** The value of the attribute when the snapshot was taken */
-  override var value: String?,
+  val initialValue: String?,
 
   /** Which group this attribute belongs to */
   val group: PropertySection,
@@ -64,9 +65,28 @@ open class InspectorPropertyItem(
 
 ) : PropertyItem {
 
-  constructor(namespace: String, attrName: String, type: Type, value: String?, group: PropertySection, source: ResourceReference?,
-              view: ViewNode, resourceLookup: ResourceLookup) :
+  constructor(namespace: String, attrName: String, type: Type, value: String?, group: PropertySection,
+              source: ResourceReference?, view: ViewNode, resourceLookup: ResourceLookup) :
     this(namespace, attrName, attrName, type, value, group, source, view, resourceLookup)
+
+  /**
+   * The integer value of a dimension or -1 for other types.
+   *
+   * Note: for a DIMENSION_FLOAT this value should be converted using Float.fromBits(dimensionValue).
+   */
+  val dimensionValue: Int = when (type) {
+    Type.DIMENSION -> initialValue?.toIntOrNull() ?: -1
+    Type.DIMENSION_FLOAT -> (initialValue?.toFloatOrNull() ?: Float.NaN).toRawBits()
+    else -> -1
+  }
+
+  override var value: String?
+    get() = when (type) {
+      Type.DIMENSION -> formatDimension(dimensionValue)
+      Type.DIMENSION_FLOAT -> formatDimensionFloat(Float.fromBits(dimensionValue))
+      else -> initialValue
+    }
+    set(_) {}
 
   override fun hashCode(): Int = HashCodes.mix(namespace.hashCode(), attrName.hashCode(), source?.hashCode() ?: 0)
 
@@ -85,6 +105,39 @@ open class InspectorPropertyItem(
   }
 
   override val colorButton = createColorButton()
+
+  private fun formatDimension(pixels: Int): String? {
+    if (pixels == -1 || pixels == Int.MIN_VALUE || pixels == Int.MAX_VALUE) {
+      // -1 means not supported for some attributes e.g. baseline of View
+      // MIN_VALUE means not supported for some attributes e.g. layout_marginStart in ViewGroup.MarginLayoutParams
+      // MAX-VALUE means not specified for some attributes e.g. maxWidth of TextView
+      return initialValue
+    }
+    if (resourceLookup.dpi <= 0) {
+      // If we are unable to get the dpi from the device, just show pixels
+      return "${pixels}px"
+    }
+    return when (PropertiesSettings.dimensionUnits) {
+      DimensionUnits.PIXELS -> "${pixels}px"
+      DimensionUnits.DP -> "${pixels * 160 / resourceLookup.dpi}dp"
+    }
+  }
+
+  private fun formatDimensionFloat(pixels: Float): String? {
+    if (pixels.isNaN()) {
+      return initialValue
+    }
+    if (resourceLookup.dpi <= 0) {
+      // If we are unable to get the dpi from the device, just show pixels
+      return "${formatFloat(pixels)}px"
+    }
+    return when (PropertiesSettings.dimensionUnits) {
+      DimensionUnits.PIXELS -> "${formatFloat(pixels)}px"
+      DimensionUnits.DP -> "${formatFloat(pixels * 160.0f / resourceLookup.dpi)}dp"
+    }
+  }
+
+  private fun formatFloat(value: Float): String = if (value == 0.0f) "0" else DecimalFormat("0.0##").format(value)
 
   private fun createColorButton(): ActionIconButton? =
     when (type) {

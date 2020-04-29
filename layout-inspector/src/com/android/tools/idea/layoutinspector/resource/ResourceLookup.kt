@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.resource
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
+import com.android.resources.Density.DEFAULT_DENSITY
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -50,9 +51,15 @@ class ResourceLookup(private val project: Project) {
     private set
 
   /**
+   * The dpi of the device we are currently inspecting or -1 if unknown.
+   */
+  var dpi: Int = DEFAULT_DENSITY
+
+  /**
    * Update the configuration after a possible configuration change detected on the device.
    */
   fun updateConfiguration(resources: LayoutInspectorProto.ResourceConfiguration, stringTable: StringTable) {
+    dpi = if (resources.configuration.density != 0) resources.configuration.density else DEFAULT_DENSITY
     val loader = ConfigurationLoader(resources, stringTable)
     val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, loader.packageName) }
     if (facet == null) {
@@ -114,4 +121,10 @@ class ResourceLookup(private val project: Project) {
     val source = ClassUtil.extractClassName(className)
     return SourceLocation(source, navigatable)
   }
+
+  /**
+   * Is this attribute a dimension according to the resource manager.
+   */
+  fun isDimension(view: ViewNode, attributeName: String): Boolean =
+    ReadAction.compute<Boolean, Nothing> { resolver?.isDimension(view, attributeName) ?: false }
 }

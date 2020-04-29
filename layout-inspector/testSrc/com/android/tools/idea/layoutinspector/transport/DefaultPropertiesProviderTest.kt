@@ -19,12 +19,15 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -39,11 +42,13 @@ import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.android.tools.profiler.proto.Common.Event.Kind
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.ClassUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -52,13 +57,21 @@ import java.util.concurrent.TimeUnit
 
 @RunsInEdt
 class DefaultPropertiesProviderTest {
-  private val inspectorRule = LayoutInspectorTransportRule(projectRule = AndroidProjectRule.withSdk())
+  private val projectRule = AndroidProjectRule.withSdk()
+  private val inspectorRule = LayoutInspectorTransportRule(projectRule = projectRule)
     .withDefaultDevice(connected = true)
     .withDemoLayout()
     .withCommandHandler(LayoutInspectorCommand.Type.GET_PROPERTIES, ::handleGetPropertiesCommand)
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectorRule).around(EdtRule())!!
+
+  @Before
+  fun init() {
+    val propertiesComponent = PropertiesComponentMock()
+    projectRule.replaceService(PropertiesComponent::class.java, propertiesComponent)
+    PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
+  }
 
   @Test
   fun testRejectLatePropertyEvent() {
@@ -94,16 +107,16 @@ class DefaultPropertiesProviderTest {
     assertThat(result.view).isSameAs(view)
     val table = result.table
     checkProperty(table, view, "name", Type.STRING, "android.widget.TextView", PropertySection.VIEW, null, NAMESPACE_INTERNAL)
-    checkProperty(table, view, "x", Type.INT32, "200", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
-    checkProperty(table, view, "y", Type.INT32, "400", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
-    checkProperty(table, view, "width", Type.INT32, "400", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
-    checkProperty(table, view, "height", Type.INT32, "100", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "x", Type.DIMENSION, "200px", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "y", Type.DIMENSION, "400px", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "width", Type.DIMENSION, "400px", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "height", Type.DIMENSION, "100px", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
     checkProperty(table, view, "focused", Type.BOOLEAN, "true", PropertySection.DEFAULT, null)
     checkProperty(table, view, "byte", Type.BYTE, "7", PropertySection.DEFAULT, null)
     checkProperty(table, view, "char", Type.CHAR, "g", PropertySection.DEFAULT, null)
     checkProperty(table, view, "double", Type.DOUBLE, "3.75", PropertySection.DEFAULT, null)
     checkProperty(table, view, "scaleX", Type.FLOAT, "1.75", PropertySection.DEFAULT, null)
-    checkProperty(table, view, "scrollX", Type.INT32, "10", PropertySection.DEFAULT, null)
+    checkProperty(table, view, "scrollX", Type.DIMENSION, "10px", PropertySection.DEFAULT, null)
     checkProperty(table, view, "long", Type.INT64, "7000", PropertySection.DEFAULT, null)
     checkProperty(table, view, "short", Type.INT16, "70", PropertySection.DEFAULT, null)
     checkProperty(table, view, "text", Type.STRING, "Hello My World!", PropertySection.DECLARED, demo, ANDROID_URI, true)
@@ -114,7 +127,7 @@ class DefaultPropertiesProviderTest {
     checkProperty(table, view, "labelFor", Type.RESOURCE, "@id/other", PropertySection.DEFAULT, null)
     checkProperty(table, view, "scrollIndicators", Type.INT_FLAG, "left|bottom", PropertySection.DEFAULT, null)
     checkProperty(table, view, "layout_width", Type.INT_ENUM, "match_parent", PropertySection.LAYOUT, null)
-    checkProperty(table, view, "layout_height", Type.INT32, "400", PropertySection.LAYOUT, null)
+    checkProperty(table, view, "layout_height", Type.DIMENSION, "400px", PropertySection.LAYOUT, null)
     checkProperty(table, view, "anim", Type.ANIM, "@anim/?", PropertySection.DEFAULT, null)
     checkProperty(table, view, "anim_wcn", Type.ANIM, "@anim/?", PropertySection.DEFAULT, null, ANDROID_URI, true,
                   SourceLocation("AlphaAnimation", findNavigatableFor("android.view.animation.AlphaAnimation")))
@@ -193,12 +206,7 @@ class DefaultPropertiesProviderTest {
     assertThat(property.group).isEqualTo(group)
     assertThat(property.source).isEqualTo(source)
     assertThat(property.view).isSameAs(view)
-    if (namespace == NAMESPACE_INTERNAL) {
-      assertThat(property.resourceLookup).isNull()
-    }
-    else {
-      assertThat(property.resourceLookup).isSameAs(inspectorRule.inspectorModel.resourceLookup)
-    }
+    assertThat(property.resourceLookup).isSameAs(inspectorRule.inspectorModel.resourceLookup)
     if (!expandable) {
       assertThat(property).isNotInstanceOf(InspectorGroupPropertyItem::class.java)
     }
