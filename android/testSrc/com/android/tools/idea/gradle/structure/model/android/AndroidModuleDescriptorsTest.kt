@@ -152,10 +152,10 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     val ndkVersion = AndroidModuleDescriptors.ndkVersion.bind(appModule).getValue()
     val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
     assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo("26.1.1"))
-    assertThat(ndkVersion.parsedValue.asTestValue(), equalTo("21.0.0"))
+    assertNull(ndkVersion.parsedValue.asTestValue())
     assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo("15"))
     assertThat(appModule.parsedModel?.android()?.buildToolsVersion()?.getValue(OBJECT_TYPE), equalTo<Any>("26.1.1"))
-    assertThat(appModule.parsedModel?.android()?.ndkVersion()?.getValue(OBJECT_TYPE), equalTo<Any>("21.0.0"))
+    assertNull(appModule.parsedModel?.android()?.ndkVersion()?.getValue(OBJECT_TYPE))
     assertThat(appModule.parsedModel?.android()?.buildToolsVersion()?.getRawValue(STRING_TYPE), equalTo<Any>(expectedValues[0]))
 
     assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getValue(OBJECT_TYPE), equalTo<Any>(15))
