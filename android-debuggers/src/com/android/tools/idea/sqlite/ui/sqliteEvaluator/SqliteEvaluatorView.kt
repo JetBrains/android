@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
 import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
 import javax.swing.JComponent
@@ -40,20 +39,12 @@ interface SqliteEvaluatorView {
   fun removeListener(listener: Listener)
   fun showSqliteStatement(sqliteStatement: String)
 
-  /**
-   * Updates the UI by applying [DatabaseDiffOperation]s.
-   */
-  fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>)
+  fun setDatabases(databases: List<SqliteDatabase>)
 
   /**
-   * Selects the database to run statements on and to use for auto completion.
+   * The database currently selected in the UI, used to run statements against and for auto completion.
    */
-  fun selectDatabase(database: SqliteDatabase)
-
-  /**
-   * Returns the [SqliteDatabase] currently selected in the UI.
-   */
-  fun getActiveDatabase(): SqliteDatabase
+  var activeDatabase: SqliteDatabase?
 
   /**
    * Returns the string corresponding to the SQLite statement currently visible in the UI.

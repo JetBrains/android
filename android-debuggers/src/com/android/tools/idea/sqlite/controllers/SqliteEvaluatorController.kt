@@ -26,7 +26,6 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.sqlLanguage.hasParsingError
-import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -54,19 +53,14 @@ class SqliteEvaluatorController(
   private val listeners = mutableListOf<Listener>()
 
   private val modelListener = object : DatabaseInspectorModel.Listener {
-    private var currentDatabases = listOf<SqliteDatabase>()
-
     override fun onChanged(databases: List<SqliteDatabase>) {
-      val sortedNewDatabase = databases.sortedBy { it.name }
+      val activeDatabase = view.activeDatabase
 
-      val toAdd = sortedNewDatabase
-        .filter { !currentDatabases.contains(it) }
-        .map { DatabaseDiffOperation.AddDatabase(it, model.getDatabaseSchema(it)!!, sortedNewDatabase.indexOf(it)) }
-      val toRemove = currentDatabases.filter { !sortedNewDatabase.contains(it) }.map { DatabaseDiffOperation.RemoveDatabase(it) }
+      view.setDatabases(databases.sortedBy { it.name })
 
-      view.updateDatabases(toAdd + toRemove)
-
-      currentDatabases = databases
+      if (databases.contains(activeDatabase) && activeDatabase != null) {
+        view.activeDatabase = activeDatabase
+      }
     }
   }
 
@@ -111,7 +105,7 @@ class SqliteEvaluatorController(
 
   fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     view.showSqliteStatement(sqliteStatement.sqliteStatementWithInlineParameters)
-    view.selectDatabase(database)
+    view.activeDatabase = database
     return execute(database, sqliteStatement)
   }
 
