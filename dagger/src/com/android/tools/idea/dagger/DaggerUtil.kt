@@ -58,6 +58,7 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClass
 const val DAGGER_MODULE_ANNOTATION = "dagger.Module"
 const val DAGGER_PROVIDES_ANNOTATION = "dagger.Provides"
 const val DAGGER_BINDS_ANNOTATION = "dagger.Binds"
+const val DAGGER_BINDS_INSTANCE_ANNOTATION = "dagger.BindsInstance"
 const val INJECT_ANNOTATION = "javax.inject.Inject"
 const val DAGGER_COMPONENT_ANNOTATION = "dagger.Component"
 const val DAGGER_SUBCOMPONENT_ANNOTATION = "dagger.Subcomponent"
@@ -84,16 +85,25 @@ private fun getClassesWithAnnotation(project: Project, annotationName: String, s
  *
  * Null [qualifierInfo] means that binding has not qualifier or has more then one.
  */
-private fun getDaggerProviders(type: PsiType, qualifierInfo: QualifierInfo?, scope: GlobalSearchScope): Collection<PsiMethod> {
+private fun getDaggerProviders(type: PsiType, qualifierInfo: QualifierInfo?, scope: GlobalSearchScope): Collection<PsiModifierListOwner> {
   return getDaggerProvidesMethodsForType(type, scope).filterByQualifier(qualifierInfo) +
          getDaggerBindsMethodsForType(type, scope).filterByQualifier(qualifierInfo) +
+         getDaggerBindsInstanceMethodsAndParametersForType(type, scope).filterByQualifier(qualifierInfo) +
          getDaggerInjectedConstructorsForType(type)
+}
+
+/**
+ * Returns all @BindsInstance-annotated methods and params that return given [type] within [scope].
+ */
+private fun getDaggerBindsInstanceMethodsAndParametersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiModifierListOwner> {
+  return getMethodsWithAnnotation(DAGGER_BINDS_INSTANCE_ANNOTATION, scope).filter { it.returnType == type } +
+         getParametersWithAnnotation(DAGGER_BINDS_INSTANCE_ANNOTATION, scope).filter { it.type == type }
 }
 
 /**
  * Returns all Dagger providers (@Provide/@Binds-annotated methods, @Inject-annotated constructors) for [element].
  */
-fun getDaggerProvidersFor(element: PsiElement): Collection<PsiMethod> {
+fun getDaggerProvidersFor(element: PsiElement): Collection<PsiModifierListOwner> {
   val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element) ?: return emptyList()
   val (type, qualifierInfo) = extractTypeAndQualifierInfo(element) ?: return emptyList()
 
@@ -175,6 +185,14 @@ private fun getMethodsWithAnnotation(annotationName: String, scope: GlobalSearch
 }
 
 /**
+ * Returns all PsiParameters with [annotationName] within [scope].
+ */
+private fun getParametersWithAnnotation(annotationName: String, scope: GlobalSearchScope): Query<PsiParameter> {
+  val annotationClass = JavaPsiFacade.getInstance(scope.project).findClass(annotationName, scope) ?: return EmptyQuery()
+  return AnnotatedElementsSearch.searchPsiParameters(annotationClass, scope)
+}
+
+/**
  * True if PsiModifierListOwner has @Inject annotation.
  */
 private val PsiModifierListOwner.isInjected get() = hasAnnotation(INJECT_ANNOTATION)
@@ -209,10 +227,19 @@ private val PsiElement?.isInjectedConstructor: Boolean
   get() = this is PsiMethod && isConstructor && isInjected ||
           this is KtConstructor<*> && (this as? KtAnnotated)?.findAnnotation(FqName(INJECT_ANNOTATION)) != null
 
+private val PsiElement?.isBindsInstanceMethodOrParameter: Boolean
+  get() {
+    return this is PsiMethod && hasAnnotation(DAGGER_BINDS_INSTANCE_ANNOTATION) ||
+           this is KtFunction && findAnnotation(FqName(DAGGER_BINDS_INSTANCE_ANNOTATION)) != null ||
+           this is PsiParameter && hasAnnotation(DAGGER_BINDS_INSTANCE_ANNOTATION) ||
+           this is KtParameter && findAnnotation(FqName(DAGGER_BINDS_INSTANCE_ANNOTATION)) != null
+  }
+
 /**
- * True if PsiElement is Dagger provider i.e @Provides/@Binds-annotated method or @Inject-annotated constructor.
+ * True if PsiElement is Dagger provider i.e @Provides/@Binds/@BindsInstance-annotated method or @Inject-annotated constructor or
+ * @BindsInstance-annotated parameter.
  */
-val PsiElement?.isDaggerProvider get() = isProvidesMethod || isBindsMethod || isInjectedConstructor
+val PsiElement?.isDaggerProvider get() = isProvidesMethod || isBindsMethod || isInjectedConstructor || isBindsInstanceMethodOrParameter
 
 /**
  * True if PsiElement is Dagger consumer i.e @Inject-annotated field or param of Dagger provider, see [isDaggerProvider].
