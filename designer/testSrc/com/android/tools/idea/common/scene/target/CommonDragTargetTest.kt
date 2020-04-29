@@ -107,7 +107,8 @@ class CommonDragTargetTest : SceneTest() {
     }
   }
 
-  fun testDragMultipleComponentsToLinearLayout() {
+  // b/154962720
+  fun ignore_testDragMultipleComponentsToLinearLayout() {
     val textView = myScreen.get("@id/textView").sceneComponent!!
     val textView2 = myScreen.get("@id/textView2").sceneComponent!!
 
