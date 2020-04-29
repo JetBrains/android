@@ -224,7 +224,7 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
   public void registerOn(Application application) {
     assert myMessageBusConnection == null;
 
-    myMessageBusConnection = application.getMessageBus().connect(application);
+    myMessageBusConnection = application.getMessageBus().connect();
     myMessageBusConnection.subscribe(IdePerformanceListener.TOPIC, this);
   }
 
