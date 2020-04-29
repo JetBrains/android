@@ -16,38 +16,35 @@
 package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.profilers.systemtrace.ProcessModel
+import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
+import com.android.tools.profilers.systemtrace.ThreadModel
 import com.google.common.base.Preconditions
-import trebuchet.model.Model
-import trebuchet.model.ProcessModel
-import trebuchet.model.ThreadModel
-import java.util.function.Function
 
 /**
  * Surfaceflinger is responsible for compositing all the application and system surfaces into a single buffer on Android. This class
- * extracts the Surfaceflinger process from a Trebuchet [Model] and exposes various events as data series.
+ * extracts the Surfaceflinger process from a SystemTraceModelAdapter and exposes various events as data series.
  */
-class AtraceSurfaceflingerManager(trebuchetModel: Model,
-                                  private val bootClockSecondsToMonoUs: Function<Double, Long>) {
+class AtraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter) {
   val surfaceflingerEvents: List<SeriesData<SurfaceflingerEvent>>
   val vsyncCounterValues: List<SeriesData<Long>>
 
   /**
-   * Extracts the top level trace events from the main thread and builds a data series for [surfaceflingerEvents].
+   * Extracts the top level trace events from the main thread and builds a data series for surfaceflinger.
    */
   private fun buildSfEvents(surfaceflingerProcess: ProcessModel): List<SeriesData<SurfaceflingerEvent>> {
     Preconditions.checkArgument(surfaceflingerProcess.name == SURFACEFLINGER_PROCESS_NAME)
-    return surfaceflingerProcess.threads
-      .filter { it.id == surfaceflingerProcess.id }  // Find main thread
-      .flatMap { buildSfEventsFromThread(it) }
+    val mainThread = surfaceflingerProcess.getMainThread() ?: return emptyList()
+    return buildSfEventsFromThread(mainThread)
   }
 
   private fun buildSfEventsFromThread(mainThread: ThreadModel): List<SeriesData<SurfaceflingerEvent>> {
     val result = mutableListOf<SeriesData<SurfaceflingerEvent>>()
     var lastEndTime = 0L
     // We only need the granularity at the top level (i.e. onMessageReceived).
-    for (sliceGroup in mainThread.slices) {
-      val startTime = bootClockSecondsToMonoUs.apply(sliceGroup.startTime)
-      val endTime = bootClockSecondsToMonoUs.apply(sliceGroup.endTime)
+    for (event in mainThread.traceEvents) {
+      val startTime = event.startTimestampUs
+      val endTime = event.endTimestampUs
 
       // Add an IDLE event as padding between PROCESSING events, needed for UI rendering.
       if (startTime > lastEndTime) {
@@ -68,10 +65,9 @@ class AtraceSurfaceflingerManager(trebuchetModel: Model,
    */
   private fun buildVsyncCounter(surfaceflingerProcess: ProcessModel): List<SeriesData<Long>> {
     Preconditions.checkArgument(surfaceflingerProcess.name == SURFACEFLINGER_PROCESS_NAME)
-    return surfaceflingerProcess.counters.asSequence()
-      .filter { it.name == VSYNC_COUNTER_NAME }
-      .flatMap { it.events.asSequence() }
-      .map { SeriesData(bootClockSecondsToMonoUs.apply(it.timestamp), it.count.toLong()) }
+    val counter = surfaceflingerProcess.counterByName[VSYNC_COUNTER_NAME] ?: return emptyList()
+    return counter.valuesByTimestampUs
+      .map { SeriesData(it.key, it.value.toLong()) }
       .toList()
   }
 
@@ -81,7 +77,7 @@ class AtraceSurfaceflingerManager(trebuchetModel: Model,
   }
 
   init {
-    val sfProcess = trebuchetModel.processes.values.find { it.name == SURFACEFLINGER_PROCESS_NAME }
+    val sfProcess = systemTraceModel.getProcesses().find { it.name == SURFACEFLINGER_PROCESS_NAME }
     surfaceflingerEvents = sfProcess?.let { buildSfEvents(it) } ?: listOf()
     vsyncCounterValues = sfProcess?.let { buildVsyncCounter(it) } ?: listOf()
   }

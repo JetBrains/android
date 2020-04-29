@@ -19,21 +19,21 @@ import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.TEST_PID
 import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.TEST_RENDER_ID
-import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.convertTimeStamps
+import com.android.tools.profilers.systemtrace.ProcessModel
+import com.android.tools.profilers.systemtrace.ThreadModel
+import com.android.tools.profilers.systemtrace.TraceEventModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
 import trebuchet.model.Model
-import trebuchet.model.ProcessModel
-import trebuchet.model.fragments.ModelFragment
-import trebuchet.model.fragments.ProcessModelFragment
-import trebuchet.model.fragments.SliceGroupBuilder
 import trebuchet.task.ImportTask
 import trebuchet.util.PrintlnImportFeedback
+import java.util.concurrent.TimeUnit
 
 class AtraceFrameManagerTest {
   private lateinit var model: Model
   private lateinit var process: ProcessModel
+
   @Before
   fun setup() {
     val file = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
@@ -41,12 +41,13 @@ class AtraceFrameManagerTest {
     assertThat(reader.parseFile(file)).isTrue()
     val task = ImportTask(PrintlnImportFeedback())
     model = task.importBuffer(reader)
-    process = model.processes[TEST_PID]!!
+    val modelAdapter = TrebuchetModelAdapter(model)
+    process = modelAdapter.getProcessById(TEST_PID)!!
   }
 
   @Test
   fun filterReturnsFramesOfSameThread() {
-    val frameManager = AtraceFrameManager(process, ::convertTimeStamps)
+    val frameManager = AtraceFrameManager(process)
     val frames = frameManager.getFramesList(AtraceFrame.FrameThread.MAIN)
     // Validation metrics come from systrace for the same file.
     assertThat(frames).hasSize(122)
@@ -57,43 +58,41 @@ class AtraceFrameManagerTest {
 
   @Test
   fun noMatchingThreadReturnsEmptyList() {
-    val frameManager = AtraceFrameManager(process, ::convertTimeStamps)
+    val frameManager = AtraceFrameManager(process)
     assertThat(frameManager.getFramesList(AtraceFrame.FrameThread.OTHER)).hasSize(0)
   }
 
-  private fun getSlice(startTime: Double, endTime: Double, name: String): SliceGroupBuilder.MutableSliceGroup {
-    return SliceGroupBuilder.MutableSliceGroup(startTime, endTime, false, endTime - startTime, name).apply { validate() }
+  private fun getSlice(startTime: Long, endTime: Long, name: String): TraceEventModel {
+    val startUs = TimeUnit.SECONDS.toMicros(startTime)
+    val endUs = TimeUnit.SECONDS.toMicros(endTime)
+    return TraceEventModel(name, startUs, endUs, endUs - startUs, listOf())
   }
 
   @Test
   fun mainThreadFramesShouldBeAssociatedWithRenderThreadFrames() {
-    val fragment = ModelFragment()
-    fragment.processes.add(ProcessModelFragment(TEST_PID, "Test").apply {
-      threadFor(TEST_PID, "Main").apply {
-        hint(TEST_PID, "Main", TEST_PID, "Test")
-        slicesBuilder.slices.apply {
-          add(getSlice(2.0, 5.0, "Choreographer#doFrame"))
-          add(getSlice(7.0, 11.0, "Choreographer#doFrame"))
-          add(getSlice(20.0, 22.0, "Choreographer#doFrame"))
-          add(getSlice(30.0, 50.0, "Choreographer#doFrame"))
-        }
-      }
+    val mainThread = ThreadModel(TEST_PID, TEST_PID, "Main",
+                                 listOf(
+                                   getSlice(2, 5, "Choreographer#doFrame"),
+                                   getSlice(7, 11, "Choreographer#doFrame"),
+                                   getSlice(20, 22, "Choreographer#doFrame"),
+                                   getSlice(30, 50, "Choreographer#doFrame")
+                                 ),
+                                 listOf())
+    val renderThread = ThreadModel(TEST_RENDER_ID, TEST_PID, CpuThreadInfo.RENDER_THREAD_NAME,
+                                 listOf(
+                                   getSlice(4, 7, "DrawFrame"),
+                                   getSlice(10, 13, "doFrame"),
+                                   getSlice(15, 17, "queueBuffer"),
+                                   getSlice(18, 20, "DrawFrame"),
+                                   getSlice(40, 55, "queueBuffer")
+                                 ),
+                                 listOf())
 
-      threadFor(TEST_RENDER_ID, CpuThreadInfo.RENDER_THREAD_NAME).apply {
-        hint(TEST_RENDER_ID, CpuThreadInfo.RENDER_THREAD_NAME, TEST_PID, "Test")
-        slicesBuilder.slices.apply {
-          add(getSlice(4.0, 7.0, "DrawFrame"))
-          add(getSlice(10.0, 13.0, "doFrame"))
-          add(getSlice(15.0, 17.0, "queueBuffer"))
-          add(getSlice(18.0, 20.0, "DrawFrame"))
-          add(getSlice(40.0, 55.0, "queueBuffer"))
-        }
-      }
-    })
+    val process = ProcessModel(TEST_PID, "Test",
+                               mapOf(TEST_PID to mainThread, TEST_RENDER_ID to renderThread),
+                               emptyMap())
 
-    model = Model(fragment)
-    process = model.processes[TEST_PID]!!
-    val frameManager = AtraceFrameManager(process, ::convertTimeStamps)
+    val frameManager = AtraceFrameManager(process)
 
     val mainThreadFrames = frameManager.getFramesList(AtraceFrame.FrameThread.MAIN)
     val renderThreadFrames = frameManager.getFramesList(AtraceFrame.FrameThread.RENDER)
@@ -115,7 +114,7 @@ class AtraceFrameManagerTest {
 
   @Test
   fun framesEndWithEmptyFrame() {
-    val frameManager = AtraceFrameManager(process, ::convertTimeStamps)
+    val frameManager = AtraceFrameManager(process)
     val frames = frameManager.getFrames(AtraceFrame.FrameThread.MAIN)
     // Each frame has a empty frame after it for spacing.
     assertThat(frames).hasSize(122 * 2)

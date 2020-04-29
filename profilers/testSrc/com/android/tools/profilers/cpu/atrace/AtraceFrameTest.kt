@@ -16,35 +16,44 @@
 package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.SECONDS_TO_US
-import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.convertTimeStamps
+import com.android.tools.profilers.systemtrace.TraceEventModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import trebuchet.model.SchedSlice
-import trebuchet.model.base.SliceGroup
 
 class AtraceFrameTest {
 
+  private companion object {
+    private val GOOD = TraceEventModel("event",
+                                    SECONDS_TO_US.toLong() * 1,
+                                    SECONDS_TO_US.toLong() * 2,
+                                    SECONDS_TO_US.toLong() * 1,
+                                    emptyList())
+
+    val BAD = TraceEventModel("event",
+                                   SECONDS_TO_US.toLong() * 3,
+                                   SECONDS_TO_US.toLong() * 10,
+                                   SECONDS_TO_US.toLong() * 7,
+                                   emptyList())
+
+    private val LONG_FRAME_TIME = SECONDS_TO_US.toLong() * 5
+  }
+
   @Test
   fun testFramePerformance_Good() {
-    val goodSlice = TestSliceGroup(SECONDS_TO_US * 0.25, SECONDS_TO_US * 0.75, SECONDS_TO_US * 0.6)
-    val frame = AtraceFrame(goodSlice, ::convertTimeStamps, SECONDS_TO_US.toLong() * 1, AtraceFrame.FrameThread.MAIN)
+    val frame = AtraceFrame(GOOD, LONG_FRAME_TIME, AtraceFrame.FrameThread.MAIN)
     assertThat(frame.perfClass).isEqualTo(AtraceFrame.PerfClass.GOOD)
   }
 
   @Test
   fun testFramePerformance_Bad() {
-    val badSlice = TestSliceGroup(SECONDS_TO_US * 0.25, SECONDS_TO_US * 1.5, SECONDS_TO_US * 0.9)
-    val frame = AtraceFrame(badSlice, ::convertTimeStamps, SECONDS_TO_US.toLong() * 1, AtraceFrame.FrameThread.MAIN)
+    val frame = AtraceFrame(BAD, LONG_FRAME_TIME, AtraceFrame.FrameThread.MAIN)
     assertThat(frame.perfClass).isEqualTo(AtraceFrame.PerfClass.BAD)
   }
 
   @Test
   fun associatedFramesPerfClass() {
-    val goodSlice = TestSliceGroup(SECONDS_TO_US * 0.25, SECONDS_TO_US * 0.75, SECONDS_TO_US * 0.6)
-    val goodFrame = AtraceFrame(goodSlice, ::convertTimeStamps, SECONDS_TO_US.toLong() * 1, AtraceFrame.FrameThread.MAIN)
-
-    val badSlice = TestSliceGroup(SECONDS_TO_US * 0.25, SECONDS_TO_US * 1.5, SECONDS_TO_US * 0.9)
-    val badFrame = AtraceFrame(badSlice, ::convertTimeStamps, SECONDS_TO_US.toLong() * 1, AtraceFrame.FrameThread.MAIN)
+    val goodFrame = AtraceFrame(GOOD, LONG_FRAME_TIME, AtraceFrame.FrameThread.MAIN)
+    val badFrame = AtraceFrame(BAD, LONG_FRAME_TIME, AtraceFrame.FrameThread.MAIN)
 
     goodFrame.associatedFrame = badFrame
     badFrame.associatedFrame = goodFrame
@@ -52,15 +61,5 @@ class AtraceFrameTest {
     assertThat(badFrame.totalPerfClass).isEqualTo(AtraceFrame.PerfClass.BAD)
 
     assertThat(AtraceFrame.EMPTY.totalPerfClass).isEqualTo(AtraceFrame.PerfClass.NOT_SET)
-  }
-
-  private inner class TestSliceGroup(override val startTime: Double,
-                                     override val endTime: Double,
-                                     override val cpuTime: Double) : SliceGroup {
-    override val children: List<SliceGroup> = listOf()
-    override val scheduledSlices: List<SchedSlice> = listOf()
-    override val name: String = ""
-    override val didNotFinish: Boolean = false
-
   }
 }

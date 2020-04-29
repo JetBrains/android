@@ -127,9 +127,8 @@ class AtraceParserTest {
     }
     // Verify that we have a perfd process, null process, then rcu process.
     // Verifying the null process is important as it ensures we render the data properly.
-    assertThat(dataSeries[0]!![0].value.name).matches("perfd")
-    assertThat(dataSeries[0]!![1].value).isEqualTo(CpuThreadSliceInfo.NULL_THREAD)
-    assertThat(dataSeries[0]!![2].value.name).matches("rcu_preempt")
+    val threadNames = dataSeries[0]!!.map { it.value.name }
+    assertThat(threadNames).containsAllOf("perfd", CpuThreadSliceInfo.NULL_THREAD.name, "rcu_preempt")
   }
 
   @Test
@@ -165,7 +164,7 @@ class AtraceParserTest {
     parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
 
     val processes = parser.getProcessList("")
-    assertThat(processes[0].processName).isEqualTo("system_server")
+    assertThat(processes[0].name).isEqualTo("system_server")
   }
 
   @Test
@@ -174,7 +173,7 @@ class AtraceParserTest {
     parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
 
     val processes = parser.getProcessList("something.crazy.nothing.matches")
-    assertThat(processes[0].processName).isEqualTo("system_server")
+    assertThat(processes[0].name).isEqualTo("system_server")
   }
 
   @Test
@@ -184,7 +183,7 @@ class AtraceParserTest {
 
 
     val processes = parser.getProcessList("com.google.package.atrace")
-    assertThat(processes[0].processName).isEqualTo("atrace")
+    assertThat(processes[0].name).isEqualTo("atrace")
   }
 
   @Test
@@ -193,7 +192,7 @@ class AtraceParserTest {
     parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
 
     val processes = parser.getProcessList("atrace")
-    assertThat(processes[0].processName).isEqualTo("atrace")
+    assertThat(processes[0].name).isEqualTo("atrace")
   }
 
   @Test
@@ -209,7 +208,7 @@ class AtraceParserTest {
     parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
 
     val info = parser.getProcessList(".gms.persistent")[0]
-    assertThat(info.processName).isEqualTo(".gms.persistent")
+    assertThat(info.getSafeProcessName()).isEqualTo(".gms.persistent")
   }
 
   @Test
