@@ -68,7 +68,8 @@ class LinearPlaceholderTest : SceneTest() {
     assertEquals(5.0, distance, 0.01)
   }
 
-  fun testMovingComponentToHead() {
+  // b/154962720
+  fun ignore_testMovingComponentToHead() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val textView1 = myScene.getSceneComponent("myText1")!!
     val button = myScene.getSceneComponent("button")!!
@@ -92,7 +93,8 @@ class LinearPlaceholderTest : SceneTest() {
     assertEquals(200, button.drawX)
   }
 
-  fun testMovingComponentUp() {
+  // b/154962720
+  fun ignore_testMovingComponentUp() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val textView1 = myScene.getSceneComponent("myText1")!!
     val button = myScene.getSceneComponent("button")!!
@@ -116,7 +118,8 @@ class LinearPlaceholderTest : SceneTest() {
     assertEquals(200, button.drawX)
   }
 
-  fun testMovingComponentDown() {
+  // b/154962720
+  fun ignore_testMovingComponentDown() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val textView1 = myScene.getSceneComponent("myText1")!!
     val button = myScene.getSceneComponent("button")!!
@@ -140,7 +143,8 @@ class LinearPlaceholderTest : SceneTest() {
     assertEquals(200, textView2.drawX)
   }
 
-  fun testMovingComponentToTail() {
+  // b/154962720
+  fun ignore_testMovingComponentToTail() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val textView1 = myScene.getSceneComponent("myText1")!!
     val button = myScene.getSceneComponent("button")!!
@@ -163,7 +167,8 @@ class LinearPlaceholderTest : SceneTest() {
     assertEquals(200, textView1.drawX)
   }
 
-  fun testAddComponentWithoutSnappingToSeparator() {
+  // b/154962720
+  fun ignore_testAddComponentWithoutSnappingToSeparator() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val placeholders = linearLayout.nlComponent.viewGroupHandler!!.getPlaceholders(linearLayout)
 

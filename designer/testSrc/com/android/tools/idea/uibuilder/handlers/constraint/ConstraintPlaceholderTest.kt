@@ -97,7 +97,8 @@ class ConstraintPlaceholderTest : SceneTest() {
     assertEquals("60dp", textView.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
   }
 
-  fun testDraggingComponentOutsideWillRemoveAllConstraintLayoutAttributes() {
+  // b/154962720
+  fun ignore_testDraggingComponentOutsideWillRemoveAllConstraintLayoutAttributes() {
     val linearLayout = myScreen.get("@id/linear").sceneComponent!!
     val textView2 = myScreen.get("@id/textView2").sceneComponent!!
 
