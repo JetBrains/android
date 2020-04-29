@@ -63,7 +63,7 @@ class StudioPatchUpdaterIntegrationTest {
     V3(mapOf("changed" to "v3_changed"));
 
     internal fun createExampleDir(tempDirectory: TempDirectory): Path {
-      val dir = tempDirectory.newFolder().toPath()
+      val dir = tempDirectory.newDirectory().toPath()
       for ((path, content) in files) {
         val file = dir.resolve(path)
         Files.createDirectories(file.parent)
@@ -183,7 +183,7 @@ class StudioPatchUpdaterIntegrationTest {
   }
 
   private fun createAnalyticsHome(): Path {
-    val path = myTempDirectory.newFolder().toPath()
+    val path = myTempDirectory.newDirectory().toPath()
     val json = "{ userId: \"a4d47d92-8d4c-44bb-a8a4-d2483b6e0c16\", hasOptedIn: true }"
     Files.write(
       path.resolve("").resolve("analytics.settings"),
