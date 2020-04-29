@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu.atrace;
 
 import static com.android.tools.profilers.cpu.CpuThreadInfo.RENDER_THREAD_NAME;
 
-import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.cpu.CpuFramesModel;
 import com.google.common.annotations.VisibleForTesting;
@@ -94,14 +93,13 @@ public class AtraceFrameManager {
     if (!activeThread.isPresent()) {
       return frames;
     }
-    new SliceStream(activeThread.get().getSlices()).matchPattern(Pattern.compile(frameThread.getIdentifierRegEx())).enumerate((sliceGroup) -> {
-      AtraceFrame frame = new AtraceFrame(activeThread.get().getId(), myBootClockSecondsToMonoUs, CpuFramesModel.SLOW_FRAME_RATE_US, frameThread);
-      double startTime = sliceGroup.getStartTime();
-      double endTime = sliceGroup.getEndTime();
-      frame.addSlice(sliceGroup, new Range(startTime, endTime));
-      frames.add(frame);
-      return SliceStream.EnumerationResult.SKIP_CHILDREN;
-    });
+    new SliceStream(activeThread.get().getSlices())
+      .matchPattern(Pattern.compile(frameThread.getIdentifierRegEx()))
+      .enumerate((sliceGroup) -> {
+        AtraceFrame frame = new AtraceFrame(sliceGroup, myBootClockSecondsToMonoUs, CpuFramesModel.SLOW_FRAME_RATE_US, frameThread);
+        frames.add(frame);
+        return SliceStream.EnumerationResult.SKIP_CHILDREN;
+      });
     return frames;
   }
 
@@ -146,20 +144,20 @@ public class AtraceFrameManager {
     for (int i = 1; i < framesList.size(); i++) {
       AtraceFrame current = framesList.get(i);
       AtraceFrame past = framesList.get(i - 1);
-      framesSeries.add(new SeriesData<>(myBootClockSecondsToMonoUs.apply(past.getTotalRangeSeconds().getMin()), past));
+      framesSeries.add(new SeriesData<>(past.getStartUs(), past));
 
       // Need to get the time delta between two frames.
       // If we have a gap then we add an empty frame to signify to the UI that nothing should be rendered.
-      if (past.getTotalRangeSeconds().getMax() < current.getTotalRangeSeconds().getMin()) {
-        framesSeries.add(new SeriesData<>(myBootClockSecondsToMonoUs.apply(past.getTotalRangeSeconds().getMax()), AtraceFrame.EMPTY));
+      if (past.getEndUs() < current.getStartUs()) {
+        framesSeries.add(new SeriesData<>(past.getEndUs(), AtraceFrame.EMPTY));
       }
     }
 
     // Always add the last frame, and a null frame following to properly setup the series for the UI.
     if (!framesList.isEmpty()) {
       AtraceFrame lastFrame = framesList.get(framesList.size() - 1);
-      framesSeries.add(new SeriesData<>(myBootClockSecondsToMonoUs.apply(lastFrame.getTotalRangeSeconds().getMin()), lastFrame));
-      framesSeries.add(new SeriesData<>(myBootClockSecondsToMonoUs.apply(lastFrame.getTotalRangeSeconds().getMax()), AtraceFrame.EMPTY));
+      framesSeries.add(new SeriesData<>(lastFrame.getStartUs(), lastFrame));
+      framesSeries.add(new SeriesData<>(lastFrame.getEndUs(), AtraceFrame.EMPTY));
     }
     return framesSeries;
   }

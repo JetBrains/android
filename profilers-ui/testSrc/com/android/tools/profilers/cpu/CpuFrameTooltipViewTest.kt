@@ -76,8 +76,8 @@ class CpuFrameTooltipViewTest {
 
   @Test
   fun textUpdateOnRangeChange() {
-    val mainFrame = AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.MAIN)
-    val renderFrame = AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.RENDER)
+    val mainFrame = AtraceFrame(1, 1, 0.0, 0, AtraceFrame.FrameThread.MAIN)
+    val renderFrame = AtraceFrame(1, 1, 0.0, 0, AtraceFrame.FrameThread.RENDER)
     mainFrame.associatedFrame = renderFrame
     renderFrame.associatedFrame = mainFrame
 
@@ -105,7 +105,7 @@ class CpuFrameTooltipViewTest {
 
   @Test
   fun renderFramePanelAndSeparatorShouldBeHidden() {
-    val frames = mutableListOf(SeriesData(0, AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.MAIN)))
+    val frames = mutableListOf(SeriesData(0, AtraceFrame(1L, 1L, 0.0, 0, AtraceFrame.FrameThread.MAIN)))
     val series = LazyDataSeries<AtraceFrame> { frames }
     tooltip.setFrameSeries(series)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
@@ -118,7 +118,7 @@ class CpuFrameTooltipViewTest {
 
   @Test
   fun mainFramePanelAndSeparatorShouldBeHidden() {
-    val frames = mutableListOf(SeriesData(0, AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.RENDER)))
+    val frames = mutableListOf(SeriesData(0, AtraceFrame(1L, 1L, 0.0, 0, AtraceFrame.FrameThread.RENDER)))
     val series = LazyDataSeries<AtraceFrame> { frames }
     tooltip.setFrameSeries(series)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()

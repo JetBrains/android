@@ -16,15 +16,12 @@
 package com.android.tools.profilers.cpu.atrace;
 
 import com.android.tools.adtui.model.DurationData;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.event.EventAction;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.annotations.VisibleForTesting;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import trebuchet.model.base.SliceGroup;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * An atrace frame represents all events that happen on a specified thread,
@@ -33,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements DurationData {
   private static final double SECONDS_TO_US = TimeUnit.SECONDS.toMicros(1);
-  public static final AtraceFrame EMPTY = new AtraceFrame(0, (t) -> 0L, 0, FrameThread.OTHER);
+  public static final AtraceFrame EMPTY = new AtraceFrame(0, 0, 0, 0, FrameThread.OTHER);
 
   /**
    * A rating for this frame's performance, based against some expected time. The expected time
@@ -88,21 +85,9 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
   private AtraceFrame myAssociatedFrame;
 
   /**
-   * Range that represents the absolute min and max times of all ranges contained within this frame.
-   */
-  @NotNull
-  private final Range myTotalRangeSeconds;
-
-  /**
-   * Function used to convert boot time (timing of slices) to mono clock time (timing used in studio).
-   */
-  @NotNull
-  private final Function<Double, Long> myBootClockSecondsToMonoUs;
-
-  /**
    * Total cpu time in seconds this frame was scheduled for.
    */
-  private double myCpuTimeSeconds;
+  private final double myCpuTimeUs;
 
   /**
    * Time set in the constructor to indicate that any frames longer than this value will be marked as {@link PerfClass#BAD}.
@@ -110,26 +95,42 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
   private final long myLongFrameTimeUs;
 
   @NotNull
-  private PerfClass myPerfClass;
-
-  private final int myThreadId;
+  private final PerfClass myPerfClass;
 
   private final FrameThread myThread;
-
-  private final List<SliceGroup> mySlices;
 
   /**
    * Constructs a basic frame that has no slice information.
    */
-  public AtraceFrame(int threadId, @NotNull Function<Double, Long> bootClockSecondsToMonoUs, long longFrameTimeUs, FrameThread thread) {
-    super(0, 0, PerfClass.NOT_SET);
-    myTotalRangeSeconds = new Range();
-    myBootClockSecondsToMonoUs = bootClockSecondsToMonoUs;
+  public AtraceFrame(@NotNull SliceGroup sliceGroup,
+                     @NotNull Function<Double, Long> bootClockSecondsToMonoUs,
+                     long longFrameTimeUs,
+                     FrameThread thread) {
+    this(bootClockSecondsToMonoUs.apply(sliceGroup.getStartTime()),
+         bootClockSecondsToMonoUs.apply(sliceGroup.getEndTime()),
+         // Here we do the regular conversion as this is a time quantity and
+         // not a timestamp like above
+         SECONDS_TO_US * sliceGroup.getCpuTime(),
+         longFrameTimeUs,
+         thread);
+  }
+
+  @VisibleForTesting
+  public AtraceFrame(long startUs,
+                     long endUs,
+                     double cpuTimeUs,
+                     long longFrameTimeUs,
+                     FrameThread thread) {
+    super(startUs, endUs, PerfClass.NOT_SET);
+    myCpuTimeUs = cpuTimeUs;
     myLongFrameTimeUs = longFrameTimeUs;
-    myThreadId = threadId;
-    myPerfClass = PerfClass.NOT_SET;
     myThread = thread;
-    mySlices = new ArrayList<>();
+
+    if (getDurationUs() > myLongFrameTimeUs) {
+      myPerfClass = PerfClass.BAD;
+    } else {
+      myPerfClass = PerfClass.GOOD;
+    }
   }
 
   public FrameThread getThread() {
@@ -153,11 +154,11 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
   }
 
   public PerfClass getTotalPerfClass() {
-    if (myPerfClass == PerfClass.NOT_SET) {
+    if (this == EMPTY || myPerfClass == PerfClass.NOT_SET) {
       return PerfClass.NOT_SET;
     }
-    double associatedFrameLength = myAssociatedFrame == null ? 0.0 : myAssociatedFrame.getTotalRangeSeconds().getLength();
-    if (SECONDS_TO_US * (associatedFrameLength + myTotalRangeSeconds.getLength()) > myLongFrameTimeUs) {
+    double associatedFrameLengthUs = myAssociatedFrame == null ? 0.0 : myAssociatedFrame.getDurationUs();
+    if (associatedFrameLengthUs + getDurationUs() > myLongFrameTimeUs) {
       return PerfClass.BAD;
     }
     return PerfClass.GOOD;
@@ -168,30 +169,14 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
    */
   @Override
   public long getDurationUs() {
-    return (long)(SECONDS_TO_US * getTotalRangeSeconds().getLength());
-  }
-
-  /**
-   * @return absolute min time of this frame in micro seconds.
-   */
-  @Override
-  public long getStartUs() {
-    return myBootClockSecondsToMonoUs.apply(myTotalRangeSeconds.getMin());
-  }
-
-  /**
-   * @return absolute max time of this frame in micro seconds.
-   */
-  @Override
-  public long getEndUs() {
-    return myBootClockSecondsToMonoUs.apply(myTotalRangeSeconds.getMax());
+    return getEndUs() - getStartUs();
   }
 
   /**
    * @return total cpu time this frame was scheduled in seconds.
    */
-  public double getCpuTimeSeconds() {
-    return myCpuTimeSeconds;
+  public double getCpuTimeUs() {
+    return myCpuTimeUs;
   }
 
   /**
@@ -201,40 +186,5 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
   @Override
   public PerfClass getType() {
     return getPerfClass();
-  }
-
-  /**
-   * @return total absolute range of this frame in seconds.
-   */
-  @NotNull
-  public Range getTotalRangeSeconds() {
-    return myTotalRangeSeconds;
-  }
-
-  public int getThreadId() {
-    return myThreadId;
-  }
-
-  /**
-   * Function called by the {@link AtraceFrameManager} to add slices to the frame that fall within the scope of the frame.
-   *
-   * @param sliceGroup Top level slice group that occurs within this frame.
-   * @param range      Range of the sliceGroup.
-   */
-  public void addSlice(@NotNull SliceGroup sliceGroup, @NotNull Range range) {
-    mySlices.add(sliceGroup);
-    myTotalRangeSeconds.setMin(Math.min(myTotalRangeSeconds.getMin(), range.getMin()));
-    myTotalRangeSeconds.setMax(Math.max(myTotalRangeSeconds.getMax(), range.getMax()));
-    myCpuTimeSeconds += sliceGroup.getCpuTime();
-    if (SECONDS_TO_US * myTotalRangeSeconds.getLength() > myLongFrameTimeUs) {
-      myPerfClass = PerfClass.BAD;
-    }
-    else {
-      myPerfClass = PerfClass.GOOD;
-    }
-  }
-
-  public List<SliceGroup> getSlices() {
-    return mySlices;
   }
 }

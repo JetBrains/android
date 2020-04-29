@@ -79,7 +79,7 @@ public class CpuFrameTooltipView extends TooltipView {
 
   private static void setLabelText(AtraceFrame frame, JLabel cpuText, JLabel totalTimeText) {
     cpuText.setText(String.format("CPU Time: %s", TimeFormatter
-      .getSingleUnitDurationString((long)(TimeUnit.SECONDS.toMicros(1) * frame.getCpuTimeSeconds()))));
+      .getSingleUnitDurationString((long) frame.getCpuTimeUs())));
     totalTimeText.setText(String.format("Wall Time: %s", TimeFormatter.getSingleUnitDurationString(frame.getDurationUs())));
   }
 
