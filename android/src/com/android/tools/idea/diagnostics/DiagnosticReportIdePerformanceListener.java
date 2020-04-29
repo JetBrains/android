@@ -38,7 +38,7 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
+final class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.diagnostics.DiagnosticReportIdePerformanceListener");
 
   private final Consumer<DiagnosticReport> myReportCallback;
@@ -190,7 +190,7 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
   public void registerOn(Application application) {
     assert myMessageBusConnection == null;
 
-    myMessageBusConnection = application.getMessageBus().connect(application);
+    myMessageBusConnection = application.getMessageBus().connect();
     myMessageBusConnection.subscribe(IdePerformanceListener.TOPIC, this);
   }
 
