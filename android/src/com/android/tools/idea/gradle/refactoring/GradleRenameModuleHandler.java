@@ -23,6 +23,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
@@ -132,7 +133,8 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
     public boolean canClose(@NotNull final String inputString) {
       final Project project = myModule.getProject();
 
-      final GradleSettingsModel settingsModel = GradleSettingsModel.get(project);
+      final ProjectBuildModel projectModel = ProjectBuildModel.get(project);
+      final GradleSettingsModel settingsModel = projectModel.getProjectSettingsModel();
       if (settingsModel == null) {
         Messages.showErrorDialog(project, "settings.gradle file not found", IdeBundle.message("title.rename.module"));
         return true;
@@ -153,7 +155,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
       // Rename all references in build.gradle
       final List<GradleBuildModel> modifiedBuildModels = Lists.newArrayList();
       for (Module module : ModuleManager.getInstance(project).getModules()) {
-        GradleBuildModel buildModel = GradleBuildModel.get(module);
+        GradleBuildModel buildModel = projectModel.getModuleBuildModel(module);
         if (buildModel != null) {
           DependenciesModel dependenciesModel = buildModel.dependencies();
           for (ModuleDependencyModel dependency : dependenciesModel.modules()) {
