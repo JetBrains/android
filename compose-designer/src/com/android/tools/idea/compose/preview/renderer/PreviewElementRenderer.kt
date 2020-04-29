@@ -71,7 +71,5 @@ fun renderPreviewElement(facet: AndroidFacet,
                          previewElement: PreviewElementInstance,
                          executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<BufferedImage?> {
   return renderPreviewElementForResult(facet, previewElement, executor)
-    .thenApply {
-      if (it != null && it.hasImage()) it.renderedImage.copy else null
-    }
+    .thenApply { it?.renderedImage?.copy }
 }

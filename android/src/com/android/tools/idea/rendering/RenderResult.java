@@ -212,15 +212,6 @@ public class RenderResult {
     }
   }
 
-  public boolean hasImage() {
-    myDisposeLock.readLock().lock();
-    try {
-      return !isDisposed && myImage != ImagePool.NULL_POOLED_IMAGE;
-    } finally {
-      myDisposeLock.readLock().unlock();
-    }
-  }
-
   @NotNull
   public PsiFile getFile() {
     return myFile;

@@ -69,6 +69,11 @@ class NonPooledImage implements ImagePool.Image {
     myImage = null;
   }
 
+  @Override
+  public boolean isValid() {
+    return myImage != null;
+  }
+
   @NotNull
   private static BufferedImage copy(@NotNull BufferedImage originalImage) {
     WritableRaster raster = originalImage.copyData(originalImage.getRaster().createCompatibleWritableRaster());
