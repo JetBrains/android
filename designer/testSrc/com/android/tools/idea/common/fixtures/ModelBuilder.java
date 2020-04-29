@@ -38,6 +38,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.InteractionHandler;
+import com.android.tools.idea.common.surface.TestActionManager;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -246,6 +247,7 @@ public class ModelBuilder {
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);
     when(surface.getSelectionAsTransferable()).thenCallRealMethod();
+    when(surface.getActionManager()).thenReturn(new TestActionManager(surface));
     when(surface.getInteractionManager()).thenReturn(new InteractionManager(surface, interactionProviderCreator.apply(surface)));
     if (surface instanceof NlDesignSurface) {
       when(surface.getAnalyticsManager()).thenReturn(new NlAnalyticsManager(surface));

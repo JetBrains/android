@@ -245,7 +245,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_SCENEVIEW_TOP_TOOLBAR = Flag.create(
     NELE, "sceneview.top.toolbar", "Enable the per SceneView top toolbar.",
     "Enable the per SceneView top toolbar that displays the SceneView contextual actions.",
-    false);
+    true);
 
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
@@ -840,7 +840,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_DATA_SOURCES = Flag.create(
     COMPOSE, "preview.data.sources", "Enable the Compose Data Source handling",
     "If enable, the preview will support Preview data sources",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
     COMPOSE, "editor",
