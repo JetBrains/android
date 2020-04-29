@@ -98,10 +98,11 @@ class LegacyPropertiesProvider : PropertiesProvider {
       }
       while (!stop)
 
-      view.x = (table.remove(SdkConstants.ANDROID_URI, ATTR_LEFT)?.dimensionValue ?: 0) - (parent?.legacyScrollX ?: 0)
-      view.y = (table.remove(SdkConstants.ANDROID_URI, ATTR_TOP)?.dimensionValue ?: 0) - (parent?.legacyScrollY ?: 0)
-      view.legacyScrollX = table[SdkConstants.ANDROID_URI, ATTR_SCROLL_X]?.dimensionValue ?: 0
-      view.legacyScrollY = table[SdkConstants.ANDROID_URI, ATTR_SCROLL_Y]?.dimensionValue ?: 0
+      val parentTable: PropertiesTable<InspectorPropertyItem>? = parent?.let { temp[parent.drawId] }
+      val parentScrollX = parentTable?.getOrNull(SdkConstants.ANDROID_URI, ATTR_SCROLL_X)?.dimensionValue ?: 0
+      val parentScrollY = parentTable?.getOrNull(SdkConstants.ANDROID_URI, ATTR_SCROLL_Y)?.dimensionValue ?: 0
+      view.x = (table.remove(SdkConstants.ANDROID_URI, ATTR_LEFT)?.dimensionValue ?: 0) - parentScrollX
+      view.y = (table.remove(SdkConstants.ANDROID_URI, ATTR_TOP)?.dimensionValue ?: 0) - parentScrollY
       view.width = table.remove(SdkConstants.ANDROID_URI, SdkConstants.ATTR_WIDTH)?.dimensionValue ?: 0
       view.height = table.remove(SdkConstants.ANDROID_URI, SdkConstants.ATTR_HEIGHT)?.dimensionValue ?: 0
       view.textValue = table[SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT]?.value ?: ""
