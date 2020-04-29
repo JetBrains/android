@@ -338,7 +338,6 @@
     <cachesInvalidator implementation="com.android.tools.idea.gradle.project.metrics.CacheInvalidatorMetricCollector"/>
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$PopulateCachesActivity"/>
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
-    <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.project.sync.idea.notification.GradleNotificationExtension"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.GradleModuleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssueDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.NdkModuleModelDataService" />
@@ -845,8 +844,6 @@
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectCleanupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep"/>
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
-    <extensionPoint qualifiedName="com.android.gradle.sync.syncErrorHandler"
-                    interface="com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
                     interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
     <extensionPoint qualifiedName="com.android.run.deployTargetProvider" interface="com.android.tools.idea.run.editor.DeployTargetProvider" />

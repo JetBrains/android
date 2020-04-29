@@ -20,20 +20,16 @@ import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 

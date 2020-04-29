@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.SdkConstants
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.sdk.AndroidSdks
@@ -45,7 +46,7 @@ open class FailedToParseSdkIssueChecker: GradleIssueChecker {
 
     // Log metrics.
     invokeLater {
-      SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.FAILED_TO_PARSE_SDK)
+      updateUsageTracker(issueData.projectPath, GradleSyncFailure.FAILED_TO_PARSE_SDK)
     }
 
     val buildIssueComposer = BuildIssueComposer(message)

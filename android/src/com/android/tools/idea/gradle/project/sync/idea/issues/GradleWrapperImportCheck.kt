@@ -17,7 +17,6 @@
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler
 import com.android.tools.idea.gradle.project.sync.idea.RESOLVER_LOG
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.util.GradleWrapper.GRADLEW_PROPERTIES_PATH
@@ -87,7 +86,7 @@ private class GradleWrapperImportChecker : GradleIssueChecker {
     if (issueData.error !is InvalidGradleWrapperException) return null
     val wrapper = (issueData.error as InvalidGradleWrapperException).wrapper
 
-    SyncErrorHandler.updateUsageTracker(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.JDK8_REQUIRED)
+    updateUsageTracker(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.JDK8_REQUIRED)
 
 
     val message = """

@@ -19,8 +19,8 @@ import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator

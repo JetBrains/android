@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue

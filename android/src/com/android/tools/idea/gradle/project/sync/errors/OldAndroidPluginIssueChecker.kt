@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
@@ -39,7 +40,7 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
 
     // Log metrics.
     invokeLater {
-      SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.OLD_ANDROID_PLUGIN)
+      updateUsageTracker(issueData.projectPath, GradleSyncFailure.OLD_ANDROID_PLUGIN)
     }
     return BuildIssueComposer(message).apply {
       addQuickFix(
