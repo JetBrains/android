@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
@@ -31,17 +32,17 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
 
   val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
+  override var activeDatabase: SqliteDatabase?
+    get() = LiveSqliteDatabase("path", mock(DatabaseConnection::class.java))
+    set(value) { }
+
   override fun addListener(listener: SqliteEvaluatorView.Listener) { listeners.add(listener) }
 
   override fun removeListener(listener: SqliteEvaluatorView.Listener) { listeners.remove(listener) }
 
   override fun showSqliteStatement(sqliteStatement: String) {  }
 
-  override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) { }
-
-  override fun selectDatabase(database: SqliteDatabase) { }
-
-  override fun getActiveDatabase(): SqliteDatabase { TODO("not implemented") }
+  override fun setDatabases(databases: List<SqliteDatabase>) { }
 
   override fun getSqliteStatement(): String { TODO("not implemented") }
 

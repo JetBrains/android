@@ -23,7 +23,6 @@ import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
-import com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -439,9 +438,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     val evaluatorView = mockViewFactory.createEvaluatorView(project, MockSchemaProvider(), mockViewFactory.tableView)
-    verify(evaluatorView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase (sqliteDatabase1, testSqliteSchema1, 0)))
-    verify(evaluatorView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase (sqliteDatabase2, testSqliteSchema1, 1)))
-    verify(evaluatorView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase (sqliteDatabase3, testSqliteSchema1, 0)))
+    verify(evaluatorView).setDatabases(listOf(sqliteDatabase1))
+    verify(evaluatorView).setDatabases(listOf(sqliteDatabase1, sqliteDatabase2))
+    verify(evaluatorView).setDatabases(listOf(sqliteDatabase3, sqliteDatabase1, sqliteDatabase2))
   }
 
   fun testDatabaseIsUpdatedInEvaluatorTabAfterSchemaChanges() {
@@ -487,8 +486,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).dispose()
-    verify(evaluatorView).updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(sqliteDatabase1)))
-    verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(sqliteDatabase1)))
+    verify(evaluatorView).setDatabases(listOf(sqliteDatabase1, sqliteDatabase2))
+    verify(evaluatorView).setDatabases(listOf(sqliteDatabase2))
   }
 
   fun testTabsAssociatedWithDatabaseAreRemovedWhenDatabasedIsRemoved() {
