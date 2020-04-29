@@ -54,6 +54,7 @@ import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.xdebugger.XDebugSession;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -317,8 +318,12 @@ public abstract class BaseAction extends AnAction {
         .filter(client -> Integer.toString(client.getDebuggerListenPort()).equals(debuggerPort))
         .findAny()
         .orElse(null);
-      if (remoteDebuggedClient != null && session.getXDebugSession() != null) {
-        return session.getXDebugSession().getRunContentDescriptor().getProcessHandler();
+      if (remoteDebuggedClient != null) {
+        // IDEA-239076
+        XDebugSession debugSession = session.getXDebugSession();
+        if (debugSession != null && !debugSession.isStopped()) {
+          return debugSession.getRunContentDescriptor().getProcessHandler();
+        }
       }
     }
 

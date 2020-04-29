@@ -115,6 +115,7 @@ public class KotlinMigrationTestGeneratorTest extends AndroidTestCase {
                  "@RunWith(AndroidJUnit4::class)\n" +
                  "class Migration_1_2_Test {\n" +
                  "    private val TEST_APP_DATABASE = \"test-app-database\"\n" +
+                 "\n" +
                  "    @Rule\n" +
                  "    val migrationTestHelper: MigrationTestHelper = MigrationTestHelper(\n" +
                  "            InstrumentationRegistry.getInstrumentation(),\n" +
