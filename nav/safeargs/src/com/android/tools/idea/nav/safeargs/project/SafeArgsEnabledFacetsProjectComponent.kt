@@ -17,6 +17,7 @@ package com.android.tools.idea.nav.safeargs.project
 
 import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
 import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
@@ -40,12 +41,11 @@ class SafeArgsEnabledFacetsProjectComponent(val project: Project) : Modification
 
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
-    val moduleManager = ModuleManager.getInstance(project)
+    val facetManager = ProjectFacetManager.getInstance(project)
 
     modulesUsingSafeArgsCache = cachedValuesManager.createCachedValue(
       {
-        val facets = moduleManager.modules
-          .mapNotNull { module -> AndroidFacet.getInstance(module) }
+        val facets = facetManager.getFacets(AndroidFacet.ID)
           .filter { facet -> facet.isSafeArgsEnabled() }
 
         CachedValueProvider.Result.create(facets, this)

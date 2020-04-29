@@ -19,13 +19,13 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.stats.withProjectId
-import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.NavSafeArgsEvent
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * A service which allows tracking safe args related metrics.
@@ -40,7 +40,7 @@ abstract class SafeArgsTracker(private val project: Project) {
 
   fun trackProjectStats(context: NavSafeArgsEvent.EventContext) {
     runSlowWork {
-      val allFacets = ModuleManager.getInstance(project).modules.mapNotNull { it.androidFacet }
+      val allFacets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
       val javaPluginFacets = allFacets.count { it.safeArgsMode == SafeArgsMode.JAVA }
       val kotlinPluginFacets = allFacets.count { it.safeArgsMode == SafeArgsMode.KOTLIN }
       if (javaPluginFacets + kotlinPluginFacets == 0) return@runSlowWork
