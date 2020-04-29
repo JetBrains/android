@@ -17,11 +17,10 @@ package com.android.tools.profilers.cpu.atrace;
 
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.profilers.systemtrace.TraceEventModel;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
-import trebuchet.model.base.SliceGroup;
 
 /**
  * An atrace frame represents all events that happen on a specified thread,
@@ -99,18 +98,12 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
 
   private final FrameThread myThread;
 
-  /**
-   * Constructs a basic frame that has no slice information.
-   */
-  public AtraceFrame(@NotNull SliceGroup sliceGroup,
-                     @NotNull Function<Double, Long> bootClockSecondsToMonoUs,
+  public AtraceFrame(@NotNull TraceEventModel eventModel,
                      long longFrameTimeUs,
                      FrameThread thread) {
-    this(bootClockSecondsToMonoUs.apply(sliceGroup.getStartTime()),
-         bootClockSecondsToMonoUs.apply(sliceGroup.getEndTime()),
-         // Here we do the regular conversion as this is a time quantity and
-         // not a timestamp like above
-         SECONDS_TO_US * sliceGroup.getCpuTime(),
+    this(eventModel.getStartTimestampUs(),
+         eventModel.getEndTimestampUs(),
+         eventModel.getCpuTimeUs(),
          longFrameTimeUs,
          thread);
   }

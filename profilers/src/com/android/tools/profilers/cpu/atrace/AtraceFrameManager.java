@@ -19,23 +19,19 @@ import static com.android.tools.profilers.cpu.CpuThreadInfo.RENDER_THREAD_NAME;
 
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.cpu.CpuFramesModel;
+import com.android.tools.profilers.systemtrace.ProcessModel;
+import com.android.tools.profilers.systemtrace.ThreadModel;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
-import trebuchet.model.ProcessModel;
-import trebuchet.model.ThreadModel;
 
 /**
  * This class builds {@link AtraceFrame}s for each {@code AtraceFrame.FrameThread} types.
  */
 public class AtraceFrameManager {
-
-  @NotNull
-  private final Function<Double, Long> myBootClockSecondsToMonoUs;
 
   private final List<AtraceFrame> myMainThreadFrames;
   private final List<AtraceFrame> myRenderThreadFrames;
@@ -46,13 +42,9 @@ public class AtraceFrameManager {
    * Constructs a default manager, the constructor finds the main thread and will assert if one is not found.
    *
    * @param process Process used to find the main and render threads.
-   * @param bootClockSecondsToMonoUs function to convert trace boot time in seconds to mono time micros.
-   * @param renderThreadId The id of the render thread
    */
-  public AtraceFrameManager(@NotNull ProcessModel process, @NotNull Function<Double, Long> bootClockSecondsToMonoUs) {
-    myBootClockSecondsToMonoUs = bootClockSecondsToMonoUs;
+  public AtraceFrameManager(@NotNull ProcessModel process) {
     myMainThreadFrames = buildFramesList(AtraceFrame.FrameThread.MAIN, process, process.getId());
-
     myRenderThreadId = findRenderThreadId(process);
     myRenderThreadFrames = buildFramesList(AtraceFrame.FrameThread.RENDER, process, myRenderThreadId);
     findAssociatedFrames();
@@ -85,7 +77,7 @@ public class AtraceFrameManager {
   }
 
   @NotNull
-  private List<AtraceFrame> buildFramesList(AtraceFrame.FrameThread frameThread,
+  private static List<AtraceFrame> buildFramesList(AtraceFrame.FrameThread frameThread,
                                             ProcessModel processModel,
                                             int threadId) {
     List<AtraceFrame> frames = new ArrayList<>();
@@ -93,10 +85,10 @@ public class AtraceFrameManager {
     if (!activeThread.isPresent()) {
       return frames;
     }
-    new SliceStream(activeThread.get().getSlices())
+    new SliceStream(activeThread.get().getTraceEvents())
       .matchPattern(Pattern.compile(frameThread.getIdentifierRegEx()))
       .enumerate((sliceGroup) -> {
-        AtraceFrame frame = new AtraceFrame(sliceGroup, myBootClockSecondsToMonoUs, CpuFramesModel.SLOW_FRAME_RATE_US, frameThread);
+        AtraceFrame frame = new AtraceFrame(sliceGroup, CpuFramesModel.SLOW_FRAME_RATE_US, frameThread);
         frames.add(frame);
         return SliceStream.EnumerationResult.SKIP_CHILDREN;
       });
