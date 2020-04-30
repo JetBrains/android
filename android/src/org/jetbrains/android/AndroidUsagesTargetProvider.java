@@ -125,6 +125,16 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
       return null;
     }
 
+    if (element == null) {
+      return null;
+    }
+    final PsiElement directParent = element.getParent();
+    if (directParent instanceof XmlTag && rename) {
+      // No longer supporting renaming XmlTags themselves, in this case the caret exists inside a resource tag name eg. <strin<caret>g>
+      // http://b/153850296
+      return null;
+    }
+
     final XmlTag tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
     // If searching for the parent of a resource, the target shouldn't be the resource tag, but the resource parent instead
     if (element instanceof XmlToken && XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN.equals(((XmlToken)element).getTokenType()) && tag != null) {
