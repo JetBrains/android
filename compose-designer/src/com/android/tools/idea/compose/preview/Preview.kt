@@ -590,7 +590,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (LOG.isDebugEnabled) LOG.debug("Removing ${existingModels.size} model(s)")
     existingModels.forEach { surface.removeModel(it) }
     val newSceneManagers = models
-      .reversed()
       .map {
         val (model, previewElement) = it
         // We call addModel even though the model might not be new. If we try to add an existing model,

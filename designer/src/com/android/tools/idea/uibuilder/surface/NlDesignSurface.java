@@ -108,7 +108,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
   };
 
-
   private static class NlDesignSurfacePositionableContentLayoutManager extends PositionableContentLayoutManager {
     private final NlDesignSurface myDesignSurface;
     private final SurfaceLayoutManager myLayoutManager;

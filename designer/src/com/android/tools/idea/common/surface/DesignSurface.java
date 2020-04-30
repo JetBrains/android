@@ -438,7 +438,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Add an {@link NlModel} to DesignSurface and return the created {@link SceneManager}.
-   * If it is added before then it just returns the associated {@link SceneManager} which created before.
+   * If it is added before then it just returns the associated {@link SceneManager} which created before. The {@link NlModel} will be moved
+   * to the last position which might affect rendering.
    *
    * @param model the added {@link NlModel}
    * @see #addAndRenderModel(NlModel)
@@ -446,8 +447,18 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private SceneManager addModel(@NotNull NlModel model) {
     SceneManager manager = getSceneManager(model);
-    // No need to add same model twice.
     if (manager != null) {
+      // No need to add same model twice. We just move it to the bottom of the model list since order is important.
+      myModelToSceneManagersLock.writeLock().lock();
+      try {
+        SceneManager managerToMove = myModelToSceneManagers.remove(model);
+        if (managerToMove != null) {
+          myModelToSceneManagers.put(model, managerToMove);
+        }
+      }
+      finally {
+        myModelToSceneManagersLock.writeLock().unlock();
+      }
       return manager;
     }
 
@@ -470,10 +481,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, only
-   * the refresh will be triggered.
+   * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, it will
+   * be moved to the bottom of the list and a refresh will be triggered.
    * The callback {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} is triggered after rendering.
    * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
+   * <br/><br/>
+   * Note that the order of the addition might be important for the rendering order. {@link PositionableContentLayoutManager} will receive
+   * the models in the order they are added.
    *
    * @param model the added {@link NlModel}
    * @see #addModel(NlModel)
@@ -503,6 +517,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * This function trigger {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} callback immediately.
    * In the opposite, {@link #addAndRenderModel(NlModel)} triggers {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)}
    * when render is completed.
+   *
+   * <br/><br/>
+   * Note that the order of the addition might be important for the rendering order. {@link PositionableContentLayoutManager} will receive
+   * the models in the order they are added.
    *
    * TODO(b/147225165): Remove #addAndRenderModel function and rename this function as #addModel
    *
