@@ -457,7 +457,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   /**
    * Executes the given runnable after a double 'invokeLater' delay.
    */
-  private static void invokeVeryLate(@NotNull Runnable runnable, @NotNull ModalityState state, @NotNull Condition expired) {
+  private static void invokeVeryLate(@NotNull Runnable runnable, @NotNull ModalityState state, @NotNull Condition<?> expired) {
     Application application = ApplicationManager.getApplication();
     application.invokeLater(() -> application.invokeLater(runnable, state, expired), state, expired);
   }
