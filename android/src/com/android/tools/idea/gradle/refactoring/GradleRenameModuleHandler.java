@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -163,7 +164,15 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             // TODO consider the case that dependency.path() is not started with :
             ResolvedPropertyModel path = dependency.path();
             if (oldModuleGradlePath.equals(path.forceString())) {
-              path.setValue(getNewPath(path.forceString(), inputString));
+              path.setValue(getNewPath(oldModuleGradlePath, inputString));
+            }
+          }
+          List<GradlePropertyModel> dynamicFeatures = buildModel.android().dynamicFeatures().toList();
+          if (dynamicFeatures != null) {
+            for (GradlePropertyModel feature : dynamicFeatures) {
+              if (oldModuleGradlePath.equals(feature.forceString())) {
+                feature.setValue(getNewPath(oldModuleGradlePath, inputString));
+              }
             }
           }
           if (buildModel.isModified()) {
