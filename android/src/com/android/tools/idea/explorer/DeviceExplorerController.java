@@ -117,7 +117,7 @@ public class DeviceExplorerController {
   @NotNull private final Project myProject;
   @NotNull private final DeviceExplorerModel myModel;
   @NotNull private final DeviceExplorerView myView;
-  @NotNull private final DeviceFileSystemService myService;
+  @NotNull private final DeviceFileSystemService<? extends DeviceFileSystem> myService;
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
   @NotNull private final DeviceExplorerFileManager myFileManager;
   @NotNull private final FileTransferWorkEstimator myWorkEstimator;
@@ -132,7 +132,7 @@ public class DeviceExplorerController {
   public DeviceExplorerController(@NotNull Project project,
                                   @NotNull DeviceExplorerModel model,
                                   @NotNull DeviceExplorerView view,
-                                  @NotNull DeviceFileSystemService service,
+                                  @NotNull DeviceFileSystemService<? extends DeviceFileSystem> service,
                                   @NotNull DeviceExplorerFileManager fileManager,
                                   @NotNull FileOpener fileOpener,
                                   @NotNull Executor edtExecutor,
@@ -212,11 +212,11 @@ public class DeviceExplorerController {
     cancelPendingOperations();
 
     myView.startRefresh("Refreshing list of devices");
-    ListenableFuture<List<DeviceFileSystem>> futureDevices = myService.getDevices();
+    ListenableFuture<? extends List<? extends DeviceFileSystem>> futureDevices = myService.getDevices();
     myEdtExecutor.addListener(futureDevices, myView::stopRefresh);
-    myEdtExecutor.addCallback(futureDevices, new FutureCallback<List<DeviceFileSystem>>() {
+    myEdtExecutor.addCallback(futureDevices, new FutureCallback<List<? extends DeviceFileSystem>>() {
       @Override
-      public void onSuccess(@Nullable List<DeviceFileSystem> result) {
+      public void onSuccess(@Nullable List<? extends DeviceFileSystem> result) {
         assert result != null;
         myModel.removeAllDevices();
         result.forEach(myModel::addDevice);
