@@ -71,8 +71,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Replaces {@link com.intellij.ide.projectView.impl.RenameModuleHandler}. When renaming the module, the class will:
  * <ol>
- * <li>change the reference in the root settings.gradle file</li>
- * <li>change the references in all dependencies in build.gradle files</li>
+ * <li>change the reference in the root Gradle settings file</li>
+ * <li>change the references in all dependencies in Gradle build files</li>
  * <li>change the directory name of the module</li>
  * </ol>
  */
@@ -138,7 +138,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
       final ProjectBuildModel projectModel = ProjectBuildModel.get(project);
       final GradleSettingsModel settingsModel = projectModel.getProjectSettingsModel();
       if (settingsModel == null) {
-        Messages.showErrorDialog(project, "settings.gradle file not found", IdeBundle.message("title.rename.module"));
+        Messages.showErrorDialog(project, "Gradle settings file not found", IdeBundle.message("title.rename.module"));
         return true;
       }
       final VirtualFile moduleRoot = getModuleRootDir(myModule);
@@ -154,7 +154,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
         return true;
       }
 
-      // Rename all references in build.gradle
+      // Rename all references in Gradle build files
       final List<GradleBuildModel> modifiedBuildModels = Lists.newArrayList();
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         GradleBuildModel buildModel = projectModel.getModuleBuildModel(module);
@@ -177,7 +177,8 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
       WriteCommandAction.Builder actionBuilder = WriteCommandAction.writeCommandAction(project).withName(msg);
       ThrowableComputable<Boolean,Throwable> action = () -> {
         if (!settingsModel.modulePaths().contains(oldModuleGradlePath)) {
-          Messages.showErrorDialog(project, "Can't find module '" + myModule.getName() + "' in settings.gradle",
+          String settingsFileName = settingsModel.getVirtualFile().getName();
+          Messages.showErrorDialog(project, "Can't find module '" + myModule.getName() + "' in " + settingsFileName,
                                    IdeBundle.message("title.rename.module"));
           reset(modifiedBuildModels);
           return true;
@@ -209,7 +210,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
         // cause a PsiInvalidAccessException.
         settingsModel.replaceModulePath(oldModuleGradlePath, getNewPath(oldModuleGradlePath, inputString));
 
-        // Rename all references in build.gradle
+        // Rename all references in Gradle build files
         for (GradleBuildModel buildModel : modifiedBuildModels) {
           buildModel.applyChanges();
         }
