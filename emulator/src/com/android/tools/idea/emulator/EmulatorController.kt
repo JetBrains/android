@@ -28,6 +28,7 @@ import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
 import com.android.emulator.control.VmRunState
 import com.android.ide.common.util.Cancelable
+import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
 import com.android.tools.idea.protobuf.Empty
@@ -46,7 +47,6 @@ import io.grpc.Metadata
 import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import io.grpc.netty.NettyChannelBuilder
 import io.grpc.stub.ClientCalls
 import io.grpc.stub.StreamObserver
 import java.util.concurrent.Executor
@@ -149,8 +149,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     maxInboundMessageSize = config.displayWidth * config.displayHeight * 4 + 100
 
     connectionState = ConnectionState.CONNECTING
-    val channel = NettyChannelBuilder
-      .forAddress("localhost", emulatorId.grpcPort)
+    val channel = getRuntimeConfiguration()
+      .newGrpcChannelBuilder("localhost", emulatorId.grpcPort)
       .usePlaintext() // TODO: Add support for TLS encryption.
       .maxInboundMessageSize(maxInboundMessageSize)
       .compressorRegistry(CompressorRegistry.newEmptyInstance()) // Disable data compression.
@@ -314,6 +314,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     val delegate: StreamObserver<in ResponseT>?,
     val method: MethodDescriptor<in RequestT, in ResponseT>
   ) : StreamObserver<ResponseT> {
+
     override fun onNext(response: ResponseT) {
       delegate?.onNext(response)
     }

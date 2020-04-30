@@ -159,4 +159,4 @@ class SkinDefinitionTest {
   }
 }
 
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/emulator/testData/golden"
+private const val GOLDEN_FILE_PATH = "tools/adt/idea/emulator/testData/SkinDefinitionTest/golden"

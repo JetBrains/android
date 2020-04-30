@@ -20,12 +20,12 @@ import com.android.tools.idea.emulator.createHardwareKeyEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Simulates pressing the Overview button on an Android virtual device.
+ * Simulates pressing the Power button on an Android virtual device.
  */
-class EmulatorOverviewAction : AbstractEmulatorAction() {
+class EmulatorHomeButtonAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent("AppSwitch"))
+    emulatorController.sendKey(createHardwareKeyEvent("Home"))
   }
 }

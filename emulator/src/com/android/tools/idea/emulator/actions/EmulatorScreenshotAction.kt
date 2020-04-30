@@ -20,9 +20,9 @@ import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.tools.idea.emulator.DummyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
+import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
 import com.android.tools.idea.emulator.invokeLater
 import com.android.tools.idea.emulator.logger
-import com.android.tools.idea.io.IdeFileUtils.getDesktopDirectory
 import com.android.tools.idea.protobuf.ByteString
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -30,11 +30,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.util.SystemProperties
 import java.io.IOException
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
-import java.nio.file.Paths
 import java.nio.file.StandardOpenOption.CREATE_NEW
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -72,7 +70,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     @JvmStatic
     private fun createAndOpenScreenshotFile(imageContents: ByteString, timestamp: Date, project: Project) {
       val timestampSuffix = TIMESTAMP_FORMAT.format(timestamp)
-      val dir = getDesktopDirectory() ?: Paths.get(SystemProperties.getUserHome())
+      val dir = getRuntimeConfiguration().getDesktopOrUserHomeDirectory()
 
       for (attempt in 0..100) {
         val uniquenessSuffix = if (attempt == 0) "" else "_${attempt}"
@@ -84,6 +82,11 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
           }
 
           val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file.toFile()) ?: return
+
+          if (ApplicationManager.getApplication().isHeadlessEnvironment) {
+            return // Don't attempt to open an editor in a headless environment.
+          }
+
           invokeLater {
             FileEditorManager.getInstance(project).openFile(virtualFile, true)
           }

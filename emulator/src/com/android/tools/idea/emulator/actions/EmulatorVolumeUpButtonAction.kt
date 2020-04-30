@@ -20,12 +20,12 @@ import com.android.tools.idea.emulator.createHardwareKeyEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Simulates pressing the Back button on an Android virtual device.
+ * Simulates pressing the Volume Up button on an Android virtual device.
  */
-class EmulatorBackAction : AbstractEmulatorAction() {
+class EmulatorVolumeUpButtonAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent("GoBack"))
+    emulatorController.sendKey(createHardwareKeyEvent("AudioVolumeUp"))
   }
 }

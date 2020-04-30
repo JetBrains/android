@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.tools.idea.testing.AndroidProjectRule.Companion.inMemory
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.rules.TempDirectory
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.nio.file.Path
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
 
@@ -29,18 +27,16 @@ import java.util.concurrent.TimeUnit
  * Tests for [RunningEmulatorCatalog].
  */
 class RunningEmulatorCatalogTest {
-  private val tempDir = TempDirectory()
-  private val projectRule = inMemory()
-  private val testConfiguration = TestConfiguration()
-  private val configurationRule = OverriddenConfigurationRule(testConfiguration)
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(tempDir).around(projectRule).around(configurationRule)
+  private val projectRule = AndroidProjectRule.inMemory()
+  private val emulatorRule = FakeEmulatorRule()
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule)
 
   @Test
   fun testCatalogUpdates() {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = tempDir.root.toPath()
-    val emulator1 = FakeEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, testConfiguration)
-    val emulator2 = FakeEmulator(FakeEmulator.createWatchAvd(tempFolder), 8555, testConfiguration)
+    val tempFolder = emulatorRule.root.toPath()
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
+    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8555)
 
     val eventQueue = LinkedBlockingDeque<CatalogEvent>()
     catalog.addListener(object : RunningEmulatorCatalog.Listener {
@@ -92,10 +88,4 @@ class RunningEmulatorCatalogTest {
   private enum class EventType { ADDED, REMOVED }
 
   private class CatalogEvent(val type: EventType, val emulator: EmulatorController)
-
-  private inner class TestConfiguration : Configuration() {
-    override val emulatorRegistrationDirectory: Path by lazy {
-      tempDir.newFolder("avd/running").toPath()
-    }
-  }
 }

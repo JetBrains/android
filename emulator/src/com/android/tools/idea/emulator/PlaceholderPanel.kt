@@ -23,7 +23,6 @@ import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.emulator.settings.EmulatorSettingsUi
-import com.android.tools.idea.npw.assetstudio.roundToInt
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.intellij.openapi.Disposable
@@ -37,7 +36,6 @@ import com.intellij.ui.components.htmlComponent
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction
-import java.awt.Color
 import java.awt.event.MouseEvent
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
@@ -174,23 +172,6 @@ internal class PlaceholderPanel(project: Project): BorderLayoutPanel(), Disposab
   }
 
   override fun dispose() {
-  }
-
-  /**
-   * Interpolates between two colors.
-   */
-  private fun interpolate(start: Color, end: Color, @Suppress("SameParameterValue") fraction: Double): Color {
-    return Color(interpolate(start.red, end.red, fraction).coerceIn(0, 255),
-                 interpolate(start.green, end.green, fraction).coerceIn(0, 255),
-                 interpolate(start.blue, end.blue, fraction).coerceIn(0, 255),
-                 interpolate(start.alpha, end.alpha, fraction).coerceIn(0, 255))
-  }
-
-  /**
-   * Interpolates between two integers.
-   */
-  private fun interpolate(start: Int, end: Int, fraction: Double): Int {
-    return start + ((end - start) * fraction).roundToInt()
   }
 }
 

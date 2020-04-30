@@ -15,18 +15,23 @@
  */
 package com.android.tools.idea.emulator
 
-import org.junit.rules.ExternalResource
+import com.android.tools.idea.io.IdeFileUtils
+import com.intellij.util.SystemProperties
+import io.grpc.ManagedChannelBuilder
+import io.grpc.netty.NettyChannelBuilder
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
- * Test rule that overrides the default configuration for the duration of every test.
+ * A container of properties that may have different values in production environment and in tests.
  */
-class OverriddenConfigurationRule(private val configuration: RuntimeConfiguration) : ExternalResource() {
+open class RuntimeConfiguration {
 
-  override fun before() {
-    RuntimeConfigurationOverrider.overrideConfiguration(configuration)
+  open fun getDesktopOrUserHomeDirectory(): Path {
+    return IdeFileUtils.getDesktopDirectory() ?: Paths.get(SystemProperties.getUserHome())
   }
 
-  override fun after() {
-    RuntimeConfigurationOverrider.clearOverride()
+  open fun newGrpcChannelBuilder(host: String, port: Int): ManagedChannelBuilder<*> {
+    return NettyChannelBuilder.forAddress(host, port)
   }
 }

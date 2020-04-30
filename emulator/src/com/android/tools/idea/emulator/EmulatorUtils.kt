@@ -52,12 +52,6 @@ internal inline val SkinRotation.is90Degrees
   get() = ordinal % 2 != 0
 
 /**
- * Returns the rotation that is that is less than this one by 90 degrees.
- */
-internal fun SkinRotation.decrementedBy90Degrees(): SkinRotation =
-  SkinRotation.forNumber((ordinal + 3) % 4)
-
-/**
  * Returns this integer scaled and rounded to the closest integer.
  *
  * @param scale the scale factor

@@ -27,6 +27,7 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.ByteString
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -37,6 +38,7 @@ import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Image
+import java.awt.Point
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 import java.awt.event.KeyAdapter
@@ -65,7 +67,7 @@ import com.android.emulator.control.MouseEvent as MouseEventMessage
  * @param cropFrame if true, the device frame is cropped to maximize the size of the display image
  */
 class EmulatorView(
-  private val emulator: EmulatorController,
+  val emulator: EmulatorController,
   parentDisposable: Disposable,
   cropFrame: Boolean
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
@@ -80,6 +82,10 @@ class EmulatorView(
   private val displayTransform = AffineTransform()
   @Volatile
   private var screenshotReceiver: ScreenshotReceiver? = null
+  /** Count of received display frames. */
+  @VisibleForTesting
+  var frameNumber = 0
+    private set
 
   init {
     Disposer.register(parentDisposable, this)
@@ -143,9 +149,6 @@ class EmulatorView(
         requestScreenshotFeed()
       }
     }
-
-  private inline val skinDefinition
-    get() = emulator.skinDefinition
 
   private val emulatorConfig
     get() = emulator.emulatorConfig
@@ -238,7 +241,7 @@ class EmulatorView(
   }
 
   private fun computeActualSize(rotation: SkinRotation): Dimension {
-    val skin = skinDefinition
+    val skin = emulator.skinDefinition
     return if (cropFrame || skin == null) {
       computeRotatedDisplaySize(emulatorConfig, rotation)
     }
@@ -258,19 +261,9 @@ class EmulatorView(
 
   private fun sendMouseEvent(x: Int, y: Int, button: Int) {
     val skin = skinLayout ?: return // Null skinLayout means that Emulator screen is not displayed.
-    val frameRect = skin.frameRectangle
-    val baseX: Int
-    val baseY: Int
-    if (cropFrame) {
-      baseX = (width - displayWidth) / 2
-      baseY = (height - displayHeight) / 2
-    }
-    else {
-      baseX = (width - frameRect.width) / 2 - frameRect.x
-      baseY = (height - frameRect.height) / 2 - frameRect.y
-    }
-    val normalizedX = (x - baseX).toDouble() / displayWidth - 0.5  // X relative to display center in [-0.5, 0.5) range.
-    val normalizedY = (y - baseY).toDouble() / displayHeight - 0.5 // Y relative to display center in [-0.5, 0.5) range.
+    val displayPosition = computeDisplayPosition(skin)
+    val normalizedX = (x - displayPosition.x).toDouble() / displayWidth - 0.5  // X relative to display center in [-0.5, 0.5) range.
+    val normalizedY = (y - displayPosition.y).toDouble() / displayHeight - 0.5 // Y relative to display center in [-0.5, 0.5) range.
     val deviceDisplayWidth = emulatorConfig.displayWidth
     val deviceDisplayHeight = emulatorConfig.displayHeight
     val displayX: Int
@@ -347,24 +340,24 @@ class EmulatorView(
 
     val displayImage = displayImage ?: return
     val skin = skinLayout ?: return
-    val frameRect = skin.frameRectangle
-    val displayX: Int
-    val displayY: Int
-    if (cropFrame) {
-      displayX = (width - displayWidth) / 2
-      displayY = (height - displayHeight) / 2
-    }
-    else {
-      displayX = (width - frameRect.width) / 2 - frameRect.x
-      displayY = (height - frameRect.height) / 2 - frameRect.y
-    }
+    val displayPosition = computeDisplayPosition(skin)
 
     g as Graphics2D
     // Draw display.
-    displayTransform.setToTranslation(displayX.toDouble(), displayY.toDouble())
+    displayTransform.setToTranslation(displayPosition.x.toDouble(), displayPosition.y.toDouble())
     g.drawImage(displayImage, displayTransform, null)
 
-    skin.drawFrameAndMask(displayX, displayY, g)
+    skin.drawFrameAndMask(displayPosition.x, displayPosition.y, g)
+  }
+
+  private fun computeDisplayPosition(skin: SkinLayout): Point {
+    return if (cropFrame) {
+      Point((width - displayWidth) / 2, (height - displayHeight) / 2)
+    }
+    else {
+      val frameRect = skin.frameRectangle
+      Point((width - frameRect.width) / 2 - frameRect.x, (height - frameRect.height) / 2 - frameRect.y)
+    }
   }
 
   private fun requestScreenshotFeed() {
@@ -513,6 +506,7 @@ class EmulatorView(
         findLoadingPanel()?.run { stopLoading() }
       }
 
+      frameNumber++
       repaint()
     }
   }
