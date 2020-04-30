@@ -164,6 +164,7 @@ fun getIconFor(androidTestResult: AndroidTestCaseResult?): Icon? {
     AndroidTestCaseResult.SKIPPED -> AllIcons.RunConfigurations.TestSkipped
     AndroidTestCaseResult.FAILED -> AllIcons.RunConfigurations.TestFailed
     AndroidTestCaseResult.IN_PROGRESS -> SMPoolOfTestIcons.RUNNING_ICON
+    AndroidTestCaseResult.CANCELLED -> SMPoolOfTestIcons.TERMINATED_ICON
     else -> null
   }
 }
@@ -176,6 +177,7 @@ fun getColorFor(androidTestResult: AndroidTestCaseResult?): Color? {
     AndroidTestCaseResult.PASSED -> ColorProgressBar.GREEN
     AndroidTestCaseResult.FAILED -> ColorProgressBar.RED_TEXT
     AndroidTestCaseResult.SKIPPED -> ColorProgressBar.GREEN
+    AndroidTestCaseResult.CANCELLED -> ColorProgressBar.RED_TEXT
     else -> null
   }
 }
@@ -419,6 +421,7 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
     return when {
       stats.failed == 1 -> "Fail"
       stats.failed > 0 -> "Fail (${stats.failed})"
+      stats.cancelled > 0 -> "Cancelled"
       stats.skipped == myTestCases.size -> "Skip"
       stats.passed + stats.skipped == myTestCases.size -> "Pass"
       else -> ""
@@ -432,6 +435,7 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
     val stats = getResultStats()
     return when {
       stats.failed > 0 -> AndroidTestCaseResult.FAILED
+      stats.cancelled > 0 -> AndroidTestCaseResult.CANCELLED
       stats.skipped == myTestCases.size -> AndroidTestCaseResult.SKIPPED
       stats.running > 0 -> AndroidTestCaseResult.IN_PROGRESS
       stats.passed + stats.skipped == myTestCases.size -> AndroidTestCaseResult.PASSED
@@ -442,22 +446,25 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
   private data class ResultStats(val passed: Int,
                                  val failed: Int,
                                  val skipped: Int,
-                                 val running: Int)
+                                 val running: Int,
+                                 val cancelled: Int)
 
   private fun getResultStats(): ResultStats {
     var passed = 0
     var failed = 0
     var skipped = 0
     var running = 0
+    var cancelled = 0
     myTestCases.values.forEach {
       when(it.result) {
         AndroidTestCaseResult.PASSED -> passed++
         AndroidTestCaseResult.FAILED -> failed++
         AndroidTestCaseResult.SKIPPED -> skipped++
         AndroidTestCaseResult.IN_PROGRESS -> running++
+        AndroidTestCaseResult.CANCELLED -> cancelled++
         else -> {}
       }
     }
-    return ResultStats(passed, failed, skipped, running)
+    return ResultStats(passed, failed, skipped, running, cancelled)
   }
 }

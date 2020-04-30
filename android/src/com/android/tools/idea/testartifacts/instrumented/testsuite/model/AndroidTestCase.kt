@@ -62,6 +62,11 @@ enum class AndroidTestCaseResult(val isTerminalState: Boolean) {
   IN_PROGRESS(false),
 
   /**
+   * A test case which is scheduled to run ends up with cancelled.
+   */
+  CANCELLED(true),
+
+  /**
    * A test case is scheduled but not started yet.
    */
   SCHEDULED(false)
