@@ -144,6 +144,17 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
   }
 
   override fun testRunEnded(elapsedTime: Long, runMetrics: MutableMap<String, String>) {
+    // Ddmlib calls testRunEnded() callback if the target app process has crashed or
+    // killed manually. (For example, if you click "stop" run button from Android Studio,
+    // it kills the app process. Thus, we update test results to cancelled for all
+    // pending tests.
+    for (testCase in myTestCases.values) {
+      if (!testCase.result.isTerminalState) {
+        testCase.result = AndroidTestCaseResult.CANCELLED
+        myTestSuite.result = myTestSuite.result ?: AndroidTestSuiteResult.CANCELLED
+      }
+    }
+
     myTestSuite.result = myTestSuite.result ?: AndroidTestSuiteResult.PASSED
     listener.onTestSuiteFinished(myDevice, myTestSuite)
   }

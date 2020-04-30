@@ -220,6 +220,23 @@ class DdmlibTestRunListenerAdapterTest {
     assertThat(testCase.value.benchmark).isEqualTo(expectedBenchmarkText)
   }
 
+  @Test
+  fun testResultsShouldChangeToCancelledWhenTestProcessIsKilled() {
+    val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener)
+
+    adapter.testRunStarted("exampleTestSuite", /*testCount=*/1)
+    adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest1"))
+    adapter.testRunEnded(/*elapsedTime=*/1000, mutableMapOf())
+
+    val testCaseCaptor = ArgumentCaptor.forClass(AndroidTestCase::class.java)
+    verify(mockListener).onTestCaseStarted(any(), any(), testCaseCaptor.capture() ?: AndroidTestCase("", ""))
+    assertThat(testCaseCaptor.value.result).isEqualTo(AndroidTestCaseResult.CANCELLED)
+
+    val testSuiteCaptor = ArgumentCaptor.forClass(AndroidTestSuite::class.java)
+    verify(mockListener).onTestSuiteFinished(any(), testSuiteCaptor.capture() ?: AndroidTestSuite("", "", 0))
+    assertThat(testSuiteCaptor.value.result).isEqualTo(AndroidTestSuiteResult.CANCELLED)
+  }
+
   private fun device(id: String = "mockDeviceSerialNumber",
                      name: String = "mockDeviceAvdName"): AndroidDevice {
     return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
