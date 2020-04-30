@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.psi
 
+import com.android.tools.idea.psi.annotateType
 import com.android.tools.idea.psi.createNullabilityAnnotation
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.PsiClass
@@ -149,8 +150,7 @@ internal fun PsiClass.createConstructor(modifiers: Array<String> = MODIFIERS_PUB
 internal fun PsiClass.annotateNullability(psiType: PsiType, nullable: String? = null): PsiType {
   val nonNull = psiType is PsiPrimitiveType || nullable != "true"
 
-  val annotations = arrayOf(project.createNullabilityAnnotation(nonNull, context))
-  return psiType.annotate { annotations }
+  return project.annotateType(psiType, nonNull, context)
 }
 
 internal fun PsiClass.createMethod(name: String,

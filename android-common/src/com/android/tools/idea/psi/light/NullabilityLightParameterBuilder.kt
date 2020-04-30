@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.psi.light
 
-import com.intellij.psi.PsiManager
+import com.intellij.lang.Language
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
-import com.intellij.psi.impl.light.LightFieldBuilder
+import com.intellij.psi.impl.light.LightParameter
 
 /**
- * A [LightFieldBuilder] with easy nullability support.
+ * A [LightParameter] with nullability support.
  */
-class NullabilityLightFieldBuilder(manager: PsiManager, name: String, type: PsiType, isNonNull: Boolean, vararg modifiers: String)
-  : LightFieldBuilder(manager, name, type) {
-
+class NullabilityLightParameterBuilder(name: String, type: PsiType, declartionScope: PsiElement, language: Language, isNonNull: Boolean)
+  : LightParameter(name, type, declartionScope, language) {
   init {
-    setModifiers(*modifiers)
     setModifierList(ModifierListWithNullabilityAnnotation(super.getModifierList(), isNonNull))
   }
 }

@@ -16,36 +16,26 @@
 package com.android.tools.idea.psi.light
 
 import com.intellij.lang.Language
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiType
 import com.intellij.psi.impl.light.LightMethodBuilder
 
 /**
- * A [LightMethodBuilder] that supports deprecation.
+ * A [LightMethodBuilder] that supports adding parameters with nullability support.
  *
- * TODO(b/119872892): Investigate upstreaming fixes to LightMethodBuilder so we don't need this class.
+ * This ensures that annotations show up correctly in the parameter info popup, and possibly other
+ * locations.
  */
-class DeprecatableLightMethodBuilder(
+open class NullabilityLightMethodBuilder(
   manager: PsiManager,
   language: Language,
   name: String
-) : NullabilityLightMethodBuilder(manager, language, name) {
+) : LightMethodBuilder(manager, language, name) {
 
-  private var deprecated: Boolean = false
+  constructor(manager: PsiManager, name: String) : this(manager, JavaLanguage.INSTANCE, name)
 
-  override fun isDeprecated() = deprecated
-
-  fun setDeprecated(deprecated: Boolean) {
-    this.deprecated = deprecated
-  }
-
-  override fun equals(other: Any?): Boolean {
-    return super.equals(other) &&
-           (other as? DeprecatableLightMethodBuilder)?.deprecated == deprecated
-  }
-
-  override fun hashCode(): Int {
-    var result = super.hashCode()
-    result = 31 * result + deprecated.hashCode()
-    return result
+  fun addNullabilityParameter(name: String, type: PsiType, isNonNull: Boolean): NullabilityLightMethodBuilder {
+    return addParameter(NullabilityLightParameterBuilder(name, type, this, language, isNonNull)) as NullabilityLightMethodBuilder
   }
 }
