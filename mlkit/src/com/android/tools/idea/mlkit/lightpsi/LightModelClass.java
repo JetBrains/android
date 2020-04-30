@@ -20,6 +20,7 @@ import com.android.tools.idea.mlkit.LightModelClassConfig;
 import com.android.tools.idea.mlkit.LoggingUtils;
 import com.android.tools.idea.mlkit.MlkitModuleService;
 import com.android.tools.idea.psi.NullabilityUtils;
+import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
@@ -120,11 +121,10 @@ public class LightModelClass extends AndroidLightClassBase {
   private PsiMethod buildNewInstanceStaticMethod() {
     PsiType nonNullReturnType =
       NullabilityUtils.annotateType(getProject(), PsiType.getTypeByName(getQualifiedName(), getProject(), getResolveScope()), true, this);
-    PsiType nonNullContext =
-      NullabilityUtils.annotateType(getProject(), PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope()), true, this);
-    LightMethodBuilder method = new LightMethodBuilder(getManager(), "newInstance")
+    PsiType context = PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope());
+    LightMethodBuilder method = new NullabilityLightMethodBuilder(getManager(), "newInstance")
+      .addNullabilityParameter("context", context, true)
       .setMethodReturnType(nonNullReturnType)
-      .addParameter("context", nonNullContext)
       .addException(ClassNames.IO_EXCEPTION)
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL, PsiModifier.STATIC)
       .setContainingClass(this);
