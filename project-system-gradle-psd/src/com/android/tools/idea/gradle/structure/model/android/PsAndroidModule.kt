@@ -64,6 +64,7 @@ class PsAndroidModule(
   private var signingConfigCollection: PsSigningConfigCollection? = null
 
   var buildToolsVersion by AndroidModuleDescriptors.buildToolsVersion
+  var ndkVersion by AndroidModuleDescriptors.ndkVersion
   var compileSdkVersion by AndroidModuleDescriptors.compileSdkVersion
   var sourceCompatibility by AndroidModuleDescriptors.sourceCompatibility
   var targetCompatibility by AndroidModuleDescriptors.targetCompatibility

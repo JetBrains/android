@@ -631,17 +631,17 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Tooltip on first thread.
     tooltipTimeUs = TimeUnit.SECONDS.toMicros(5);
     tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
-    assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.RUNNING);
+    assertThat(tooltip.getThreadState()).isEqualTo(ThreadState.RUNNING);
 
     // Tooltip right on second thread.
     tooltipTimeUs = TimeUnit.SECONDS.toMicros(8);
     tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
-    assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.DEAD);
+    assertThat(tooltip.getThreadState()).isEqualTo(ThreadState.DEAD);
 
     // Tooltip after all data. Because data don't contain end time so the last thread state lasts "forever".
     tooltipTimeUs = TimeUnit.SECONDS.toMicros(12);
     tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
-    assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.DEAD);
+    assertThat(tooltip.getThreadState()).isEqualTo(ThreadState.DEAD);
   }
 
   @Test

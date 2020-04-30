@@ -18,20 +18,19 @@ package com.android.tools.idea.appinspection.ide.ui
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
 
-// TODO(b/152556591): Rename back to "App Inspection"
-internal const val APP_INSPECTION_TITLE = "Database Inspector"
-
 // This must match the toolwindow id in app-inspection.xml
-internal const val APP_INSPECTION_ID = "Android App Inspection"
+// TODO(b/152556591): Rename back to "App Inspection"
+internal const val APP_INSPECTION_ID = "Database Inspector"
 
-class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory, Condition<Project> {
+class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory {
+
+  override fun isApplicable(project: Project) = StudioFlags.ENABLE_APP_INSPECTION_TOOL_WINDOW.get()
 
   override fun createToolWindowContent(project: Project,
                                        toolWindow: ToolWindow) {
@@ -43,14 +42,11 @@ class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory, Condition<P
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR)
     Disposer.register(project, appInspectionToolWindow)
     toolWindow.show(null)
+    toolWindow.isShowStripeButton = false
+    toolWindow.stripeTitle = APP_INSPECTION_ID
   }
 
   override fun init(toolWindow: ToolWindow) {
     toolWindow.setToHideOnEmptyContent(true)
-    toolWindow.hide(null)
-    toolWindow.isShowStripeButton = false
-    toolWindow.stripeTitle = APP_INSPECTION_TITLE
   }
-
-  override fun value(project: Project) = StudioFlags.ENABLE_APP_INSPECTION_TOOL_WINDOW.get()
 }

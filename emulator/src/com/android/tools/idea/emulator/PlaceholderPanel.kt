@@ -194,4 +194,4 @@ internal class PlaceholderPanel(project: Project): BorderLayoutPanel(), Disposab
   }
 }
 
-private const val MIN_REQUIRED_EMULATOR_VERSION = "30.0.9"
+private const val MIN_REQUIRED_EMULATOR_VERSION = "30.0.10"

@@ -112,8 +112,6 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
 
     layeredPane.add(zoomControlsLayerPane, BorderLayout.CENTER)
     layeredPane.add(scrollPane, BorderLayout.CENTER)
-
-    addToolbars()
   }
 
   private fun addToolbars() {
@@ -159,10 +157,15 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
       mainToolbar.setTargetComponent(emulatorView)
       secondaryToolbar.setTargetComponent(emulatorView)
 
+      addToolbars()
+
       val loadingPanel = JBLoadingPanel(BorderLayout(), disposable)
       this.loadingPanel = loadingPanel
       loadingPanel.add(layeredPane, BorderLayout.CENTER)
       addToCenter(loadingPanel)
+
+      loadingPanel.setLoadingText("Connecting to the Emulator")
+      loadingPanel.startLoading() // stopLoading is called by EmulatorView after receiving the first screen image.
 
       loadingPanel.repaint()
     }

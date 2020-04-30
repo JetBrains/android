@@ -45,9 +45,9 @@ class LazyDataSeriesTest {
   @Test
   fun testCaptureDataRange() {
     val testSeriesData = buildSeriesData(1, 100, 10)
-    val series = LazyDataSeries<CpuProfilerStage.ThreadState> { testSeriesData }
+    val series = LazyDataSeries<ThreadState> { testSeriesData }
     // Test get exact data.
-    var seriesData: List<SeriesData<CpuProfilerStage.ThreadState>> =
+    var seriesData: List<SeriesData<ThreadState>> =
       series.getDataForRange(
         Range(
           TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
@@ -112,9 +112,9 @@ class LazyDataSeriesTest {
   @Test
   fun testEmptySeries() {
     val testSeriesData = buildSeriesData(1, 100, 0)
-    val series = LazyDataSeries<CpuProfilerStage.ThreadState> { testSeriesData }
+    val series = LazyDataSeries<ThreadState> { testSeriesData }
     // Test getting data for an empty series doesn't cause issues and returns nothing.
-    val seriesData: List<SeriesData<CpuProfilerStage.ThreadState>> =
+    val seriesData: List<SeriesData<ThreadState>> =
       series.getDataForRange(
         Range(
           TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
@@ -125,8 +125,8 @@ class LazyDataSeriesTest {
   }
 
   private fun verifySeriesDataMatches(
-    seriesData: List<SeriesData<CpuProfilerStage.ThreadState>>,
-    testSeriesData: List<SeriesData<CpuProfilerStage.ThreadState>>,
+    seriesData: List<SeriesData<ThreadState>>,
+    testSeriesData: List<SeriesData<ThreadState>>,
     startIndex: Int,
     endIndex: Int
   ) {
@@ -137,11 +137,11 @@ class LazyDataSeriesTest {
     }
   }
 
-  private fun buildSeriesData(startTime: Long, endTime: Long, count: Int): List<SeriesData<CpuProfilerStage.ThreadState>> {
-    val seriesData = ArrayList<SeriesData<CpuProfilerStage.ThreadState>>()
+  private fun buildSeriesData(startTime: Long, endTime: Long, count: Int): List<SeriesData<ThreadState>> {
+    val seriesData = ArrayList<SeriesData<ThreadState>>()
     for (i in 0 until count) {
       val time = startTime + (((endTime - startTime) / count) * i)
-      seriesData.add(SeriesData(TimeUnit.MILLISECONDS.toMicros(time), CpuProfilerStage.ThreadState.RUNNING))
+      seriesData.add(SeriesData(TimeUnit.MILLISECONDS.toMicros(time), ThreadState.RUNNING))
     }
     return seriesData
   }

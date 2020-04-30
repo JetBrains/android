@@ -20,11 +20,13 @@ import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.createSqliteStatement
-import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
+import com.android.tools.idea.sqlite.sqlLanguage.hasParsingError
+import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -41,8 +43,8 @@ import java.util.concurrent.Executor
 @UiThread
 class SqliteEvaluatorController(
   private val project: Project,
+  private val model: DatabaseInspectorModel,
   private val view: SqliteEvaluatorView,
-  private val viewFactory: DatabaseInspectorViewsFactory,
   override val closeTabInvoked: () -> Unit,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
@@ -51,13 +53,27 @@ class SqliteEvaluatorController(
   private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener = SqliteEvaluatorViewListenerImpl()
   private val listeners = mutableListOf<Listener>()
 
+  private val modelListener = object : DatabaseInspectorModel.Listener {
+    private var currentDatabases = listOf<SqliteDatabase>()
+
+    override fun onChanged(databases: List<SqliteDatabase>) {
+      val sortedNewDatabase = databases.sortedBy { it.name }
+
+      val toAdd = sortedNewDatabase
+        .filter { !currentDatabases.contains(it) }
+        .map { DatabaseDiffOperation.AddDatabase(it, model.getDatabaseSchema(it)!!, sortedNewDatabase.indexOf(it)) }
+      val toRemove = currentDatabases.filter { !sortedNewDatabase.contains(it) }.map { DatabaseDiffOperation.RemoveDatabase(it) }
+
+      view.updateDatabases(toAdd + toRemove)
+
+      currentDatabases = databases
+    }
+  }
+
   fun setUp() {
     view.addListener(sqliteEvaluatorViewListener)
     view.tableView.setEditable(false)
-  }
-
-  fun removeDatabase(index: Int) {
-    view.removeDatabase(index)
+    model.addListener(modelListener)
   }
 
   /**
@@ -78,6 +94,7 @@ class SqliteEvaluatorController(
   override fun dispose() {
     view.removeListener(sqliteEvaluatorViewListener)
     listeners.clear()
+    model.removeListener(modelListener)
   }
 
   fun addListener(listener: Listener) {
@@ -92,14 +109,14 @@ class SqliteEvaluatorController(
     listeners.clear()
   }
 
-  fun addDatabase(database: SqliteDatabase, index: Int) {
-    view.addDatabase(database, index)
-  }
-
   fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     view.showSqliteStatement(sqliteStatement.sqliteStatementWithInlineParameters)
     view.selectDatabase(database)
     return execute(database, sqliteStatement)
+  }
+
+  fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: String): ListenableFuture<Unit> {
+    return evaluateSqlStatement(database, createSqliteStatement(project, sqliteStatement))
   }
 
   private fun execute(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
@@ -135,9 +152,7 @@ class SqliteEvaluatorController(
       taskExecutor = taskExecutor
     )
     Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
-    currentTableController!!.setUp()
-
-    return Futures.immediateFuture(Unit)
+    return currentTableController!!.setUp()
   }
 
   private fun runUpdate(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
@@ -152,12 +167,16 @@ class SqliteEvaluatorController(
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {
-    override fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String) {
+    override fun evaluateSqliteStatementActionInvoked(database: SqliteDatabase, sqliteStatement: String) {
       DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
       )
 
-      evaluateSqlStatement(database, createSqliteStatement(project, sqliteStatement))
+      evaluateSqlStatement(database, sqliteStatement)
+    }
+
+    override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
+      view.setRunSqliteStatementEnabled(!hasParsingError(project, newSqliteStatement))
     }
   }
 

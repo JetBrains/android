@@ -1,10 +1,10 @@
 package com.android.tools.idea.uibuilder.handlers.motion;
 
+import com.intellij.openapi.application.ApplicationBundle;
 import java.util.Arrays;
 import java.util.HashSet;
 
 public class MotionSceneString {
-  public static final String CustomLabel = "Custom...";
   public static final String TransitionTitle = "Transition";
   public static final String KeyAttributesTitle = "Targeted Attributes";
   public static final String KeyPositionTitle = "Position";
@@ -141,4 +141,8 @@ public class MotionSceneString {
     AttrName.androidAttr("translationZ"),
   };
   public static HashSet<AttrName> ourStandardSet = new HashSet<>(Arrays.asList(ourStandardAttributes));
+
+  public static String getCustomLabel() {
+    return ApplicationBundle.message("custom.option");
+  }
 }

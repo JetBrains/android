@@ -18,7 +18,7 @@ package com.android.tools.idea.lint
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.util.mapAndroidxName
-import com.android.tools.lint.checks.ObjectAnimatorDetector.KEEP_ANNOTATION
+import com.android.tools.lint.checks.ObjectAnimatorDetector.Companion.KEEP_ANNOTATION
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.intention.AddAnnotationFix
 import com.intellij.lang.java.JavaLanguage

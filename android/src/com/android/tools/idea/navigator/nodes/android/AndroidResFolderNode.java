@@ -49,7 +49,7 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
    */
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     // collect all res folders from all source providers
     List<PsiDirectory> resFolders = new ArrayList<>();
     for (PsiDirectory sourceFolder : getSourceFolders()) {
@@ -69,7 +69,7 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
 
     // create a node for each res folder type that actually has some resources
     AndroidProjectTreeBuilder treeBuilder = (AndroidProjectTreeBuilder)myProjectViewPane.getTreeBuilder();
-    List<AbstractTreeNode> children = new ArrayList<>(foldersByResourceType.size());
+    List<AbstractTreeNode<?>> children = new ArrayList<>(foldersByResourceType.size());
 
     for (ResourceFolderType type : foldersByResourceType.keySet()) {
       Set<PsiDirectory> folders = foldersByResourceType.get(type);

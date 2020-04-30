@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.tasks.ActivityLaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -58,7 +59,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
                                                                                               myFacet,
                                                                                               "--start-profiling",
                                                                                               false,
-                                                                                              launchStatus);
+                                                                                              launchStatus, new NoApksProvider());
 
     assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER " +
@@ -73,7 +74,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
                                                                                               myFacet,
                                                                                               "",
                                                                                               false,
-                                                                                              launchStatus);
+                                                                                              launchStatus, new NoApksProvider());
     assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER",
                  task.getStartActivityCommand(myDevice, launchStatus, Mockito.mock(ConsolePrinter.class)));

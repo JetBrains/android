@@ -22,14 +22,12 @@ import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_URI
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.TAG_DEEP_LINK
-import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.isArgument
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavDestinationInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -37,8 +35,6 @@ import com.google.wireless.android.sdk.stats.NavPropertyInfo
 import com.google.wireless.android.sdk.stats.NavSchemaInfo
 import com.google.wireless.android.sdk.stats.NavigationContents
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.util.xml.XmlName
-import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -283,14 +279,9 @@ class NavLogEventTest : NavTestCase() {
                                    wasEmpty: Boolean,
                                    component: NlComponent,
                                    expected: NavPropertyInfo) {
-    val property = NlPropertyItem.create(XmlName(propertyName, namespace),
-                                         AttributeDefinition(ResourceNamespace.RES_AUTO, propertyName),
-                                         listOf(component),
-                                         null)
-
     val tracker = NavUsageTrackerImpl(mock(Executor::class.java), component.model, Consumer { })
     val proto = NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
-      .withPropertyInfo(property, wasEmpty)
+      .withAttributeInfo(propertyName, component.tagName, wasEmpty)
       .getProtoForTest().propertyInfo
     assertEquals(expected, proto)
   }
@@ -311,19 +302,6 @@ class NavLogEventTest : NavTestCase() {
                        "\n" +
                        "@Navigator.Name(\"fragment\")\n" +
                        "public class CustomFragmentNavigator extends FragmentNavigator {}\n")
-    myFixture.addFileToProject("res/values/attrs2.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                                        "<resources>\n" +
-                                                        "    <declare-styleable name=\"CustomNavigator\">\n" +
-                                                        "        <attr format=\"string\" name=\"myString\"/>\n" +
-                                                        "        <attr format=\"boolean\" name=\"myBoolean\"/>\n" +
-                                                        "        <attr format=\"integer\" name=\"myInteger\"/>\n" +
-                                                        "    </declare-styleable>\n" +
-                                                        "    <declare-styleable name=\"CustomActivityNavigator\">\n" +
-                                                        "        <attr format=\"string\" name=\"myString2\"/>\n" +
-                                                        "        <attr format=\"boolean\" name=\"myBoolean2\"/>\n" +
-                                                        "        <attr format=\"integer\" name=\"myInteger2\"/>\n" +
-                                                        "    </declare-styleable>\n" +
-                                                        "</resources>\n")
 
     ResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
     ResourceRepositoryManager.getAppResources(myFacet).sync()
@@ -339,7 +317,6 @@ class NavLogEventTest : NavTestCase() {
       .withSchemaInfo()
       .getProtoForTest().schemaInfo
     assertEquals(NavSchemaInfo.newBuilder()
-                   .setCustomAttributes(6)
                    .setCustomDestinations(1)
                    .setCustomNavigators(3)
                    .setCustomTags(2).toString(), proto.toString())

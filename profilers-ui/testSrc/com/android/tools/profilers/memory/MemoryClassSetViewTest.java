@@ -188,10 +188,10 @@ public class MemoryClassSetViewTest {
       InstanceObject instance = myInstanceObjects.get(2 - i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
                                     new String[]{instance.getName(), null, instance.getValueText(), null, instance.getToStringText()},
-                                    new String[]{""},
-                                    new String[]{""},
+                                    new String[]{"-"},
+                                    new String[]{"-"},
                                     new String[]{(instance.getDepth() >= 0 && instance.getDepth() < Integer.MAX_VALUE) ?
-                                                 NumberFormatter.formatInteger(instance.getDepth()) : ""},
+                                                 NumberFormatter.formatInteger(instance.getDepth()) : "-"},
                                     new String[]{formatSize(instance.getNativeSize())},
                                     new String[]{formatSize(instance.getShallowSize())},
                                     new String[]{formatSize(instance.getRetainedSize())});
@@ -202,7 +202,7 @@ public class MemoryClassSetViewTest {
    * Return text representation of the size, except nothing when it is the special "invalid" value
    */
   private static String formatSize(long size) {
-    return size == INVALID_VALUE ? "" : NumberFormatter.formatInteger(size);
+    return size == INVALID_VALUE ? "-" : NumberFormatter.formatInteger(size);
   }
 
   @Test

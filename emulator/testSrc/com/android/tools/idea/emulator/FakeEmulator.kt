@@ -39,16 +39,18 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, configuration: Config
       """.trimIndent()
   private val registrationFile = configuration.emulatorRegistrationDirectory.resolve("pid_${grpcPort + 12345}.ini")
 
+  /**
+   * Starts the Emulator. The Emulator is fully initialized when the method returns.
+   */
   fun start() {
-    ApplicationManager.getApplication().executeOnPooledThread {
-      Files.write(registrationFile, registration.toByteArray(UTF_8), CREATE)
-    }
+    Files.write(registrationFile, registration.toByteArray(UTF_8), CREATE)
   }
 
+  /**
+   * Stops the Emulator. The Emulator is completely shut down when the method returns.
+   */
   fun stop() {
-    ApplicationManager.getApplication().executeOnPooledThread {
-      Files.delete(registrationFile)
-    }
+    Files.delete(registrationFile)
   }
 
   companion object {
@@ -129,7 +131,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, configuration: Config
       val avdId = "Android_Wear_Round_API_28"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
-      val skinFolder = getSkinFolder("AndroidWearRound")
+      val skinFolder = getSkinFolder("wear_round")
 
       val configIni = """
           AvdId=${avdId}
@@ -206,10 +208,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, configuration: Config
     }
 
     @JvmStatic
-    private fun getSkinFolder(skinName: String): Path {
-      return TestUtils.getWorkspaceRoot().toPath().resolve("${TEST_DATA_PATH}/skins/${skinName}")
+    fun getSkinFolder(skinName: String): Path {
+      return TestUtils.getWorkspaceRoot().toPath().resolve("tools/adt/idea/artwork/resources/device-art-resources/${skinName}")
     }
-
-    private const val TEST_DATA_PATH = "tools/adt/idea/emulator/testData"
   }
 }

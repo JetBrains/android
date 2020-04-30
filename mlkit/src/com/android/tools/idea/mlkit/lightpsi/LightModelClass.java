@@ -82,7 +82,7 @@ public class LightModelClass extends AndroidLightClassBase {
     myClassConfig = classConfig;
 
     myContainingFile = (PsiJavaFile)PsiFileFactory.getInstance(module.getProject()).createFileFromText(
-      classConfig.myModelMetadata.myClassName + SdkConstants.DOT_JAVA,
+      myClassConfig.myClassName + SdkConstants.DOT_JAVA,
       StdFileTypes.JAVA,
       "// This class is generated on-the-fly by the IDE.");
     myContainingFile.setPackageName(classConfig.myPackageName);
@@ -134,7 +134,7 @@ public class LightModelClass extends AndroidLightClassBase {
 
   @Override
   public String getName() {
-    return myClassConfig.myModelMetadata.myClassName;
+    return myClassConfig.myClassName;
   }
 
   @NotNull
@@ -189,7 +189,7 @@ public class LightModelClass extends AndroidLightClassBase {
   private PsiMethod buildProcessMethod(@NotNull List<TensorInfo> tensorInfos) {
     GlobalSearchScope scope = getResolveScope();
     String outputClassName =
-      String.join(".", myClassConfig.myPackageName, myClassConfig.myModelMetadata.myClassName, MlkitNames.OUTPUTS);
+      String.join(".", myClassConfig.myPackageName, myClassConfig.myClassName, MlkitNames.OUTPUTS);
 
     PsiType nonNullReturnType =
       NullabilityUtils.annotateType(getProject(), PsiType.getTypeByName(outputClassName, getProject(), scope), true, this);
@@ -203,7 +203,7 @@ public class LightModelClass extends AndroidLightClassBase {
       PsiType nonNullPsiType = NullabilityUtils
         .annotateType(getProject(), PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), getProject(), getResolveScope()),
                       true, this);
-      method.addParameter(tensorInfo.getName(), nonNullPsiType);
+      method.addParameter(tensorInfo.getIdentifierName(), nonNullPsiType);
     }
     method.setNavigationElement(this);
 

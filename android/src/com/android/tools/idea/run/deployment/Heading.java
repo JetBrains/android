@@ -18,29 +18,16 @@ package com.android.tools.idea.run.deployment;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class Heading extends AnAction {
-  Heading(@NotNull String text) {
-    super(text);
+  static final String RUNNING_DEVICES_ID = "RunningDevices";
+  static final String AVAILABLE_DEVICES_ID = "AvailableDevices";
+
+  private Heading() {
     getTemplatePresentation().setEnabled(false);
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof Heading)) {
-      return false;
-    }
-
-    return getTemplatePresentation().getText().equals(((AnAction)object).getTemplatePresentation().getText());
-  }
-
-  @Override
-  public int hashCode() {
-    return getTemplatePresentation().getText().hashCode();
   }
 }

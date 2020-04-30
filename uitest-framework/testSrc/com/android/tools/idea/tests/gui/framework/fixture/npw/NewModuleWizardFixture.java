@@ -81,13 +81,19 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
 
   @NotNull
   public ConfigureLibraryStepFixture<NewModuleWizardFixture> clickNextToJavaLibrary() {
-    clickNextToStep(message("android.wizard.module.new.java.or.kotlin.library"), message("android.wizard.module.config.title"));
+    clickNextToStep(
+      message("android.wizard.module.new.java.or.kotlin.library"),
+      message("android.wizard.module.new.java.or.kotlin.library")
+    );
     return new ConfigureLibraryStepFixture<>(this, target().getRootPane());
   }
 
   @NotNull
   public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextToBenchmarkModule() {
-    clickNextToStep(message("android.wizard.module.new.benchmark.module.app"), message("android.wizard.module.config.title"));
+    clickNextToStep(
+      message("android.wizard.module.new.benchmark.module.app"),
+      message("android.wizard.module.new.benchmark.module.app")
+    );
     return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
   }
 

@@ -52,13 +52,14 @@ abstract class ModuleModel(
   projectModelData: ProjectModelData,
   _template: NamedModuleTemplate = with(projectModelData) {
     createDefaultTemplateAt(if (!isNewProject) project.basePath!! else "", name)
-  }
+  },
+  val moduleParent: String? = null
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
   final override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(_template)
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
   final override val moduleName = StringValueProperty(name).apply { addConstraint(String::trim) }
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
-  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
+  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder, true)
   abstract val renderer: MultiTemplateRenderer.TemplateRenderer
 
   public override fun handleFinished() {
@@ -89,7 +90,6 @@ abstract class ModuleModel(
           bytecodeLevel = this@ModuleModel.bytecodeLevel.value
         }
         formFactor = this@ModuleModel.formFactor.get().toTemplateFormFactor()
-        isNew = true
         setBuildVersion(androidSdkInfo.value, project)
         setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@ModuleModel.packageName.get())
         isLibrary = this@ModuleModel.isLibrary

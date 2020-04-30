@@ -181,15 +181,26 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
   }
 
   /**
+   * Provides image for element's documentation. The method will return a [CompletableFuture]. The image might still
+   * be loading.
+   *
+   * Before actual loading image from source swing tries to load image from cache.
+   * Intellij provides such a cache for documentation by DocumentationManager.getElementImage that uses getLocalImageForElement.
+   */
+  @VisibleForTesting
+  fun getLocalImageForElementAsync(element: PsiElement): CompletableFuture<BufferedImage?> {
+    val previewPsiElement = getPreviewElement(element) as? PsiElement ?: return CompletableFuture.completedFuture(null)
+    return previewPsiElement.getUserData(previewImageKey)
+             ?.value
+           ?: return CompletableFuture.completedFuture(null)
+  }
+
+  /**
    * Provides image for element's documentation.
    *
    * Before actual loading image from source swing tries to load image from cache.
    * Intellij provides such a cache for documentation by DocumentationManager.getElementImage that uses getLocalImageForElement.
    */
-  override fun getLocalImageForElement(element: PsiElement, imageSpec: String): Image? {
-    val previewPsiElement = getPreviewElement(element) as? PsiElement ?: return null
-    val future: CompletableFuture<BufferedImage?> = previewPsiElement.getUserData(
-      previewImageKey)?.value ?: return null
-    return future.getNow(null)
-  }
+  override fun getLocalImageForElement(element: PsiElement, imageSpec: String): Image? =
+    getLocalImageForElementAsync(element).getNow(null)
 }

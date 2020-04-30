@@ -27,7 +27,7 @@ final class ViewListener extends FormattedLogcatReceiver {
     super(formatter);
 
     myView = view;
-    myAlarm = new Alarm(view);
+    myAlarm = new Alarm(view.parentDisposable);
   }
 
   @Override

@@ -23,8 +23,8 @@ import org.fest.swing.core.Robot
  * Fixture for a [CollapsibleLabelPanel] commonly used as a title for a section in the properties panel.
  */
 class CollapsibleLabelPanelFixture(
-  private val label: CollapsibleLabelPanel,
-  robot: Robot
+  robot: Robot,
+  private val label: CollapsibleLabelPanel
 ) : ComponentFixture<CollapsibleLabelPanelFixture, CollapsibleLabelPanel>(
   CollapsibleLabelPanelFixture::class.java,
   robot,

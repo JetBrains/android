@@ -831,7 +831,7 @@ public class MemoryClassifierViewTest {
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
     treeInfo
       .verifyColumnHeaders("Class Name", "Allocations", "Deallocations", "Total Count", "Native Size", "Shallow Size", "Retained Size",
-                           "Allocations Size", "Deallocations Size", "Remaining Size");
+                           "Allocations Size", "Deallocations Size", "Remaining Size", "Module Name");
 
     Object root = tree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
@@ -839,16 +839,14 @@ public class MemoryClassifierViewTest {
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(3);
-
     List<InstanceObject> instanceObjects = Arrays.asList(instance1, instance2, instance3);
     List<String> classNames = Arrays.asList(CLASS_NAME_0, CLASS_NAME_1, CLASS_NAME_2);
-
     for (int i = 0; i < rootNode.getChildCount(); i++) {
       ClassSet classSet = findChildClassSetWithName(rootNode.getAdapter(), classNames.get(i));
       assertThat(classSet.findContainingClassifierSet(instanceObjects.get(i))).isEqualTo(classSet);
       MemoryObjectTreeNode<? extends ClassifierSet> node = findChildClassSetNodeWithClassName(rootNode, classNames.get(i));
       assertThat(node.getAdapter()).isEqualTo(classSet);
-      treeInfo.verifyRendererValues(rootNode.getChildAt(i),
+      treeInfo.verifyRendererValues(node,
                                     new String[]{classSet.getClassEntry().getSimpleClassName(),
                                       classSet.getClassEntry().getPackageName().isEmpty()
                                       ? null
@@ -861,7 +859,8 @@ public class MemoryClassifierViewTest {
                                     new String[]{Long.toString(classSet.getTotalRetainedSize())},
                                     new String[]{Long.toString(classSet.getAllocationSize())},
                                     new String[]{Long.toString(classSet.getDeallocationSize())},
-                                    new String[]{Long.toString(classSet.getTotalRemainingSize())});
+                                    new String[]{Long.toString(classSet.getTotalRemainingSize())},
+                                    new String[]{null});
     }
   }
 

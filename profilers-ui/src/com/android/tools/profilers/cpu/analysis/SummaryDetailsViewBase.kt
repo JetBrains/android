@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.formatter.TimeFormatter
+import com.android.tools.profilers.StudioProfilersView
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -33,24 +34,24 @@ import javax.swing.JPanel
  *
  * @param <T>analysis tab model type, e.g. [CaptureNodeAnalysisSummaryTabModel]</T>
  */
-open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(parentView: JComponent, val tabModel: T) {
+open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(val profilersView: StudioProfilersView, val tabModel: T) {
   val observer = AspectObserver()
   val component: JPanel
   private val commonSection: JPanel
-  private val commonSectionLayout: TabularLayout = TabularLayout("*,*")
-  private var commonSectionRows = 0
 
   init {
-    commonSection = JPanel(commonSectionLayout).apply { isOpaque = false }
-    component = JPanel(TabularLayout("*", "Fit")).apply {
+    commonSection = JPanel(TabularLayout("*,*", "Fit-").setVGap(COMMON_SECTION_ROW_PADDING_PX)).apply {
+      isOpaque = false
+    }
+    component = JPanel(TabularLayout("*", "Fit").setVGap(SECTION_PADDING_PX)).apply {
       background = primaryContentBackground
-      border = JBUI.Borders.empty(0, 12)
+      border = JBUI.Borders.empty(8, 12)
       add(commonSection, TabularLayout.Constraint(0, 0))
     }
   }
 
   /**
-   * Add a row to the main section. The main section is the first section of the Summary Tab that looks like this:
+   * Add a row to the common section. The common section is the first section of the Summary Tab that looks like this:
    *
    * +---------+----------+
    * |Range    | 1:00-2:00|
@@ -59,26 +60,29 @@ open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(parentView:
    * +---------+----------+
    */
   protected fun addRowToCommonSection(name: String, value: JComponent) {
-    // Add blank row as padding.
-    val blankRow = JPanel().apply { isOpaque = false }
-    commonSectionLayout.setRowSizing(commonSectionRows * 2, "8px")
-    commonSection.add(blankRow, TabularLayout.Constraint(commonSectionRows * 2, 0, 1, 2))
+    val rows = commonSection.componentCount / 2
+    commonSection.add(JLabel(name), TabularLayout.Constraint(rows, 0))
+    commonSection.add(value, TabularLayout.Constraint(rows, 1))
+  }
 
-    // Add data row.
-    commonSectionLayout.setRowSizing(commonSectionRows * 2 + 1, "Fit-")
-    commonSection.add(JLabel(name), TabularLayout.Constraint(commonSectionRows * 2 + 1, 0))
-    commonSection.add(value, TabularLayout.Constraint(commonSectionRows * 2 + 1, 1))
-
-    // Keep number of rows for setting the tabular layout parameters.
-    ++commonSectionRows
+  /**
+   * Add a section to the Summary Tab.
+   */
+  protected fun addSection(section: JComponent) {
+    component.add(section, TabularLayout.Constraint(component.componentCount, 0))
   }
 
   /**
    * @return string representation of the time range, relative to capture range.
    */
-  fun formatTimeRangeAsString(range: Range): String {
+  protected fun formatTimeRangeAsString(range: Range): String {
     return String.format("%s - %s",
                          TimeFormatter.getSimplifiedClockString(range.min.toLong() - tabModel.captureRange.min.toLong()),
                          TimeFormatter.getSimplifiedClockString(range.max.toLong() - tabModel.captureRange.min.toLong()))
+  }
+
+  companion object {
+    const val SECTION_PADDING_PX = 24
+    const val COMMON_SECTION_ROW_PADDING_PX = 8
   }
 }

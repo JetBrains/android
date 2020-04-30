@@ -597,14 +597,6 @@
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
-            file="src/com/android/tools/idea/common/property/inspector/InspectorPanel.java"
-            line="62"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/editor/adapters/MEUI.java"
             line="92"/>
     </issue>
@@ -781,14 +773,6 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/uibuilder/property/editors/AddPropertyEditor.java"
-            line="84"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
             file="src/com/android/tools/idea/uibuilder/mockup/colorextractor/DoublesColorExtractor.java"
             line="145"/>
     </issue>
@@ -842,35 +826,11 @@
     </issue>
 
     <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/property/editors/NlSlicePropertyEditor.java"
-            line="72"/>
-    </issue>
-
-    <issue
         id="SwingWorker"
         message="Do not use `javax.swing.SwingWorker`, use `com.intellij.util.concurrency.SwingWorker` instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/uibuilder/mockup/colorextractor/DoublesColorExtractor.java"
             line="132"/>
-    </issue>
-
-    <issue
-        id="WrongInvokeLater"
-        message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/uibuilder/property/editors/NlTableCellEditor.java"
-            line="208"/>
-    </issue>
-
-    <issue
-        id="WrongInvokeLater"
-        message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/uibuilder/property/editors/NlTableCellEditor.java"
-            line="221"/>
     </issue>
 
     <issue

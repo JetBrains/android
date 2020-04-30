@@ -118,8 +118,10 @@ class AndroidDeviceSpecUtilTest {
     assertThat(myDevice3.version.featureLevel).isEqualTo(16)
     assertThat(myDevice4.version.featureLevel).isEqualTo(17)
 
-    assertThat(createSpec(listOf(myDevice2, myDevice4), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.featureLevel).isEqualTo(17)
-    assertThat(createSpec(listOf(myDevice3, myDevice4), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.featureLevel).isEqualTo(16)
+    assertThat(createSpec(listOf(myDevice2, myDevice4), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.version.featureLevel)
+      .isEqualTo(17)
+    assertThat(createSpec(listOf(myDevice3, myDevice4), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.version.featureLevel)
+      .isEqualTo(16)
   }
 
   @Test

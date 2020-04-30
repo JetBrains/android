@@ -35,16 +35,14 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MlModelMetadata {
   public final String myModelFileUrl;
-  public final String myClassName;
 
   @Nullable
   private ModelInfo myModelData;
 
   private static final Logger LOG = Logger.getInstance(MlModelMetadata.class);
 
-  public MlModelMetadata(@NotNull String modelFileUrl, @NotNull String className) {
+  public MlModelMetadata(@NotNull String modelFileUrl) {
     myModelFileUrl = modelFileUrl;
-    myClassName = className;
 
     try {
       VirtualFile modelFile = VirtualFileManager.getInstance().findFileByUrl(modelFileUrl);

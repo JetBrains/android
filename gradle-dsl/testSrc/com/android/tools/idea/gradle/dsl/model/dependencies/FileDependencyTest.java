@@ -34,6 +34,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_UPDATE_SOME_OF_FILE_DEPENDENCIES;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_UPDATE_SOME_OF_FILE_DEPENDENCIES_EXPECTED;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -79,6 +80,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseFileDependenciesWithClosure() throws IOException {
+    assumeTrue("files dependency doesn't support a configuration closure in KotlinScript", !isKotlinScript()); // TODO(b/155080108)
     writeToBuildFile(FILE_DEPENDENCY_PARSE_FILE_DEPENDENCIES_WITH_CLOSURE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -138,6 +140,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetConfigurationWhenMultiple() throws Exception {
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(FILE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE);
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -387,6 +390,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveWhenMultiple() throws IOException {
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(FILE_DEPENDENCY_REMOVE_WHEN_MULTIPLE);
 
     GradleBuildModel buildModel = getGradleBuildModel();

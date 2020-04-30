@@ -495,6 +495,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    */
   @Override
   public void clearAttributes(@NotNull List<NlComponent> components) {
+    if (components.isEmpty()) {
+      // Nothing to do
+      return;
+    }
     // Wrapper by WriteCommandAction so it creates only one undo stack.
     NlWriteCommandActionUtil.run(components, "Cleared all constraints", () -> {
       components.forEach(it -> ConstraintComponentUtilities.clearAttributes(it));

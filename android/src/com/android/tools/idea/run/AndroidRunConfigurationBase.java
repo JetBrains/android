@@ -12,8 +12,6 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtil;
-import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -49,7 +47,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
@@ -57,7 +54,6 @@ import com.intellij.openapi.util.WriteExternalException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import org.jdom.Element;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -181,7 +177,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));
 
-    errors.addAll(getApkProvider(facet, getApplicationIdProvider(facet), null).validate());
+    ApkProvider apkProvider = getApkProvider(facet, null);
+    if (apkProvider != null) {
+      errors.addAll(apkProvider.validate());
+    }
+    else {
+      errors.add(ValidationError.fatal(AndroidBundle.message("android.run.configuration.not.supported", getId())));
+    }
 
     errors.addAll(checkConfiguration(facet));
     AndroidDebuggerState androidDebuggerState = myAndroidDebuggerContext.getAndroidDebuggerState();
@@ -316,10 +318,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       launchOptions.addExtraOptions(((LaunchOptionsProvider)executor).getLaunchOptions());
     }
 
-    AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(deviceFutures.getDevices(),
-                                                                          MakeBeforeRunTaskProvider.DEVICE_SPEC_TIMEOUT_SECONDS,
-                                                                          TimeUnit.SECONDS);
-    ApkProvider apkProvider = getApkProvider(facet, applicationIdProvider, targetDeviceSpec);
+    AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(deviceFutures.getDevices());
+    ApkProvider apkProvider = getApkProvider(facet, targetDeviceSpec);
+    if (apkProvider == null) return null;
     AndroidLaunchTasksProvider launchTasksProvider =
       new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions.build());
 
@@ -404,9 +405,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return ProjectSystemUtil.getModuleSystem(facet).getApplicationIdProvider(this);
   }
 
-  @NotNull
-  protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet,
-                                                @NotNull ApplicationIdProvider applicationIdProvider, AndroidDeviceSpec targetDeviceSpec);
+  @Nullable
+  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @Nullable AndroidDeviceSpec targetDeviceSpec) {
+    return ProjectSystemUtil.getModuleSystem(facet).getApkProvider(this, targetDeviceSpec);
+  }
+
+  public abstract boolean isTestConfiguration();
 
   @NotNull
   protected abstract ConsoleProvider getConsoleProvider();
@@ -416,26 +420,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                          @NotNull AndroidFacet facet,
                                                          @NotNull String contributorsAmStartOptions,
                                                          boolean waitForDebugger,
-                                                         @NotNull LaunchStatus launchStatus);
+                                                         @NotNull LaunchStatus launchStatus,
+                                                         @NotNull ApkProvider apkProvider);
 
-  @NotNull
-  protected ApkProvider createGradleApkProvider(@NotNull AndroidFacet facet,
-                                                @NotNull ApplicationIdProvider applicationIdProvider,
-                                                boolean test,
-                                                @Nullable AndroidDeviceSpec targetDeviceSpec) {
-    Computable<GradleApkProvider.OutputKind> outputKindProvider = () -> {
-      if (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.getModule(), this, targetDeviceSpec)) {
-        return GradleApkProvider.OutputKind.AppBundleOutputModel;
-      }
-      else {
-        return GradleApkProvider.OutputKind.Default;
-      }
-    };
-    return new GradleApkProvider(
-      facet, applicationIdProvider, () -> getUserData(GradleApkProvider.POST_BUILD_MODEL), test, outputKindProvider);
-  }
-
-  @NotNull
   public final DeviceCount getDeviceCount(boolean debug) {
     return DeviceCount.fromBoolean(supportMultipleDevices() && !debug);
   }

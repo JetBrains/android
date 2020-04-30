@@ -413,6 +413,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEditAndResetLiteralElements() {
+    assumeTrue("KotlinScript prefers assignment even when setters are more general", !isKotlinScript) // TODO(b/143196166)
     writeToBuildFile(PRODUCT_FLAVOR_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS)
 
     val buildModel = gradleBuildModel
@@ -1385,6 +1386,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   @Test
   fun testRemoveFromAndApplyListElementsWithSingleElement() {
     // TODO(b/72853928): see the comment regarding the analogous test in BuildTypeModelTest
+    assumeTrue("setProguardFiles parsing/model implementation insufficient in KotlinScript", !isKotlinScript)
     writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT)
 
     val buildModel = gradleBuildModel
@@ -1888,6 +1890,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testFunctionCallWithParentheses() {
+    isIrrelevantForKotlinScript("All function calls in KotlinScript involve parentheses")
     writeToBuildFile(PRODUCT_FLAVOR_MODEL_FUNCTION_CALL_WITH_PARENTHESES)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
@@ -1899,7 +1902,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEnsureSdkVersionUsesApplicationSyntax() {
-    assumeTrue(isGroovy())
+    assumeTrue("KotlinScript prefers assignment even when setters are more general", !isKotlinScript) // TODO(b/143196166)
     val text = ""
     writeToBuildFile(text)
     val buildModel = gradleBuildModel

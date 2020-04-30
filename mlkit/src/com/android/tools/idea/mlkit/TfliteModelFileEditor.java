@@ -23,6 +23,7 @@ import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.ModelVerifier;
 import com.android.tools.mlkit.TensorInfo;
 import com.android.tools.mlkit.exception.TfliteModelException;
+import com.android.tools.mlkit.exception.UnsupportedTfliteException;
 import com.android.tools.mlkit.exception.UnsupportedTfliteMetadataException;
 import com.android.utils.StringHelper;
 import com.google.common.annotations.VisibleForTesting;
@@ -158,37 +159,38 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
 
     JPanel contentPanel = createPanelWithYAxisBoxLayout(Borders.empty(20));
-    ByteBuffer byteBuffer = null;
-
+    ByteBuffer byteBuffer;
     try {
       byteBuffer = ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath()));
       ModelVerifier.verifyModel(byteBuffer);
     }
+    catch (UnsupportedTfliteException e) {
+      return createWarningMessagePanel("Unsupported TensorFlow Lite Model: " + e.getMessage());
+    }
+    catch (UnsupportedTfliteMetadataException e) {
+      return createWarningMessagePanel("Unsupported TensorFlow Lite Model Metadata: " + e.getMessage());
+    }
     catch (TfliteModelException e) {
-      if (!(e instanceof UnsupportedTfliteMetadataException)) {
-        return createWarningMessagePanel("Invalid TensorFlow Lite Model: " + e.getMessage());
-      }
-    } catch (IOException e) {
+      return createWarningMessagePanel("Invalid TensorFlow Lite Model: " + e.getMessage());
+    }
+    catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
       return createWarningMessagePanel("Something goes wrong while reading model file.");
     }
 
-    if (byteBuffer != null) {
-      ModelInfo modelInfo = ModelInfo.buildWithoutVerification(byteBuffer);
-      if (modelInfo.isMetadataExisted()) {
-        contentPanel.add(createModelSection(modelInfo));
-        contentPanel.add(createTensorsSection(modelInfo));
-      }
-      else {
-        contentPanel.add(createNoMetadataSection());
-      }
-      if (myModule != null && myIsSampleCodeSectionVisible) {
-        PsiClass modelClass = MlkitModuleService.getInstance(myModule)
-          .getOrCreateLightModelClass(
-            new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
-        if (modelClass != null) {
-          contentPanel.add(createSampleCodeSection(modelClass, modelInfo));
-        }
+    ModelInfo modelInfo = ModelInfo.buildWithoutVerification(byteBuffer);
+    if (modelInfo.isMetadataExisted()) {
+      contentPanel.add(createModelSection(modelInfo));
+      contentPanel.add(createTensorsSection(modelInfo));
+    }
+    else {
+      contentPanel.add(createNoMetadataSection());
+    }
+    if (myModule != null && myIsSampleCodeSectionVisible) {
+      PsiClass modelClass = MlkitModuleService.getInstance(myModule)
+        .getOrCreateLightModelClass(new MlModelMetadata(myFile.getUrl()));
+      if (modelClass != null) {
+        contentPanel.add(createSampleCodeSection(modelClass, modelInfo));
       }
     }
 
@@ -347,7 +349,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     table.setBackground(UIUtil.getTextFieldBackground());
     table.setDefaultEditor(String.class, new MetadataCellComponentProvider());
     table.setDefaultRenderer(String.class, new MetadataCellComponentProvider());
-    table.setFocusable(false);
     table.setRowSelectionAllowed(false);
     table.setShowGrid(false);
     table.setShowColumns(true);
@@ -406,8 +407,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     List<List<String>> tableData = new ArrayList<>();
     for (TensorInfo tensorInfo : tensorInfoList) {
       MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
-      String meanStdColumn =
-        params != null ? convertFloatArrayToString(params.getMean()) + " / " + convertFloatArrayToString(params.getStd()) : "";
+      String meanStdColumn = convertFloatArrayToString(params.getMean()) + " / " + convertFloatArrayToString(params.getStd());
       String minMaxColumn = isValidMinMaxColumn(params)
                             ? convertFloatArrayToString(params.getMin()) + " / " + convertFloatArrayToString(params.getMax())
                             : "";
@@ -428,23 +428,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static TensorInfo.ContentType getDisplayContentType(@NotNull TensorInfo tensorInfo) {
     // Display Image only if it is RGB image.
     if (tensorInfo.getContentType() == TensorInfo.ContentType.IMAGE) {
-      TensorInfo.ImageProperties imageProperties = tensorInfo.getImageProperties();
-      if (imageProperties != null && imageProperties.colorSpaceType == TensorInfo.ImageProperties.ColorSpaceType.RGB) {
-        return TensorInfo.ContentType.IMAGE;
-      }
-      else {
-        return TensorInfo.ContentType.FEATURE;
-      }
+      return tensorInfo.isRGBImage() ? TensorInfo.ContentType.IMAGE : TensorInfo.ContentType.FEATURE;
     }
 
     return tensorInfo.getContentType();
   }
 
-  private static boolean isValidMinMaxColumn(@Nullable MetadataExtractor.NormalizationParams params) {
-    if (params == null || params.getMin() == null || params.getMax() == null) {
-      return false;
-    }
-
+  private static boolean isValidMinMaxColumn(@NotNull MetadataExtractor.NormalizationParams params) {
     for (float min : params.getMin()) {
       if (Floats.compare(min, Float.MIN_VALUE) != 0) {
         return true;
@@ -491,7 +481,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
     PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
     if (outputsClass != null) {
-      Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getName).iterator();
+      Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
         String tensorName = outputTensorNameIterator.next();
         codeBuilder.append(
@@ -546,7 +536,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
     PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
     if (outputsClass != null) {
-      Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getName).iterator();
+      Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
         String tensorName = outputTensorNameIterator.next();
         codeBuilder
@@ -689,7 +679,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return null;
+    return myRootPane;
   }
 
   @NotNull

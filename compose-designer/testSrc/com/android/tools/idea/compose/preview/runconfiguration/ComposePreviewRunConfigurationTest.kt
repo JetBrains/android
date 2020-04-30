@@ -17,8 +17,10 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.idea.run.editor.NoApksProvider
 import com.android.tools.idea.run.tasks.ActivityLaunchTask
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.util.LaunchStatus
@@ -50,7 +52,8 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     runConfiguration.composableMethodFqn = "com.mycomposeapp.SomeClass.SomeComposable"
 
     val status = mock(LaunchStatus::class.java)
-    val task = runConfiguration.getApplicationLaunchTask(FakeApplicationIdProvider(), myFacet, "", false, status) as ActivityLaunchTask
+    var noApksProvider = NoApksProvider()
+    val task = runConfiguration.getApplicationLaunchTask(FakeApplicationIdProvider(), myFacet, "", false, status, noApksProvider) as ActivityLaunchTask
     assertEquals("am start -n \"com.example.myapp/androidx.ui.tooling.preview.PreviewActivity\" " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER " +
                  "--es composable com.mycomposeapp.SomeClass.SomeComposable",
@@ -103,8 +106,9 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
                                                  facet: AndroidFacet,
                                                  contributorsAmStartOptions: String,
                                                  waitForDebugger: Boolean,
-                                                 launchStatus: LaunchStatus): LaunchTask? {
-      return super.getApplicationLaunchTask(applicationIdProvider, facet, contributorsAmStartOptions, waitForDebugger, launchStatus)
+                                                 launchStatus: LaunchStatus,
+                                                 apkProvider: ApkProvider): LaunchTask? {
+      return super.getApplicationLaunchTask(applicationIdProvider, facet, contributorsAmStartOptions, waitForDebugger, launchStatus, apkProvider)
     }
   }
 }

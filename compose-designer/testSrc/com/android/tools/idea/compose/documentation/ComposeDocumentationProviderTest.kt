@@ -32,6 +32,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.image.BufferedImage
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 class ComposeDocumentationProviderTest {
   @get:Rule
@@ -68,7 +69,7 @@ class ComposeDocumentationProviderTest {
     // Check that we've correctly generated the preview tag
     assertTrue(generatedDoc.contains("<img src='file://DefaultPreview' alt='preview:DefaultPreview' width='\\d+' height='\\d+'>".toRegex()))
 
-    val previewImage = composeDocProvider.getLocalImageForElement(previewMethod, "DefaultPreview") as BufferedImage
+    val previewImage = composeDocProvider.getLocalImageForElementAsync(previewMethod).get(5, TimeUnit.SECONDS) as BufferedImage
     ImageDiffUtil.assertImageSimilar(File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
                                      previewImage,
                                      0.0)

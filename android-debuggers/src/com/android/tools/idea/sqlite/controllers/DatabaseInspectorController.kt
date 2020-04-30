@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.controllers
 
-import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
@@ -27,6 +26,7 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -36,6 +36,7 @@ import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.mainView.AddColumns
 import com.android.tools.idea.sqlite.ui.mainView.AddTable
+import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteColumn
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
@@ -67,7 +68,7 @@ import javax.swing.JComponent
  */
 class DatabaseInspectorControllerImpl(
   private val project: Project,
-  private val model: DatabaseInspectorController.Model,
+  private val model: DatabaseInspectorModel,
   private val viewFactory: DatabaseInspectorViewsFactory,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
@@ -92,12 +93,30 @@ class DatabaseInspectorControllerImpl(
 
   private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
+  private val modelListener = object : DatabaseInspectorModel.Listener {
+    private var currentDatabases = listOf<SqliteDatabase>()
+
+    override fun onChanged(databases: List<SqliteDatabase>) {
+      val sortedNewDatabase = databases.sortedBy { it.name }
+
+      val toAdd = sortedNewDatabase
+        .filter { !currentDatabases.contains(it) }
+        .map { DatabaseDiffOperation.AddDatabase(it, model.getDatabaseSchema(it)!!, sortedNewDatabase.indexOf(it)) }
+      val toRemove = currentDatabases.filter { !sortedNewDatabase.contains(it) }.map { DatabaseDiffOperation.RemoveDatabase(it) }
+
+      view.updateDatabases(toAdd + toRemove)
+
+      currentDatabases = databases
+    }
+  }
+
   override val component: JComponent
     get() = view.component
 
   @UiThread
   override fun setUp() {
     view.addListener(sqliteViewListener)
+    model.addListener(modelListener)
   }
 
   override suspend fun addSqliteDatabase(deferredDatabase: Deferred<SqliteDatabase>) = withContext(uiThread) {
@@ -142,14 +161,6 @@ class DatabaseInspectorControllerImpl(
 
     tabsToClose.forEach { closeTab(it) }
 
-    val index = model.getOpenDatabases().sortedBy { it.name }.indexOf(database)
-    resultSetControllers.values
-      .asSequence()
-      .filterIsInstance<SqliteEvaluatorController>()
-      .forEach { it.removeDatabase(index) }
-
-    view.removeDatabaseSchema(database)
-
     model.remove(database)
 
     withContext(workerThread) {
@@ -187,6 +198,7 @@ class DatabaseInspectorControllerImpl(
 
   override fun dispose() = invokeAndWaitIfNeeded {
     view.removeListener(sqliteViewListener)
+    model.removeListener(modelListener)
 
     resultSetControllers.values
       .asSequence()
@@ -217,14 +229,6 @@ class DatabaseInspectorControllerImpl(
   }
 
   private fun addNewDatabase(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
-    val index = (model.getOpenDatabases() + database).sortedBy { it.name }.indexOf(database)
-    view.addDatabaseSchema(database, sqliteSchema, index)
-
-    resultSetControllers.values
-      .asSequence()
-      .filterIsInstance<SqliteEvaluatorController>()
-      .forEach { it.addDatabase(database, index) }
-
     model.add(database, sqliteSchema)
     restoreTabs(database, sqliteSchema)
   }
@@ -295,10 +299,10 @@ class DatabaseInspectorControllerImpl(
     try {
       view.updateDatabaseSchema(database, diffOperations)
     } catch (e: Exception) {
-      view.removeDatabaseSchema(database)
-
+      // this UI change does not correspond to a change in the model, therefore it has to be done manually
+      view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(database)))
       val index = model.getOpenDatabases().sortedBy { it.name }.indexOf(database)
-      view.addDatabaseSchema(database, newSchema, index)
+      view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, newSchema, index)))
     }
   }
 
@@ -317,8 +321,8 @@ class DatabaseInspectorControllerImpl(
 
     val sqliteEvaluatorController = SqliteEvaluatorController(
       project,
+      model,
       sqliteEvaluatorView,
-      viewFactory,
       { closeTab(tabId) },
       edtExecutor,
       taskExecutor
@@ -329,10 +333,6 @@ class DatabaseInspectorControllerImpl(
     sqliteEvaluatorController.addListener(SqliteEvaluatorControllerListenerImpl())
 
     resultSetControllers[tabId] = sqliteEvaluatorController
-
-    model.getOpenDatabases().sortedBy { it.name }.forEachIndexed { index, sqliteDatabase ->
-      sqliteEvaluatorController.addDatabase(sqliteDatabase, index)
-    }
 
     return sqliteEvaluatorController
   }
@@ -484,34 +484,6 @@ interface DatabaseInspectorController : Disposable {
 
   @UiThread
   fun saveState(): SavedUiState
-
-  /**
-   * Model for DatabaseInspectorController. Used to store and access currently open [SqliteDatabase]s and their [SqliteSchema]s.
-   * Implementations of this interface can be accessed from different threads, therefore should be thread-safe.
-   */
-  interface Model {
-    @AnyThread
-    fun getOpenDatabases(): List<SqliteDatabase>
-    @AnyThread
-    fun getDatabaseSchema(database: SqliteDatabase): SqliteSchema?
-
-    @AnyThread
-    fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema)
-    @AnyThread
-    fun remove(database: SqliteDatabase)
-
-    @AnyThread
-    fun addListener(modelListener: Listener)
-    @AnyThread
-    fun removeListener(modelListener: Listener)
-
-    interface Listener {
-      @AnyThread
-      fun onDatabaseAdded(database: SqliteDatabase)
-      @AnyThread
-      fun onDatabaseRemoved(database: SqliteDatabase)
-    }
-  }
 
   interface TabController : Disposable {
     val closeTabInvoked: () -> Unit

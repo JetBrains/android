@@ -34,6 +34,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.messages.MessageBusConnection
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
@@ -81,7 +82,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
       val request = invocation.getArgument<GradleSyncInvoker.Request>(1)
 
       ApplicationManager.getApplication().invokeAndWait {
-        gradleSyncState.syncStarted(request, null)
+        gradleSyncState.syncStarted(request)
 
         if (syncSuccessful) {
           gradleSyncState.syncSucceeded()
@@ -123,7 +124,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
 
   fun testGetLastSyncResult_sameAsSyncResult() {
     emulateSync(true, BuildStatus.SUCCESS)
-
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     assertThat(syncManager.getLastSyncResult()).isSameAs(SyncResult.SUCCESS)
   }
 }

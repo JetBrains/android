@@ -115,7 +115,7 @@ public class AndroidSessionInfo {
                                                   @NotNull RunConfiguration runConfiguration,
                                                   @NotNull ExecutionTarget executionTarget) {
     // Note: There are 2 alternatives here:
-    //    1. ExecutionManager.getInstance(project).getContentManager().getAllDescriptors()
+    //    1. RunContentManager.getInstance(project).getAllDescriptors()
     //    2. ExecutionManagerImpl.getInstance(project).getRunningDescriptors
     // The 2nd one doesn't work since its implementation relies on the same run descriptor to be alive as the one that is launched,
     // but that doesn't work for android debug sessions where we have 2 process handlers (one while installing and another while debugging)

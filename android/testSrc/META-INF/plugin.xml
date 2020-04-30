@@ -30,5 +30,6 @@
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-psd-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/project-system-gradle-sync.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

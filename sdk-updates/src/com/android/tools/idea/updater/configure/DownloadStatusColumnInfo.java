@@ -85,7 +85,7 @@ class DownloadStatusColumnInfo extends ColumnInfo<UpdaterTreeNode, Icon> {
     }
     if (node.getCurrentState() != node.getInitialState()) {
       if (node.getCurrentState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
-        return new IconInfo(AllIcons.Actions.Delete, "Action: delete local files");
+        return new IconInfo(AllIcons.Actions.Cancel, "Action: delete local files");
       }
       else if (node.getCurrentState() == PackageNodeModel.SelectedState.INSTALLED) {
         return new IconInfo(AllIcons.Actions.Download, "Action: download files locally");

@@ -93,7 +93,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
         @Override
         public void run() {
           ShowSettingsUtilImpl.showSettingsDialog(
-            myProject, "preferences.sourceCode." + XmlCodeStyleSettingsProvider.CONFIGURABLE_DISPLAY_NAME, "");
+            myProject, "preferences.sourceCode." + XmlCodeStyleSettingsProvider.getConfigurableDisplayNameText(), "");
             myNotifications.updateAllNotifications();
         }
       });

@@ -16,14 +16,10 @@
 package com.android.tools.idea.common.analytics
 
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.run.ApkProvisionException
-import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.GradleApplicationIdProvider
-import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
@@ -79,7 +75,8 @@ fun AndroidStudioEvent.Builder.setApplicationId(facet: AndroidFacet): AndroidStu
 @Throws(ApkProvisionException::class)
 private fun getApplicationId(facet: AndroidFacet): String {
   return try {
-    facet.getModuleSystem().getApplicationIdProvider(null).packageName
+    @Suppress("DEPRECATION")
+    facet.getModuleSystem().getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse().packageName
   }
   catch (e: ApkProvisionException) {
     AndroidModel.get(facet)?.applicationId ?: throw e

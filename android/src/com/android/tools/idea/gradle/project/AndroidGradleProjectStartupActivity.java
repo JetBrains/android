@@ -33,7 +33,9 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
+import com.android.tools.idea.gradle.project.sync.setup.post.ModuleSetup;
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences;
+import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.diagnostic.Logger;
@@ -116,13 +118,13 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
       // Otherwise attach the models we found from the cache.
       Logger.getInstance(AndroidGradleProjectStartupActivity.class)
         .info("Up-to-date models found in the cache. Not invoking Gradle sync.");
-      GradleSyncState syncState = GradleSyncState.getInstance(project);
-      syncState.syncStarted(request, null);
       projectsData.forEach((data) -> {
         attachModelsToFacets(project, data);
       });
+      ConflictSet.findConflicts(project).showSelectionConflicts();
       ProjectStructure.getInstance(project).analyzeProjectStructure();
-      syncState.syncSkipped(null);
+      ModuleSetup.setUpModules(project);
+      GradleSyncState.getInstance(project).syncSkipped(null);
     }
   }
 

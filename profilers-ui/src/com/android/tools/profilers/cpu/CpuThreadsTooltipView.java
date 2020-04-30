@@ -72,7 +72,7 @@ public class CpuThreadsTooltipView extends TooltipView {
     addRow(myContent, myLabel);
 
     if (myTooltip.getThreadState() != null) {
-      myState.setText(threadStateToString(myTooltip.getThreadState()));
+      myState.setText(myTooltip.getThreadState().getDisplayName());
       addRow(myContent, myState);
 
       if (myTooltip.getDurationUs() > 0) {
@@ -80,7 +80,7 @@ public class CpuThreadsTooltipView extends TooltipView {
         addRow(myContent, myDuration);
       }
 
-      if (!threadStateIsCaptured(myTooltip.getThreadState())) {
+      if (!myTooltip.getThreadState().isCaptured()) {
         addRow(myContent, myUnavailableDetails);
       }
     }
@@ -99,47 +99,5 @@ public class CpuThreadsTooltipView extends TooltipView {
     addRow(myUnavailableDetails, unavailableLabel);
     addRow(myContent, myUnavailableDetails);
     return myContent;
-  }
-
-  private static boolean threadStateIsCaptured(@NotNull CpuProfilerStage.ThreadState state) {
-    switch (state) {
-      case RUNNING_CAPTURED:
-      case RUNNABLE_CAPTURED:
-      case SLEEPING_CAPTURED:
-      case DEAD_CAPTURED:
-      case WAITING_CAPTURED:
-      case WAITING_IO_CAPTURED:
-      case HAS_ACTIVITY:
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  private static String threadStateToString(@NotNull CpuProfilerStage.ThreadState state) {
-    switch (state) {
-      case RUNNING:
-      case RUNNING_CAPTURED:
-        return "Running";
-      case RUNNABLE_CAPTURED:
-        return "Runnable";
-      case SLEEPING:
-      case SLEEPING_CAPTURED:
-        return "Sleeping";
-      case DEAD:
-      case DEAD_CAPTURED:
-        return "Dead";
-      case WAITING:
-      case WAITING_CAPTURED:
-        return "Waiting";
-      case WAITING_IO_CAPTURED:
-        return "Waiting on IO";
-      case HAS_ACTIVITY:
-        return "Thread activity";
-      case NO_ACTIVITY:
-        return "No thread activity";
-      default:
-        return "Unknown";
-    }
   }
 }

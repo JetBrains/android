@@ -359,7 +359,7 @@ public class RenderService implements Disposable {
     private int myMaxRenderHeight = -1;
     private boolean isShadowEnabled = StudioFlags.NELE_ENABLE_SHADOW.get();
     private boolean useHighQualityShadows = StudioFlags.NELE_RENDER_HIGH_QUALITY_SHADOW.get();
-    private boolean enableLayoutValidator = StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR.get();
+    private boolean enableLayoutValidator = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
     @NotNull private Function<Module, MergedManifestSnapshot> myManifestProvider =
@@ -420,6 +420,11 @@ public class RenderService implements Disposable {
     @NotNull
     public RenderTaskBuilder withParserFactory(@NotNull ILayoutPullParserFactory parserFactory) {
       this.myParserFactory = parserFactory;
+      return this;
+    }
+
+    public RenderTaskBuilder withLayoutValidation(Boolean enableLayoutValidator) {
+      this.enableLayoutValidator = enableLayoutValidator;
       return this;
     }
 

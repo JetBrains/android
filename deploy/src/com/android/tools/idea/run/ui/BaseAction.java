@@ -54,6 +54,7 @@ import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.xdebugger.XDebugSession;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -232,8 +233,7 @@ public abstract class BaseAction extends AnAction {
    */
   private static boolean isExecutorStarting(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
     // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
-    Executor[] executors = ExecutorRegistry.getInstance().getRegisteredExecutors();
-    for (Executor executor : executors) {
+    for (Executor executor : Executor.EXECUTOR_EXTENSION_NAME.getExtensionList()) {
       ProgramRunner programRunner = ProgramRunner.getRunner(executor.getId(), runConfiguration);
       if (programRunner == null) {
         continue;
@@ -310,15 +310,19 @@ public abstract class BaseAction extends AnAction {
     }
 
     for (DebuggerSession session : DebuggerManagerEx.getInstanceEx(project).getSessions()) {
-      String debuggerPort = session.getProcess().getConnection().getAddress().trim();
+      String debuggerPort = session.getProcess().getConnection().getDebuggerAddress().trim();
       Client remoteDebuggedClient = deployable
         .searchClientsForPackage()
         .stream()
         .filter(client -> Integer.toString(client.getDebuggerListenPort()).equals(debuggerPort))
         .findAny()
         .orElse(null);
-      if (remoteDebuggedClient != null && session.getXDebugSession() != null) {
-        return session.getXDebugSession().getRunContentDescriptor().getProcessHandler();
+      if (remoteDebuggedClient != null) {
+        // IDEA-239076
+        XDebugSession debugSession = session.getXDebugSession();
+        if (debugSession != null && !debugSession.isStopped()) {
+          return debugSession.getRunContentDescriptor().getProcessHandler();
+        }
       }
     }
 

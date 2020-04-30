@@ -39,6 +39,7 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AsyncProcessIcon;
 import java.util.Collection;
 import java.util.Collections;
@@ -181,7 +182,7 @@ public class FormFactorSdkControls implements Disposable {
 
   private void updateApiPercentLabel(AndroidVersionsInfo.VersionItem item) {
     CompletableFuture.supplyAsync(() -> getApiHelpText(item.getMinApiLevel()), AppExecutorUtil.getAppExecutorService())
-      .thenAccept(text -> myApiPercentLabel.setText(text));
+      .thenAcceptAsync(text -> myApiPercentLabel.setText(text), EdtExecutorService.getInstance());
   }
 
   @Nullable

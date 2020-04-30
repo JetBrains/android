@@ -113,28 +113,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   private final CpuProfilerConfigModel myProfilerConfigModel;
   private final CpuFramesModel myFramesModel;
 
-  /**
-   * The thread states combined with the capture states.
-   */
-  public enum ThreadState {
-    RUNNING,
-    RUNNING_CAPTURED,
-    SLEEPING,
-    SLEEPING_CAPTURED,
-    DEAD,
-    DEAD_CAPTURED,
-    WAITING,
-    WAITING_CAPTURED,
-    // The two values below are used by imported trace captures to indicate which
-    // slices of the thread contain method trace activity and which ones don't.
-    HAS_ACTIVITY,
-    NO_ACTIVITY,
-    // These values are captured from Atrace as such we only have a captured state.
-    RUNNABLE_CAPTURED,
-    WAITING_IO_CAPTURED,
-    UNKNOWN
-  }
-
   public enum CaptureState {
     // Waiting for a capture to start (displaying the current capture or not)
     IDLE,

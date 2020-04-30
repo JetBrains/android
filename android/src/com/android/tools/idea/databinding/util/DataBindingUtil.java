@@ -123,7 +123,7 @@ public final class DataBindingUtil {
 
     String customBindingName = bindingIndexEntry.getData().getCustomBindingName();
     if (customBindingName == null || customBindingName.isEmpty()) {
-      return modulePackage + ".databinding." + convertToJavaClassName(bindingIndexEntry.getFile().getName()) + "Binding";
+      return modulePackage + ".databinding." + convertFileNameToJavaClassName(bindingIndexEntry.getFile().getName()) + "Binding";
     }
     else {
       int firstDotIndex = customBindingName.indexOf('.');
@@ -155,7 +155,7 @@ public final class DataBindingUtil {
    * @return The class name that will represent the given file
    */
   @NotNull
-  public static String convertToJavaClassName(@NotNull String name) {
+  public static String convertFileNameToJavaClassName(@NotNull String name) {
     int dotIndex = name.indexOf('.');
     if (dotIndex >= 0) {
       name = name.substring(0, dotIndex);
@@ -170,18 +170,24 @@ public final class DataBindingUtil {
   }
 
   /**
-   * Utility method to convert a variable name into java field name.
+   * Utility method to convert an 'android:id' value into a java field name.
    *
-   * @param name The variable name.
-   * @return The java field name for the given variable name.
+   * Note that, though uncommon in use, the android:id format technically supports putting a '.' in
+   * its value, which should get treated like a '_' in the final result. Therefore, we treat any
+   * dots present in the passed-in {@code name} as underscores.
+   */
+  public static String convertAndroidIdToJavaFieldName(@NotNull String name) {
+    return convertVariableNameToJavaFieldName(name.replace('.', '_'));
+  }
+
+  /**
+   * Utility method to convert a variable name (declared in XML, so it might contain underscores)
+   * into a java field name.
+   *
+   * For example, "test_id" to "testId".
    */
   @NotNull
-  public static String convertToJavaFieldName(@NotNull String name) {
-    int dotIndex = name.indexOf('.');
-    if (dotIndex >= 0) {
-      name = name.substring(0, dotIndex);
-    }
-
+  public static String convertVariableNameToJavaFieldName(@NotNull String name) {
     String[] split = name.split("[_-]");
     StringBuilder out = new StringBuilder();
     boolean first = true;

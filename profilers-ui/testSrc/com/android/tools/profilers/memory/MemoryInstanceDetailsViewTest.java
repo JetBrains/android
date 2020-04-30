@@ -300,8 +300,8 @@ public class MemoryInstanceDetailsViewTest {
       FakeInstanceObject ref = references.get(i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
                                     new String[]{"mField in "},
-                                    new String[]{""},
-                                    new String[]{""},
+                                    new String[]{"-"},
+                                    new String[]{"-"},
                                     new String[]{NumberFormatter.formatInteger(ref.getDepth())},
                                     new String[]{NumberFormatter.formatInteger(ref.getNativeSize())},
                                     new String[]{NumberFormatter.formatInteger(ref.getShallowSize())},

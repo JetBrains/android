@@ -75,6 +75,8 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     contentManager.addContent(content)
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project))
   }
+
+  override fun shouldBeAvailable(project: Project) = false // No tool window (and its stripe button) should be visible after startup.
 }
 
 /**

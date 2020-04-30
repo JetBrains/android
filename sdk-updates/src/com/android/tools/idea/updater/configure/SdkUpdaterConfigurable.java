@@ -398,7 +398,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   }
 
   static boolean confirmChange(HtmlBuilder message) {
-    String[] options = {Messages.OK_BUTTON, Messages.CANCEL_BUTTON};
+    String[] options = {Messages.getOkButton(), Messages.getCancelButton()};
     Icon icon = AllIcons.General.Warning;
 
     // I would use showOkCancelDialog but Mac sheet panels do not gracefully handle long messages and their buttons can display offscreen

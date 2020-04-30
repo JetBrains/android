@@ -17,10 +17,7 @@ package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
-import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -57,6 +54,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.execution.ui.RunContentManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -70,7 +68,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -182,18 +179,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   }
 
   @Override
-  @NotNull
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
-                                       @NotNull ApplicationIdProvider applicationIdProvider,
-                                       @Nullable AndroidDeviceSpec targetDeviceSpec) {
-    if (AndroidModel.get(facet) != null && AndroidModel.get(facet) instanceof AndroidModuleModel) {
-      return createGradleApkProvider(facet, applicationIdProvider, false, targetDeviceSpec);
-    }
-    ApkFacet apkFacet = ApkFacet.getInstance(facet.getModule());
-    if (apkFacet != null) {
-      return new FileSystemApkProvider(apkFacet.getModule(), new File(apkFacet.getConfiguration().APK_PATH));
-    }
-    return new NonGradleApkProvider(facet, applicationIdProvider, ARTIFACT_NAME);
+  public boolean isTestConfiguration() {
+    return false;
   }
 
   @NotNull
@@ -263,7 +250,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
                                                 @NotNull AndroidFacet facet,
                                                 @NotNull String contributorsAmStartOptions,
                                                 boolean waitForDebugger,
-                                                @NotNull LaunchStatus launchStatus) {
+                                                @NotNull LaunchStatus launchStatus,
+                                                @NotNull ApkProvider apkProvider) {
     LaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
 
@@ -287,7 +275,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     }
 
     try {
-      return state.getLaunchTask(applicationIdProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState());
+      return state.getLaunchTask(applicationIdProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState(), apkProvider);
     }
     catch (ApkProvisionException e) {
       Logger.getInstance(AndroidRunConfiguration.class).error(e);
@@ -382,7 +370,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       executionManager.getRunningDescriptors(s -> s != null && s.getConfiguration() == configuration);
     runningDescriptors = runningDescriptors.stream().filter(descriptor -> {
       RunContentDescriptor contentDescriptor =
-        executionManager.getContentManager().findContentDescriptor(executor, descriptor.getProcessHandler());
+        RunContentManager.getInstance(project).findContentDescriptor(executor, descriptor.getProcessHandler());
       return contentDescriptor != null && executionManager.getExecutors(contentDescriptor).contains(executor);
     }).collect(Collectors.toList());
 

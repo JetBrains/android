@@ -492,7 +492,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddClosureBlockToDependency() throws IOException {
-    assumeTrue("uses KotlinScript-specific Dsl construct to make and populate closure", !isGroovy());
+    assumeTrue("uses KotlinScript-specific Dsl construct to make and populate closure", isKotlinScript());
     writeToBuildFile(MODULE_DEPENDENCY_ADD_CLOSURE_TO_DEPENDENCY);
 
     GradleBuildModel buildModel = getGradleBuildModel();

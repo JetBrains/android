@@ -223,7 +223,7 @@ public class GradleNameElement {
     return fullName();
   }
 
-  public boolean containsPropertyReference(@NotNull String propertyReference) {
+  public boolean isReferencedIn(@NotNull String propertyReference) {
     String name = name();
     if (propertyReference.equals(name)) {
       return true;
@@ -237,8 +237,7 @@ public class GradleNameElement {
       }
     }
 
-    // TODO(xof): think about this split
-    List<String> parts = Arrays.asList(propertyReference.split("\\."));
+    List<String> parts = split(propertyReference);
     if (!parts.isEmpty() && parts.get(0).equals(name)) {
       return true;
     }

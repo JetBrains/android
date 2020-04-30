@@ -16,12 +16,10 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.testutils.MockitoKt.any
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionNotificationFactory
-import com.android.tools.idea.appinspection.ide.ui.AppInspectionProcessesComboBox
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
@@ -40,7 +38,6 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationType
-import com.intellij.testFramework.EdtRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -79,11 +76,11 @@ class AppInspectionViewTest {
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
   private val appInspectionCallbacks = object : AppInspectionCallbacks {
-    override fun showToolWindow(callback: () -> Unit) { }
+    override fun showToolWindow(callback: () -> Unit) {}
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule).around(EdtRule())!!
+  val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
 
   @Before
   fun setup() {
@@ -134,7 +131,7 @@ class AppInspectionViewTest {
     transportService.addProcess(fakeDevice, fakeProcess2)
     tabAddedLatch.await()
 
-    // Change combobox selection and check to see if a dispose command was sent out.
+    // Change process selection and check to see if a dispose command was sent out.
     val inspectorDisposedLatch = CountDownLatch(1)
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
       override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
@@ -143,8 +140,8 @@ class AppInspectionViewTest {
         }
       }
     })
-    val comboBox = TreeWalker(inspectionView.component).descendants().filterIsInstance<AppInspectionProcessesComboBox>().first()
-    comboBox.selectedIndex = (comboBox.selectedIndex + 1) % comboBox.itemCount
+    val model = inspectionView.processModel
+    model.selectedProcess = model.processes.first { it != model.selectedProcess }
 
     inspectorDisposedLatch.await()
   }

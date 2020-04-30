@@ -16,22 +16,16 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidLightPackage;
 import com.android.tools.mlkit.MlkitNames;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.indexing.FileBasedIndex;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.intellij.psi.search.PsiSearchScopeUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,41 +54,11 @@ public class MlkitClassFinder extends PsiElementFinder {
       return PsiClass.EMPTY_ARRAY;
     }
 
-    Map<VirtualFile, MlModelMetadata> modelFileMap = new HashMap<>();
-    String className = computeDataKey(qualifiedName);
-    FileBasedIndex.getInstance().processValues(MlModelFileIndex.INDEX_ID, className, null, (file, value) -> {
-      modelFileMap.put(file, value);
-      return true;
-    }, scope.intersectWith(MlModelFilesSearchScope.inProject(myProject)));
-
-    List<PsiClass> lightClassList = new ArrayList<>();
-    for (PsiClass lightModelClass : MlkitUtils.getLightModelClasses(myProject, modelFileMap)) {
-      if (qualifiedName.equals(lightModelClass.getQualifiedName())) {
-        lightClassList.add(lightModelClass);
-      }
-      else {
-        for (PsiClass innerClass : lightModelClass.getInnerClasses()) {
-          if (qualifiedName.equals(innerClass.getQualifiedName())) {
-            lightClassList.add(innerClass);
-          }
-        }
-      }
-    }
-
-    return lightClassList.toArray(PsiClass.EMPTY_ARRAY);
-  }
-
-  @NotNull
-  private static String computeDataKey(@NotNull String qualifiedName) {
-    // If it might inner class, then find second last element which matches data key.
-    if (LightModelClass.getInnerClassNames().stream().anyMatch(value -> qualifiedName.endsWith(value))) {
-      String[] candidates = qualifiedName.split("\\.");
-      if (candidates.length >= 2) {
-        return candidates[candidates.length - 2];
-      }
-    }
-
-    return StringUtil.getShortName(qualifiedName);
+    String className = StringUtil.getShortName(qualifiedName);
+    return
+      MlProjectService.getInstance(myProject).getLightClassListByClassName(className).stream()
+        .filter(lightClass -> PsiSearchScopeUtil.isInScope(scope, lightClass) && qualifiedName.equals(lightClass.getQualifiedName()))
+        .toArray(PsiClass[]::new);
   }
 
   @Nullable

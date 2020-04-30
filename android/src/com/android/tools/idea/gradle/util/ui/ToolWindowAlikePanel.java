@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util.ui;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.CommonActionsManager;
 import com.intellij.ide.DefaultTreeExpander;
 import com.intellij.ide.TreeExpander;
@@ -25,8 +26,6 @@ import javax.swing.*;
 import javax.swing.tree.TreeNode;
 import java.awt.*;
 
-import static com.intellij.icons.AllIcons.General.CollapseAll;
-import static com.intellij.icons.AllIcons.General.ExpandAll;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 
 /**
@@ -45,10 +44,10 @@ public class ToolWindowAlikePanel extends JPanel {
       CommonActionsManager actions = CommonActionsManager.getInstance();
 
       AnAction expandAllAction = actions.createExpandAllAction(expander, tree);
-      expandAllAction.getTemplatePresentation().setIcon(ExpandAll);
+      expandAllAction.getTemplatePresentation().setIcon(AllIcons.Actions.Expandall);
 
       AnAction collapseAllAction = actions.createCollapseAllAction(expander, tree);
-      collapseAllAction.getTemplatePresentation().setIcon(CollapseAll);
+      collapseAllAction.getTemplatePresentation().setIcon(AllIcons.Actions.Collapseall);
 
       panel.setAdditionalTitleActions(expandAllAction, collapseAllAction);
     }

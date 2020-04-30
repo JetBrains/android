@@ -23,6 +23,7 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.psi.KtClassOrObject
 
 class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
@@ -769,6 +770,45 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |      5public interface MySubcomponent {
       |     MySubcomponent2.kt (1 usage)
       |      5interface MySubcomponent2
+      """.trimMargin()
+    )
+  }
+
+
+  fun testObjectClassInKotlin() {
+    val moduleFile = myFixture.addFileToProject("test/MyModule.kt",
+      //language=kotlin
+                                                """
+        package test
+        import dagger.Module
+
+        @Module
+        object MyModule
+      """.trimIndent()
+    ).virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {}
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(moduleFile)
+    val module = myFixture.moveCaret("MyMod|ule").parentOfType<KtClassOrObject>()!!
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(module)
+
+    assertThat(presentation).contains(
+      """
+      |  Included in component(s) (1 usage)
+      |   ${myFixture.module.name} (1 usage)
+      |    test (1 usage)
+      |     MyComponent.java (1 usage)
+      |      5public interface MyComponent {}
       """.trimMargin()
     )
   }

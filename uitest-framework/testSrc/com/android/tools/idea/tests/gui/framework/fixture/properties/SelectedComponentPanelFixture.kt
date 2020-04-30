@@ -25,8 +25,8 @@ import javax.swing.JLabel
  * Fixture for a [SelectedComponentPanel] which is the header component in the properties panel for a layout inspector.
  */
 class SelectedComponentPanelFixture(
-  panel: SelectedComponentPanel,
-  robot: Robot
+  robot: Robot,
+  panel: SelectedComponentPanel
 ) : ComponentFixture<SelectedComponentPanelFixture, SelectedComponentPanel>(SelectedComponentPanelFixture::class.java, robot, panel) {
 
   val id: String

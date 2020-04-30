@@ -76,7 +76,7 @@ class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttribution
           // Check that the parent is not another binary plugin, to make sure that this plugin was added by the user
           if (event.descriptor.parent?.name?.startsWith(applyPluginEventPrefix) != true) {
             val pluginName = event.descriptor.name.substring(applyPluginEventPrefix.length + 1)
-            val plugin = getPlugin(PluginData.PluginType.PLUGIN, pluginName, projectConfigurationBuilder!!.projectPath)
+            val plugin = getPlugin(PluginData.PluginType.BINARY_PLUGIN, pluginName, projectConfigurationBuilder!!.projectPath)
             val pluginConfigurationTime = event.result.endTime - event.result.startTime
 
             updatePluginConfigurationTime(plugin, pluginConfigurationTime)

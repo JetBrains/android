@@ -37,5 +37,6 @@
     <orderEntry type="module" module-name="intellij.lint" />
     <orderEntry type="module" module-name="intellij.android.nav.safeargs" />
     <orderEntry type="module" module-name="intellij.android.dagger" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
   </component>
 </module>

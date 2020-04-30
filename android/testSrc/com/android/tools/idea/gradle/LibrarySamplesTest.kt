@@ -74,7 +74,7 @@ class LibrarySamplesTest : AndroidGradleTestCase() {
 
     val file = VfsUtil.findFile(Paths.get(project.basePath, "/app/src/main/java/com/example/appforsamplestest/Main.kt"), false)
     assume().that(file).isNotNull()
-    myFixture.configureFromExistingVirtualFile(file!!)
+    myFixture.openFileInEditor(file!!)
 
     myFixture.moveCaret("myFuncti|on")
     val librarySourceFunction = myFixture.elementAtCaret.navigationElement as KtNamedFunction

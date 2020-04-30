@@ -16,15 +16,14 @@
 package com.android.tools.idea.run
 
 import com.android.resources.Density
+import com.android.sdklib.AndroidVersion
 
 /**
  * Describes the specification of a device or the common specification of devices the application is to be launched on.
  */
 interface AndroidDeviceSpec {
-  val apiLevel: Int
-  val featureLevel: Int
-  val apiCodeName: String?
-  val buildDensity: Density?
-  val buildAbis: Collection<String>
-  val languages: Collection<String>
+  val version: AndroidVersion
+  val density: Density?
+  val abis: List<String>
+  val languages: List<String>
 }

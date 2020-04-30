@@ -30,7 +30,6 @@ import com.android.SdkConstants.ATTR_URI
 import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.SdkConstants.TAG_INCLUDE
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.model.className
@@ -46,8 +45,6 @@ import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.layout
 import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.model.schema
-import com.android.tools.idea.naveditor.model.isCustomProperty
-import com.android.tools.idea.uibuilder.property.NlProperties
 import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavDestinationInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -69,7 +66,6 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.annotations.TestOnly
 import java.util.LinkedList
-import java.util.stream.Collectors
 
 /**
  * This class probably shouldn't be instantiated directly. Instead do
@@ -92,8 +88,6 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
   fun getProtoForTest(): NavEditorEvent {
     return navEventBuilder.build()
   }
-
-  fun withPropertyInfo(property: NlProperty, wasEmpty: Boolean) = withAttributeInfo(property.name, property.tagName, wasEmpty)
 
   fun withAttributeInfo(attrName: String,
                         tagName: String?,
@@ -219,27 +213,8 @@ class NavLogEvent(event: NavEditorEvent.NavEditorEventType, private val tracker:
     builder.customNavigators = schema?.customNavigatorCount ?: 0
     builder.customTags = schema?.customTagCount ?: 0
     builder.customDestinations = schema?.customDestinationCount ?: 0
-    builder.customAttributes = getCustomAttributeCount()
     navEventBuilder.setSchemaInfo(builder)
     return this
-  }
-
-  private fun getCustomAttributeCount(): Int {
-    val model = tracker.model ?: return 0
-    if (schema == null) {
-      return 0
-    }
-    val distinctTags = model.components[0].flatten()
-      .collect(Collectors.toMap({ c: NlComponent -> Pair(c.tagDeprecated.namespace, c.tagDeprecated.name) }, { it }))
-      .values
-    val properties = HashSet<Pair<String?, String?>>()
-    for (component in distinctTags) {
-      NlProperties.getInstance().getProperties(model.facet, null, listOf(component)).cellSet()
-        .filter { it.value?.isCustomProperty == true }
-        .mapTo(properties) { Pair(it.rowKey, it.columnKey) }
-    }
-
-    return properties.size
   }
 
   fun withNavigationContents(): NavLogEvent {

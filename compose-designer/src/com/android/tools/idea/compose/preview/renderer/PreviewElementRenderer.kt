@@ -56,7 +56,7 @@ fun renderPreviewElementForResult(facet: AndroidFacet,
 
   val renderResultFuture = CompletableFuture.supplyAsync(Supplier { renderTaskFuture.get() }, executor)
     .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
-    .thenApply { if (it != null && it.renderResult.isSuccess && it.logger.brokenClasses.isEmpty()) it else null }
+    .thenApply { if (it != null && it.renderResult.isSuccess && it.logger.brokenClasses.isEmpty() && !it.logger.hasErrors()) it else null }
 
   CompletableFuture.allOf(renderTaskFuture, renderResultFuture).handle { _, _ -> renderTaskFuture.get().dispose() }
 

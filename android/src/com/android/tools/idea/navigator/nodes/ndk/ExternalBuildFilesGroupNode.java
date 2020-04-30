@@ -49,7 +49,7 @@ public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     Map<VirtualFile, String> buildFiles = getBuildFilesWithModuleNames();
     List<PsiFileNode> children = new ArrayList<>(buildFiles.size());
 

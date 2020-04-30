@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.naveditor.dialogs
 
-import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.adtui.stdui.CommonTextField
+import com.android.tools.adtui.stdui.Lookup
+import com.android.tools.adtui.stdui.LookupTest
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.google.wireless.android.sdk.stats.NavPropertyInfo
 import org.mockito.Mockito
-import org.mockito.Mockito.mock
 
 class AddDeeplinkDialogTest : NavTestCase() {
 
@@ -148,5 +150,20 @@ class AddDeeplinkDialogTest : NavTestCase() {
                                                           .setProperty(property)
                                                           .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG))
                                        .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
+  }
+
+  fun testUriAutoComplete() {
+    val model = UriTextFieldModel()
+    model.argumentNames = listOf("foo", "bar", "baz")
+    val field = CommonTextField(model)
+    val ui = LookupTest.TestUI()
+    val lookup = Lookup(field, ui)
+    field.text = "www.android.com"
+    lookup.showLookup(field.text)
+    assertThat(ui.elements()).isEmpty()
+    field.text = "www.android.com{"
+    lookup.showLookup(field.text)
+    assertThat(ui.elements()).containsExactly(
+      "www.android.com{", "www.android.com{foo}", "www.android.com{bar}", "www.android.com{baz}")
   }
 }

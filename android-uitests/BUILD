@@ -49,15 +49,14 @@ iml_module(
     iml_files = ["intellij.android.guiTests.iml"],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
         "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/java/plugin:intellij.java.plugin",
-        "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
         "//tools/idea/platform/platform-main:intellij.platform.main",
         "//prebuilts/tools/common/m2/repository/org/xerial/sqlite-jdbc/3.20.1:jar",
         "//tools/idea/plugins/github:intellij.vcs.github",
         "//tools/idea/colorSchemes:intellij.platform.colorSchemes",
         "//tools/idea/plugins/groovy/structuralsearch-groovy:intellij.groovy.structuralSearch",
+        "//tools/vendor/intellij/cidr/cidr-workspaceModel:intellij.cidr.workspaceModel",
         "//tools/adt/idea/android:intellij.android.core.tests",
         "//prebuilts/tools/common/m2/repository/it/unimi/dsi/fastutil/7.2.1:jar",
         "//tools/idea/plugins/git4idea/remote-servers-git-java:intellij.java.remoteServers.git",
@@ -78,8 +77,9 @@ iml_module(
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
         "//tools/idea/.idea/libraries:rhino",
         "//tools/idea/.idea/libraries:netty-handler-proxy",
-        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
+        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
@@ -341,7 +341,7 @@ java_test(
     name = "AndroidProfilerTest",
     data = COMMON_DATA + glob(["testData/MinimalMinSdk26Apk/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.profiler.AndroidProfilerTest"],
-    tags = COMMON_TAGS,
+    tags = COMMON_TAGS + ["manual"],  # b/154963251
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -360,7 +360,7 @@ java_test(
         ],
     }),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.deploy.DeploymentTest"],
-    tags = COMMON_TAGS,
+    tags = COMMON_TAGS + ["manual"],  # b/154963251
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -369,7 +369,7 @@ java_test(
     name = "TerminateAdbIfNotUsedTest",
     data = COMMON_DATA + glob(["testData/simple/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.adb.TerminateAdbIfNotUsedTest"],
-    tags = COMMON_TAGS,
+    tags = COMMON_TAGS + ["manual"],  # b/154963251
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -455,7 +455,7 @@ java_test(
         "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewLibraryModuleWithDefaultsTest"],
-    tags = COMMON_TAGS,
+    tags = COMMON_TAGS + ["manual"],  # b/154963251
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )

@@ -123,7 +123,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
 
     if (targets.length == 0) {
       if (Messages.showOkCancelDialog(AndroidBundle.message("no.android.targets.error"), CommonBundle.getErrorTitle(),
-                                      "Open SDK Manager", Messages.CANCEL_BUTTON, Messages.getErrorIcon()) == Messages.OK) {
+                                      "Open SDK Manager", Messages.getCancelButton(), Messages.getErrorIcon()) == Messages.OK) {
         SdkQuickfixUtils.showAndroidSdkManager();
       }
       return false;

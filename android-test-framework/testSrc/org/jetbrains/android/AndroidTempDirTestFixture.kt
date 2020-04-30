@@ -19,14 +19,15 @@ import com.android.utils.FileUtils
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import java.io.File
+import java.nio.file.Path
 
 open class AndroidTempDirTestFixture(
   private val testName: String
 ) : TempDirTestFixtureImpl() {
-  override fun doCreateTempDirectory(): File {
+  override fun doCreateTempDirectory(): Path {
     val folder = File("${getRootTempDirectory()}${File.separatorChar}${java.time.Clock.systemUTC().millis()}", testName)
     FileUtils.mkdirs(folder)
-    return folder
+    return folder.toPath()
   }
 
   open fun getRootTempDirectory() = FileUtil.getTempDirectory()

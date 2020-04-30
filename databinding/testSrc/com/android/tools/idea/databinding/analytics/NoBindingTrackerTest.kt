@@ -77,7 +77,7 @@ class NoBindingTrackerTest {
       try {
         UsageTracker.setWriterForTest(tracker)
         val syncState = GradleSyncState.getInstance(projectRule.project)
-        syncState.syncStarted(GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED), null)
+        syncState.syncStarted(GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED))
         syncState.syncSucceeded()
         val viewBindingPollMetadata = tracker.usages
           .map { it.studioEvent }

@@ -19,7 +19,7 @@
     <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="Mocks" level="project" />
+    <orderEntry type="library" scope="TEST" name="easymock" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
@@ -105,7 +105,6 @@
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.resources-base" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="kotlin-plugin" level="project" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.debuggers" />
@@ -118,9 +117,9 @@
     <orderEntry type="module" module-name="android.sdktools.builder-model" />
     <orderEntry type="module-library">
       <library name="androidx-test-core-proto" type="repository">
-        <properties maven-id="com.google.test.platform:core-proto:0.0.1-dev" />
+        <properties maven-id="com.google.test.platform:core-proto:0.0.2-dev" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/google/test/platform/core-proto/0.0.1-dev/core-proto-0.0.1-dev.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/google/test/platform/core-proto/0.0.2-dev/core-proto-0.0.2-dev.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

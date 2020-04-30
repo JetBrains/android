@@ -19,9 +19,12 @@ import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
+import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.application.TransactionGuard
+import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
@@ -61,14 +64,14 @@ class SqliteEvaluatorViewImpl(
 
   private val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
+  private val runButton = JButton("Run")
+  private var evaluateSqliteStatementEnabled = false
+
   init {
     val controlsPanel = JPanel(BorderLayout())
 
     component.add(controlsPanel, BorderLayout.NORTH)
     component.add(tableView.component, BorderLayout.CENTER)
-
-    val runButton = JButton("Run")
-    runButton.addActionListener { evaluateSqliteExpression() }
 
     val active = KeymapManager.getInstance().activeKeymap
 
@@ -79,6 +82,9 @@ class SqliteEvaluatorViewImpl(
 
     val shortcutText = KeymapUtil.getFirstKeyboardShortcutText(CustomShortcutSet(keyStrokeMultiline))
     runButton.toolTipText = "Run SQLite expression ($shortcutText)"
+    runButton.isEnabled = false
+    runButton.addActionListener { evaluateSqliteExpression() }
+    runButton.name = "run-button"
 
     val runStatementAction = DumbAwareAction.create { evaluateSqliteExpression() }
 
@@ -100,6 +106,16 @@ class SqliteEvaluatorViewImpl(
       }
     }
 
+    val myDocumentListener = object : DocumentListener {
+      override fun documentChanged(event: DocumentEvent) {
+        listeners.forEach { it.sqliteStatementTextChangedInvoked(event.document.text) }
+      }
+    }
+
+    expandableEditor.collapsedEditor.document.addDocumentListener(myDocumentListener)
+    expandableEditor.expandedEditor.document.addDocumentListener(myDocumentListener)
+    expandableEditor.collapsedEditor.name = "collapsed-editor"
+
     controlsPanel.add(runButton, BorderLayout.EAST)
     controlsPanel.add(databaseComboBox, BorderLayout.WEST)
     controlsPanel.add(expandableEditor.collapsedEditor, BorderLayout.CENTER)
@@ -119,9 +135,16 @@ class SqliteEvaluatorViewImpl(
     }
   }
 
+  override fun setRunSqliteStatementEnabled(enabled: Boolean) {
+    evaluateSqliteStatementEnabled = enabled
+    runButton.isEnabled = enabled
+  }
+
   private fun evaluateSqliteExpression() {
+    if (!evaluateSqliteStatementEnabled) return
+
     listeners.forEach {
-      it.evaluateSqlActionInvoked(
+      it.evaluateSqliteStatementActionInvoked(
         (databaseComboBox.selectedItem as SqliteDatabase),
         expandableEditor.activeEditor.text
       )
@@ -143,9 +166,18 @@ class SqliteEvaluatorViewImpl(
     })
   }
 
-  override fun addDatabase(database: SqliteDatabase, index: Int) {
-    databaseComboBox.insertItemAt(database, index)
-    if (databaseComboBox.selectedIndex == -1) databaseComboBox.selectedIndex = 0
+  override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) {
+    for (databaseDiffOperation in databaseDiffOperations) {
+      when (databaseDiffOperation) {
+        is DatabaseDiffOperation.AddDatabase -> {
+          databaseComboBox.insertItemAt(databaseDiffOperation.database, databaseDiffOperation.index)
+          if (databaseComboBox.selectedIndex == -1) databaseComboBox.selectedIndex = 0
+        }
+        is DatabaseDiffOperation.RemoveDatabase -> {
+          databaseComboBox.removeItem(databaseDiffOperation.database)
+        }
+      }
+    }
   }
 
   override fun selectDatabase(database: SqliteDatabase) {
@@ -154,10 +186,6 @@ class SqliteEvaluatorViewImpl(
     if (database != currentlySelectedItem) {
       databaseComboBox.selectedItem = database
     }
-  }
-
-  override fun removeDatabase(index: Int) {
-    databaseComboBox.removeItemAt(index)
   }
 
   override fun getActiveDatabase(): SqliteDatabase {

@@ -26,29 +26,35 @@ import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.build.FilePosition;
+import com.intellij.build.issue.BuildIssue;
+import com.intellij.build.issue.BuildIssueChecker;
+import com.intellij.build.issue.BuildIssueQuickFix;
+import com.intellij.ide.DataManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import java.util.List;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.service.JpsServiceManager;
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker;
+import org.jetbrains.plugins.gradle.issue.GradleIssueData;
 
 class ExternalNdkBuildIssuesReporter extends BaseSyncIssuesReporter {
   @NotNull private final BuildOutputParser myBuildOutputParser;
-  @NotNull private final SyncErrorHandler[] myErrorHandlers;
 
   ExternalNdkBuildIssuesReporter() {
-    this(createBuildOutputParser(), SyncErrorHandler.getExtensions());
+    this(createBuildOutputParser());
   }
 
   @NotNull
@@ -57,9 +63,8 @@ class ExternalNdkBuildIssuesReporter extends BaseSyncIssuesReporter {
   }
 
   @VisibleForTesting
-  ExternalNdkBuildIssuesReporter(@NotNull BuildOutputParser buildOutputParser, @NotNull SyncErrorHandler[] errorHandlers) {
+  ExternalNdkBuildIssuesReporter(@NotNull BuildOutputParser buildOutputParser) {
     myBuildOutputParser = buildOutputParser;
-    myErrorHandlers = errorHandlers;
   }
 
   @Override
@@ -90,15 +95,28 @@ class ExternalNdkBuildIssuesReporter extends BaseSyncIssuesReporter {
         if (type == ERROR) {
           // TODO make error handlers work with SyncMessage, instead of NotificationData.
           NotificationCategory category = type.convertToCategory();
-          NotificationData notification = messages.createNotification(group, text, category, position);
+          NotificationData notificationData = messages.createNotification(group, text, category, position);
 
-          // Try to parse the error messages using the list of existing error handlers to find any potential quick-fixes.
-          for (SyncErrorHandler handler : myErrorHandlers) {
-            if (handler.handleError(new ExternalSystemException(text), notification, project)) {
-              break;
+          GradleIssueData issueData =
+            new GradleIssueData(
+              project.getBasePath(),
+              new Throwable(text),
+              null,
+              new FilePosition(new File(position.file.getPath()), position.line, position.column));
+          List<GradleIssueChecker> knownIssuesCheckList = GradleIssueChecker.getKnownIssuesCheckList();
+          for (BuildIssueChecker<GradleIssueData> checker : knownIssuesCheckList) {
+            BuildIssue buildIssue = checker.check(issueData);
+            if (buildIssue != null) {
+              for (BuildIssueQuickFix quickFix : buildIssue.getQuickFixes()) {
+                notificationData.setListener(quickFix.getId(), (notification, event) -> {
+                  if (event.getSource() instanceof JComponent) {
+                    quickFix.runQuickFix(project, DataManager.getDataProvider((JComponent)event.getSource()));
+                  }
+                });
+              }
             }
           }
-          messages.report(notification);
+          messages.report(notificationData);
           continue;
         }
 

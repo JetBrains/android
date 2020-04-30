@@ -39,12 +39,12 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import org.jetbrains.annotations.NotNull;
 
-public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCpuThread, CpuProfilerStage.ThreadState> {
+public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCpuThread, ThreadState> {
   /**
    * Maps a {@link StateChart} to a {@link EnumColors} helper class to return the proper color object for the {@link StateChart}
    */
   @NotNull
-  private final Map<StateChart<CpuProfilerStage.ThreadState>, EnumColors<CpuProfilerStage.ThreadState>> myColors;
+  private final Map<StateChart<ThreadState>, EnumColors<ThreadState>> myColors;
 
   public ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list, UpdatableManager updatableManager) {
     super(list);
@@ -53,7 +53,7 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
 
   @Override
   @NotNull
-  StateChart<CpuProfilerStage.ThreadState> getChartForModel(@NotNull CpuThreadsModel.RangedCpuThread model) {
+  StateChart<ThreadState> getChartForModel(@NotNull CpuThreadsModel.RangedCpuThread model) {
     return myStateCharts.get(model.getId()).getChart();
   }
 
@@ -81,8 +81,8 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
     // to be called. As this method can be called by Swing more often than our update cycle, we cache the models to avoid
     // recalculating the render states. This causes the rendering time to be substantially improved.
     int tid = value.getThreadId();
-    StateChartModel<CpuProfilerStage.ThreadState> model = value.getModel();
-    StateChart<CpuProfilerStage.ThreadState> stateChart = getOrCreateStateChart(tid, model);
+    StateChartModel<ThreadState> model = value.getModel();
+    StateChart<ThreadState> stateChart = getOrCreateStateChart(tid, model);
     stateChart.setOpaque(true);
     stateChart.setBorder(null);
     // 1 is index of the selected color, 0 is of the non-selected
@@ -110,25 +110,24 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
   /**
    * Returns a {@link StateChart} corresponding to a given thread or create a new one if it doesn't exist.
    */
-  private StateChart<CpuProfilerStage.ThreadState> getOrCreateStateChart(int tid, StateChartModel<CpuProfilerStage.ThreadState> model) {
+  private StateChart<ThreadState> getOrCreateStateChart(int tid, StateChartModel<ThreadState> model) {
     if (myStateCharts.containsKey(tid) && myStateCharts.get(tid).getModel().equals(model)) {
       // State chart is already saved on the map. Return it.
       return myStateCharts.get(tid).getChart();
     }
     // The state chart corresponding to the thread is not stored on the map. Create a new one.
-    EnumColors<CpuProfilerStage.ThreadState> enumColors = ProfilerColors.THREAD_STATES.build();
-    StateChart<CpuProfilerStage.ThreadState> stateChart =
+    EnumColors<ThreadState> enumColors = ProfilerColors.THREAD_STATES.build();
+    StateChart<ThreadState> stateChart =
       new StateChart<>(model,
-                       new StateChartColorProvider<CpuProfilerStage.ThreadState>() {
+                       new StateChartColorProvider<ThreadState>() {
                          @NotNull
                          @Override
-                         public Color getColor(boolean isMouseOver,
-                                               @NotNull CpuProfilerStage.ThreadState value) {
+                         public Color getColor(boolean isMouseOver, @NotNull ThreadState value) {
                            enumColors.setColorIndex(isMouseOver ? 1 : 0);
                            return enumColors.getColor(value);
                          }
                        });
-    StateChartData<CpuProfilerStage.ThreadState> data = new StateChartData<>(stateChart, model);
+    StateChartData<ThreadState> data = new StateChartData<>(stateChart, model);
     stateChart.setHeightGap(0.0f); // Default config sets this to 0.5f;
     myStateCharts.put(tid, data);
     myColors.put(stateChart, enumColors);

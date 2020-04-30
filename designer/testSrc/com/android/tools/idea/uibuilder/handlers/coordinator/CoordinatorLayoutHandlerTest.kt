@@ -23,7 +23,7 @@ import com.android.tools.idea.common.util.XmlTagUtil
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.android.tools.idea.uibuilder.api.ViewEditor
-import com.android.tools.idea.uibuilder.property.MockNlComponent
+import com.android.tools.idea.uibuilder.util.MockNlComponent
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.google.common.truth.Truth.assertThat

@@ -26,14 +26,19 @@ import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.JBUI;
@@ -62,6 +67,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
@@ -101,6 +107,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private Set<AvdSelectionListener> myListeners = Sets.newHashSet();
   private final AvdActionsColumnInfo myActionsColumnRenderer = new AvdActionsColumnInfo("Actions", 2 /* Num Visible Actions */);
   private static final HashMap<String, HighlightableIconPair> myDeviceClassIcons = new HashMap<String, HighlightableIconPair>(8);
+  private final Logger myLogger = Logger.getInstance(AvdDisplayList.class);
 
   /**
    * Components which wish to receive a notification when the user has selected an AVD from this
@@ -519,22 +526,27 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   }
 
   private void refreshErrorCheck() {
-    boolean refreshUI = myNotificationPanel.getComponentCount() > 0;
+    final AtomicBoolean refreshUI = new AtomicBoolean(myNotificationPanel.getComponentCount() > 0);
     myNotificationPanel.removeAll();
-    AccelerationErrorCode error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceleration();
-    if (error != AccelerationErrorCode.ALREADY_INSTALLED) {
-      refreshUI = true;
-      myNotificationPanel.add(new AccelerationErrorNotificationPanel(error, myProject, new Runnable() {
-        @Override
-        public void run() {
-          refreshErrorCheck();
+    ListenableFuture<AccelerationErrorCode> error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAccelerationAsync();
+    Futures.addCallback(error, new FutureCallback<AccelerationErrorCode>() {
+      @Override
+      public void onSuccess(AccelerationErrorCode result) {
+        if (result != AccelerationErrorCode.ALREADY_INSTALLED) {
+          refreshUI.set(true);
+          myNotificationPanel.add(new AccelerationErrorNotificationPanel(result, myProject, () -> refreshErrorCheck()));
         }
-      }));
-    }
-    if (refreshUI) {
-      myNotificationPanel.revalidate();
-      myNotificationPanel.repaint();
-    }
+        if (refreshUI.get()) {
+          myNotificationPanel.revalidate();
+          myNotificationPanel.repaint();
+        }
+      }
+
+      @Override
+      public void onFailure(Throwable t) {
+        myLogger.warn("Check for emulation acceleration failed", t);
+      }
+    }, EdtExecutorService.getInstance());
   }
 
   /**

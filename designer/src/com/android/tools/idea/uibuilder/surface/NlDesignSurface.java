@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
+import static com.android.tools.idea.actions.DesignerDataKeys.LAYOUT_VALIDATOR_KEY;
 import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
@@ -102,8 +103,15 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   private static final double DEFAULT_MIN_SCALE = 0.1;
   private static final double DEFAULT_MAX_SCALE = 10;
-
   private static final int STOP_SCROLLING_RENDER_DELAY_MS = 50;
+
+  private final LayoutValidatorControl myValidatorControl = new LayoutValidatorControl() {
+    @Override
+    public void setLayoutValidationEnabled(boolean enableLayoutValidation) {
+      getSceneManager().isLayoutValidationEnabled = enableLayoutValidation;
+      forceUserRequestedRefresh();
+    }
+  };
 
   private static class NlDesignSurfacePositionableContentLayoutManager extends PositionableContentLayoutManager {
     private final NlDesignSurface myDesignSurface;
@@ -951,6 +959,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
     else if (DESIGN_SURFACE.is(dataId)) {
       return this;
+    }
+    else if(LAYOUT_VALIDATOR_KEY.is(dataId)) {
+      return myValidatorControl;
     }
     return super.getData(dataId);
   }

@@ -40,5 +40,6 @@
     <orderEntry type="module" module-name="intellij.xml.dom.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
+    <orderEntry type="module" module-name="intellij.xml.psi.impl" />
   </component>
 </module>

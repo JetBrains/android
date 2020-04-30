@@ -142,7 +142,9 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
           myGallery.selectedElement?.let { renderer ->
             myTemplateName.text = renderer.label
             myTemplateDesc.text = "<html>" + renderer.description + "</html>"
-            myDocumentationLink.isVisible = renderer is CppTemplateRendererWithDescription
+            myDocumentationLink.isVisible = renderer.documentationUrl != null
+            myDocumentationLink.setHyperlinkTarget(renderer.documentationUrl)
+
             canGoForward.set(true)
           } ?: canGoForward.set(false)
         }
@@ -163,8 +165,9 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       when (selectedTemplate) {
         is NewTemplateRendererWithDescription -> {
           newRenderTemplate.setNullableValue(selectedTemplate.template)
+          val hasExtraDetailStep = selectedTemplate.template.uiContexts.contains(WizardUiContext.NewProjectExtraDetail)
           newProjectModuleModel!!.extraRenderTemplateModel.newTemplate =
-            if (selectedFormFactorInfo.formFactor == FormFactor.THINGS) selectedTemplate.template else Template.NoActivity
+            if (hasExtraDetailStep) selectedTemplate.template else Template.NoActivity
         }
         is CppTemplateRendererWithDescription -> {
           newRenderTemplate.value = TemplateResolver.getAllTemplates().first { it.name == EMPTY_ACTIVITY }.apply {
@@ -195,10 +198,12 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
   interface TemplateRendererWithDescription : ChooseGalleryItemStep.TemplateRenderer {
     val description: String
+    val documentationUrl: String?
   }
 
   data class CppTemplateRendererWithDescription(
     override val description: String = message("android.wizard.gallery.item.add.cpp.Desc"),
+    override val documentationUrl: String? = "https://developer.android.com/ndk/guides/cpp-support.html",
     override val label: String = message("android.wizard.gallery.item.add.cpp"),
     override val icon: Icon? = cppIcon,
     override val exists: Boolean = true
@@ -212,6 +217,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     override val label: String get() = getTemplateTitle(template)
     override val icon: Icon? get() = getTemplateIcon(template)
     override val description: String get() = template.description
+    override val documentationUrl: String? = template.documentationUrl
   }
 
   companion object {

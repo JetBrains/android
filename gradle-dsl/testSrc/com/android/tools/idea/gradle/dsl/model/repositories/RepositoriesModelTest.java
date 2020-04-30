@@ -766,6 +766,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testMultipleGoogleRepos() throws IOException {
+    assumeTrue("KotlinScript parser does not recognize foo().run { ... } as foo() method call", !isKotlinScript()); // TODO(b/155156339)
     writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_WITH_WITH);
 
     GradleBuildModel buildModel = getGradleBuildModel();

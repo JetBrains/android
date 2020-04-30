@@ -24,9 +24,12 @@ import org.jetbrains.annotations.NotNull;
 public class LightModelClassConfig {
   public final MlModelMetadata myModelMetadata;
   public final String myPackageName;
+  public final String myClassName;
 
-  public LightModelClassConfig(@NotNull MlModelMetadata modelMetadata, @NotNull String packageName) {
+  public LightModelClassConfig(
+    @NotNull MlModelMetadata modelMetadata, @NotNull String packageName, @NotNull String className) {
     myModelMetadata = modelMetadata;
     myPackageName = packageName;
+    myClassName = className;
   }
 }

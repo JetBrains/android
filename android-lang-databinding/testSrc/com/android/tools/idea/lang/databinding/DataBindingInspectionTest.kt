@@ -47,6 +47,9 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
     projectRule.fixture as JavaCodeInsightTestFixture
   }
 
+  private val databindingPackage = dataBindingMode.packageName.removeSuffix(".") // Without trailing '.'
+  private val databindingSrcPath = "src/${databindingPackage.replace('.', '/')}"
+
   @Before
   fun setUp() {
     fixture.testDataPath = "${getTestDataPath()}/projects/common"
@@ -55,9 +58,6 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
     // Add a fake "BindingAdapter" to this project so the tests resolve the dependency; this is
     // easier than finding a way to add a real dependency on the data binding library, which
     // usually requires Gradle plugin support.
-    val databindingPackage = dataBindingMode.packageName.removeSuffix(".") // Without trailing '.'
-    val databindingSrcPath = "src/${databindingPackage.replace('.', '/')}"
-
     with(fixture.addFileToProject(
       "$databindingSrcPath/BindingAdapter.java",
       // language=java
@@ -90,6 +90,23 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
         }
 
       """.trimIndent())) {
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
+    with(fixture.addFileToProject(
+      "$databindingSrcPath/InverseBindingAdapter.java",
+      // language=java
+      """
+        package $databindingPackage;
+        import java.lang.annotation.ElementType;
+        import java.lang.annotation.Target;
+
+        @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+        public @interface InverseBindingAdapter {
+            String attribute();
+        }
+      """.trimIndent())) {
+      // The following line is needed or else we get an error for referencing a file out of bounds
       fixture.allowTreeAccessForFile(this.virtualFile)
     }
 
@@ -1367,6 +1384,42 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
             android:layout_height="120dp"
             android:gravity="center"
             android:text="@={<error descr="Cannot find a getter for <TextView android:text> that accepts parameter type 'int'">model.number</error>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspectionInKotlin_bindingExpressionMatchedWithInverseBindingAdapter() {
+    fixture.addFileToProject("$databindingSrcPath/Model.kt",
+      // language=kotlin
+      """
+      package test.langdb
+      import android.view.View
+      import ${dataBindingMode.bindingAdapter}
+      import ${dataBindingMode.inverseBindingAdapter}
+
+      class Model {
+        @BindingAdapter("app:text")
+        fun setViewText(editText: View, str: String) {}
+        @InverseBindingAdapter(attribute = "app:text")
+        fun getViewText(editText: View): String {}
+        var value: String
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/viewId"
+            app:text="@={model.value}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)

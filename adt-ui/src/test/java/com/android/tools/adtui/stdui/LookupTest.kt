@@ -15,7 +15,10 @@
  */
 package com.android.tools.adtui.stdui
 
-import com.android.tools.adtui.model.stdui.*
+import com.android.tools.adtui.model.stdui.DefaultCommonTextFieldModel
+import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.adtui.model.stdui.EditorCompletion
+import com.android.tools.adtui.model.stdui.PooledThreadExecution
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import org.junit.Test
@@ -35,7 +38,7 @@ class LookupTest {
     val lookup = Lookup(field, ui)
     ui.editorLocation = Point(5, 50)
     field.text = "a8"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
     assertThat(ui.location.x).isEqualTo(9)
     assertThat(ui.location.y).isEqualTo(66)
@@ -50,7 +53,7 @@ class LookupTest {
     val lookup = Lookup(field, ui)
     ui.editorLocation = Point(5, 480)
     field.text = "a7"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
     assertThat(ui.location.y).isEqualTo(444)
     assertThat(ui.elements()).containsExactly("a7", "@string/app_name7", "@string/app_name17", "@string/app_name27")
@@ -66,19 +69,19 @@ class LookupTest {
 
     // First make the popup show below:
     field.text = "a17"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
     assertThat(ui.location.y).isEqualTo(470)
 
     // Then expand the match count such that it will show above:
     field.text = "a7"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
     assertThat(ui.location.y).isEqualTo(418)
 
     // Decreasing the match count should NOT make the popup jump down below:
     field.text = "a17"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
     assertThat(ui.location.y).isEqualTo(438)
   }
@@ -93,7 +96,7 @@ class LookupTest {
 
     // First make the popup show below:
     field.text = "a17"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
     assertThat(ui.location.x).isEqualTo(800)
     assertThat(ui.location.y).isEqualTo(66)
@@ -106,12 +109,12 @@ class LookupTest {
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "a8"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
     assertThat(ui.elements()).containsExactly("a8", "@string/app_name8", "@string/app_name18", "@string/app_name28")
 
     field.text = "a8z"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.visible).isFalse()
     assertThat(ui.elements()).containsExactly("a8z")
   }
@@ -123,7 +126,7 @@ class LookupTest {
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "@string/app_name"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
     assertThat(ui.elements().subList(0, 3)).containsExactly("@string/app_name", "@string/app_firstName", "@string/app_name1").inOrder()
   }
@@ -135,7 +138,7 @@ class LookupTest {
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "a8"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.selectedIndex).isEqualTo(0)
     assertThat(ui.elements()).hasSize(4)
     assertThat(ui.semiFocused).isFalse()
@@ -156,11 +159,11 @@ class LookupTest {
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "a8"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.selectedIndex).isEqualTo(0)
     assertThat(ui.elements()).hasSize(4)
     assertThat(ui.semiFocused).isFalse()
-    for (index in 3 downTo  0) {
+    for (index in 3 downTo 0) {
       lookup.selectPrevious()
       assertThat(ui.selectedIndex).isEqualTo(index)
       assertThat(ui.semiFocused).isTrue()
@@ -173,12 +176,12 @@ class LookupTest {
   @Test
   fun testNextPage() {
     val model = TestCommonTextFieldModel("")
-    val size = model.editingSupport.completion().size + 1
+    val size = model.editingSupport.completion(model.text).size + 1
     val field = CommonTextField(model)
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "a"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.selectedIndex).isEqualTo(0)
     assertThat(ui.elements()).hasSize(size)
     assertThat(ui.semiFocused).isFalse()
@@ -203,12 +206,12 @@ class LookupTest {
   @Test
   fun testPreviousPage() {
     val model = TestCommonTextFieldModel("")
-    val size = model.editingSupport.completion().size + 1
+    val size = model.editingSupport.completion(model.text).size + 1
     val field = CommonTextField(model)
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "a"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.selectedIndex).isEqualTo(0)
     assertThat(ui.elements()).hasSize(size)
     assertThat(ui.semiFocused).isFalse()
@@ -239,29 +242,29 @@ class LookupTest {
   @Test
   fun testSelectLast() {
     val model = TestCommonTextFieldModel("")
-    val size = model.editingSupport.completion().size + 1
+    val size = model.editingSupport.completion(model.text).size + 1
     val field = CommonTextField(model)
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "a"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.selectedIndex).isEqualTo(0)
     assertThat(ui.elements()).hasSize(size)
     assertThat(ui.semiFocused).isFalse()
     lookup.selectLast()
-    assertThat(ui.selectedIndex).isEqualTo(size -1)
+    assertThat(ui.selectedIndex).isEqualTo(size - 1)
     assertThat(ui.semiFocused).isTrue()
   }
 
   @Test
   fun testSelectFirst() {
     val model = TestCommonTextFieldModel("")
-    val size = model.editingSupport.completion().size + 1
+    val size = model.editingSupport.completion(model.text).size + 1
     val field = CommonTextField(model)
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "a"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.selectedIndex).isEqualTo(0)
     assertThat(ui.elements()).hasSize(size)
     assertThat(ui.semiFocused).isFalse()
@@ -285,7 +288,7 @@ class LookupTest {
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "a"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     lookup.selectNext()
     lookup.selectNext()
     lookup.selectNext()
@@ -293,7 +296,7 @@ class LookupTest {
     assertThat(ui.selectedValue).isEqualTo("@string/app_name")
 
     field.text = "ap"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.selectedIndex).isEqualTo(2)
     assertThat(ui.selectedValue).isEqualTo("@string/app_name")
   }
@@ -305,7 +308,7 @@ class LookupTest {
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "a"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     lookup.selectNext()
     lookup.selectNext()
     lookup.selectNext()
@@ -320,7 +323,7 @@ class LookupTest {
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "al"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.visible).isFalse()
 
     model.executeCompletion()
@@ -335,7 +338,7 @@ class LookupTest {
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "al"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.visible).isFalse()
 
     lookup.escape()
@@ -350,7 +353,7 @@ class LookupTest {
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "al"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.visible).isFalse()
 
     lookup.close()
@@ -366,10 +369,10 @@ class LookupTest {
     val ui = TestUI()
     val lookup = Lookup(field, ui)
     field.text = "a7"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.elements()).containsExactly("@string/app_name7", "@string/app_name17", "@string/app_name27")
     field.text = "a17"
-    lookup.showLookup()
+    lookup.showLookup(field.text)
     assertThat(ui.elements()).containsExactly("@string/app_name17")
   }
 
@@ -445,13 +448,13 @@ class LookupTest {
   class TestAsyncEditingSupport : EditingSupport {
     var runnable: Runnable? = null
 
-    override val completion = fun(): List<String> {
-      return listOf("@string/almond",
-                    "@string/app_name",
-                    "@string/appelsin",
-                    "@string/apricot",
-                    "@android:string/paste_as_plain_text",
-                    "@android:string/hello")
+    override val completion: EditorCompletion = {
+      listOf("@string/almond",
+             "@string/app_name",
+             "@string/appelsin",
+             "@string/apricot",
+             "@android:string/paste_as_plain_text",
+             "@android:string/hello")
     }
 
     override val execution: PooledThreadExecution

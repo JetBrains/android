@@ -73,11 +73,13 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_noParens() throws IOException {
+    isIrrelevantForKotlinScript("No paren-less dependency configuration form in KotlinScript");
     doTestParsingConfigurationVersion(TestFile.CONFIGURE_CLOSURE_NO_PARENS);
   }
 
   @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_withinParens() throws IOException {
+    assumeTrue("KotlinScript handling of closure as internal argument" , !isKotlinScript()); // TODO(b/155168291)
     doTestParsingConfigurationVersion(TestFile.CONFIGURE_CLOSURE_WITH_PARENS);
   }
 
@@ -126,11 +128,13 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_noParens() throws IOException {
+    isIrrelevantForKotlinScript("No paren-less dependency configuration form in KotlinScript");
     doTestSetVersionWithConfigurationClosure(TestFile.CONFIGURE_CLOSURE_NO_PARENS);
   }
 
   @Test
   public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_withinParens() throws IOException {
+    assumeTrue("KotlinScript handling of closure as internal argument" , !isKotlinScript()); // TODO(b/155168291)
     doTestSetVersionWithConfigurationClosure(TestFile.CONFIGURE_CLOSURE_WITH_PARENS);
   }
 
@@ -374,6 +378,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseDependenciesWithCompactNotationInSingleLine() throws IOException {
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(TestFile.PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -391,6 +396,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseDependenciesWithCompactNotationInSingleLineWithComments() throws IOException {
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(TestFile.PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE_WITH_COMMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -408,6 +414,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseDependenciesWithMapNotationUsingSingleConfigurationName() throws IOException {
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(TestFile.PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -425,6 +432,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseDependenciesWithMapNotationUsingSingleConfigNoParentheses() throws IOException {
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(TestFile.PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME_NO_PARENTHESES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -498,6 +506,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveDependencyWithCompactNotationAndSingleConfigurationName() throws IOException {
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(TestFile.REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION_AND_SINGLE_CONFIGURATION_NAME);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -553,6 +562,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveDependencyWithMapNotationAndSingleConfigurationName() throws IOException {
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(TestFile.REMOVE_DEPENDENCY_WITH_MAP_NOTATION_AND_SINGLE_CONFIGURATION_NAME);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -579,7 +589,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveDependencyWhenMultiple() throws IOException {
-    assumeTrue("No multiple dependency configuration form in KotlinScript", isGroovy());
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(TestFile.REMOVE_WHEN_MULTIPLE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1210,6 +1220,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testMultipleCompactNotationPsiElements() throws IOException {
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(TestFile.MULTIPLE_COMPACT_NOTATION_PSI_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1257,6 +1268,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testMethodCallMultipleCompactPsiElement() throws IOException {
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(TestFile.METHOD_CALL_MULTIPLE_COMPACT_PSI_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1323,6 +1335,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     secondModel.name().setValue(new ReferenceTo(name));
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.COMPACT_NOTATION_SET_TO_REFERENCE_EXPECTED);
 
     dependencies = buildModel.dependencies();
     artifacts = dependencies.artifacts();
@@ -1427,7 +1440,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     }
   }
 
-  private void runSetFullReferencesTest(@NotNull TestFileName testFileName) throws IOException {
+  private void runSetFullReferencesTest(@NotNull TestFileName testFileName, @NotNull TestFileName expected) throws IOException {
     writeToBuildFile(testFileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1441,17 +1454,24 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     model.setValue(iStr("com.${guavaPart}"));
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, expected);
 
     dependencies = buildModel.dependencies();
     artifacts = dependencies.artifacts();
     assertSize(2, artifacts);
 
-    model = artifacts.get(0).completeModel();
-    verifyPropertyModel(model, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, DERIVED, 1, "0");
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
-    model = artifacts.get(1).completeModel();
-    verifyPropertyModel(model, STRING_TYPE, "com.google.guava:guava:+", STRING, DERIVED, 1, "1");
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
+    ResolvedPropertyModel model0 = artifacts.get(0).completeModel();
+    ResolvedPropertyModel model1 = artifacts.get(1).completeModel();
+    if (isGroovy()) {
+      verifyPropertyModel(model0, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, DERIVED, 1, "0");
+      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", STRING, DERIVED, 1, "1");
+    }
+    else {
+      verifyPropertyModel(model0, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, REGULAR, 1, "testCompile");
+      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", STRING, REGULAR, 1, "testCompile");
+    }
   }
 
   private void runSetFullSingleReferenceTest(@NotNull TestFileName testFileName, @NotNull PropertyType type, @NotNull String name)
@@ -1485,19 +1505,20 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetSingleReferenceCompactMethod() throws IOException {
-    assumeTrue("no distinct method form of dependency configuation in KotlinScript", isGroovy());
+    isIrrelevantForKotlinScript("no distinct method form of dependency configuation in KotlinScript");
     // Properties from within method calls are derived.
     runSetFullSingleReferenceTest(TestFile.SET_SINGLE_REFERENCE_COMPACT_METHOD, DERIVED, "0");
   }
 
   @Test
   public void testSetFullReferencesCompactApplication() throws IOException {
-    runSetFullReferencesTest(TestFile.SET_FULL_REFERENCES_COMPACT_APPLICATION);
+    runSetFullReferencesTest(TestFile.SET_FULL_REFERENCES_COMPACT_APPLICATION, TestFile.SET_FULL_REFERENCES_COMPACT_APPLICATION_EXPECTED);
   }
 
   @Test
   public void testSetFullReferenceCompactMethod() throws IOException {
-    runSetFullReferencesTest(TestFile.SET_FULL_REFERENCE_COMPACT_METHOD);
+    isIrrelevantForKotlinScript("no distinction between method and application form");
+    runSetFullReferencesTest(TestFile.SET_FULL_REFERENCE_COMPACT_METHOD, TestFile.SET_FULL_REFERENCE_COMPACT_METHOD_EXPECTED);
   }
 
   @Test
@@ -1525,6 +1546,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetFullReferenceMap() throws IOException {
+    assumeTrue("KotlinScript writer emits stray punctuation for map references", !isKotlinScript()); // TODO(b/155168920)
     writeToBuildFile(TestFile.SET_FULL_REFERENCE_MAP);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1757,6 +1779,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(artifacts.get(6).configurationName()).isEqualTo("release");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_CONFIGURATION_WHEN_SINGLE_EXPECTED);
 
     artifacts = buildModel.dependencies().artifacts();
     assertSize(7, artifacts);
@@ -1787,6 +1810,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetConfigurationWhenMultiple() throws Exception {
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(TestFile.SET_CONFIGURATION_WHEN_MULTIPLE);
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -2076,6 +2100,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     METHOD_CALL_MULTIPLE_COMPACT_PSI_ELEMENT("methodCallMultipleCompactPsiElement"),
     MAP_NOTATION_PSI_ELEMENT("mapNotationPsiElement"),
     COMPACT_NOTATION_SET_TO_REFERENCE("compactNotationSetToReference"),
+    COMPACT_NOTATION_SET_TO_REFERENCE_EXPECTED("compactNotationSetToReferenceExpected"),
     COMPACT_NOTATION_ELEMENT_UNSUPPORTED_OPERATIONS("compactNotationElementUnsupportedOperations"),
     SET_I_STR_IN_COMPACT_NOTATION("setIStrInCompactNotation"),
     SET_I_STR_IN_COMPACT_NOTATION_EXPECTED("setIStrInCompactNotationExpected"),
@@ -2083,7 +2108,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     SET_SINGLE_REFERENCE_COMPACT_APPLICATION("setSingleReferenceCompactApplication"),
     SET_SINGLE_REFERENCE_COMPACT_METHOD("setSingleReferenceCompactMethod"),
     SET_FULL_REFERENCES_COMPACT_APPLICATION("setFullReferencesCompactApplication"),
+    SET_FULL_REFERENCES_COMPACT_APPLICATION_EXPECTED("setFullReferencesCompactApplicationExpected"),
     SET_FULL_REFERENCE_COMPACT_METHOD("setFullReferenceCompactMethod"),
+    SET_FULL_REFERENCE_COMPACT_METHOD_EXPECTED("setFullReferenceCompactMethodExpected"),
     PARSE_FULL_REFERENCE_MAP("parseFullReferenceMap"),
     SET_FULL_REFERENCE_MAP("setFullReferenceMap"),
     CORRECT_OBTAIN_RESULT_MODEL("correctObtainResultModel"),
@@ -2098,6 +2125,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     CONFIGURE_CLOSURE_WITH_PARENS("configureClosureWithParens"),
     CONFIGURE_CLOSURE_PARENS("configureClosureParens"),
     SET_CONFIGURATION_WHEN_SINGLE("setConfigurationWhenSingle"),
+    SET_CONFIGURATION_WHEN_SINGLE_EXPECTED("setConfigurationWhenSingleExpected"),
     SET_CONFIGURATION_WHEN_MULTIPLE("setConfigurationWhenMultiple"),
     SET_CONFIGURATION_TO_EMPTY("setConfigurationToEmpty"),
     SET_CONFIGURATION_TO_NON_STANDARD("setConfigurationToNonStandard"),

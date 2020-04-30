@@ -109,7 +109,7 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
     }
     if (!result.isEmpty() && askUser) {
       final int r = Messages.showDialog(element.getProject(), "Delete alternative resource files for other configurations?", "Delete",
-                                        new String[]{Messages.YES_BUTTON, Messages.NO_BUTTON}, 1, Messages.getQuestionIcon());
+                                        new String[]{Messages.getYesButton(), Messages.getNoButton()}, 1, Messages.getQuestionIcon());
       if (r != Messages.YES) {
         return Collections.emptyList();
       }

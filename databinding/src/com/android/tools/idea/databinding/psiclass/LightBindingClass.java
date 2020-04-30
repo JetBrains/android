@@ -36,6 +36,7 @@ import com.android.tools.idea.psi.NullabilityUtils;
 import com.android.tools.idea.psi.light.DeprecatableLightMethodBuilder;
 import com.android.tools.idea.psi.light.NullabilityLightFieldBuilder;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ObjectArrays;
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -100,7 +101,9 @@ public class LightBindingClass extends AndroidLightClassBase {
   @NotNull private final LightBindingClassConfig myConfig;
   @NotNull private final PsiJavaFile myBackingFile;
 
+  @Nullable private PsiClass[] myPsiSupers; // Created lazily
   @Nullable private PsiMethod[] myPsiConstructors; // Created lazily
+  @Nullable private PsiMethod[] myPsiAllMethods; // Created lazily
   @Nullable private PsiMethod[] myPsiMethods; // Created lazily
   @Nullable private PsiField[] myPsiFields; // Created lazily
   @Nullable private PsiReferenceList myExtendsList; // Created lazily
@@ -242,6 +245,22 @@ public class LightBindingClass extends AndroidLightClassBase {
     return myPsiMethods;
   }
 
+  @NotNull
+  @Override
+  public PsiClass[] getSupers() {
+    if (myPsiSupers == null) {
+      PsiClass superClass = getSuperClass();
+      if (superClass != null) {
+        myPsiSupers = new PsiClass[] { superClass };
+      }
+      else {
+        // superClass shouldn't be null but we handle just in case
+        myPsiSupers = PsiClass.EMPTY_ARRAY;
+      }
+    }
+    return myPsiSupers;
+  }
+
   @Override
   public PsiClass getSuperClass() {
     return JavaPsiFacade.getInstance(getProject()).findClass(myConfig.getSuperName(), getModuleScope());
@@ -276,14 +295,26 @@ public class LightBindingClass extends AndroidLightClassBase {
   @NotNull
   @Override
   public PsiMethod[] getAllMethods() {
-    return getMethods();
+    if (myPsiAllMethods == null) {
+      PsiClass superClass = getSuperClass();
+      if (superClass != null) {
+        myPsiAllMethods = ObjectArrays.concat(superClass.getAllMethods(), getMethods(), PsiMethod.class);
+      }
+      else {
+        // superClass shouldn't be null but we handle just in case
+        myPsiAllMethods = getMethods();
+      }
+    }
+
+    return myPsiAllMethods;
   }
 
   @NotNull
   @Override
   public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
     List<PsiMethod> matched = null;
-    for (PsiMethod method : getMethods()) {
+    PsiMethod[] methods = checkBases ? getAllMethods() : getMethods();
+    for (PsiMethod method : methods) {
       if (name.equals(method.getName())) {
         if (matched == null) {
           matched = new ArrayList<>();
@@ -387,7 +418,7 @@ public class LightBindingClass extends AndroidLightClassBase {
       return;
     }
 
-    String javaName = DataBindingUtil.convertToJavaFieldName(variable.getName());
+    String javaName = DataBindingUtil.convertVariableNameToJavaFieldName(variable.getName());
     String capitalizedName = StringUtil.capitalize(javaName);
     LightMethodBuilder setter = createPublicMethod("set" + capitalizedName, PsiType.VOID);
     setter.addParameter(javaName, type);
@@ -519,7 +550,7 @@ public class LightBindingClass extends AndroidLightClassBase {
 
   @Nullable
   private PsiField createPsiField(@NotNull ViewIdData viewIdData, boolean isNonNull) {
-    String name = DataBindingUtil.convertToJavaFieldName(viewIdData.getId());
+    String name = DataBindingUtil.convertAndroidIdToJavaFieldName(viewIdData.getId());
     PsiType type = LayoutBindingTypeUtil.resolveViewPsiType(viewIdData, this);
     if (type == null) {
       return null;

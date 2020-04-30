@@ -69,7 +69,7 @@ class ShowFileInResourceManagerAction
   }
 
   private fun showResourceExplorer(project: Project, file: VirtualFile) {
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID)!!
     val facet = AndroidFacet.getInstance(file, project)
     if (facet != null) {
       toolWindow.show {

@@ -333,7 +333,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     @Override
     public void setSecondaryText(@Nullable String s) {
       if (s != null && s.length() > 80) {
-        s = s.substring(s.length() - 80, s.length());
+        s = s.substring(s.length() - 80);
       }
       String label = s;
       UIUtil.invokeLaterIfNeeded(() -> myProgressDetailLabel.setText(label));

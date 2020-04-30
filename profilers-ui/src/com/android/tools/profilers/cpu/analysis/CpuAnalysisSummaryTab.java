@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.ui.components.JBScrollPane;
 import java.awt.BorderLayout;
-import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +27,7 @@ public class CpuAnalysisSummaryTab extends CpuAnalysisTab<CpuAnalysisSummaryTabM
   /**
    * Binds different types of summary tab model to its views, e.g. thread summary, trace event summary.
    */
-  @NotNull private final ViewBinder<JComponent, CpuAnalysisSummaryTabModel<?>, SummaryDetailsViewBase<?>> myViewBinder;
+  @NotNull private final ViewBinder<StudioProfilersView, CpuAnalysisSummaryTabModel<?>, SummaryDetailsViewBase<?>> myViewBinder;
 
   public CpuAnalysisSummaryTab(@NotNull StudioProfilersView profilersView, @NotNull CpuAnalysisSummaryTabModel<?> model) {
     super(profilersView, model);
@@ -41,7 +40,7 @@ public class CpuAnalysisSummaryTab extends CpuAnalysisTab<CpuAnalysisSummaryTabM
 
   private void initComponents() {
     setLayout(new BorderLayout());
-    JScrollPane scrollPane = new JBScrollPane(myViewBinder.build(this, getModel()).getComponent(),
+    JScrollPane scrollPane = new JBScrollPane(myViewBinder.build(getProfilersView(), getModel()).getComponent(),
                                               ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                               ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     add(scrollPane);

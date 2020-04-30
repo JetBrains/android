@@ -24,12 +24,14 @@ import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
+import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
+import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
+import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.testing.IdeComponents
@@ -39,7 +41,9 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import com.intellij.ui.EditorTextField
 import com.intellij.util.concurrency.EdtExecutorService
+import junit.framework.TestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
@@ -87,16 +91,19 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Act/Assert
     assertEquals(-1, comboBox.selectedIndex)
 
-    view.addDatabase(FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1")), 0)
+    val db1 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1"))
+    val db2 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db2"))
+
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(db1, null, 0)))
     assertEquals(0, comboBox.selectedIndex)
 
-    view.addDatabase(FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db2")), 1)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(db2, null,1)))
     assertEquals(0, comboBox.selectedIndex)
 
-    view.removeDatabase(0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase (db1)))
     assertEquals(0, comboBox.selectedIndex)
 
-    view.removeDatabase(0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase (db2)))
     assertEquals(-1, comboBox.selectedIndex)
   }
 
@@ -106,8 +113,10 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val database2 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db2"))
 
     // Act/Assert
-    view.addDatabase(database1, 0)
-    view.addDatabase(database2, 0)
+    view.updateDatabases(listOf(
+      DatabaseDiffOperation.AddDatabase(database1, null, 0),
+      DatabaseDiffOperation.AddDatabase(database2, null, 0)
+    ))
     assertEquals(database1, view.getActiveDatabase())
 
     view.selectDatabase(database2)
@@ -126,8 +135,10 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val database2 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db2"))
 
     // Act/Assert
-    view.addDatabase(database1, 0)
-    view.addDatabase(database2, 1)
+    view.updateDatabases(listOf(
+      DatabaseDiffOperation.AddDatabase(database1, null, 0),
+      DatabaseDiffOperation.AddDatabase(database2, null, 1)
+    ))
     verify(mockPsiManager).dropPsiCaches()
 
     view.selectDatabase(database2)
@@ -145,7 +156,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1"))
 
-    view.addDatabase(database, 0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, null, 0)))
 
     // Act
     view.schemaChanged(database)
@@ -161,8 +172,8 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val evaluatorController = SqliteEvaluatorController(
       project,
+      MockDatabaseInspectorModel(),
       view,
-      MockDatabaseInspectorViewsFactory(),
       {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
@@ -189,8 +200,8 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val controller = SqliteEvaluatorController(
       project,
+      MockDatabaseInspectorModel(),
       view,
-      MockDatabaseInspectorViewsFactory(),
       {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
@@ -198,7 +209,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     controller.setUp()
     Disposer.register(testRootDisposable, controller)
 
-    controller.addDatabase(database, 0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, null, 0)))
 
     val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
 
@@ -223,5 +234,51 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("c1", table.model.getColumnName(1))
     assertEquals(1, table.model.rowCount)
     assertEquals("42", table.model.getValueAt(0, 1))
+  }
+
+  fun testEnableRunSqliteStatementsEnablesRunButton() {
+    // Prepare
+    val runButton = TreeWalker(view.component).descendants().first { it.name == "run-button" }
+
+    // Act
+    view.setRunSqliteStatementEnabled(true)
+
+    // Assert
+    TestCase.assertTrue(runButton.isEnabled)
+  }
+
+  fun testDisableRunSqliteStatementsDisablesRunButton() {
+    // Prepare
+    val runButton = TreeWalker(view.component).descendants().first { it.name == "run-button" }
+    view.setRunSqliteStatementEnabled(true)
+
+    // Act
+    view.setRunSqliteStatementEnabled(false)
+
+    // Assert
+    assertFalse(runButton.isEnabled)
+  }
+
+  fun testSqliteStatementTextChanged() {
+    // Prepare
+    val collapsedEditor = TreeWalker(view.component).descendants().first { it.name == "collapsed-editor" } as EditorTextField
+
+    val invocations = mutableListOf<String>()
+    val mockListener = object : SqliteEvaluatorView.Listener {
+      override fun evaluateSqliteStatementActionInvoked(database: SqliteDatabase, sqliteStatement: String) { }
+
+      override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
+        invocations.add(newSqliteStatement)
+      }
+    }
+
+    view.addListener(mockListener)
+
+    // Act
+    collapsedEditor.text = "test1"
+    collapsedEditor.text = "test2"
+
+    // Assert
+    assertEquals(listOf("test1", "test2"), invocations)
   }
 }

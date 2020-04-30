@@ -17,7 +17,6 @@ package com.android.tools.idea.naveditor.dialogs;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString;
 import com.intellij.ui.components.JBTextField;
 
 import javax.swing.*;

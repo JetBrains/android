@@ -15,33 +15,31 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.ComposeProjectRule
 import com.intellij.codeInspection.InspectionProfileEntry
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.testFramework.registerExtension
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.inspections.UnusedSymbolInspection
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-class PreviewEntryPointTest : ComposeLightJavaCodeInsightFixtureTestCase() {
-  init {
-    // Kotlin UnusedSymbolInspection caches the extensions during the initialization so, unfortunately we have to do this to ensure
-    // our entry point detector is registered early enough
-    ApplicationManager.getApplication().registerExtension(
-                                       ExtensionPointName<PreviewEntryPoint>("com.intellij.deadCode"),
-                                       PreviewEntryPoint(),
-                                       testRootDisposable)
+class PreviewEntryPointTest {
+  @get:Rule
+  val projectRule = ComposeProjectRule()
+  private val fixture get() = projectRule.fixture
+
+  @Before
+  fun setUp() {
+    fixture.enableInspections(UnusedSymbolInspection() as InspectionProfileEntry)
   }
 
-  override fun setUp() {
-    super.setUp()
-    myFixture.enableInspections(UnusedSymbolInspection() as InspectionProfileEntry)
-  }
-
+  @Test
   fun testFindPreviewAnnotations() {
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
       import androidx.compose.Composable
+      import androidx.ui.tooling.preview.Preview
 
       @Composable
       @Preview
@@ -61,8 +59,8 @@ class PreviewEntryPointTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       }
     """.trimIndent()
 
-    myFixture.configureByText("Test.kt", fileContent)
+    fixture.configureByText("Test.kt", fileContent)
     assertEquals("Function \"NotUsed\" is never used",
-                 myFixture.doHighlighting().single { it?.description?.startsWith("Function") ?: false }.description)
+                 fixture.doHighlighting().single { it?.description?.startsWith("Function") ?: false }.description)
   }
 }

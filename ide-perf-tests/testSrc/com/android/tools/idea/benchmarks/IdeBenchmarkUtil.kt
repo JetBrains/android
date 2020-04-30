@@ -19,10 +19,9 @@ import com.android.tools.perflogger.Metric
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.impl.ApplicationInfoImpl
-import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.newvfs.RefreshQueue
-import com.intellij.profile.codeInspection.ProjectInspectionProfileManager
+import com.intellij.profile.codeInspection.InspectionProfileManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testFramework.runInInitMode
@@ -46,8 +45,7 @@ fun disableExpensivePlatformAssertions(fixture: CodeInsightTestFixture) {
 
 /** Enables all inspections which are on by default in production. */
 fun enableAllDefaultInspections(fixture: CodeInsightTestFixture) {
-  val profileManager = ProjectInspectionProfileManager.getInstance(fixture.project)
-  val defaultProfile = profileManager.getProfile("Project Default", false)!!
+  val defaultProfile = InspectionProfileManager.getInstance().currentProfile
   val tools = runInInitMode { defaultProfile.getAllEnabledInspectionTools(fixture.project) }
   val inspectionEntries = tools.map { it.tool.tool }
   fixture.enableInspections(*inspectionEntries.toTypedArray())

@@ -57,6 +57,18 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
     variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
   )
 
+  val ndkVersion: SimpleProperty<PsAndroidModule, String> = property(
+    "NDK Version",
+    preferredVariableName = { "ndkVersion" },
+    resolvedValueGetter = { ndkVersion },
+    parsedPropertyGetter = { ndkVersion() },
+    getter = { asString() },
+    setter = { setValue(it) },
+    parser = ::parseString,
+    knownValuesGetter = ::installedNdks,
+    variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
+  )
+
   val sourceCompatibility: SimpleProperty<PsAndroidModule, LanguageLevel> = property(
     "Source Compatibility",
     preferredVariableName = { "sourceCompatibility" },
@@ -118,6 +130,6 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
     model.buildTypes + model.productFlavors + model.flavorDimensions + model.signingConfigs + model.dependencies.items + model.defaultConfig
 
   override val properties: Collection<ModelProperty<PsAndroidModule, *, *, *>> =
-    listOf(compileSdkVersion, buildToolsVersion, sourceCompatibility, targetCompatibility, viewBindingEnabled,
+    listOf(compileSdkVersion, buildToolsVersion, ndkVersion, sourceCompatibility, targetCompatibility, viewBindingEnabled,
            includeDependenciesInfoInApk, includeDependenciesInfoInBundle)
 }

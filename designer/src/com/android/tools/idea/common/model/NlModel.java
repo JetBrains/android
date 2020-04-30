@@ -201,6 +201,12 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myDataContext = dataContext;
   }
 
+  @NotNull
+  @VisibleForTesting
+  public MergingUpdateQueue getUpdateQueue() {
+    return myUpdateQueue;
+  }
+
   /**
    * Notify model that it's active. A model is active by default.
    *

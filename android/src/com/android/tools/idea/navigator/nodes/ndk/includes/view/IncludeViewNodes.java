@@ -50,12 +50,12 @@ public class IncludeViewNodes {
    * @return A collection of tree nodes for the folders and files.
    */
   @NotNull
-  public static Collection<AbstractTreeNode> getIncludeFolderNodesWithShadowing(@NotNull Collection<File> includes,
+  public static Collection<AbstractTreeNode<?>> getIncludeFolderNodesWithShadowing(@NotNull Collection<File> includes,
                                                                                 @NotNull ImmutableList<VirtualFile> excludesVirtualFiles,
                                                                                 boolean folderParentIsObvious,
                                                                                 @NotNull Project project,
                                                                                 @NotNull ViewSettings settings) {
-    List<AbstractTreeNode> result = new ArrayList<>();
+    List<AbstractTreeNode<?>> result = new ArrayList<>();
     Set<String> baseNameSeenAlready = new HashSet<>();
     PsiManager psiManager = PsiManager.getInstance(project);
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();

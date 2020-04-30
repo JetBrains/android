@@ -58,10 +58,8 @@ private const val STRIPE_TITLE = "Resource Manager"
  */
 class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Any> {
 
-  override fun isDoNotActivateOnStart(): Boolean = true
-
-  override fun init(window: ToolWindow?) {
-    window?.stripeTitle = STRIPE_TITLE
+  override fun init(window: ToolWindow) {
+    window.stripeTitle = STRIPE_TITLE
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
@@ -243,8 +241,8 @@ private class MyFileEditorListener(
 
 private class MyToolWindowManagerListener(private val project: Project) : ToolWindowManagerListener {
 
-  override fun stateChanged() {
-    val window: ToolWindow = ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) ?: return
+  override fun stateChanged(toolWindowManager: ToolWindowManager) {
+    val window: ToolWindow = toolWindowManager.getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) ?: return
     val contentManager = window.contentManager
     val resourceExplorerIsPresent = contentManager.contents.any { it.component is ResourceExplorer }
     if (!window.isVisible) {
