@@ -312,60 +312,6 @@
           materialReference="https://material.io/guidelines/layout/principles.html"/>
     <item tag="androidx.constraintlayout.widget.ConstraintLayout" suggested="true"
           materialReference="https://material.io/guidelines/layout/principles.html"/>
-    <item tag="android.support.constraint.Guideline"
-          title="Guideline (Horizontal)"
-          suggested="true"
-          icon="StudioIcons.LayoutEditor.Palette.GUIDELINE_HORIZONTAL">
-      <xml>
-        <![CDATA[
-            <android.support.constraint.Guideline
-              android:orientation="horizontal"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content" />
-          ]]>
-      </xml>
-    </item>
-    <item tag="androidx.constraintlayout.widget.Guideline"
-          title="Guideline (Horizontal)"
-          suggested="true"
-          icon="StudioIcons.LayoutEditor.Palette.GUIDELINE_HORIZONTAL">
-      <xml>
-        <![CDATA[
-            <androidx.constraintlayout.widget.Guideline
-              android:orientation="horizontal"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content" />
-          ]]>
-      </xml>
-    </item>
-    <item tag="android.support.constraint.Guideline"
-          title="Guideline (Vertical)"
-          suggested="true"
-          id="VerticalGuideline"
-          icon="StudioIcons.LayoutEditor.Palette.GUIDELINE_VERTICAL">
-      <xml>
-        <![CDATA[
-            <android.support.constraint.Guideline
-              android:orientation="vertical"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content" />
-          ]]>
-      </xml>
-    </item>
-    <item tag="androidx.constraintlayout.widget.Guideline"
-          title="Guideline (Vertical)"
-          suggested="true"
-          id="VerticalGuideline2"
-          icon="StudioIcons.LayoutEditor.Palette.GUIDELINE_VERTICAL">
-      <xml>
-        <![CDATA[
-            <androidx.constraintlayout.widget.Guideline
-              android:orientation="vertical"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content" />
-          ]]>
-      </xml>
-    </item>
     <item tag="LinearLayout"
           title="LinearLayout (horizontal)"
           suggested="true"
@@ -452,6 +398,186 @@
     </item>
     <item tag="view"/>
     <item tag="requestFocus"/>
+  </group>
+  <group name="Helpers">
+    <item tag="android.support.constraint.Group"
+          suggested="true"
+          title="Group"
+          icon="StudioIcons.LayoutEditor.Palette.GROUP">
+      <xml>
+        <![CDATA[
+            <android.support.constraint.Group
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               />
+          ]]>
+      </xml>
+    </item>
+    <item tag="androidx.constraintlayout.widget.Group"
+          suggested="true"
+          title="Group"
+          icon="StudioIcons.LayoutEditor.Palette.GROUP">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.widget.Group
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               />
+          ]]>
+      </xml>
+    </item>
+    <item tag="android.support.constraint.Barrier"
+          id="horizontalBarrierAndroidSupport"
+          suggested="true"
+          title="Barrier (Horizontal)"
+          icon="StudioIcons.LayoutEditor.Palette.BARRIER_HORIZONTAL">
+      <xml>
+        <![CDATA[
+            <android.support.constraint.Barrier
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              app:barrierDirection="top" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="androidx.constraintlayout.widget.Barrier"
+          id="horizontalBarrierAndroidx"
+          suggested="true"
+          title="Barrier (Horizontal)"
+          icon="StudioIcons.LayoutEditor.Palette.BARRIER_HORIZONTAL">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.widget.Barrier
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              app:barrierDirection="top" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="android.support.constraint.Barrier"
+          id="verticalBarrierAndroidSupport"
+          suggested="true"
+          title="Barrier (Vertical)"
+          icon="StudioIcons.LayoutEditor.Palette.BARRIER_VERTICAL">
+      <xml>
+        <![CDATA[
+            <android.support.constraint.Barrier
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              app:barrierDirection="left" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="androidx.constraintlayout.widget.Barrier"
+          id="verticalBarrierAndroidx"
+          suggested="true"
+          title="Barrier (Vertical)"
+          icon="StudioIcons.LayoutEditor.Palette.BARRIER_VERTICAL">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.widget.Barrier
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              app:barrierDirection="left" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="android.support.constraint.helper.Flow" suggested="true">
+      <xml>
+        <![CDATA[
+            <android.support.constraint.helper.Flow
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="androidx.constraintlayout.helper.widget.Flow" suggested="true">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.helper.widget.Flow
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="android.support.constraint.Guideline"
+          title="Guideline (Horizontal)"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Palette.GUIDELINE_HORIZONTAL">
+      <xml>
+        <![CDATA[
+            <android.support.constraint.Guideline
+              android:orientation="horizontal"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="androidx.constraintlayout.widget.Guideline"
+          title="Guideline (Horizontal)"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Palette.GUIDELINE_HORIZONTAL">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.widget.Guideline
+              android:orientation="horizontal"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="android.support.constraint.Guideline"
+          title="Guideline (Vertical)"
+          suggested="true"
+          id="VerticalGuideline"
+          icon="StudioIcons.LayoutEditor.Palette.GUIDELINE_VERTICAL">
+      <xml>
+        <![CDATA[
+            <android.support.constraint.Guideline
+              android:orientation="vertical"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="androidx.constraintlayout.widget.Guideline"
+          title="Guideline (Vertical)"
+          suggested="true"
+          id="VerticalGuideline2"
+          icon="StudioIcons.LayoutEditor.Palette.GUIDELINE_VERTICAL">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.widget.Guideline
+              android:orientation="vertical"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="android.support.constraint.helper.Layer"
+          title="Layer"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Palette.LAYER">
+      <xml>
+        <![CDATA[
+            <android.support.constraint.helper.Layer
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="androidx.constraintlayout.helper.widget.Layer"
+          title="Layer"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Palette.LAYER">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.helper.widget.Layer
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
   </group>
   <group name="Google">
     <item tag="com.google.android.gms.ads.AdView" suggested="true"/>
