@@ -275,10 +275,6 @@ public abstract class SceneView extends PositionableContent {
     return myContext;
   }
 
-  final public void onNotVisible() {
-    getLayers().forEach(layer -> layer.releaseCachedResources());
-  }
-
   /**
    * Called when {@link DesignSurface#updateUI()} is called.
    */

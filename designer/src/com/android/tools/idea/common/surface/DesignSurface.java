@@ -86,7 +86,6 @@ import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
-import java.awt.Rectangle;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -1544,31 +1543,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     }
 
-    List<SceneManager> invisibleSceneManagers = new ArrayList<>();
-    List<SceneManager> visibleSceneManagers = new ArrayList<>();
-    for (SceneManager manager : getSceneManagers()) {
-      if (manager.getSceneViews().stream().anyMatch(view -> isSceneViewVisible(view))) {
-        visibleSceneManagers.add(manager);
-      }
-      else {
-        invisibleSceneManagers.add(manager);
-      }
-    }
-
-    // Release the resources of invisible SceneManagers first to make sure we have enough memories for rendering.
-    for (SceneManager manager : invisibleSceneManagers) {
-      manager.onNotVisible();
-    }
-
     // Cascading the CompletableFuture to make them executing sequentially.
     CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
-    for (SceneManager manager : visibleSceneManagers) {
+    for (SceneManager manager : getSceneManagers()) {
       renderFuture = renderFuture.thenCompose(it -> {
-        // The visible SceneView may become invisible during sequential rendering, check it again.
-        if (manager.getSceneViews().stream().noneMatch(view -> isSceneViewVisible(view))) {
-          manager.onNotVisible();
-          return CompletableFuture.completedFuture(null);
-        }
         CompletableFuture<Void> future = renderRequest.apply(manager);
         invalidate();
         return future;
@@ -1747,12 +1725,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public void setMaxFitIntoScale(float maxFitIntoScale) {
     myMaxFitIntoScale = maxFitIntoScale;
-  }
-
-  private boolean isSceneViewVisible(@NotNull SceneView view) {
-    Dimension size = view.getScaledContentSize();
-    Rectangle place = new Rectangle(view.getX(), view.getY(), size.width, size.height);
-    return place.intersects(myScrollPane.getViewport().getViewRect());
   }
 
   /**

@@ -359,10 +359,6 @@ public class LayoutlibSceneManager extends SceneManager {
         Logger.getInstance(LayoutlibSceneManager.class).warn(t);
       }
     }
-    disposeRenderedImage();
-  }
-
-  private void disposeRenderedImage() {
     myRenderResultLock.writeLock().lock();
     try {
       if (myRenderResult != null) {
@@ -628,13 +624,6 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   public CompletableFuture<Void> requestRender() {
     return requestRender(getTriggerFromChangeType(getModel().getLastChangeType()));
-  }
-
-  @Override
-  public void onNotVisible() {
-    getSceneViews().forEach(view -> view.onNotVisible());
-    // Only release the image. The render task is kept so it doesn't need to be reinflated.
-    myRenderTaskDisposerExecutor.execute(this::disposeRenderedImage);
   }
 
   /**
