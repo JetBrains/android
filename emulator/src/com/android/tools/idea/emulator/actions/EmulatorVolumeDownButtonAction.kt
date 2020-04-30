@@ -22,7 +22,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 /**
  * Simulates pressing the Volume Down button on an Android virtual device.
  */
-class EmulatorVolumeDownAction : AbstractEmulatorAction() {
+class EmulatorVolumeDownButtonAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController: EmulatorController = getEmulatorController(event) ?: return

@@ -30,7 +30,7 @@ import com.intellij.util.Alarm
 /**
  * Simulates pressing the Power button on an Android virtual device.
  */
-class EmulatorPowerAction : AbstractEmulatorAction() {
+class EmulatorPowerButtonAction : AbstractEmulatorAction() {
   var inProgress = false
 
   override fun actionPerformed(event: AnActionEvent) {

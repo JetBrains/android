@@ -19,6 +19,8 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ParameterValue
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.tools.idea.emulator.DummyStreamObserver
+import com.android.tools.idea.protobuf.Empty
 import com.intellij.openapi.actionSystem.AnActionEvent
 import kotlin.math.roundToInt
 
@@ -40,8 +42,11 @@ abstract class EmulatorRotateAction : AbstractEmulatorAction() {
       .setTarget(PhysicalModelValue.PhysicalType.ROTATION)
       .setValue(parameters)
       .build()
-    emulatorController.setPhysicalModel(rotationModel)
-    emulatorView.displayRotation = SkinRotation.forNumber(((angle / 90).toInt() + 4) % 4)
+    emulatorController.setPhysicalModel(rotationModel, object: DummyStreamObserver<Empty>() {
+      override fun onNext(response: Empty) {
+        emulatorView.displayRotation = SkinRotation.forNumber(((angle / 90).toInt() + 4) % 4)
+      }
+    })
   }
 
   /**

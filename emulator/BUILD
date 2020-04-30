@@ -109,6 +109,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",

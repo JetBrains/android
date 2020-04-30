@@ -15,15 +15,17 @@
  */
 package com.android.tools.adtui.swing;
 
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.TreeWalker;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import com.intellij.testFramework.PlatformTestUtil;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+import javax.imageio.ImageIO;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A utility class to interact with Swing components in unit tests.
@@ -33,7 +35,7 @@ public final class FakeUi {
   public final FakeMouse mouse;
 
   @NotNull
-  private Component myRoot;
+  private final Component myRoot;
 
   public FakeUi(@NotNull Component root) {
     myRoot = root;
@@ -44,7 +46,7 @@ public final class FakeUi {
   }
 
   /**
-   * Force a re-layout of all components scoped by this FakeUi instance, for example in response to
+   * Forces a re-layout of all components scoped by this FakeUi instance, for example in response to
    * a parent's bounds changing.
    *
    * Note: The constructor automatically forces a layout pass. You should only need to call this
@@ -54,8 +56,18 @@ public final class FakeUi {
     new TreeWalker(myRoot).descendantStream().forEach(Component::doLayout);
   }
 
+  /**
+   * Forces a re-layout of all components scoped by this FakeUi instance and dispatches all resulting
+   * resizing events.
+   */
+  public void layoutAndDispatchEvents() throws InterruptedException {
+    layout();
+    // Allow resizing events to propagate,
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+  }
+
   public void render(OutputStream out) throws IOException {
-    BufferedImage bi = new BufferedImage(myRoot.getWidth(), myRoot.getHeight(), BufferedImage.TYPE_INT_ARGB);
+    BufferedImage bi = ImageUtils.createDipImage(myRoot.getWidth(), myRoot.getHeight(), BufferedImage.TYPE_INT_ARGB);
     myRoot.printAll(bi.getGraphics());
     ImageIO.write(bi, "png", out);
   }
@@ -67,7 +79,7 @@ public final class FakeUi {
     dump(myRoot, "");
   }
 
-  private void dump(Component component, String prefix) {
+  private static void dump(Component component, String prefix) {
     System.err.println(prefix + component.getClass().getSimpleName() + "@(" +
                        component.getX() + ", " + component.getY() + ") [" +
                        component.getSize().getWidth() + "x" + component.getSize().getHeight() + "]" +
@@ -80,7 +92,7 @@ public final class FakeUi {
     }
   }
 
-  @Nullable
+  @NotNull
   public Component getRoot() {
     return myRoot;
   }
@@ -101,7 +113,7 @@ public final class FakeUi {
     return new Point(x - position.x, y - position.y);
   }
 
-  private RelativePoint findTarget(Component component, int x, int y) {
+  private static RelativePoint findTarget(Component component, int x, int y) {
     if (component.contains(x, y)) {
       if (component instanceof Container) {
         Container container = (Container)component;
@@ -120,7 +132,7 @@ public final class FakeUi {
     return null;
   }
 
-  private boolean isMouseTarget(Component target) {
+  private static boolean isMouseTarget(Component target) {
     return target.getMouseListeners().length > 0 ||
            target.getMouseMotionListeners().length > 0 ||
            target.getMouseWheelListeners().length > 0;

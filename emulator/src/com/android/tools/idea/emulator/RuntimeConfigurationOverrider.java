@@ -20,25 +20,25 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Provides a mechanism for tests to override the default configuration used by the Emulator tool window code.
+ * Provides a mechanism for tests to override the default runtime configuration used by the Emulator tool window code.
  */
-class ConfigurationOverrider {
-  private static final Configuration ourDefaultConfiguration = new Configuration();
-  @Nullable private static Configuration ourOverridingConfiguration;
+public class RuntimeConfigurationOverrider {
+  private static final RuntimeConfiguration ourDefaultConfiguration = new RuntimeConfiguration();
+  @Nullable private static RuntimeConfiguration ourOverridingConfiguration;
 
   @NotNull
-  public static Configuration getDefaultConfiguration() {
-    Configuration override = ourOverridingConfiguration;
+  public static RuntimeConfiguration getRuntimeConfiguration() {
+    RuntimeConfiguration override = ourOverridingConfiguration;
     return override == null ? ourDefaultConfiguration : override;
   }
 
   /**
-   * Temporarily replaces the default configuration used of the Emulator tool window code.
+   * Temporarily replaces the default runtime configuration used by the Emulator tool window code.
    *
    * @param override the overriding configuration
    */
   @VisibleForTesting
-  static void overrideConfiguration(@NotNull Configuration override) {
+  static void overrideConfiguration(@NotNull RuntimeConfiguration override) {
     ourOverridingConfiguration = override;
   }
 
