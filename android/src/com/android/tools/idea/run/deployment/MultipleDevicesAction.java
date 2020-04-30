@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.serviceContainer.NonInjectable;
+import java.util.Objects;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,17 +44,24 @@ final class MultipleDevicesAction extends AnAction {
   @NotNull
   private final Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
 
+  @NotNull
+  private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
+
   @VisibleForTesting
   MultipleDevicesAction() {
-    this(project -> RunManager.getInstance(project).getSelectedConfiguration(), DevicesSelectedService::getInstance);
+    this(project -> RunManager.getInstance(project).getSelectedConfiguration(),
+         DevicesSelectedService::getInstance,
+         DeviceAndSnapshotComboBoxAction.getInstance());
   }
 
   @VisibleForTesting
   @NonInjectable
   MultipleDevicesAction(@NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration,
-                        @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
+                        @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance,
+                        @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
     myGetSelectedConfiguration = getSelectedConfiguration;
     myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
+    myComboBoxAction = comboBoxAction;
   }
 
   @Override
@@ -88,13 +96,7 @@ final class MultipleDevicesAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    Project project = event.getProject();
-
-    if (project == null) {
-      return;
-    }
-
-    myDevicesSelectedServiceGetInstance.apply(project).setMultipleDevicesSelectedInComboBox(true);
+    myComboBoxAction.setMultipleDevicesSelected(Objects.requireNonNull(event.getProject()), true);
   }
 
   private static boolean isSupportedRunConfigurationType(@NotNull ConfigurationType type) {

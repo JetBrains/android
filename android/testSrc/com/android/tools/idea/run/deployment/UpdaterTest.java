@@ -40,6 +40,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,7 +55,6 @@ public final class UpdaterTest {
 
   private final Presentation myPresentation = new Presentation();
   private final DevicesSelectedService myDevicesSelectedService = Mockito.mock(DevicesSelectedService.class);
-  private final ExecutionTargetService myExecutionTargetService = Mockito.mock(ExecutionTargetService.class);
   private final PropertiesComponent myProperties = new ProjectPropertiesComponentImpl();
   private final AsyncDevicesGetter myDevicesGetter = Mockito.mock(AsyncDevicesGetter.class);
 
@@ -65,7 +65,6 @@ public final class UpdaterTest {
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setDevicesSelectedService(myDevicesSelectedService)
-      .setExecutionTargetService(myExecutionTargetService)
       .build();
 
     // Act
@@ -85,7 +84,6 @@ public final class UpdaterTest {
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setDevicesSelectedService(myDevicesSelectedService)
-      .setExecutionTargetService(myExecutionTargetService)
       .setConfigurationAndSettings(mockConfigurationAndSettings(configuration))
       .build();
 
@@ -107,7 +105,6 @@ public final class UpdaterTest {
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setDevicesSelectedService(myDevicesSelectedService)
-      .setExecutionTargetService(myExecutionTargetService)
       .setConfigurationAndSettings(mockConfigurationAndSettings(configuration))
       .build();
 
@@ -129,7 +126,6 @@ public final class UpdaterTest {
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setDevicesSelectedService(myDevicesSelectedService)
-      .setExecutionTargetService(myExecutionTargetService)
       .setConfigurationAndSettings(mockConfigurationAndSettings(configuration))
       .build();
 
@@ -160,7 +156,6 @@ public final class UpdaterTest {
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setDevicesSelectedService(devicesSelectedService)
-      .setExecutionTargetService(myExecutionTargetService)
       .build();
 
     // Act
@@ -185,7 +180,7 @@ public final class UpdaterTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
 
     DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
     devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
@@ -196,7 +191,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setDevicesSelectedService(devicesSelectedService)
       .setDevices(Collections.singletonList(device))
-      .setExecutionTargetService(myExecutionTargetService)
       .build();
 
     // Act
@@ -223,7 +217,7 @@ public final class UpdaterTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
 
     DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
     devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
@@ -234,7 +228,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setDevicesSelectedService(devicesSelectedService)
       .setDevices(Collections.singletonList(device))
-      .setExecutionTargetService(myExecutionTargetService)
       .build();
 
     // Act
@@ -252,13 +245,9 @@ public final class UpdaterTest {
 
   @NotNull
   private DevicesSelectedService buildDevicesSelectedService() {
-    return new DevicesSelectedService.Builder()
-      .setProject(myRule.getProject())
-      .setPropertiesComponentGetInstance(project -> myProperties)
-      .setClock(Clock.fixed(Instant.parse("2018-11-28T01:15:27.000Z"), ZoneId.of("America/Los_Angeles")))
-      .setExecutionTargetServiceGetInstance(project -> myExecutionTargetService)
-      .setAsyncDevicesGetterGetInstance(project -> myDevicesGetter)
-      .build();
+    return new DevicesSelectedService(myRule.getProject(),
+                                      project -> myProperties,
+                                      Clock.fixed(Instant.parse("2018-11-28T01:15:27.000Z"), ZoneId.of("America/Los_Angeles")));
   }
 
   @Test
@@ -268,7 +257,6 @@ public final class UpdaterTest {
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setDevicesSelectedService(myDevicesSelectedService)
-      .setExecutionTargetService(myExecutionTargetService)
       .build();
 
     // Act
@@ -295,7 +283,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setDevicesSelectedService(myDevicesSelectedService)
       .setDevices(Collections.singletonList(device))
-      .setExecutionTargetService(myExecutionTargetService)
       .build();
 
     // Act
@@ -322,7 +309,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setDevicesSelectedService(myDevicesSelectedService)
       .setDevices(Collections.singletonList(device))
-      .setExecutionTargetService(myExecutionTargetService)
       .build();
 
     // Act
@@ -351,7 +337,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setDevicesSelectedService(myDevicesSelectedService)
       .setDevices(Collections.singletonList(device))
-      .setExecutionTargetService(myExecutionTargetService)
       .setSnapshotsEnabled(true)
       .build();
 
@@ -381,7 +366,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setDevicesSelectedService(myDevicesSelectedService)
       .setDevices(Collections.singletonList(device))
-      .setExecutionTargetService(myExecutionTargetService)
       .build();
 
     // Act
@@ -413,7 +397,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setDevicesSelectedService(myDevicesSelectedService)
       .setDevices(Arrays.asList(device1, device2))
-      .setExecutionTargetService(myExecutionTargetService)
       .build();
 
     // Act
@@ -431,7 +414,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setPlace(ActionPlaces.MAIN_MENU)
       .setDevicesSelectedService(myDevicesSelectedService)
-      .setExecutionTargetService(myExecutionTargetService)
       .build();
 
     // Act
@@ -451,7 +433,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setPlace(ActionPlaces.ACTION_SEARCH)
       .setDevicesSelectedService(myDevicesSelectedService)
-      .setExecutionTargetService(myExecutionTargetService)
       .build();
 
     // Act
@@ -471,7 +452,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setPlace(ActionPlaces.KEYBOARD_SHORTCUT)
       .setDevicesSelectedService(myDevicesSelectedService)
-      .setExecutionTargetService(myExecutionTargetService)
       .build();
 
     // Act
