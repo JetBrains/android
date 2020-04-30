@@ -331,8 +331,14 @@ public class DragDropInteraction extends Interaction {
         String error = null;
         ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(project);
         for (NlComponent component : myDraggedComponents) {
-          if (SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName())
-              && (!(myCurrentHandler instanceof ConstraintLayoutHandler))) {
+          boolean constraintHelper =
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_FLOW.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER.isEquals(component.getTagName());
+
+          if (constraintHelper && (!(myCurrentHandler instanceof ConstraintLayoutHandler))) {
             error = String.format(
               "<%1$s> does not accept <%2$s> as a child", myDragReceiver.getNlComponent().getTagName(), component.getTagName());
             myDoesAcceptDropAtLastPosition = false;

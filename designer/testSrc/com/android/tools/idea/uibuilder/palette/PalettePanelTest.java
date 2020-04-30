@@ -400,7 +400,7 @@ public class PalettePanelTest extends LayoutTestCase {
 
   public void testAddToDesignUpdateDoesNotCauseDependencyDialog() {
     setUpLayoutDesignSurface();
-    myPanel.getCategoryList().setSelectedIndex(6); // Google
+    myPanel.getCategoryList().setSelectedIndex(7); // Google
     myPanel.getItemList().setSelectedIndex(0);     // AdView
     assertThat(myPanel.getItemList().getSelectedValue().getTagName()).isEqualTo(AD_VIEW);
 
