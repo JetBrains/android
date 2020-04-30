@@ -50,7 +50,7 @@ public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalys
     Collection<CaptureNode> nodes = Collections.singleton(myNode);
 
     // Summary
-    CaptureNodeAnalysisSummaryTabModel summary = new CaptureNodeAnalysisSummaryTabModel(myCapture.getRange());
+    CaptureNodeAnalysisSummaryTabModel summary = new CaptureNodeAnalysisSummaryTabModel(myCapture.getRange(), myCapture.getType());
     summary.getDataSeries().add(this);
     model.addTabModel(summary);
 
