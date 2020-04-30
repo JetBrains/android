@@ -39,21 +39,29 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewAnnotationInFunctionWithParametersInspection"
                      language="kotlin"
                      enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     displayName="inspection.no.parameters.name"
                      level="ERROR"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewNeedsComposableAnnotationInspection"
                      language="kotlin"
                      enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     displayName="inspection.no.composable.name"
                      level="ERROR"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMustBeTopLevelFunction"
                      language="kotlin"
                      enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     displayName="inspection.top.level.function"
                      level="ERROR"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewDimensionRespectsLimit"
                      language="kotlin"
                      enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     displayName="inspection.dimension.limit.name"
                      level="WARNING"/>
 
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
