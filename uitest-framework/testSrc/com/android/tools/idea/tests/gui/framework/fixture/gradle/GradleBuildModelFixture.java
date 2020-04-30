@@ -18,7 +18,9 @@ package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDependency;
+import java.util.List;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,5 +42,18 @@ public class GradleBuildModelFixture {
       }
     }
     fail("Failed to find dependency '" + expected.path + "'");
+  }
+
+  public void requireDynamicFeature(@NotNull String expected) {
+    List<GradlePropertyModel> dynamicFeatures = myTarget.android().dynamicFeatures().toList();
+    if (dynamicFeatures == null) {
+      fail("dynamicFeatures is unset");
+    }
+    for (GradlePropertyModel dynamicFeature : dynamicFeatures) {
+      if (expected.equals(dynamicFeature.forceString())) {
+        return;
+      }
+    }
+    fail("Failed to find dynamic feature '" + expected + "'");
   }
 }

@@ -159,4 +159,25 @@ public class GradleRenameModuleTest {
     assertThat(guiTest.ideFrame().hasModule("app")).named("app module exists").isTrue();
     assertThat(guiTest.ideFrame().hasModule("app2")).named("app2 module exists").isFalse();
   }
+
+  @Test
+  public void testRenameDynamicFeatureModule() throws IOException {
+    guiTest
+      .importProjectAndWaitForProjectSyncToFinish("DynamicFeatureApplication")
+      .actAndWaitForGradleProjectSyncToFinish(it -> {
+        it.getProjectView()
+          .selectProjectPane()
+          .clickPath("DynamicFeatureApplication", "dynamicFeature")
+          .openFromMenu(SelectRefactoringDialogFixture::find, "Refactor", "Rename...")
+          .selectRenameModule()
+          .clickOk()
+          .enterText("dF2")
+          .clickOk();
+      });
+    assertThat(guiTest.ideFrame().hasModule("dF2")).named("dF2 module exists").isTrue();
+    assertThat(guiTest.ideFrame().hasModule("dynamicFeature")).named("dynamicFeature module exists").isFalse();
+
+    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app");
+    buildModel.requireDynamicFeature(":dF2");
+  }
 }
