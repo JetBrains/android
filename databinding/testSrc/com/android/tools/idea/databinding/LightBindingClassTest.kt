@@ -862,8 +862,8 @@ class LightBindingClassTest {
     assertThat(presentableText).isEqualTo(typeName)
     if (this !is PsiPrimitiveType) {
       val nullabilityManager = NullableNotNullManager.getInstance(fixture.project)
-      val nullabilityAnnotation = if (isNullable) nullabilityManager.defaultNullable else nullabilityManager.defaultNotNull
-      assertThat(annotations.map { it.text }).contains("@$nullabilityAnnotation")
+      val managerAnnotations = if(isNullable) nullabilityManager.nullables else nullabilityManager.notNulls
+      assertThat(annotations.map { it.text }).containsAnyIn(managerAnnotations.map { "@$it"})
     }
   }
 
