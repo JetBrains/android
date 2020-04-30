@@ -127,7 +127,8 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
 
     @Override
     public boolean checkInput(@Nullable String inputString) {
-      return inputString != null && !inputString.isEmpty() && !inputString.equals(myModule.getName()) && !inputString.contains(":")
+      String currentName = ModuleGrouper.instanceFor(myModule.getProject()).getShortenedName(myModule);
+      return inputString != null && !inputString.isEmpty() && !inputString.equals(currentName) && !inputString.contains(":")
         && !inputString.contains(".");
     }
 
@@ -173,12 +174,13 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
         }
       }
 
-      String msg = IdeBundle.message("command.renaming.module", myModule.getName());
+      String currentName = ModuleGrouper.instanceFor(project).getShortenedName(myModule);
+      String msg = IdeBundle.message("command.renaming.module", currentName);
       WriteCommandAction.Builder actionBuilder = WriteCommandAction.writeCommandAction(project).withName(msg);
       ThrowableComputable<Boolean,Throwable> action = () -> {
         if (!settingsModel.modulePaths().contains(oldModuleGradlePath)) {
           String settingsFileName = settingsModel.getVirtualFile().getName();
-          Messages.showErrorDialog(project, "Can't find module '" + myModule.getName() + "' in " + settingsFileName,
+          Messages.showErrorDialog(project, "Can't find module '" + currentName + "' in " + settingsFileName,
                                    IdeBundle.message("title.rename.module"));
           reset(modifiedBuildModels);
           return true;
