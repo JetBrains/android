@@ -33,6 +33,7 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiParameter
+import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
 import com.intellij.psi.PsiVariable
 import com.intellij.psi.search.GlobalSearchScope
@@ -96,8 +97,8 @@ private fun getDaggerProviders(type: PsiType, qualifierInfo: QualifierInfo?, sco
  * Returns all @BindsInstance-annotated methods and params that return given [type] within [scope].
  */
 private fun getDaggerBindsInstanceMethodsAndParametersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiModifierListOwner> {
-  return getMethodsWithAnnotation(DAGGER_BINDS_INSTANCE_ANNOTATION, scope).filter { it.returnType == type } +
-         getParametersWithAnnotation(DAGGER_BINDS_INSTANCE_ANNOTATION, scope).filter { it.type == type }
+  return getMethodsWithAnnotation(DAGGER_BINDS_INSTANCE_ANNOTATION, scope).filter { it.returnType?.unboxed == type.unboxed } +
+         getParametersWithAnnotation(DAGGER_BINDS_INSTANCE_ANNOTATION, scope).filter { it.type.unboxed == type.unboxed }
 }
 
 /**
@@ -115,7 +116,7 @@ fun getDaggerProvidersFor(element: PsiElement): Collection<PsiModifierListOwner>
  */
 private fun getInjectedFieldsForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiField> {
   val annotationClass = JavaPsiFacade.getInstance(scope.project).findClass(INJECT_ANNOTATION, scope) ?: return emptyList()
-  return AnnotatedElementsSearch.searchPsiFields(annotationClass, scope).filter { it.type == type }
+  return AnnotatedElementsSearch.searchPsiFields(annotationClass, scope).filter { it.type.unboxed == type.unboxed }
 }
 
 /**
@@ -125,7 +126,7 @@ private fun getParamsOfDaggerProvidersForType(type: PsiType, scope: GlobalSearch
   val methodsQueries = getMethodsWithAnnotation(INJECT_ANNOTATION, scope) +
                        getMethodsWithAnnotation(DAGGER_BINDS_ANNOTATION, scope) +
                        getMethodsWithAnnotation(DAGGER_PROVIDES_ANNOTATION, scope)
-  return methodsQueries.flatMap { it.parameterList.parameters.toList() }.filter { it.type == type }
+  return methodsQueries.flatMap { it.parameterList.parameters.toList() }.filter { it.type.unboxed == type.unboxed }
 }
 
 /**
@@ -166,14 +167,15 @@ private val PsiMethod.isInDaggerModule: Boolean
  * Returns all @Provide-annotated methods that return given [type] within [scope].
  */
 private fun getDaggerProvidesMethodsForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
-  return getMethodsWithAnnotation(DAGGER_PROVIDES_ANNOTATION, scope).filter { it.returnType == type && it.isInDaggerModule }
+  return getMethodsWithAnnotation(DAGGER_PROVIDES_ANNOTATION, scope)
+    .filter { it.returnType?.unboxed == type.unboxed && it.isInDaggerModule }
 }
 
 /**
  * Returns all @Binds-annotated methods that return given [type] within [scope].
  */
 private fun getDaggerBindsMethodsForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
-  return getMethodsWithAnnotation(DAGGER_BINDS_ANNOTATION, scope).filter { it.returnType == type && it.isInDaggerModule }
+  return getMethodsWithAnnotation(DAGGER_BINDS_ANNOTATION, scope).filter { it.returnType?.unboxed == type.unboxed && it.isInDaggerModule }
 }
 
 /**
@@ -304,7 +306,7 @@ fun getDaggerComponentMethodsForProvider(provider: PsiElement): Collection<PsiMe
   return components.flatMap {
     // Instantiating methods doesn't have parameters.
     component ->
-    component.methods.filter { it.returnType == type && !it.hasParameters() }.filterByQualifier(qualifierInfo)
+    component.methods.filter { it.returnType?.unboxed == type.unboxed && !it.hasParameters() }.filterByQualifier(qualifierInfo)
   }
 }
 
@@ -444,3 +446,11 @@ internal fun PsiElement.toPsiClass(): PsiClass? = when {
   this is KtObjectDeclaration -> this.toLightClass()
   else -> error("[Dagger editor] Unable to cast ${this.javaClass} to PsiClass")
 }
+
+/**
+ * Returns an unboxed type if it's applicable and PsiPrimitiveType.getUnboxedType doesn't return null otherwise returns itself.
+ *
+ * We need to unbox types before comparison because Dagger considers two types as equal if they are equal after unboxing.
+ */
+private val PsiType.unboxed: PsiType
+  get() = PsiPrimitiveType.getUnboxedType(this) ?: this
