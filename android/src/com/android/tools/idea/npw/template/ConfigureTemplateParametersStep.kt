@@ -300,7 +300,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     is UrlLinkWidget -> RowEntry(UrlLinkProvider(widget.urlName, widget.urlAddress))
     is Separator -> RowEntry(SeparatorProvider())
     is EnumWidget<*> -> RowEntry(widget.p.name, EnumComboProvider(widget.p))
-    else -> TODO("Only string and bool parameters are supported for now")
+    else -> error("Only string and bool parameters are supported for now")
   }
 
   /**

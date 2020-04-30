@@ -57,6 +57,7 @@ class ExistingNewModuleModelData(
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false), false)
 
+  //noinspection StopShip
   override val formFactor: ObjectValueProperty<FormFactor> get() = TODO("not implemented")
   override val isLibrary: Boolean = false
   override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent()
