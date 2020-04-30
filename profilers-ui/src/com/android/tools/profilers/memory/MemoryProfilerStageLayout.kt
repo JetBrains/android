@@ -148,6 +148,7 @@ internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponen
 
 
   override val mainSplitter: Splitter
+    //noinspection StopShip
     get() = TODO("remove on full migration")
 
   private fun updateInstanceDetailsSplitter() = when (val cs = myStage.selectedClassSet) {
