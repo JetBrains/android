@@ -86,19 +86,10 @@ import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 /**
  * Fake emulator for use in tests. Provides in-process gRPC services.
  */
-class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory: Path) {
+class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory: Path, standalone: Boolean = false) {
 
   val avdId = StringUtil.trimExtensions(avdFolder.fileName.toString())
-  private val registration = """
-      port.serial=${serialPort}
-      port.adb=${serialPort + 1}
-      avd.name=${avdId}
-      avd.dir=${avdFolder}
-      avd.id=${avdId}
-      cmdline="/emulator_home/fake_emulator" "-netdelay" "none" "-netspeed" "full" "-avd" "${avdId}" "-no-window" "-gpu" "auto-no-window"
-      grpc.port=${grpcPort}
-      grpc.token=RmFrZSBnUlBDIHRva2Vu
-      """.trimIndent()
+  private val registration: String
   private val registrationFile = registrationDirectory.resolve("pid_${grpcPort + 12345}.ini")
   private var grpcServer = createGrpcServer()
   private val lifeCycleLock = Object()
@@ -112,6 +103,25 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     get() = grpcPort - 3000 // Just like a real emulator.
 
   val grpcCallLog = LinkedBlockingDeque<GrpcCallRecord>()
+
+  init {
+    val embeddedFlags = if (standalone) {
+      ""
+    } else {
+      """ "-no-window" "-gpu" "auto-no-window""""
+    }
+
+    registration = """
+      port.serial=${serialPort}
+      port.adb=${serialPort + 1}
+      avd.name=${avdId}
+      avd.dir=${avdFolder}
+      avd.id=${avdId}
+      cmdline="/emulator_home/fake_emulator" "-netdelay" "none" "-netspeed" "full" "-avd" "${avdId}" ${embeddedFlags}
+      grpc.port=${grpcPort}
+      grpc.token=RmFrZSBnUlBDIHRva2Vu
+      """.trimIndent()
+  }
 
   /**
    * Starts the Emulator. The Emulator is fully initialized when the method returns.

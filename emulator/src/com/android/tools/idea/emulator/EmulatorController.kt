@@ -159,6 +159,17 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     // TODO: Change 4 to 3 after b/150494232 is fixed.
     maxInboundMessageSize = config.displayWidth * config.displayHeight * 4 + 100
 
+    connectGrpc(maxInboundMessageSize)
+    sendKeepAlive()
+  }
+
+  /**
+   * Establishes a gRPC connection to the Emulator.
+   *
+   * @param maxInboundMessageSize: size of maximum inbound gRPC message, default to 4 MiB.
+   */
+  @Slow
+  fun connectGrpc(maxInboundMessageSize: Int = 4 * 1024 * 1024) {
     connectionState = ConnectionState.CONNECTING
     val channel = getRuntimeConfiguration()
       .newGrpcChannelBuilder("localhost", emulatorId.grpcPort)
@@ -181,7 +192,6 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
 
     channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
-    sendKeepAlive()
   }
 
   /**
