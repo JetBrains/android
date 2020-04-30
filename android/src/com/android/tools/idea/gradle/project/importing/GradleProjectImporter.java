@@ -116,10 +116,15 @@ public class GradleProjectImporter {
       String projectName = projectFolder.getName();
       newProject = createProject(projectName, projectFolderPath);
       importProjectNoSync(new Request(newProject));
-      PlatformProjectOpenProcessor.openExistingProject(projectFolderPath.toPath(),
-                                                       projectFolderPath.toPath(),
-                                                       new OpenProjectTask(forceOpenInNewFrame, projectToClose, false, false,
-                                                                           newProject));
+      PlatformProjectOpenProcessor.openExistingProject(
+        projectFolderPath.toPath(),
+        projectFolderPath.toPath(),
+        new OpenProjectTask(
+          forceOpenInNewFrame,
+          projectToClose,
+          false,
+          false,
+          newProject));
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
