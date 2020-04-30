@@ -75,11 +75,11 @@ class FindEmulatorAndSetupRetention : AnAction() {
           indicator.fraction = 0.0
           // TODO(b/154140562): we currently don't have the emulator ID, so just use the first running emulator.
           val catalog = RunningEmulatorCatalog.getInstance()
-          val emulators = catalog.emulators
+          val emulators = catalog.updateNow().get()
           if (emulators != null) {
-            val emulatorController = RunningEmulatorCatalog.getInstance().emulators.iterator().next()
+            val emulatorController = emulators.iterator().next()
             if (emulatorController.connectionState != EmulatorController.ConnectionState.CONNECTED) {
-              emulatorController.connect()
+              emulatorController.connectGrpc()
             }
             val emulatorSerialString = "emulator-${emulatorController.emulatorId.serialPort}"
             val snapshotId = dataContext.getData(EMULATOR_SNAPSHOT_ID_KEY) ?: return

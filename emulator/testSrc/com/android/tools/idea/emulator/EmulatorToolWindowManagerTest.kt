@@ -88,8 +88,8 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root.toPath()
-    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
-    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8555)
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
+    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8555, standalone = false)
 
     // The Emulator tool window is closed.
     assertThat(toolWindow.isVisible).isFalse()
@@ -144,6 +144,58 @@ class EmulatorToolWindowManagerTest {
     assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
 
     // The panel corresponding the the first emulator goes away and is replaced by the placeholder panel.
+    assertThat(contentManager.contents.size).isEqualTo(1)
+    assertThat(contentManager.contents[0].displayName).isEqualTo("No Running Emulators")
+  }
+
+  @Test
+  fun testEmulatorToolWindowManagerWithStandaloneEmulator() {
+    val factory = EmulatorToolWindowFactory()
+    assertThat(factory.shouldBeAvailable(project)).isTrue()
+    factory.createToolWindowContent(project, toolWindow)
+    val contentManager = toolWindow.contentManager
+    assertThat(contentManager.contents).isEmpty()
+
+    val tempFolder = emulatorRule.root.toPath()
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = true)
+    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8555, standalone = false)
+
+    // The Emulator tool window is closed.
+    assertThat(toolWindow.isVisible).isFalse()
+
+    // Start the first emulator.
+    emulator1.start()
+
+    // Send notification that the emulator has been launched.
+    val avdInfo1 = AvdInfo(emulator1.avdId, emulator1.avdFolder.resolve("config.ini").toFile(),
+                           emulator1.avdFolder.toString(), mock(), null)
+    val commandLine1 = GeneralCommandLine("/emulator_home/fake_emulator", "-avd", emulator1.avdId)
+    project.messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avdInfo1, commandLine1, project)
+    dispatchAllInvocationEvents()
+
+    waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
+    assertThat(toolWindow.isVisible).isFalse()
+    assertThat(contentManager.contents).isEmpty()
+
+    emulator2.start()
+
+    val avdInfo2 = AvdInfo(emulator2.avdId, emulator2.avdFolder.resolve("config.ini").toFile(),
+                           emulator2.avdFolder.toString(), mock(), null)
+    val commandLine2 = GeneralCommandLine("/emulator_home/fake_emulator", "-avd", emulator2.avdId, "-no-window", "-gpu", "auto-no-window")
+    project.messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avdInfo2, commandLine2, project)
+    dispatchAllInvocationEvents()
+
+    assertThat(toolWindow.isVisible).isTrue()
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
+    // There should be no panel for emulator1.
+    assertThat(contentManager.contents).hasLength(1)
+    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator2.avdName)
+
+    // Close the panel corresponding to emulator2.
+    contentManager.removeContent(contentManager.contents[0], true)
+
+    // The panel corresponding the the emulator2 goes away and is replaced by the placeholder panel.
+    // There should be still no panel for emulator1.
     assertThat(contentManager.contents.size).isEqualTo(1)
     assertThat(contentManager.contents[0].displayName).isEqualTo("No Running Emulators")
   }

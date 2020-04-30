@@ -46,9 +46,9 @@ class FakeEmulatorRule : TempDirectory() {
     super.after()
   }
 
-  fun newEmulator(avdFolder: Path, grpcPort: Int): FakeEmulator {
+  fun newEmulator(avdFolder: Path, grpcPort: Int, standalone: Boolean = false): FakeEmulator {
     val dir = registrationDirectory ?: throw IllegalStateException()
-    val emulator = FakeEmulator(avdFolder, grpcPort, dir)
+    val emulator = FakeEmulator(avdFolder, grpcPort, dir, standalone)
     emulators.add(emulator)
     return emulator
   }
