@@ -961,4 +961,45 @@ class DaggerUtilTest : DaggerTestCase() {
     assertThat(providers.map { it.name }).containsExactly("bindsString", "string")
   }
 
+  fun testUnboxTypes() {
+    // JAVA provider.
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import dagger.Provides;
+        import dagger.Module;
+
+        @Module
+        class MyClass {
+          @Provides Integer provider() {}
+          @Provides int provider2() {}
+        }
+      """.trimIndent()
+    )
+    // Kotlin provider.
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import dagger.Provides
+        import dagger.Module
+
+        @Module
+        class MyClassKt {
+          @Provides fun provider():Int? {}
+          @Provides fun provider2():Int {}
+        }
+      """.trimIndent()
+    )
+
+    // Consumer in JAVA.
+    assertThat(getProvidersForInjectedField("int")).hasSize(4)
+    assertThat(getProvidersForInjectedField("Integer")).hasSize(4)
+
+    // Consumer in kotlin.
+    assertThat(getProvidersForInjectedField_kotlin("Int")).hasSize(4)
+    assertThat(getProvidersForInjectedField_kotlin("Int?")).hasSize(4)
+  }
+
 }
