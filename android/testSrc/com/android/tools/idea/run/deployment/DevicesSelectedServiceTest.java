@@ -45,12 +45,7 @@ public final class DevicesSelectedServiceTest {
   @Before
   public void newService() {
     myProperties = new ProjectPropertiesComponentImpl();
-
-    myService = new DevicesSelectedService.Builder()
-      .setProject(myRule.getProject())
-      .setPropertiesComponentGetInstance(project -> myProperties)
-      .setClock(Mockito.mock(Clock.class))
-      .build();
+    myService = new DevicesSelectedService(myRule.getProject(), project -> myProperties, Mockito.mock(Clock.class));
   }
 
   @Test

@@ -70,7 +70,7 @@ public final class SelectDeviceAction extends AnAction {
 
     presentation.setIcon(myDevice.getIcon());
 
-    Collection<Device> devices = myComboBoxAction.getDevices(Objects.requireNonNull(event.getProject()));
+    Collection<Device> devices = myComboBoxAction.getDevices(Objects.requireNonNull(event.getProject())).orElseThrow(AssertionError::new);
     Key key = Devices.containsAnotherDeviceWithSameName(devices, myDevice) ? myDevice.getKey() : null;
     Snapshot snapshot = myComboBoxAction.areSnapshotsEnabled() ? myDevice.getSnapshot() : null;
 
@@ -79,7 +79,7 @@ public final class SelectDeviceAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    DevicesSelectedService.getInstance(Objects.requireNonNull(event.getProject())).setDeviceSelectedWithComboBox(myDevice);
+    myComboBoxAction.setSelectedDevice(Objects.requireNonNull(event.getProject()), myDevice);
   }
 
   @Override

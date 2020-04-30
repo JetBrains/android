@@ -16,11 +16,11 @@
 package com.android.tools.idea.run.deployment;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBScrollPane;
 import java.awt.Component;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import javax.swing.GroupLayout;
@@ -46,13 +46,8 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   @Nullable
   private ModifyDeviceSetDialogTable myTable;
 
-  ModifyDeviceSetDialog(@NotNull Project project) {
-    this(project, newModifyDeviceSetDialogTableModel(project), DevicesSelectedService::getInstance);
-  }
-
-  @NotNull
-  private static TableModel newModifyDeviceSetDialogTableModel(@NotNull Project project) {
-    return new ModifyDeviceSetDialogTableModel(ServiceManager.getService(project, AsyncDevicesGetter.class).get());
+  ModifyDeviceSetDialog(@NotNull Project project, @NotNull List<Device> devices) {
+    this(project, new ModifyDeviceSetDialogTableModel(devices), DevicesSelectedService::getInstance);
   }
 
   @VisibleForTesting

@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
@@ -25,33 +26,30 @@ final class Worker<V> {
   @Nullable
   private Future<V> myResultFuture;
 
-  @NotNull
+  @Nullable
   private V myResult;
 
-  Worker(@NotNull V result) {
-    myResult = result;
-  }
-
   @NotNull
-  V perform(@NotNull AsyncSupplier<V> task) {
+  Optional<V> perform(@NotNull AsyncSupplier<V> task) {
     if (myResultFuture == null) {
       myResultFuture = task.get();
     }
 
     if (myResultFuture.isCancelled()) {
       myResultFuture = task.get();
-      return myResult;
+      return Optional.ofNullable(myResult);
     }
 
     if (!myResultFuture.isDone()) {
-      return myResult;
+      return Optional.ofNullable(myResult);
     }
 
     try {
       myResult = myResultFuture.get();
-      myResultFuture = task.get();
+      assert myResult != null;
 
-      return myResult;
+      myResultFuture = task.get();
+      return Optional.of(myResult);
     }
     catch (InterruptedException exception) {
       Thread.currentThread().interrupt();
@@ -59,9 +57,9 @@ final class Worker<V> {
     }
     catch (ExecutionException exception) {
       Logger.getInstance(Worker.class).warn(exception);
-      myResultFuture = task.get();
 
-      return myResult;
+      myResultFuture = task.get();
+      return Optional.ofNullable(myResult);
     }
   }
 }
