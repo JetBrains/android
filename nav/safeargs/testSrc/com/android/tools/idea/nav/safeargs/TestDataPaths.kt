@@ -23,7 +23,9 @@ import com.android.testutils.TestUtils
 object TestDataPaths {
   val TEST_DATA_ROOT: String = TestUtils.getWorkspaceFile("tools/adt/idea/nav/safeargs/testData").path
 
+  const val PROJECT_WITHOUT_SAFE_ARGS = "projects/projectWithoutSafeArgs"
   const val PROJECT_USING_JAVA_PLUGIN = "projects/safeArgsWithJavaPlugin"
   const val PROJECT_USING_KOTLIN_PLUGIN = "projects/safeArgsWithKotlinPlugin"
+  const val MULTI_MODULE_PROJECT = "projects/safeArgsMultiModuleProject"
   const val SIMPLE_JAVA_PROJECT = "projects/SimpleJavaProject"
 }

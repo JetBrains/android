@@ -49,6 +49,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private val runSqlButton = CommonButton("Run Query", StudioIcons.DatabaseInspector.NEW_QUERY)
 
   val component = rootPanel
+  val databasesCount: Int get() = (tree.model.root as? DefaultMutableTreeNode)?.childCount ?: 0
 
   init {
     val northPanel = createNorthPanel()
@@ -60,7 +61,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     setUpSchemaTree(tree)
   }
 
-  fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema, index: Int) {
+  fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema?, index: Int) {
     val treeModel = tree.model as DefaultTreeModel
 
     val root = if (treeModel.root == null) {
@@ -75,7 +76,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     runSqlButton.isEnabled = true
 
     val schemaNode = DefaultMutableTreeNode(database)
-    schema.tables.sortedBy { it.name }.forEach { table ->
+    schema?.tables?.sortedBy { it.name }?.forEach { table ->
       val tableNode = DefaultMutableTreeNode(table)
       table.columns.forEach { column -> tableNode.add(DefaultMutableTreeNode(column)) }
       schemaNode.add(tableNode)
@@ -123,15 +124,14 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     val databaseNode = findDatabaseNode(database)
     treeModel.removeNodeFromParent(databaseNode)
 
-    val openDatabaseCount = (tree.model.root as DefaultMutableTreeNode).childCount
-    if (openDatabaseCount == 0) {
+    if (databasesCount == 0) {
       tree.model = DefaultTreeModel(null)
 
       refreshSchemaButton.isEnabled = false
       runSqlButton.isEnabled = false
     }
 
-    return openDatabaseCount
+    return databasesCount
   }
 
   private fun createNorthPanel(): JPanel {

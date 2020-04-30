@@ -18,10 +18,10 @@ package com.android.tools.profilers.cpu.atrace
 import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.CpuCapture
-import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.MainProcessSelector
+import com.android.tools.profilers.cpu.ThreadState
 import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -100,9 +100,9 @@ class AtraceParserTest {
     assertThat(dataSeries[THREAD_ID]!!.size).isEqualTo(THREAD_STATE_SIZE)
     assertThat(dataSeries[THREAD_ID]!!.get(0).x).isGreaterThan(EXPECTED_MIN_RANGE.toLong())
     // Waking / Runnable = RUNNABLE.
-    assertThat(dataSeries[THREAD_ID]!!.get(0).value).isEqualTo(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED)
+    assertThat(dataSeries[THREAD_ID]!!.get(0).value).isEqualTo(ThreadState.RUNNABLE_CAPTURED)
     // Running = RUNNING
-    assertThat(dataSeries[THREAD_ID]!!.get(1).value).isEqualTo(CpuProfilerStage.ThreadState.RUNNING_CAPTURED)
+    assertThat(dataSeries[THREAD_ID]!!.get(1).value).isEqualTo(ThreadState.RUNNING_CAPTURED)
   }
 
   @Test

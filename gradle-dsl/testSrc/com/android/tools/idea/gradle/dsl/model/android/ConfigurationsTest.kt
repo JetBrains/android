@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class ConfigurationsTest : GradleFileModelTestCase() {
@@ -197,11 +198,13 @@ class ConfigurationsTest : GradleFileModelTestCase() {
 
   @Test
   fun testParseGradleManualExample315() {
+    assumeTrue("by configurations.creating not supported in KotlinScript parser", !isKotlinScript) // TODO(b/155075732)
     checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE315, "smokeTest")
   }
 
   @Test
   fun testParseGradleManualExample319() {
+    assumeTrue("implicit getByName on string configurations not supported in KotlinScript parser", !isKotlinScript) // TODO(b/143761795)
     checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE319, "implementation")
   }
 

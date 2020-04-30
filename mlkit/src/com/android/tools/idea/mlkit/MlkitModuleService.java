@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.mlkit.MlkitNames;
+import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
@@ -85,7 +86,13 @@ public class MlkitModuleService {
         return null;
       }
 
-      LightModelClassConfig classConfig = new LightModelClassConfig(modelMetadata, packageName + MlkitNames.PACKAGE_SUFFIX);
+      String className = MlkitUtils.computeModelClassName(myModule, modelFile);
+      if (Strings.isNullOrEmpty(className)) {
+        Logger.getInstance(MlkitModuleService.class).warn("Can not determine the class name for: " + fileUrl);
+        return null;
+      }
+
+      LightModelClassConfig classConfig = new LightModelClassConfig(modelMetadata, packageName + MlkitNames.PACKAGE_SUFFIX, className);
       return new LightModelClass(myModule, modelFile, classConfig);
     });
   }

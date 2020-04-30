@@ -214,4 +214,35 @@ class UtilsTest : LightPlatformTestCase() {
     assertEquals(SqliteStatementType.INSERT, getSqliteStatementType(project, "INSERT INTO tab VALUES (42)"))
     assertEquals(SqliteStatementType.UNKNOWN, getSqliteStatementType(project, "SELECT * FROM t1; EXPLAIN SELECT * FROM t1;"))
   }
+
+  fun testGetWrappableStatement() {
+    assertEquals("SELECT * FROM t1", getWrappableStatement(project, "SELECT * FROM t1"))
+    assertEquals("SELECT * FROM t1", getWrappableStatement(project, "SELECT * FROM t1;"))
+    assertEquals("SELECT * FROM t1; SELECT * FROM t2", getWrappableStatement(project, "SELECT * FROM t1; SELECT * FROM t2;"))
+    assertEquals("SELECT * FROM t1 ", getWrappableStatement(project, "SELECT * FROM t1 -- comment"))
+    assertEquals("SELECT * FROM t1 ", getWrappableStatement(project, "SELECT * FROM t1 --comment"))
+    assertEquals("SELECT * FROM t1", getWrappableStatement(project, "SELECT * FROM t1--comment"))
+    assertEquals("SELECT * FROM t1 /* comment */", getWrappableStatement(project, "SELECT * FROM t1 /* comment */"))
+  }
+
+  fun testHasParsingError() {
+    assertTrue(hasParsingError(project, "random string"))
+    assertTrue(hasParsingError(project, "SELECT"))
+    assertTrue(hasParsingError(project, "SELECT * FROM"))
+    assertTrue(hasParsingError(project, "SELECT * FROM tab;;"))
+    assertTrue(hasParsingError(project, "SELECT * FROM tab; SELECT * FROM tab"))
+    assertTrue(hasParsingError(project, "INSERT INTO t1 VALUES ()"))
+    assertTrue(hasParsingError(project, "CREATE TABLE t1"))
+    assertTrue(hasParsingError(project, "SELECT * FROM tab WHERE id IN (SELECT * __error__ )"))
+    assertFalse(hasParsingError(project, "SELECT * FROM tab"))
+    assertFalse(hasParsingError(project, "SELECT * FROM tab;"))
+    assertFalse(hasParsingError(project, "INSERT INTO t1 VALUES (42)"))
+    assertFalse(hasParsingError(project, "ALTER TABLE t1 ADD COLUMN c2 int"))
+    assertFalse(hasParsingError(project, "ALTER TABLE t1 ADD COLUMN c2 int"))
+    assertFalse(hasParsingError(project, "ALTER TABLE t1 RENAME TO t2"))
+    assertFalse(hasParsingError(project, "UPDATE t1 SET id = 42 WHERE name = 'foo'"))
+    assertFalse(hasParsingError(project, "CREATE TABLE t1 (c1)"))
+    assertFalse(hasParsingError(project, "DROP TABLE t1"))
+    assertFalse(hasParsingError(project, "EXPLAIN SELECT * FROM t1"))
+  }
 }

@@ -27,7 +27,6 @@ import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtil;
-import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.AndroidDeviceSpec;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -250,14 +249,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   }
 
   @Override
-  @NotNull
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
-                                       @NotNull ApplicationIdProvider applicationIdProvider,
-                                       @Nullable AndroidDeviceSpec targetDeviceSpec) {
-    if (AndroidModel.get(facet) != null && AndroidModel.get(facet) instanceof AndroidModuleModel) {
-      return createGradleApkProvider(facet, applicationIdProvider, true, targetDeviceSpec);
-    }
-    return new NonGradleApkProvider(facet, applicationIdProvider, null);
+  public boolean isTestConfiguration() {
+    return true;
   }
 
   private static int getTestSourceRootCount(@NotNull Module module) {
@@ -346,7 +339,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                 @NotNull AndroidFacet facet,
                                                 @NotNull String contributorsAmStartOptions,
                                                 boolean waitForDebugger,
-                                                @NotNull LaunchStatus launchStatus) {
+                                                @NotNull LaunchStatus launchStatus,
+                                                @NotNull ApkProvider apkProvider) {
     String runner = INSTRUMENTATION_RUNNER_CLASS;
     if (isEmptyOrSpaces(runner)) {
       runner = getDefaultInstrumentationRunner(facet);
@@ -603,8 +597,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @NotNull
   @Override
   protected LaunchOptions.Builder getLaunchOptions() {
+    LaunchOptions.Builder builder = super.getLaunchOptions();
     // `am instrument` force stops the target package anyway, so there's no need for an explicit `am force-stop` for every APK involved.
-    return super.getLaunchOptions().setForceStopRunningApp(false);
+    builder.setForceStopRunningApp(false);
+    // -t: Allow test APKs to be installed.
+    // -g: Grant all permissions listed in the app manifest.
+    builder.setPmInstallOptions("-t -g");
+    return builder;
   }
 
   /**

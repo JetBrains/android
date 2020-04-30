@@ -64,7 +64,7 @@ final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeVa
 
   @NotNull
   @Override
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
     Project project = getProject();
     if (project == null) {
@@ -93,7 +93,7 @@ final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeVa
       presentation.setIcon(AllIcons.Nodes.Folder);
     }
     else {
-      presentation.setIcon(AllIcons.Nodes.JavaModuleRoot);
+      presentation.setIcon(AllIcons.Nodes.Module);
     }
     presentation.addText(concrete.getSimplePackageName(), REGULAR_ATTRIBUTES);
     if (myShowPackageType && concrete.getPackageType() != PackageType.IncludeFolder) {

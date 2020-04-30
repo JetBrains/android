@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -32,7 +33,8 @@ public abstract class LaunchOptionState {
   public abstract LaunchTask getLaunchTask(@NotNull String applicationId,
                                            @NotNull AndroidFacet facet,
                                            @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
-                                           @NotNull ProfilerState profilerState);
+                                           @NotNull ProfilerState profilerState,
+                                           @NotNull ApkProvider apkProvider);
 
   @NotNull
   public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {

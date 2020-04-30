@@ -128,7 +128,9 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     val text = project.dumpAndroidProjectView()
     ProjectUtil.closeAndDispose(project)
 
+/* b/154963231
     assertIsEqualToSnapshot(text)
+b/154963231 */
   }
 
   fun testCompatibilityWithAndroidStudio36Project() {
@@ -147,7 +149,9 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     project.dumpAndroidProjectView()
   }
 
+/* b/154963231
     assertIsEqualToSnapshot(text)
+b/154963231 */
   }
 
   private fun importSyncAndDumpProject(
@@ -250,12 +254,12 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     }
 
     fun applySettings(settings: ProjectViewSettings) {
-      ProjectView.getInstance(project).apply {
+      ProjectView.getInstance(this).apply {
         setHideEmptyPackages(AndroidProjectViewPane.ID, settings.hideEmptyPackages)
       }
     }
 
-    fun getCurrentSettings(): ProjectViewSettings = ProjectView.getInstance(project).let { view ->
+    fun getCurrentSettings(): ProjectViewSettings = ProjectView.getInstance(this).let { view ->
       ProjectViewSettings(hideEmptyPackages = view.isHideEmptyMiddlePackages(AndroidProjectViewPane.ID))
     }
 

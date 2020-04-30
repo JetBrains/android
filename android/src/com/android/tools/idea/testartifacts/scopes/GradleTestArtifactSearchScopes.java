@@ -78,6 +78,11 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
       return null;
     }
 
+    GradleTestArtifactSearchScopes scopes = module.getUserData(SEARCH_SCOPES_KEY);
+    if (scopes != null) {
+      return scopes;
+    }
+    initializeScope(module);
     return module.getUserData(SEARCH_SCOPES_KEY);
   }
 

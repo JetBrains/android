@@ -27,9 +27,9 @@
     </group>
   </actions>
   <extensions defaultExtensionNs="com.intellij">
-    <androidStudioInitializer id="Startup.AdtImportInitializer" order="after Startup.AndroidStudioInitializer"
+    <actionConfigurationCustomizer id="Startup.AdtImportInitializer" order="after Startup.AndroidStudioInitializer"
                               implementation="com.android.tools.idea.gradle.adtimport.AdtImportInitializer"/>
-    <androidStudioInitializer id="Startup.PsdActionsInitializer" order="after Startup.AndroidStudioInitializer"
+    <actionConfigurationCustomizer id="Startup.PsdActionsInitializer" order="after Startup.AndroidStudioInitializer"
                               implementation="com.android.tools.idea.gradle.structure.PsdActionsInitializer"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage"/>

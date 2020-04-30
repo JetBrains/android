@@ -28,8 +28,7 @@ public class CodeUtils {
    */
   @NotNull
   public static String getTypeQualifiedName(@NotNull TensorInfo tensorInfo) {
-    if (tensorInfo.getContentType() == TensorInfo.ContentType.IMAGE &&
-        tensorInfo.getImageProperties().colorSpaceType == TensorInfo.ImageProperties.ColorSpaceType.RGB) {
+    if (tensorInfo.isRGBImage()) {
       // Only RGB image is supported right now.
       return ClassNames.TENSOR_IMAGE;
     }

@@ -109,10 +109,11 @@ public interface CpuCapture extends ConfigurableDurationData {
 
   /**
    * Returns the thread state transitions for the given thread.
+   *
    * @param threadId Thread Id of thread requesting states for. If thread id is not found an empty list is returned.
    */
   @NotNull
-  default List<SeriesData<CpuProfilerStage.ThreadState>> getThreadStatesForThread(int threadId) {
+  default List<SeriesData<ThreadState>> getThreadStatesForThread(int threadId) {
     return new ArrayList<>();
   }
 

@@ -159,6 +159,21 @@ final class DevicesSelectedService {
     return project.getService(DevicesSelectedService.class);
   }
 
+  @NotNull
+  List<Device> getSelectedDevices(@NotNull List<Device> devices) {
+    if (isMultipleDevicesSelectedInComboBox()) {
+      return getDevicesSelectedWithDialog();
+    }
+
+    Device device = getDeviceSelectedWithComboBox(devices);
+
+    if (device == null) {
+      return Collections.emptyList();
+    }
+
+    return Collections.singletonList(device);
+  }
+
   @Nullable
   Device getDeviceSelectedWithComboBox(@NotNull List<Device> devices) {
     if (devices.isEmpty()) {

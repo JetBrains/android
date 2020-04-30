@@ -26,6 +26,7 @@ import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.GradleApplicationIdProvider;
+import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
@@ -124,7 +125,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     ApplicationIdProvider applicationIdProvider = new GradleApplicationIdProvider(myAndroidFacet);
     LaunchStatus launchStatus = new ProcessHandlerLaunchStatus(new NopProcessHandler());
 
-    LaunchTask task = config.getApplicationLaunchTask(applicationIdProvider, myAndroidFacet, "", false, launchStatus);
+    LaunchTask task = config.getApplicationLaunchTask(applicationIdProvider, myAndroidFacet, "", false, launchStatus, new NoApksProvider());
     assertThat(task).isInstanceOf(AndroidTestApplicationLaunchTask.class);
 
     AndroidTestApplicationLaunchTask androidTestTask = (AndroidTestApplicationLaunchTask)task;

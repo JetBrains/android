@@ -47,6 +47,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -69,11 +70,13 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
+import org.jetbrains.kotlin.idea.scripting.gradle.importing.KotlinDslScriptModelKt;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 public class GradleSyncExecutor {
   @NotNull private final Project myProject;
@@ -197,6 +200,14 @@ public class GradleSyncExecutor {
 
     GradleProjectResolver projectResolver = new GradleProjectResolver();
     DataNode<ProjectData> projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
+    // Android Studio 4.1 ONLY - Cleanup Kotlin dsl script models these are cleared normally in a data service that is not called by fetch
+    // models.
+    try {
+      KotlinDslScriptModelKt.getKOTLIN_DSL_SCRIPT_MODELS(new DataNode(ProjectKeys.PROJECT, new ProjectData(SYSTEM_ID, "", "", ""), null))
+        .clear();
+    } catch (Exception e) {
+      // Ignore everything, this hack should never throw
+    }
 
     ImmutableList.Builder<GradleModuleModels> builder = ImmutableList.builder();
 

@@ -71,7 +71,6 @@ import static com.android.SdkConstants.VIEW_GROUP;
 import static com.android.SdkConstants.VIEW_INCLUDE;
 import static com.android.SdkConstants.VIEW_MERGE;
 import static com.android.SdkConstants.VIEW_TAG;
-import static com.android.tools.idea.flags.StudioFlags.LayoutXmlMode.ATTRIBUTES_FROM_STYLEABLES;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
@@ -534,11 +533,12 @@ public class AttributeProcessingUtil {
 
   @Nullable
   private static PsiClass getViewClassByTagName(@NotNull AndroidFacet facet, String tag) {
-    if (StudioFlags.LAYOUT_XML_MODE.get() == ATTRIBUTES_FROM_STYLEABLES) {
-      return LayoutViewClassUtils.findVisibleClassByTagName(facet, tag, VIEW_CLASS_NAME);
-    }
-    else {
-      return getViewClassMap(facet).get(tag);
+    switch (StudioFlags.LAYOUT_XML_MODE.get()) {
+      case ATTRIBUTES_FROM_STYLEABLES:
+      case CUSTOM_CHILDREN:
+        return LayoutViewClassUtils.findVisibleClassByTagName(facet, tag, VIEW_CLASS_NAME);
+      default:
+        return getViewClassMap(facet).get(tag);
     }
   }
 
@@ -683,16 +683,19 @@ public class AttributeProcessingUtil {
       }
     }
 
-    if (StudioFlags.LAYOUT_XML_MODE.get() == ATTRIBUTES_FROM_STYLEABLES) {
-      registerAttributesFromSuffixedStyleables(facet, element, callback, skipAttrNames);
-    }
-    else {
-      Map<String, PsiClass> map = getViewClassMap(facet);
+    switch (StudioFlags.LAYOUT_XML_MODE.get()) {
+      case ATTRIBUTES_FROM_STYLEABLES:
+      case CUSTOM_CHILDREN:
+        registerAttributesFromSuffixedStyleables(facet, element, callback, skipAttrNames);
+        break;
+      default:
+        Map<String, PsiClass> map = getViewClassMap(facet);
 
-      // We don't know what the parent is: include all layout attributes from all layout classes.
-      for (PsiClass c : map.values()) {
-        registerAttributesFromSuffixedStyleables(facet, element, c, callback, skipAttrNames);
-      }
+        // We don't know what the parent is: include all layout attributes from all layout classes.
+        for (PsiClass c : map.values()) {
+          registerAttributesFromSuffixedStyleables(facet, element, c, callback, skipAttrNames);
+        }
+        break;
     }
   }
 

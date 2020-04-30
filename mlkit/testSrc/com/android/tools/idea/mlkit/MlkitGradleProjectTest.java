@@ -29,6 +29,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -63,9 +64,13 @@ public class MlkitGradleProjectTest {
     Module module2 = TestModuleUtil.findModule(project, "module2");
     assertFalse(MlkitUtils.isMlModelBindingBuildFeatureEnabled(module2));
 
+    JavaCodeInsightTestFixture fixture = ((JavaCodeInsightTestFixture)myProjectRule.getFixture());
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
-    assertNotNull(
-      javaPsiFacade.findClass("google.withmlmodelbinding.ml.MobilenetV1025160Quantized", GlobalSearchScope.moduleScope(appModule)));
-    assertNull(javaPsiFacade.findClass("google.nomlmodelbinding.ml.MobilenetV1025160Quantized", GlobalSearchScope.moduleScope(module2)));
+
+    GlobalSearchScope appScope = fixture.findClass("google.withmlmodelbinding.MyActivity").getResolveScope();
+    assertNotNull(javaPsiFacade.findClass("google.withmlmodelbinding.ml.MobilenetV1025160Quantized", appScope));
+
+    GlobalSearchScope module2Scope = fixture.findClass("google.nomlmodelbinding.MyActivity").getResolveScope();
+    assertNull(javaPsiFacade.findClass("google.nomlmodelbinding.ml.MobilenetV1025160Quantized", module2Scope));
   }
 }

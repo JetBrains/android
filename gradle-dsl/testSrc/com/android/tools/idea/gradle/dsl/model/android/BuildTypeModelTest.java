@@ -1194,7 +1194,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     //  There is support for setProguardFiles in AbstractFlavorTypeDslElement at the interpreter level: it correctly clears previous
     //  values stored there.  However, the model does not "know" that an empty setProguardFiles call has a side-effect; instead, we treat
     //  it as a statement with no effect, and remove it.
-    assumeTrue(isGroovy());
+    assumeTrue("setProguardFiles parsing/model implementation insufficient in KotlinScript", !isKotlinScript());
     writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();

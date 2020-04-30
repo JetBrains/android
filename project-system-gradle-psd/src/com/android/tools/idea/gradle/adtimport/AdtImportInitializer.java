@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.adtimport;
 import com.android.tools.idea.gradle.adtimport.actions.AndroidImportProjectAction;
 import com.android.tools.idea.startup.Actions;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 
-public final class AdtImportInitializer implements Runnable {
+public final class AdtImportInitializer implements ActionConfigurationCustomizer {
   @Override
-  public void run() {
-    ActionManager actionManager = ActionManager.getInstance();
+  public void customize(ActionManager actionManager) {
     Actions.replaceAction(actionManager, "ImportProject", new AndroidImportProjectAction());
     Actions.replaceAction(actionManager, "WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import Project (Gradle, Eclipse ADT, etc.)"));
   }

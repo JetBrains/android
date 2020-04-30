@@ -58,6 +58,7 @@ class BuildAttributionManagerImpl(
         val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
         if (attributionData != null) {
           taskContainer.updateTasksData(attributionData)
+          pluginContainer.updatePluginsData(attributionData)
         }
         analyzersWrapper.onBuildSuccess(attributionData)
       }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
+import com.android.tools.idea.IdeInfo;
 import com.intellij.conversion.ConversionContext;
 import com.intellij.conversion.ConverterProvider;
 import com.intellij.conversion.ProjectConverter;
@@ -40,6 +41,4 @@ public class AndroidJUnitConfigurationConverterProvider extends ConverterProvide
   public ProjectConverter createConverter(@NotNull ConversionContext context) {
     return new AndroidJUnitConfigurationConverter();
   }
-
-
 }

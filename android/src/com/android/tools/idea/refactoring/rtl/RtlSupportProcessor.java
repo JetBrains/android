@@ -115,7 +115,6 @@ import org.jetbrains.annotations.Nullable;
 public class RtlSupportProcessor extends BaseRefactoringProcessor {
 
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.refactoring.AddRTLSupportProcessor");
-  private static final String REFACTORING_NAME = AndroidBundle.message("android.refactoring.rtl.addsupport.title");
 
   public static final String RES_V_QUALIFIER = "-v";
   public static final String RES_V17_QUALIFIER = "-v17";
@@ -621,7 +620,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   @NotNull
   @Override
   protected String getCommandName() {
-    return REFACTORING_NAME;
+    return getRefactoringName();
   }
 
   /**
@@ -665,5 +664,9 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     }
 
     return false;
+  }
+
+  private static String getRefactoringName() {
+    return AndroidBundle.message("android.refactoring.rtl.addsupport.title");
   }
 }

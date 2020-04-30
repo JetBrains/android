@@ -71,7 +71,7 @@ private fun getRelativePath(base: File, file: File): String? =
  *
  * Extracts information from various data sources.
  */
-class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateDataBuilder) {
+class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateDataBuilder, val isNew: Boolean) {
   var srcDir: File? = null
   var resDir: File? = null
   var manifestDir: File? = null
@@ -79,7 +79,6 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
   var unitTestDir: File? = null
   var aidlDir: File? = null
   var rootDir: File? = null
-  var isNew: Boolean? = null
   var hasApplicationTheme: Boolean = true
   var name: String? = null
   var isLibrary: Boolean? = null
@@ -135,7 +134,6 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
       buildApiRevision = if (target?.version?.isPreview == true) target.revision else 0
     )
 
-    isNew = false
     isLibrary = facet.configuration.isLibraryProject
 
     val appTheme = MergedManifestManager.getMergedManifestSupplier(facet.module).now
@@ -178,7 +176,6 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
    */
   fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project) {
     projectTemplateDataBuilder.setBuildVersion(buildVersion, project)
-    isNew = true
     themesData = ThemesData(appName = capitalizeAppName(projectTemplateDataBuilder.applicationName)) // New modules always have a theme (unless its a library, but it will have no activity)
 
     apis = ApiTemplateData(
@@ -269,12 +266,11 @@ fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuild
     overridePathCheck = false
   }
 
-  return ModuleTemplateDataBuilder(projectStateBuilder).apply {
+  return ModuleTemplateDataBuilder(projectStateBuilder, true).apply {
     name = "Fake module state"
     packageName = ""
     val paths = GradleAndroidModuleTemplate.createDefaultTemplateAt(project.basePath!!, name!!).paths
     setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
-    isNew = true
     isLibrary = false
     formFactor = FormFactor.Mobile
     themesData = ThemesData(appName = capitalizeAppName(projectTemplateDataBuilder.applicationName))

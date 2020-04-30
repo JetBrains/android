@@ -18,26 +18,25 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * {@link DataSeries} of {@link CpuProfilerStage.ThreadState} to represent states of threads obtained from imported CPU traces. The only
- * states of a the series should be {@link CpuProfilerStage.ThreadState#HAS_ACTIVITY} (for intervals with method trace data, indicating the
- * thread had activity) and {@link CpuProfilerStage.ThreadState#NO_ACTIVITY} (when there is no thread activity in the interval).
+ * {@link DataSeries} of {@link ThreadState} to represent states of threads obtained from imported CPU traces. The only
+ * states of a the series should be {@link ThreadState#HAS_ACTIVITY} (for intervals with method trace data, indicating the
+ * thread had activity) and {@link ThreadState#NO_ACTIVITY} (when there is no thread activity in the interval).
  */
-public final class ImportedTraceThreadDataSeries extends InMemoryDataSeries<CpuProfilerStage.ThreadState> {
+public final class ImportedTraceThreadDataSeries extends InMemoryDataSeries<ThreadState> {
 
   /**
    * ID of the thread whose activity is represented by this {@link DataSeries}.
    */
   private final int myThreadId;
   /**
-   * List of {@link SeriesData<CpuProfilerStage.ThreadState>} of the thread represented by this {@link DataSeries}.
+   * List of {@link SeriesData< ThreadState >} of the thread represented by this {@link DataSeries}.
    */
-  @NotNull private final List<SeriesData<CpuProfilerStage.ThreadState>> myStates;
+  @NotNull private final List<SeriesData<ThreadState>> myStates;
 
   @NotNull private final CpuCapture myCapture;
 
@@ -50,8 +49,8 @@ public final class ImportedTraceThreadDataSeries extends InMemoryDataSeries<CpuP
   /**
    * Build the thread states only once, as they don't change over time for imported captures.
    */
-  private List<SeriesData<CpuProfilerStage.ThreadState>> buildThreadStates() {
-    List<SeriesData<CpuProfilerStage.ThreadState>> states = new ArrayList<>();
+  private List<SeriesData<ThreadState>> buildThreadStates() {
+    List<SeriesData<ThreadState>> states = new ArrayList<>();
     CaptureNode root = myCapture.getCaptureNode(myThreadId);
     if (root == null) {
       getLogger().warn("Thread root node is unexpectedly null and thread states could not be built.");
@@ -61,8 +60,8 @@ public final class ImportedTraceThreadDataSeries extends InMemoryDataSeries<CpuP
     // We're interested in seeing the activities of each root children instead.
     List<CaptureNode> rootChildren = root.getChildren();
     for (CaptureNode rootChild : rootChildren) {
-      states.add(new SeriesData<>(rootChild.getStart(), CpuProfilerStage.ThreadState.HAS_ACTIVITY));
-      states.add(new SeriesData<>(rootChild.getEnd(), CpuProfilerStage.ThreadState.NO_ACTIVITY));
+      states.add(new SeriesData<>(rootChild.getStart(), ThreadState.HAS_ACTIVITY));
+      states.add(new SeriesData<>(rootChild.getEnd(), ThreadState.NO_ACTIVITY));
     }
 
     return states;
@@ -70,7 +69,7 @@ public final class ImportedTraceThreadDataSeries extends InMemoryDataSeries<CpuP
 
   @Override
   @NotNull
-  protected List<SeriesData<CpuProfilerStage.ThreadState>> inMemoryDataList() {
+  protected List<SeriesData<ThreadState>> inMemoryDataList() {
     return myStates;
   }
 

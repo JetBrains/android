@@ -15,29 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.analytics;
 
-import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER;
 import static com.android.SdkConstants.ATTR_ELEVATION;
 import static com.android.SdkConstants.ATTR_TEXT;
-import static com.android.SdkConstants.AUTO_URI;
-import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
 import static com.android.SdkConstants.EDIT_TEXT;
-import static com.android.SdkConstants.FLOATING_ACTION_BUTTON;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.PROGRESS_BAR;
 import static com.android.SdkConstants.SEEK_BAR;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
-import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.common.analytics.UsageTrackerUtil.CUSTOM_NAME;
 import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertEditTextViewOption;
 import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertFilterMatches;
 import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertGroupName;
 import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertLinearLayoutViewOption;
 import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertProgressBarViewOption;
-import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertPropertiesMode;
 import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertSeekBarViewOption;
 import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.convertViewOption;
 import static com.android.tools.idea.uibuilder.analytics.NlUsageTrackerImpl.getStyleValue;
@@ -69,12 +63,10 @@ import com.android.tools.idea.common.analytics.UsageTrackerUtilTest;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
@@ -82,15 +74,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.AndroidAttribute;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.LayoutAttributeChangeEvent;
 import com.google.wireless.android.sdk.stats.LayoutFavoriteAttributeChangeEvent;
 import com.google.wireless.android.sdk.stats.LayoutPaletteEvent;
 import com.google.wireless.android.sdk.stats.SearchOption;
 import com.intellij.openapi.project.Project;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.Collections;
-import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -161,143 +150,6 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     assertThat(logged.getViewOption()).isEqualTo(NORMAL);
     assertThat(logged.getSelectedGroup()).isEqualTo(LayoutPaletteEvent.ViewGroup.ADVANCED);
     assertThat(logged.getSearchOption()).isEqualTo(SearchOption.SINGLE_MATCH);
-  }
-
-  public void testPropertyChangeLogging() {
-    initNeleModelMocks();
-    NlUsageTracker tracker = getUsageTracker();
-    List<NlComponent> components = Collections.singletonList(getComponentMock(BUTTON));
-    NlProperty property = mock(NlProperty.class);
-    when(property.getName()).thenReturn(ATTR_ELEVATION);
-    when(property.getNamespace()).thenReturn(ANDROID_URI);
-    when(property.getComponents()).thenReturn(components);
-    when(property.getModel()).thenReturn(myModel);
-    when(property.getDefinition()).thenReturn(myElevationDefinition);
-
-    tracker.logPropertyChange(property, PropertiesViewMode.INSPECTOR, -1);
-    AndroidStudioEvent studioEvent = getLastLogUsage();
-    LayoutAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getAttributeChangeEvent();
-    assertThat(logged.getAttribute().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.ANDROID);
-    assertThat(logged.getAttribute().getAttributeName()).isEqualTo(ATTR_ELEVATION);
-    assertThat(logged.getSearchOption()).isEqualTo(SearchOption.NONE);
-    assertThat(logged.getViewType()).isEqualTo(LayoutAttributeChangeEvent.ViewType.INSPECTOR);
-    assertThat(logged.getViewCount()).isEqualTo(1);
-    assertThat(logged.getView(0).getTagName()).isEqualTo(BUTTON);
-  }
-
-  public void testToolsPropertyChangeLogging() {
-    initNeleModelMocks();
-    NlUsageTracker tracker = getUsageTracker();
-    List<NlComponent> components = Collections.singletonList(getComponentMock(BUTTON));
-    NlProperty property = mock(NlProperty.class);
-    when(property.getName()).thenReturn(ATTR_ELEVATION);
-    when(property.getNamespace()).thenReturn(TOOLS_URI);
-    when(property.getComponents()).thenReturn(components);
-    when(property.getModel()).thenReturn(myModel);
-    when(property.getDefinition()).thenReturn(myElevationDefinition);
-
-    tracker.logPropertyChange(property, PropertiesViewMode.TABLE, 3);
-    AndroidStudioEvent studioEvent = getLastLogUsage();
-    LayoutAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getAttributeChangeEvent();
-    assertThat(logged.getAttribute().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.TOOLS);
-    assertThat(logged.getAttribute().getAttributeName()).isEqualTo(ATTR_ELEVATION);
-    assertThat(logged.getSearchOption()).isEqualTo(SearchOption.MULTIPLE_MATCHES);
-    assertThat(logged.getViewType()).isEqualTo(LayoutAttributeChangeEvent.ViewType.PROPERTY_TABLE);
-    assertThat(logged.getViewCount()).isEqualTo(1);
-    assertThat(logged.getView(0).getTagName()).isEqualTo(BUTTON);
-  }
-
-  public void testSupportPropertyChangeLogging() {
-    initNeleModelMocks();
-    NlUsageTracker tracker = getUsageTracker();
-    List<NlComponent> components = Collections.singletonList(getComponentMock(BUTTON));
-    NlProperty property = mock(NlProperty.class);
-    when(property.getName()).thenReturn(ATTR_COLLAPSE_PARALLAX_MULTIPLIER);
-    when(property.getNamespace()).thenReturn(AUTO_URI);
-    when(property.getComponents()).thenReturn(components);
-    when(property.getModel()).thenReturn(myModel);
-    when(property.getDefinition()).thenReturn(myCollapseParallaxMultiplierDefinition);
-
-    tracker.logPropertyChange(property, PropertiesViewMode.TABLE, 3);
-    AndroidStudioEvent studioEvent = getLastLogUsage();
-    LayoutAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getAttributeChangeEvent();
-    assertThat(logged.getAttribute().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.APPLICATION);
-    assertThat(logged.getAttribute().getAttributeName()).isEqualTo(ATTR_COLLAPSE_PARALLAX_MULTIPLIER);
-    assertThat(logged.getSearchOption()).isEqualTo(SearchOption.MULTIPLE_MATCHES);
-    assertThat(logged.getViewType()).isEqualTo(LayoutAttributeChangeEvent.ViewType.PROPERTY_TABLE);
-    assertThat(logged.getViewCount()).isEqualTo(1);
-    assertThat(logged.getView(0).getTagName()).isEqualTo(BUTTON);
-  }
-
-  public void testToolsSupportPropertyChangeLogging() {
-    initNeleModelMocks();
-    NlUsageTracker tracker = getUsageTracker();
-    List<NlComponent> components = Collections.singletonList(getComponentMock(BUTTON));
-    NlProperty property = mock(NlProperty.class);
-    when(property.getName()).thenReturn(ATTR_COLLAPSE_PARALLAX_MULTIPLIER);
-    when(property.getNamespace()).thenReturn(TOOLS_URI);
-    when(property.getComponents()).thenReturn(components);
-    when(property.getModel()).thenReturn(myModel);
-    when(property.getDefinition()).thenReturn(myCollapseParallaxMultiplierDefinition);
-
-    tracker.logPropertyChange(property, PropertiesViewMode.TABLE, 3);
-    AndroidStudioEvent studioEvent = getLastLogUsage();
-    LayoutAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getAttributeChangeEvent();
-    assertThat(logged.getAttribute().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.TOOLS);
-    assertThat(logged.getAttribute().getAttributeName()).isEqualTo(ATTR_COLLAPSE_PARALLAX_MULTIPLIER);
-    assertThat(logged.getSearchOption()).isEqualTo(SearchOption.MULTIPLE_MATCHES);
-    assertThat(logged.getViewType()).isEqualTo(LayoutAttributeChangeEvent.ViewType.PROPERTY_TABLE);
-    assertThat(logged.getViewCount()).isEqualTo(1);
-    assertThat(logged.getView(0).getTagName()).isEqualTo(BUTTON);
-  }
-
-  public void testCustomPropertyChangeLogging() {
-    initNeleModelMocks();
-    NlUsageTracker tracker = getUsageTracker();
-    List<NlComponent> components = Collections.singletonList(getComponentMock(BUTTON));
-    NlProperty property = mock(NlProperty.class);
-    when(property.getName()).thenReturn(ATTR_CUSTOM_NAME);
-    when(property.getNamespace()).thenReturn(AUTO_URI);
-    when(property.getComponents()).thenReturn(components);
-    when(property.getModel()).thenReturn(myModel);
-    when(property.getDefinition()).thenReturn(myCustomDefinition);
-
-    tracker.logPropertyChange(property, PropertiesViewMode.TABLE, 1);
-    AndroidStudioEvent studioEvent = getLastLogUsage();
-    LayoutAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getAttributeChangeEvent();
-    assertThat(logged.getAttribute().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.APPLICATION);
-    assertThat(logged.getAttribute().getAttributeName()).isEqualTo(CUSTOM_NAME);
-    assertThat(logged.getSearchOption()).isEqualTo(SearchOption.SINGLE_MATCH);
-    assertThat(logged.getViewType()).isEqualTo(LayoutAttributeChangeEvent.ViewType.PROPERTY_TABLE);
-    assertThat(logged.getViewCount()).isEqualTo(1);
-    assertThat(logged.getView(0).getTagName()).isEqualTo(BUTTON);
-  }
-
-  public void testPropertyChangeMultipleViewsLogging() {
-    initNeleModelMocks();
-    NlUsageTracker tracker = getUsageTracker();
-    List<NlComponent> components = ImmutableList.of(
-      getComponentMock(BUTTON),
-      getComponentMock(FLOATING_ACTION_BUTTON.defaultName()),
-      getComponentMock("com.acme.MyCustomView"));
-    NlProperty property = mock(NlProperty.class);
-    when(property.getName()).thenReturn(ATTR_TEXT);
-    when(property.getNamespace()).thenReturn(ANDROID_URI);
-    when(property.getComponents()).thenReturn(components);
-    when(property.getModel()).thenReturn(myModel);
-    when(property.getDefinition()).thenReturn(myTextDefinition);
-
-    tracker.logPropertyChange(property, PropertiesViewMode.TABLE, 1);
-    AndroidStudioEvent studioEvent = getLastLogUsage();
-    LayoutAttributeChangeEvent logged = studioEvent.getLayoutEditorEvent().getAttributeChangeEvent();
-    assertThat(logged.getAttribute().getAttributeNamespace()).isEqualTo(AndroidAttribute.AttributeNamespace.ANDROID);
-    assertThat(logged.getAttribute().getAttributeName()).isEqualTo(ATTR_TEXT);
-    assertThat(logged.getSearchOption()).isEqualTo(SearchOption.SINGLE_MATCH);
-    assertThat(logged.getViewType()).isEqualTo(LayoutAttributeChangeEvent.ViewType.PROPERTY_TABLE);
-    assertThat(logged.getViewCount()).isEqualTo(3);
-    assertThat(logged.getView(0).getTagName()).isEqualTo(BUTTON);
-    assertThat(logged.getView(1).getTagName()).isEqualTo("FloatingActionButton");
-    assertThat(logged.getView(2).getTagName()).isEqualTo(CUSTOM_NAME);
   }
 
   public void testAddFavoriteLogging() {
@@ -494,11 +346,6 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     assertThat(convertLinearLayoutViewOption("<LinearLayout android:orientation=\"horizontal\"/>")).isEqualTo(HORIZONTAL_LINEAR_LAYOUT);
     assertThat(convertLinearLayoutViewOption("<LinearLayout android:orientation=\"vertical\"/>")).isEqualTo(VERTICAL_LINEAR_LAYOUT);
     assertThat(convertLinearLayoutViewOption("<LinearLayout android:orientation=\"unknown\"/>")).isEqualTo(CUSTOM_OPTION);
-  }
-
-  public void testConvertPropertiesMode() {
-    assertThat(convertPropertiesMode(PropertiesViewMode.INSPECTOR)).isEqualTo(LayoutAttributeChangeEvent.ViewType.INSPECTOR);
-    assertThat(convertPropertiesMode(PropertiesViewMode.TABLE)).isEqualTo(LayoutAttributeChangeEvent.ViewType.PROPERTY_TABLE);
   }
 
   public void testConvertFilterMatches() {

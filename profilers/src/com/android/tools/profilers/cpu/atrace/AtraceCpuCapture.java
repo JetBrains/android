@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
-import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.ThreadState;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class AtraceCpuCapture extends BaseCpuCapture {
   @NotNull
-  private final Map<Integer, List<SeriesData<CpuProfilerStage.ThreadState>>> myThreadStateDataSeries;
+  private final Map<Integer, List<SeriesData<ThreadState>>> myThreadStateDataSeries;
 
   @NotNull
   private final Map<Integer, List<SeriesData<CpuThreadSliceInfo>>> myCpuThreadSliceInfoStates;
@@ -67,7 +67,7 @@ public class AtraceCpuCapture extends BaseCpuCapture {
    */
   @Override
   @NotNull
-  public List<SeriesData<CpuProfilerStage.ThreadState>> getThreadStatesForThread(int threadId) {
+  public List<SeriesData<ThreadState>> getThreadStatesForThread(int threadId) {
     return myThreadStateDataSeries.getOrDefault(threadId, new ArrayList<>());
   }
 

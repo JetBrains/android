@@ -334,6 +334,9 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
           // adb accesses $HOME/.android, which isn't allowed when running in the bazel sandbox
           options.withEnv("HOME", Files.createTempDir().getAbsolutePath());
         }
+        if (AdbOptionsService.getInstance().shouldUseUserManagedAdb()) {
+          options.enableUserManagedAdbMode(AdbOptionsService.getInstance().getUserManagedAdbPort());
+        }
         synchronized (ADB_INIT_LOCK) {
           AndroidDebugBridge.init(options.build());
           bridge = AndroidDebugBridge.createBridge(myAdb.getPath(), false, rem.getRemainingUnits(), myUnit);

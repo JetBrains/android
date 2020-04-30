@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -169,7 +170,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
                     @NotNull AnnotationHolder holder) {
     iconRendererMap.forEach((k, v) -> {
       if (k.isValid()) {
-        holder.createInfoAnnotation(k, null).setGutterIconRenderer(v);
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(k).gutterIconRenderer(v).create();
       }
     });
   }

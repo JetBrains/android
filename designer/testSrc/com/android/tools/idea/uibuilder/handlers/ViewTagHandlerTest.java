@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.property.MockNlComponent;
+import com.android.tools.idea.uibuilder.util.MockNlComponent;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;

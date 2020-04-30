@@ -36,12 +36,12 @@ import com.google.common.util.concurrent.Futures;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.android.facet.AndroidFacet;
 
 public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
 
   private static final String TEST_APP_CLASS_NAME = "google.simpleapplication.ApplicationTest";
+  private static final String DYNAMIC_FEATURE_INSTRUMENTED_TEST_CLASS_NAME = "com.example.instantapp.ExampleInstrumentedTest";
 
   @Override
   public void setUp() throws Exception {
@@ -73,7 +73,7 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     AndroidDevice device = createMockDevice("test", 19);
     devices.add(device);
 
-    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, new MyApplicationIdProvider(), deviceSpec(devices));
+    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, deviceSpec(devices));
     assertThat(provider).isNotNull();
     assertThat(provider).isInstanceOf(GradleApkProvider.class);
     assertThat(((GradleApkProvider)provider).isTest()).isTrue();
@@ -91,7 +91,7 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     AndroidDevice device = createMockDevice("test", 24);
     devices.add(device);
 
-    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, new MyApplicationIdProvider(), deviceSpec(devices));
+    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, deviceSpec(devices));
     assertThat(provider).isNotNull();
     assertThat(provider).isInstanceOf(GradleApkProvider.class);
     assertThat(((GradleApkProvider)provider).isTest()).isTrue();
@@ -99,17 +99,19 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
   }
 
   public void testApkProviderForDynamicFeatureInstrumentedTest() throws Exception {
-    loadProject(DYNAMIC_APP, "feature1");
+    loadProject(DYNAMIC_APP);
 
     AndroidRunConfigurationBase androidTestRunConfiguration =
-      createAndroidTestConfigurationFromClass(getProject(), TEST_APP_CLASS_NAME);
+      createAndroidTestConfigurationFromClass(getProject(), DYNAMIC_FEATURE_INSTRUMENTED_TEST_CLASS_NAME);
     assertNotNull(androidTestRunConfiguration);
 
     List<AndroidDevice> devices = new ArrayList<>();
     AndroidDevice device = createMockDevice("test", 24);
     devices.add(device);
 
-    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, new MyApplicationIdProvider(), deviceSpec(devices));
+    AndroidFacet runConfigurationTargetAndroidFacet =
+      AndroidFacet.getInstance(androidTestRunConfiguration.getConfigurationModule().getModule());
+    ApkProvider provider = androidTestRunConfiguration.getApkProvider(runConfigurationTargetAndroidFacet, deviceSpec(devices));
     assertThat(provider).isNotNull();
     assertThat(provider).isInstanceOf(GradleApkProvider.class);
     assertThat(((GradleApkProvider)provider).isTest()).isTrue();
@@ -140,20 +142,6 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
       receiver.addOutput(byteArray, 0, byteArray.length);
       return null;
     }).when(device).executeShellCommand(anyString(), any(), anyLong(), any());
-  }
-
-  private static class MyApplicationIdProvider implements ApplicationIdProvider {
-    @NotNull
-    @Override
-    public String getPackageName() {
-      return TEST_APP_CLASS_NAME;
-    }
-
-    @Nullable
-    @Override
-    public String getTestPackageName() {
-      return TEST_APP_CLASS_NAME + ".test";
-    }
   }
 
   private static AndroidDeviceSpec deviceSpec(List<AndroidDevice> devices) {

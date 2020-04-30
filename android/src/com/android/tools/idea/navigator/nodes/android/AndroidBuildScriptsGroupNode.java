@@ -61,7 +61,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     Map<VirtualFile, String> scripts = getBuildScriptsWithQualifiers();
     List<PsiFileNode> children = new ArrayList<>(scripts.size());
 

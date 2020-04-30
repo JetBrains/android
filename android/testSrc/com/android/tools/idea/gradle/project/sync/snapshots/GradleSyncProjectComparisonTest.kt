@@ -405,7 +405,6 @@ abstract class GradleSyncProjectComparisonTest(
       )
     }
 
-    // TODO(b/135453395): This test illustrates that variant switching does not remove dependencies.
     fun testSwitchingVariants_variantSpecificDependencies() {
       val freeDebugBefore = importSyncAndDumpProject(VARIANT_SPECIFIC_DEPENDENCIES)
 
@@ -416,9 +415,9 @@ abstract class GradleSyncProjectComparisonTest(
       val freeDebugAfter = project.saveAndDump()
 
       assertAreEqualToSnapshots(
-        freeDebugBefore to ".freeDebugBefore",
+        freeDebugBefore to ".freeDebug",
         paidDebug to ".paidDebug",
-        freeDebugAfter to ".freeDebugAfter"
+        freeDebugAfter to ".freeDebug"
       )
     }
 

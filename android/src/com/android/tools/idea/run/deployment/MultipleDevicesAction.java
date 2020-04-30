@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
+import com.intellij.serviceContainer.NonInjectable;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,21 +35,23 @@ import org.jetbrains.annotations.NotNull;
  * with the {@link ModifyDeviceSetDialog Modify Device Set dialog.}
  */
 final class MultipleDevicesAction extends AnAction {
+  static final String ID = "MultipleDevices";
+
   @NotNull
   private final Function<Project, RunnerAndConfigurationSettings> myGetSelectedConfiguration;
 
   @NotNull
   private final Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
 
+  @VisibleForTesting
   MultipleDevicesAction() {
     this(project -> RunManager.getInstance(project).getSelectedConfiguration(), DevicesSelectedService::getInstance);
   }
 
   @VisibleForTesting
+  @NonInjectable
   MultipleDevicesAction(@NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration,
                         @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
-    super("Multiple Devices");
-
     myGetSelectedConfiguration = getSelectedConfiguration;
     myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
   }

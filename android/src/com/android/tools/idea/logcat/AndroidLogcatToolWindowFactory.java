@@ -23,9 +23,9 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ProjectTopics;
-import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.execution.ui.RunContentManager;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -41,11 +41,11 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.concurrency.EdtExecutorService;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -65,16 +65,17 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     // In order to use the runner layout ui, the runner infrastructure needs to be initialized.
     // Otherwise it is not possible to for example drag one of the tabs out of the tool window.
     // The object that needs to be created is the content manager of the execution manager for this project.
-    ExecutionManager.getInstance(project).getContentManager();
+    RunContentManager.getInstance(project);
 
     toolWindow.setAvailable(true, null);
     toolWindow.setToHideOnEmptyContent(true);
 
-    LogcatPanel logcatPanel = new LogcatPanel(project);
+    LogcatPanel logcatPanel = new LogcatPanel(project, toolWindow);
     AndroidLogcatView logcatView = logcatPanel.getLogcatView();
 
-    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new MyToolWindowManagerListener(project, logcatView));
-    project.getMessageBus().connect(project).subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(logcatView));
+    MessageBusConnection busConnection = project.getMessageBus().connect(toolWindow.getDisposable());
+    busConnection.subscribe(ToolWindowManagerListener.TOPIC, new MyToolWindowManagerListener(project, logcatView));
+    busConnection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(logcatView));
 
     final ContentManager contentManager = toolWindow.getContentManager();
     Content c = contentManager.getFactory().createContent(logcatPanel, "", true);
@@ -123,7 +124,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     }, EdtExecutorService.getInstance());
   }
 
-  private static final class MyToolWindowManagerListener extends ToolWindowManagerAdapter {
+  private static final class MyToolWindowManagerListener implements ToolWindowManagerListener {
     private final Project myProject;
     private final AndroidLogcatView myLogcatView;
 
@@ -135,8 +136,8 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     }
 
     @Override
-    public void stateChanged() {
-      ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow("Logcat");
+    public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
+      ToolWindow window = toolWindowManager.getToolWindow("Logcat");
 
       if (window == null) {
         return;

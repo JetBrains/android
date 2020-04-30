@@ -90,6 +90,8 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
           RestartPolicy.EACH_TEST -> true
           RestartPolicy.TEST_FAILURE -> failure != null || ideError
           RestartPolicy.IDE_ERROR_OR_JUNIT_TIMEOUT -> failure?.exception is TestTimedOutException || ideError
+          RestartPolicy.JUNIT_TIMEOUT -> failure?.exception is TestTimedOutException
+          RestartPolicy.NEVER -> false
         }
         if (shouldRestart) {
           closeIdeAndStop()

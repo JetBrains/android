@@ -44,8 +44,6 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl
 import com.android.tools.idea.gradle.dsl.model.notifications.CircularApplication
 import com.google.common.collect.ImmutableMap
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf
@@ -357,7 +355,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testGetVariables() {
-    assumeTrue("no ext block in KotlinScript", isGroovy)
+    assumeTrue("no ext block in KotlinScript", !isKotlinScript) // TODO(b/154902406)
     writeToBuildFile(TestFile.GET_VARIABLES)
 
     val extModel = gradleBuildModel.ext()
@@ -717,7 +715,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMultipleDependenciesWithFullyQualifiedName() {
-    assumeTrue("b/148939007", isGroovy)
+    assumeTrue("extra[\"foo\"] erroneously shadows val foo in KotlinScript parser", !isKotlinScript) // TODO(b/148939007)
     writeToBuildFile(TestFile.MULTIPLE_DEPENDENCIES_WITH_FULLY_QUALIFIED_NAME)
 
     val extModel = gradleBuildModel.ext()
@@ -750,7 +748,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMultipleTypeDependenciesWithFullyQualifiedName() {
-    assumeTrue("b/148939007", isGroovy)
+    assumeTrue("extra[\"foo\"] erroneously shadows val foo in KotlinScript parser", !isKotlinScript) // TODO(b/148939007)
     writeToBuildFile(TestFile.MULTIPLE_TYPE_DEPENDENCIES_WITH_FULLY_QUALIFIED_NAME)
 
     val extModel = gradleBuildModel.ext()
@@ -1039,6 +1037,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEscapeSetStrings() {
+    assumeTrue("parsing and writing escapes in strings not currently working in KotlinScript", !isKotlinScript) // TODO(b/148939103)
     writeToBuildFile(TestFile.ESCAPE_SET_STRINGS)
     val buildModel = gradleBuildModel
 
@@ -1069,6 +1068,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testQuotesInString() {
+    assumeTrue("parsing and writing escaped quotes not currently working in KotlinScript", !isKotlinScript) // TODO(b/148939103)
     writeToBuildFile(TestFile.QUOTES_IN_STRING)
     val buildModel = gradleBuildModel
 
@@ -1100,7 +1100,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetBothStringTypes() {
-    assumeTrue("only one String type in KotlinScript", isGroovy)
+    isIrrelevantForKotlinScript("only one String type in KotlinScript")
     writeToBuildFile(TestFile.SET_BOTH_STRING_TYPES)
     val buildModel = gradleBuildModel
 
@@ -1188,7 +1188,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testQuotesWithinQuotes() {
-    assumeTrue("b/148939103", isGroovy)
+    assumeTrue("parsing and writing escaped quotes not currently working in KotlinScript", !isKotlinScript) // TODO(b/148939103)
     writeToBuildFile(TestFile.QUOTES_WITHIN_QUOTES)
     val buildModel = gradleBuildModel
 
@@ -1453,6 +1453,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteAndResetKTSArrayExpressionProperty() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.DELETE_AND_RESET_KTS_ARRAY_EXPRESSION_PROPERTY)
     val buildModel = gradleBuildModel
 
@@ -1595,6 +1596,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteArrayExpressionPropertyInList() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.DELETE_ARRAY_EXPRESSION_PROPERTY_IN_LIST)
 
     val buildModel = gradleBuildModel
@@ -1657,6 +1659,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetNewValueInMapForKTSArrayExpression() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.SET_NEW_VALUE_IN_MAP_FOR_ARRAY_EXPRESSION)
 
     val buildModel = gradleBuildModel
@@ -1673,6 +1676,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetNewValueInEmptyMapForKTSArrayExpression() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.SET_NEW_VALUE_IN_EMPTY_MAP_FOR_KTS_ARRAY_EXPRESSION)
     val buildModel = gradleBuildModel
 
@@ -1690,6 +1694,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeletePropertyInMapForKTSArrayExpression() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.DELETE_PROPERTY_IN_MAP_FOR_KTS_ARRAY_EXPRESSION)
 
     val buildModel = gradleBuildModel
@@ -1708,6 +1713,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteMapItemToAndSetFromEmptyForKTSArrayExpression() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.DELETE_MAP_ITEM_TO_AND_SET_FROM_EMPTY_FOR_KTS_ARRAY_EXPRESSION)
 
     val buildModel = gradleBuildModel
@@ -1726,6 +1732,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetMapValueToLiteralForKTSArrayExpression() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.SET_MAP_VALUE_TO_LITERAL_FOR_KTS_ARRAY_EXPRESSION)
 
     val buildModel = gradleBuildModel
@@ -1744,6 +1751,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteToEmptyMapForKTSArrayExpression() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.DELETE_TO_EMPTY_MAP_FOR_KTS_ARRAY_EXPRESSION)
 
     val buildModel = gradleBuildModel
@@ -1762,6 +1770,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddExistingMapPropertyForKTSArrayExpression() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.ADD_EXISTING_MAP_PROPERTY_FOR_KTS_ARRAY_EXPRESSION)
 
     val buildModel = gradleBuildModel
@@ -1780,6 +1789,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteMapPropertyForKTSArrayExpression() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.DELETE_MAP_PROPERTY_FOR_KTS_ARRAY_EXPRESSION)
 
     val buildModel = gradleBuildModel
@@ -1826,6 +1836,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteEmptyMapForKTSArrayExpression() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.DELETE_EMPTY_MAP_FOR_KTS_ARRAY_EXPRESSION)
 
     val buildModel = gradleBuildModel
@@ -1844,6 +1855,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetLiteralToMapValueForKTSArrayExpression() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.SET_LITERAL_TO_MAP_VALUE_FOR_KTS_ARRAY_EXPRESSION)
 
     val buildModel = gradleBuildModel
@@ -1862,6 +1874,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testParseMapInMapForKTSArrayExpression() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.PARSE_MAP_IN_MAP_FOR_KTS_ARRAY_EXPRESSION)
 
     val buildModel = gradleBuildModel
@@ -1880,6 +1893,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMapsInMapForKTSArrayExpression() {
+    arrayExpressionSyntaxTestIsIrrelevantForGroovy()
     writeToBuildFile(TestFile.MAPS_IN_MAP_FOR_KTS_ARRAY_EXPRESSION)
 
     val buildModel = gradleBuildModel
@@ -2602,6 +2616,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
   @Test
   fun testInScopeElement() {
+    assumeTrue("no ext block in KotlinScript", !isKotlinScript) // TODO(b/154902406)
     val childProperties = "prop3 = chickadee"
     val parentProperties = "prop4 = ferret\nnested.prop5 = narwhal"
     writeToBuildFile(TestFile.IN_SCOPE_ELEMENT)
@@ -3074,29 +3089,41 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
 
-    assertThat(extModel.findProperty("prop1").expressionPsiElement!!.text, equalTo("'value'"))
-    assertThat(extModel.findProperty("prop1").fullExpressionPsiElement!!.text, equalTo("'value'"))
+    (if (isGroovy) "'value'" else "\"value\"").let {
+      assertThat(extModel.findProperty("prop1").expressionPsiElement!!.text, equalTo(it))
+      assertThat(extModel.findProperty("prop1").fullExpressionPsiElement!!.text, equalTo(it))
+    }
     assertThat(extModel.findProperty("prop2").expressionPsiElement!!.text, equalTo("25"))
     assertThat(extModel.findProperty("prop2").fullExpressionPsiElement!!.text, equalTo("25"))
     assertThat(extModel.findProperty("prop3").expressionPsiElement!!.text, equalTo("true"))
     assertThat(extModel.findProperty("prop3").fullExpressionPsiElement!!.text, equalTo("true"))
-    assertThat(extModel.findProperty("prop4").expressionPsiElement!!.text, equalTo("[\"key\": 'val']"))
-    assertThat(extModel.findProperty("prop4").fullExpressionPsiElement!!.text, equalTo("[\"key\": 'val']"))
-    assertThat(extModel.findProperty("prop5").expressionPsiElement!!.text, equalTo("['val1', 'val2', \"val3\"]"))
-    assertThat(extModel.findProperty("prop5").fullExpressionPsiElement!!.text, equalTo("['val1', 'val2', \"val3\"]"))
+    (if (isGroovy) "[\"key\": 'val']" else "mapOf(\"key\" to \"val\")").let {
+      assertThat(extModel.findProperty("prop4").expressionPsiElement!!.text, equalTo(it))
+      assertThat(extModel.findProperty("prop4").fullExpressionPsiElement!!.text, equalTo(it))
+    }
+    (if (isGroovy) "['val1', 'val2', \"val3\"]" else "listOf(\"val1\", \"val2\", \"val3\")").let {
+      assertThat(extModel.findProperty("prop5").expressionPsiElement!!.text, equalTo(it))
+      assertThat(extModel.findProperty("prop5").fullExpressionPsiElement!!.text, equalTo(it))
+    }
     assertThat(extModel.findProperty("prop6").expressionPsiElement!!.text, equalTo("25.3"))
     assertThat(extModel.findProperty("prop6").fullExpressionPsiElement!!.text, equalTo("25.3"))
 
     val mapItem = extModel.findProperty("prop4").getMapValue("key")
     val listItem = extModel.findProperty("prop5").getListValue("val2")!!
-    assertThat(mapItem.expressionPsiElement!!.text, equalTo("'val'"))
-    assertThat(mapItem.fullExpressionPsiElement!!.text, equalTo("'val'"))
-    assertThat(listItem.expressionPsiElement!!.text, equalTo("'val2'"))
-    assertThat(listItem.fullExpressionPsiElement!!.text, equalTo("'val2'"))
+    (if (isGroovy) "'val'" else "\"val\"").let {
+      assertThat(mapItem.expressionPsiElement!!.text, equalTo(it))
+      assertThat(mapItem.fullExpressionPsiElement!!.text, equalTo(it))
+    }
+    (if (isGroovy) "'val2'" else "\"val2\"").let {
+      assertThat(listItem.expressionPsiElement!!.text, equalTo(it))
+      assertThat(listItem.fullExpressionPsiElement!!.text, equalTo(it))
+    }
 
     val configModel = buildModel.android().signingConfigs()[0]!!
-    assertThat(configModel.storeFile().expressionPsiElement!!.text, equalTo("'my_file.txt'"))
-    assertThat(configModel.storeFile().fullExpressionPsiElement!!.text, equalTo("file('my_file.txt')"))
+    (if (isGroovy) listOf("'my_file.txt'", "file('my_file.txt')") else listOf("\"my_file.txt\"", "file(\"my_file.txt\")")).let {
+      assertThat(configModel.storeFile().expressionPsiElement!!.text, equalTo(it[0]))
+      assertThat(configModel.storeFile().fullExpressionPsiElement!!.text, equalTo(it[1]))
+    }
     assertThat(configModel.storePassword().expressionPsiElement!!.text, equalTo("\"KSTOREPWD\""))
     assertThat(configModel.storePassword().fullExpressionPsiElement!!.text, equalTo("System.getenv(\"KSTOREPWD\")"))
   }
@@ -3615,6 +3642,10 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
   fun assertSize(expectedSize: Int, list: MutableList<*>?) {
     UsefulTestCase.assertSize(expectedSize, list!!)  // second param is @NotNull as of commit 8bd1b49
+  }
+
+  private fun arrayExpressionSyntaxTestIsIrrelevantForGroovy() {
+    isIrrelevantForGroovy("tests KotlinScript-specific array expression syntax")
   }
 
   enum class TestFile(val path: @SystemDependent String): TestFileName {

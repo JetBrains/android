@@ -23,8 +23,8 @@ import com.android.repository.util.InstallerUtil;
 import com.android.testutils.BazelRunfilesManifestProcessor;
 import com.android.testutils.TestUtils;
 import com.android.testutils.diff.UnifiedDiff;
-import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.intellij.testFramework.TestApplicationManager;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -79,7 +79,7 @@ public class IdeaTestSuiteBase {
     // doesn't fallback to an older application if one was never set, which leaves other tests that
     // call ApplicationManager.getApplication() unexpectedly accessing a disposed application - leading
     // to exceptions if the tests happen to be called in a bad order.
-    IdeaTestApplication.getInstance();
+    TestApplicationManager.getInstance();
   }
 
   public static Path createTmpDir(String p) {

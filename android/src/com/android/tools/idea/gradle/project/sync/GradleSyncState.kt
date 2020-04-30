@@ -208,13 +208,12 @@ open class GradleSyncState @NonInjectable constructor(
    * */
 
   /**
-   * Triggered at the start of a sync which has been started by the given [request], the given [listener] will be notified of the
-   * sync start along with any listeners registered via [subscribe].
+   * Triggered at the start of a sync which has been started by the given [request].
    *
    * This method should only be called by the sync internals.
    * Please use [GradleSyncListener] and [subscribe] if you need to hook into sync.
    */
-  fun syncStarted(request: GradleSyncInvoker.Request, listener: GradleSyncListener?) : Boolean {
+  fun syncStarted(request: GradleSyncInvoker.Request) : Boolean {
     lock.withLock {
       if (isSyncInProgress) {
         LOG.info("Sync already in progress for project '${project.name}'.")

@@ -20,6 +20,7 @@ import com.android.tools.idea.ddms.DevicePanel;
 import com.intellij.execution.ui.RunnerLayoutUi;
 import com.intellij.execution.ui.layout.PlaceInGrid;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.content.Content;
 import icons.StudioIcons.Shell.ToolWindows;
@@ -31,12 +32,12 @@ public final class LogcatPanel extends JBLoadingPanel {
   private final DevicePanel myDevicePanel;
   private final AndroidLogcatView myLogcatView;
 
-  public LogcatPanel(@NotNull Project project) {
+  public LogcatPanel(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     super(new BorderLayout(), project);
 
     DeviceContext context = new DeviceContext();
     myDevicePanel = new DevicePanel(project, context);
-    myLogcatView = new AndroidLogcatView(project, context);
+    myLogcatView = new AndroidLogcatView(project, context, toolWindow.getDisposable());
 
     add(new DeviceAndSearchPanel(myDevicePanel, myLogcatView), BorderLayout.NORTH);
     add(createCenterComponent(project), BorderLayout.CENTER);
@@ -48,7 +49,6 @@ public final class LogcatPanel extends JBLoadingPanel {
 
     Content content = ui.createContent("Android Logcat", myLogcatView.getContentPanel(), "logcat", ToolWindows.LOGCAT, null);
     content.setCloseable(false);
-    content.setDisposer(myLogcatView);
     content.setPreferredFocusableComponent(myDevicePanel.getDeviceComboBox());
     content.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, myLogcatView);
 

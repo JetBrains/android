@@ -150,7 +150,7 @@ class ConfigureModuleDownloadOptionsStep(
     featureTitle.selectAll()
   }
 
-  override fun shouldShow(): Boolean = !model.instantModule.get()
+  override fun shouldShow(): Boolean = !model.isInstant
 
   override fun canGoForward(): ObservableBool = validatorPanel.hasErrors().not()
 

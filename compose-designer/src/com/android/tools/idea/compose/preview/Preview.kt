@@ -83,7 +83,6 @@ import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotifications
-import com.intellij.util.containers.toArray
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
@@ -231,9 +230,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         refresh().invokeOnCompletion {
           ticker.start()
           interactionHandler?.let { it.selected = InteractionMode.INTERACTIVE }
+
+          if (StudioFlags.COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK.get()) {
+            // While in interactive mode, display a small ripple when clicking
+            surface.enableMouseClickDisplay()
+          }
         }
       }
       else { // Disable interactive
+        surface.disableMouseClickDisplay()
         interactionHandler?.let { it.selected = InteractionMode.DEFAULT }
         ticker.stop()
         this.singleElementFilteredProvider.composableMethodFqn = null

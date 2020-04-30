@@ -303,9 +303,7 @@ public class GuiTestRule implements TestRule {
   @NotNull
   public Project openProjectAndWaitForIndexingToFinish(@NotNull String projectDirName) throws Exception {
     File projectDir = copyProjectBeforeOpening(projectDirName);
-    VirtualFile fileToSelect = VfsUtil.findFileByIoFile(projectDir, true);
-    ProjectManager.getInstance().loadAndOpenProject(fileToSelect.getPath());
-
+    ApplicationManager.getApplication().invokeAndWait(() -> ProjectUtil.openOrImport(projectDir.getAbsolutePath(), null, true));
     Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
 
     Project project = ProjectManager.getInstance().getOpenProjects()[0];

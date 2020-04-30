@@ -18,9 +18,9 @@ package com.android.tools.idea.templates
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.actions.NewAndroidComponentAction
+import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel
@@ -179,13 +179,12 @@ class TemplateManager private constructor() {
     val instance = TemplateManager()
 
     private fun updateAction(event: AnActionEvent, actionText: String?, visible: Boolean, disableIfNotReady: Boolean) {
-      val view = event.getData(LangDataKeys.IDE_VIEW)
       val module = event.getData(LangDataKeys.MODULE)
       val facet = module?.androidFacet
       val isProjectReady = facet != null && AndroidModel.get(facet) != null
       event.presentation.apply {
         text = actionText + (" (Project not ready)".takeUnless { isProjectReady } ?: "")
-        isVisible = visible && view != null && facet != null && AndroidModel.isRequired(facet)
+        isVisible = visible && facet != null && AndroidModel.isRequired(facet)
         isEnabled = !disableIfNotReady || isProjectReady
       }
     }

@@ -169,7 +169,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
     result.addAllElements((variableTagNamePairs + importTagTypePairs).mapNotNull { nameToTag ->
       val xmlTag = nameToTag.second ?: return
       val name = nameToTag.first
-      LookupElementBuilder.create(xmlTag, DataBindingUtil.convertToJavaFieldName(name)).withInsertHandler(onCompletionHandler)
+      LookupElementBuilder.create(xmlTag, DataBindingUtil.convertVariableNameToJavaFieldName(name)).withInsertHandler(onCompletionHandler)
     })
 
     JavaPsiFacade.getInstance(project).findPackage(CommonClassNames.DEFAULT_PACKAGE)!!

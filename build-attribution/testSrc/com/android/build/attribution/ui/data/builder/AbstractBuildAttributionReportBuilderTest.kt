@@ -28,10 +28,10 @@ import com.android.build.attribution.data.TasksSharingOutputData
 
 open class AbstractBuildAttributionReportBuilderTest {
 
-  val applicationPlugin = PluginData(PluginData.PluginType.PLUGIN, "com.android.application")
-  val libraryPlugin = PluginData(PluginData.PluginType.PLUGIN, "com.android.library")
-  val pluginA = PluginData(PluginData.PluginType.PLUGIN, "pluginA")
-  val pluginB = PluginData(PluginData.PluginType.PLUGIN, "pluginB")
+  val applicationPlugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "com.android.application")
+  val libraryPlugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "com.android.library")
+  val pluginA = PluginData(PluginData.PluginType.BINARY_PLUGIN, "pluginA")
+  val pluginB = PluginData(PluginData.PluginType.BINARY_PLUGIN, "pluginB")
   val pluginC = PluginData(PluginData.PluginType.UNKNOWN, "pluginC")
   val buildScriptA = PluginData(PluginData.PluginType.SCRIPT, "buildA.gradle")
   val buildScriptB = PluginData(PluginData.PluginType.SCRIPT, "buildB.gradle")

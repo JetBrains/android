@@ -27,7 +27,11 @@ import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE
 import com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER
 import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
 import com.android.tools.profilers.memory.adapters.CaptureObject
+import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
+import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
+import com.android.tools.profilers.memory.chart.MemoryVisualizationView
+import com.intellij.ui.components.JBTabbedPane
 import com.intellij.util.ui.JBEmptyBorder
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -35,6 +39,7 @@ import java.awt.Component
 import java.awt.FlowLayout
 import java.util.stream.Collectors
 import javax.swing.BoxLayout
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
@@ -120,41 +125,106 @@ private class LegacyCapturePanelUi(stageView: MemoryProfilerStageView,
   }
 }
 
-private class CapturePanelUi(private val myStage: MemoryProfilerStage,
-                             heapView: MemoryHeapView,
-                             classGrouping: MemoryClassGrouping,
-                             classifierView: MemoryClassifierView,
-                             filterComponent: FilterComponent,
-                             captureInfoMessage: JLabel)
+/**
+ * Helper class to maintain toolbar components between tabs.
+ * One copy of components is maintained to preserve state and manage the selected heap.
+ * This provides for a seamless user experience when doing things like filtering.
+ * The caveat is components can only be added to one panel at a time. To work around
+ * this a list of toolbar components is collected for each tab. When that tab is activated
+ * the list of components is added to the selected tab.
+ */
+private data class ToolbarComponents(val toolbarPanel: JPanel,
+                                     val components: List<Component>)
+
+private class CapturePanelUi(private val stage: MemoryProfilerStage,
+                             private val heapView: MemoryHeapView,
+                             private val classGrouping: MemoryClassGrouping,
+                             private val classifierView: MemoryClassifierView,
+                             private val filterComponent: FilterComponent,
+                             private val captureInfoMessage: JLabel)
       : JPanel(BorderLayout()) {
-  private val myObserver = AspectObserver()
-  private val myInstanceFilterMenu = MemoryInstanceFilterMenu(myStage)
+  private val observer = AspectObserver()
+  private val instanceFilterMenu = MemoryInstanceFilterMenu(stage)
+  private val toolbarTabPanels = mutableMapOf<String, ToolbarComponents>()
+  private val tabListeners = mutableListOf<CapturePanelTabContainer>()
+  private val visualizationView = MemoryVisualizationView(stage)
+  private var activeTabIndex = 0
 
   init {
-    val toolbar = JPanel(createToolbarLayout()).apply {
-      add(heapView.component)
-      add(classGrouping.component)
-      add(myInstanceFilterMenu.component)
-      add(filterComponent)
-      if (myStage.studioProfilers.ideServices.featureConfig.isLiveAllocationsSamplingEnabled) {
-        add(captureInfoMessage)
-      }
-    }
-
-    // Add the right side toolbar so that it is on top of the truncated |myCaptureInfoMessage|.
-    val toolbarPanel = JPanel(TabularLayout("Fit,*,Fit")).apply {
-      add(toolbar, TabularLayout.Constraint(0, 0))
-      alignmentX = Component.LEFT_ALIGNMENT
-    }
-
     val headingPanel = JPanel().apply {
       layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      add(toolbarPanel)
       add(buildSummaryPanel())
     }
-
     add(headingPanel, BorderLayout.PAGE_START)
-    add(classifierView.component, BorderLayout.CENTER)
+    add(buildDetailsPanel(headingPanel), BorderLayout.CENTER)
+  }
+
+  private fun buildDetailsPanel(headingPanel: JPanel) = JPanel(BorderLayout()).apply {
+    fun refreshPanel() {
+      removeAll()
+      if (stage.selectedCapture is HeapDumpCaptureObject) {
+        val toolbarPanel = JPanel(createToolbarLayout())
+        toolbarDefaults().forEach { toolbarPanel.add(it) }
+        headingPanel.add(buildToolbarPanel(toolbarPanel), 0)
+        add(classifierView.component)
+      }
+      else {
+        add(buildTabPanel(), BorderLayout.CENTER)
+      }
+    }
+    stage.aspect.addDependency(observer).onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, ::refreshPanel)
+    refreshPanel()
+  }
+
+  private fun buildNonTabPanel(toolbar: JPanel, component: JComponent) = JPanel(BorderLayout()).apply {
+    add(buildToolbarPanel(toolbar), BorderLayout.PAGE_START)
+    add(component, BorderLayout.CENTER)
+  }
+
+  // Add the right side toolbar so that it is on top of the truncated |myCaptureInfoMessage|.
+  private fun buildTabPanel() = JBTabbedPane().apply {
+    addTab(this, "Table", classifierView, toolbarDefaults())
+    addTab(this, "Visualization", visualizationView, mutableListOf(visualizationView.toolbarComponents, toolbarCore()).flatten())
+    fun updateTabs() {
+      // do move which panel the tabs bar appears on.
+      tabListeners[activeTabIndex].onSelectionChanged(false)
+      val title = getTitleAt(selectedIndex)
+      val panel = toolbarTabPanels[title]!!.toolbarPanel
+      panel.removeAll()
+      toolbarTabPanels[title]!!.components.forEach { panel.add(it) }
+      tabListeners[selectedIndex].onSelectionChanged(true)
+      activeTabIndex = selectedIndex
+    }
+    addChangeListener { updateTabs() }
+    updateTabs()
+  }
+
+  private fun addTab(tabPane: JBTabbedPane, name: String, tabContainer: CapturePanelTabContainer, toolbarComponents: List<Component>) {
+    toolbarTabPanels[name] = ToolbarComponents(JPanel(createToolbarLayout()), toolbarComponents)
+    tabListeners.add(tabContainer)
+    tabPane.add(name, buildNonTabPanel(toolbarTabPanels[name]!!.toolbarPanel, tabContainer.component))
+  }
+
+  private fun toolbarDefaults() = mutableListOf<Component>().apply {
+    if (!(stage.selectedCapture is NativeAllocationSampleCaptureObject)) {
+      add(heapView.component)
+    }
+    add(classGrouping.component)
+    addAll(toolbarCore())
+  }
+
+  private fun toolbarCore() = mutableListOf<Component>().apply {
+    add(instanceFilterMenu.component)
+    add(filterComponent)
+    if (stage.studioProfilers.ideServices.featureConfig.isLiveAllocationsSamplingEnabled) {
+      add(captureInfoMessage)
+    }
+  }
+
+  // Add the right side toolbar so that it is on top of the truncated |myCaptureInfoMessage|.
+  private fun buildToolbarPanel(toolbar: JPanel) = JPanel(TabularLayout("Fit,*,Fit")).apply {
+    add(toolbar, TabularLayout.Constraint(0, 0))
+    alignmentX = Component.LEFT_ALIGNMENT
   }
 
   private fun buildSummaryPanel() = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
@@ -168,7 +238,9 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
     val totalRetainedSizeLabel = mkLabel("Retained Size")
 
     fun refreshSummaries() {
-      myStage.selectedCapture?.let {
+      stage.selectedCapture?.let {
+        // Hide summary panel for native memory captures.
+        isVisible = !(it is NativeAllocationSampleCaptureObject)
         totalClassLabel.intContent = countClasses(it)
         setLabelSumBy(it, totalCountLabel) { it.totalObjectCount.toLong() }
         setLabelSumBy(it, totalNativeSizeLabel) { it.totalNativeSize }
@@ -187,7 +259,7 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
       }
     }
 
-    myStage.aspect.addDependency(myObserver)
+    stage.aspect.addDependency(observer)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, ::refreshSummaries)
       .onChange(MemoryProfilerAspect.CURRENT_FILTER, ::refreshSummaries)
 
@@ -202,14 +274,14 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
   }
 
   private fun showLeaks() {
-    myStage.selectedCapture?.activityFragmentLeakFilter?.let {
-      myInstanceFilterMenu.component.selectedItem = it
+    stage.selectedCapture?.activityFragmentLeakFilter?.let {
+      instanceFilterMenu.component.selectedItem = it
     }
   }
 
   private fun countClasses(capture: CaptureObject) = // count distinct class Ids across all heap sets
-    capture.heapSets.stream().flatMap {hs ->
-      hs.instancesStream.map{it.classEntry.classId}
+    capture.heapSets.stream().flatMap { hs ->
+      hs.instancesStream.map { it.classEntry.classId }
     }.collect(Collectors.toSet()).size.toLong()
 
   private fun countLeaks(captureObject: CaptureObject): Int? =
@@ -218,6 +290,6 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
       ?.size
 
   private fun setLabelSumBy(capture: CaptureObject, label: StatLabel, prop: (ClassifierSet) -> Long) {
-    label.intContent = capture.heapSets.fold(0L){sum, heapSet -> sum+prop(heapSet)}
+    label.intContent = capture.heapSets.fold(0L) { sum, heapSet -> sum + prop(heapSet) }
   }
 }

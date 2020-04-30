@@ -33,6 +33,7 @@ import com.android.tools.lint.detector.api.LmModuleAndroidLibraryProject;
 import com.android.tools.lint.detector.api.LmModuleProject;
 import com.android.tools.lint.detector.api.Project;
 import com.android.tools.lint.model.LmAndroidLibrary;
+import com.android.tools.lint.model.LmDependency;
 import com.android.tools.lint.model.LmFactory;
 import com.android.tools.lint.model.LmLibrary;
 import com.android.tools.lint.model.LmModule;
@@ -270,9 +271,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
     if (facet != null) {
       LmVariant variant = project.getBuildVariant();
       if (variant != null) {
-        // TODO: use getAll() instead? But the old code only used getDirect.
-        List<LmLibrary> libraries = variant.getMainArtifact().getDependencies().getDirect();
-        addGradleLibraryProjects(client, files, libraryMap, projects, facet, project, projectMap, dependencies, libraries);
+        List<LmDependency> roots = variant.getMainArtifact().getDependencies().getCompileDependencies().getRoots();
+        addGradleLibraryProjects(client, files, libraryMap, projects, facet, project, projectMap, dependencies, roots);
       }
     }
 
@@ -372,9 +372,10 @@ public class AndroidLintIdeProject extends LintIdeProject {
                                                @NonNull Project project,
                                                @NonNull Map<Project, Module> projectMap,
                                                @NonNull List<Project> dependencies,
-                                               @NonNull List<LmLibrary> libraries) {
+                                               @NonNull List<LmDependency> graphItems) {
     com.intellij.openapi.project.Project ideaProject = facet.getModule().getProject();
-    for (LmLibrary l : libraries) {
+    for (LmDependency dependency : graphItems) {
+      LmLibrary l = dependency.findLibrary();
       if (!(l instanceof LmAndroidLibrary)) {
         continue;
       }
@@ -382,7 +383,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
       Project p = libraryMap.get(library);
       if (p == null) {
         File dir = library.getFolder();
-        p = new LintGradleLibraryProject(client, dir, dir, library);
+        p = new LintGradleLibraryProject(client, dir, dir, dependency, library);
         p.setIdeaProject(ideaProject);
         libraryMap.put(library, p);
         projectMap.put(p, facet.getModule());
@@ -652,8 +653,9 @@ public class AndroidLintIdeProject extends LintIdeProject {
     private LintGradleLibraryProject(@NonNull LintClient client,
                                      @NonNull File dir,
                                      @NonNull File referenceDir,
+                                     @NonNull LmDependency dependency,
                                      @NonNull LmAndroidLibrary library) {
-      super(client, dir, referenceDir, library);
+      super(client, dir, referenceDir, dependency, library);
     }
 
     @NotNull

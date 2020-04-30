@@ -151,7 +151,7 @@ class TestProjectSystem @JvmOverloads constructor(
         return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(PathString(primaryManifest.path))
       }
 
-      override fun getApplicationIdProvider(runConfiguration: RunConfiguration?): ApplicationIdProvider {
+      override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
         return object : ApplicationIdProvider {
           override fun getPackageName(): String = this@TestAndroidModuleSystemImpl.getPackageName()!!
           override fun getTestPackageName(): String? = null

@@ -31,7 +31,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.components.JBLoadingPanel
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics
@@ -50,6 +50,8 @@ import java.awt.image.MemoryImageSource
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingConstants
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -68,12 +70,12 @@ class EmulatorView(
   cropFrame: Boolean
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
-  private var connectionStateLabel: JLabel
+  private var disconnectedStateLabel: JLabel
   private var screenshotFeed: Cancelable? = null
   private var displayImage: Image? = null
   private var displayWidth = 0
   private var displayHeight = 0
-  private var skinLayout: ScaledSkinLayout? = null
+  private var skinLayout: SkinLayout? = null
   private var displayRotationInternal = SkinRotation.PORTRAIT
   private val displayTransform = AffineTransform()
   @Volatile
@@ -82,9 +84,9 @@ class EmulatorView(
   init {
     Disposer.register(parentDisposable, this)
 
-    connectionStateLabel = JLabel(getConnectionStateText(ConnectionState.NOT_INITIALIZED))
-    connectionStateLabel.border = JBUI.Borders.emptyLeft(20)
-    connectionStateLabel.font = connectionStateLabel.font.deriveFont(connectionStateLabel.font.size * 1.2F)
+    disconnectedStateLabel = JLabel()
+    disconnectedStateLabel.horizontalAlignment = SwingConstants.CENTER
+    disconnectedStateLabel.font = disconnectedStateLabel.font.deriveFont(disconnectedStateLabel.font.size * 1.2F)
 
     isFocusable = true // Must be focusable to receive keyboard events.
 
@@ -200,10 +202,10 @@ class EmulatorView(
     val newScale: Double
     when (zoomType) {
       ZoomType.IN -> {
-        newScale = min(ZoomType.zoomIn((scale * 100).roundToInt()) / 100.0, MAX_SCALE)
+        newScale = min(ZoomType.zoomIn((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0, MAX_SCALE)
       }
       ZoomType.OUT -> {
-        newScale = max(ZoomType.zoomOut((scale * 100).roundToInt()) / 100.0, computeScaleToFitInParent())
+        newScale = max(ZoomType.zoomOut((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0, computeScaleToFitInParent())
       }
       ZoomType.ACTUAL -> {
         newScale = 1.0
@@ -227,12 +229,12 @@ class EmulatorView(
   }
 
   private fun computeScaleToFit(actualSize: Dimension, availableSize: Dimension): Double {
-    return min(availableSize.width.toDouble() / actualSize.width, availableSize.height.toDouble() / actualSize.height)
+    val scale = min(availableSize.width.toDouble() / actualSize.width, availableSize.height.toDouble() / actualSize.height)
+    return if (scale <= 1.0) scale else floor(scale)
   }
 
   private fun computeScaledSize(scale: Double, rotation: SkinRotation): Dimension {
-    val size = computeActualSize(rotation)
-    return Dimension((size.width * scale).roundToInt(), (size.height * scale).roundToInt())
+    return computeActualSize(rotation).scaled(scale)
   }
 
   private fun computeActualSize(rotation: SkinRotation): Dimension {
@@ -241,7 +243,7 @@ class EmulatorView(
       computeRotatedDisplaySize(emulatorConfig, rotation)
     }
     else {
-      skin.getRotatedSkinSize(rotation)
+      skin.getRotatedFrameSize(rotation)
     }
   }
 
@@ -256,7 +258,7 @@ class EmulatorView(
 
   private fun sendMouseEvent(x: Int, y: Int, button: Int) {
     val skin = skinLayout ?: return // Null skinLayout means that Emulator screen is not displayed.
-    val skinSize = skin.skinSize
+    val frameRect = skin.frameRectangle
     val baseX: Int
     val baseY: Int
     if (cropFrame) {
@@ -264,8 +266,8 @@ class EmulatorView(
       baseY = (height - displayHeight) / 2
     }
     else {
-      baseX = (width - skinSize.width) / 2 + skin.displayRect.x
-      baseY = (height - skinSize.height) / 2 + skin.displayRect.y
+      baseX = (width - frameRect.width) / 2 - frameRect.x
+      baseY = (height - frameRect.height) / 2 - frameRect.y
     }
     val normalizedX = (x - baseX).toDouble() / displayWidth - 0.5  // X relative to display center in [-0.5, 0.5) range.
     val normalizedY = (y - baseY).toDouble() / displayHeight - 0.5 // Y relative to display center in [-0.5, 0.5) range.
@@ -310,26 +312,29 @@ class EmulatorView(
 
   private fun updateConnectionState(connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
-      remove(connectionStateLabel)
+      remove(disconnectedStateLabel)
       if (isVisible) {
         requestScreenshotFeed()
       }
     }
-    else {
+    else if (connectionState == ConnectionState.DISCONNECTED) {
       displayImage = null
-      connectionStateLabel.text = getConnectionStateText(connectionState)
-      add(connectionStateLabel)
+      disconnectedStateLabel.text = "Disconnected from the Emulator"
+      add(disconnectedStateLabel)
     }
     revalidate()
     repaint()
   }
 
-  private fun getConnectionStateText(connectionState: ConnectionState): String {
-    return when (connectionState) {
-      ConnectionState.CONNECTED -> "Connected"
-      ConnectionState.DISCONNECTED -> "Disconnected from the Emulator"
-      else -> "Connecting to the Emulator"
+  private fun findLoadingPanel(): JBLoadingPanel? {
+    var component = parent
+    while (component != null) {
+      if (component is JBLoadingPanel) {
+        return component
+      }
+      component = component.parent
     }
+    return null
   }
 
   override fun dispose() {
@@ -342,34 +347,24 @@ class EmulatorView(
 
     val displayImage = displayImage ?: return
     val skin = skinLayout ?: return
-    val skinSize = skin.skinSize
-    val baseX: Int
-    val baseY: Int
+    val frameRect = skin.frameRectangle
+    val displayX: Int
+    val displayY: Int
     if (cropFrame) {
-      baseX = (width - displayWidth) / 2 - skin.displayRect.x
-      baseY = (height - displayHeight) / 2 - skin.displayRect.y
+      displayX = (width - displayWidth) / 2
+      displayY = (height - displayHeight) / 2
     }
     else {
-      baseX = (width - skinSize.width) / 2
-      baseY = (height - skinSize.height) / 2
+      displayX = (width - frameRect.width) / 2 - frameRect.x
+      displayY = (height - frameRect.height) / 2 - frameRect.y
     }
 
     g as Graphics2D
-    // Draw background.
-    val background = skin.background
-    if (background != null) {
-      displayTransform.setToTranslation((baseX + background.x).toDouble(), (baseY + background.y).toDouble())
-      g.drawImage(background.image, displayTransform, null)
-    }
     // Draw display.
-    displayTransform.setToTranslation((baseX + skin.displayRect.x).toDouble(), (baseY + skin.displayRect.y).toDouble())
+    displayTransform.setToTranslation(displayX.toDouble(), displayY.toDouble())
     g.drawImage(displayImage, displayTransform, null)
-    // Draw mask.
-    val mask = skin.mask
-    if (mask != null) {
-      displayTransform.setToTranslation((baseX + mask.x).toDouble(), (baseY + mask.y).toDouble())
-      g.drawImage(mask.image, displayTransform, null)
-    }
+
+    skin.drawFrameAndMask(displayX, displayY, g)
   }
 
   private fun requestScreenshotFeed() {
@@ -466,7 +461,7 @@ class EmulatorView(
     private fun updateSkinAndDisplayImage() {
       val screenshot = screenshotForSkinUpdate.getAndSet(null) ?: return
       screenshot.skinLayout = emulator.skinDefinition?.createScaledLayout(displayShape.width, displayShape.height, displayShape.rotation) ?:
-                              ScaledSkinLayout(Dimension(displayShape.width, displayShape.height))
+                              SkinLayout(Dimension(displayShape.width, displayShape.height))
       updateDisplayImageAsync(screenshot)
     }
 
@@ -493,9 +488,10 @@ class EmulatorView(
       }
       if (skinLayout == null) {
         // Create a skin layout without a device frame.
-        skinLayout = ScaledSkinLayout(Dimension(w, h))
+        skinLayout = SkinLayout(Dimension(w, h))
       }
 
+      val firstTime = displayImage == null
       displayRotationInternal = screenshot.rotation
       displayWidth = displayShape.width
       displayHeight = displayShape.height
@@ -512,6 +508,11 @@ class EmulatorView(
       else {
         imageSource.newPixels(screenshot.pixels, ColorModel.getRGBdefault(), 0, w)
       }
+
+      if (firstTime) {
+        findLoadingPanel()?.run { stopLoading() }
+      }
+
       repaint()
     }
   }
@@ -519,7 +520,7 @@ class EmulatorView(
   private class Screenshot(emulatorImage: ImageMessage) {
     val shape: DisplayShape
     val pixels: IntArray
-    var skinLayout: ScaledSkinLayout? = null
+    var skinLayout: SkinLayout? = null
     val width: Int
       get() = shape.width
     val height: Int
@@ -538,6 +539,8 @@ class EmulatorView(
 
   companion object {
     private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
+    @JvmStatic
+    private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
 
     @JvmStatic
     private val LOG = Logger.getInstance(EmulatorView::class.java)

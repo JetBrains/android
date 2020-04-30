@@ -73,13 +73,13 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
-    List<AbstractTreeNode> children = new ArrayList<>();
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
     ProjectViewDirectoryHelper projectViewDirectoryHelper = ProjectViewDirectoryHelper.getInstance(myProject);
     AndroidProjectTreeBuilder treeBuilder = (AndroidProjectTreeBuilder)myProjectViewPane.getTreeBuilder();
 
     for (PsiDirectory directory : getSourceFolders()) {
-      Collection<AbstractTreeNode> directoryChildren = projectViewDirectoryHelper.getDirectoryChildren(directory, getSettings(), true);
+      Collection<AbstractTreeNode<?>> directoryChildren = projectViewDirectoryHelper.getDirectoryChildren(directory, getSettings(), true);
 
       children.addAll(annotateWithSourceProvider(directoryChildren));
 
@@ -91,8 +91,8 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   }
 
   @NotNull
-  private Collection<AbstractTreeNode> annotateWithSourceProvider(@NotNull Collection<AbstractTreeNode> folderChildren) {
-    List<AbstractTreeNode> children = new ArrayList<>(folderChildren.size());
+  private Collection<AbstractTreeNode<?>> annotateWithSourceProvider(@NotNull Collection<AbstractTreeNode<?>> folderChildren) {
+    List<AbstractTreeNode<?>> children = new ArrayList<>(folderChildren.size());
     assert myProject != null;
     for (AbstractTreeNode child : folderChildren) {
       if (child instanceof PsiDirectoryNode) {

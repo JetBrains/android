@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import static com.android.tools.idea.common.property.PropertiesManager.UPDATE_DELAY_MSECS;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
 import com.android.tools.idea.common.editor.ActionUtils;
@@ -32,6 +31,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTreeUI;
@@ -93,6 +93,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
                                                      DataProvider {
+  private  final static int UPDATE_DELAY_MSECS = 250;
+
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
   private final NlTreeBadgeHandler myBadgeHandler;
@@ -105,7 +107,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Nullable private Rectangle myInsertionRowBounds;
   @Nullable private Rectangle myInsertionReceiverBounds;
   @Nullable private NlDesignSurface mySurface;
-
 
   public NlComponentTree(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
     mySelectionIsUpdating = new AtomicBoolean(false);
@@ -209,6 +210,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         action.registerCustomShortcutSet(new CustomShortcutSet(newShortcuts.toArray(Shortcut.EMPTY_ARRAY)), this);
       }
     }
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public MergingUpdateQueue getUpdateQueue() {
+    return myUpdateQueue;
   }
 
   @Nullable

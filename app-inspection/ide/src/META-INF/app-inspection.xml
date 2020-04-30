@@ -16,11 +16,11 @@
 <idea-plugin>
   <depends>org.intellij.intelliLang</depends>
   <extensions defaultExtensionNs="com.intellij">
-    <facet.toolWindow id="Android App Inspection"
+    <!-- TODO(b/152556591): Rename back to "App Inspection" -->
+    <facet.toolWindow id="Database Inspector"
                       facetIdList="android,apk"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR"
-                      conditionClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
                       factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"/>
     <applicationService serviceImplementation="com.android.tools.idea.appinspection.ide.AppInspectionHostService"/>
   </extensions>>

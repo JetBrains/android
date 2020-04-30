@@ -47,6 +47,7 @@ import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
@@ -55,7 +56,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -63,6 +63,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.android.util.AndroidUtils
@@ -105,19 +106,24 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val language = OptionalValueProperty<Language>()
   override val bytecodeLevel = OptionalValueProperty<BytecodeLevel>(getInitialBytecodeLevel())
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
-    run {
-      assert(!::project.isInitialized)
-      val projectName = applicationName.get()
-      val projectLocation = projectLocation.get()
-      project = GradleProjectImporter.getInstance().createProject(projectName, File(projectLocation))
-      AndroidNewProjectInitializationStartupActivity.setProjectInitializer(project) {
-        logger.info("Rendering a new project.")
-        NonProjectFileWritingAccessProvider.disableChecksDuring {
-          renderer(project)
-        }
+    assert(!::project.isInitialized)
+    val projectName = applicationName.get()
+    val projectLocation = projectLocation.get()
+    val projectBaseDirectory = File(projectLocation)
+    project = GradleProjectImporter.getInstance().createProject(projectName, projectBaseDirectory)
+    AndroidNewProjectInitializationStartupActivity.setProjectInitializer(project) {
+      logger.info("Rendering a new project.")
+      NonProjectFileWritingAccessProvider.disableChecksDuring {
+        renderer(project)
       }
-      ProjectManagerEx.getInstanceEx().openProject(project)
     }
+
+    val openProjectTask = OpenProjectTask(
+      project = project,
+      isNewProject = false,  // We have already created a new project.
+      forceOpenInNewFrame = true
+    )
+    PlatformProjectOpenProcessor.openExistingProject(projectBaseDirectory.toPath(), projectBaseDirectory.toPath(), openProjectTask)
   }
   override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(true)
 

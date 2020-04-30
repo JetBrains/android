@@ -18,6 +18,7 @@ package com.android.tools.idea.run.editor;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.SpecificActivityLocator;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -43,7 +44,8 @@ public class SpecificActivityLaunchTest extends AndroidGradleTestCase {
 
   public void testGetLaunchTask() {
     SpecificActivityLaunch.State state = new SpecificActivityLaunch.State();
-    LaunchTask launchTask = state.getLaunchTask("applicationId", myAndroidFacet, startActivityFlagsProvider, profilerState);
+    ApkProvider apkProvider = new NoApksProvider();
+    LaunchTask launchTask = state.getLaunchTask("applicationId", myAndroidFacet, startActivityFlagsProvider, profilerState, apkProvider);
     assertNotNull(launchTask);
   }
 

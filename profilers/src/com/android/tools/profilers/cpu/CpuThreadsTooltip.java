@@ -36,8 +36,8 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
   @NotNull private final Timeline myTimeline;
 
   @Nullable private String myThreadName;
-  @Nullable private DataSeries<CpuProfilerStage.ThreadState> mySeries;
-  @Nullable private CpuProfilerStage.ThreadState myThreadState;
+  @Nullable private DataSeries<ThreadState> mySeries;
+  @Nullable private ThreadState myThreadState;
   private long myDurationUs;
 
   public CpuThreadsTooltip(@NotNull Timeline timeline) {
@@ -62,11 +62,11 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
     // We could get data for [tooltipRange.getMin() - buffer, tooltipRange.getMin() - buffer],
     // However it is tricky to come up with the buffer duration, a thread state can be longer than any buffer.
     // So, lets get data what the user sees and extract the hovered state.
-    List<SeriesData<CpuProfilerStage.ThreadState>> series = mySeries.getDataForRange(myTimeline.getViewRange());
+    List<SeriesData<ThreadState>> series = mySeries.getDataForRange(myTimeline.getViewRange());
 
     int threadStateIndex = Collections.binarySearch(
       series,
-      new SeriesData<CpuProfilerStage.ThreadState>((long)tooltipRange.getMin(), null), // Dummy object so we can compare.
+      new SeriesData<ThreadState>((long)tooltipRange.getMin(), null), // Dummy object so we can compare.
       Comparator.comparingDouble(seriesData -> seriesData.x)
     );
     // Collections.binarySearch returns (-(insertion point)-1) if not found, in which case we want to find the largest value smaller than
@@ -75,7 +75,7 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
       threadStateIndex = -threadStateIndex - 2;
     }
     if (threadStateIndex >= 0) {
-      SeriesData<CpuProfilerStage.ThreadState> currentState = series.get(threadStateIndex);
+      SeriesData<ThreadState> currentState = series.get(threadStateIndex);
       myThreadState = currentState.value;
       // If the state is not the last of the list, calculate the duration from the difference between the current and the next timestamps
       // TODO(b/80240220): Calculate the duration of the last state, unless it's in progress.
@@ -87,7 +87,7 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
     changed(Aspect.THREAD_STATE);
   }
 
-  public void setThread(@Nullable String threadName, @Nullable DataSeries<CpuProfilerStage.ThreadState> stateSeries) {
+  public void setThread(@Nullable String threadName, @Nullable DataSeries<ThreadState> stateSeries) {
     myThreadName = threadName;
     mySeries = stateSeries;
     updateThreadState();
@@ -99,7 +99,7 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
   }
 
   @Nullable
-  CpuProfilerStage.ThreadState getThreadState() {
+  ThreadState getThreadState() {
     return myThreadState;
   }
 

@@ -16,36 +16,35 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker;
+import com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
+import java.util.ArrayList;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
 
 import static com.android.builder.model.SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW;
+import static com.android.repository.Revision.parseRevision;
+import static com.android.sdklib.repository.meta.DetailsTypes.getBuildToolsPath;
+import static com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueCheckerKt.doesAndroidGradlePluginPackageBuildTools;
 
 class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
-  @NotNull private final SdkBuildToolsTooLowErrorHandler myErrorHandler;
-
-  BuildToolsTooLowReporter() {
-    this(SdkBuildToolsTooLowErrorHandler.getInstance());
-  }
-
-  @VisibleForTesting
-  BuildToolsTooLowReporter(@NotNull SdkBuildToolsTooLowErrorHandler errorHandler) {
-    myErrorHandler = errorHandler;
-  }
 
   @Override
   int getSupportedIssueType() {
@@ -64,7 +63,42 @@ class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
       return ImmutableList.of();
     }
 
+    return getQuickFixHyperlinks(minimumVersion, affectedModules, buildFileMap);
+  }
 
-    return myErrorHandler.getQuickFixHyperlinks(minimumVersion, affectedModules, buildFileMap);
+  @NotNull
+  public List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull String minimumVersion,
+                                                           @NotNull List<Module> affectedModules,
+                                                           @NotNull Map<Module, VirtualFile> buildFileMap) {
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+    boolean buildToolInstalled = false;
+
+    AndroidSdkHandler sdkHandler = null;
+    AndroidSdkData androidSdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+    if (androidSdkData != null) {
+      sdkHandler = androidSdkData.getSdkHandler();
+    }
+
+    if (sdkHandler != null) {
+      ProgressIndicator progress = new StudioLoggerProgressIndicator(SdkBuildToolsTooLowIssueChecker.class);
+      RepositoryPackages packages = sdkHandler.getSdkManager(progress).getPackages();
+      LocalPackage buildTool = packages.getLocalPackages().get(getBuildToolsPath(parseRevision(minimumVersion)));
+      buildToolInstalled = buildTool != null;
+    }
+
+
+    List<VirtualFile> buildFiles =
+      affectedModules.stream().map(m -> buildFileMap.get(m)).filter(Objects::nonNull).collect(Collectors.toList());
+
+    if (!buildToolInstalled) {
+      hyperlinks
+        .add(new InstallBuildToolsHyperlink(minimumVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(affectedModules)));
+    }
+    else if (!buildFiles.isEmpty()) {
+      hyperlinks
+        .add(new FixBuildToolsVersionHyperlink(minimumVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(affectedModules)));
+    }
+
+    return hyperlinks;
   }
 }

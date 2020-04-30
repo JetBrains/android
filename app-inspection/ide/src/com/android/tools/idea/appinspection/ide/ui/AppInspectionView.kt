@@ -20,9 +20,9 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
-import com.android.tools.idea.appinspection.api.ProcessDescriptor
+import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
-import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
+import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
@@ -32,21 +32,24 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.intellij.ide.ActivityTracker
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
 import java.awt.Dimension
-import java.awt.event.ItemEvent
 import java.util.concurrent.CancellationException
 import javax.swing.JPanel
 import javax.swing.JSeparator
@@ -65,6 +68,10 @@ class AppInspectionView(
 
   @VisibleForTesting
   val inspectorTabs = CommonTabbedPane()
+
+  @VisibleForTesting
+  val processModel: AppInspectionProcessModel
+
   private val noInspectorsMessage =
     JPanel(BorderLayout()).apply {
       add(JBLabel("Please select or launch a process to continue.", SwingConstants.CENTER).apply {
@@ -92,28 +99,26 @@ class AppInspectionView(
 
   init {
     component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
+    val edtExecutor = EdtExecutorService.getInstance()
+    processModel = AppInspectionProcessModel(edtExecutor, appInspectionDiscoveryHost, getPreferredProcesses)
+    Disposer.register(this, processModel)
+    val group = DefaultActionGroup().apply { add(SelectProcessAction(processModel)) }
+    val toolbar = ActionManager.getInstance().createActionToolbar("AppInspection", group, true)
+    toolbar.setTargetComponent(component)
+    component.add(toolbar.component, TabularLayout.Constraint(0, 0))
 
-    val comboBoxModel = AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost, getPreferredProcesses,
-                                                            AppInspectionAnalyticsTrackerService.getInstance(project))
-    Disposer.register(this, comboBoxModel)
-
-    val inspectionProcessesComboBox = AppInspectionProcessesComboBox(comboBoxModel)
-    val toolbar = JPanel(BorderLayout())
-    toolbar.add(inspectionProcessesComboBox, BorderLayout.WEST)
-    component.add(toolbar, TabularLayout.Constraint(0, 0))
     component.add(JSeparator().apply {
       minimumSize = Dimension(Int.MAX_VALUE, JBUI.scale(2))
       preferredSize = minimumSize
     }, TabularLayout.Constraint(1, 0))
     component.add(inspectorPanel, TabularLayout.Constraint(2, 0))
 
-    inspectionProcessesComboBox.addItemListener { e ->
-      if (e.item is ProcessDescriptor) {
-        if (e.stateChange == ItemEvent.SELECTED) {
-          populateTabs(e)
-        } else if (e.stateChange == ItemEvent.DESELECTED) {
-          clearTabs()
-        }
+    processModel.addSelectedProcessListeners(edtExecutor) {
+      // Force a UI update NOW instead of waiting to poll.
+      ActivityTracker.getInstance().inc()
+      clearTabs()
+      processModel.selectedProcess?.let {
+        populateTabs(it)
       }
     }
     updateUi()
@@ -127,8 +132,8 @@ class AppInspectionView(
   }
 
   @UiThread
-  private fun populateTabs(itemEvent: ItemEvent) {
-    currentProcess = itemEvent.item as ProcessDescriptor
+  private fun populateTabs(process: ProcessDescriptor) {
+    currentProcess = process
     launchInspectorTabsForCurrentProcess()
     updateUi()
   }

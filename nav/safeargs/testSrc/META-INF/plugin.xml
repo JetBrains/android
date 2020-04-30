@@ -25,4 +25,12 @@
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/safeargs.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceInterface="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTracker"
+                    serviceImplementation="com.android.tools.idea.nav.safeargs.tracker.TestSafeArgsTracker"
+                    overrides="true"/>
+  </extensions>
+
 </idea-plugin>

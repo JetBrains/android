@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +86,17 @@ public final class ModuleClassLoader extends RenderClassLoader {
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0)
   );
 
+  /**
+   * A list of packages. Classes from these packages should be reloaded by this ClassLoader from the external jars
+   * in oppose to reusing those from the parent (studio) ClassLoader. This is done in order to prevent loading
+   * from a library with undesired version (which studio might depend on) or to make sure the defining ClassLoader
+   * of a Class is ModuleClassLoader (needed for e.g. coroutines in MainDispatcherLoader#loadMainDispatcher).
+   */
+  private static final String DEFAULT_OVERRIDE_MODULE_PACKAGES = "android.support.constraint.solver,kotlinx.coroutines,kotlin.coroutines";
+  private static final String[] OVERRIDE_MODULE_PACKAGES =
+    Arrays.stream(System.getProperty("android.module.override.packages", DEFAULT_OVERRIDE_MODULE_PACKAGES).split(","))
+      .map(String::trim).toArray(String[]::new);
+
   /** The base module to use as a render context; the class loader will consult the module dependencies and library dependencies
    * of this class as well to find classes */
   private final WeakReference<Module> myModuleReference;
@@ -112,6 +124,15 @@ public final class ModuleClassLoader extends RenderClassLoader {
     mAdditionalLibraries = getAdditionalLibraries();
 
     registerResources(module);
+  }
+
+  private static boolean isFromOverriddenPackage(@NotNull String fqcn) {
+    for (int i = 0; i < OVERRIDE_MODULE_PACKAGES.length; ++i) {
+      if (fqcn.startsWith(OVERRIDE_MODULE_PACKAGES[i])) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @NotNull
@@ -223,7 +244,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     // FIXME: While testing this approach, we found an issue on some Windows machine where
     // class loading would be broken. Thus, we limit the fix to the impacted solver classes
     // for now, until we can investigate the problem more in depth on Windows.
-    boolean loadFromProject = name.startsWith("android.support.constraint.solver") || name.startsWith("kotlinx.coroutines");
+    boolean loadFromProject = isFromOverriddenPackage(name);
     if (loadFromProject) {
       try {
         // Give priority to loading class from this Class Loader.

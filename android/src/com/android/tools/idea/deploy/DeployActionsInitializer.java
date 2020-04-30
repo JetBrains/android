@@ -28,10 +28,13 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetManagerAdapter;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionPointUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
@@ -41,7 +44,10 @@ import org.jetbrains.annotations.Nullable;
 public class DeployActionsInitializer implements StartupActivity {
   @Override
   public void runActivity(@NotNull Project project) {
-    MessageBusConnection projectConnection = project.getMessageBus().connect(project);
+    Disposable activityDisposable = ExtensionPointUtil.createExtensionDisposable(this, StartupActivity.POST_STARTUP_ACTIVITY);
+    Disposer.register(project, activityDisposable);
+
+    MessageBusConnection projectConnection = project.getMessageBus().connect(activityDisposable);
     projectConnection.subscribe(RunManagerListener.TOPIC, new RunManagerListener() {
       @Override
       public void runConfigurationSelected() {

@@ -17,11 +17,9 @@ package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.mlkit.MlConstants;
-import com.android.tools.mlkit.MlkitNames;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.indexing.DataIndexer;
 import com.intellij.util.indexing.FileBasedIndex;
 import com.intellij.util.indexing.FileBasedIndexExtension;
@@ -51,10 +49,15 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
       @NotNull
       @Override
       public Map<String, MlModelMetadata> map(@NotNull FileContent inputData) {
-        VirtualFile modelFile = inputData.getFile();
-        String className = MlkitNames.computeModelClassName(VfsUtilCore.virtualToIoFile(modelFile));
-        MlModelMetadata modelMetadata = new MlModelMetadata(modelFile.getUrl(), className);
-        return ImmutableMap.of(className, modelMetadata);
+        String fileUrl = inputData.getFile().getUrl();
+        try {
+          MlModelMetadata modelMetadata = new MlModelMetadata(fileUrl);
+          return ImmutableMap.of(fileUrl, modelMetadata);
+        }
+        catch (Exception e) {
+          Logger.getInstance(MlModelFileIndex.class).warn("Failed to index " + fileUrl, e);
+          return Collections.emptyMap();
+        }
       }
     };
   }
@@ -67,15 +70,13 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
       public void save(@NotNull DataOutput out, MlModelMetadata value) throws IOException {
         if (value != null) {
           out.writeUTF(value.myModelFileUrl);
-          out.writeUTF(value.myClassName);
         }
       }
 
       @Override
       public MlModelMetadata read(@NotNull DataInput in) throws IOException {
         String fileUrl = in.readUTF();
-        String className = in.readUTF();
-        return new MlModelMetadata(fileUrl, className);
+        return new MlModelMetadata(fileUrl);
       }
     };
   }
@@ -88,7 +89,7 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
 
   @Override
   public int getVersion() {
-    return 1;
+    return 2;
   }
 
   @NotNull

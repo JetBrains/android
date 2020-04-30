@@ -19,9 +19,11 @@ import com.android.SdkConstants
 import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AlwaysRunTaskData
+import com.android.build.attribution.data.PluginData
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
@@ -93,12 +95,12 @@ class AlwaysRunTasksAnalyzerTest {
 
     assertThat(alwaysRunTasks[0].taskData.getTaskPath()).isEqualTo(":app:dummy")
     assertThat(alwaysRunTasks[0].taskData.taskType).isEqualTo("DummyTask")
-    assertThat(alwaysRunTasks[0].taskData.originPlugin.toString()).isEqualTo("plugin DummyPlugin")
+    assertThat(alwaysRunTasks[0].taskData.originPlugin.toString()).isEqualTo("binary plugin DummyPlugin")
     assertThat(alwaysRunTasks[0].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)
 
     assertThat(alwaysRunTasks[1].taskData.getTaskPath()).isEqualTo(":app:dummy2")
     assertThat(alwaysRunTasks[1].taskData.taskType).isEqualTo("DummyTask")
-    assertThat(alwaysRunTasks[1].taskData.originPlugin.toString()).isEqualTo("plugin DummyPlugin")
+    assertThat(alwaysRunTasks[1].taskData.originPlugin.toString()).isEqualTo("binary plugin DummyPlugin")
     assertThat(alwaysRunTasks[1].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
   }
 
@@ -114,5 +116,87 @@ class AlwaysRunTasksAnalyzerTest {
                                                             BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
     assertThat(buildAttributionManager.analyzersProxy.getAlwaysRunTasks()).isEmpty()
+  }
+
+  @Test
+  fun testAlwaysRunTasksForBuildSrcPlugin() {
+    myProjectRule.load(APP_WITH_BUILDSRC)
+
+    FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "buildSrc", SdkConstants.FN_BUILD_GRADLE), """
+
+    dependencies {
+        implementation gradleApi()
+    }
+
+    apply plugin: "java-gradle-plugin"
+
+    gradlePlugin {
+        plugins {
+            dummy {
+                id = 'dummyId'
+                implementationClass = 'org.example.buildsrc.DummyPlugin'
+            }
+        }
+    }
+    """.trimIndent())
+
+    FileUtil.writeToFile(
+      FileUtils.join(File(myProjectRule.project.basePath!!), "buildSrc", "src", "main", "java", "org", "example", "buildsrc",
+                     "DummyPlugin.java"), """
+      package org.example.buildsrc;
+
+      import org.gradle.api.Plugin;
+      import org.gradle.api.Project;
+
+      class DummyPlugin implements Plugin<Project> {
+          @Override
+          public void apply(Project project) {
+              DummyTask task = project.getTasks().create("dummy", DummyTask.class);
+              task.getOutputs().upToDateWhen((t) -> false);
+          }
+      }
+    """.trimIndent())
+
+    FileUtil.writeToFile(
+      FileUtils.join(File(myProjectRule.project.basePath!!), "buildSrc", "src", "main", "java", "org", "example", "buildsrc",
+                     "DummyTask.java"), """
+      package org.example.buildsrc;
+
+      import org.gradle.api.DefaultTask;
+      import org.gradle.api.tasks.TaskAction;
+
+      public class DummyTask extends DefaultTask {
+          @TaskAction
+          public void run() {
+              // do nothing
+          }
+      }
+    """.trimIndent())
+
+    FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "app", SdkConstants.FN_BUILD_GRADLE), """
+      apply plugin: 'dummyId'
+
+      afterEvaluate { project ->
+          android.applicationVariants.all { variant ->
+              def mergeResourcesTask = tasks.getByPath("merge${"$"}{variant.name.capitalize()}Resources")
+              mergeResourcesTask.dependsOn 'dummy'
+          }
+      }
+    """.trimIndent())
+
+    myProjectRule.invokeTasks("assembleDebug")
+
+    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
+                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+
+    val alwaysRunTasks = buildAttributionManager.analyzersProxy.getAlwaysRunTasks()
+
+    assertThat(alwaysRunTasks).hasSize(1)
+
+    assertThat(alwaysRunTasks[0].taskData.getTaskPath()).isEqualTo(":app:dummy")
+    assertThat(alwaysRunTasks[0].taskData.taskType).isEqualTo("org.example.buildsrc.DummyTask")
+    assertThat(alwaysRunTasks[0].taskData.originPlugin.toString()).isEqualTo("buildSrc plugin dummyId")
+    assertThat(alwaysRunTasks[0].taskData.originPlugin.pluginType).isEqualTo(PluginData.PluginType.BUILDSRC_PLUGIN)
+    assertThat(alwaysRunTasks[0].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
   }
 }

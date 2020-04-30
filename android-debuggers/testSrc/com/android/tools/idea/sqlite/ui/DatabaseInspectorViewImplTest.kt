@@ -26,6 +26,7 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.AddColumns
 import com.android.tools.idea.sqlite.ui.mainView.AddTable
+import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorViewImpl
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteColumn
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
@@ -57,7 +58,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.addDatabaseSchema(database, schema, 0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
 
     // Act
     view.updateDatabaseSchema(database, listOf(RemoveTable(table1.name)))
@@ -75,7 +76,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.addDatabaseSchema(database, schema, 0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
 
     val tableToAdd = SqliteTable("t2", listOf(column1, column2), null, false)
 
@@ -100,7 +101,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.addDatabaseSchema(database, schema, 0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
 
     val column3 = SqliteColumn("c3", SqliteAffinity.TEXT, false, false)
     val table2 = SqliteTable("t1", listOf(column1, column2, column3), null, false)
@@ -121,7 +122,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.addDatabaseSchema(database, schema, 0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
 
     val table2 = SqliteTable("t1", listOf(column1), null, false)
 
@@ -141,7 +142,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.addDatabaseSchema(database, schema, 0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
 
     val newTable = SqliteTable("t2", listOf(column1, column2), null, false)
 
@@ -166,7 +167,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.addDatabaseSchema(database, schema, 0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
 
     val newColumn = SqliteColumn("c3", SqliteAffinity.TEXT, false, false)
     val table1AfterRemove = SqliteTable("t1", listOf(column1), null, false)
@@ -194,7 +195,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.addDatabaseSchema(database, schema, 0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
 
     val tableToAdd = SqliteTable("t2", listOf(column1, column2), null, false)
 
@@ -216,7 +217,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.addDatabaseSchema(database, schema, 0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
 
     val column3 = SqliteColumn("c3", SqliteAffinity.TEXT, false, false)
     val table2 = SqliteTable("t1", listOf(column3, column1, column2), null, false)
@@ -250,7 +251,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
 
     // Act
-    view.addDatabaseSchema(database, SqliteSchema(emptyList()), 0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, SqliteSchema(emptyList()), 0)))
 
     // Assert
     val emptyStateRightPanelAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
@@ -271,7 +272,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
 
     // Act
-    view.addDatabaseSchema(database, SqliteSchema(emptyList()), 0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, SqliteSchema(emptyList()), 0)))
     view.openTab(TabId.AdHocQueryTab(), "new tab", JPanel())
 
     // Assert
@@ -288,7 +289,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val tabId = TabId.AdHocQueryTab()
 
     // Act
-    view.addDatabaseSchema(database, SqliteSchema(emptyList()), 0)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, SqliteSchema(emptyList()), 0)))
     view.openTab(tabId, "new tab", JPanel())
 
     // Assert
@@ -315,8 +316,8 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
 
     // Act
-    view.addDatabaseSchema(database, SqliteSchema(emptyList()), 0)
-    view.removeDatabaseSchema(database)
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(database)))
 
     // Assert
     val emptyStateRightPanelAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
@@ -332,6 +333,24 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
     assertFalse(syncSchemaButtonAfterRemovingDb.isEnabled)
     assertFalse(runSqlButtonAfterRemovingDb.isEnabled)
+  }
+
+  fun testTabsAreNotHiddenIfANewDatabaseIsAdded() {
+    // Prepare
+    val database1 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1"))
+    val database2 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db2"))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database1, SqliteSchema(emptyList()), 0)))
+
+    // Act
+    view.openTab(TabId.AdHocQueryTab(), "tab", JPanel())
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database2, SqliteSchema(emptyList()), 0)))
+
+    // Assert
+    val emptyStateRightPanel = TreeWalker(view.component).descendants().firstOrNull() { it.name == "right-panel-empty-state" }
+    val tabsPanel = TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
+
+    assertNull(emptyStateRightPanel)
+    assertTrue(tabsPanel.isVisible)
   }
 
   private fun assertTreeContainsNodes(tree: Tree, databases: Map<SqliteDatabase, List<SqliteTable>>) {

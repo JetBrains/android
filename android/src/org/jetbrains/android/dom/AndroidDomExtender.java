@@ -66,6 +66,9 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       registrar.registerAttributeChildExtension(xmlName, GenericAttributeValue.class);
       return registrar.registerGenericAttributeValueChildExtension(xmlName, valueClass);
     });
-    SubtagsProcessingUtil.processSubtags(facet, element, registrar::registerCollectionChildrenExtension);
+
+    if (!(element instanceof LayoutElement) || StudioFlags.LAYOUT_XML_MODE.get() != StudioFlags.LayoutXmlMode.CUSTOM_CHILDREN) {
+      SubtagsProcessingUtil.processSubTags(facet, element, true, registrar::registerCollectionChildrenExtension);
+    }
   }
 }

@@ -191,9 +191,10 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
   @Override
   @NotNull
   public List<ClassifierAttribute> getClassifierAttributes() {
-    return Arrays.asList(ClassifierAttribute.LABEL, ClassifierAttribute.ALLOCATIONS, ClassifierAttribute.DEALLOCATIONS,
-                         ClassifierAttribute.ALLOCATIONS_SIZE, ClassifierAttribute.DEALLOCATIONS_SIZE, ClassifierAttribute.TOTAL_COUNT,
-                         ClassifierAttribute.REMAINING_SIZE);
+    return Arrays
+      .asList(ClassifierAttribute.LABEL, ClassifierAttribute.MODULE, ClassifierAttribute.ALLOCATIONS, ClassifierAttribute.DEALLOCATIONS,
+              ClassifierAttribute.ALLOCATIONS_SIZE, ClassifierAttribute.DEALLOCATIONS_SIZE, ClassifierAttribute.TOTAL_COUNT,
+              ClassifierAttribute.REMAINING_SIZE);
   }
 
   @NotNull

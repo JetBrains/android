@@ -106,7 +106,7 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
 
   public void waitTabExist(@NotNull String displayName) {
     ComponentMatcher matcher = Matchers.byText(BaseLabel.class, displayName);
-    GuiTests.waitUntilShowing(myRobot, getContentUI(), new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
+    GuiTests.waitUntilShowing(myRobot, getContentUI().getTabComponent(), new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
       @Override
       protected boolean isMatching(@NotNull BaseLabel component) {
         return matcher.matches(component);
@@ -116,7 +116,7 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
 
   public void waitTabNotExist(@NotNull String displayName) {
     ComponentMatcher matcher = Matchers.byText(BaseLabel.class, displayName);
-    GuiTests.waitUntilGone(myRobot, getContentUI(), new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
+    GuiTests.waitUntilGone(myRobot, getContentUI().getTabComponent(), new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
       @Override
       protected boolean isMatching(@NotNull BaseLabel component) {
         return matcher.matches(component);
@@ -132,14 +132,13 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
   }
 
   private void clickTab(@NotNull String name) {
-    ContentTabLabelFixture buildSpeedTab =
-      ContentTabLabelFixture.findByText(myRobot, getContentUI(), name, 3);
+    ContentTabLabelFixture buildSpeedTab = ContentTabLabelFixture.findByText(myRobot, getContentUI().getTabComponent(), name, 3);
     buildSpeedTab.click();
   }
 
   private void clickCloseTab(@NotNull String name) {
     ContentTabLabelFixture buildSpeedTab =
-      ContentTabLabelFixture.findByText(myRobot, getContentUI(), name, 3);
+      ContentTabLabelFixture.findByText(myRobot, getContentUI().getTabComponent(), name, 3);
     buildSpeedTab.close();
   }
 

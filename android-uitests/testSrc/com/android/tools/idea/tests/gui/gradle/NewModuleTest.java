@@ -105,6 +105,7 @@ public class NewModuleTest {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextToAndroidLibrary()
+      .selectBytecodeLevel(BytecodeLevel.L8.toString())
       .enterModuleName("somelibrary")
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
@@ -144,7 +145,6 @@ public class NewModuleTest {
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextPhoneAndTabletModule()
       .setSourceLanguage(Kotlin)
-      .selectBytecodeLevel(BytecodeLevel.L8.toString())
       .enterModuleName("otherModule")
       .wizard()
       .clickNext()

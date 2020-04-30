@@ -70,13 +70,7 @@
       <headless-implementation-class/>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.uibuilder.editor.LayoutNavigationManager</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlXmlEditors</implementation-class>
     </component>
   </project-components>
 
@@ -178,6 +172,12 @@
 
     <!-- TODO: add shortcuts and group for nav editor, multi-preview, custom view, compose, and split editor -->
 
+
+    <action id="LayoutValidator.run"
+            text="Run Layout Validator"
+            icon="StudioIcons.Shell.ToolWindows.TODO"
+            class="com.android.tools.idea.uibuilder.surface.LayoutValidatorAction">
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">

@@ -245,7 +245,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_SCENEVIEW_TOP_TOOLBAR = Flag.create(
     NELE, "sceneview.top.toolbar", "Enable the per SceneView top toolbar.",
     "Enable the per SceneView top toolbar that displays the SceneView contextual actions.",
-    false);
+    true);
 
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
@@ -266,11 +266,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_NAV_EDITOR_ASSISTANT = Flag.create(
     ASSISTANT, "layout.editor.help.naveditor", "Display Help for Navigation Editor",
     "If enabled, the assistant panel will display helpful guide on using the Navigation Editor.",
-    true);
-
-  public static final Flag<Boolean> NELE_NEW_PROPERTY_PANEL = Flag.create(
-    NELE, "new.property", "Enable the new Property Panel",
-    "Enable the new Property Panel",
     true);
 
   public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
@@ -427,13 +422,20 @@ public final class StudioFlags {
     "adb.connection.status.widget.enabled",
     "Enable and Show ADB Connection Widget",
     "Enables and shows the ADB connection status widget in the status bar",
-    true);
+    false);
 
   public static final Flag<Boolean> ADB_WIRELESS_PAIRING_ENABLED = Flag.create(
     RUNDEBUG,
     "adb.wireless.enabled",
     "Enable pairing devices through ADB wireless",
     "Allow pairing new physical device through QR Code pairing via ADB wireless",
+    false);
+
+  public static final Flag<Boolean> ADB_SERVER_MANAGEMENT_MODE_SETTINGS_VISIBLE = Flag.create(
+    RUNDEBUG,
+    "adb.server.management.mode.settings.visible",
+    "Show ADB server management mode settings",
+    "To allow toggling between automatic or user managed ADB server mode.",
     false);
 
   /**
@@ -466,6 +468,13 @@ public final class StudioFlags {
     DefaultActivityLocatorStrategy.INDEX
   );
 
+  public static final Flag<Boolean> DEFAULT_ACTIVITY_LOCATOR_FROM_APKS = Flag.create(
+    RUNDEBUG,
+    "default.activity.locator.sourceoftruth",
+    "Use APKs as source of truth",
+    "Open APK and parse the manifest in order to discover default activity.",
+    true);
+
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
     RUNDEBUG,
     "feature.on.feature",
@@ -495,6 +504,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> BUILD_ATTRIBUTION_ENABLED = Flag.create(
     GRADLE_IDE, "build.attribution", "Enable build attribution",
     "Enable build attribution.", true);
+  public static final Flag<Boolean> NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED = Flag.create(
+    GRADLE_IDE, "build.analyzer.new.ui.navigation", "Enable new UI navigation model for \"Build Analyzer\"",
+    "Enable new UI navigation model for \"Build Analyzer\".", false);
   public static final Flag<Boolean> KOTLIN_DSL_PARSING = Flag.create(
     GRADLE_IDE, "kotlin.dsl", "Enable parsing for Kotlin build files",
     "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", true);
@@ -561,20 +573,24 @@ public final class StudioFlags {
   //region Embedded Emulator
   private static final FlagGroup EMBEDDED_EMULATOR = new FlagGroup(FLAGS, "embedded.emulator", "Embedded Emulator");
   public static final Flag<Boolean> EMBEDDED_EMULATOR_ENABLED = Flag.create(
-    EMBEDDED_EMULATOR, "embedded.emulator.enabled", "Enable Embedded Emulator",
+    EMBEDDED_EMULATOR, "enabled", "Enable Embedded Emulator",
     "Enables the Embedded Emulator tool window",
     true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
-    EMBEDDED_EMULATOR, "embedded.emulator.trace.grpc.calls", "Enable Emulator gRPC Tracing",
+    EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",
     false);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS = Flag.create(
-    EMBEDDED_EMULATOR, "embedded.emulator.trace.high.volume.grpc.calls", "Enable High Volume Emulator gRPC Tracing",
+    EMBEDDED_EMULATOR, "trace.high.volume.grpc.calls", "Enable High Volume Emulator gRPC Tracing",
     "Enables tracing of high volume Emulator gRPC calls",
     false);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_SCREENSHOTS = Flag.create(
-    EMBEDDED_EMULATOR, "embedded.emulator.trace.screenshots", "Enable Emulator Screenshot Tracing",
+    EMBEDDED_EMULATOR, "trace.screenshots", "Enable Emulator Screenshot Tracing",
     "Enables tracing of received Emulator screenshots",
+    false);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_DISCOVERY = Flag.create(
+    EMBEDDED_EMULATOR, "trace.discovery", "Enable Tracing of Emulator Discovery",
+    "Enables tracing of Emulator discovery",
     false);
   //endregion
 
@@ -648,6 +664,11 @@ public final class StudioFlags {
      * Don't use TagToClassMapper when computing tag attributes in AttributeProcessingUtil.
      */
     ATTRIBUTES_FROM_STYLEABLES,
+
+    /**
+     * Use @CustomChildren instead of DomExtender.
+     */
+    CUSTOM_CHILDREN,
   }
 
   public static final Flag<LayoutXmlMode> LAYOUT_XML_MODE = Flag.create(
@@ -819,7 +840,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_DATA_SOURCES = Flag.create(
     COMPOSE, "preview.data.sources", "Enable the Compose Data Source handling",
     "If enable, the preview will support Preview data sources",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
     COMPOSE, "editor",
@@ -889,6 +910,13 @@ public final class StudioFlags {
     COMPOSE, "preview.animated.enable",
     "Enable animated compose preview",
     "If enabled, a user can switch compose preview to be animated",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_ANIMATED_PREVIEW_SHOW_CLICK = Flag.create(
+    COMPOSE, "preview.animated.click.enable",
+    "Enable displaying clicks on the animated preview",
+    "If enabled, clicking on the animated preview will generate a ripple",
     false
   );
 

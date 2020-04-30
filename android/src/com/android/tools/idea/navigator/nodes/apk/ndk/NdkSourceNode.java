@@ -66,8 +66,8 @@ public class NdkSourceNode extends ProjectViewNode<File> {
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
-    List<AbstractTreeNode> children = new ArrayList<>();
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
 
     ViewSettings settings = getSettings();
     for (PsiDirectory folder : mySourceFolders) {

@@ -28,7 +28,8 @@ import org.jetbrains.android.sdk.AndroidSdkUtils.getTargetLabel
 data class InstalledEnvironments(
     val buildTools: List<ValueDescriptor<String>>,
     val androidSdks: List<ValueDescriptor<Int>>,
-    val compiledApis: List<ValueDescriptor<String>>)
+    val compiledApis: List<ValueDescriptor<String>>,
+    val ndks: List<ValueDescriptor<String>>)
 
 fun installedEnvironments(): InstalledEnvironments {
   val sdkHandler = AndroidSdks.getInstance().tryToChooseAndroidSdk()?.sdkHandler
@@ -37,7 +38,7 @@ fun installedEnvironments(): InstalledEnvironments {
     installedEnvironments(sdkHandler.getSdkManager(logger), sdkHandler.getAndroidTargetManager(logger).getTargets(logger))
   }
   else {
-    InstalledEnvironments(androidSdks = listOf(), compiledApis = listOf(), buildTools = listOf())
+    InstalledEnvironments(androidSdks = listOf(), compiledApis = listOf(), buildTools = listOf(), ndks = listOf())
   }
 }
 
@@ -48,15 +49,19 @@ fun installedEnvironments(sdkManager: RepoManager, targets: Collection<IAndroidT
       else
         AndroidTargetHash.getAddonHashString(target.vendor, target.name, target.version)
 
-  val localPackages = sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_BUILD_TOOLS)
+  val buildToolsLocalPackages = sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_BUILD_TOOLS)
+  val ndkLocalPackages = sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_NDK_SIDE_BY_SIDE)
 
-  val buildToolsMap = localPackages.map { it.version.toString() }.toSet()
+  val buildToolsMap = buildToolsLocalPackages.map { it.version.toString() }.toSet()
   val apisMap = targets.filter { it.isPlatform }.associate { it.version.apiLevel to getTargetLabel(it) }
   val compiledApisMap = targets.associate { platformName(it) to getTargetLabel(it) }
+  val ndksMap = ndkLocalPackages.map { it.version.toString() }.toSet()
 
   return InstalledEnvironments(
       androidSdks = apisMap.map { ValueDescriptor(value = it.key, description = it.value) },
       compiledApis = compiledApisMap.map { ValueDescriptor(value = it.key, description = it.value) },
-      buildTools = buildToolsMap.map { ValueDescriptor(value = it, description = null) }
+      buildTools = buildToolsMap.map { ValueDescriptor(value = it, description = null) },
+      ndks = listOf(ValueDescriptor(value = "", description="Use Default")) +
+              ndksMap.map { ValueDescriptor(value = it, description = null)}
   )
 }

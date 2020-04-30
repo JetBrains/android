@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite.model
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.sqlLanguage.getSqliteStatementType
 import com.android.tools.idea.sqlite.sqlLanguage.inlineParameterValues
+import com.android.tools.idea.sqlite.sqlLanguage.getWrappableStatement
 import com.intellij.openapi.project.Project
 import java.util.LinkedList
 
@@ -62,5 +63,6 @@ fun createSqliteStatement(
   val psiElement = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatementText)
   val statementStringRepresentation = inlineParameterValues(psiElement, LinkedList(parametersValues))
   val statementType = getSqliteStatementType(project, sqliteStatementText)
-  return SqliteStatement(statementType, sqliteStatementText, parametersValues, statementStringRepresentation)
+  val sqliteStatementTextWithNoTrailingSemicolon = getWrappableStatement(project, sqliteStatementText)
+  return SqliteStatement(statementType, sqliteStatementTextWithNoTrailingSemicolon, parametersValues, statementStringRepresentation)
 }

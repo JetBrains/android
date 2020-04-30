@@ -196,32 +196,32 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     fireContentsChanged(this, 0, size());
   }
 
-  protected static CpuProfilerStage.ThreadState getState(Cpu.CpuThreadData.State state, boolean captured) {
+  protected static ThreadState getState(Cpu.CpuThreadData.State state, boolean captured) {
     switch (state) {
       case RUNNING:
-        return captured ? CpuProfilerStage.ThreadState.RUNNING_CAPTURED : CpuProfilerStage.ThreadState.RUNNING;
+        return captured ? ThreadState.RUNNING_CAPTURED : ThreadState.RUNNING;
       case DEAD:
-        return captured ? CpuProfilerStage.ThreadState.DEAD_CAPTURED : CpuProfilerStage.ThreadState.DEAD;
+        return captured ? ThreadState.DEAD_CAPTURED : ThreadState.DEAD;
       case SLEEPING:
-        return captured ? CpuProfilerStage.ThreadState.SLEEPING_CAPTURED : CpuProfilerStage.ThreadState.SLEEPING;
+        return captured ? ThreadState.SLEEPING_CAPTURED : ThreadState.SLEEPING;
       case WAITING:
-        return captured ? CpuProfilerStage.ThreadState.WAITING_CAPTURED : CpuProfilerStage.ThreadState.WAITING;
+        return captured ? ThreadState.WAITING_CAPTURED : ThreadState.WAITING;
       default:
         // TODO: Use colors that have been agreed in design review.
-        return CpuProfilerStage.ThreadState.UNKNOWN;
+        return ThreadState.UNKNOWN;
     }
   }
 
   public class RangedCpuThread implements DragAndDropModelListElement, Comparable<RangedCpuThread> {
     @NotNull private final CpuThreadInfo myThreadInfo;
     private final Range myRange;
-    private final StateChartModel<CpuProfilerStage.ThreadState> myModel;
+    private final StateChartModel<ThreadState> myModel;
     /**
      * If the thread is imported from a trace file (excluding an atrace one), we use a {@link ImportedTraceThreadDataSeries} to represent
      * its data. Otherwise, we use a {@link MergeCaptureDataSeries} that will combine the sampled {@link DataSeries} pulled from perfd, and
      * {@link AtraceCpuCapture}, populated when an atrace capture is parsed.
      */
-    private DataSeries<CpuProfilerStage.ThreadState> mySeries;
+    private DataSeries<ThreadState> mySeries;
 
     public RangedCpuThread(Range range, int threadId, String name) {
       this(range, threadId, name, null);
@@ -229,7 +229,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
 
     /**
      * When a not-null {@link CpuCapture} is passed, it means the thread is imported from a trace file. If the {@link CpuCapture} passed is
-     * null, it means that we are in a profiling session. Default behavior is to obtain the {@link CpuProfilerStage.ThreadState} data from
+     * null, it means that we are in a profiling session. Default behavior is to obtain the {@link ThreadState} data from
      * perfd. When a capture is selected applyCapture is called and on atrace captures a {@link MergeCaptureDataSeries} is used to collect
      * data from perfd as well as the {@link AtraceCpuCapture}.
      */
@@ -287,11 +287,11 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       return myThreadInfo.getName();
     }
 
-    public StateChartModel<CpuProfilerStage.ThreadState> getModel() {
+    public StateChartModel<ThreadState> getModel() {
       return myModel;
     }
 
-    public DataSeries<CpuProfilerStage.ThreadState> getStateSeries() {
+    public DataSeries<ThreadState> getStateSeries() {
       return mySeries;
     }
 

@@ -98,7 +98,7 @@ class TableController(
 
   fun setUp(): ListenableFuture<Unit> {
     view.startTableLoading()
-    return databaseConnection.query(sqliteStatement).transform(edtExecutor) { newResultSet ->
+    return databaseConnection.query(sqliteStatement).transformAsync(edtExecutor) { newResultSet ->
       lastExecutedQuery = sqliteStatement
       view.setEditable(isEditable())
       view.showPageSizeValue(rowBatchSize)
@@ -108,8 +108,6 @@ class TableController(
       Disposer.register(this, newResultSet)
 
       fetchAndDisplayTableData()
-
-      return@transform
     }.cancelOnDispose(this)
   }
 
@@ -250,7 +248,7 @@ class TableController(
     return future
   }
 
-  private fun isEditable() = tableSupplier() != null && !liveUpdatesEnabled
+  private fun isEditable() = tableSupplier() != null && !liveUpdatesEnabled && !(tableSupplier()?.isView ?: false)
 
   private inner class TableViewListenerImpl : TableView.Listener {
     override fun toggleOrderByColumnInvoked(sqliteColumn: ResultSetSqliteColumn) {

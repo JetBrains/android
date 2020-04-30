@@ -49,7 +49,7 @@ class AndroidProfilerServiceTest : PlatformTestCase() {
   fun testProfilerServiceStartsCorrectlyAfterToolWindowInit() {
     StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false)
     val mockProxy = mockTransportProxy()
-    val windowManager = ToolWindowManagerEx.getInstance(myProject)
+    val windowManager = ToolWindowManagerEx.getInstanceEx(myProject)
     val toolWindow = windowManager.registerToolWindow(AndroidProfilerToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM)
     val factory = AndroidProfilerToolWindowFactory()
     factory.init(toolWindow)
@@ -63,7 +63,7 @@ class AndroidProfilerServiceTest : PlatformTestCase() {
   fun testProfilerServiceTriggeredOnceForMultipleToolWindows() {
     StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false)
     val mockProxy = mockTransportProxy()
-    val windowManager = ToolWindowManagerEx.getInstance(myProject)
+    val windowManager = ToolWindowManagerEx.getInstanceEx(myProject)
     val toolWindow = windowManager.registerToolWindow(AndroidProfilerToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM)
     val factory = AndroidProfilerToolWindowFactory()
     factory.init(toolWindow)

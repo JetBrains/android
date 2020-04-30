@@ -24,12 +24,14 @@ import com.android.tools.idea.npw.project.getSourceProvider
 import com.android.tools.idea.npw.template.components.CheckboxProvider
 import com.android.tools.idea.npw.template.components.ComponentProvider
 import com.android.tools.idea.npw.template.components.EnumComboProvider
+import com.android.tools.idea.npw.template.components.LabelFieldProvider
 import com.android.tools.idea.npw.template.components.LabelWithEditButtonProvider
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvider
 import com.android.tools.idea.npw.template.components.PackageComboProvider
 import com.android.tools.idea.npw.template.components.SeparatorProvider
 import com.android.tools.idea.npw.template.components.TextFieldProvider
+import com.android.tools.idea.npw.template.components.UrlLinkProvider
 import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.BindingsManager
@@ -62,6 +64,7 @@ import com.android.tools.idea.wizard.template.Constraint.STRING
 import com.android.tools.idea.wizard.template.Constraint.URI_AUTHORITY
 import com.android.tools.idea.wizard.template.EnumParameter
 import com.android.tools.idea.wizard.template.EnumWidget
+import com.android.tools.idea.wizard.template.LabelWidget
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.LanguageWidget
 import com.android.tools.idea.wizard.template.PackageNameWidget
@@ -72,6 +75,7 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.TextFieldWidget
+import com.android.tools.idea.wizard.template.UrlLinkWidget
 import com.android.tools.idea.wizard.template.Widget
 import com.google.common.base.Joiner
 import com.google.common.cache.CacheBuilder
@@ -197,6 +201,11 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     templateThumbLabel.text = newTemplate.name
 
     for (widget in model.newTemplate.widgets) {
+      if (widget is LanguageWidget && (model.moduleTemplateDataBuilder.isNew || model.projectTemplateDataBuilder.isNewProject)) {
+        // We should not show language chooser in "New Module" and "New Project" wizards because it should be selected on a previous step.
+        continue
+      }
+
       val row = createRowForWidget(model.module, widget).apply { addToPanel(parametersPanel) }
 
       if (widget !is ParameterWidget<*>) {
@@ -263,6 +272,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
    */
   private fun createRowForWidget(module: Module?, widget: Widget<*>): RowEntry<*> = when (widget) {
     is TextFieldWidget -> RowEntry(widget.p.name, TextFieldProvider(widget.parameter))
+    is LabelWidget -> RowEntry(LabelFieldProvider(widget.text))
     is LanguageWidget -> RowEntry(message("android.wizard.language.combo.header"), LanguageComboProvider()).also {
       val language = (it.property as SelectedItemProperty<Language>)
       bindings.bindTwoWay(language, model.language)
@@ -287,6 +297,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       rowEntry
     }
     is CheckBoxWidget -> RowEntry(CheckboxProvider(widget.p))
+    is UrlLinkWidget -> RowEntry(UrlLinkProvider(widget.urlName, widget.urlAddress))
     is Separator -> RowEntry(SeparatorProvider())
     is EnumWidget<*> -> RowEntry(widget.p.name, EnumComboProvider(widget.p))
     else -> TODO("Only string and bool parameters are supported for now")

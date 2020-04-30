@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -28,29 +30,32 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ScrollPaneFactory;
+import java.awt.BorderLayout;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.Collections;
-import java.util.List;
-
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
-
 public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolContent<DesignSurface> {
   private final NlComponentTree myTree;
+  private final NlVisibilityGutterPanel myVisibilityGutter = new NlVisibilityGutterPanel();
   private final BackNavigationComponent myNavigationComponent;
+  private final JPanel myTreeContainer = new JPanel(new BorderLayout());
 
   public NlComponentTreePanel(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);
     myTree = new NlComponentTree(project, null);
-    JScrollPane pane =
-      ScrollPaneFactory.createScrollPane(myTree,
-                                         VERTICAL_SCROLLBAR_AS_NEEDED,
-                                         HORIZONTAL_SCROLLBAR_NEVER);
+    myTreeContainer.setOpaque(true);
+    myTreeContainer.setBackground(StudioColorsKt.getSecondaryPanelBackground());
+    myTreeContainer.add(myTree, BorderLayout.CENTER);
+    myTreeContainer.add(myVisibilityGutter, BorderLayout.EAST);
+    JScrollPane pane = ScrollPaneFactory.createScrollPane(myTreeContainer,
+                                                          VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                          HORIZONTAL_SCROLLBAR_NEVER);
     pane.setBorder(null);
     myNavigationComponent = new BackNavigationComponent();
     add(myNavigationComponent, BorderLayout.NORTH);
@@ -68,6 +73,7 @@ public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolConte
   public void setToolContext(@Nullable DesignSurface designSurface) {
     myNavigationComponent.setDesignSurface(designSurface);
     myTree.setDesignSurface((NlDesignSurface)designSurface);
+    myVisibilityGutter.setDesignSurface(designSurface);
   }
 
   @NotNull

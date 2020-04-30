@@ -389,7 +389,8 @@ b/145809317 */
             Disposer.dispose(project);
             ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
             if (projectManager instanceof ProjectManagerImpl) {
-              Collection<Project> projectsStillOpen = projectManager.closeTestProject(project);
+              projectManager.forceCloseProject(project);
+              Collection<Project> projectsStillOpen = Arrays.asList(projectManager.getOpenProjects());
               if (!projectsStillOpen.isEmpty()) {
                 Project project = projectsStillOpen.iterator().next();
                 projectsStillOpen.clear();

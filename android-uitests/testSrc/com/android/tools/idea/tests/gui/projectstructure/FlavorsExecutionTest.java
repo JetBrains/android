@@ -162,6 +162,7 @@ public class FlavorsExecutionTest {
 
     ExecutionToolWindowFixture.ContentFixture flavor2WindowContent = ideFrameFixture.getRunToolWindow().findContent(appModuleName);
     String flavor2LaunchPattern = ACTIVITY_OUTPUT_PATTERN.replace("Main_Activity", SECOND_ACTIVITY_NAME);
+    ProcessRunningDialogFixture.find(ideFrameFixture).clickTerminate();
     flavor2WindowContent.waitForOutput(new PatternTextMatcher(Pattern.compile(flavor2LaunchPattern, Pattern.DOTALL)), 120);
 
     ideFrameFixture

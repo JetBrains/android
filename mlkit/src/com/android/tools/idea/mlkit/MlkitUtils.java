@@ -16,22 +16,20 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviders;
+import com.android.tools.mlkit.MlkitNames;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Provides common utility methods.
@@ -54,22 +52,28 @@ public class MlkitUtils {
              .anyMatch(mlDir -> VfsUtilCore.isAncestor(mlDir, file, true));
   }
 
+  /**
+   * Computes the class name based on the file name and location, returns empty string if it can not be determined.
+   */
   @NotNull
-  public static PsiClass[] getLightModelClasses(@NotNull Project project, @NotNull Map<VirtualFile, MlModelMetadata> modelFileMap) {
-    List<PsiClass> lightModelClassList = new ArrayList<>();
-    for (Map.Entry<VirtualFile, MlModelMetadata> metadata : modelFileMap.entrySet()) {
-      if (!metadata.getValue().isValidModel()) {
-        continue;
-      }
+  public static String computeModelClassName(@NotNull Module module, @NotNull VirtualFile file) {
+    String relativePath = relativePathToMlModelsFolder(module, file);
+    return relativePath != null ? MlkitNames.computeModelClassName(relativePath) : "";
+  }
 
-      Module module = ModuleUtilCore.findModuleForFile(metadata.getKey(), project);
-      LightModelClass lightModelClass =
-        module != null ? MlkitModuleService.getInstance(module).getOrCreateLightModelClass(metadata.getValue()) : null;
-      if (lightModelClass != null) {
-        lightModelClassList.add(lightModelClass);
-      }
+  @Nullable
+  private static String relativePathToMlModelsFolder(@NotNull Module module, @NotNull VirtualFile file) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet == null || file.getFileType() != TfliteModelFileType.INSTANCE) {
+      return null;
     }
-    return lightModelClassList.toArray(PsiClass.EMPTY_ARRAY);
+
+    Optional<VirtualFile> ancestor =
+      SourceProviders.getInstance(androidFacet).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream()
+        .flatMap(sourceProvider -> sourceProvider.getMlModelsDirectories().stream())
+        .filter(mlDir -> VfsUtilCore.isAncestor(mlDir, file, true))
+        .findFirst();
+    return ancestor.map(virtualFile -> VfsUtilCore.getRelativePath(file, virtualFile)).orElse(null);
   }
 
   /**

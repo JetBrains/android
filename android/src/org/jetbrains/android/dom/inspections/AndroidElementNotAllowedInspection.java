@@ -2,7 +2,7 @@ package org.jetbrains.android.dom.inspections;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.intellij.codeInsight.daemon.XmlErrorMessages;
+import com.intellij.codeInsight.daemon.XmlErrorBundle;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -85,14 +85,14 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
         if (descriptor instanceof AndroidAnyTagDescriptor) {
           final XmlToken startTagNameElement = XmlTagUtil.getStartTagNameElement(tag);
           if (startTagNameElement != null && !isUnknownCustomView(tag)) {
-            myResult.add(myInspectionManager.createProblemDescriptor(startTagNameElement, XmlErrorMessages.message(
+            myResult.add(myInspectionManager.createProblemDescriptor(startTagNameElement, XmlErrorBundle.message(
               "element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
                                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
           }
 
           final XmlToken endTagNameElement = XmlTagUtil.getEndTagNameElement(tag);
           if (endTagNameElement != null && !isUnknownCustomView(tag)) {
-            myResult.add(myInspectionManager.createProblemDescriptor(endTagNameElement, XmlErrorMessages.message(
+            myResult.add(myInspectionManager.createProblemDescriptor(endTagNameElement, XmlErrorBundle.message(
               "element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
                                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
           }

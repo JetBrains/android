@@ -69,7 +69,8 @@ public interface CaptureObject extends MemoryObject {
     RETAINED_SIZE(6, DESCENDING),
     ALLOCATIONS_SIZE(7, DESCENDING),
     DEALLOCATIONS_SIZE(8, DESCENDING),
-    REMAINING_SIZE(9, DESCENDING);
+    REMAINING_SIZE(9, DESCENDING),
+    MODULE(10, ASCENDING);
 
     private final int myWeight;
 

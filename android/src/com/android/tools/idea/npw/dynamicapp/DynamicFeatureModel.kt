@@ -34,21 +34,23 @@ import com.intellij.util.lang.JavaVersion
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 
 class DynamicFeatureModel(
-  project: Project, projectSyncInvoker: ProjectSyncInvoker, val isInstant: Boolean,
+  project: Project,
+  projectSyncInvoker: ProjectSyncInvoker,
+  val isInstant: Boolean,
   val templateName: String,
   val templateDescription: String,
-  val moduleParent: String? = null // TODO
+  moduleParent: String? = null
 ) : ModuleModel(
   "dynamicfeature",
   "New Dynamic Feature Module",
   false,
-  ExistingProjectModelData(project, projectSyncInvoker)
+  ExistingProjectModelData(project, projectSyncInvoker),
+  moduleParent = moduleParent
 ) {
   val featureTitle = StringValueProperty("Module Title")
   val baseApplication = OptionalValueProperty<Module>()
-  val featureOnDemand = BoolValueProperty(true)
+  // TODO(qumeric): investigate why featureOnDemand = !isInstant disappeared
   val featureFusing = BoolValueProperty(true)
-  val instantModule = BoolValueProperty(false)
   val deviceFeatures = ObservableList<DeviceFeatureModel>()
   val downloadInstallKind =
     OptionalValueProperty(if (isInstant) DownloadInstallKind.INCLUDE_AT_INSTALL_TIME else DownloadInstallKind.ON_DEMAND_ONLY)
@@ -57,7 +59,7 @@ class DynamicFeatureModel(
     override val recipe: Recipe get() = { td: TemplateData ->
       generateDynamicFeatureModule(
         td as ModuleTemplateData,
-        instantModule.get(),
+        isInstant,
         featureTitle.get(),
         featureFusing.get(),
         downloadInstallKind.value,

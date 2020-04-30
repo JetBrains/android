@@ -30,6 +30,8 @@ import com.android.projectmodel.Library
 import com.android.repository.io.FileOpUtils
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
+import com.android.tools.idea.gradle.run.PostBuildModelProvider
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidManifestIndex
@@ -56,10 +58,12 @@ import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
-import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.gradle.run.PostBuildModelProvider
+import com.android.tools.idea.run.AndroidDeviceSpec
+import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.GradleApkProvider
+import com.android.tools.idea.run.GradleApkProvider.OutputKind
 import com.android.tools.idea.run.GradleApplicationIdProvider
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
@@ -474,10 +478,35 @@ class GradleModuleSystem(
     return getPackageNameByParsingPrimaryManifest(facet)
   }
 
-  override fun getApplicationIdProvider(runConfiguration: RunConfiguration?): ApplicationIdProvider {
+  override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
     return GradleApplicationIdProvider(
       AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"),
       { (runConfiguration as? UserDataHolder)?.let { it.getUserData(GradleApkProvider.POST_BUILD_MODEL) } }
+    )
+  }
+
+  override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider {
+    return GradleApplicationIdProvider(
+      AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"), { null }
+    )
+  }
+
+  override fun getApkProvider(runConfiguration: RunConfiguration, targetDeviceSpec: AndroidDeviceSpec?): ApkProvider? {
+    if (runConfiguration !is AndroidRunConfigurationBase) return null
+    val facet = AndroidFacet.getInstance(module) ?: return null
+
+    fun outputKind() =
+      when (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.module, runConfiguration, targetDeviceSpec)) {
+        true -> OutputKind.AppBundleOutputModel
+        false -> OutputKind.Default
+      }
+
+    return GradleApkProvider(
+      facet,
+      getApplicationIdProvider(runConfiguration),
+      PostBuildModelProvider { runConfiguration.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
+      runConfiguration.isTestConfiguration,
+      Computable { outputKind() }
     )
   }
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -35,7 +34,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class AndroidStudioGradleActionTest extends PlatformTestCase {
   @Mock private AnActionEvent myEvent;
   @Mock private GradleProjectInfo myProjectInfo;
-  @Mock private IdeInfo myIdeInfo;
 
   private Presentation myPresentation;
 
@@ -49,8 +47,6 @@ public class AndroidStudioGradleActionTest extends PlatformTestCase {
     when(myEvent.getProject()).thenReturn(myProject);
 
     new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
-    new IdeComponents(myProject).replaceApplicationService(IdeInfo.class, myIdeInfo);
-    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
   }
 
   public void testUpdateWithAndroidStudioAndGradleProject() {
