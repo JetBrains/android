@@ -34,12 +34,23 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
+import org.jetbrains.android.ComponentStack
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyBoolean
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.File
@@ -58,12 +69,32 @@ class EmulatorViewTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
   private var nullableEmulator: FakeEmulator? = null
+  private var componentStack: ComponentStack? = null
+  private val filesOpened = mutableListOf<VirtualFile>()
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
 
   var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
     set(value) { nullableEmulator = value }
+
+  @Before
+  fun setUp() {
+    componentStack = ComponentStack(projectRule.project)
+    val fileEditorManager = mock(FileEditorManagerEx::class.java)
+    `when`(fileEditorManager.openFile(any(VirtualFile::class.java), anyBoolean())).thenAnswer { invocation ->
+      filesOpened.add(invocation.getArgument(0))
+      return@thenAnswer emptyArray<FileEditor>()
+    }
+    componentStack?.registerComponentInstance(FileEditorManager::class.java, fileEditorManager)
+  }
+
+  @After
+  fun tearDown() {
+    componentStack?.restore()
+    componentStack = null
+    filesOpened.clear()
+  }
 
   @Test
   fun testEmulatorView() {
@@ -250,6 +281,8 @@ class EmulatorViewTest {
         it.filter { Pattern.matches("Screenshot_.*\\.png", it.fileName.toString()) }.toList()
       }.isNotEmpty()
     }
+    waitForCondition(2, TimeUnit.SECONDS) { filesOpened.isNotEmpty() }
+    assertThat(Pattern.matches("Screenshot_.*\\.png", filesOpened[0].name)).isTrue()
 
     // Check EmulatorShutdownAction.
     executeAction("android.emulator.close", view)
@@ -282,7 +315,7 @@ class EmulatorViewTest {
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
     val view = EmulatorView(emulatorController, projectRule.fixture.testRootDisposable, false)
-    waitForCondition(2, TimeUnit.SECONDS) { view.emulator.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getStatus" call.
     return view
   }
@@ -311,7 +344,7 @@ class EmulatorViewTest {
   private fun assertViewAppearance(view: EmulatorView, goldenImageName: String) {
     val image = ImageUtils.createDipImage(view.width, view.height, BufferedImage.TYPE_INT_ARGB)
     val g = image.createGraphics()
-    view.print(g)
+    view.printAll(g)
     g.dispose()
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.1)
   }
