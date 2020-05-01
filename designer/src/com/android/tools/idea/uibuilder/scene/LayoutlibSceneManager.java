@@ -104,6 +104,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.GuardedBy;
@@ -202,6 +203,11 @@ public class LayoutlibSceneManager extends SceneManager {
    * the validation. In order to allow validation, the layoutlib needs to re-inflate.
    */
   public boolean isLayoutValidationEnabled = false;
+  /**
+   * {@link Consumer} called when setting up the Rendering {@link MergingUpdateQueue} to do additional setup. This can be used for
+   * additional setup required for testing.
+   */
+  @NotNull private final Consumer<MergingUpdateQueue> myRenderingQueueSetup;
 
   /**
    * When true, this will force the current {@link RenderTask} to be disposed and re-created on the next render. This will also
@@ -239,11 +245,22 @@ public class LayoutlibSceneManager extends SceneManager {
     return null;
   }
 
+  /**
+   * Creates a new LayoutlibSceneManager.
+   *
+   * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
+   * @param designSurface the {@link DesignSurface} user to present the result of the renders.
+   * @param renderTaskDisposerExecutor {@link Executor} to be used for running the slow {@link #dispose()} calls.
+   * @param renderingQueueSetup {@link Consumer} of {@link MergingUpdateQueue} to run additional setup on the queue used to handle render
+   *                                            requests.
+   */
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface designSurface,
-                                  @NotNull Executor renderTaskDisposerExecutor) {
+                                  @NotNull Executor renderTaskDisposerExecutor,
+                                  @NotNull Consumer<MergingUpdateQueue> renderingQueueSetup) {
     super(model, designSurface, false);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
+    myRenderingQueueSetup = renderingQueueSetup;
     createSceneView();
     updateTrackingConfiguration();
 
@@ -275,9 +292,16 @@ public class LayoutlibSceneManager extends SceneManager {
     scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
   }
 
+  /**
+   * Creates a new LayoutlibSceneManager with the default settings for running render requests.
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Consumer)}
+   *
+   * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
+   * @param designSurface the {@link DesignSurface} user to present the result of the renders.
+   */
   public LayoutlibSceneManager(@NotNull NlModel model,
                                @NotNull DesignSurface designSurface) {
-    this(model, designSurface, PooledThreadExecutor.INSTANCE);
+    this(model, designSurface, PooledThreadExecutor.INSTANCE, queue -> {});
   }
 
   @NotNull
@@ -704,6 +728,8 @@ public class LayoutlibSceneManager extends SceneManager {
         myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", RENDER_DELAY_MS, true, null, this, null,
                                                   Alarm.ThreadToUse.POOLED_THREAD);
         myRenderingQueue.setRestartTimerOnAdd(true);
+        // Run any additional setup for the rendering queue
+        myRenderingQueueSetup.accept(myRenderingQueue);
       }
       return myRenderingQueue;
     }
