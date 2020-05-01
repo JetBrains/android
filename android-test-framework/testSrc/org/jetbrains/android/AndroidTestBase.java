@@ -109,7 +109,8 @@ public abstract class AndroidTestBase extends UsefulTestCase {
         // Ignore application services and light projects and modules that are not disposed by tearDown.
         return DisposerExplorer.VisitResult.SKIP_CHILDREN;
       }
-      if (disposable.getClass().getName().startsWith("com.android.")) {
+      if (disposable.getClass().getName().startsWith("com.android.") ||
+          disposable.getClass().getName().startsWith("org.jetbrains.android.")) {
         Disposable parent = DisposerExplorer.getParent(disposable);
         String baseMsg = "Undisposed object '" + disposable + "' of type '" + disposable.getClass().getName() + "'";
         if (parent == null) {
