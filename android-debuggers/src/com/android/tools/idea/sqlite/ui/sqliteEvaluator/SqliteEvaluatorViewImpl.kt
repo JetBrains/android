@@ -111,7 +111,7 @@ class SqliteEvaluatorViewImpl(
         hasFocus: Boolean
       ) {
         icon = StudioIcons.DatabaseInspector.DATABASE
-        append(sqliteDatabase.name)
+        append(sqliteDatabase.id.name)
       }
     }
 

@@ -127,7 +127,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   fun testMultipleDatabaseShowsPopUp() {
     // Prepare
-    val databases = listOf(sqliteDatabase1, sqliteDatabase2).sortedBy { database -> database.name }
+    val databases = listOf(sqliteDatabase1, sqliteDatabase2).sortedBy { database -> database.id.name }
     val mockJBPopupFactory = ideComponents.mockApplicationService(JBPopupFactory::class.java)
     val spyPopupChooserBuilder = spy(MockPopupChooserBuilder::class.java)
     `when`(mockJBPopupFactory.createPopupChooserBuilder(databases.toList())).thenReturn(spyPopupChooserBuilder)
@@ -490,7 +490,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
 
-    val databases = listOf(sqliteDatabase1, sqliteDatabase2).sortedBy { database -> database.name }
+    val databases = listOf(sqliteDatabase1, sqliteDatabase2).sortedBy { database -> database.id.name }
     val mockJBPopupFactory = ideComponents.mockApplicationService(JBPopupFactory::class.java)
     val spyPopupChooserBuilder = spy(MockPopupChooserBuilder::class.java)
     `when`(mockJBPopupFactory.createPopupChooserBuilder(databases.toList())).thenReturn(spyPopupChooserBuilder)

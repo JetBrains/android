@@ -141,7 +141,7 @@ class RunSqliteStatementGutterIconAction(
                                               cellHasFocus: Boolean): Component {
       val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
       if (value is SqliteDatabase) {
-        text = value.name
+        text = value.id.name
       }
 
       return component

@@ -57,7 +57,7 @@ class SqliteEvaluatorController(
     override fun onDatabasesChanged(databases: List<SqliteDatabase>) {
       val activeDatabase = view.activeDatabase
 
-      view.setDatabases(databases.sortedBy { it.name })
+      view.setDatabases(databases.sortedBy { it.id.name })
 
       if (databases.contains(activeDatabase) && activeDatabase != null) {
         view.activeDatabase = activeDatabase
