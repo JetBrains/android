@@ -21,8 +21,9 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
-import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.logger
@@ -55,8 +56,8 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
       private val taskExecutor = PooledThreadExecutor.INSTANCE
       private val errorsSideChannel = createErrorSideChannel(project)
       private val databaseInspectorProjectService = DatabaseInspectorProjectService.getInstance(project)
-      private val openDatabase: (SqliteDatabase) -> Unit = { db ->
-        databaseInspectorProjectService.openSqliteDatabase(db)
+      private val openDatabase: (SqliteDatabaseId, LiveDatabaseConnection) -> Unit = { databaseId, databaseConnection ->
+        databaseInspectorProjectService.openSqliteDatabase(databaseId, databaseConnection)
       }
 
       private val handleError: (String) -> Unit = { databaseInspectorProjectService.handleError(it, null) }
