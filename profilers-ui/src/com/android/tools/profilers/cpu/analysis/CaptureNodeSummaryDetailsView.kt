@@ -15,10 +15,12 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
-import com.android.tools.adtui.model.formatter.TimeFormatter
+import com.android.tools.adtui.TabularLayout
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.annotations.VisibleForTesting
+import java.awt.Font
 import javax.swing.JLabel
+import javax.swing.JPanel
 
 class CaptureNodeSummaryDetailsView(profilersView: StudioProfilersView,
                                     tabModel: CaptureNodeAnalysisSummaryTabModel)
@@ -27,19 +29,24 @@ class CaptureNodeSummaryDetailsView(profilersView: StudioProfilersView,
   val timeRangeLabel = JLabel()
 
   @get:VisibleForTesting
-  val durationLabel = JLabel()
-
-  @get:VisibleForTesting
   val dataTypeLabel = JLabel()
 
   init {
     val range = tabModel.selectionRange
     timeRangeLabel.text = formatTimeRangeAsString(range)
-    durationLabel.text = TimeFormatter.getSingleUnitDurationString(range.length.toLong())
     dataTypeLabel.text = tabModel.label
 
     addRowToCommonSection("Time Range", timeRangeLabel)
-    addRowToCommonSection("Duration", durationLabel)
     addRowToCommonSection("Data Type", dataTypeLabel)
+    addSection(buildSelectedNodeTable())
+  }
+
+  private fun buildSelectedNodeTable() = JPanel(TabularLayout("*").setVGap(8)).apply {
+    val selectedNodes = tabModel.dataSeries.map { it.node }
+    add(JLabel("Selected event(s)".apply {
+      font = font.deriveFont(Font.BOLD)
+      isOpaque = false
+    }), TabularLayout.Constraint(0, 0))
+    add(CaptureNodeDetailTable(selectedNodes, tabModel.captureRange).component, TabularLayout.Constraint(1, 0))
   }
 }
