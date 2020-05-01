@@ -64,7 +64,7 @@ class RunningEmulatorCatalogTest {
 
     // Start the second Emulator and check that a listener gets notified.
     emulator2.start()
-    val event2 = eventQueue.poll(1100, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
+    val event2 = eventQueue.poll(1200, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
     assertThat(event2.type).isEqualTo(EventType.ADDED)
     assertThat(event2.emulator.emulatorId.grpcPort).isEqualTo(emulator2.grpcPort)
     assertThat(event2.emulator.emulatorId.avdFolder).isEqualTo(emulator2.avdFolder)
@@ -72,14 +72,14 @@ class RunningEmulatorCatalogTest {
 
     // Stop the first Emulator and check that a listener gets notified.
     emulator1.stop()
-    val event3 = eventQueue.poll(1100, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
+    val event3 = eventQueue.poll(1200, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
     assertThat(event3.type).isEqualTo(EventType.REMOVED)
     assertThat(event3.emulator).isEqualTo(event1.emulator)
     assertThat(catalog.emulators).containsExactly(event2.emulator)
 
     // Stop the second Emulator and check that a listener gets notified.
     emulator2.stop()
-    val event4 = eventQueue.poll(1100, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
+    val event4 = eventQueue.poll(1200, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
     assertThat(event4.type).isEqualTo(EventType.REMOVED)
     assertThat(event4.emulator).isEqualTo(event2.emulator)
     assertThat(catalog.emulators).isEmpty()
