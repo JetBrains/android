@@ -29,17 +29,24 @@ import com.android.tools.idea.testing.FileSubject.file
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.*
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.API_DEPENDENCY
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.APP_WITH_BUILDSRC
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.APP_WITH_ML_MODELS
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.BASIC
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.CENTRAL_BUILD_DIRECTORY
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPOSITE_BUILD
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.HELLO_JNI
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_GRADLE_DSL
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_KAPT
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.MULTI_FLAVOR
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NESTED_MODULE
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NEW_SYNC_KOTLIN_TEST
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_DEPENDENCY
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_SAMPLE_REPO
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PURE_JAVA_PROJECT
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES
@@ -111,6 +118,7 @@ abstract class GradleSyncProjectComparisonTest(
     fun testImportNoSync() {
       prepareProjectForImport(SIMPLE_APPLICATION)
       val request = GradleProjectImporter.Request(project)
+      GradleProjectImporter.configureNewProject(project)
       GradleProjectImporter.getInstance().importProjectNoSync(request)
       AndroidTestBase.refreshProjectFiles()
       val text = project.saveAndDump()

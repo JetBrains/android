@@ -105,6 +105,7 @@ public class GradleProjectImporter {
       setUpLocalProperties(projectFolderPath);
       String projectName = projectFolder.getName();
       newProject = createProject(projectName, projectFolderPath);
+      configureNewProject(newProject);
       importProjectNoSync(new Request(newProject));
       PlatformProjectOpenProcessor.openExistingProject(
         projectFolderPath.toPath(),
@@ -188,6 +189,10 @@ public class GradleProjectImporter {
     invokeLater(newProject, () -> ToolWindows.activateProjectView(newProject));
   }
 
+  /**
+   * Creates a new not configured project in a given location. The project needs to be configured to be usable with Android Studio.
+   * See: {@link GradleProjectImporter#configureNewProject(Project)}
+   */
   @NotNull
   public Project createProject(@NotNull String projectName, @NotNull File projectFolderPath) {
     ProjectManager projectManager = ProjectManager.getInstance();
@@ -195,14 +200,26 @@ public class GradleProjectImporter {
     if (newProject == null) {
       throw new NullPointerException("Failed to create a new project");
     }
-    String externalProjectPath = toCanonicalPath(projectFolderPath.getPath());
+    return newProject;
+  }
+
+  public static void configureNewProject(Project newProject) {
+    GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
+    String externalProjectPath = toCanonicalPath(newProject.getBasePath());
+    if (!gradleSettings.getLinkedProjectsSettings().isEmpty()) {
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+        throw new IllegalStateException("configureNewProject should be used with new projects only");
+      }
+      for (GradleProjectSettings setting : gradleSettings.getLinkedProjectsSettings()) {
+        gradleSettings.unlinkExternalProject(setting.getExternalProjectPath());
+      }
+    }
+
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     GradleProjectImportUtil.setupGradleSettings(projectSettings, externalProjectPath, newProject, null);
-    GradleSettings.getInstance(newProject).setStoreProjectFilesExternally(false);
+    gradleSettings.setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(newProject, SYSTEM_ID).linkProject(projectSettings);
-
-    return newProject;
   }
 
   private static void silenceUnlinkedGradleProjectNotificationIfNecessary(Project newProject) {
