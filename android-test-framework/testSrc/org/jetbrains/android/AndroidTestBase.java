@@ -26,6 +26,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.impl.ModuleImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.impl.ProjectImpl;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -103,6 +104,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
           (disposable instanceof ProjectImpl && (((ProjectImpl)disposable).isDefault() || ((ProjectImpl)disposable).isLight())) ||
           disposable.toString().startsWith("services of " + ProjectImpl.class.getName()) ||
           (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME)) ||
+          disposable.toString().startsWith("services of " + ModuleImpl.class.getName()) ||
           disposable instanceof PsiReferenceContributor) {
         // Ignore application services and light projects and modules that are not disposed by tearDown.
         return DisposerExplorer.VisitResult.SKIP_CHILDREN;
