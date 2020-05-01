@@ -892,6 +892,7 @@ b/154962759 */
     Project project = getProject();
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
+      GradleProjectImporter.configureNewProject(project);
       GradleProjectImporter.getInstance().importProjectNoSync(request);
       return AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest());
     });
