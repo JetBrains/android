@@ -16,6 +16,7 @@
 package org.jetbrains.android;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.flags.StudioFlags;
@@ -23,6 +24,7 @@ import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -44,11 +46,14 @@ import com.intellij.refactoring.actions.RenameElementAction;
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor;
 import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination;
 import com.intellij.refactoring.move.moveFilesOrDirectories.JavaMoveFilesOrDirectoriesHandler;
+import com.intellij.refactoring.rename.RenameHandler;
 import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.refactoring.rename.RenamePsiElementProcessor;
+import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.TestActionEvent;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -71,6 +76,25 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       finally {
         super.tearDown();
       }
+    }
+
+    // Regression test for http://b/153850296
+    public void testOneHandlerAvailableForXmlTag() {
+      VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "strings3.xml", "res/values/strings.xml");
+      myFixture.configureFromExistingVirtualFile(file);
+      assertThat(ContainerUtil
+                   .filter(RenameHandler.EP_NAME.getExtensionList(), it -> it.isRenaming(createDataContext(file)))).hasSize(1);
+    }
+
+    private MapDataContext createDataContext(VirtualFile f) {
+      MapDataContext context = new MapDataContext();
+      context.put(CommonDataKeys.EDITOR, myFixture.getEditor());
+      context.put(CommonDataKeys.PSI_FILE, myFixture.getFile());
+      context.put(CommonDataKeys.PSI_ELEMENT, TargetElementUtil.findTargetElement(myFixture.getEditor(),
+                                                                                  TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED
+                                                                                  | TargetElementUtil.ELEMENT_NAME_ACCEPTED));
+      context.put(CommonDataKeys.CARET, myFixture.getEditor().getCaretModel().getCurrentCaret());
+      return context;
     }
 
     public void testRenameCustomView() throws Throwable {
@@ -373,7 +397,8 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
     AndroidResourceRenameResourceProcessor.ASK = true;
   }
 
-  public void testStyleInheritance() throws Throwable {
+  /** Due to http://b/153850296 we are currently not supporting renaming resources from the Xml Tag token. **/
+  public void _testStyleInheritance() throws Throwable {
     doTestStyleInheritance("styles1.xml", "styles1_after.xml");
   }
 
@@ -660,11 +685,13 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
     doTestStringRename("strings2.xml");
   }
 
-  public void testValueResource3() throws Throwable {
+  /** Due to http://b/153850296 we are currently not supporting renaming resources from the Xml Tag token. **/
+  public void _testValueResource3() throws Throwable {
     doTestStringRename("strings3.xml");
   }
 
-  public void testValueResource4() throws Throwable {
+  /** Due to http://b/153850296 we are currently not supporting renaming resources from the Xml Tag token. **/
+  public void _testValueResource4() throws Throwable {
     doTestStringRename("strings4.xml");
   }
 
