@@ -39,17 +39,6 @@ abstract class LiveSqliteResultSet(
   private val taskExecutor: Executor
 ) : SqliteResultSet {
 
-  override val columns: ListenableFuture<List<ResultSetSqliteColumn>> get() {
-    return sendQueryCommand(sqliteStatement).transform(taskExecutor) { response ->
-      response.query.columnNamesList.map { columnName ->
-        ResultSetSqliteColumn(columnName, null, null, null)
-      }
-    }
-  }
-
-  abstract override val totalRowCount: ListenableFuture<Int>
-  abstract override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>>
-
   protected fun sendQueryCommand(sqliteStatement: SqliteStatement): ListenableFuture<SqliteInspectorProtocol.Response> {
     val queryCommand = buildQueryCommand(sqliteStatement, connectionId)
     return messenger.sendCommand(queryCommand).cancelOnDispose(this)
