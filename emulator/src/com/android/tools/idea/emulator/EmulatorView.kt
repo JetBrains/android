@@ -409,7 +409,7 @@ class EmulatorView(
 
     override fun onNext(response: ImageMessage) {
       if (EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.get()) {
-        LOG.info("Screenshot ${response.seq} ${response.format.width}x${response.format.height}")
+        LOG.info("Screenshot ${response.seq} ${response.format.width}x${response.format.height} ${response.format.rotation.rotation}")
       }
       if (screenshotReceiver != this) {
         return // This screenshot feed has already been cancelled.
