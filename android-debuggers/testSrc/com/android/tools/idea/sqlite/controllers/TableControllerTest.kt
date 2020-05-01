@@ -30,6 +30,7 @@ import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFr
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
+import com.android.tools.idea.sqlite.mocks.MockDatabaseRepository
 import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.MockTableView
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
@@ -37,13 +38,16 @@ import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.toSqliteValues
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
+import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
@@ -67,13 +71,17 @@ class TableControllerTest : PlatformTestCase() {
   private lateinit var mockResultSet: MockSqliteResultSet
   private lateinit var edtExecutor: FutureCallbackExecutor
   private lateinit var tableController: TableController
-  private lateinit var mockDatabaseConnection: DatabaseConnection
 
   private lateinit var orderVerifier: InOrder
 
   private lateinit var sqliteUtil: SqliteTestUtil
   private lateinit var realDatabaseConnection: DatabaseConnection
+  private lateinit var mockDatabaseConnection: DatabaseConnection
   private var customDatabaseConnection: DatabaseConnection? = null
+  private lateinit var databaseRepository: DatabaseRepository
+
+  private val realDatabaseId = SqliteDatabaseId.fromLiveDatabase("real", 0)
+  private val mockDatabaseId = SqliteDatabaseId.fromLiveDatabase("mock", 1)
 
   private lateinit var authorIdColumn: ResultSetSqliteColumn
   private lateinit var authorsRow1: SqliteRow
@@ -135,6 +143,13 @@ class TableControllerTest : PlatformTestCase() {
         SqliteColumnValue(authorLastColumn.name, SqliteValue.fromAny("LastName5"))
       )
     )
+
+    databaseRepository = MockDatabaseRepository(project, edtExecutor)
+
+    runDispatching {
+      databaseRepository.addDatabaseConnection(realDatabaseId, realDatabaseConnection)
+      databaseRepository.addDatabaseConnection(mockDatabaseId, mockDatabaseConnection)
+    }
   }
 
   override fun tearDown() {
@@ -156,8 +171,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -185,8 +201,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { null },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -211,8 +228,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -237,8 +255,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -263,8 +282,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -289,8 +309,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -310,8 +331,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -340,8 +362,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -369,8 +392,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -394,8 +418,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       2,
       tableView,
+      realDatabaseId,
       { sqliteTable },
-      realDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
       {},
       edtExecutor,
@@ -423,8 +448,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       2,
       tableView,
+      realDatabaseId,
       { sqliteTable },
-      realDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
       {},
       edtExecutor,
@@ -456,8 +482,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -480,8 +507,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       1,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -508,8 +536,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -542,8 +571,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -569,8 +599,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       5,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -603,8 +634,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -643,8 +675,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -670,8 +703,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -716,8 +750,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -753,8 +788,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -787,8 +823,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -820,8 +857,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -853,8 +891,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -889,8 +928,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -929,8 +969,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -969,8 +1010,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1021,8 +1063,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1058,8 +1101,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1085,8 +1129,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1122,8 +1167,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1153,8 +1199,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1180,8 +1227,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1211,8 +1259,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1251,8 +1300,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1287,8 +1337,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1318,8 +1369,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       2,
       tableView,
+      realDatabaseId,
       { sqliteTable },
-      realDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
       {},
       edtExecutor,
@@ -1340,8 +1392,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       2,
       tableView,
+      realDatabaseId,
       { sqliteTable },
-      realDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author"),
       {},
       edtExecutor,
@@ -1368,8 +1421,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       2,
       tableView,
+      realDatabaseId,
       { sqliteTable },
-      realDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM author ORDER BY author_id DESC"),
       {},
       edtExecutor,
@@ -1410,8 +1464,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { customSqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tableName"),
       {},
       edtExecutor,
@@ -1480,6 +1535,10 @@ class TableControllerTest : PlatformTestCase() {
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(customDatabaseId, customDatabaseConnection!!)
+    }
 
     val schema = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema())
     val targetTable = schema.tables.find { it.name == "tableName" }!!
@@ -1488,7 +1547,7 @@ class TableControllerTest : PlatformTestCase() {
     val originalResultSet = pumpEventsAndWaitForFuture(
       customDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)))
     )
-    val targetRow = pumpEventsAndWaitForFuture(originalResultSet!!.getRowBatch(0, 1)).first()
+    val targetRow = pumpEventsAndWaitForFuture(originalResultSet.getRowBatch(0, 1)).first()
 
     val originalValue = targetRow.values.first { it.columnName == targetCol.name }.value
     val newValue = SqliteValue.StringValue("test value")
@@ -1497,8 +1556,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      customDatabaseId,
       { targetTable },
-      customDatabaseConnection!!,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)),
       {},
       edtExecutor,
@@ -1512,11 +1572,12 @@ class TableControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(tableView).reportError("Can't update. No primary keys or rowid column.", null)
+    assertEquals("Can't execute update: ", tableView.errorReported.first().first)
+    assertEquals("No primary keys or rowid column", tableView.errorReported.first().second?.message)
     val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.query(
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tableName")
     ))
-    val rows = pumpEventsAndWaitForFuture(sqliteResultSet?.getRowBatch(0, 1))
+    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1))
     val value = rows.first().values.first { it.columnName == targetCol.name }.value
     assertEquals(originalValue, value)
   }
@@ -1530,6 +1591,10 @@ class TableControllerTest : PlatformTestCase() {
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(customDatabaseId, customDatabaseConnection!!)
+    }
 
     val schema = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema())
     val targetTable = schema.tables.find { it.name == "t1" }!!
@@ -1538,7 +1603,7 @@ class TableControllerTest : PlatformTestCase() {
     val originalResultSet = pumpEventsAndWaitForFuture(
       customDatabaseConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)))
     )
-    val targetRow = pumpEventsAndWaitForFuture(originalResultSet!!.getRowBatch(0, 1)).first()
+    val targetRow = pumpEventsAndWaitForFuture(originalResultSet.getRowBatch(0, 1)).first()
 
     val originalValue = targetRow.values.first { it.columnName == targetCol.name }.value
     val newValue = SqliteValue.StringValue("test value")
@@ -1551,8 +1616,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      customDatabaseId,
       { tableProvider.table },
-      customDatabaseConnection!!,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)),
       {},
       edtExecutor,
@@ -1579,11 +1645,12 @@ class TableControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(tableView).reportError("Can't update. No primary keys or rowid column.", null)
+    assertEquals("Can't execute update: ", tableView.errorReported.first().first)
+    assertEquals("No primary keys or rowid column", tableView.errorReported.first().second?.message)
     val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.query(
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1")
     ))
-    val rows = pumpEventsAndWaitForFuture(sqliteResultSet?.getRowBatch(0, 1))
+    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1))
     val value = rows.first().values.first { it.columnName == targetCol.name }.value
     assertEquals(originalValue, value)
   }
@@ -1596,8 +1663,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1620,8 +1688,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1647,8 +1716,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1674,8 +1744,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1707,6 +1778,10 @@ class TableControllerTest : PlatformTestCase() {
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(customDatabaseId, customDatabaseConnection!!)
+    }
 
     val schema = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema())
     val targetTable = schema.tables.find { it.name == "t1" }!!
@@ -1719,8 +1794,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      customDatabaseId,
       { tableProvider.table },
-      customDatabaseConnection!!,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM ${targetTable.name}"),
       {},
       edtExecutor,
@@ -1754,6 +1830,10 @@ class TableControllerTest : PlatformTestCase() {
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(customDatabaseId, customDatabaseConnection!!)
+    }
 
     val schema = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema())
     val targetTable = schema.tables.find { it.name == "t1" }!!
@@ -1766,8 +1846,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      customDatabaseId,
       { tableProvider.table },
-      customDatabaseConnection!!,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM ${targetTable.name}"),
       {},
       edtExecutor,
@@ -1808,6 +1889,10 @@ class TableControllerTest : PlatformTestCase() {
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(customDatabaseId, customDatabaseConnection!!)
+    }
 
     val schema = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema())
     val targetTable = schema.tables.find { it.name == "t1" }!!
@@ -1821,8 +1906,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      customDatabaseId,
       { tableProvider.table },
-      customDatabaseConnection!!,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)),
       {},
       edtExecutor,
@@ -1850,8 +1936,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { null },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1878,8 +1965,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { null },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1908,8 +1996,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { null },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1939,8 +2028,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { customSqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tableName"),
       {},
       edtExecutor,
@@ -1970,8 +2060,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { null },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -1998,8 +2089,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { sqliteTable },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -2031,8 +2123,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      mockDatabaseId,
       { null },
-      mockDatabaseConnection,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.UNKNOWN, ""),
       {},
       edtExecutor,
@@ -2068,6 +2161,10 @@ class TableControllerTest : PlatformTestCase() {
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(customDatabaseId, customDatabaseConnection!!)
+    }
 
     val schema = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema())
     val myView = schema.tables.find { it.name == "my_view" }!!
@@ -2080,8 +2177,9 @@ class TableControllerTest : PlatformTestCase() {
       project,
       10,
       tableView,
+      customDatabaseId,
       { tableProvider.table },
-      customDatabaseConnection!!,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(myView)),
       {},
       edtExecutor,
@@ -2100,6 +2198,12 @@ class TableControllerTest : PlatformTestCase() {
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(databaseFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
+    val databaseConnectionWrapper = DatabaseConnectionWrapper(customDatabaseConnection!!)
+
+    val customDatabaseId = SqliteDatabaseId.fromFileDatabase(databaseFile)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(customDatabaseId, databaseConnectionWrapper)
+    }
 
     val schema = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema())
     val targetTable = schema.tables.find { it.name == targetTableName }!!
@@ -2107,14 +2211,13 @@ class TableControllerTest : PlatformTestCase() {
 
     val newValue = SqliteValue.StringValue("test value")
 
-    val databaseConnectionWrapper = DatabaseConnectionWrapper(customDatabaseConnection!!)
-
     tableController = TableController(
       project,
       10,
       tableView,
+      customDatabaseId,
       { targetTable },
-      databaseConnectionWrapper,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(targetTable)),
       {},
       edtExecutor,
@@ -2131,7 +2234,7 @@ class TableControllerTest : PlatformTestCase() {
     val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.query(
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM ${AndroidSqlLexer.getValidName(targetTableName)}")
     ))
-    val rows = pumpEventsAndWaitForFuture(sqliteResultSet?.getRowBatch(0, 1))
+    val rows = pumpEventsAndWaitForFuture(sqliteResultSet.getRowBatch(0, 1))
     val value = rows.first().values.first { it.columnName == targetCol.name }.value
     assertEquals(SqliteValue.StringValue("test value"), value)
     val executedUpdateStatement = databaseConnectionWrapper.executedSqliteStatements.first { it.startsWith("UPDATE") }

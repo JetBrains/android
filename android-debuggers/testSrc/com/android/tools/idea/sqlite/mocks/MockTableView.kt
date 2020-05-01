@@ -16,13 +16,14 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import org.mockito.Mockito.mock
 import javax.swing.JComponent
 
 open class MockTableView : TableView {
+
+  val errorReported = mutableListOf<Pair<String, Throwable?>>()
 
   val listeners = mutableListOf<TableView.Listener>()
 
@@ -36,7 +37,7 @@ open class MockTableView : TableView {
 
   override fun stopTableLoading() { }
 
-  override fun reportError(message: String, t: Throwable?) { }
+  override fun reportError(message: String, t: Throwable?) { errorReported.add(Pair(message, t)) }
 
   override fun setFetchPreviousRowsButtonState(enable: Boolean) { }
 
