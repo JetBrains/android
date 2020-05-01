@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.api;
 
 import android.view.View;
 import android.view.ViewGroup;
+import com.android.tools.idea.rendering.RenderService;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,37 +73,39 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
    * part to scroll the content in the component.
    */
   private static void handleScrolling(@NotNull View view) {
-    int scrollPosX = view.getScrollX();
-    int scrollPosY = view.getScrollY();
-    if (scrollPosX != 0 || scrollPosY != 0) {
-      if (view.isNestedScrollingEnabled()) {
-        int[] consumed = new int[2];
-        int axis = scrollPosX != 0 ? View.SCROLL_AXIS_HORIZONTAL : 0;
-        axis |= scrollPosY != 0 ? View.SCROLL_AXIS_VERTICAL : 0;
-        if (view.startNestedScroll(axis)) {
-          view.dispatchNestedPreScroll(scrollPosX, scrollPosY, consumed, null);
-          view.dispatchNestedScroll(consumed[0], consumed[1], scrollPosX, scrollPosY,
-                                    null);
-          view.stopNestedScroll();
-          scrollPosX -= consumed[0];
-          scrollPosY -= consumed[1];
-        }
-      }
+    RenderService.runAsyncRenderAction(() -> {
+      int scrollPosX = view.getScrollX();
+      int scrollPosY = view.getScrollY();
       if (scrollPosX != 0 || scrollPosY != 0) {
-        view.scrollTo(scrollPosX, scrollPosY);
+        if (view.isNestedScrollingEnabled()) {
+          int[] consumed = new int[2];
+          int axis = scrollPosX != 0 ? View.SCROLL_AXIS_HORIZONTAL : 0;
+          axis |= scrollPosY != 0 ? View.SCROLL_AXIS_VERTICAL : 0;
+          if (view.startNestedScroll(axis)) {
+            view.dispatchNestedPreScroll(scrollPosX, scrollPosY, consumed, null);
+            view.dispatchNestedScroll(consumed[0], consumed[1], scrollPosX, scrollPosY,
+                                      null);
+            view.stopNestedScroll();
+            scrollPosX -= consumed[0];
+            scrollPosY -= consumed[1];
+          }
+        }
+        if (scrollPosX != 0 || scrollPosY != 0) {
+          view.scrollTo(scrollPosX, scrollPosY);
+        }
+        // This is required for layoutlib native to invalidate and redraw correctly
+        view.requestLayout();
       }
-      // This is required for layoutlib native to invalidate and redraw correctly
-      view.requestLayout();
-    }
 
-    if (!(view instanceof ViewGroup)) {
-      return;
-    }
-    ViewGroup group = (ViewGroup)view;
-    for (int i = 0; i < group.getChildCount(); i++) {
-      View child = group.getChildAt(i);
-      handleScrolling(child);
-    }
+      if (!(view instanceof ViewGroup)) {
+        return;
+      }
+      ViewGroup group = (ViewGroup)view;
+      for (int i = 0; i < group.getChildCount(); i++) {
+        View child = group.getChildAt(i);
+        handleScrolling(child);
+      }
+    });
   }
 
   /**
