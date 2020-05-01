@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public class AtraceCpuCapture extends BaseCpuCapture {
+public class SystemTraceCpuCapture extends BaseCpuCapture {
   @NotNull
   private final Map<Integer, List<SeriesData<ThreadState>>> myThreadStateDataSeries;
 
@@ -38,17 +38,17 @@ public class AtraceCpuCapture extends BaseCpuCapture {
   private final boolean myIsMissingData;
 
   @NotNull
-  private final AtraceFrameManager myFrameManager;
+  private final SystemTraceFrameManager myFrameManager;
 
   @NotNull
-  private final AtraceSurfaceflingerManager mySurfaceflingerManager;
+  private final SystemTraceSurfaceflingerManager mySurfaceflingerManager;
 
-  public AtraceCpuCapture(long traceId,
-                          @NotNull Cpu.CpuTraceType type,
-                          @NotNull Range range,
-                          @NotNull AtraceParser parser,
-                          @NotNull AtraceFrameManager frameManager,
-                          @NotNull AtraceSurfaceflingerManager surfaceflingerManager) {
+  public SystemTraceCpuCapture(long traceId,
+                               @NotNull Cpu.CpuTraceType type,
+                               @NotNull Range range,
+                               @NotNull AtraceParser parser,
+                               @NotNull SystemTraceFrameManager frameManager,
+                               @NotNull SystemTraceSurfaceflingerManager surfaceflingerManager) {
     super(traceId, type, range, parser.getCaptureTrees());
 
     myThreadStateDataSeries = parser.getThreadStateDataSeries();
@@ -98,7 +98,7 @@ public class AtraceCpuCapture extends BaseCpuCapture {
 
   @Override
   @NotNull
-  public List<SeriesData<AtraceFrame>> getFrames(AtraceFrame.FrameThread threadType) {
+  public List<SeriesData<SystemTraceFrame>> getFrames(SystemTraceFrame.FrameThread threadType) {
     return myFrameManager.getFrames(threadType);
   }
 

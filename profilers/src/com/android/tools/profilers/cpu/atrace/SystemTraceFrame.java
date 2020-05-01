@@ -19,17 +19,15 @@ import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.profilers.systemtrace.TraceEventModel;
 import com.google.common.annotations.VisibleForTesting;
-import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * An atrace frame represents all events that happen on a specified thread,
  * Each frame implements parts of {@link DurationData} for easy use in UI components.
- * The frame is a container and is produced by {@link AtraceFrameManager}.
+ * The frame is a container and is produced by {@link SystemTraceFrameManager}.
  */
-public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements DurationData {
-  private static final double SECONDS_TO_US = TimeUnit.SECONDS.toMicros(1);
-  public static final AtraceFrame EMPTY = new AtraceFrame(0, 0, 0, 0, FrameThread.OTHER);
+public class SystemTraceFrame extends EventAction<SystemTraceFrame.PerfClass> implements DurationData {
+  public static final SystemTraceFrame EMPTY = new SystemTraceFrame(0, 0, 0, 0, FrameThread.OTHER);
 
   /**
    * A rating for this frame's performance, based against some expected time. The expected time
@@ -81,7 +79,7 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
    * If this frame is a main thread frame, then the associated frame is the render thread frame that is created by this frame.
    * If this frame is a render thread frame, then the associated frame is the main thread frame that created this render thread frame.
    */
-  private AtraceFrame myAssociatedFrame;
+  private SystemTraceFrame myAssociatedFrame;
 
   /**
    * Total cpu time in seconds this frame was scheduled for.
@@ -98,9 +96,9 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
 
   private final FrameThread myThread;
 
-  public AtraceFrame(@NotNull TraceEventModel eventModel,
-                     long longFrameTimeUs,
-                     FrameThread thread) {
+  public SystemTraceFrame(@NotNull TraceEventModel eventModel,
+                          long longFrameTimeUs,
+                          FrameThread thread) {
     this(eventModel.getStartTimestampUs(),
          eventModel.getEndTimestampUs(),
          eventModel.getCpuTimeUs(),
@@ -109,11 +107,11 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
   }
 
   @VisibleForTesting
-  public AtraceFrame(long startUs,
-                     long endUs,
-                     double cpuTimeUs,
-                     long longFrameTimeUs,
-                     FrameThread thread) {
+  public SystemTraceFrame(long startUs,
+                          long endUs,
+                          double cpuTimeUs,
+                          long longFrameTimeUs,
+                          FrameThread thread) {
     super(startUs, endUs, PerfClass.NOT_SET);
     myCpuTimeUs = cpuTimeUs;
     myLongFrameTimeUs = longFrameTimeUs;
@@ -130,11 +128,11 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
     return myThread;
   }
 
-  public void setAssociatedFrame(AtraceFrame associatedFrame) {
+  public void setAssociatedFrame(SystemTraceFrame associatedFrame) {
     myAssociatedFrame = associatedFrame;
   }
 
-  public AtraceFrame getAssociatedFrame() {
+  public SystemTraceFrame getAssociatedFrame() {
     return myAssociatedFrame;
   }
 

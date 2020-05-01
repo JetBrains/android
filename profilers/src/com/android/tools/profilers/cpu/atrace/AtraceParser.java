@@ -146,12 +146,12 @@ public class AtraceParser implements TraceParser {
     buildThreadStateData();
     buildCpuStateData();
 
-    AtraceFrameManager frameManager = new AtraceFrameManager(myMainProcessModel);
-    AtraceSurfaceflingerManager sfManager = new AtraceSurfaceflingerManager(myModelAdapter);
+    SystemTraceFrameManager frameManager = new SystemTraceFrameManager(myMainProcessModel);
+    SystemTraceSurfaceflingerManager sfManager = new SystemTraceSurfaceflingerManager(myModelAdapter);
 
     Range myRange = new Range(myModelAdapter.getCaptureStartTimestampUs(), myModelAdapter.getCaptureEndTimestampUs());
 
-    return new AtraceCpuCapture(traceId, myCpuTraceType, myRange, this, frameManager, sfManager);
+    return new SystemTraceCpuCapture(traceId, myCpuTraceType, myRange, this, frameManager, sfManager);
   }
 
   /**

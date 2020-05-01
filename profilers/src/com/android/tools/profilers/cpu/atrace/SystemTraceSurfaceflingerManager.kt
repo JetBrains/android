@@ -25,7 +25,7 @@ import com.google.common.base.Preconditions
  * Surfaceflinger is responsible for compositing all the application and system surfaces into a single buffer on Android. This class
  * extracts the Surfaceflinger process from a SystemTraceModelAdapter and exposes various events as data series.
  */
-class AtraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter) {
+class SystemTraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter) {
   val surfaceflingerEvents: List<SeriesData<SurfaceflingerEvent>>
   val vsyncCounterValues: List<SeriesData<Long>>
 

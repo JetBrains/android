@@ -32,8 +32,8 @@ public class CpuFrameTooltip extends AspectModel<CpuFrameTooltip.Aspect> impleme
   }
 
   @NotNull private Timeline myTimeline;
-  @Nullable private DataSeries<AtraceFrame> mySeries;
-  @Nullable private AtraceFrame myFrame;
+  @Nullable private DataSeries<SystemTraceFrame> mySeries;
+  @Nullable private SystemTraceFrame myFrame;
 
   public CpuFrameTooltip(@NotNull Timeline timeline) {
     myTimeline = timeline;
@@ -52,18 +52,18 @@ public class CpuFrameTooltip extends AspectModel<CpuFrameTooltip.Aspect> impleme
       return;
     }
 
-    List<SeriesData<AtraceFrame>> series = mySeries.getDataForRange(myTimeline.getTooltipRange());
+    List<SeriesData<SystemTraceFrame>> series = mySeries.getDataForRange(myTimeline.getTooltipRange());
     myFrame = series.isEmpty() ? null : series.get(0).value;
     changed(Aspect.FRAME_CHANGED);
   }
 
-  public void setFrameSeries(@Nullable DataSeries<AtraceFrame> stateSeries) {
+  public void setFrameSeries(@Nullable DataSeries<SystemTraceFrame> stateSeries) {
     mySeries = stateSeries;
     updateState();
   }
 
   @Nullable
-  public AtraceFrame getFrame() {
+  public SystemTraceFrame getFrame() {
     return myFrame;
   }
 

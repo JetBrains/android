@@ -30,7 +30,7 @@ import trebuchet.task.ImportTask
 import trebuchet.util.PrintlnImportFeedback
 import java.util.concurrent.TimeUnit
 
-class AtraceFrameManagerTest {
+class SystemTraceFrameManagerTest {
   private lateinit var model: Model
   private lateinit var process: ProcessModel
 
@@ -47,19 +47,20 @@ class AtraceFrameManagerTest {
 
   @Test
   fun filterReturnsFramesOfSameThread() {
-    val frameManager = AtraceFrameManager(process)
-    val frames = frameManager.getFramesList(AtraceFrame.FrameThread.MAIN)
+    val frameManager = SystemTraceFrameManager(process)
+    val frames = frameManager.getFramesList(SystemTraceFrame.FrameThread.MAIN)
     // Validation metrics come from systrace for the same file.
     assertThat(frames).hasSize(122)
-    assertThat(frames.count { it.perfClass == AtraceFrame.PerfClass.GOOD}).isEqualTo(102)
-    assertThat(frames.count { it.perfClass == AtraceFrame.PerfClass.BAD}).isEqualTo(20)
-    assertThat(frames.count { it.perfClass == AtraceFrame.PerfClass.NOT_SET}).isEqualTo(0)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.GOOD}).isEqualTo(102)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.BAD}).isEqualTo(20)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.NOT_SET}).isEqualTo(0)
   }
 
   @Test
   fun noMatchingThreadReturnsEmptyList() {
-    val frameManager = AtraceFrameManager(process)
-    assertThat(frameManager.getFramesList(AtraceFrame.FrameThread.OTHER)).hasSize(0)
+    val frameManager = SystemTraceFrameManager(process)
+    assertThat(frameManager.getFramesList(
+      SystemTraceFrame.FrameThread.OTHER)).hasSize(0)
   }
 
   private fun getSlice(startTime: Long, endTime: Long, name: String): TraceEventModel {
@@ -92,10 +93,10 @@ class AtraceFrameManagerTest {
                                mapOf(TEST_PID to mainThread, TEST_RENDER_ID to renderThread),
                                emptyMap())
 
-    val frameManager = AtraceFrameManager(process)
+    val frameManager = SystemTraceFrameManager(process)
 
-    val mainThreadFrames = frameManager.getFramesList(AtraceFrame.FrameThread.MAIN)
-    val renderThreadFrames = frameManager.getFramesList(AtraceFrame.FrameThread.RENDER)
+    val mainThreadFrames = frameManager.getFramesList(SystemTraceFrame.FrameThread.MAIN)
+    val renderThreadFrames = frameManager.getFramesList(SystemTraceFrame.FrameThread.RENDER)
 
     assertThat(mainThreadFrames.size).isEqualTo(4)
     assertThat(renderThreadFrames.size).isEqualTo(5)
@@ -114,13 +115,13 @@ class AtraceFrameManagerTest {
 
   @Test
   fun framesEndWithEmptyFrame() {
-    val frameManager = AtraceFrameManager(process)
-    val frames = frameManager.getFrames(AtraceFrame.FrameThread.MAIN)
+    val frameManager = SystemTraceFrameManager(process)
+    val frames = frameManager.getFrames(SystemTraceFrame.FrameThread.MAIN)
     // Each frame has a empty frame after it for spacing.
     assertThat(frames).hasSize(122 * 2)
     for (i in 0 until frames.size step 2) {
-      assertThat(frames[i].value).isNotEqualTo(AtraceFrame.EMPTY)
-      assertThat(frames[i + 1].value).isEqualTo(AtraceFrame.EMPTY)
+      assertThat(frames[i].value).isNotEqualTo(SystemTraceFrame.EMPTY)
+      assertThat(frames[i + 1].value).isEqualTo(SystemTraceFrame.EMPTY)
     }
   }
 }
