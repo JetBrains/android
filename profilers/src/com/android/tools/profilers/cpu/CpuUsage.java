@@ -24,7 +24,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
+import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -46,8 +46,8 @@ public class CpuUsage extends LineChartModel {
 
   /**
    * Instantiates CPU usage model using the provided view and data ranges. If a capture is provided the cpu usage data is merged with the
-   * data from the capture. Only {@link AtraceCpuCapture}'s currently support getting cpu usage data. If the capture is null or not a
-   * {@link AtraceCpuCapture} cpu usage data is only queried from the datastore.
+   * data from the capture. Only {@link SystemTraceCpuCapture}'s currently support getting cpu usage data. If the capture is null or not a
+   * {@link SystemTraceCpuCapture} cpu usage data is only queried from the datastore.
    */
   public CpuUsage(@NotNull StudioProfilers profilers, @NotNull Range viewRange, @NotNull Range dataRange, @Nullable CpuCapture cpuCapture) {
     myCpuRange = new Range(0, 100);

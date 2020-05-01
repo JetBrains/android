@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profilers.cpu.atrace.AtraceFrame;
+import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -56,8 +56,8 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
     CpuCapture capture = myStage.getCapture();
     if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
       // For now we hard code the main thread, and the render thread frame information.
-      addElement(new FrameState("Main", capture.getMainThreadId(), AtraceFrame.FrameThread.MAIN, capture, myRange));
-      addElement(new FrameState("Render", capture.getRenderThreadId(), AtraceFrame.FrameThread.RENDER, capture, myRange));
+      addElement(new FrameState("Main", capture.getMainThreadId(), SystemTraceFrame.FrameThread.MAIN, capture, myRange));
+      addElement(new FrameState("Render", capture.getRenderThreadId(), SystemTraceFrame.FrameThread.RENDER, capture, myRange));
     }
     contentsChanged();
   }
@@ -68,15 +68,15 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
 
   public static class FrameState {
     @NotNull
-    private final DataSeries<AtraceFrame> myFrameDataSeries;
+    private final DataSeries<SystemTraceFrame> myFrameDataSeries;
     @NotNull
-    private final StateChartModel<AtraceFrame> myModel;
+    private final StateChartModel<SystemTraceFrame> myModel;
     private final String myThreadName;
     private final int myThreadId;
 
     public FrameState(String threadName,
                       int threadId,
-                      @NotNull AtraceFrame.FrameThread threadType,
+                      @NotNull SystemTraceFrame.FrameThread threadType,
                       @NotNull CpuCapture capture,
                       @NotNull Range range) {
       myModel = new StateChartModel<>();
@@ -96,12 +96,12 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
     }
 
     @NotNull
-    public DataSeries<AtraceFrame> getSeries() {
+    public DataSeries<SystemTraceFrame> getSeries() {
       return myFrameDataSeries;
     }
 
     @NotNull
-    public StateChartModel<AtraceFrame> getModel() {
+    public StateChartModel<SystemTraceFrame> getModel() {
       return myModel;
     }
   }

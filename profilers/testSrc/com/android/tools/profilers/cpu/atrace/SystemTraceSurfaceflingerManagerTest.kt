@@ -23,7 +23,7 @@ import org.junit.Test
 import trebuchet.task.ImportTask
 import trebuchet.util.PrintlnImportFeedback
 
-class AtraceSurfaceflingerManagerTest {
+class SystemTraceSurfaceflingerManagerTest {
   private val model by lazy {
     val file = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
     val reader = AtraceProducer()
@@ -34,7 +34,7 @@ class AtraceSurfaceflingerManagerTest {
 
   @Test
   fun surfaceflingerEvents() {
-    val sfManager = AtraceSurfaceflingerManager(model)
+    val sfManager = SystemTraceSurfaceflingerManager(model)
     val sfEvents = sfManager.surfaceflingerEvents
 
     // The test trace contains 96 onMessageReceived trace events. With padded IDLE events we should have 2n + 1 events.
@@ -49,7 +49,7 @@ class AtraceSurfaceflingerManagerTest {
 
   @Test
   fun vsyncCounterValues() {
-    val sfManager = AtraceSurfaceflingerManager(model)
+    val sfManager = SystemTraceSurfaceflingerManager(model)
     val vsyncValues = sfManager.vsyncCounterValues
 
     assertThat(vsyncValues.size).isEqualTo(244)

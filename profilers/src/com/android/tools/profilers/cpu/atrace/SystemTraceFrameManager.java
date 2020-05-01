@@ -29,12 +29,12 @@ import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This class builds {@link AtraceFrame}s for each {@code AtraceFrame.FrameThread} types.
+ * This class builds {@link SystemTraceFrame}s for each {@code SystemTraceFrame.FrameThread} types.
  */
-public class AtraceFrameManager {
+public class SystemTraceFrameManager {
 
-  private final List<AtraceFrame> myMainThreadFrames;
-  private final List<AtraceFrame> myRenderThreadFrames;
+  private final List<SystemTraceFrame> myMainThreadFrames;
+  private final List<SystemTraceFrame> myRenderThreadFrames;
 
   private final int myRenderThreadId;
 
@@ -43,10 +43,10 @@ public class AtraceFrameManager {
    *
    * @param process Process used to find the main and render threads.
    */
-  public AtraceFrameManager(@NotNull ProcessModel process) {
-    myMainThreadFrames = buildFramesList(AtraceFrame.FrameThread.MAIN, process, process.getId());
+  public SystemTraceFrameManager(@NotNull ProcessModel process) {
+    myMainThreadFrames = buildFramesList(SystemTraceFrame.FrameThread.MAIN, process, process.getId());
     myRenderThreadId = findRenderThreadId(process);
-    myRenderThreadFrames = buildFramesList(AtraceFrame.FrameThread.RENDER, process, myRenderThreadId);
+    myRenderThreadFrames = buildFramesList(SystemTraceFrame.FrameThread.RENDER, process, myRenderThreadId);
     findAssociatedFrames();
   }
 
@@ -57,12 +57,12 @@ public class AtraceFrameManager {
     int mainFramesIterator = 0, renderFramesIterator = 0;
 
     while (mainFramesIterator < myMainThreadFrames.size() && renderFramesIterator < myRenderThreadFrames.size()) {
-      AtraceFrame mainThreadFrame = myMainThreadFrames.get(mainFramesIterator);
-      AtraceFrame renderThreadFrame = myRenderThreadFrames.get(renderFramesIterator);
-      if (renderThreadFrame == AtraceFrame.EMPTY || renderThreadFrame.getEndUs() < mainThreadFrame.getEndUs()) {
+      SystemTraceFrame mainThreadFrame = myMainThreadFrames.get(mainFramesIterator);
+      SystemTraceFrame renderThreadFrame = myRenderThreadFrames.get(renderFramesIterator);
+      if (renderThreadFrame == SystemTraceFrame.EMPTY || renderThreadFrame.getEndUs() < mainThreadFrame.getEndUs()) {
         renderFramesIterator++;
       }
-      else if (mainThreadFrame == AtraceFrame.EMPTY ||
+      else if (mainThreadFrame == SystemTraceFrame.EMPTY ||
                renderThreadFrame.getStartUs() > mainThreadFrame.getEndUs() ||
                renderThreadFrame.getStartUs() < mainThreadFrame.getStartUs()) {
         mainFramesIterator++;
@@ -77,10 +77,10 @@ public class AtraceFrameManager {
   }
 
   @NotNull
-  private static List<AtraceFrame> buildFramesList(AtraceFrame.FrameThread frameThread,
-                                            ProcessModel processModel,
-                                            int threadId) {
-    List<AtraceFrame> frames = new ArrayList<>();
+  private static List<SystemTraceFrame> buildFramesList(SystemTraceFrame.FrameThread frameThread,
+                                                        ProcessModel processModel,
+                                                        int threadId) {
+    List<SystemTraceFrame> frames = new ArrayList<>();
     Optional<ThreadModel> activeThread = processModel.getThreads().stream().filter((thread) -> thread.getId() == threadId).findFirst();
     if (!activeThread.isPresent()) {
       return frames;
@@ -88,7 +88,7 @@ public class AtraceFrameManager {
     new SliceStream(activeThread.get().getTraceEvents())
       .matchPattern(Pattern.compile(frameThread.getIdentifierRegEx()))
       .enumerate((sliceGroup) -> {
-        AtraceFrame frame = new AtraceFrame(sliceGroup, CpuFramesModel.SLOW_FRAME_RATE_US, frameThread);
+        SystemTraceFrame frame = new SystemTraceFrame(sliceGroup, CpuFramesModel.SLOW_FRAME_RATE_US, frameThread);
         frames.add(frame);
         return SliceStream.EnumerationResult.SKIP_CHILDREN;
       });
@@ -99,7 +99,7 @@ public class AtraceFrameManager {
    * Returns a list of frames for a frame type.
    */
   @VisibleForTesting
-  List<AtraceFrame> getFramesList(@NotNull AtraceFrame.FrameThread thread) {
+  List<SystemTraceFrame> getFramesList(@NotNull SystemTraceFrame.FrameThread thread) {
     switch (thread) {
       case MAIN:
         return myMainThreadFrames;
@@ -127,29 +127,29 @@ public class AtraceFrameManager {
    * {@code AtraceFrame.FrameThread.OTHER}.
    */
   @NotNull
-  public List<SeriesData<AtraceFrame>> getFrames(@NotNull AtraceFrame.FrameThread thread) {
-    List<SeriesData<AtraceFrame>> framesSeries = new ArrayList<>();
-    List<AtraceFrame> framesList = getFramesList(thread);
+  public List<SeriesData<SystemTraceFrame>> getFrames(@NotNull SystemTraceFrame.FrameThread thread) {
+    List<SeriesData<SystemTraceFrame>> framesSeries = new ArrayList<>();
+    List<SystemTraceFrame> framesList = getFramesList(thread);
     // Look at each frame converting them to series data.
     // The last frame is handled outside the for loop as we need to add an entry for the frame as well as an entry for the frame ending.
     // Single frames are handled in the last frame case.
     for (int i = 1; i < framesList.size(); i++) {
-      AtraceFrame current = framesList.get(i);
-      AtraceFrame past = framesList.get(i - 1);
+      SystemTraceFrame current = framesList.get(i);
+      SystemTraceFrame past = framesList.get(i - 1);
       framesSeries.add(new SeriesData<>(past.getStartUs(), past));
 
       // Need to get the time delta between two frames.
       // If we have a gap then we add an empty frame to signify to the UI that nothing should be rendered.
       if (past.getEndUs() < current.getStartUs()) {
-        framesSeries.add(new SeriesData<>(past.getEndUs(), AtraceFrame.EMPTY));
+        framesSeries.add(new SeriesData<>(past.getEndUs(), SystemTraceFrame.EMPTY));
       }
     }
 
     // Always add the last frame, and a null frame following to properly setup the series for the UI.
     if (!framesList.isEmpty()) {
-      AtraceFrame lastFrame = framesList.get(framesList.size() - 1);
+      SystemTraceFrame lastFrame = framesList.get(framesList.size() - 1);
       framesSeries.add(new SeriesData<>(lastFrame.getStartUs(), lastFrame));
-      framesSeries.add(new SeriesData<>(lastFrame.getEndUs(), AtraceFrame.EMPTY));
+      framesSeries.add(new SeriesData<>(lastFrame.getEndUs(), SystemTraceFrame.EMPTY));
     }
     return framesSeries;
   }
