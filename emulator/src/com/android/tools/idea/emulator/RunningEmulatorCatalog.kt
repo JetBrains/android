@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.emulator.control.VmRunState
 import com.android.tools.idea.concurrency.AndroidIoManager
-import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.collect.ImmutableSet
 import com.google.common.util.concurrent.ListenableFuture
@@ -28,11 +27,13 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.io.FileUtil.getTempDirectory
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.Alarm
 import gnu.trove.TObjectLongHashMap
 import org.jetbrains.annotations.TestOnly
 import java.io.IOException
+import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
@@ -71,7 +72,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
   @GuardedBy("updateLock")
   private var pendingFutures: MutableList<SettableFuture<Set<EmulatorController>>> = mutableListOf()
   @GuardedBy("updateLock")
-  private var registrationDirectory: Path = computeEmulatorRegistrationDirectory()
+  private var registrationDirectory: Path? = computeRegistrationDirectory()
 
   /**
    * Adds a listener that will be notified when new Emulators start and running Emulators shut down.
@@ -170,7 +171,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
         pendingFutures = mutableListOf()
       }
 
-      directory = registrationDirectory
+      directory = registrationDirectory ?: return
     }
 
     try {
@@ -365,7 +366,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       listeners = emptyList()
       updateIntervalsByListener.clear()
       emulators = emptySet()
-      registrationDirectory = directory ?: computeEmulatorRegistrationDirectory()
+      registrationDirectory = directory ?: computeRegistrationDirectory()
     }
   }
 
@@ -395,31 +396,94 @@ class RunningEmulatorCatalog : Disposable.Parent {
       return ServiceManager.getService(RunningEmulatorCatalog::class.java)
     }
 
+    @JvmStatic
+    private fun computeRegistrationDirectory(): Path? {
+      val container = computeRegistrationDirectoryContainer()
+      if (container == null) {
+        logger.error("Unable to determine Emulator registration directory")
+      }
+      return container?.resolve(REGISTRATION_DIRECTORY_RELATIVE_PATH)
+    }
+
     /**
      * Returns the Emulator registration directory.
      */
-    private fun computeEmulatorRegistrationDirectory(): Path {
-      val dirInfo =
-        when {
-          SystemInfo.isMac -> {
-            DirDescriptor("HOME", "Library/Caches/TemporaryItems")
-          }
-          SystemInfo.isWindows -> {
-            DirDescriptor("LOCALAPPDATA", "Temp")
-          }
-          else -> {
-            DirDescriptor("XDG_RUNTIME_DIR", null)
-          }
+    @JvmStatic
+    private fun computeRegistrationDirectoryContainer(): Path? {
+      when {
+        SystemInfo.isMac -> {
+          return resolvePath("{HOME}/Library/Caches/TemporaryItems")
         }
+        SystemInfo.isWindows -> {
+          return resolvePath("{LOCALAPPDATA}/Temp")
+        }
+        else -> { // Linux and Chrome OS.
+          for (pattern in arrayOf("{XDG_RUNTIME_DIR}", "/run/user/{UID}", "{HOME}/.android")) {
+            val dir = resolvePath(pattern) ?: continue
+            if (Files.isDirectory(dir)) {
+              return dir
+            }
+          }
 
-      val base = System.getenv(dirInfo.environmentVariable)
-      if (dirInfo.relativePath == null) {
-        return Paths.get(base, REGISTRATION_DIRECTORY_RELATIVE_PATH)
+          return resolvePath("${getTempDirectory()}/android-{USER}")
+        }
       }
-      return Paths.get(base, dirInfo.relativePath, REGISTRATION_DIRECTORY_RELATIVE_PATH)
     }
 
-    private class DirDescriptor(val environmentVariable: String, val relativePath: String?)
+    /**
+     * Substitutes values of environment variables in the given [pattern] and returns the corresponding [Path].
+     * Names of environment variables are enclosed in curly braces.
+     */
+    @JvmStatic
+    private fun resolvePath(pattern: String): Path? {
+      val result = StringBuilder()
+      val name = StringBuilder()
+      var braceDepth = 0
+      for (c in pattern) {
+        when {
+          c == '{' -> braceDepth++
+          c == '}' -> {
+            if (--braceDepth == 0 && name.isNotEmpty()) {
+              val value = getEnvironmentVariable(name.toString())
+              result.append(value)
+              name.clear()
+            }
+          }
+          braceDepth > 0 -> name.append(c)
+          else -> result.append(c)
+        }
+      }
+      return Paths.get(result.toString())
+    }
+
+    @JvmStatic
+    private fun getEnvironmentVariable(name: String): String? {
+      val value = System.getenv(name)
+      if (value == null && name == "UID") {
+        // If the UID environment variable is not defined, obtain the user ID by alternative means.
+        return getUid()
+      }
+      return value
+    }
+
+    @JvmStatic
+    private fun getUid(): String? {
+      try {
+        val userName = System.getProperty("user.name")
+        val command = "id -u $userName"
+        val process = Runtime.getRuntime().exec(command)
+        process.inputStream.use {
+          val result = String(it.readBytes(), UTF_8).trim()
+          if (result.isEmpty()) {
+            return null
+          }
+          return result
+        }
+      }
+      catch (e: IOException) {
+        return null
+      }
+    }
 
     private const val REGISTRATION_DIRECTORY_RELATIVE_PATH = "avd/running"
   }
