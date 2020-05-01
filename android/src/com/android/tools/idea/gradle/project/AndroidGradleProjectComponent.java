@@ -37,7 +37,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.externalSystem.autoimport.AutoImportProjectTracker;
-import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker;
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrackerSettings;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -122,7 +122,7 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
   public void projectOpened() {
     IdeInfo ideInfo = IdeInfo.getInstance();
     if (ideInfo.isAndroidStudio()) {
-      ExternalSystemProjectTracker.getInstance(myProject).setAutoReloadExternalChanges(false);
+      ExternalSystemProjectTrackerSettings.getInstance(myProject).setAutoReloadType(ExternalSystemProjectTrackerSettings.AutoReloadType.NONE);
     }
     AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(myProject);
     if (ideInfo.isAndroidStudio() && androidProjectInfo.isLegacyIdeaAndroidProject() && !androidProjectInfo.isApkProject()) {
