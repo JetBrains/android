@@ -90,9 +90,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     }
     myFixture = null;
     super.tearDown();
-/* b/154963508
     checkUndisposedAndroidRelatedObjects();
-b/154963508 */
   }
 
   /**
