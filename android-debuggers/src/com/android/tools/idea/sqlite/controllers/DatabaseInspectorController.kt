@@ -96,7 +96,7 @@ class DatabaseInspectorControllerImpl(
   private val modelListener = object : DatabaseInspectorModel.Listener {
     private var currentDatabases = listOf<SqliteDatabase>()
 
-    override fun onChanged(databases: List<SqliteDatabase>) {
+    override fun onDatabasesChanged(databases: List<SqliteDatabase>) {
       val sortedNewDatabase = databases.sortedBy { it.name }
 
       val toAdd = sortedNewDatabase
@@ -107,6 +107,10 @@ class DatabaseInspectorControllerImpl(
       view.updateDatabases(toAdd + toRemove)
 
       currentDatabases = databases
+    }
+
+    override fun onSchemaChanged(database: SqliteDatabase, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
+      updateExistingDatabaseSchemaView(database, oldSchema, newSchema)
     }
   }
 
@@ -253,9 +257,7 @@ class DatabaseInspectorControllerImpl(
     val oldSchema = model.getDatabaseSchema(database) ?: return
     withContext(uiThread) {
       if (oldSchema != newSchema) {
-        model.add(database, newSchema)
-        updateExistingDatabaseSchemaView(database, oldSchema, newSchema)
-        resultSetControllers.values.filterIsInstance<SqliteEvaluatorController>().forEach { it.schemaChanged(database) }
+        model.updateSchema(database, newSchema)
       }
     }
   }

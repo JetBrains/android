@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.createSqliteStatement
@@ -53,7 +54,7 @@ class SqliteEvaluatorController(
   private val listeners = mutableListOf<Listener>()
 
   private val modelListener = object : DatabaseInspectorModel.Listener {
-    override fun onChanged(databases: List<SqliteDatabase>) {
+    override fun onDatabasesChanged(databases: List<SqliteDatabase>) {
       val activeDatabase = view.activeDatabase
 
       view.setDatabases(databases.sortedBy { it.name })
@@ -62,19 +63,16 @@ class SqliteEvaluatorController(
         view.activeDatabase = activeDatabase
       }
     }
+
+    override fun onSchemaChanged(database: SqliteDatabase, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
+      view.schemaChanged(database)
+    }
   }
 
   fun setUp() {
     view.addListener(sqliteEvaluatorViewListener)
     view.tableView.setEditable(false)
     model.addListener(modelListener)
-  }
-
-  /**
-   * Notifies the controller that the schema associated with [database] has changed.
-   */
-  fun schemaChanged(database: SqliteDatabase) {
-    view.schemaChanged(database)
   }
 
   override fun refreshData(): ListenableFuture<Unit> {
