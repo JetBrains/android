@@ -96,16 +96,6 @@ public class GradleProjectImporter {
    * storage to force their re-import.
    */
   @Nullable
-  @Deprecated
-  public Project importProjectCore(@NotNull VirtualFile projectFolder) {
-    return importAndOpenProjectCore(null, true, projectFolder);
-  }
-
-  /**
-   * Ensures presence of the top level Gradle build file and the .idea directory and, additionally, performs cleanup of the libraries
-   * storage to force their re-import.
-   */
-  @Nullable
   public Project importAndOpenProjectCore(@Nullable Project projectToClose,
                                           boolean forceOpenInNewFrame,
                                           @NotNull VirtualFile projectFolder) {
