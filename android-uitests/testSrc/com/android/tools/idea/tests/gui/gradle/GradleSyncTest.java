@@ -59,6 +59,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
@@ -466,12 +467,14 @@ public class GradleSyncTest {
 
     // A sync should not have been performed but the status should have been updated to SKIPPED.
     assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS);
+    // Make sure lost modules have been removed.
+    assertThat(ModuleManager.getInstance(ideFrame.getProject()).getModules().length).isEqualTo(2);
 
     ideFrame.closeProject();
   }
 
   @Test
-  public void gradleModelCachedNoimlsOnly() throws IOException {
+  public void gradleModelCachedNoImlsOnly() throws IOException {
     File projectDir = guiTest.setUpProject("SimpleApplication");
 
     // First time, open the project to sync.
@@ -489,6 +492,8 @@ public class GradleSyncTest {
 
     // A sync should not have been performed but the status should have been updated to SKIPPED.
     assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS);
+    // Make sure lost modules have been removed.
+    assertThat(ModuleManager.getInstance(ideFrame.getProject()).getModules().length).isEqualTo(2);
 
     ideFrame.closeProject();
   }
