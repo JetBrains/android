@@ -29,12 +29,15 @@ interface DatabaseInspectorModel {
   fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema)
   fun remove(database: SqliteDatabase)
 
+  fun updateSchema(database: SqliteDatabase, newSchema: SqliteSchema)
+
   fun addListener(modelListener: Listener)
   fun removeListener(modelListener: Listener)
 
   @UiThread
   interface Listener {
-    fun onChanged(databases: List<SqliteDatabase>)
+    fun onDatabasesChanged(databases: List<SqliteDatabase>)
+    fun onSchemaChanged(database: SqliteDatabase, oldSchema: SqliteSchema, newSchema: SqliteSchema)
   }
 }
 
@@ -62,7 +65,7 @@ class DatabaseInspectorModelImpl : DatabaseInspectorModel {
     openDatabases[database] = sqliteSchema
     val newDatabaseList = openDatabases.keys.toList()
 
-    listeners.forEach { it.onChanged(newDatabaseList) }
+    listeners.forEach { it.onDatabasesChanged(newDatabaseList) }
   }
 
   override fun remove(database: SqliteDatabase) {
@@ -71,14 +74,22 @@ class DatabaseInspectorModelImpl : DatabaseInspectorModel {
     openDatabases.remove(database)
     val newDatabaseList = openDatabases.keys.toList()
 
-    listeners.forEach { it.onChanged(newDatabaseList) }
+    listeners.forEach { it.onDatabasesChanged(newDatabaseList) }
+  }
+
+  override fun updateSchema(database: SqliteDatabase, newSchema: SqliteSchema) {
+    ApplicationManager.getApplication().assertIsDispatchThread()
+
+    val oldSchema = openDatabases[database] ?: return
+    openDatabases[database] = newSchema
+    listeners.forEach { it.onSchemaChanged(database, oldSchema, newSchema) }
   }
 
   override fun addListener(modelListener: DatabaseInspectorModel.Listener) {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
     listeners.add(modelListener)
-    modelListener.onChanged(openDatabases.keys.toList())
+    modelListener.onDatabasesChanged(openDatabases.keys.toList())
   }
 
   override fun removeListener(modelListener: DatabaseInspectorModel.Listener) {

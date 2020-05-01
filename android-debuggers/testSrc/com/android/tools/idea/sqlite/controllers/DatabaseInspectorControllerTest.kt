@@ -861,8 +861,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(mockDatabaseInspectorModel).add(sqliteDatabase1, sqliteSchema)
     verify(mockDatabaseInspectorModel).add(sqliteDatabase2, sqliteSchema)
 
-    verify(mockDatabaseInspectorModel).add(sqliteDatabase1, sqliteSchemaUpdated)
-    verify(mockDatabaseInspectorModel).add(sqliteDatabase2, sqliteSchemaUpdated)
+    verify(mockDatabaseInspectorModel).updateSchema(sqliteDatabase1, sqliteSchemaUpdated)
+    verify(mockDatabaseInspectorModel).updateSchema(sqliteDatabase2, sqliteSchemaUpdated)
 
     verify(mockSqliteView).updateDatabaseSchema(
       sqliteDatabase1,
@@ -989,8 +989,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     // update schemas
-    verify(mockDatabaseInspectorModel).add(sqliteDatabase1, SqliteSchema(listOf(testSqliteTable)))
-    verify(mockDatabaseInspectorModel).add(sqliteDatabase2, SqliteSchema(listOf(testSqliteTable)))
+    verify(mockDatabaseInspectorModel).updateSchema(sqliteDatabase1, SqliteSchema(listOf(testSqliteTable)))
+    verify(mockDatabaseInspectorModel).updateSchema(sqliteDatabase2, SqliteSchema(listOf(testSqliteTable)))
     verify(mockSqliteView).updateDatabaseSchema(sqliteDatabase1, listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())))
     verify(mockSqliteView).updateDatabaseSchema(sqliteDatabase2, listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())))
 
