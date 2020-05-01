@@ -26,7 +26,6 @@ import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
@@ -51,12 +50,7 @@ import java.util.concurrent.Executor
 import kotlin.math.min
 
 /**
- * Controller specialized in displaying rows and columns from a [SqliteResultSet].
- *
- * The ownership of the [SqliteResultSet] is transferred to the [TableController],
- * i.e. it is closed when [dispose] is called.
- *
- * The [SqliteResultSet] is not necessarily associated with a real table in the database, in those cases [TableInfo] will be null.
+ * Controller responsible for displaying data from a SQLite table.
  */
 @UiThread
 class TableController(
@@ -393,8 +387,6 @@ class TableController(
         })
     }
   }
+
+  private data class OrderBy(val column: ResultSetSqliteColumn, val asc: Boolean)
 }
-
-data class OrderBy(val column: ResultSetSqliteColumn, val asc: Boolean)
-
-data class TableInfo(val database: SqliteDatabase, val tableName: String)
