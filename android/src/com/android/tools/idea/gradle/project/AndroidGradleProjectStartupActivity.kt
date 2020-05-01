@@ -32,7 +32,9 @@ import com.android.tools.idea.gradle.util.AndroidStudioPreferences
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet
 import com.android.tools.idea.model.AndroidModel
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -43,6 +45,8 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.rootManager
+import com.intellij.openapi.roots.ModuleSourceOrderEntry
 import com.intellij.openapi.startup.StartupActivity
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -71,6 +75,7 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
     }
 
     if (shouldSyncOrAttachModels()) {
+      removeEmptyModules(project)
       attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
     }
 
@@ -83,6 +88,32 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
 }
 
 private val LOG = Logger.getInstance(AndroidGradleProjectStartupActivity::class.java)
+
+private fun removeEmptyModules(project: Project) {
+  val moduleManager = ModuleManager.getInstance(project)
+  val modulesToRemove =
+    moduleManager
+      .modules
+      .filter { module ->
+        module.isLoaded &&
+        module.moduleFile == null &&
+        ExternalSystemModulePropertyManager.getInstance(module).getExternalSystemId().isNullOrEmpty() &&
+        module.rootManager.let { roots -> roots.contentEntries.isEmpty() && roots.orderEntries.all { it is ModuleSourceOrderEntry } }
+      }
+      .takeUnless { it.isEmpty() }
+    ?: return
+
+  runWriteAction {
+    with(moduleManager.modifiableModel) {
+      modulesToRemove.forEach {
+        LOG.warn(
+          "Disposing module '${it.name}' which is empty, not registered with the external system and '${it.moduleFilePath}' does not exist.")
+        disposeModule(it)
+      }
+      commit()
+    }
+  }
+}
 
 /**
  * Attempts to see if the models cached by IDEAs external system are valid, if they are then we attach them to the facet,
