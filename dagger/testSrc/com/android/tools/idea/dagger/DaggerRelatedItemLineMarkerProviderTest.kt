@@ -466,10 +466,11 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
-    assertThat(gotoRelatedItems).hasSize(2)
+    assertThat(gotoRelatedItems).hasSize(3)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
     assertThat(result).containsAllOf("Subcomponent(s): MySubcomponent2",
-                                     "Subcomponent(s): MySubcomponent")
+                                     "Subcomponent(s): MySubcomponent",
+                                     "Module(s) included: MyModule")
   }
 
   fun testObjectClassInKotlin() {
@@ -583,5 +584,40 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(trackerService.calledMethods).hasSize(2)
     assertThat(trackerService.calledMethods.first()).isEqualTo("trackClickOnGutter PROVIDER")
     assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER CONSUMER")
+  }
+
+  fun testModulesForSubcomponent() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+
+        import dagger.Module;
+
+        @Module
+        class MyModule { }
+      """.trimIndent()
+    )
+    // Java Subomponent
+    val file = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Subcomponent;
+
+      @Subcomponent(modules = { MyModule.class })
+      public interface MySubcomponent {}
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.moveCaret("MySubcompon|ent")
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isNotEmpty()
+
+    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    assertThat(gotoRelatedItems).hasSize(1)
+    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
+    assertThat(result).containsExactly("Module(s) included: MyModule")
   }
 }
