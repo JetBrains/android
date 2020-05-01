@@ -128,7 +128,7 @@ public class AddDeeplinkDialog extends DialogWrapper {
     String mimeType = myMimeTypeField.getText();
     if (!mimeType.isEmpty()) {
       int index = mimeType.indexOf('/');
-      if (index < 1 || index == mimeType.length() - 1 || mimeType.lastIndexOf('/') != index) {
+      if (index < 1 || index == mimeType.length() - 1) {
         return new ValidationInfo("Invalid MIME type.");
       }
     }

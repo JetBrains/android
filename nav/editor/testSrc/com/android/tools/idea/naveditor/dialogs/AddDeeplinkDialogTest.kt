@@ -70,7 +70,13 @@ class AddDeeplinkDialogTest : NavTestCase() {
       assertNotNull(dialog.doValidate())
 
       dialog.myMimeTypeField.text = "*//*"
-      assertNotNull(dialog.doValidate())
+      assertNull(dialog.doValidate())
+
+      dialog.myMimeTypeField.text = "*/**/*"
+      assertNull(dialog.doValidate())
+
+      dialog.myMimeTypeField.text = "*//"
+      assertNull(dialog.doValidate())
     }
   }
 
