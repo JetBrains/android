@@ -40,7 +40,7 @@ class TrebuchetModelAdapter(trebuchetModel: Model) : SystemTraceModelAdapter {
 
   private val beginTimestampSeconds: Double = trebuchetModel.beginTimestamp
   private val endTimestampSeconds: Double = trebuchetModel.endTimestamp
-  private val monoTimeAtBeginningSeconds: Double
+  private val timeShiftFromBeginningSeconds: Double
 
   // The realtime timestamp is written out as soon as we start
   // an atrace capture. If this timestamp does not exist this value
@@ -65,9 +65,9 @@ class TrebuchetModelAdapter(trebuchetModel: Model) : SystemTraceModelAdapter {
     // We check if we have a parent timestamp. If not this could be from an imported trace.
     // In the case it is 0, we use the first timestamp of our capture as a reference point.
     if (trebuchetModel.parentTimestamp.compareTo(0.0) == 0) {
-      monoTimeAtBeginningSeconds = beginTimestampSeconds
+      timeShiftFromBeginningSeconds = 0.0
     } else {
-      monoTimeAtBeginningSeconds = trebuchetModel.parentTimestamp - (trebuchetModel.parentTimestampBootTime - beginTimestampSeconds)
+      timeShiftFromBeginningSeconds = trebuchetModel.parentTimestamp - trebuchetModel.parentTimestampBootTime
     }
 
     for (process in trebuchetModel.processes.values) {
@@ -140,6 +140,6 @@ class TrebuchetModelAdapter(trebuchetModel: Model) : SystemTraceModelAdapter {
   }
 
   private fun convertToUserTimeUs(timestampInSeconds: Double): Long {
-    return convertSecondsToUs(timestampInSeconds - (beginTimestampSeconds - monoTimeAtBeginningSeconds))
+    return convertSecondsToUs(timestampInSeconds + timeShiftFromBeginningSeconds)
   }
 }
