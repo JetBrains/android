@@ -108,7 +108,15 @@ public abstract class AndroidTestBase extends UsefulTestCase {
         return DisposerExplorer.VisitResult.SKIP_CHILDREN;
       }
       if (disposable.getClass().getName().startsWith("com.android.")) {
-        fail("Undisposed object of type " + disposable.getClass().getName());
+        Disposable parent = DisposerExplorer.getParent(disposable);
+        String baseMsg = "Undisposed object '" + disposable + "' of type '" + disposable.getClass().getName() + "'";
+        if (parent == null) {
+          throw new RuntimeException(
+            baseMsg + ", registered as a root disposable (see cause for creation trace)",
+            DisposerExplorer.getTrace(disposable));
+        } else {
+          throw new RuntimeException(baseMsg + ", with parent '" + parent + "' of type '" + parent.getClass().getName() + "'");
+        }
       }
       return DisposerExplorer.VisitResult.CONTINUE;
     });
