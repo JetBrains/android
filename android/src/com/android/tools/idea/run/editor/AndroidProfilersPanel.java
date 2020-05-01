@@ -139,7 +139,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     myAdvancedProfilingCheckBox.setSelected(enabled && state.ADVANCED_PROFILING_ENABLED);
 
     myNativeMemoryProfilerSampleRate.getComponent().setText(Integer.toString(state.NATIVE_MEMORY_SAMPLE_RATE_BYTES));
-    myStartupProfileCheckBox.setSelected(state.STARTUP_CPU_PROFILING_ENABLED || state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED);
+    myStartupProfileCheckBox.setSelected(state.STARTUP_PROFILING_ENABLED);
     myCpuRecordingRadio.setSelected(state.STARTUP_CPU_PROFILING_ENABLED);
     myMemoryRecordingRadio.setSelected(state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED);
     myStartupCpuProfilerDescription.setBackground(myDescription.getBackground());
@@ -161,6 +161,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     assert myStartupCpuConfigsComboBox.getSelectedItem() instanceof CpuProfilerConfig;
     state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME = ((CpuProfilerConfig)myStartupCpuConfigsComboBox.getSelectedItem()).getName();
     state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = myMemoryRecordingRadio.isSelected();
+    state.STARTUP_PROFILING_ENABLED = myStartupProfileCheckBox.isSelected();
     try {
       state.NATIVE_MEMORY_SAMPLE_RATE_BYTES = Math.max(1, Integer.parseInt(myNativeMemoryProfilerSampleRate.getComponent().getText()));
     } catch (NumberFormatException ex) {
