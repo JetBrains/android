@@ -27,8 +27,11 @@ import com.android.tools.profilers.memory.adapters.FieldObject
 import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
 import com.android.tools.profilers.stacktrace.StackTraceModel
+import com.google.common.util.concurrent.ListenableFuture
 import java.util.Objects
+import java.util.concurrent.Executor
 
 /**
  * This class manages the capture selection state and fires aspects when it is changed.
@@ -187,6 +190,27 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
     }
     return false
   }
+
+  fun addInstanceFilter(filter: CaptureObjectInstanceFilter, joiner: Executor) =
+    runCaptureInstanceFilter(joiner) { it.addInstanceFilter(filter, joiner) }
+
+  fun removeInstanceFilter(filter: CaptureObjectInstanceFilter, joiner: Executor) =
+    runCaptureInstanceFilter(joiner) { it.removeInstanceFilter(filter, joiner) }
+
+  fun setFilter(filter: CaptureObjectInstanceFilter, joiner: Executor) =
+    runCaptureInstanceFilter(joiner) { it.setSingleFilter(filter, joiner) }
+
+  fun removeAllFilters(joiner: Executor) =
+    runCaptureInstanceFilter(joiner) { it.removeAllFilters(joiner) }
+
+  private fun runCaptureInstanceFilter(joiner: Executor, update: (CaptureObject) -> ListenableFuture<Void>) {
+    aspect.changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATING)
+    update(selectedCapture!!).addListener(Runnable {
+      aspect.changed(CaptureSelectionAspect.CURRENT_HEAP_UPDATED)
+      refreshSelectedHeap()
+    }, joiner)
+  }
+
 
   private fun selectCaptureFilter(filter: Filter) {
     // Only track filter usage when filter has been updated.

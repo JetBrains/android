@@ -94,10 +94,9 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
               // Capture loading failed.
               // TODO: loading has somehow failed - we need to inform users about the error status.
               doSelectCaptureDuration(null, null)
-
-              // Triggers the aspect to inform listeners that the heap content/filter has changed (become null).
-              captureSelection.refreshSelectedHeap()
             }
+            // Triggers the aspect to inform listeners that the heap content/filter has changed.
+            captureSelection.refreshSelectedHeap()
           }
           catch (exception: InterruptedException) {
             Thread.currentThread().interrupt()

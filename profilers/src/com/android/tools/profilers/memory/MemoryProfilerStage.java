@@ -148,7 +148,7 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
 
     FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
     HeapDumpSampleDataSeries heapDumpSeries =
-      new HeapDumpSampleDataSeries(profilers.getClient(), mySessionData, featureTracker, getCaptureSelection());
+      new HeapDumpSampleDataSeries(profilers.getClient(), mySessionData, featureTracker, getStudioProfilers().getIdeServices());
     AllocationInfosDataSeries allocationSeries =
       new AllocationInfosDataSeries(profilers.getClient(), mySessionData, featureTracker, this);
     NativeAllocationSamplesSeries nativeSampleSeries =

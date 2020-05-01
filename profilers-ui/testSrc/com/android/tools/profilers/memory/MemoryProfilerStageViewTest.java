@@ -1029,7 +1029,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
                                                                       heapDumpInfo,
                                                                       null,
                                                                       myIdeProfilerServices.getFeatureTracker(),
-                                                                      myStage.getCaptureSelection());
+                                                                      myStage.getStudioProfilers().getIdeServices());
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> heapDumpCapture)), joiner);
     assertThat(stageView.getCaptureInfoMessage().isVisible()).isFalse();

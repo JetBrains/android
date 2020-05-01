@@ -20,6 +20,7 @@ import com.android.tools.profilers.ProfilerCombobox
 import com.android.tools.profilers.ProfilerComboboxCellRenderer
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
 import com.intellij.openapi.application.ApplicationManager
+import java.util.concurrent.Executor
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JLabel
 import javax.swing.JList
@@ -55,8 +56,8 @@ internal class MemoryInstanceFilterMenu(selection: MemoryCaptureSelection): Aspe
     component.addActionListener {
       val captureObject = selection.selectedCapture!!
       when (val filter = component.selectedItem as CaptureObjectInstanceFilter?) {
-        null -> captureObject.removeAllFilters(ApplicationManager.getApplication()::invokeLater)
-        else -> captureObject.setSingleFilter(filter, ApplicationManager.getApplication()::invokeLater)
+        null -> selection.removeAllFilters(Executor(ApplicationManager.getApplication()::invokeLater))
+        else -> selection.setFilter(filter, Executor(ApplicationManager.getApplication()::invokeLater))
       }
     }
   }
