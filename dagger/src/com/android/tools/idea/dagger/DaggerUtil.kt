@@ -18,9 +18,6 @@ package com.android.tools.idea.dagger
 import com.android.tools.idea.AndroidPsiUtils.toPsiType
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.getResolveScope
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
@@ -44,6 +41,7 @@ import com.intellij.util.Query
 import org.jetbrains.kotlin.asJava.elements.KtLightField
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.util.findAnnotation
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtClass
@@ -105,7 +103,9 @@ private fun getDaggerBindsInstanceMethodsAndParametersForType(type: PsiType, sco
  * Returns all Dagger providers (@Provide/@Binds-annotated methods, @Inject-annotated constructors) for [element].
  */
 fun getDaggerProvidersFor(element: PsiElement): Collection<PsiModifierListOwner> {
-  val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element) ?: return emptyList()
+  val module = element.module ?: return emptyList()
+  val scope = GlobalSearchScope.moduleWithDependentsScope(module)
+    .uniteWith(GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module))
   val (type, qualifierInfo) = extractTypeAndQualifierInfo(element) ?: return emptyList()
 
   return getDaggerProviders(type, qualifierInfo, scope)
@@ -143,7 +143,9 @@ private fun getDaggerConsumers(type: PsiType, qualifierInfo: QualifierInfo?, sco
  * Returns all Dagger consumers (see [isDaggerConsumer]) for given [element].
  */
 fun getDaggerConsumersFor(element: PsiElement): Collection<PsiVariable> {
-  val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element) ?: return emptyList()
+  val module = element.module ?: return emptyList()
+  val scope = GlobalSearchScope.moduleWithDependentsScope(module)
+    .uniteWith(GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module))
   val (type, qualifierInfo) = extractTypeAndQualifierInfo(element) ?: return emptyList()
 
   return getDaggerConsumers(type, qualifierInfo, scope)
@@ -405,8 +407,8 @@ private fun PsiAnnotation.isClassPresentedInAttribute(attrName: String, fqcn: St
 /**
  * Returns Dagger-components and Dagger-modules that in a attribute “modules” and "includes" respectively have a [module] class.
  *
- * Dagger-component is interface annotated [DAGGER_COMPONENT_ANNOTATION] or [DAGGER_SUBCOMPONENT_ANNOTATION]).
- * Dagger-module is class annotated [DAGGER_MODULE_ANNOTATION].
+ * Dagger-component is an interface annotated [DAGGER_COMPONENT_ANNOTATION] or [DAGGER_SUBCOMPONENT_ANNOTATION]).
+ * Dagger-module is a class annotated [DAGGER_MODULE_ANNOTATION].
  * The "modules" attribute and "includes" have a type `Class<?>[]`.
  */
 fun getUsagesForDaggerModule(module: PsiClass): Collection<PsiClass> {
