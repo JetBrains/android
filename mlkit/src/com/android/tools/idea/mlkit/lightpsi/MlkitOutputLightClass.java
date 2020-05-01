@@ -17,6 +17,7 @@ package com.android.tools.idea.mlkit.lightpsi;
 
 import com.android.tools.idea.mlkit.MlkitModuleService;
 import com.android.tools.idea.psi.NullabilityUtils;
+import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
@@ -92,11 +93,10 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
   private PsiMethod buildGetterMethod(TensorInfo tensorInfo) {
     Project project = getProject();
     GlobalSearchScope scope = getResolveScope();
-    PsiClassType nonNullReturnType = NullabilityUtils
-      .annotateType(getProject(), PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), project, scope), true, this);
+    PsiClassType returnType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), project, scope);
     LightMethodBuilder method =
-      new LightMethodBuilder(myManager, MlkitNames.formatGetterName(tensorInfo.getIdentifierName(), nonNullReturnType.getClassName()))
-        .setMethodReturnType(nonNullReturnType)
+      new NullabilityLightMethodBuilder(myManager, MlkitNames.formatGetterName(tensorInfo.getIdentifierName(), returnType.getClassName()))
+        .setMethodReturnType(returnType, true)
         .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
         .setContainingClass(this);
     method.setNavigationElement(this);
