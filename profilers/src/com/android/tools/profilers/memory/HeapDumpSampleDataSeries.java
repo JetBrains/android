@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -29,20 +30,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
-  @NotNull private final MemoryCaptureSelection mySelection;
+  @NotNull private final IdeProfilerServices myIdeProfilerServices;
 
   public HeapDumpSampleDataSeries(@NotNull ProfilerClient client,
                                   @Nullable Common.Session session,
                                   @NotNull FeatureTracker featureTracker,
-                                  @NotNull MemoryCaptureSelection selection) {
+                                  @NotNull IdeProfilerServices ideProfilerServices) {
     super(client, session, featureTracker);
-    mySelection = selection;
+    myIdeProfilerServices = ideProfilerServices;
   }
 
   @Override
   public List<SeriesData<CaptureDurationData<CaptureObject>>> getDataForRange(Range range) {
     List<HeapDumpInfo> infos =
-      MemoryProfiler.getHeapDumpsForSession(myClient, mySession, range, mySelection.getIdeServices());
+      MemoryProfiler.getHeapDumpsForSession(myClient, mySession, range, myIdeProfilerServices);
 
     List<SeriesData<CaptureDurationData<CaptureObject>>> seriesData = new ArrayList<>();
     for (HeapDumpInfo info : infos) {
@@ -52,7 +53,7 @@ class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
           getDurationUs(info.getStartTime(), info.getEndTime()), false, false,
           new CaptureEntry<>(
             info,
-            () -> new HeapDumpCaptureObject(myClient, mySession, info, null, myFeatureTracker, mySelection)))));
+            () -> new HeapDumpCaptureObject(myClient, mySession, info, null, myFeatureTracker, myIdeProfilerServices)))));
     }
 
     return seriesData;

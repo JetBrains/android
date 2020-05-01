@@ -73,11 +73,11 @@ public class MemoryInstanceFilterView extends AspectModel<MemoryProfilerAspect> 
       filterCheckBox.setToolTipText(supportedFilter.getSummaryDescription());
       filterCheckBox.addActionListener(l -> {
         if (filterCheckBox.isSelected()) {
-          captureObject.addInstanceFilter(supportedFilter, SwingUtilities::invokeLater);
+          mySelection.addInstanceFilter(supportedFilter, SwingUtilities::invokeLater);
           mySelection.getIdeServices().getFeatureTracker().trackMemoryProfilerInstanceFilter(supportedFilter);
         }
         else {
-          captureObject.removeInstanceFilter(supportedFilter, SwingUtilities::invokeLater);
+          mySelection.removeInstanceFilter(supportedFilter, SwingUtilities::invokeLater);
         }
 
         boolean hasFilterDescription = false;
