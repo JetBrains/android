@@ -20,7 +20,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors
@@ -34,7 +34,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
   private lateinit var databaseInspectorClient: DatabaseInspectorClient
   private lateinit var mockMessenger: AppInspectorClient.CommandMessenger
 
-  private lateinit var openDatabaseFunction: (SqliteDatabase) -> Unit
+  private lateinit var openDatabaseFunction: (SqliteDatabaseId, DatabaseConnection) -> Unit
   private var openDatabaseInvoked = false
 
   private lateinit var handleErrorFunction: (String) -> Unit
@@ -51,7 +51,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
 
     mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
     openDatabaseInvoked = false
-    openDatabaseFunction = { _ -> openDatabaseInvoked = true }
+    openDatabaseFunction = { _, _ -> openDatabaseInvoked = true }
 
     handleErrorInvoked = false
     handleErrorFunction = { _ -> handleErrorInvoked = true }

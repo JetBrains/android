@@ -15,22 +15,24 @@
  */
 package com.android.tools.idea.sqlite
 
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorController
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
-import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.getAllDatabaseIds
+import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
+import com.intellij.util.concurrency.EdtExecutorService
 import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.`when`
@@ -46,8 +48,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
   private lateinit var mockSqliteController: MockDatabaseInspectorController
   private lateinit var fileOpened: VirtualFile
   private lateinit var model: MockDatabaseInspectorModel
-
-  private var databaseToClose: SqliteDatabase? = null
+  private lateinit var repository: DatabaseRepositoryImpl
 
   override fun setUp() {
     super.setUp()
@@ -59,8 +60,9 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     sqliteFile1 = sqliteUtil.createTestSqliteDatabase("db1.db")
     DeviceFileId("deviceId", "filePath").storeInVirtualFile(sqliteFile1)
 
+    repository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
     model = MockDatabaseInspectorModel()
-    mockSqliteController = spy(MockDatabaseInspectorController(model))
+    mockSqliteController = spy(MockDatabaseInspectorController(repository, model))
 
     val fileOpener = Consumer<VirtualFile> { vf -> fileOpened = vf }
 
@@ -68,16 +70,12 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
       project = project,
       fileOpener = fileOpener,
       model = model,
-      createController = { mockSqliteController }
+      createController = { _, _ -> mockSqliteController }
     )
   }
 
   override fun tearDown() {
     try {
-      if (databaseToClose != null) {
-        pumpEventsAndWaitForFuture(databaseToClose!!.databaseConnection.close())
-      }
-
       sqliteUtil.tearDown()
     } finally {
       super.tearDown()
@@ -86,22 +84,21 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
   fun testStopSessionClosesAllDatabase() {
     // Prepare
-    val fileDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(sqliteFile1))
-    databaseToClose = fileDatabase
+    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
+    val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
+    val connection1 = LiveDatabaseConnection(
+      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), EdtExecutorService.getInstance()),
+      1,
+      EdtExecutorService.getInstance()
+    )
+    val connection2 = LiveDatabaseConnection(
+      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), EdtExecutorService.getInstance()),
+      2,
+      EdtExecutorService.getInstance()
+    )
 
-    val connection1 = mock(DatabaseConnection::class.java)
-    `when`(connection1.close()).thenReturn(Futures.immediateFuture(Unit))
-
-    val connection2 = mock(DatabaseConnection::class.java)
-    `when`(connection2.close()).thenReturn(Futures.immediateFuture(Unit))
-
-    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(
-      LiveSqliteDatabase(SqliteDatabaseId.fromLiveDatabase("db1", 1), connection1)
-    ))
-
-    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(
-      LiveSqliteDatabase(SqliteDatabaseId.fromLiveDatabase("db2", 2), connection2)
-    ))
+    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId1, connection1))
+    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId2, connection2))
 
     // Act
     runDispatching {
@@ -147,15 +144,14 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
 
-    val connection = mock(DatabaseConnection::class.java)
-    `when`(connection.close()).thenReturn(Futures.immediateFuture(Unit))
+    val connection = LiveDatabaseConnection(
+      DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), EdtExecutorService.getInstance()),
+      0,
+      EdtExecutorService.getInstance()
+    )
 
-    pumpEventsAndWaitForFuture(
-      databaseInspectorProjectService.openSqliteDatabase(LiveSqliteDatabase(databaseId1, connection))
-    )
-    pumpEventsAndWaitForFuture(
-      databaseInspectorProjectService.openSqliteDatabase(LiveSqliteDatabase(databaseId2, connection))
-    )
+    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId1, connection))
+    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(databaseId2, connection))
 
     // Act
     databaseInspectorProjectService.handleDatabaseClosed(databaseId1)
@@ -170,7 +166,6 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
   fun testClosedDatabaseWithoutOpenDatabaseAddsClosedDatabase() {
     // Prepare
     val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
-    val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
 
     val connection = mock(DatabaseConnection::class.java)
     `when`(connection.close()).thenReturn(Futures.immediateFuture(Unit))

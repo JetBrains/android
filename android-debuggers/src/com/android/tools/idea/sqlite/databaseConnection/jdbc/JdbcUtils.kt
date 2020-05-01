@@ -19,10 +19,15 @@ import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import java.sql.Connection
+import java.sql.DriverManager
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
+import java.util.concurrent.Executor
 
 /**
  * Takes a [SqliteStatement] and returns a [PreparedStatement] by assigning values to parameters in the statement.
@@ -62,4 +67,17 @@ fun selectAllAndRowIdFromTable(table: SqliteTable): String {
   // But in [SqliteTable] we save the name of the rowid column as "rowid", "_rowid_" or "oid"
   val columnsToSelect = table.rowIdName?.let { rowIdName -> "*, ${rowIdName.stringName} as ${rowIdName.stringName}" } ?: "*"
   return "SELECT $columnsToSelect FROM ${AndroidSqlLexer.getValidName(table.name)}"
+}
+
+suspend fun openJdbcDatabaseConnection(virtualFile: VirtualFile, workerExecutor: Executor, workerDispatcher: CoroutineDispatcher): JdbcDatabaseConnection {
+  return withContext(workerDispatcher) {
+    try {
+      val url = "jdbc:sqlite:${virtualFile.path}"
+      val connection = DriverManager.getConnection(url)
+      JdbcDatabaseConnection(connection, virtualFile, workerExecutor)
+    }
+    catch (e: Exception) {
+      throw RuntimeException("Error while opening Sqlite database file '${virtualFile.path}'", e)
+    }
+  }
 }
