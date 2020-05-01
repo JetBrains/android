@@ -287,8 +287,8 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
         when (val userObject = value.userObject) {
           is SqliteDatabase -> {
             icon = StudioIcons.DatabaseInspector.DATABASE
-            append(userObject.name)
-            toolTipText = userObject.path
+            append(userObject.id.name)
+            toolTipText = userObject.id.path
           }
 
           is SqliteTable -> {

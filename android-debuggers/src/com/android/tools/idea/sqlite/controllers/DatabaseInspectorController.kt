@@ -92,7 +92,7 @@ class DatabaseInspectorControllerImpl(
     private var currentDatabases = listOf<SqliteDatabase>()
 
     override fun onDatabasesChanged(databases: List<SqliteDatabase>) {
-      val sortedNewDatabase = databases.sortedBy { it.name }
+      val sortedNewDatabase = databases.sortedBy { it.id.name }
 
       val toAdd = sortedNewDatabase
         .filter { !currentDatabases.contains(it) }
@@ -181,7 +181,7 @@ class DatabaseInspectorControllerImpl(
   override fun saveState(): SavedUiState {
     val tabs = resultSetControllers.mapNotNull {
       when (val tabId = it.key) {
-        is TabId.TableTab -> TabDescription.TableTab(tabId.database.path, tabId.tableName)
+        is TabId.TableTab -> TabDescription.TableTab(tabId.database.id.path, tabId.tableName)
         is TabId.AdHocQueryTab -> null
       }
     }
@@ -233,7 +233,7 @@ class DatabaseInspectorControllerImpl(
   }
 
   private fun restoreTabs(database: SqliteDatabase, schema: SqliteSchema) {
-    tabsToRestore.filter { it.databasePath == database.path }
+    tabsToRestore.filter { it.databasePath == database.id.path }
       .also { tabsToRestore.removeAll(it) }
       .filterIsInstance<TabDescription.TableTab>()
       .mapNotNull { tabDescription -> schema.tables.find { tabDescription.tableName == it.name } }
@@ -298,7 +298,7 @@ class DatabaseInspectorControllerImpl(
     } catch (e: Exception) {
       // this UI change does not correspond to a change in the model, therefore it has to be done manually
       view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(database)))
-      val index = model.getOpenDatabases().sortedBy { it.name }.indexOf(database)
+      val index = model.getOpenDatabases().sortedBy { it.id.name }.indexOf(database)
       view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, newSchema, index)))
     }
   }
