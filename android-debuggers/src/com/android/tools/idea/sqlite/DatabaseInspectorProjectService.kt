@@ -28,8 +28,8 @@ import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactor
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
-import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
@@ -91,7 +91,7 @@ interface DatabaseInspectorProjectService {
    * Runs the query passed as argument in the Sqlite Inspector.
    */
   @UiThread
-  fun runSqliteStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement)
+  fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement)
 
   /**
    * Returns true if the Sqlite Inspector has an open database, false otherwise.
@@ -100,10 +100,10 @@ interface DatabaseInspectorProjectService {
   fun hasOpenDatabase(): Boolean
 
   /**
-   * Returns a list of the currently open [SqliteDatabase].
+   * Returns a list of the currently open databases.
    */
   @AnyThread
-  fun getOpenDatabases(): List<SqliteDatabase>
+  fun getOpenDatabases(): List<SqliteDatabaseId>
 
   /**
    * Shows the error in the Database Inspector.
@@ -210,7 +210,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
     val database = async {
       val connection = databaseConnectionFactory.getDatabaseConnection(file, taskExecutor).await()
-      FileSqliteDatabase(connection, file)
+      FileSqliteDatabase(SqliteDatabaseId.fromVirtualFile(file), connection)
     }
 
     withContext(uiThread) {
@@ -221,8 +221,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   @AnyThread
-  override fun openSqliteDatabase(database: SqliteDatabase): ListenableFuture<Unit> = projectScope.future {
-    controller.addSqliteDatabase(database)
+  override fun openSqliteDatabase(sqliteDatabase: SqliteDatabase): ListenableFuture<Unit> = projectScope.future {
+    controller.addSqliteDatabase(sqliteDatabase)
   }
 
   @UiThread
@@ -235,7 +235,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     val savedState = controller.saveState()
 
     projectScope.launch(uiThread) {
-      model.getOpenDatabases().filterIsInstance<LiveSqliteDatabase>().forEach {
+      model.getOpenDatabaseIds().forEach {
         controller.closeDatabase(it)
       }
     }
@@ -243,15 +243,15 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   @UiThread
-  override fun runSqliteStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
-    projectScope.launch { controller.runSqlStatement(database, sqliteStatement) }
+  override fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) {
+    projectScope.launch { controller.runSqlStatement(databaseId, sqliteStatement) }
   }
 
   @UiThread
-  override fun hasOpenDatabase() = model.getOpenDatabases().isNotEmpty()
+  override fun hasOpenDatabase() = model.getOpenDatabaseIds().isNotEmpty()
 
   @UiThread
-  override fun getOpenDatabases(): List<SqliteDatabase> = model.getOpenDatabases()
+  override fun getOpenDatabases(): List<SqliteDatabaseId> = model.getOpenDatabaseIds()
 
   @AnyThread
   override fun handleError(message: String, throwable: Throwable?) {

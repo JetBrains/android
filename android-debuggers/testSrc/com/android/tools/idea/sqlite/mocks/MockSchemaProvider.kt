@@ -16,9 +16,9 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.SchemaProvider
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 
 class MockSchemaProvider: SchemaProvider {
-  override fun getSchema(database: SqliteDatabase): SqliteSchema? = null
+  override fun getSchema(databaseId: SqliteDatabaseId): SqliteSchema? = null
 }

@@ -16,8 +16,9 @@
 package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.idea.sqlite.controllers.TabId
+import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
@@ -48,10 +49,10 @@ interface DatabaseInspectorView {
 
   /**
    * Updates the UI for an existing database, by adding and removing tables from its schema and columns from its tables.
-   * @param database The database that needs to be updated.
-   * @param diffOperations List of operations to perform the diff of [database]'s schema in the view.
+   * @param databaseId The database that needs to be updated.
+   * @param diffOperations List of operations to perform the diff of [databaseId]'s schema in the view.
    */
-  fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>)
+  fun updateDatabaseSchema(databaseId: SqliteDatabaseId, diffOperations: List<SchemaDiffOperation>)
 
   fun openTab(tabId: TabId, tabName: String, component: JComponent)
   fun focusTab(tabId: TabId)
@@ -63,7 +64,7 @@ interface DatabaseInspectorView {
 
   interface Listener {
     /** Called when the user wants to open a table */
-    fun tableNodeActionInvoked(database: SqliteDatabase, table: SqliteTable)
+    fun tableNodeActionInvoked(databaseId: SqliteDatabaseId, table: SqliteTable)
     /** Called when the user wants to close a tab */
     fun closeTabActionInvoked(tabId: TabId)
     /** Called when the user wants to open the evaluator tab */
@@ -93,6 +94,6 @@ data class RemoveColumns(val tableName: String, val columnsToRemove: List<Sqlite
 
 /** Subclasses of this class represent operations to do in the UI in order to perform the diff of visible databases */
 sealed class DatabaseDiffOperation {
-  data class AddDatabase(val database: SqliteDatabase, val schema: SqliteSchema?, val index: Int) : DatabaseDiffOperation()
-  data class RemoveDatabase(val database: SqliteDatabase) : DatabaseDiffOperation()
+  data class AddDatabase(val databaseId: SqliteDatabaseId, val schema: SqliteSchema?, val index: Int) : DatabaseDiffOperation()
+  data class RemoveDatabase(val databaseId: SqliteDatabaseId) : DatabaseDiffOperation()
 }

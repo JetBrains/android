@@ -23,7 +23,7 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.controllers.TabId
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -113,9 +113,9 @@ class DatabaseInspectorViewImpl(
     for (databaseDiffOperation in databaseDiffOperations) {
       when (databaseDiffOperation) {
         is DatabaseDiffOperation.AddDatabase -> {
-          leftPanelView.addDatabaseSchema(databaseDiffOperation.database, databaseDiffOperation.schema, databaseDiffOperation.index)
+          leftPanelView.addDatabaseSchema(databaseDiffOperation.databaseId, databaseDiffOperation.schema, databaseDiffOperation.index)
         }
-        is DatabaseDiffOperation.RemoveDatabase -> leftPanelView.removeDatabaseSchema(databaseDiffOperation.database)
+        is DatabaseDiffOperation.RemoveDatabase -> leftPanelView.removeDatabaseSchema(databaseDiffOperation.databaseId)
       }
     }
 
@@ -124,8 +124,8 @@ class DatabaseInspectorViewImpl(
     }
   }
 
-  override fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) {
-    leftPanelView.updateDatabase(database, diffOperations)
+  override fun updateDatabaseSchema(databaseId: SqliteDatabaseId, diffOperations: List<SchemaDiffOperation>) {
+    leftPanelView.updateDatabase(databaseId, diffOperations)
   }
 
   override fun openTab(tabId: TabId, tabName: String, component: JComponent) {

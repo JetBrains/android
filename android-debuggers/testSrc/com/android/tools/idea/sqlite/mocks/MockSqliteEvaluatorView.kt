@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
@@ -32,9 +30,9 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
 
   val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
-  override var activeDatabase: SqliteDatabase?
-    get() = LiveSqliteDatabase("path", mock(DatabaseConnection::class.java))
-    set(value) { }
+  override var activeDatabase: SqliteDatabaseId?
+    get() = SqliteDatabaseId.fromPath("path")
+    set(_) { }
 
   override fun addListener(listener: SqliteEvaluatorView.Listener) { listeners.add(listener) }
 
@@ -42,11 +40,11 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
 
   override fun showSqliteStatement(sqliteStatement: String) {  }
 
-  override fun setDatabases(databases: List<SqliteDatabase>) { }
+  override fun setDatabases(databaseIds: List<SqliteDatabaseId>) { }
 
   override fun getSqliteStatement(): String { TODO("not implemented") }
 
-  override fun schemaChanged(database: SqliteDatabase) { }
+  override fun schemaChanged(databaseId: SqliteDatabaseId) { }
 
   override fun setRunSqliteStatementEnabled(enabled: Boolean) { }
 }

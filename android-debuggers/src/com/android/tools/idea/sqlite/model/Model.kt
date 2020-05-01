@@ -49,20 +49,13 @@ sealed class SqliteDatabase {
 /**
  * [SqliteDatabase] accessed through live connection.
  */
-data class LiveSqliteDatabase(val path: String, override val databaseConnection: DatabaseConnection) : SqliteDatabase() {
-  override val id = SqliteDatabaseId.fromPath(path)
-}
+data class LiveSqliteDatabase(override val id: SqliteDatabaseId, override val databaseConnection: DatabaseConnection) : SqliteDatabase()
 
 /**
  * File based-[SqliteDatabase]. This database is accessed through a [VirtualFile].
  * The [DatabaseConnection] gets closed when the file is deleted.
  */
-data class FileSqliteDatabase(
-  override val databaseConnection: DatabaseConnection,
-  val virtualFile: VirtualFile
-) : SqliteDatabase() {
-  override val id = SqliteDatabaseId.fromVirtualFile(virtualFile)
-}
+data class FileSqliteDatabase(override val id: SqliteDatabaseId, override val databaseConnection: DatabaseConnection) : SqliteDatabase()
 
 /** Representation of the Sqlite database schema */
 data class SqliteSchema(val tables: List<SqliteTable>)

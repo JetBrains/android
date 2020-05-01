@@ -23,6 +23,7 @@ import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorController
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.vfs.VirtualFile
@@ -80,7 +81,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     }
   }
 
-  fun testCloseAllLiveDatabase() {
+  fun testStopSessionClosesAllDatabase() {
     // Prepare
     val fileDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(sqliteFile1))
     databaseToClose = fileDatabase
@@ -92,11 +93,11 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     `when`(connection2.close()).thenReturn(Futures.immediateFuture(Unit))
 
     pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(
-      LiveSqliteDatabase("db1", connection1)
+      LiveSqliteDatabase(SqliteDatabaseId.fromPath("db1"), connection1)
     ))
 
     pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(
-      LiveSqliteDatabase("db2", connection2)
+      LiveSqliteDatabase(SqliteDatabaseId.fromPath("db2"), connection2)
     ))
 
     // Act
@@ -105,8 +106,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     }
 
     // Assert
-    assertSize(1, model.getOpenDatabases())
-    assertEquals(fileDatabase, model.getOpenDatabases().first())
+    assertSize(0, model.getOpenDatabaseIds())
   }
 
   fun testDatabasePossiblyChangedNotifiesController() {

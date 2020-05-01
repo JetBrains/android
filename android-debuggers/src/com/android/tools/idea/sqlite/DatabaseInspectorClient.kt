@@ -23,6 +23,7 @@ import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnect
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.intellij.openapi.application.ApplicationManager
 import java.util.concurrent.Executor
 
@@ -53,7 +54,7 @@ class DatabaseInspectorClient constructor(
           val openedDatabase = event.databaseOpened
           ApplicationManager.getApplication().invokeLater {
             val connection = LiveDatabaseConnection(dbMessenger, openedDatabase.databaseId, taskExecutor)
-            onDatabaseAddedListener(LiveSqliteDatabase(openedDatabase.name, connection))
+            onDatabaseAddedListener(LiveSqliteDatabase(SqliteDatabaseId.fromPath(openedDatabase.name), connection))
           }
         }
         event.hasDatabasePossiblyChanged() -> {
