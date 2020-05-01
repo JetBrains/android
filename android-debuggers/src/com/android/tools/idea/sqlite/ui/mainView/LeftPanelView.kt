@@ -20,12 +20,14 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
-import com.android.tools.idea.sqlite.ui.renderers.SchemaTreeCellRenderer
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.util.IconLoader
+import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.IdeBorderFactory
+import com.intellij.ui.JBColor
 import com.intellij.ui.SideBorder
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
@@ -36,7 +38,9 @@ import java.awt.event.InputEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
+import java.util.Locale
 import javax.swing.JPanel
+import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreePath
@@ -266,15 +270,47 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       .firstOrNull { (it.userObject as SqliteColumn).name == columnName }
   }
 
-  private fun findDatabaseNode(treePath: TreePath): SqliteDatabase {
-    var currentPath: TreePath? = treePath
-    while (currentPath != null) {
-      val userObject = (currentPath.lastPathComponent as DefaultMutableTreeNode).userObject
-      if (userObject is SqliteDatabase)
-        return userObject
-      currentPath = currentPath.parentPath
-    }
+  private class SchemaTreeCellRenderer : ColoredTreeCellRenderer() {
+    private val colorTextAttributes = SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, JBColor.gray)
 
-    throw NoSuchElementException("$treePath")
+    override fun customizeCellRenderer(
+      tree: JTree,
+      value: Any?,
+      selected: Boolean,
+      expanded: Boolean,
+      leaf: Boolean,
+      row: Int,
+      hasFocus: Boolean
+    ) {
+      toolTipText = null
+      if (value is DefaultMutableTreeNode) {
+        when (val userObject = value.userObject) {
+          is SqliteDatabase -> {
+            icon = StudioIcons.DatabaseInspector.DATABASE
+            append(userObject.name)
+            toolTipText = userObject.path
+          }
+
+          is SqliteTable -> {
+            icon = StudioIcons.DatabaseInspector.TABLE
+            append(userObject.name)
+          }
+
+          is SqliteColumn -> {
+            if (userObject.inPrimaryKey) icon = StudioIcons.DatabaseInspector.PRIMARY_KEY
+            else icon = StudioIcons.DatabaseInspector.COLUMN
+            append(userObject.name)
+            append("  :  ", colorTextAttributes)
+            append(userObject.affinity.name.toUpperCase(Locale.US), colorTextAttributes)
+            append(if (userObject.isNullable) "" else ", NOT NULL", colorTextAttributes)
+          }
+
+          // String (e.g. "Tables" node)
+          is String -> {
+            append(userObject)
+          }
+        }
+      }
+    }
   }
 }
