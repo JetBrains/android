@@ -83,10 +83,6 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
           val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file.toFile()) ?: return
 
-          if (ApplicationManager.getApplication().isHeadlessEnvironment) {
-            return // Don't attempt to open an editor in a headless environment.
-          }
-
           invokeLater {
             FileEditorManager.getInstance(project).openFile(virtualFile, true)
           }
