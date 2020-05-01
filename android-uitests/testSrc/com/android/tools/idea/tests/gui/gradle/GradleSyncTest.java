@@ -445,4 +445,51 @@ public class GradleSyncTest {
     assertThat(GradleFacet.getInstance(ideFrame.getModule("app"))).isNotNull();
     ideFrame.closeProject();
   }
+
+  @Test
+  public void gradleModelCachedNoModules() throws IOException {
+    File projectDir = guiTest.setUpProject("SimpleApplication");
+
+    // First time, open the project to sync.
+    IdeFrameFixture ideFrame = guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
+    ideFrame.closeProject();
+
+    new File(projectDir, ".idea/modules.xml").delete();
+    new File(projectDir, ".idea/modules/app/SimpleApplication.app.iml").delete();
+    new File(projectDir, ".idea/modules/SimpleApplication.iml").delete();
+    // Second time, open the project expecting no sync.
+    ideFrame = guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
+
+    ProjectSystemSyncManager.SyncResult lastSyncResult =
+      ProjectSystemService.getInstance(ideFrame.getProject()).getProjectSystem().getSyncManager().getLastSyncResult();
+
+
+    // A sync should not have been performed but the status should have been updated to SKIPPED.
+    assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS);
+
+    ideFrame.closeProject();
+  }
+
+  @Test
+  public void gradleModelCachedNoimlsOnly() throws IOException {
+    File projectDir = guiTest.setUpProject("SimpleApplication");
+
+    // First time, open the project to sync.
+    IdeFrameFixture ideFrame = guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
+    ideFrame.closeProject();
+
+    new File(projectDir, ".idea/modules/app/SimpleApplication.app.iml").delete();
+    new File(projectDir, ".idea/modules/SimpleApplication.iml").delete();
+    // Second time, open the project expecting no sync.
+    ideFrame = guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
+
+    ProjectSystemSyncManager.SyncResult lastSyncResult =
+      ProjectSystemService.getInstance(ideFrame.getProject()).getProjectSystem().getSyncManager().getLastSyncResult();
+
+
+    // A sync should not have been performed but the status should have been updated to SKIPPED.
+    assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS);
+
+    ideFrame.closeProject();
+  }
 }
