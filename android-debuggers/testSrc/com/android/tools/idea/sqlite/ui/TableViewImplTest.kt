@@ -28,15 +28,18 @@ import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.runDispatching
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
@@ -446,6 +449,11 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     realDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
+    val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
+    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
+    }
 
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
     val sqliteTable = schema.tables.first()
@@ -454,8 +462,9 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       project,
       10,
       view,
+      databaseId,
       { sqliteTable },
-      realDatabaseConnection!!,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
       {},
       EdtExecutorService.getInstance(),
@@ -489,6 +498,11 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     realDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
+    val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
+    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
+    }
 
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
     val sqliteTable = schema.tables.first()
@@ -497,8 +511,9 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       project,
       10,
       view,
+      databaseId,
       { sqliteTable },
-      realDatabaseConnection!!,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
       {},
       EdtExecutorService.getInstance(),
@@ -532,6 +547,11 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     realDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
+    val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
+    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
+    }
 
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
     val sqliteTable = schema.tables.first()
@@ -540,8 +560,9 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       project,
       10,
       view,
+      databaseId,
       { sqliteTable },
-      realDatabaseConnection!!,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
       {},
       EdtExecutorService.getInstance(),
@@ -575,6 +596,11 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     realDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
+    val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
+    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
+    }
 
     val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
     val sqliteTable = schema.tables.first()
@@ -583,8 +609,9 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       project,
       10,
       view,
+      databaseId,
       { sqliteTable },
-      realDatabaseConnection!!,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, selectAllAndRowIdFromTable(sqliteTable)),
       {},
       EdtExecutorService.getInstance(),
@@ -785,13 +812,19 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     realDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
+    val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
+    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
+    }
 
     val controller = TableController(
       project,
       10,
       view,
+      databaseId,
       { SqliteTable("tab", emptyList(), null, false) },
-      realDatabaseConnection!!,
+      databaseRepository,
       SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"),
       {},
       EdtExecutorService.getInstance(),

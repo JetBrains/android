@@ -20,35 +20,35 @@ import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
-import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.withContext
 import javax.naming.OperationNotSupportedException
 import javax.swing.JComponent
 
-open class MockDatabaseInspectorController(val model: DatabaseInspectorModel) : DatabaseInspectorController {
+open class MockDatabaseInspectorController(private val repository: DatabaseRepositoryImpl, val model: DatabaseInspectorModel) : DatabaseInspectorController {
 
   override val component: JComponent
     get() = throw OperationNotSupportedException()
 
   override fun setUp() { }
 
-  override suspend fun addSqliteDatabase(deferredDatabase: Deferred<SqliteDatabase>) = withContext(uiThread) {
-    addSqliteDatabase(deferredDatabase.await())
+  override suspend fun addSqliteDatabase(deferredDatabaseId: Deferred<SqliteDatabaseId>) = withContext(uiThread) {
+    addSqliteDatabase(deferredDatabaseId.await())
   }
 
-  override suspend fun addSqliteDatabase(database: SqliteDatabase) = withContext(uiThread) {
-    model.addDatabaseSchema(database.id, database.databaseConnection, SqliteSchema(emptyList()))
+  override suspend fun addSqliteDatabase(databaseId: SqliteDatabaseId) = withContext(uiThread) {
+    model.addDatabaseSchema(databaseId, SqliteSchema(emptyList()))
   }
 
-  override suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) {}
+  override suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) { }
 
   override suspend fun closeDatabase(databaseId: SqliteDatabaseId): Unit = withContext(uiThread) {
-    val connection = model.removeDatabaseSchema(databaseId)
-    connection!!.close().get()
+    repository.closeDatabase(databaseId)
+    model.removeDatabaseSchema(databaseId)
   }
 
   override suspend fun databasePossiblyChanged() { }
