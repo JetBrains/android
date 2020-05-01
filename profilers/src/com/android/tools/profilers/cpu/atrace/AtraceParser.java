@@ -26,6 +26,7 @@ import com.android.tools.profilers.cpu.ThreadState;
 import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.android.tools.profilers.systemtrace.CpuCoreModel;
+import com.android.tools.profilers.systemtrace.ProcessListSorter;
 import com.android.tools.profilers.systemtrace.ProcessModel;
 import com.android.tools.profilers.systemtrace.SchedulingEventModel;
 import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter;
@@ -38,12 +39,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import trebuchet.model.Model;
 import trebuchet.task.ImportTask;
 import trebuchet.util.PrintlnImportFeedback;
@@ -132,7 +130,8 @@ public class AtraceParser implements TraceParser {
       throw new IllegalStateException("Invalid trace without any process information.");
     }
 
-    Integer selectedProcess = processSelector.apply(getProcessList(processSelector.getNameHint()));
+    ProcessListSorter sorter = new ProcessListSorter(processSelector.getNameHint());
+    Integer selectedProcess = processSelector.apply(sorter.sort(myModelAdapter.getProcesses()));
     if (selectedProcess == null) {
       throw new IllegalStateException("It was not possible to select a process for this trace.");
     }
@@ -190,66 +189,6 @@ public class AtraceParser implements TraceParser {
    */
   public boolean isMissingData() {
     return myModelAdapter.isCapturePossibleCorrupted();
-  }
-
-  /**
-   * An array of CPU process information is returned. This array is sorted using the following criteria,
-   * 1) Process names matching the hint string.
-   * 2) Processes with the most activity
-   * 3) Alphabetically
-   * 4) Processes without names.
-   */
-  @NotNull
-  @VisibleForTesting
-  List<ProcessModel> getProcessList(@Nullable String hint) {
-    assert myModelAdapter != null;
-
-    String hintLower = hint == null ? "" : hint.toLowerCase(Locale.getDefault());
-
-    return myModelAdapter.getProcesses().stream().sorted((a, b) -> {
-      String aNameLower = a.getSafeProcessName().toLowerCase(Locale.getDefault());
-      String bNameLower = b.getSafeProcessName().toLowerCase(Locale.getDefault());
-
-      // If either the left or right names overlap with our hint we want to bubble those elements
-      // to the top.
-      // Eg. Hint = "Test"
-      // A = "Project"
-      // B = "Test_Project"
-      // The sorting should be Test_Project, Project.
-      if (hintLower.contains(aNameLower) && !hintLower.contains(bNameLower)) {
-        return -1;
-      }
-      else if (hintLower.contains(bNameLower) && !hintLower.contains(aNameLower)) {
-        return 1;
-      }
-
-      // If our name starts with < then we have a process whose name did not resolve as such we bubble these elements
-      // to the bottom of our list.
-      // A = "<1234>"
-      // B = "Test_Project"
-      // The sorting should be Test_Project, <1234>
-      if (aNameLower.startsWith("<") && !bNameLower.startsWith("<")) {
-        return 1;
-      }
-      else if (bNameLower.startsWith("<") && !aNameLower.startsWith("<")) {
-        return -1;
-      }
-
-      // If our project names don't match either our hint, or our <> name then we sort the elements within
-      // by count of threads.
-      // Note: This also applies if we have multiple projects that match our hint, or don't have a name.
-      int threadsGreater = b.getThreads().size() - a.getThreads().size();
-      if (threadsGreater != 0) {
-        return threadsGreater;
-      }
-
-      // Finally we sort our projects by name.
-      int name = aNameLower.compareTo(bNameLower);
-      if (name == 0) {
-        return b.getId() - a.getId();
-      }
-      return name;
-    }).collect(Collectors.toList());
   }
 
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
