@@ -18,6 +18,7 @@ package com.android.tools.idea.downloads;
 import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -115,8 +116,9 @@ public abstract class DownloadService {
    *
    * @param success Callback to be run if the remote distributions are loaded successfully.
    * @param failure Callback to be run if the remote distributions are not successfully loaded.
+   * @param runWithProgressIndicator If true, uses a background progress indicator (shown on the status bar) during download.
    */
-  public void refresh(@Nullable Runnable success, @Nullable Runnable failure) {
+  public void refresh(@Nullable Runnable success, @Nullable Runnable failure, boolean runWithProgressIndicator) {
     long time = System.currentTimeMillis();
     synchronized (myLock) {
       if (success != null) {
@@ -144,6 +146,20 @@ public abstract class DownloadService {
       myAttemptTime = time;
       myRunning = true;
     }
+
+    if (runWithProgressIndicator) {
+      loadDataWithProgressIndicator(time);
+    }
+    else {
+      ApplicationManager.getApplication().executeOnPooledThread(() -> loadSynchronously(time));
+    }
+  }
+
+  public void refresh(@Nullable Runnable success, @Nullable Runnable failure) {
+    refresh(success, failure, true);
+  }
+
+  private void loadDataWithProgressIndicator(long time) {
     ProgressManager.getInstance()
       .run(new Task.Backgroundable(null, "Downloading " + myServiceName, false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
         @Override

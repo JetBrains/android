@@ -33,6 +33,7 @@ import com.android.tools.idea.ui.ChooseApiLevelDialog;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
@@ -129,11 +130,11 @@ public class FormFactorSdkControls implements Disposable {
         () -> ApplicationManager.getApplication().invokeLater(() -> {
           myStatsDataLoadingStatus = LoadStatus.LOADED;
           updateLoadingProgress();
-        }),
+        }, ModalityState.any()),
         () -> ApplicationManager.getApplication().invokeLater(() -> {
           myStatsDataLoadingStatus = LoadStatus.FAILED;
           updateLoadingProgress();
-        }));
+        }, ModalityState.any()), false);
     }
   }
 
