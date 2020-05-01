@@ -16,7 +16,9 @@
 package com.android.tools.idea.sqlite.databaseConnection.live
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
@@ -26,9 +28,11 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.model.getRowIdName
 import com.google.common.io.BaseEncoding
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import java.util.concurrent.Executor
 
 /**
  * Builds a [SqliteInspectorProtocol.Command] from a [SqliteStatement] and a database connection id.
@@ -71,6 +75,12 @@ internal fun List<SqliteInspectorProtocol.Table>.toSqliteSchema(): SqliteSchema 
     SqliteTable(table.name, columns, rowIdName, table.isView)
   }
   return SqliteSchema(tables)
+}
+
+fun ListenableFuture<SqliteInspectorProtocol.Response>.mapToColumns(executor: Executor) = transform(executor) { response ->
+  response.query.columnNamesList.map { columnName ->
+    ResultSetSqliteColumn(columnName, null, null, null)
+  }
 }
 
 /**

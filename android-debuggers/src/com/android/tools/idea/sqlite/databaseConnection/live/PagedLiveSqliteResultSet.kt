@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.databaseConnection.live
 
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
+import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
@@ -28,6 +29,9 @@ class PagedLiveSqliteResultSet(
   connectionId: Int,
   private val taskExecutor: Executor
 ) : LiveSqliteResultSet(sqliteStatement, messenger, connectionId, taskExecutor) {
+
+  override val columns: ListenableFuture<List<ResultSetSqliteColumn>> get() =
+    sendQueryCommand(sqliteStatement.toSelectLimitOffset(0, 1)).mapToColumns(taskExecutor)
 
   override val totalRowCount: ListenableFuture<Int>
     get() = sendQueryCommand(sqliteStatement.toRowCountStatement()).transform(taskExecutor) { response ->
