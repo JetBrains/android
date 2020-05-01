@@ -38,6 +38,7 @@ import javax.swing.Icon
  * Contains strings that are visible in UI of Dagger tooling support, e.g in gutter icons and "Find usages" window.
  */
 internal object UIStrings {
+  const val MODULES_INCLUDED = "Module(s) included"
   const val PROVIDERS = "Provider(s)"
   const val CONSUMERS = "Consumer(s)"
   const val EXPOSED_BY_COMPONENTS = "Exposed by component(s)"
@@ -112,9 +113,12 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
   private fun getIconAndGoToItemsForSubcomponent(subcomponent: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
-      // subcomponent is always PsiClass or KtClass, see [isDaggerSubcomponent].
-      override fun compute() = getDaggerParentComponentsForSubcomponent(subcomponent.toPsiClass()!!).map {
-        GotoItemWithAnalyticsTraking(subcomponent, it, UIStrings.PARENT_COMPONENTS)
+      override fun compute(): List<GotoRelatedItem> {
+        // [subcomponent] is always PsiClass or KtClass or KtObjectDeclaration, see [isDaggerSubcomponent].
+        val asPsiClass = subcomponent.toPsiClass()!!
+        return getDaggerParentComponentsForSubcomponent(asPsiClass)
+                 .map { GotoItemWithAnalyticsTraking(subcomponent, it, UIStrings.PARENT_COMPONENTS) } +
+               getModulesForComponent(asPsiClass).map { GotoItemWithAnalyticsTraking(subcomponent, it, UIStrings.MODULES_INCLUDED) }
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
@@ -127,7 +131,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
         val componentAsPsiClass = component.toPsiClass()!!
         return getDependantComponentsForComponent(componentAsPsiClass)
                  .map { GotoItemWithAnalyticsTraking(component, it, UIStrings.PARENT_COMPONENTS) } +
-               getSubcomponents(componentAsPsiClass).map { GotoItemWithAnalyticsTraking(component, it, UIStrings.SUBCOMPONENTS) }
+               getSubcomponents(componentAsPsiClass).map { GotoItemWithAnalyticsTraking(component, it, UIStrings.SUBCOMPONENTS) } +
+               getModulesForComponent(componentAsPsiClass).map { GotoItemWithAnalyticsTraking(component, it, UIStrings.MODULES_INCLUDED) }
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)

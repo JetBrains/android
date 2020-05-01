@@ -454,3 +454,11 @@ internal fun PsiElement.toPsiClass(): PsiClass? = when {
  */
 private val PsiType.unboxed: PsiType
   get() = PsiPrimitiveType.getUnboxedType(this) ?: this
+
+
+internal fun getModulesForComponent(component: PsiClass): Collection<PsiClass> {
+  val annotation = component.getAnnotation(DAGGER_COMPONENT_ANNOTATION)
+                   ?: component.getAnnotation(DAGGER_SUBCOMPONENT_ANNOTATION)
+                   ?: return emptyList()
+  return annotation.getClassesFromAttribute(MODULES_ATTR_NAME)
+}

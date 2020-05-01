@@ -40,6 +40,7 @@ private val PARENT_COMPONENTS_USAGE_TYPE = UsageType(UIStrings.PARENT_COMPONENTS
 private val SUBCOMPONENTS_USAGE_TYPE = UsageType(UIStrings.SUBCOMPONENTS)
 private val INCLUDED_IN_COMPONENTS_USAGE_TYPE = UsageType(UIStrings.INCLUDED_IN_COMPONENTS)
 private val INCLUDED_IN_MODULES_USAGE_TYPE = UsageType(UIStrings.INCLUDED_IN_MODULES)
+private val MODULES_USAGE_TYPE = UsageType(UIStrings.MODULES_INCLUDED)
 
 /**
  * [UsageTypeProvider] that labels Dagger providers and consumers with the right description.
@@ -56,8 +57,10 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
       target.isDaggerModule && element.isDaggerComponent -> INCLUDED_IN_COMPONENTS_USAGE_TYPE
       target.isDaggerModule && element.isDaggerModule -> INCLUDED_IN_MODULES_USAGE_TYPE
       target.isDaggerComponent && element.isDaggerComponent -> PARENT_COMPONENTS_USAGE_TYPE
-      target.isDaggerSubcomponent && element.isDaggerComponent -> PARENT_COMPONENTS_USAGE_TYPE
+      target.isDaggerComponent && element.isDaggerModule -> MODULES_USAGE_TYPE
       target.isDaggerComponent && element.isDaggerSubcomponent -> SUBCOMPONENTS_USAGE_TYPE
+      target.isDaggerSubcomponent && element.isDaggerComponent -> PARENT_COMPONENTS_USAGE_TYPE
+      target.isDaggerSubcomponent && element.isDaggerModule -> MODULES_USAGE_TYPE
       else -> null
     }
   }
@@ -115,20 +118,22 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
 
   /**
    * Returns Components that are parents to [subcomponent].
-   *
-   * Note: [subcomponent] is always PsiClass or KtClass, see [isDaggerSubcomponent].
    */
-  private fun getCustomUsagesForSubcomponent(subcomponent: PsiElement) =
-    getDaggerParentComponentsForSubcomponent(subcomponent.toPsiClass()!!)
+  private fun getCustomUsagesForSubcomponent(subcomponent: PsiElement): Collection<PsiElement> {
+    // [subcomponent] is always PsiClass or KtClass or KtObjectDeclaration, see [isDaggerSubcomponent].
+    val asPsiClass = subcomponent.toPsiClass()!!
+    return getDaggerParentComponentsForSubcomponent(asPsiClass) + getModulesForComponent(asPsiClass)
+  }
 
   /**
    * Returns Components that use a [component] in "dependencies" attr.
-   *
-   * Note: [component] is always PsiClass or KtClass, see [isDaggerComponent].
    */
   private fun getCustomUsagesForComponent(component: PsiElement): Collection<PsiElement> {
-    return getDependantComponentsForComponent(component.toPsiClass()!!) +
-           getSubcomponents(component.toPsiClass()!!)
+    // [component] is always PsiClass or KtClass or KtObjectDeclaration, see [isDaggerComponent].
+    val asPsiClass = component.toPsiClass()!!
+    return getDependantComponentsForComponent(asPsiClass) +
+           getSubcomponents(asPsiClass) +
+           getModulesForComponent(asPsiClass)
   }
 
   /**

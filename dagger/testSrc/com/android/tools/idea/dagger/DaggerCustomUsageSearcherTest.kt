@@ -802,7 +802,6 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      | Found usages (2 usages)
       |  Subcomponent(s) (2 usages)
       |   ${myFixture.module.name} (2 usages)
       |    test (2 usages)
@@ -810,6 +809,16 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |      5public interface MySubcomponent {
       |     MySubcomponent2.kt (1 usage)
       |      5interface MySubcomponent2
+      """.trimMargin()
+    )
+
+    assertThat(presentation).contains(
+      """
+      |  Module(s) included (1 usage)
+      |   ${myFixture.module.name} (1 usage)
+      |    test (1 usage)
+      |     MyModule.java (1 usage)
+      |      6class MyModule { }
       """.trimMargin()
     )
   }
