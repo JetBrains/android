@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profiler.proto.Cpu
@@ -32,6 +33,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
+import javax.swing.JTable
 
 class CaptureNodeSummaryDetailsViewTest {
 
@@ -57,7 +59,8 @@ class CaptureNodeSummaryDetailsViewTest {
     }
     val view = CaptureNodeSummaryDetailsView(profilersView, model)
     assertThat(view.timeRangeLabel.text).isEqualTo("10.000 - 20.000")
-    assertThat(view.durationLabel.text).isEqualTo("10 s")
     assertThat(view.dataTypeLabel.text).isEqualTo("Trace Event")
+    // Table for selected node.
+    assertThat(TreeWalker(view.component).descendants().filterIsInstance<JTable>().size).isEqualTo(1)
   }
 }
