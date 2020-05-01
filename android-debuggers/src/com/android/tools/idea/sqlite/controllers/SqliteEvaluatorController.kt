@@ -20,8 +20,9 @@ import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
@@ -54,18 +55,18 @@ class SqliteEvaluatorController(
   private val listeners = mutableListOf<Listener>()
 
   private val modelListener = object : DatabaseInspectorModel.Listener {
-    override fun onDatabasesChanged(databases: List<SqliteDatabase>) {
+    override fun onDatabasesChanged(databaseIds: List<SqliteDatabaseId>) {
       val activeDatabase = view.activeDatabase
 
-      view.setDatabases(databases.sortedBy { it.id.name })
+      view.setDatabases(databaseIds.sortedBy { it.name })
 
-      if (databases.contains(activeDatabase) && activeDatabase != null) {
+      if (databaseIds.contains(activeDatabase) && activeDatabase != null) {
         view.activeDatabase = activeDatabase
       }
     }
 
-    override fun onSchemaChanged(database: SqliteDatabase, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
-      view.schemaChanged(database)
+    override fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
+      view.schemaChanged(databaseId)
     }
   }
 
@@ -101,27 +102,28 @@ class SqliteEvaluatorController(
     listeners.clear()
   }
 
-  fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+  fun evaluateSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     view.showSqliteStatement(sqliteStatement.sqliteStatementWithInlineParameters)
-    view.activeDatabase = database
-    return execute(database, sqliteStatement)
+    view.activeDatabase = databaseId
+    return execute(databaseId, sqliteStatement)
   }
 
-  fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: String): ListenableFuture<Unit> {
-    return evaluateSqlStatement(database, createSqliteStatement(project, sqliteStatement))
+  fun evaluateSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: String): ListenableFuture<Unit> {
+    return evaluateSqlStatement(databaseId, createSqliteStatement(project, sqliteStatement))
   }
 
-  private fun execute(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+  private fun execute(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     resetTable()
 
+    val databaseConnection = model.getDatabaseConnection(databaseId)!!
     return if (
       sqliteStatement.statementType == SqliteStatementType.SELECT ||
       sqliteStatement.statementType == SqliteStatementType.EXPLAIN
     ) {
-      runQuery(database, sqliteStatement)
+      runQuery(databaseConnection, sqliteStatement)
     }
     else {
-      runUpdate(database, sqliteStatement)
+      runUpdate(databaseId, databaseConnection, sqliteStatement)
     }
   }
 
@@ -132,13 +134,13 @@ class SqliteEvaluatorController(
     view.tableView.resetView()
   }
 
-  private fun runQuery(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+  private fun runQuery(databaseConnection: DatabaseConnection, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     currentTableController = TableController(
       closeTabInvoked = closeTabInvoked,
       project = project,
       view = view.tableView,
       tableSupplier = { null },
-      databaseConnection = database.databaseConnection,
+      databaseConnection = databaseConnection,
       sqliteStatement = sqliteStatement,
       edtExecutor = edtExecutor,
       taskExecutor = taskExecutor
@@ -147,11 +149,15 @@ class SqliteEvaluatorController(
     return currentTableController!!.setUp()
   }
 
-  private fun runUpdate(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
-    return database.databaseConnection.execute(sqliteStatement)
+  private fun runUpdate(
+    databaseId: SqliteDatabaseId,
+    databaseConnection: DatabaseConnection,
+    sqliteStatement: SqliteStatement
+  ): ListenableFuture<Unit> {
+    return databaseConnection.execute(sqliteStatement)
       .transform(edtExecutor) {
         view.tableView.setEmptyText("The statement was run successfully.")
-        listeners.forEach { it.onSqliteStatementExecuted(database) }
+        listeners.forEach { it.onSqliteStatementExecuted(databaseId) }
       }.catching(edtExecutor, Throwable::class.java) { throwable ->
         view.tableView.setEmptyText("An error occurred while running the statement.")
         view.tableView.reportError("Error executing SQLite statement", throwable)
@@ -159,12 +165,12 @@ class SqliteEvaluatorController(
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {
-    override fun evaluateSqliteStatementActionInvoked(database: SqliteDatabase, sqliteStatement: String) {
+    override fun evaluateSqliteStatementActionInvoked(databaseId: SqliteDatabaseId, sqliteStatement: String) {
       DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
       )
 
-      evaluateSqlStatement(database, sqliteStatement)
+      evaluateSqlStatement(databaseId, sqliteStatement)
     }
 
     override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
@@ -175,8 +181,8 @@ class SqliteEvaluatorController(
   interface Listener {
     /**
      * Called when an user-defined SQLite statement is successfully executed
-     * @param database The database on which the statement was executed.
+     * @param databaseId The database on which the statement was executed.
      * */
-    fun onSqliteStatementExecuted(database: SqliteDatabase)
+    fun onSqliteStatementExecuted(databaseId: SqliteDatabaseId)
   }
 }

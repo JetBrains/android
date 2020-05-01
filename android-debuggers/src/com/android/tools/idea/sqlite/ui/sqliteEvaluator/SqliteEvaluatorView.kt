@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
 import javax.swing.JComponent
@@ -39,12 +39,12 @@ interface SqliteEvaluatorView {
   fun removeListener(listener: Listener)
   fun showSqliteStatement(sqliteStatement: String)
 
-  fun setDatabases(databases: List<SqliteDatabase>)
+  fun setDatabases(databaseIds: List<SqliteDatabaseId>)
 
   /**
    * The database currently selected in the UI, used to run statements against and for auto completion.
    */
-  var activeDatabase: SqliteDatabase?
+  var activeDatabase: SqliteDatabaseId?
 
   /**
    * Returns the string corresponding to the SQLite statement currently visible in the UI.
@@ -52,9 +52,9 @@ interface SqliteEvaluatorView {
   fun getSqliteStatement(): String
 
   /**
-   * Notifies the view that the schema associated with [database] has changed.
+   * Notifies the view that the schema associated with [databaseId] has changed.
    */
-  fun schemaChanged(database: SqliteDatabase)
+  fun schemaChanged(databaseId: SqliteDatabaseId)
 
   /**
    * Toggles on and off the ability to run sqlite statements
@@ -65,7 +65,7 @@ interface SqliteEvaluatorView {
     /**
      * Method invoked when an sql statement needs to be evaluated.
      */
-    fun evaluateSqliteStatementActionInvoked(database: SqliteDatabase, sqliteStatement: String)
+    fun evaluateSqliteStatementActionInvoked(databaseId: SqliteDatabaseId, sqliteStatement: String)
 
     /**
      * Called when the sqlite statement changes

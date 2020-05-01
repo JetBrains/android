@@ -17,7 +17,7 @@ package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.intellij.icons.AllIcons
@@ -65,7 +65,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     setUpSchemaTree(tree)
   }
 
-  fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema?, index: Int) {
+  fun addDatabaseSchema(databaseId: SqliteDatabaseId, schema: SqliteSchema?, index: Int) {
     val treeModel = tree.model as DefaultTreeModel
 
     val root = if (treeModel.root == null) {
@@ -79,7 +79,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     refreshSchemaButton.isEnabled = true
     runSqlButton.isEnabled = true
 
-    val schemaNode = DefaultMutableTreeNode(database)
+    val schemaNode = DefaultMutableTreeNode(databaseId)
     schema?.tables?.sortedBy { it.name }?.forEach { table ->
       val tableNode = DefaultMutableTreeNode(table)
       table.columns.forEach { column -> tableNode.add(DefaultMutableTreeNode(column)) }
@@ -91,10 +91,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   }
 
   // TODO(b/149920358) handle error by recreating the view.
-  fun updateDatabase(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) {
+  fun updateDatabase(databaseId: SqliteDatabaseId, diffOperations: List<SchemaDiffOperation>) {
     val treeModel = tree.model as DefaultTreeModel
-    val databaseNode = findDatabaseNode(database)
-    databaseNode.userObject = database
+    val databaseNode = findDatabaseNode(databaseId)
+    databaseNode.userObject = databaseId
 
     for (diffOp in diffOperations) {
       when (diffOp) {
@@ -120,12 +120,12 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   }
 
   /**
-   * Removes a [SqliteDatabase] from the schema [tree].
-   * @return The number of open databases after [database] has been removed.
+   * Removes [databaseId] from the schema [tree].
+   * @return The number of open databases after [databaseId] has been removed.
    */
-  fun removeDatabaseSchema(database: SqliteDatabase): Int {
+  fun removeDatabaseSchema(databaseId: SqliteDatabaseId): Int {
     val treeModel = tree.model as DefaultTreeModel
-    val databaseNode = findDatabaseNode(database)
+    val databaseNode = findDatabaseNode(databaseId)
     treeModel.removeNodeFromParent(databaseNode)
 
     if (databasesCount == 0) {
@@ -213,8 +213,8 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     val sqliteTable = lastPathComponent.userObject
     if (sqliteTable is SqliteTable) {
       val parentNode = lastPathComponent.parent as DefaultMutableTreeNode
-      val database = parentNode.userObject as SqliteDatabase
-      mainView.listeners.forEach { l -> l.tableNodeActionInvoked(database, sqliteTable) }
+      val databaseId = parentNode.userObject as SqliteDatabaseId
+      mainView.listeners.forEach { l -> l.tableNodeActionInvoked(databaseId, sqliteTable) }
       e.consume()
     }
     else {
@@ -249,11 +249,11 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     }
   }
 
-  private fun findDatabaseNode(database: SqliteDatabase): DefaultMutableTreeNode {
+  private fun findDatabaseNode(databaseId: SqliteDatabaseId): DefaultMutableTreeNode {
     val root = tree.model.root as DefaultMutableTreeNode
     return root.children().asSequence()
       .map { it as DefaultMutableTreeNode }
-      .first { it.userObject == database }
+      .first { it.userObject == databaseId }
   }
 
   private fun findTableNode(databaseNode: DefaultMutableTreeNode, tableName: String): DefaultMutableTreeNode? {
@@ -285,10 +285,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       toolTipText = null
       if (value is DefaultMutableTreeNode) {
         when (val userObject = value.userObject) {
-          is SqliteDatabase -> {
+          is SqliteDatabaseId -> {
             icon = StudioIcons.DatabaseInspector.DATABASE
-            append(userObject.id.name)
-            toolTipText = userObject.id.path
+            append(userObject.name)
+            toolTipText = userObject.path
           }
 
           is SqliteTable -> {

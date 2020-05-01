@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.controllers.TabId
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
@@ -45,6 +45,8 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
 
   override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) { }
 
+  override fun updateDatabaseSchema(databaseId: SqliteDatabaseId, diffOperations: List<SchemaDiffOperation>) { }
+
   override fun openTab(tabId: TabId, tabName: String, component: JComponent) {
     lastDisplayedResultSetTabId = tabId
   }
@@ -56,6 +58,4 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
   override fun closeTab(tabId: TabId) { }
 
   override fun reportError(message: String, throwable: Throwable?) { }
-
-  override fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) { }
 }

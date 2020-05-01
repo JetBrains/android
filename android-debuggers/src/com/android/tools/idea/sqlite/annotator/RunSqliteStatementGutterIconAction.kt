@@ -19,7 +19,7 @@ import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.controllers.ParametersBindingController
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.sqlLanguage.needsBinding
 import com.android.tools.idea.sqlite.sqlLanguage.replaceNamedParametersWithPositionalParameters
@@ -93,20 +93,20 @@ class RunSqliteStatementGutterIconAction(
     }
   }
 
-  private fun runSqliteStatement(database: SqliteDatabase, sqliteStatementPsi: PsiElement) {
+  private fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatementPsi: PsiElement) {
     DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
       AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT
     )
 
     if (!needsBinding(sqliteStatementPsi)) {
       val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
-      DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(database, createSqliteStatement(project, sqliteStatement))
+      DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(databaseId, createSqliteStatement(project, sqliteStatement))
       databaseInspectorProjectService.toolWindow?.showToolWindow()
     }
     else {
       val view = viewFactory.createParametersBindingView(project, sqliteStatementPsi.text)
       ParametersBindingController(view, sqliteStatementPsi) {
-        DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(database, it)
+        DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(databaseId, it)
         databaseInspectorProjectService.toolWindow?.showToolWindow()
       }.also {
         it.setUp()
@@ -140,8 +140,8 @@ class RunSqliteStatementGutterIconAction(
                                               isSelected: Boolean,
                                               cellHasFocus: Boolean): Component {
       val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-      if (value is SqliteDatabase) {
-        text = value.id.name
+      if (value is SqliteDatabaseId) {
+        text = value.name
       }
 
       return component

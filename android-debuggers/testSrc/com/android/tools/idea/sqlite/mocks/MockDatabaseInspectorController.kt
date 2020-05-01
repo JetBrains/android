@@ -20,6 +20,7 @@ import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import kotlinx.coroutines.Deferred
@@ -39,14 +40,14 @@ open class MockDatabaseInspectorController(val model: DatabaseInspectorModel) : 
   }
 
   override suspend fun addSqliteDatabase(database: SqliteDatabase) = withContext(uiThread) {
-    model.add(database, SqliteSchema(emptyList()))
+    model.add(database.id, database.databaseConnection, SqliteSchema(emptyList()))
   }
 
-  override suspend fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {}
+  override suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) {}
 
-  override suspend fun closeDatabase(database: SqliteDatabase): Unit = withContext(uiThread) {
-    model.remove(database)
-    database.databaseConnection.close().get()
+  override suspend fun closeDatabase(databaseId: SqliteDatabaseId): Unit = withContext(uiThread) {
+    val connection = model.remove(databaseId)
+    connection!!.close().get()
   }
 
   override suspend fun databasePossiblyChanged() { }
