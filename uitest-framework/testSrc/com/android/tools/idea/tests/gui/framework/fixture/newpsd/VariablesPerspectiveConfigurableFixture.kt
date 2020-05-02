@@ -17,8 +17,12 @@ package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.variables.VARIABLES_VIEW
+import com.android.tools.idea.tests.gui.framework.clickToolButton
+import com.android.tools.idea.tests.gui.framework.dragAndClickItem
 import com.android.tools.idea.tests.gui.framework.findByType
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture
+import com.android.tools.idea.tests.gui.framework.getList
+import com.android.tools.idea.tests.gui.framework.waitForIdle
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import org.fest.swing.core.Robot

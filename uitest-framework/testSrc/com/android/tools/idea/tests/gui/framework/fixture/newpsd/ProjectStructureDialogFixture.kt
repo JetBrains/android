@@ -20,7 +20,9 @@ import com.android.tools.idea.tests.gui.framework.DialogContainerFixture
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.android.tools.idea.tests.gui.framework.fixupWaiting
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
+import com.android.tools.idea.tests.gui.framework.waitForIdle
 import org.fest.swing.core.Robot
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
@@ -86,8 +88,6 @@ class ProjectStructureDialogFixture(
     }
   }
 }
-
-private fun Robot.fixupWaiting() = ReliableRobot(this)
 
 fun IdeFrameFixture.openPsd(): ProjectStructureDialogFixture {
   waitAndInvokeMenuPath("File", "Project Structure...")
