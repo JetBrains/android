@@ -38,7 +38,7 @@ data class PsBuildVariantsNavigationPath(override val parent: PsModulePath) : Ps
     val target = mainConfigurable.findConfigurable(BuildVariantsPerspectiveConfigurable::class.java)!!
 
     putPath(place, target)
-    target.putNavigationPath(place, parent.moduleName)
+    target.putNavigationPath(place, parent.gradlePath)
   }
 
   override val canHide: Boolean = true

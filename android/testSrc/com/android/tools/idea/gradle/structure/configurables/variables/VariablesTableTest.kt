@@ -65,7 +65,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     override val selectedModule: String? get() = throw UnsupportedOperationException()
     override val mainConfigurable: ProjectStructureConfigurable get() = throw UnsupportedOperationException()
     override fun getArtifactRepositorySearchServiceFor(module: PsModule): ArtifactRepositorySearchService = throw UnsupportedOperationException()
-    override fun setSelectedModule(moduleName: String, source: Any) = throw UnsupportedOperationException()
+    override fun setSelectedModule(gradlePath: String, source: Any) = throw UnsupportedOperationException()
     override fun add(listener: PsContext.SyncListener, parentDisposable: Disposable) = throw UnsupportedOperationException()
     override fun applyRunAndReparse(runnable: () -> Boolean) = throw UnsupportedOperationException()
     override fun applyChanges() = throw UnsupportedOperationException()
