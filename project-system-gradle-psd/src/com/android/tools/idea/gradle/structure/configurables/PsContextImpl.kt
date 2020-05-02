@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.structure.GradleResolver
 import com.android.tools.idea.gradle.structure.configurables.suggestions.SuggestionsPerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
@@ -46,7 +45,6 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
 import com.intellij.util.EventDispatcher
-import com.intellij.util.ExceptionUtil
 import java.util.function.Consumer
 
 private val LOG = Logger.getInstance(PsContextImpl::class.java)
@@ -54,7 +52,7 @@ class PsContextImpl constructor(
   override val project: PsProjectImpl,
   parentDisposable: Disposable,
   disableAnalysis: Boolean = false,
-  private val disableResolveModels: Boolean = false,
+  private val disableResolveModels: Boolean,
   private val cachingRepositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
 ) : PsContext, Disposable {
   override val analyzerDaemon: PsAnalyzerDaemon
@@ -77,13 +75,15 @@ class PsContextImpl constructor(
 
   init {
     mainConfigurable.add(
-      object : ProjectStructureConfigurable.ProjectStructureChangeListener {
+      object : ProjectStructureConfigurable.ProjectStructureListener {
+        override fun projectStructureInitializing() {
+          requestGradleModels()
+        }
+
         override fun projectStructureChanged() {
           if (!disableSync) this@PsContextImpl.requestGradleModels()
         }
       }, this)
-    // The UI has not yet subscribed to notifications which is fine since we don't want to see "Loading..." at startup.
-    requestGradleModels()
 
     libraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this, project, cachingRepositorySearchFactory)
     if (!disableAnalysis) {
@@ -130,8 +130,8 @@ class PsContextImpl constructor(
   private fun requestGradleModels() {
     if (disableResolveModels) return
     val project = this.project.ideProject
-    gradleSyncEventDispatcher.multicaster.started()
     future?.cancel(true)
+    gradleSyncEventDispatcher.multicaster.started()
     gradleSync
       .requestProjectResolved(project, this)
       .also { future = it }
@@ -140,6 +140,7 @@ class PsContextImpl constructor(
         gradleSyncEventDispatcher.multicaster.ended()
       }
       .continueOnEdt {
+        future = null
         if (disposed) return@continueOnEdt
         LOG.info("PSD fetched (${it.size} Gradle model(s). Refreshing the UI model.")
         this.project.refreshFrom(it)
@@ -148,8 +149,12 @@ class PsContextImpl constructor(
       }
   }
 
-  override fun add(listener: PsContext.SyncListener, parentDisposable: Disposable) =
+  override fun add(listener: PsContext.SyncListener, parentDisposable: Disposable) {
+    if (future != null) {
+      listener.started()
+    }
     gradleSyncEventDispatcher.addListener(listener, parentDisposable)
+  }
 
 
   override fun setSelectedModule(moduleName: String, source: Any) {

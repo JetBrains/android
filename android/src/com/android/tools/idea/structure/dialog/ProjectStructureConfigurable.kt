@@ -70,6 +70,8 @@ import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.KeyEvent
 import java.util.EventListener
 import java.util.function.Consumer
@@ -85,7 +87,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   private val myUiState = UIState().also { it.load(myProject) }
   private val myEmptySelection = JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
                                         SwingConstants.CENTER)
-  private val myChangeEventDispatcher = EventDispatcher.create(ProjectStructureChangeListener::class.java)
+  private val myProjectStructureEventDispatcher = EventDispatcher.create(ProjectStructureListener::class.java)
 
   private var mySplitter: JBSplitter? = null
   private var mySidePanel: SidePanel? = null
@@ -213,6 +215,11 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   override fun createComponent(): JComponent? {
     val component = MyPanel()
+    component.addComponentListener(object: ComponentAdapter() {
+      override fun componentShown(e: ComponentEvent?) {
+        myProjectStructureEventDispatcher.multicaster.projectStructureInitializing()
+      }
+    })
     mySplitter = OnePixelSplitter(false, .17f)
     mySplitter!!.setHonorComponentsMinimumSize(true)
 
@@ -378,7 +385,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     if (modifiedConfigurables.isEmpty()) return
     modifiedConfigurables.forEach { it.apply() }
     // If we successfully applied changes there is none to notify about the changes since the dialog is being closed.
-    if (!inDoOK) myChangeEventDispatcher.multicaster.projectStructureChanged()
+    if (!inDoOK) myProjectStructureEventDispatcher.multicaster.projectStructureChanged()
     needsSync = true
   }
 
@@ -431,15 +438,16 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   fun getHistory(): History? = myHistory
 
-  fun add(listener: ProjectStructureChangeListener, parentDisposable: Disposable) =
-    myChangeEventDispatcher.addListener(listener, parentDisposable)
+  fun add(listener: ProjectStructureListener, parentDisposable: Disposable) =
+    myProjectStructureEventDispatcher.addListener(listener, parentDisposable)
 
-  fun add(listener: ProjectStructureChangeListener) = myChangeEventDispatcher.addListener(listener)
+  fun add(listener: ProjectStructureListener) = myProjectStructureEventDispatcher.addListener(listener)
 
-  fun remove(listener: ProjectStructureChangeListener) = myChangeEventDispatcher.removeListener(listener)
+  fun remove(listener: ProjectStructureListener) = myProjectStructureEventDispatcher.removeListener(listener)
 
   private inner class MyPanel internal constructor() : JPanel(BorderLayout()), DataProvider {
     override fun getData(@NonNls dataId: String): Any? = if (History.KEY.`is`(dataId)) getHistory() else null
+
   }
 
   private class UIState {
@@ -471,7 +479,8 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     }
   }
 
-  interface ProjectStructureChangeListener : EventListener {
+  interface ProjectStructureListener : EventListener {
+    fun projectStructureInitializing()
     fun projectStructureChanged()
   }
 

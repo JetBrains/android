@@ -80,6 +80,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
   private var toolWindowHeader: ToolWindowHeader? = null
   private var loadingPanel: JBLoadingPanel? = null
+  private var loadingPanelVisible = false
   private var centerComponent: JComponent? = null
   private var moduleSelectorDropDownPanel: ModuleSelectorDropDownPanel? = null
 
@@ -97,9 +98,11 @@ abstract class BasePerspectiveConfigurable protected constructor(
     context.add(object : PsContext.SyncListener {
       override fun started() {
         loadingPanel?.startLoading()
+        loadingPanelVisible = true
       }
 
       override fun ended() {
+        loadingPanelVisible = false
         stopSyncAnimation()
       }
     }, this)
@@ -260,8 +263,11 @@ abstract class BasePerspectiveConfigurable protected constructor(
     reconfigureForCurrentSettings()
     return JBLoadingPanel(BorderLayout(), this).also {
       loadingPanel = it
-      it.setLoadingText("Syncing Project with Gradle")
+      it.setLoadingText("Fetching Gradle build models")
       it.add(contents, BorderLayout.CENTER)
+      if (loadingPanelVisible) {
+        it.startLoading()
+      }
     }
   }
 
