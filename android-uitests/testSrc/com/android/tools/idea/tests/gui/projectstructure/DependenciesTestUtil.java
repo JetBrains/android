@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import static com.intellij.psi.impl.DebugUtil.sleep;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
@@ -23,6 +24,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.NewJavaClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.AddLibraryDependencyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.AddModuleDependencyDialogFixture;
@@ -182,8 +184,8 @@ public class DependenciesTestUtil {
     });
 
     ideFrame.invokeMenuPath("File", "New", "Java Class");
-    CreateFileFromTemplateDialogFixture dialog = CreateFileFromTemplateDialogFixture.find(ideFrame.robot());
-    dialog.setName(className);
+    NewJavaClassDialogFixture dialog = NewJavaClassDialogFixture.find(ideFrame);
+    dialog.enterName(className);
     dialog.clickOk();
   }
 
