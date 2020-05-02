@@ -48,25 +48,25 @@ class ObsoleteConfigurationsTest {
     val fixes : Array<Pair<String, String>>
   )
   private val expectedIssuesAndFixes = listOf(
-    IssueAndFixes("app", "com.google.guava:guava:23.0", "'com.google.guava:guava:23.0'",
+    IssueAndFixes(":app", "com.google.guava:guava:23.0", "'com.google.guava:guava:23.0'",
                   "Obsolete dependency configuration found: compile", arrayOf(Pair("compile", "implementation"))),
-    IssueAndFixes("app", "compile/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
+    IssueAndFixes(":app", "compile/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
                   "Obsolete dependency configuration found: compile", arrayOf(Pair("compile", "implementation"))),
-    IssueAndFixes("app", "junit:junit:4.11", "'junit:junit:4.11'",
+    IssueAndFixes(":app", "junit:junit:4.11", "'junit:junit:4.11'",
                   "Obsolete dependency configuration found: testCompile", arrayOf(Pair("testCompile", "testImplementation"))),
-    IssueAndFixes("app", "mylibrary", "project(path: ':mylibrary')",
+    IssueAndFixes(":app", "mylibrary", "project(path: ':mylibrary')",
                   "Obsolete dependency configuration found: compile", arrayOf(Pair("compile", "implementation"))),
-    IssueAndFixes("myjlibrary", "runtime/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
+    IssueAndFixes(":myjlibrary", "runtime/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
                   "Obsolete dependency configuration found: runtime",
                   arrayOf(Pair("runtime", "runtimeOnly"), Pair("runtime", "implementation"))),
-    IssueAndFixes("myjlibrary", "junit:junit:4.11", "'junit:junit:4.11'",
+    IssueAndFixes(":myjlibrary", "junit:junit:4.11", "'junit:junit:4.11'",
                   "Obsolete dependency configuration found: testRuntime",
                   arrayOf(Pair("testRuntime", "testRuntimeOnly"), Pair("testRuntime", "testImplementation"))),
-    IssueAndFixes("mylibrary", "com.android.support:appcompat-v7:26.0.1", "'com.android.support:appcompat-v7:26.0.1'",
+    IssueAndFixes(":mylibrary", "com.android.support:appcompat-v7:26.0.1", "'com.android.support:appcompat-v7:26.0.1'",
                   "Obsolete dependency configuration found: compile", arrayOf(Pair("compile", "api"), Pair("compile", "implementation"))),
-    IssueAndFixes("mylibrary", "compile/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
+    IssueAndFixes(":mylibrary", "compile/libs", "fileTree(dir: 'libs', include: ['*.jar'])",
                   "Obsolete dependency configuration found: compile", arrayOf(Pair("compile", "api"), Pair("compile", "implementation"))),
-    IssueAndFixes("mylibrary", "junit:junit:4.11", "'junit:junit:4.11'",
+    IssueAndFixes(":mylibrary", "junit:junit:4.11", "'junit:junit:4.11'",
                   "Obsolete dependency configuration found: testCompile", arrayOf(Pair("testCompile", "testImplementation"))))
 
   @Rule

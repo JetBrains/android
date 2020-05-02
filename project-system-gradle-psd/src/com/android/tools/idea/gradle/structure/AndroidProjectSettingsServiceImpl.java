@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure;
 
+import static com.android.tools.idea.gradle.util.GradleProjects.getGradleModulePath;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurableKt;
@@ -107,7 +109,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
       showNewPsd(
         new Place()
           .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
-          .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
+          .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleModulePath(module))
       );
     }
     else {
@@ -120,7 +122,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
     showNewPsd(
       new Place()
         .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
-        .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
+        .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleModulePath(module))
         .putPath(ModulePanelKt.MODULE_PLACE_NAME, SigningConfigsPanelKt.SIGNING_CONFIGS_DISPLAY_NAME)
     );
   }
@@ -146,8 +148,8 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
     showNewPsd(
       new Place()
         .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
-        .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
-        .putPath(String.format("dependencies.%s.place", module.getName()), dependency.toString())
+        .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleModulePath(module))
+        .putPath(String.format("dependencies.%s.place", getGradleModulePath(module)), dependency.toString())
     );
   }
 
@@ -155,7 +157,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
     showNewPsd(
       new Place()
         .putPath(ProjectStructureConfigurable.CATEGORY_NAME, BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME)
-        .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
+        .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleModulePath(module))
         .putPath(BuildVariantsPanelKt.BUILD_VARIANTS_PLACE_NAME, BuildTypesPanelKt.BUILD_TYPES_DISPLAY_NAME)
     );
   }
@@ -164,7 +166,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
     showNewPsd(
       new Place()
         .putPath(ProjectStructureConfigurable.CATEGORY_NAME, BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME)
-        .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
+        .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleModulePath(module))
         .putPath(BuildVariantsPanelKt.BUILD_VARIANTS_PLACE_NAME, ProductFlavorsPanelKt.PRODUCT_FLAVORS_DISPLAY_NAME)
     );
   }
@@ -174,7 +176,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
     showNewPsd(
       new Place()
         .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
-        .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
+        .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleModulePath(module))
     );
   }
 
@@ -264,7 +266,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
       showNewPsd(
         new Place()
           .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
-          .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, module.getName())
+          .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleModulePath(module))
       );
     }
     else {

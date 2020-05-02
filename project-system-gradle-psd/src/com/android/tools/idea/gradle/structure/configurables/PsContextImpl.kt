@@ -74,17 +74,6 @@ class PsContextImpl constructor(
   private val editedFields = mutableSetOf<PSDEvent.PSDField>()
 
   init {
-    mainConfigurable.add(
-      object : ProjectStructureConfigurable.ProjectStructureListener {
-        override fun projectStructureInitializing() {
-          requestGradleModels()
-        }
-
-        override fun projectStructureChanged() {
-          if (!disableSync) this@PsContextImpl.requestGradleModels()
-        }
-      }, this)
-
     libraryUpdateCheckerDaemon = PsLibraryUpdateCheckerDaemon(this, project, cachingRepositorySearchFactory)
     if (!disableAnalysis) {
       libraryUpdateCheckerDaemon.reset()
@@ -99,10 +88,6 @@ class PsContextImpl constructor(
         PsAndroidModuleAnalyzer(this, PsPathRendererImpl().also { it.context = this }),
         PsJavaModuleAnalyzer(this))
     )
-    if (!disableAnalysis) {
-      analyzerDaemon.reset()
-      project.forEachModule(Consumer { analyzerDaemon.queueCheck(it) })
-    }
 
     if (!disableAnalysis) {
       project.onModuleChanged(this) { module ->
@@ -116,6 +101,21 @@ class PsContextImpl constructor(
         module.addDependencyChangedListener(this) { e -> if (e !is PsModule.DependenciesReloadedEvent) dependencyChanged() }
       })
     }
+
+    mainConfigurable.add(
+      object : ProjectStructureConfigurable.ProjectStructureListener {
+        override fun projectStructureInitializing() {
+          requestGradleModels()
+          if (!disableAnalysis) {
+            analyzerDaemon.reset()
+            project.forEachModule(Consumer { analyzerDaemon.queueCheck(it) })
+          }
+        }
+
+        override fun projectStructureChanged() {
+          if (!disableSync) this@PsContextImpl.requestGradleModels()
+        }
+      }, this)
 
     Disposer.register(parentDisposable, this)
   }
@@ -157,8 +157,8 @@ class PsContextImpl constructor(
   }
 
 
-  override fun setSelectedModule(moduleName: String, source: Any) {
-    selectedModule = moduleName
+  override fun setSelectedModule(gradlePath: String, source: Any) {
+    selectedModule = gradlePath
   }
 
   override fun dispose() {
@@ -191,7 +191,7 @@ class PsContextImpl constructor(
       val place = Place()
       val suggestionsView = mainConfigurable.findConfigurable(SuggestionsPerspectiveConfigurable::class.java)
       place.putPath(ProjectStructureConfigurable.CATEGORY_NAME, suggestionsView?.displayName.orEmpty())
-      place.putPath(BASE_PERSPECTIVE_MODULE_PLACE_NAME, suggestionsView?.extraModules?.first()?.name.orEmpty())
+      place.putPath(BASE_PERSPECTIVE_MODULE_PLACE_NAME, suggestionsView?.extraModules?.first()?.gradlePath.orEmpty())
       mainConfigurable.navigateTo(place, false)
     }
 
