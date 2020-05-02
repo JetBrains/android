@@ -40,6 +40,8 @@ import com.intellij.execution.testframework.TestSearchScope
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsAdapter
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
+import com.intellij.openapi.application.impl.LaterInvocator
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.TestRunnerUtil
 import com.intellij.testFramework.runInEdtAndWait
@@ -70,10 +72,18 @@ private fun log(message: String) {
  * The test project uses 3.0 features, so you may need to set STUDIO_CUSTOM_REPO to point to a recent build of our gradle plugin.
  */
 class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
+  lateinit var myPrevTransactionGuardFlagValue: String
+
   override fun runInDispatchThread(): Boolean = false
   override fun invokeTestRunnable(runnable: Runnable) = runnable.run()
 
   override fun setUp() {
+    // Workaround for IDEA-239912.
+    Registry.get("ide.require.transaction.for.model.changes").apply {
+      myPrevTransactionGuardFlagValue = asString()
+      setValue(false)
+    }
+
     TestRunnerUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
     runInEdtAndWait {
       super.setUp()
@@ -96,6 +106,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
 
   override fun tearDown() {
     try {
+      Registry.get("ide.require.transaction.for.model.changes").setValue(myPrevTransactionGuardFlagValue)
       UsageTracker.cleanAfterTesting()
     }
     finally {
@@ -246,7 +257,6 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
           ":javalib:testClasses"
         )
       }
-
     })
 
     project.messageBus.connect(testRootDisposable).subscribe(ExecutionManager.EXECUTION_TOPIC, object : ExecutionListener {
@@ -330,8 +340,12 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
           }
         })
 
+        // ExecutionUtil enqueues the run request to the LaterInvocator but under some circumstances the LaterInvocator falls
+        // into race condition and enqueued tasks are not started until you manually call ensureFlushRequested(). See javadoc
+        // of ensureFlushRequested for more details.
         log("Running $className")
         ExecutionUtil.runConfiguration(createRunnerConfigurationSettingsForClass(className), DefaultRunExecutor.getRunExecutorInstance())
+        LaterInvocator.ensureFlushRequested()
       }
       catch (t: Throwable) {
         log("failed!")
@@ -341,7 +355,6 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     }
 
     // Make sure we don't hang the entire build here.
-/* b/154963507
     assertTrue("Timed out", testingFinished.await(1, TimeUnit.MINUTES))
     failure.get()?.let { throw it }
 
@@ -360,7 +373,6 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     assertThat(testRun.testKind).isEqualTo(TestRun.TestKind.UNIT_TEST)
     assertThat(testRun.numberOfTestsExecuted).isEqualTo(expectedTests.size)
     assertThat(testRun.testLibraries.mockitoVersion).isEqualTo("2.7.1")
-b/154963507 */
   }
 
   private fun createRunnerConfigurationSettingsForClass(className: String): RunnerAndConfigurationSettings {
