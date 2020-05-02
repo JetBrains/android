@@ -41,11 +41,11 @@ import kotlin.test.assertNull
 @RunWith(GuiTestRemoteRunner::class)
 class ObsoleteConfigurationsTest {
   data class IssueAndFixes (
-    val moduleName : String,
-    val dependencyName : String,
-    val dependencyGradleText : String,
-    val message : String,
-    val fixes : Array<Pair<String, String>>
+    val gradlePath: String,
+    val dependencyName: String,
+    val dependencyGradleText: String,
+    val message: String,
+    val fixes: Array<Pair<String, String>>
   )
   private val expectedIssuesAndFixes = listOf(
     IssueAndFixes(":app", "com.google.guava:guava:23.0", "'com.google.guava:guava:23.0'",
@@ -99,8 +99,10 @@ class ObsoleteConfigurationsTest {
     val warningSuggestions = warningsGroup.suggestions()
 
     val expectedMessages = expectedIssuesAndFixes
-      .map { Pair("\n${it.moduleName} » ${it.dependencyName}\n${it.message} View usage",
-                  it.fixes.map { fix -> "Update ${fix.first} to ${fix.second}"}.toTypedArray() ) }
+      .map {
+        Pair("\n${it.gradlePath} » ${it.dependencyName}\n${it.message} View usage",
+             it.fixes.map { fix -> "Update ${fix.first} to ${fix.second}" }.toTypedArray())
+      }
 
     assertThat(getHtmlMessages(warningSuggestions),
                hasItems(*(expectedMessages.map { it.first }).toTypedArray()))
@@ -129,7 +131,7 @@ class ObsoleteConfigurationsTest {
         suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(5))
         suggestionsConfigurable.waitForGroup("Warnings")
         var warningsGroup = suggestionsConfigurable.findGroup("Warnings")
-        val pattern = issueAndFix.let { "${it.moduleName} » ${it.dependencyName}\nObsolete dependency configuration found" }
+        val pattern = issueAndFix.let { "${it.gradlePath} » ${it.dependencyName}\nObsolete dependency configuration found" }
         var message = warningsGroup.findMessageMatching(pattern)
         assertNotNull(message)
         assertTrue(message.isActionActionAvailable())
@@ -153,20 +155,21 @@ class ObsoleteConfigurationsTest {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
     expectedIssuesAndFixes
       .forEach { issueAndFix ->
-        val origBuildGradleContent = issueAndFix.let { ide.editor.open("/${it.moduleName}/build.gradle").currentFileContents }
+        val origBuildGradleContent =
+          issueAndFix.let { ide.editor.open(it.buildFilePath).currentFileContents }
         val psd = ide.openPsd()
         val suggestionsConfigurable = psd.selectSuggestionsConfigurable()
         suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(5))
         suggestionsConfigurable.waitForGroup("Warnings")
         val warningsGroup = suggestionsConfigurable.findGroup("Warnings")
-        val pattern = issueAndFix.let { "${it.moduleName} » ${it.dependencyName}\nObsolete dependency configuration found" }
+        val pattern = issueAndFix.let { "${it.gradlePath} » ${it.dependencyName}\nObsolete dependency configuration found" }
         val message = warningsGroup.findMessageMatching(pattern)
         assertNotNull(message)
         assertTrue(message.isActionActionAvailable())
         // TODO(xof): test drop-down and clicking actions other than the default
         message.clickAction()
         psd.clickOk(Wait.seconds(3))
-        val newAppBuildGradleContent = issueAndFix.let { ide.editor.open("/${it.moduleName}/build.gradle").currentFileContents }
+        val newAppBuildGradleContent = issueAndFix.let { ide.editor.open(it.buildFilePath).currentFileContents }
         val expectedAppBuildGradleContent =
           issueAndFix.let {
             origBuildGradleContent
@@ -197,3 +200,5 @@ class ObsoleteConfigurationsTest {
     }
   }
 }
+
+private val ObsoleteConfigurationsTest.IssueAndFixes.buildFilePath : String get() = "${gradlePath.replace(":", "/")}/build.gradle"
