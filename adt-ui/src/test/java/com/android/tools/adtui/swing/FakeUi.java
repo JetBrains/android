@@ -17,14 +17,20 @@ package com.android.tools.adtui.swing;
 
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.TreeWalker;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Enumeration;
 import javax.imageio.ImageIO;
+import javax.swing.UIManager;
+import javax.swing.plaf.FontUIResource;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -66,10 +72,21 @@ public final class FakeUi {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
   }
 
-  public void render(OutputStream out) throws IOException {
-    BufferedImage bi = ImageUtils.createDipImage(myRoot.getWidth(), myRoot.getHeight(), BufferedImage.TYPE_INT_ARGB);
-    myRoot.printAll(bi.getGraphics());
-    ImageIO.write(bi, "png", out);
+  public void render(@NotNull OutputStream out) throws IOException {
+    BufferedImage image = render();
+    ImageIO.write(image, "png", out);
+  }
+
+  /**
+   * Renders the component and returns the image reflecting its appearance.
+   */
+  @NotNull
+  public BufferedImage render() {
+    BufferedImage image = ImageUtils.createDipImage(myRoot.getWidth(), myRoot.getHeight(), BufferedImage.TYPE_INT_ARGB);
+    Graphics2D graphics = image.createGraphics();
+    myRoot.printAll(graphics);
+    graphics.dispose();
+    return image;
   }
 
   /**
@@ -140,6 +157,47 @@ public final class FakeUi {
 
   public RelativePoint targetMouseEvent(int x, int y) {
     return findTarget(myRoot, x, y);
+  }
+
+  /**
+   * Sets all default fonts to Droid Sans that is included in the bundled JDK. This makes fonts the same across all platforms.
+   */
+  public static void setPortableUiFont() {
+    Enumeration<?> keys = UIManager.getLookAndFeelDefaults().keys();
+    while (keys.hasMoreElements()) {
+      Object key = keys.nextElement();
+      Object value = UIManager.get(key);
+      if (value instanceof FontUIResource) {
+        FontUIResource font = (FontUIResource)value;
+        UIManager.put(key, new FontUIResource("Droid Sans", font.getStyle(), font.getSize()));
+      }
+    }
+  }
+
+  /**
+   * IJ doesn't always refresh the state of the toolbar buttons. This method forces it to refresh.
+   */
+  public void updateToolbars() {
+    updateToolbars(myRoot);
+  }
+
+  private static void updateToolbars(@NotNull Component component) {
+    if (component instanceof ActionButton) {
+      ActionButton button = (ActionButton)component;
+      button.updateUI();
+      button.updateIcon();
+    }
+
+    if (component instanceof ActionToolbar) {
+      ActionToolbar toolbar = (ActionToolbar)component;
+      toolbar.updateActionsImmediately();
+    }
+
+    if (component instanceof Container) {
+      for (Component child : ((Container)component).getComponents()) {
+        updateToolbars(child);
+      }
+    }
   }
 
   public static class RelativePoint {
