@@ -34,12 +34,14 @@ interface WarningsDataPageModel {
   /** Text of the header visible above the tree. */
   val treeHeaderText: String
 
-
   /** The root of the tree that should be shown now. View is supposed to set this root in the Tree on update. */
   val treeRoot: DefaultMutableTreeNode
 
   /** Currently selected node. Can be null in case of an empty tree. */
   val selectedNode: WarningsTreeNode?
+
+  /** True if there are no warnings to show. */
+  val isEmpty: Boolean
 
   /**
    * Selects node in a tree to provided.
@@ -80,6 +82,9 @@ class WarningsDataPageModelImpl(
         modelChanged = true
       }
     }
+
+  override val isEmpty: Boolean
+    get() = reportData.totalIssuesCount == 0
 
   override fun selectNode(warningsTreeNode: WarningsTreeNode) {
     selectedNode = warningsTreeNode

@@ -15,12 +15,14 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.WarningsDataPageModel
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.view.details.WarningsViewDetailPagesFactory
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
+import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
@@ -30,6 +32,8 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.HorizontalLayout
+import com.intellij.ui.components.panels.VerticalLayout
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -37,9 +41,12 @@ import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.Component
+import javax.swing.Box
+import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 import javax.swing.tree.DefaultTreeModel
 
 
@@ -125,7 +132,12 @@ class WarningsPageView(
 
   override val component: JPanel = JPanel(BorderLayout()).apply {
     name = "warnings-view"
-    add(componentsSplitter, BorderLayout.CENTER)
+    if (model.isEmpty) {
+      add(createEmptyStatePanel(), BorderLayout.CENTER)
+    }
+    else {
+      add(componentsSplitter, BorderLayout.CENTER)
+    }
   }
 
   init {
@@ -144,5 +156,25 @@ class WarningsPageView(
       TreeUtil.selectNode(tree, it)
     }
     fireActionHandlerEvents = true
+  }
+
+  private fun createEmptyStatePanel() = JPanel().apply {
+    name = "empty-state"
+    border = JBUI.Borders.empty(20)
+    layout = VerticalLayout(0, SwingConstants.LEFT)
+
+    add(JBLabel("This build does not have any warnings."))
+    add(JBLabel("To continue to evaluate this build's performance consider these common views into this build:"))
+    add(JPanel().apply {
+      name = "links"
+      border = JBUI.Borders.emptyTop(20)
+      layout = VerticalLayout(0, SwingConstants.LEFT)
+      add(HyperlinkLabel("Tasks impacting build duration").apply {
+        addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.UNGROUPED) }
+      })
+      add(HyperlinkLabel("Plugins with tasks impacting build duration").apply {
+        addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN) }
+      })
+    })
   }
 }

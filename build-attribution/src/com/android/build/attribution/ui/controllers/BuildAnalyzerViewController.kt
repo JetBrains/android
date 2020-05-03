@@ -54,6 +54,17 @@ class BuildAnalyzerViewController(
     analytics.pageChange(analyticsPageId, BuildAttributionUiEvent.EventType.UNKNOWN_TYPE)
   }
 
+  override fun changeViewToTasksLinkClicked(targetGrouping: Grouping) {
+    model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
+    model.tasksPageModel.selectGrouping(targetGrouping)
+    // TODO (b/154988129): what metrics to track on such action?
+  }
+
+  override fun changeViewToWarningsLinkClicked() {
+    model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
+    // TODO (b/154988129): what metrics to track on such action?
+  }
+
   override fun tasksGroupingSelectionUpdated(grouping: Grouping) {
     model.tasksPageModel.selectGrouping(grouping)
     // TODO (b/154988129): what metrics to track on such action?
