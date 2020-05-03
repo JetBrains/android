@@ -77,7 +77,7 @@ public class DependenciesTestUtil {
       .selectMinimumSdkApi(minSdkApi)
       .setSourceLanguage(language)
       .wizard()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(30));
+      .clickFinishAndWaitForSyncToFinish();
   }
 
   protected static void createJavaModule(@NotNull IdeFrameFixture ideFrame) {

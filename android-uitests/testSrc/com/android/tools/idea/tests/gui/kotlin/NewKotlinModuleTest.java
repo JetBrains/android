@@ -22,7 +22,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,7 +56,7 @@ public class NewKotlinModuleTest {
       .enterPackageName("android.com")
       .setSourceLanguage(hasKotlinSupport ? Kotlin : Java)
       .wizard()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(30));  // Kotlin projects take longer to sync
+      .clickFinishAndWaitForSyncToFinish();
 
     if (hasKotlinSupport) {
       assertModuleSupportsKotlin(APP_NAME);
@@ -75,7 +74,7 @@ public class NewKotlinModuleTest {
       .wizard()
       .clickNext() // Default options
       .clickNext() // Default Activity
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(30)); // Kotlin projects take longer to sync
+      .clickFinishAndWaitForSyncToFinish();
 
     assertModuleSupportsKotlin(NEW_KOTLIN_MODULE_NAME);
   }
