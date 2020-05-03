@@ -32,6 +32,18 @@ interface ViewActionHandlers {
    */
   fun dataSetComboBoxSelectionUpdated(newSelectedData: BuildAnalyzerViewModel.DataSet)
 
+  /**
+   * Called when navigation link clicked targeting to show tasks.
+   * Used in Overview and view empty states.
+   */
+  fun changeViewToTasksLinkClicked(targetGrouping: TasksDataPageModel.Grouping)
+
+  /**
+   * Called when navigation link clicked targeting to show warnings.
+   * Used in Overview and view empty states.
+   */
+  fun changeViewToWarningsLinkClicked()
+
   /** Called when selection in tasks grouping combo box is changed by the user. */
   fun tasksGroupingSelectionUpdated(grouping: TasksDataPageModel.Grouping)
 

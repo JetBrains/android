@@ -30,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.tree.TreePathUtil
 import org.junit.Before
 import org.junit.Rule
@@ -123,6 +124,27 @@ class TasksPageViewTest {
     // Assert
     Mockito.verify(mockHandlers).tasksTreeNodeSelected(nodeToSelect)
     Mockito.verifyNoMoreInteractions(mockHandlers)
+  }
+
+
+  @Test
+  @RunsInEdt
+  fun testEmptyState() {
+    val data = MockUiData(tasksList = emptyList())
+    val model = TasksDataPageModelImpl(data)
+    view = TasksPageView(model, mockHandlers).apply {
+      component.size = Dimension(600, 200)
+    }
+
+    val emptyStatePanel = view.component.components.single()
+    assertThat(emptyStatePanel.isVisible).isTrue()
+    assertThat(emptyStatePanel.name).isEqualTo("empty-state")
+    val links = TreeWalker(emptyStatePanel).descendants().filterIsInstance(HyperlinkLabel::class.java)
+    assertThat(links).hasSize(1)
+
+    // Act / assert links handling
+    links[0].doClick()
+    Mockito.verify(mockHandlers).changeViewToWarningsLinkClicked()
   }
 
   private fun findVisibleDetailsPageNames(parent: Component): String {

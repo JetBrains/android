@@ -16,15 +16,20 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.ui.MockUiData
+import com.android.build.attribution.ui.data.AnnotationProcessorUiData
+import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
+import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.WarningsDataPageModelImpl
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
+import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.tree.TreePathUtil
 import org.junit.Before
 import org.junit.Rule
@@ -50,7 +55,7 @@ class WarningsPageViewTest {
     task1.issues = task1.issues + listOf(TaskIssueUiDataContainer.TaskSetupIssue(task1, this, ""))
   }
 
-  val data = MockUiData(tasksList = listOf(task1, task2, task3))
+  private val data = MockUiData(tasksList = listOf(task1, task2, task3))
 
   private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
 
@@ -107,5 +112,32 @@ class WarningsPageViewTest {
     // Assert
     Mockito.verify(mockHandlers).warningsTreeNodeSelected(nodeToSelect)
     Mockito.verifyNoMoreInteractions(mockHandlers)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testEmptyState() {
+    val data = MockUiData(tasksList = emptyList()).apply {
+      annotationProcessors = object : AnnotationProcessorsReport {
+        override val nonIncrementalProcessors = emptyList < AnnotationProcessorUiData>()
+      }
+    }
+    val model = WarningsDataPageModelImpl(data)
+    view = WarningsPageView(model, mockHandlers).apply {
+      component.size = Dimension(600, 200)
+    }
+
+    val emptyStatePanel = view.component.components.single()
+    assertThat(emptyStatePanel.isVisible).isTrue()
+    assertThat(emptyStatePanel.name).isEqualTo("empty-state")
+    val links = TreeWalker(emptyStatePanel).descendants().filterIsInstance(HyperlinkLabel::class.java)
+    assertThat(links).hasSize(2)
+
+    // Act / assert links handling
+    links[0].doClick()
+    Mockito.verify(mockHandlers).changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.UNGROUPED)
+
+    links[1].doClick()
+    Mockito.verify(mockHandlers).changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN)
   }
 }

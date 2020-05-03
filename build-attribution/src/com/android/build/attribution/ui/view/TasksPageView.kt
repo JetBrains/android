@@ -23,6 +23,7 @@ import com.android.build.attribution.ui.view.details.TaskViewDetailPagesFactory
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.EnumComboBoxModel
+import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
@@ -33,6 +34,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.HorizontalLayout
+import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -44,6 +46,7 @@ import java.awt.event.ItemEvent
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 import javax.swing.tree.DefaultTreeModel
 
 @NonNls
@@ -131,7 +134,12 @@ class TasksPageView(
 
   override val component: JPanel = JPanel(BorderLayout()).apply {
     name = "tasks-view"
-    add(componentsSplitter, BorderLayout.CENTER)
+    if (model.isEmpty) {
+      add(createEmptyStatePanel(), BorderLayout.CENTER)
+    }
+    else {
+      add(componentsSplitter, BorderLayout.CENTER)
+    }
   }
 
   override val additionalControls: JPanel = JPanel().apply {
@@ -158,5 +166,22 @@ class TasksPageView(
       TreeUtil.selectNode(tree, it)
     }
     fireActionHandlerEvents = true
+  }
+
+  private fun createEmptyStatePanel() = JPanel().apply {
+    name = "empty-state"
+    border = JBUI.Borders.empty(20)
+    layout = VerticalLayout(0, SwingConstants.LEFT)
+
+    add(JBLabel("This build did not run any tasks or all of the tasks were up to date."))
+    add(JBLabel("To continue to evaluate this build's performance consider these common views into this build:"))
+    add(JPanel().apply {
+      name = "links"
+      border = JBUI.Borders.emptyTop(20)
+      layout = VerticalLayout(0, SwingConstants.LEFT)
+      add(HyperlinkLabel("All warnings").apply {
+        addHyperlinkListener { actionHandlers.changeViewToWarningsLinkClicked() }
+      })
+    })
   }
 }

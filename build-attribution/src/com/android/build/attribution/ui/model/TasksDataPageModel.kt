@@ -44,6 +44,9 @@ interface TasksDataPageModel {
   /** Can be null in case of empty tree. */
   val selectedNode: TasksTreeNode?
 
+  /** True if there are no tasks to show. */
+  val isEmpty: Boolean
+
   /** Update selected grouping to provided. Notifies listener if model state changes. */
   fun selectGrouping(newSelectedGrouping: Grouping)
 
@@ -117,6 +120,9 @@ class TasksDataPageModelImpl(
         selectedGrouping = value.descriptor.pageId.grouping
       }
     }
+
+  override val isEmpty: Boolean
+    get() = reportData.criticalPathTasks.size == 0
 
   override val treeRoot: DefaultMutableTreeNode
     get() = when (selectedGrouping) {
