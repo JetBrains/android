@@ -16,6 +16,8 @@
 package com.android.tools.idea.emulator
 
 import com.android.emulator.control.ImageFormat
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.ZOOMABLE_KEY
@@ -40,17 +42,14 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.registerComponentInstance
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
-import org.jetbrains.android.ComponentStack
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.File
@@ -69,7 +68,6 @@ class EmulatorViewTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
   private var nullableEmulator: FakeEmulator? = null
-  private var componentStack: ComponentStack? = null
   private val filesOpened = mutableListOf<VirtualFile>()
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
@@ -80,20 +78,12 @@ class EmulatorViewTest {
 
   @Before
   fun setUp() {
-    componentStack = ComponentStack(projectRule.project)
-    val fileEditorManager = mock(FileEditorManagerEx::class.java)
-    `when`(fileEditorManager.openFile(any(VirtualFile::class.java), anyBoolean())).thenAnswer { invocation ->
+    val fileEditorManager = mock<FileEditorManagerEx>()
+    `when`(fileEditorManager.openFile(any(), anyBoolean())).thenAnswer { invocation ->
       filesOpened.add(invocation.getArgument(0))
       return@thenAnswer emptyArray<FileEditor>()
     }
-    componentStack?.registerComponentInstance(FileEditorManager::class.java, fileEditorManager)
-  }
-
-  @After
-  fun tearDown() {
-    componentStack?.restore()
-    componentStack = null
-    filesOpened.clear()
+    projectRule.project.registerComponentInstance(FileEditorManager::class.java, fileEditorManager, projectRule.fixture.testRootDisposable)
   }
 
   @Test
