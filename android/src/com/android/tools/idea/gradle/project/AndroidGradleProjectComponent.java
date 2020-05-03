@@ -184,25 +184,6 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
       myProject.putUserData(NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
     }
 
-    List<Class<? extends RunConfigurationProducer<?>>> runConfigurationProducerTypes = new ArrayList<>();
-    runConfigurationProducerTypes.add(AllInPackageGradleConfigurationProducer.class);
-    runConfigurationProducerTypes.add(TestClassGradleConfigurationProducer.class);
-    runConfigurationProducerTypes.add(TestMethodGradleConfigurationProducer.class);
-
-    RunConfigurationProducerService runConfigurationProducerManager = RunConfigurationProducerService.getInstance(myProject);
-    if (myIdeInfo.isAndroidStudio()) {
-      // Make sure the gradle test configurations are ignored in this project. This will modify .idea/runConfigurations.xml
-      for (Class<? extends RunConfigurationProducer<?>> type : runConfigurationProducerTypes) {
-        runConfigurationProducerManager.getState().ignoredProducers.add(type.getName());
-      }
-    }
-    else {
-      // Make sure the gradle test configurations are not ignored in this project, since they already work in Android gradle projects. This
-      // will modify .idea/runConfigurations.xml
-      for (Class<? extends RunConfigurationProducer<?>> type : runConfigurationProducerTypes) {
-        runConfigurationProducerManager.getState().ignoredProducers.remove(type.getName());
-      }
-    }
   }
 
   @Override
