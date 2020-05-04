@@ -19,7 +19,6 @@ import com.android.emulator.control.ImageFormat
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
-import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
@@ -51,7 +50,6 @@ import org.junit.rules.RuleChain
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.`when`
 import java.awt.Dimension
-import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
@@ -91,31 +89,31 @@ class EmulatorViewTest {
     val view = createEmulatorView()
     @Suppress("UndesirableClassUsage")
     val container = JScrollPane(view).apply { border = null }
-    val ui = FakeUi(container)
+    val ui = FakeUi(container, 2.0)
 
     // Check initial appearance.
     var frameNumber = view.frameNumber
     assertThat(frameNumber).isEqualTo(0)
-    container.size = Dimension(400, 600)
+    container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
     var call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 266 height: 547")
-    assertViewAppearance(view, "image1")
+    assertAppearance(ui, "image1")
     assertThat(call.completion.isDone).isFalse() // The call is still ongoing.
 
     // Check resizing.
     val previousCall = call
-    container.size = Dimension(500, 400)
+    container.size = Dimension(250, 200)
     ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 178 height: 365")
-    assertViewAppearance(view, "image2")
+    assertAppearance(ui, "image2")
     assertThat(previousCall.completion.isCancelled).isTrue() // The previous call is cancelled.
     assertThat(call.completion.isDone).isFalse() // The latest call is still ongoing.
 
     // Check zoom.
-    val skinHeight = 3245.0
-    assertThat(view.scale).isWithin(1e-4).of(400 / skinHeight)
+    val skinHeight = 3245
+    assertThat(view.scale).isWithin(1e-4).of(200 * ui.screenScale / skinHeight)
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isFalse()
     assertThat(view.canZoomToActual()).isTrue()
@@ -124,7 +122,7 @@ class EmulatorViewTest {
     view.zoom(ZoomType.IN)
     ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 360 height: 740")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 360 height: 741")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isTrue()
@@ -164,15 +162,15 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 90.0 }")
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 456 height: 222")
-    assertViewAppearance(view, "image3")
+    assertAppearance(ui, "image3")
 
     // Check mouse input in landscape orientation.
-    ui.mouse.press(19, 306)
+    ui.mouse.press(10, 153)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 39 y: 52 buttons: 1")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 39 y: 58 buttons: 1")
 
-    ui.mouse.dragTo(430, 96)
+    ui.mouse.dragTo(215, 48)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
     assertThat(shortDebugString(call.request)).isEqualTo("x: 1401 y: 2720 buttons: 1")
@@ -201,19 +199,19 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 0.0 }")
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 178 height: 365")
-    assertViewAppearance(view, "image2")
+    assertAppearance(ui, "image2")
 
     // Check mouse input in portrait orientation.
-    ui.mouse.press(165, 15)
+    ui.mouse.press(82, 7)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 40 y: 49 buttons: 1")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 32 y: 41 buttons: 1")
 
     // Check device frame cropping.
     view.cropFrame = true
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 195 height: 400")
-    assertViewAppearance(view, "image4")
+    assertAppearance(ui, "image4")
   }
 
   @Test
@@ -331,11 +329,8 @@ class EmulatorViewTest {
     waitForCondition(timeout, unit) { frameNumber >= frame }
   }
 
-  private fun assertViewAppearance(view: EmulatorView, goldenImageName: String) {
-    val image = ImageUtils.createDipImage(view.width, view.height, BufferedImage.TYPE_INT_ARGB)
-    val g = image.createGraphics()
-    view.printAll(g)
-    g.dispose()
+  private fun assertAppearance(ui: FakeUi, goldenImageName: String) {
+    val image = ui.render()
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.1)
   }
 
