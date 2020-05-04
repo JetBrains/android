@@ -28,7 +28,7 @@ import javax.swing.JPanel
  * A dummy provider, of which we plan to create multiple instances of, to test that an app inspection view can own multiple tabs.
  */
 class StubTestAppInspectorTabProvider(override val inspectorId: String) : AppInspectorTabProvider {
-  override val displayName = "TEST"
+  override val displayName = inspectorId
   override val inspectorAgentJar = TEST_JAR
 
   override fun createTab(

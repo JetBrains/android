@@ -33,9 +33,6 @@ import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.ActivityTracker
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationListener
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -54,14 +51,12 @@ import java.util.concurrent.CancellationException
 import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.SwingConstants
-import javax.swing.event.HyperlinkEvent
 
 class AppInspectionView(
   private val project: Project,
   private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
   private val ideServices: AppInspectionIdeServices,
-  getPreferredProcesses: () -> List<String>,
-  private val notificationFactory: AppInspectionNotificationFactory
+  getPreferredProcesses: () -> List<String>
 ) : Disposable {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
   private val inspectorPanel = JPanel(BorderLayout())
@@ -80,19 +75,14 @@ class AppInspectionView(
       })
     }
 
-  private fun createCrashNotification(inspectorName: String): Notification {
-    return notificationFactory.createNotification(
+  private fun showCrashNotification(inspectorName: String) {
+    ideServices.showNotification(
       AndroidBundle.message("android.appinspection.notification.crash", inspectorName),
-      "",
-      NotificationType.ERROR,
-      object : NotificationListener.Adapter() {
-        override fun hyperlinkActivated(notification: Notification, e: HyperlinkEvent) {
-          AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
-          launchInspectorTabsForCurrentProcess()
-          notification.expire()
-        }
-      }
-    )
+      severity = AppInspectionIdeServices.Severity.ERROR
+    ) {
+      AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
+      launchInspectorTabsForCurrentProcess()
+    }
   }
 
   private lateinit var currentProcess: ProcessDescriptor
@@ -159,7 +149,7 @@ class AppInspectionView(
           client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
             override fun onCrashEvent(message: String) {
               AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
-              createCrashNotification(provider.displayName).notify(project)
+              showCrashNotification(provider.displayName)
             }
           }, MoreExecutors.directExecutor())
         }.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Unit> {
