@@ -75,8 +75,8 @@ import org.jetbrains.annotations.Nullable;
  * same directories when multiple modules need them. For every directory a namespaced and non-namespaced repository may be created, if
  * needed.
  */
-public class ResourceFolderRegistry implements Disposable {
-  @NotNull private Project myProject;
+public final class ResourceFolderRegistry implements Disposable {
+  @NotNull private final Project myProject;
   @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNamespacedCache = buildCache();
   @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNonNamespacedCache = buildCache();
   @NotNull private final ImmutableList<Cache<VirtualFile, ResourceFolderRepository>> myCaches =
@@ -252,7 +252,7 @@ public class ResourceFolderRegistry implements Disposable {
     }
   }
 
-  public static class CachedRepositories {
+  public static final class CachedRepositories {
     @Nullable
     public final ResourceFolderRepository namespaced;
 
@@ -375,19 +375,23 @@ public class ResourceFolderRegistry implements Disposable {
     }
   }
 
-  private class MyFileDocumentManagerListener implements FileDocumentManagerListener {
+  private final class MyFileDocumentManagerListener implements FileDocumentManagerListener {
     @Override
     public void fileWithNoDocumentChanged(@NotNull VirtualFile file) {
       dispatchToRepositories(file, ResourceFolderRepository::scheduleScan);
     }
   }
 
-  private class MyDocumentListener implements DocumentListener {
+  private final class MyDocumentListener implements DocumentListener {
     private final FileDocumentManager myFileDocumentManager = FileDocumentManager.getInstance();
     private final PsiDocumentManager myPsiDocumentManager = PsiDocumentManager.getInstance(myProject);
 
     @Override
     public void documentChanged(@NotNull DocumentEvent event) {
+      if (myProject.isDisposed()) {
+        return;
+      }
+
       Document document = event.getDocument();
       PsiFile psiFile = myPsiDocumentManager.getCachedPsiFile(document);
       if (psiFile == null) {
