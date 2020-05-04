@@ -24,6 +24,7 @@ import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.android.tools.idea.sqlite.model.getAllDatabaseIds
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.vfs.VirtualFile
@@ -106,7 +107,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     }
 
     // Assert
-    assertSize(0, model.getOpenDatabaseIds())
+    assertEmpty(model.getAllDatabaseIds())
   }
 
   fun testDatabasePossiblyChangedNotifiesController() {

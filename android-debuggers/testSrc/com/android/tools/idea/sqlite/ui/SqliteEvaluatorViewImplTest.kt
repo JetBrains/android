@@ -120,16 +120,16 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Act/Assert
     assertEquals(null, view.activeDatabase)
 
-    model.add(db2, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
+    model.addDatabaseSchema(db2, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
     assertEquals(db2, view.activeDatabase)
 
-    model.add(db1, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
+    model.addDatabaseSchema(db1, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
     assertEquals(db2, view.activeDatabase)
 
-    model.add(db0, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
+    model.addDatabaseSchema(db0, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
     assertEquals(db2, view.activeDatabase)
 
-    model.remove(db2)
+    model.removeDatabaseSchema(db2)
     assertEquals(db0, view.activeDatabase)
   }
 
@@ -230,7 +230,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     controller.setUp()
     Disposer.register(testRootDisposable, controller)
 
-    model.add(database, realDatabaseConnection!!, SqliteSchema(emptyList()))
+    model.addDatabaseSchema(database, realDatabaseConnection!!, SqliteSchema(emptyList()))
 
     val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
 
