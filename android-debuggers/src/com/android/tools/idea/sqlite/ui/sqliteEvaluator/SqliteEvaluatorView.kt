@@ -42,11 +42,6 @@ interface SqliteEvaluatorView {
   fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?)
 
   /**
-   * Returns the string corresponding to the SQLite statement currently visible in the UI.
-   */
-  fun getSqliteStatement(): String
-
-  /**
    * Notifies the view that the schema associated with [databaseId] has changed.
    */
   fun schemaChanged(databaseId: SqliteDatabaseId)
@@ -64,7 +59,7 @@ interface SqliteEvaluatorView {
     /**
      * Method invoked when an sql statement needs to be evaluated.
      */
-    fun evaluateSqliteStatementActionInvoked(databaseId: SqliteDatabaseId, sqliteStatement: String) {}
+    fun evaluateCurrentStatement() {}
 
     /**
      * Called when the sqlite statement changes

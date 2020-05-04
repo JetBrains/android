@@ -280,8 +280,6 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val invocations = mutableListOf<String>()
     val mockListener = object : SqliteEvaluatorView.Listener {
-      override fun evaluateSqliteStatementActionInvoked(databaseId: SqliteDatabaseId, sqliteStatement: String) { }
-
       override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
         invocations.add(newSqliteStatement)
       }

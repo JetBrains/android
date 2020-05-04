@@ -38,8 +38,6 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
 
   override fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?) { }
 
-  override fun getSqliteStatement(): String { TODO("not implemented") }
-
   override fun schemaChanged(databaseId: SqliteDatabaseId) { }
 
   override fun setRunSqliteStatementEnabled(enabled: Boolean) { }
