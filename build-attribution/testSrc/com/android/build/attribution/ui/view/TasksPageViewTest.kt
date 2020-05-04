@@ -23,7 +23,6 @@ import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksDataPageModelImpl
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
-import com.android.build.attribution.ui.panels.TimeDistributionChart
 import com.android.build.attribution.ui.view.details.ChartsPanel
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth.assertThat
@@ -156,7 +155,7 @@ class TasksPageViewTest {
 
   private fun findVisibleChartNames(parent: ChartsPanel): String {
     return TreeWalker(parent).descendants().asSequence()
-      .filterIsInstance(TimeDistributionChart::class.java)
+      .filter { it.name?.let { name -> name.startsWith("task-chart") || name.startsWith("plugin-chart") } ?: false }
       .filter { it.isVisible }
       .joinToString(separator = ",") { it.name }
   }
