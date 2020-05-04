@@ -332,10 +332,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       import dagger.Subcomponent;
 
       @Subcomponent
-      public interface MySubcomponent {
-        @Subcomponent.Builder
-          interface Builder {}
-      }
+      public interface MySubcomponent {}
     """.trimIndent()
     ).containingFile.virtualFile
 
@@ -363,20 +360,6 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     """.trimIndent()
     )
 
-    // Java Component
-    myFixture.addClass(
-      //language=JAVA
-      """
-      package test;
-      import dagger.Component;
-
-      @Component
-      public interface MyComponentWithBuilder {
-        MySubcomponent.Builder componentBuilder();
-      }
-    """.trimIndent()
-    )
-
     // Kotlin Component
     myFixture.addFileToProject(
       "test/MyComponentKt.kt",
@@ -385,10 +368,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       package test
       import dagger.Component
 
-      @Component
-      interface MyComponentKt {
-         fun getSubcomponent():MySubcomponent
-      }
+      @Component(modules = [ MyModule::class])
+      interface MyComponentKt
     """.trimIndent()
     )
 
@@ -398,14 +379,13 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
-    assertThat(gotoRelatedItems).hasSize(3)
+    assertThat(gotoRelatedItems).hasSize(2)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
     assertThat(result).containsAllOf("Parent component(s): MyComponent",
-                                     "Parent component(s): MyComponentWithBuilder",
                                      "Parent component(s): MyComponentKt")
   }
 
-  fun testSubcomponentForComponent() {
+  fun testSubcomponentsAndModulesForComponent() {
     // Java Subcomponent
     myFixture.addClass(
       //language=JAVA
@@ -414,10 +394,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       import dagger.Subcomponent;
 
       @Subcomponent
-      public interface MySubcomponent {
-        @Subcomponent.Builder
-          interface Builder {}
-      }
+      public interface MySubcomponent {}
     """.trimIndent()
     )
 
@@ -441,7 +418,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
         import dagger.Module;
 
-        @Module(subcomponents = { MySubcomponent.class })
+        @Module(subcomponents = { MySubcomponent.class, MySubcomponent2.class })
         class MyModule { }
       """.trimIndent()
     )
@@ -454,9 +431,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       import dagger.Component;
 
       @Component(modules = { MyModule.class })
-      public interface MyComponent {
-        MySubcomponent2 getSubcomponent();
-      }
+      public interface MyComponent {}
     """.trimIndent()
     ).containingFile.virtualFile
 
