@@ -118,7 +118,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
         val asPsiClass = subcomponent.toPsiClass()!!
         return getDaggerParentComponentsForSubcomponent(asPsiClass)
                  .map { GotoItemWithAnalyticsTraking(subcomponent, it, UIStrings.PARENT_COMPONENTS) } +
-               getModulesForComponent(asPsiClass).map { GotoItemWithAnalyticsTraking(subcomponent, it, UIStrings.MODULES_INCLUDED) }
+               getModulesForComponent(asPsiClass).map { GotoItemWithAnalyticsTraking(subcomponent, it, UIStrings.MODULES_INCLUDED) } +
+               getSubcomponents(asPsiClass).map { GotoItemWithAnalyticsTraking(subcomponent, it, UIStrings.SUBCOMPONENTS) }
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)

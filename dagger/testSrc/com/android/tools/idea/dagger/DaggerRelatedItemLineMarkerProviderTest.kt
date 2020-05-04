@@ -595,4 +595,56 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
     assertThat(result).containsExactly("Module(s) included: MyModule")
   }
+
+  fun testSubcomponentsForSubcomponent() {
+    // Java Subcomponent
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Subcomponent;
+
+      @Subcomponent
+      public interface MySubcomponent {}
+    """.trimIndent()
+    )
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+
+        import dagger.Module;
+
+        @Module(subcomponents = { MySubcomponent.class })
+        class MyModule { }
+      """.trimIndent()
+    )
+
+    // Java parent Subcomponent
+    val file = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Subcomponent;
+
+      @Subcomponent(modules = { MyModule.class })
+      public interface MyParentSubcomponent {}
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+
+    myFixture.configureFromExistingVirtualFile(file)
+    myFixture.moveCaret("MyParent|Subcomponent")
+    val icons = myFixture.findGuttersAtCaret()
+    val icon = icons.find { it.tooltipText == "Dependency Related Files" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val gotoRelatedItems = getGotoElements(icon)
+    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
+    assertThat(result).contains("Subcomponent(s): MySubcomponent")
+
+    clickOnIcon(icon)
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackClickOnGutter SUBCOMPONENT")
+    gotoRelatedItems.find { it.group == "Subcomponent(s)" }!!.navigate()
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER SUBCOMPONENT SUBCOMPONENT")
+  }
 }
