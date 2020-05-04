@@ -21,6 +21,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.android.tools.profilers.ChartTooltipViewBase;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.intellij.util.ui.JBUI;
@@ -28,7 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import org.jetbrains.annotations.NotNull;
 
-class CpuChartTooltipView extends CpuChartTooltipViewBase {
+class CpuChartTooltipView extends ChartTooltipViewBase<CaptureNode> {
 
   private final Range myDataRange;
 
@@ -40,7 +41,7 @@ class CpuChartTooltipView extends CpuChartTooltipViewBase {
   }
 
   @Override
-  protected void showTooltip(@NotNull CaptureNode node) {
+  public void showTooltip(@NotNull CaptureNode node) {
     long start = (long)(node.getStart() - myDataRange.getMin());
     long end = (long)(node.getEnd() - myDataRange.getMin());
     long totalDuration = node.getDuration();

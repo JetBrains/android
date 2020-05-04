@@ -18,16 +18,14 @@ package com.android.tools.profilers.memory.chart
 import com.android.tools.adtui.model.HNode
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
 import com.android.tools.profilers.memory.chart.MemoryVisualizationModel.XAxisFilter
-import com.intellij.util.containers.SortedList
 import java.util.Comparator
-import java.util.SortedSet
 
 /**
  * This class wraps a [ClassifierSet] exposing attributes needed to render a call chart. The [HNode] is the model for an
  * HRenderer that when combined determine the layout and style for the HTreeChart.
  */
 class ClassifierSetHNode(private val callChartModel: MemoryVisualizationModel,
-                         private val data: ClassifierSet,
+                         val data: ClassifierSet,
                          private val depth: Int) : HNode<ClassifierSetHNode?> {
   /**
    * Not all ClassifierSets have a start / end time. As such a sorted listed of nodes is needed. This list is sorted by the duration
@@ -36,7 +34,7 @@ class ClassifierSetHNode(private val callChartModel: MemoryVisualizationModel,
   private val children = data.childrenClassifierSets.map { ClassifierSetHNode(callChartModel, it, depth + 1) }.toSortedSet(
     Comparator.comparingLong { obj: ClassifierSetHNode -> obj.duration }.reversed()).toList()
   private var startOffset: Long = 0
-  
+
   /**
    * Enumerate all children and update the start offset for each child.
    * The myChildren list is expected to be sorted by duration. The start offset of each child is equal to the sum of the durations of all

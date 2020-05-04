@@ -29,6 +29,8 @@ import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_WIDTH
 import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE
 import com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER
 import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
+import com.android.tools.profilers.StudioProfiler
+import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
@@ -46,7 +48,8 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-class CapturePanel(selection: MemoryCaptureSelection,
+class CapturePanel(profilersView: StudioProfilersView,
+                   selection: MemoryCaptureSelection,
                    selectionTimeLabel: JLabel?,
                    selectionRange: Range,
                    ideComponents: IdeProfilerComponents,
@@ -85,7 +88,7 @@ class CapturePanel(selection: MemoryCaptureSelection,
 
   val component =
     if (selection.ideServices.featureConfig.isSeparateHeapDumpUiEnabled)
-      CapturePanelUi(selection, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage)
+      CapturePanelUi(selection, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage, profilersView)
     else LegacyCapturePanelUi(selection, selectionTimeLabel,
                               captureView, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage)
 }
@@ -148,13 +151,14 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
                              private val classGrouping: MemoryClassGrouping,
                              private val classifierView: MemoryClassifierView,
                              private val filterComponent: FilterComponent,
-                             private val captureInfoMessage: JLabel)
-      : JPanel(BorderLayout()) {
+                             private val captureInfoMessage: JLabel,
+                             profilersView: StudioProfilersView)
+  : JPanel(BorderLayout()) {
   private val observer = AspectObserver()
   private val instanceFilterMenu = MemoryInstanceFilterMenu(selection)
   private val toolbarTabPanels = mutableMapOf<String, ToolbarComponents>()
   private val tabListeners = mutableListOf<CapturePanelTabContainer>()
-  private val visualizationView = MemoryVisualizationView(selection)
+  private val visualizationView = MemoryVisualizationView(selection, profilersView)
   private var activeTabIndex = 0
 
   init {

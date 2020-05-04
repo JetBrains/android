@@ -156,7 +156,8 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     // Do not initialize the monitor UI if it only contains heap dump data.
     // In this case, myRangeSelectionComponent is null and we will not build the context menu.
     JPanel monitorUi = getStage().isMemoryCaptureOnly() ? null : buildMonitorUi();
-    CapturePanel capturePanel = new CapturePanel(getStage().getCaptureSelection(),
+    CapturePanel capturePanel = new CapturePanel(getProfilersView(),
+                                                 getStage().getCaptureSelection(),
                                                  getStage().isMemoryCaptureOnly() ? null : getSelectionTimeLabel(),
                                                  getStage().getRangeSelectionModel().getSelectionRange(),
                                                  getIdeComponents(),
