@@ -17,7 +17,7 @@ package com.android.tools.idea.sqlite.annotator
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
@@ -57,7 +57,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
   private lateinit var mouseEvent: MouseEvent
   private lateinit var anAction: RunSqliteStatementGutterIconAction
   private lateinit var viewFactory: MockDatabaseInspectorViewsFactory
-  private lateinit var mockAppInspectionToolWindow: AppInspectionCallbacks
+  private lateinit var mockAppInspectionIdeServices: AppInspectionIdeServices
 
   override fun setUp() {
     super.setUp()
@@ -68,8 +68,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     ideComponents = IdeComponents(myFixture)
     mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)
 
-    mockAppInspectionToolWindow = mock(AppInspectionCallbacks::class.java)
-    `when`(mockDatabaseInspectorProjectService.toolWindow).thenReturn(mockAppInspectionToolWindow)
+    mockAppInspectionIdeServices = mock(AppInspectionIdeServices::class.java)
+    `when`(mockDatabaseInspectorProjectService.ideServices).thenReturn(mockAppInspectionIdeServices)
 
     mouseEvent = mock(MouseEvent::class.java)
     `when`(mouseEvent.component).thenReturn(mock(Component::class.java))
@@ -517,7 +517,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     // Assert
-    verify(mockAppInspectionToolWindow).showToolWindow()
+    verify(mockAppInspectionIdeServices).showToolWindow()
   }
 
   fun testRunFromGutterIconOpensToolWindowFromDialog() {
@@ -536,7 +536,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     ))
 
     // Assert
-    verify(mockAppInspectionToolWindow).showToolWindow()
+    verify(mockAppInspectionIdeServices).showToolWindow()
   }
 
   private fun buildActionFromJavaFile(sqlStatement: String) {

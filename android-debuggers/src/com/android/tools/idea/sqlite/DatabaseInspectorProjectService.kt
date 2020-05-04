@@ -18,7 +18,7 @@ package com.android.tools.idea.sqlite
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
@@ -66,9 +66,9 @@ interface DatabaseInspectorProjectService {
   }
 
   /**
-   * The tool window containing the Database Inspector.
+   * IDE services useful for interacting with the app inspection tool window that contains the Database Inspector.
    */
-  var toolWindow: AppInspectionCallbacks?
+  var ideServices: AppInspectionIdeServices?
 
   /**
    * [JComponent] that contains the view of the Database Inspector.
@@ -200,7 +200,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     createController(model)
   }
 
-  override var toolWindow: AppInspectionCallbacks? = null
+  override var ideServices: AppInspectionIdeServices? = null
 
   override val sqliteInspectorComponent
     @UiThread get() = controller.component
