@@ -18,18 +18,16 @@ package com.android.tools.idea.profilers.perfetto.traceprocessor
 import com.android.tools.profiler.perfetto.proto.Memory
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryBatchResponse
-import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
+import com.android.tools.profilers.systemtrace.ProcessModel
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import java.io.File
-import java.util.concurrent.Executor
 
 /**
  * See {@link TraceProcessorService} for API details.
@@ -52,7 +50,7 @@ class TraceProcessorServiceImpl : TraceProcessorService, Disposable {
     }
   }
 
-  override fun loadTrace(traceId: Long, traceFile: File): List<CpuThreadSliceInfo> {
+  override fun loadTrace(traceId: Long, traceFile: File): List<ProcessModel> {
     daemonManager.makeSureDaemonIsRunning()
     return client.loadTrace(traceId, traceFile)
   }
