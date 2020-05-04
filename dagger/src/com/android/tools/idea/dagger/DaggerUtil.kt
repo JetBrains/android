@@ -61,9 +61,6 @@ const val DAGGER_BINDS_INSTANCE_ANNOTATION = "dagger.BindsInstance"
 const val INJECT_ANNOTATION = "javax.inject.Inject"
 const val DAGGER_COMPONENT_ANNOTATION = "dagger.Component"
 const val DAGGER_SUBCOMPONENT_ANNOTATION = "dagger.Subcomponent"
-const val DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION = "dagger.Subcomponent.Builder"
-const val DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION = "dagger.Subcomponent.Factory"
-
 
 private const val INCLUDES_ATTR_NAME = "includes"
 private const val MODULES_ATTR_NAME = "modules"
@@ -275,10 +272,8 @@ internal val PsiElement?.isDaggerComponentMethod: Boolean
 
 internal val PsiElement?.isDaggerComponent get() = isClassOrObjectAnnotatedWith(DAGGER_COMPONENT_ANNOTATION)
 
-internal val PsiElement?.isDaggerSubcomponent
-  get() = isClassOrObjectAnnotatedWith(DAGGER_SUBCOMPONENT_ANNOTATION) ||
-          isClassOrObjectAnnotatedWith(DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION) ||
-          isClassOrObjectAnnotatedWith(DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION)
+internal val PsiElement?.isDaggerSubcomponent get() = isClassOrObjectAnnotatedWith(DAGGER_SUBCOMPONENT_ANNOTATION)
+
 /**
  * Returns pair of a type and an optional [QualifierInfo] for [PsiElement].
  *
@@ -313,71 +308,37 @@ fun getDaggerComponentMethodsForProvider(provider: PsiElement): Collection<PsiMe
 }
 
 /**
- * Returns interfaces annotated [DAGGER_COMPONENT_ANNOTATION] that are parents to a [subcomponent].
+ * Returns interfaces annotated [DAGGER_COMPONENT_ANNOTATION] or [DAGGER_SUBCOMPONENT_ANNOTATION] that are parents to a [subcomponent].
  *
- * A subcomponent can be associated with parent in two ways:
- * 1. Add to the parent Component method that returns the [subcomponent] class or the [subcomponent] factory or builder class.
- * 2. Add the [subcomponent] class to the [SUBCOMPONENTS_ATTR_NAME] attribute of a @Module that the parent component installs.
+ * A component is a parent of [subcomponent] if the [subcomponent] class is added to the 'subcomponents' attribute of a @Module
+ * that the parent component installs.
  *
  * See [Dagger doc](https://dagger.dev/subcomponents.html).
  */
 internal fun getDaggerParentComponentsForSubcomponent(subcomponent: PsiClass): Collection<PsiClass> {
-  val buildersAndFactories = subcomponent.innerClasses.filter {
-    it.hasAnnotation(DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION) ||
-    it.hasAnnotation(DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION)
-  }.map { it.qualifiedName }
 
-  val components = getClassesWithAnnotation(subcomponent.project, DAGGER_COMPONENT_ANNOTATION, subcomponent.useScope)
-  val componentsMethods = components.filter { component ->
-    component.methods.any {
-      val returnClazz = (it.returnType as? PsiClassType)?.resolve() ?: return@any false
-      returnClazz.qualifiedName == subcomponent.qualifiedName || returnClazz.qualifiedName in buildersAndFactories
-    }
+  val components = getClassesWithAnnotation(subcomponent.project, DAGGER_COMPONENT_ANNOTATION, subcomponent.useScope) +
+                   getClassesWithAnnotation(subcomponent.project, DAGGER_SUBCOMPONENT_ANNOTATION, subcomponent.useScope)
+
+  val modulesFQCN = getDaggerModulesForSubcomponent(subcomponent).map { it.qualifiedName }
+
+  return components.filter { component ->
+    getModulesForComponent(component).any { module -> modulesFQCN.contains(module.qualifiedName) }
   }
-
-  val modules = getDaggerModulesForSubcomponent(subcomponent)
-
-  val componentsThroughModules = modules.flatMap { module ->
-    getClassesWithAnnotation(module.project, DAGGER_COMPONENT_ANNOTATION, module.useScope).filter { component ->
-      component.getAnnotation(DAGGER_COMPONENT_ANNOTATION)
-        ?.isClassPresentedInAttribute(MODULES_ATTR_NAME, module.qualifiedName!!) == true
-    }
-  }
-
-  return (componentsMethods + componentsThroughModules).distinct()
 }
 
 /**
  * Returns subcomponents of a [component].
  *
- * A subcomponents can be associated with a [component] in two ways:
- * 1. Component's methods that return the class annotated [DAGGER_SUBCOMPONENT_ANNOTATION] or [DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION] or
- * [DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION]
- * 2. Classes from [SUBCOMPONENTS_ATTR_NAME] attribute of a @Module that a [component] installs.
+ * [component] is an interface annotated [DAGGER_COMPONENT_ANNOTATION] or [DAGGER_SUBCOMPONENT_ANNOTATION]
+ * Subcomponents are classes in [SUBCOMPONENTS_ATTR_NAME] attribute of a @Module that a [component] installs.
  *
  * See [Dagger doc](https://dagger.dev/subcomponents.html).
  */
 internal fun getSubcomponents(component: PsiClass): Collection<PsiClass> {
-  val modules = component.getAnnotation(DAGGER_COMPONENT_ANNOTATION)?.getClassesFromAttribute(MODULES_ATTR_NAME)
-  val subcomponentFromModules = modules?.flatMap {
+  return getModulesForComponent(component).flatMap {
     it.getAnnotation(DAGGER_MODULE_ANNOTATION)?.getClassesFromAttribute(SUBCOMPONENTS_ATTR_NAME) ?: emptyList()
-  } ?: emptyList()
-
-  val subcomponentFromMethods: Collection<PsiClass> = component.methods.mapNotNull {
-    val returnClazz = (it.returnType as? PsiClassType)?.resolve() ?: return@mapNotNull null
-
-    if (returnClazz.hasAnnotation(DAGGER_SUBCOMPONENT_ANNOTATION) ||
-        returnClazz.hasAnnotation(DAGGER_SUBCOMPONENT_BUILDER_ANNOTATION) ||
-        returnClazz.hasAnnotation(DAGGER_SUBCOMPONENT_FACTORY_ANNOTATION)
-    ) {
-      returnClazz
-    }
-    else {
-      null
-    }
   }
-
-  return subcomponentFromModules + subcomponentFromMethods
 }
 
 /**
