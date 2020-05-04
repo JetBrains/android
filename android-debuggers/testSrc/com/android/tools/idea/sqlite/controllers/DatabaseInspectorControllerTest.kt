@@ -47,6 +47,7 @@ import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteColumn
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
+import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.testing.runDispatching
@@ -415,9 +416,15 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Assert
-    orderVerifier.verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(databaseId1, testSqliteSchema1, 0)))
-    orderVerifier.verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(databaseId2, testSqliteSchema2, 1)))
-    orderVerifier.verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(databaseId3, testSqliteSchema3, 0)))
+    orderVerifier.verify(mockSqliteView).updateDatabases(
+      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId1, true), testSqliteSchema1, 0))
+    )
+    orderVerifier.verify(mockSqliteView).updateDatabases(
+      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId2, true), testSqliteSchema2, 1))
+    )
+    orderVerifier.verify(mockSqliteView).updateDatabases(
+      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId3, true), testSqliteSchema3, 0))
+    )
   }
 
   fun testNewDatabaseIsAddedToEvaluator() {
@@ -577,7 +584,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(mockSqliteView).updateDatabaseSchema(
-      databaseId1,
+      ViewDatabase(databaseId1, true),
       listOf(AddTable(IndexedSqliteTable(SqliteTable("table", emptyList(), null, false), 0), emptyList()))
     )
   }
@@ -625,7 +632,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val table = SqliteTable("t2", listOf(column), null, false)
 
     verify(mockSqliteView).updateDatabaseSchema(
-      databaseId,
+      ViewDatabase(databaseId, true),
       listOf(AddTable(IndexedSqliteTable(table, 1), listOf(IndexedSqliteColumn(column, 0))))
     )
   }
@@ -650,7 +657,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val tableToAdd = SqliteTable("t2", listOf(column), RowIdName._ROWID_, false)
 
     verify(mockSqliteView).updateDatabaseSchema(
-      databaseId,
+      ViewDatabase(databaseId, true),
       listOf(RemoveTable(tableToRemove.name), AddTable(IndexedSqliteTable(tableToAdd, 0), listOf(IndexedSqliteColumn(column, 0))))
     )
   }
@@ -676,7 +683,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val table = SqliteTable("t1", listOf(columnAlreadyThere, columnToAdd), RowIdName._ROWID_, false)
 
     verify(mockSqliteView).updateDatabaseSchema(
-      databaseId,
+      ViewDatabase(databaseId, true),
       listOf(AddColumns(table.name, listOf(IndexedSqliteColumn(columnToAdd, 1)), table))
     )
   }
@@ -702,7 +709,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val table = SqliteTable("t1", listOf(columnAlreadyThere, columnToAdd), RowIdName._ROWID_, false)
 
     verify(mockSqliteView).updateDatabaseSchema(
-      databaseId,
+      ViewDatabase(databaseId, true),
       listOf(AddColumns(table.name, listOf(IndexedSqliteColumn(columnToAdd, 1)), table))
     )
 
@@ -718,7 +725,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val tableToAdd = SqliteTable("t2", listOf(column1, column2), RowIdName._ROWID_, false)
 
     verify(mockSqliteView).updateDatabaseSchema(
-      databaseId,
+      ViewDatabase(databaseId, true),
       listOf(
         RemoveTable(tableToRemove.name),
         AddTable(
@@ -748,7 +755,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val tableToRemove = SqliteTable("t1", listOf(column), RowIdName._ROWID_, false)
 
     verify(mockSqliteView).updateDatabaseSchema(
-      databaseId,
+      ViewDatabase(databaseId, true),
       listOf(RemoveTable(tableToRemove.name))
     )
   }
@@ -772,7 +779,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val tableToAdd = SqliteTable("t0", listOf(column), RowIdName._ROWID_, false)
 
     verify(mockSqliteView).updateDatabaseSchema(
-      databaseId,
+      ViewDatabase(databaseId, true),
       listOf(AddTable(IndexedSqliteTable(tableToAdd, 0), listOf(IndexedSqliteColumn(column, 0))))
     )
 
@@ -786,7 +793,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val table = SqliteTable("t0", listOf(column, columnToAdd), RowIdName._ROWID_, false)
 
     verify(mockSqliteView).updateDatabaseSchema(
-      databaseId,
+      ViewDatabase(databaseId, true),
       listOf(AddColumns(table.name, listOf(IndexedSqliteColumn(columnToAdd, 1)), table))
     )
 
@@ -800,7 +807,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val tableToAdd2 = SqliteTable("t2", listOf(column, columnToAdd), RowIdName._ROWID_, false)
 
     verify(mockSqliteView).updateDatabaseSchema(
-      databaseId,
+      ViewDatabase(databaseId, true),
       listOf(
         RemoveTable(tableToRemove.name),
         AddTable(
@@ -820,7 +827,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val table2 = SqliteTable("t2", listOf(column, columnToAdd, columnToAdd2), RowIdName._ROWID_, false)
 
     verify(mockSqliteView).updateDatabaseSchema(
-      databaseId,
+      ViewDatabase(databaseId, true),
       listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(columnToAdd2, 0)), table2))
     )
   }
@@ -845,14 +852,14 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockDatabaseInspectorModel).add(databaseId1, mockDatabaseConnection, sqliteSchema)
-    verify(mockDatabaseInspectorModel).add(databaseId2, mockDatabaseConnection, sqliteSchema)
+    verify(mockDatabaseInspectorModel).addDatabaseSchema(databaseId1, mockDatabaseConnection, sqliteSchema)
+    verify(mockDatabaseInspectorModel).addDatabaseSchema(databaseId2, mockDatabaseConnection, sqliteSchema)
 
     verify(mockDatabaseInspectorModel).updateSchema(databaseId1, sqliteSchemaUpdated)
     verify(mockDatabaseInspectorModel).updateSchema(databaseId2, sqliteSchemaUpdated)
 
     verify(mockSqliteView).updateDatabaseSchema(
-      databaseId1,
+      ViewDatabase(databaseId1, true),
       listOf(
         RemoveTable("tab"),
         AddTable(IndexedSqliteTable(SqliteTable("tab-updated", emptyList(), null, false), 0), emptyList())
@@ -860,7 +867,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     )
 
     verify(mockSqliteView).updateDatabaseSchema(
-      databaseId2,
+      ViewDatabase(databaseId2, true),
       listOf(
         RemoveTable("tab"),
         AddTable(IndexedSqliteTable(SqliteTable("tab-updated", emptyList(), null, false), 0), emptyList())
@@ -879,7 +886,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     `when`(mockSqliteView.updateDatabaseSchema(
-      databaseId,
+      ViewDatabase(databaseId, true),
       listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())))
     ).thenThrow(IllegalStateException::class.java)
 
@@ -891,9 +898,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Verify
-    verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(databaseId)))
+    verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(ViewDatabase(databaseId, true))))
     verify(mockSqliteView).updateDatabases(
-      listOf(DatabaseDiffOperation.AddDatabase(databaseId, SqliteSchema(listOf(testSqliteTable)), 0))
+      listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(listOf(testSqliteTable)), 0))
     )
   }
 
@@ -979,8 +986,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // update schemas
     verify(mockDatabaseInspectorModel).updateSchema(databaseId1, SqliteSchema(listOf(testSqliteTable)))
     verify(mockDatabaseInspectorModel).updateSchema(databaseId2, SqliteSchema(listOf(testSqliteTable)))
-    verify(mockSqliteView).updateDatabaseSchema(databaseId1, listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())))
-    verify(mockSqliteView).updateDatabaseSchema(databaseId2, listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())))
+    verify(mockSqliteView).updateDatabaseSchema(ViewDatabase(databaseId1, true), listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())))
+    verify(mockSqliteView).updateDatabaseSchema(ViewDatabase(databaseId2, true), listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())))
 
     // update tabs
     // each invocation is repeated twice because there are two tabs open
@@ -1069,8 +1076,24 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(mockSqliteView, times(1)).updateDatabaseSchema(
-      databaseId1,
+      ViewDatabase(databaseId1, true),
       listOf(AddTable(IndexedSqliteTable(SqliteTable("tab", emptyList(), null, false), 0), emptyList()))
     )
+  }
+
+  fun testClosedDatabasesAreAddedToView() {
+    // Prepare
+    val db1 = SqliteDatabaseId.fromPath("db")
+    mockDatabaseInspectorModel.addDatabaseSchema(db1, mockDatabaseConnection, testSqliteSchema1)
+
+    // Act
+    mockDatabaseInspectorModel.removeDatabaseSchema(db1)
+
+    // Assert
+    verify(mockSqliteView).updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase (db1, true), testSqliteSchema1, 0)))
+    verify(mockSqliteView).updateDatabases(listOf(
+      DatabaseDiffOperation.AddDatabase(ViewDatabase(db1, false), null, 0),
+      DatabaseDiffOperation.RemoveDatabase(ViewDatabase (db1, true))
+    ))
   }
 }

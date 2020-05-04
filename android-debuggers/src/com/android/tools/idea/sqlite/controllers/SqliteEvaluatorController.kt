@@ -55,12 +55,12 @@ class SqliteEvaluatorController(
   private val listeners = mutableListOf<Listener>()
 
   private val modelListener = object : DatabaseInspectorModel.Listener {
-    override fun onDatabasesChanged(databaseIds: List<SqliteDatabaseId>) {
+    override fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>) {
       val activeDatabase = view.activeDatabase
 
-      view.setDatabases(databaseIds.sortedBy { it.name })
+      view.setDatabases(openDatabaseIds.sortedBy { it.name })
 
-      if (databaseIds.contains(activeDatabase) && activeDatabase != null) {
+      if (openDatabaseIds.contains(activeDatabase) && activeDatabase != null) {
         view.activeDatabase = activeDatabase
       }
     }

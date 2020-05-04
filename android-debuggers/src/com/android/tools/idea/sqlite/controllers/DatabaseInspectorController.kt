@@ -25,13 +25,13 @@ import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
-import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.createSqliteStatement
+import com.android.tools.idea.sqlite.model.getAllDatabaseIds
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.mainView.AddColumns
 import com.android.tools.idea.sqlite.ui.mainView.AddTable
@@ -42,6 +42,7 @@ import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.RemoveColumns
 import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
 import com.android.tools.idea.sqlite.ui.mainView.SchemaDiffOperation
+import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
@@ -92,23 +93,34 @@ class DatabaseInspectorControllerImpl(
   private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
   private val modelListener = object : DatabaseInspectorModel.Listener {
-    private var currentDatabaseIds = listOf<SqliteDatabaseId>()
+    private var currentOpenDatabaseIds = listOf<SqliteDatabaseId>()
+    private var currentCloseDatabaseIds = listOf<SqliteDatabaseId>()
 
-    override fun onDatabasesChanged(databaseIds: List<SqliteDatabaseId>) {
-      val sortedNewDatabase = databaseIds.sortedBy { it.name }
+    override fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>) {
+      val currentState = currentOpenDatabaseIds.map { ViewDatabase(it, true) } + currentCloseDatabaseIds.map { ViewDatabase(it, false) }
+      val newState = openDatabaseIds.map { ViewDatabase(it, true) } + closeDatabaseIds.map { ViewDatabase(it, false) }
 
-      val toAdd = sortedNewDatabase
-        .filter { !currentDatabaseIds.contains(it) }
-        .map { DatabaseDiffOperation.AddDatabase(it, model.getDatabaseSchema(it)!!, sortedNewDatabase.indexOf(it)) }
-      val toRemove = currentDatabaseIds.filter { !sortedNewDatabase.contains(it) }.map { DatabaseDiffOperation.RemoveDatabase(it) }
+      val diffOperations = performDiff(currentState, newState)
 
-      view.updateDatabases(toAdd + toRemove)
+      view.updateDatabases(diffOperations)
 
-      currentDatabaseIds = databaseIds
+      currentOpenDatabaseIds = openDatabaseIds
+      currentCloseDatabaseIds = closeDatabaseIds
     }
 
     override fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
       updateExistingDatabaseSchemaView(databaseId, oldSchema, newSchema)
+    }
+
+    private fun performDiff(currentState: List<ViewDatabase>, newState: List<ViewDatabase>): List<DatabaseDiffOperation> {
+      val sortedNewState = newState.sortedBy { it.databaseId.name }
+
+      val toAdd = newState
+        .filter { !currentState.contains(it) }
+        .map { DatabaseDiffOperation.AddDatabase(it, model.getDatabaseSchema(it.databaseId), sortedNewState.indexOf(it)) }
+      val toRemove = currentState.filter { !newState.contains(it) }.map { DatabaseDiffOperation.RemoveDatabase(it) }
+
+      return toAdd + toRemove
     }
   }
 
@@ -163,7 +175,7 @@ class DatabaseInspectorControllerImpl(
 
     tabsToClose.forEach { closeTab(it) }
 
-    val databaseConnection = model.remove(databaseId)
+    val databaseConnection = model.removeDatabaseSchema(databaseId)
     checkNotNull(databaseConnection)
 
     withContext(workerThread) {
@@ -232,7 +244,7 @@ class DatabaseInspectorControllerImpl(
   }
 
   private fun addNewDatabase(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
-    model.add(database.id, database.databaseConnection, sqliteSchema)
+    model.addDatabaseSchema(database.id, database.databaseConnection, sqliteSchema)
     restoreTabs(database.id, sqliteSchema)
   }
 
@@ -299,12 +311,12 @@ class DatabaseInspectorControllerImpl(
     }
 
     try {
-      view.updateDatabaseSchema(databaseId, diffOperations)
+      view.updateDatabaseSchema(ViewDatabase(databaseId, true), diffOperations)
     } catch (e: Exception) {
       // this UI change does not correspond to a change in the model, therefore it has to be done manually
-      view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(databaseId)))
-      val index = model.getOpenDatabaseIds().sortedBy { it.name }.indexOf(databaseId)
-      view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(databaseId, newSchema, index)))
+      view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(ViewDatabase(databaseId, true))))
+      val index = model.getAllDatabaseIds().sortedBy { it.name }.indexOf(databaseId)
+      view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), newSchema, index)))
     }
   }
 

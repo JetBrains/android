@@ -93,7 +93,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     databaseId = SqliteDatabaseId.fromPath("db")
     sqliteDatabase = LiveSqliteDatabase(databaseId, mockDatabaseConnection)
-    databaseInspectorModel.add(databaseId, mockDatabaseConnection, SqliteSchema(emptyList()))
+    databaseInspectorModel.addDatabaseSchema(databaseId, mockDatabaseConnection, SqliteSchema(emptyList()))
 
     sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
@@ -458,7 +458,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     )
     val databaseId = SqliteDatabaseId.fromPath("db")
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
-    databaseInspectorModel.add(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
+    databaseInspectorModel.addDatabaseSchema(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
 
     // Act
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(databaseId, "SELECT * FROM t1;"))
@@ -480,7 +480,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromPath("db")
-    databaseInspectorModel.add(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
+    databaseInspectorModel.addDatabaseSchema(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
 
     // Act
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(databaseId, "INSERT INTO t1 VALUES (0);"))
@@ -502,7 +502,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     )
     val databaseId = SqliteDatabaseId.fromPath("db")
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
-    databaseInspectorModel.add(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
+    databaseInspectorModel.addDatabaseSchema(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
 
     // Act
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(databaseId, "SELECT * FROM t1"))
@@ -525,7 +525,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     )
     val databaseId = SqliteDatabaseId.fromPath("db")
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
-    databaseInspectorModel.add(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
+    databaseInspectorModel.addDatabaseSchema(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
 
     // Act
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(databaseId, "SELECT * FROM t1 --comment"))

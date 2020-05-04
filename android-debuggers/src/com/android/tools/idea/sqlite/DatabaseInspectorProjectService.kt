@@ -238,7 +238,9 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
       model.getOpenDatabaseIds().forEach {
         controller.closeDatabase(it)
       }
+      model.clearDatabases()
     }
+
     return savedState
   }
 
