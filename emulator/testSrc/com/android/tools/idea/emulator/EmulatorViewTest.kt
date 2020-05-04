@@ -274,7 +274,7 @@ class EmulatorViewTest {
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/getScreenshot")
     assertThat((call.request as ImageFormat).format).isEqualTo(ImageFormat.ImgFormat.PNG)
-    call.waitForCompletion(2, TimeUnit.SECONDS)
+    call.waitForCompletion(5, TimeUnit.SECONDS) // Use longer timeout for PNG creation.
     waitForCondition(2, TimeUnit.SECONDS) {
       dispatchAllInvocationEvents()
       Files.list(getRuntimeConfiguration().getDesktopOrUserHomeDirectory()).use {
