@@ -17,7 +17,7 @@ package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.idea.appinspection.ide.AppInspectionHostService
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.intellij.notification.NotificationGroup
 import com.intellij.openapi.Disposable
@@ -37,14 +37,14 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
     .mapNotNull { AndroidModuleInfo.getInstance(it)?.`package` }
     .toList()
 
-  private val appInspectionCallbacks = object : AppInspectionCallbacks {
+  private val ideServices = object : AppInspectionIdeServices {
     override fun showToolWindow(callback: () -> Unit) = toolWindow.show(Runnable { callback() })
   }
 
   private val appInspectionView = AppInspectionView(
     project,
     AppInspectionHostService.instance.discoveryHost,
-    appInspectionCallbacks,
+    ideServices,
     ::getPreferredProcesses,
     DefaultAppInspectionNotificationFactory(NotificationGroup.toolWindowGroup(APP_INSPECTION_ID, APP_INSPECTION_ID))
   )

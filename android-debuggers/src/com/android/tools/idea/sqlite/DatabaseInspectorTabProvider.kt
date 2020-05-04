@@ -17,7 +17,7 @@ package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.sqlite.databaseConnection.live.DatabaseInspectorMessenger
@@ -49,7 +49,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
   override fun createTab(
     project: Project,
     messenger: AppInspectorClient.CommandMessenger,
-    appInspectionCallbacks: AppInspectionCallbacks
+    ideServices: AppInspectionIdeServices
   ): AppInspectorTab {
     return object : AppInspectorTab {
       private val taskExecutor = PooledThreadExecutor.INSTANCE
@@ -68,7 +68,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
       override val component: JComponent = databaseInspectorProjectService.sqliteInspectorComponent
 
       init {
-        databaseInspectorProjectService.toolWindow = appInspectionCallbacks
+        databaseInspectorProjectService.ideServices = ideServices
         databaseInspectorProjectService.startAppInspectionSession(savedState)
         client.startTrackingDatabaseConnections()
         client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {

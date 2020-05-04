@@ -24,7 +24,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
@@ -59,7 +59,7 @@ import javax.swing.event.HyperlinkEvent
 class AppInspectionView(
   private val project: Project,
   private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
-  private val appInspectionCallbacks: AppInspectionCallbacks,
+  private val ideServices: AppInspectionIdeServices,
   getPreferredProcesses: () -> List<String>,
   private val notificationFactory: AppInspectionNotificationFactory
 ) : Disposable {
@@ -151,7 +151,7 @@ class AppInspectionView(
           )
         ) { messenger ->
           invokeAndWaitIfNeeded {
-            provider.createTab(project, messenger, appInspectionCallbacks)
+            provider.createTab(project, messenger, ideServices)
               .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
               .also { updateUi() }
           }.client

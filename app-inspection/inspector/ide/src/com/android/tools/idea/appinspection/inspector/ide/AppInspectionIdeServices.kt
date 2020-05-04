@@ -18,9 +18,9 @@ package com.android.tools.idea.appinspection.inspector.ide
 import com.android.annotations.concurrency.UiThread
 
 /**
- * A set of callbacks that inspectors can call to affect the App Inspection tool window.
+ * A set of utility methods used for communicating requests to the IDE.
  */
-interface AppInspectionCallbacks {
+interface AppInspectionIdeServices {
   /**
    * Shows the App Inspection tool window.
    * @param callback A callback executed right after the window shows up. The call is asynchronous since it may require animation.
