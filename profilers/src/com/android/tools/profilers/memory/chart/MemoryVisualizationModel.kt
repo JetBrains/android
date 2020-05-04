@@ -15,11 +15,28 @@
  */
 package com.android.tools.profilers.memory.chart
 
+import com.android.tools.adtui.model.formatter.BaseAxisFormatter
+import com.android.tools.adtui.model.formatter.MemoryAxisFormatter
+import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
+
 class MemoryVisualizationModel {
   var axisFilter: XAxisFilter
 
   init {
     axisFilter = XAxisFilter.ALLOC_SIZE
+  }
+
+  fun isSizeAxis(): Boolean {
+    return axisFilter == XAxisFilter.ALLOC_SIZE || axisFilter == XAxisFilter.TOTAL_SIZE
+  }
+
+  fun formatter(): BaseAxisFormatter {
+    return if (isSizeAxis()) {
+      MemoryAxisFormatter(1, 10, 1)
+    }
+    else {
+      SingleUnitAxisFormatter(1, 10, 1, "")
+    }
   }
 
   enum class XAxisFilter(private val filterName: String) {

@@ -35,7 +35,8 @@ import javax.swing.JPanel
 class HeapDumpStageView(profilersView: StudioProfilersView, stage: HeapDumpStage)
       : BaseMemoryProfilerStageView<HeapDumpStage>(profilersView, stage) {
 
-  private val capturePanel = CapturePanel(stage.captureSelection,
+  private val capturePanel = CapturePanel(profilersView,
+                                          stage.captureSelection,
                                           null,
                                           stage.studioProfilers.timeline.selectionRange,
                                           ideComponents,

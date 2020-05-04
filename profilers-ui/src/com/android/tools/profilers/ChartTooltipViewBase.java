@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu.capturedetails;
+package com.android.tools.profilers;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
-import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.CpuProfilerStageView;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import com.android.tools.adtui.model.HNode;
+import com.google.common.annotations.VisibleForTesting;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
-abstract class CpuChartTooltipViewBase extends MouseAdapter {
+public abstract class ChartTooltipViewBase<T extends HNode<T>> extends MouseAdapter {
   @NotNull
-  private final HTreeChart<CaptureNode> myChart;
+  private final HTreeChart<T> myChart;
 
   @NotNull
   private final TooltipComponent myTooltipComponent;
@@ -38,7 +36,7 @@ abstract class CpuChartTooltipViewBase extends MouseAdapter {
   @NotNull
   private final JPanel myContent;
 
-  protected CpuChartTooltipViewBase(@NotNull HTreeChart<CaptureNode> chart, @NotNull JLayeredPane tooltipRoot) {
+  protected ChartTooltipViewBase(@NotNull HTreeChart<T> chart, @NotNull JLayeredPane tooltipRoot) {
     myChart = chart;
 
     myContent = new JPanel(new TabularLayout("*", "*"));
@@ -52,16 +50,22 @@ abstract class CpuChartTooltipViewBase extends MouseAdapter {
   @Override
   public void mouseMoved(MouseEvent e) {
     myTooltipComponent.setVisible(false);
-    CaptureNode node = myChart.getNodeAt(e.getPoint());
+    T node = myChart.getNodeAt(e.getPoint());
     if (node != null) {
       myTooltipComponent.setVisible(true);
       showTooltip(node);
     }
   }
 
+  @VisibleForTesting
+  public TooltipComponent getTooltipComponent() {
+    return myTooltipComponent;
+  }
+
   protected JPanel getTooltipContainer() {
     return myContent;
   }
 
-  abstract protected void showTooltip(@NotNull CaptureNode node);
+  @VisibleForTesting
+  abstract public void showTooltip(@NotNull T node);
 }
