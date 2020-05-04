@@ -39,12 +39,7 @@ interface SqliteEvaluatorView {
   fun removeListener(listener: Listener)
   fun showSqliteStatement(sqliteStatement: String)
 
-  fun setDatabases(databaseIds: List<SqliteDatabaseId>)
-
-  /**
-   * The database currently selected in the UI, used to run statements against and for auto completion.
-   */
-  var activeDatabase: SqliteDatabaseId?
+  fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?)
 
   /**
    * Returns the string corresponding to the SQLite statement currently visible in the UI.
@@ -63,13 +58,17 @@ interface SqliteEvaluatorView {
 
   interface Listener {
     /**
+     * Invoked when a database is selected in the combobox
+     */
+    fun onDatabaseSelected(databaseId: SqliteDatabaseId) {}
+    /**
      * Method invoked when an sql statement needs to be evaluated.
      */
-    fun evaluateSqliteStatementActionInvoked(databaseId: SqliteDatabaseId, sqliteStatement: String)
+    fun evaluateSqliteStatementActionInvoked(databaseId: SqliteDatabaseId, sqliteStatement: String) {}
 
     /**
      * Called when the sqlite statement changes
      */
-    fun sqliteStatementTextChangedInvoked(newSqliteStatement: String)
+    fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {}
   }
 }

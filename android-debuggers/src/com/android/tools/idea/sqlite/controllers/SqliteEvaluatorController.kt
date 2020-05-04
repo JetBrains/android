@@ -30,10 +30,12 @@ import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.sqlLanguage.hasParsingError
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.Futures.immediateFailedFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import java.lang.IllegalStateException
 import java.util.concurrent.Executor
 
 /**
@@ -53,16 +55,19 @@ class SqliteEvaluatorController(
   private var currentTableController: TableController? = null
   private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener = SqliteEvaluatorViewListenerImpl()
   private val listeners = mutableListOf<Listener>()
+  private val openDatabases = mutableListOf<SqliteDatabaseId>()
+  private var activeDatabase: SqliteDatabaseId? = null
 
   private val modelListener = object : DatabaseInspectorModel.Listener {
     override fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>) {
-      val activeDatabase = view.activeDatabase
+      openDatabases.clear()
+      openDatabases.addAll(openDatabaseIds.sortedBy { it.name })
 
-      view.setDatabases(openDatabaseIds.sortedBy { it.name })
-
-      if (openDatabaseIds.contains(activeDatabase) && activeDatabase != null) {
-        view.activeDatabase = activeDatabase
+      if (activeDatabase !in openDatabases) {
+        activeDatabase = openDatabases.firstOrNull()
       }
+
+      view.setDatabases(ArrayList(openDatabases), activeDatabase)
     }
 
     override fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
@@ -104,7 +109,12 @@ class SqliteEvaluatorController(
 
   fun evaluateSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     view.showSqliteStatement(sqliteStatement.sqliteStatementWithInlineParameters)
-    view.activeDatabase = databaseId
+    if (databaseId !in openDatabases) {
+      return immediateFailedFuture(IllegalStateException("Can't evaluate SQLite statement, unknown database: '${databaseId.path}'"))
+    }
+
+    activeDatabase = databaseId
+    view.setDatabases(openDatabases, activeDatabase)
     return execute(databaseId, sqliteStatement)
   }
 
@@ -175,6 +185,10 @@ class SqliteEvaluatorController(
 
     override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
       view.setRunSqliteStatementEnabled(!hasParsingError(project, newSqliteStatement))
+    }
+
+    override fun onDatabaseSelected(databaseId: SqliteDatabaseId) {
+      activeDatabase = databaseId
     }
   }
 

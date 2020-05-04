@@ -459,6 +459,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
     databaseInspectorModel.addDatabaseSchema(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
+    sqliteEvaluatorController.setUp()
 
     // Act
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(databaseId, "SELECT * FROM t1;"))
@@ -481,6 +482,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     databaseInspectorModel.addDatabaseSchema(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
+    sqliteEvaluatorController.setUp()
 
     // Act
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(databaseId, "INSERT INTO t1 VALUES (0);"))
@@ -503,6 +505,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
     databaseInspectorModel.addDatabaseSchema(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
+    sqliteEvaluatorController.setUp()
 
     // Act
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(databaseId, "SELECT * FROM t1"))
@@ -526,6 +529,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
     databaseInspectorModel.addDatabaseSchema(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
+    sqliteEvaluatorController.setUp()
 
     // Act
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(databaseId, "SELECT * FROM t1 --comment"))
