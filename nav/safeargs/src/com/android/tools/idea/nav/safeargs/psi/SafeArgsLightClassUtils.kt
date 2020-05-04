@@ -67,6 +67,16 @@ private val NAV_TO_JAVA_TYPE_MAP = mapOf(
  *
  */
 internal fun parsePsiType(modulePackage: String, typeStr: String?, defaultValue: String?, context: PsiElement): PsiType {
+  val psiTypeStr = getPsiTypeStr(modulePackage, typeStr, defaultValue)
+  return try {
+    PsiElementFactory.getInstance(context.project).createTypeFromText(psiTypeStr, context)
+  }
+  catch (e: IncorrectOperationException) {
+    PsiElementFactory.getInstance(context.project).createTypeFromText(FALLBACK_TYPE, context)
+  }
+}
+
+internal fun getPsiTypeStr(modulePackage: String, typeStr: String?, defaultValue: String?): String {
   var psiTypeStr = typeStr
 
   if (psiTypeStr == null) {
@@ -75,13 +85,7 @@ internal fun parsePsiType(modulePackage: String, typeStr: String?, defaultValue:
 
   psiTypeStr = psiTypeStr.takeUnless { it.isNullOrEmpty() } ?: FALLBACK_TYPE
   psiTypeStr = NAV_TO_JAVA_TYPE_MAP.getOrDefault(psiTypeStr, psiTypeStr)
-  psiTypeStr = if (!psiTypeStr.startsWith('.')) psiTypeStr else "$modulePackage$psiTypeStr"
-  return try {
-    PsiElementFactory.getInstance(context.project).createTypeFromText(psiTypeStr, context)
-  }
-  catch (e: IncorrectOperationException) {
-    PsiElementFactory.getInstance(context.project).createTypeFromText(FALLBACK_TYPE, context)
-  }
+  return if (!psiTypeStr.startsWith('.')) psiTypeStr else "$modulePackage$psiTypeStr"
 }
 
 private fun guessFromDefaultValue(defaultValue: String?): String? {
