@@ -15,13 +15,18 @@
  */
 package com.android.build.attribution.ui.panels;
 
+import com.android.build.attribution.ui.data.CriticalPathPluginUiData;
 import com.android.build.attribution.ui.data.TaskUiData;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.ui.ColorIcon;
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("UseJBColor")
 public interface CriticalPathChartLegend {
@@ -82,11 +87,28 @@ public interface CriticalPathChartLegend {
     }
   }
 
+  PluginColorPalette pluginColorPalette = new PluginColorPalette();
+
   class PluginColorPalette {
     private int paletteCursor = 0;
+    private Map<String, ChartColor> pluginToColorMapping = new HashMap<>();
 
-    public ChartColor getNewColor() {
-      return categoricalGooglePalette[Math.min(paletteCursor++, categoricalGooglePalette.length)];
+    public void reset() {
+      paletteCursor = 0;
+      pluginToColorMapping.clear();
+    }
+
+    @NotNull
+    public ChartColor getColor(@NotNull String name) {
+      return pluginToColorMapping
+        .computeIfAbsent(name, key -> categoricalGooglePalette[Math.min(paletteCursor++, categoricalGooglePalette.length)]);
+    }
+
+    @NotNull
+    public ChartColor getOneColorForAll(@NotNull ArrayList<CriticalPathPluginUiData> aggregatedPlugins) {
+      ChartColor otherPluginsGroupColor = getColor("Other");
+      aggregatedPlugins.forEach(plugin -> pluginToColorMapping.put(plugin.getName(), otherPluginsGroupColor));
+      return otherPluginsGroupColor;
     }
   }
 }

@@ -34,7 +34,8 @@ class TasksNodePresentationTest {
       mainText = ":app:resources",
       suffix = "",
       showWarnIcon = false,
-      rightAlignedSuffix = "1.200 s"
+      rightAlignedSuffix = "1.200 s",
+      showChartKey = true
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -49,7 +50,8 @@ class TasksNodePresentationTest {
       mainText = ":app:resources",
       suffix = "",
       showWarnIcon = true,
-      rightAlignedSuffix = "1.200 s"
+      rightAlignedSuffix = "1.200 s",
+      showChartKey = true
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -65,7 +67,8 @@ class TasksNodePresentationTest {
       mainText = "resources.plugin",
       suffix = "",
       showWarnIcon = false,
-      rightAlignedSuffix = "0.800 s"
+      rightAlignedSuffix = "0.800 s",
+      showChartKey = true
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -82,7 +85,39 @@ class TasksNodePresentationTest {
       mainText = "resources.plugin",
       suffix = "1 warning",
       showWarnIcon = false,
-      rightAlignedSuffix = "0.800 s"
+      rightAlignedSuffix = "0.800 s",
+      showChartKey = true
+    )
+    assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
+  }
+
+  @Test
+  fun testTaskUnderPluginWithoutWarningPresentation() {
+    val task = mockTask(":app", "resources", "resources.plugin", 1200)
+    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.BY_PLUGIN)
+
+    val expectedPresentation = BuildAnalyzerTreeNodePresentation(
+      mainText = ":app:resources",
+      suffix = "",
+      showWarnIcon = false,
+      rightAlignedSuffix = "1.200 s",
+      showChartKey = false
+    )
+    assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
+  }
+
+  @Test
+  fun testTaskUnderPluginWithWarningPresentation() {
+    val task = mockTask(":app", "resources", "resources.plugin", 1200)
+    task.issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(task))
+    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.BY_PLUGIN)
+
+    val expectedPresentation = BuildAnalyzerTreeNodePresentation(
+      mainText = ":app:resources",
+      suffix = "",
+      showWarnIcon = true,
+      rightAlignedSuffix = "1.200 s",
+      showChartKey = false
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
