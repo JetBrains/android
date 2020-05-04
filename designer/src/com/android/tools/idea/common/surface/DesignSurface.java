@@ -271,7 +271,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     myScrollPane = new MyScrollPane();
     myScrollPane.setViewportView(mySceneViewPanel);
-    myScrollPane.setBorder(null);
+    myScrollPane.setBorder(JBUI.Borders.empty());
     myScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
     myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
     myScrollPane.getHorizontalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
