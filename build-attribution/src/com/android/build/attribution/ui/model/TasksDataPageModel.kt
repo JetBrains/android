@@ -232,7 +232,8 @@ class TaskDetailsNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskData.taskPath,
       rightAlignedSuffix = taskData.executionTime.durationString(),
-      showWarnIcon = taskData.hasWarning
+      showWarnIcon = taskData.hasWarning,
+      showChartKey = pageId.grouping == TasksDataPageModel.Grouping.UNGROUPED
     )
 }
 
@@ -245,6 +246,7 @@ class PluginDetailsNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = pluginData.name,
       suffix = if (pluginData.warningCount > 0) issuesCountString(pluginData.warningCount, pluginData.infoCount) else "",
-      rightAlignedSuffix = pluginData.criticalPathDuration.durationString()
+      rightAlignedSuffix = pluginData.criticalPathDuration.durationString(),
+      showChartKey = true
     )
 }
