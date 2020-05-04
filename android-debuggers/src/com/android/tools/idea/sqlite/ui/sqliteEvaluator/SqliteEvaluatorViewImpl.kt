@@ -66,16 +66,6 @@ class SqliteEvaluatorViewImpl(
   private val runButton = JButton("Run")
   private var evaluateSqliteStatementEnabled = false
 
-  override var activeDatabase: SqliteDatabaseId?
-    get() = databaseComboBox.selectedItem as SqliteDatabaseId?
-    set(value) {
-      // Avoid setting the item if it's already selected, so we don't trigger the action listener for no reason.
-      val currentlySelectedItem = databaseComboBox.selectedItem as SqliteDatabaseId
-      if (value != currentlySelectedItem) {
-        databaseComboBox.selectedItem = value
-      }
-    }
-
   init {
     val controlsPanel = JPanel(BorderLayout())
 
@@ -100,7 +90,15 @@ class SqliteEvaluatorViewImpl(
     runStatementAction.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), expandableEditor.collapsedEditor)
     runStatementAction.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), expandableEditor.expandedEditor)
 
-    databaseComboBox.addActionListener { setSchemaFromSelectedItem() }
+    databaseComboBox.addActionListener {
+      setSchemaFromSelectedItem()
+      val sqliteDatabaseId = databaseComboBox.selectedItem as? SqliteDatabaseId ?: return@addActionListener
+
+      listeners.forEach {
+        it.onDatabaseSelected(sqliteDatabaseId)
+      }
+    }
+
     databaseComboBox.setMinimumAndPreferredWidth(JBUI.scale(300))
     databaseComboBox.renderer = object : ColoredListCellRenderer<SqliteDatabaseId>() {
       override fun customizeCellRenderer(
@@ -175,14 +173,17 @@ class SqliteEvaluatorViewImpl(
     })
   }
 
-  override fun setDatabases(databaseIds: List<SqliteDatabaseId>) {
+  override fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?) {
     databaseComboBox.removeAllItems()
 
     for (database in databaseIds) {
       databaseComboBox.addItem(database)
     }
 
-    if (databaseIds.isNotEmpty() && databaseComboBox.selectedIndex == -1) databaseComboBox.selectedIndex = 0
+    // Avoid setting the item if it's already selected, so we don't trigger the action listener for no reason.
+    if (databaseComboBox.selectedItem != selected) {
+      databaseComboBox.selectedItem = selected
+    }
   }
 
   override fun getSqliteStatement(): String {

@@ -45,6 +45,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import junit.framework.TestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.reset
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -93,10 +94,10 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val databaseId1 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
     val databaseId2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
 
-    view.setDatabases(listOf(databaseId1, databaseId2))
+    view.setDatabases(listOf(databaseId1, databaseId2), databaseId1)
     assertEquals(0, comboBox.selectedIndex)
 
-    view.setDatabases(emptyList())
+    view.setDatabases(emptyList(), null)
     assertEquals(-1, comboBox.selectedIndex)
   }
 
@@ -116,34 +117,27 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val db0 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db0"))
     val db1 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
     val db2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
+    var activeDatabaseId : SqliteDatabaseId? = null
+    view.addListener(object : SqliteEvaluatorView.Listener {
+      override fun onDatabaseSelected(databaseId: SqliteDatabaseId) {
+        activeDatabaseId = databaseId
+      }
+    })
 
     // Act/Assert
-    assertEquals(null, view.activeDatabase)
+    assertEquals(null, activeDatabaseId)
 
     model.addDatabaseSchema(db2, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
-    assertEquals(db2, view.activeDatabase)
+    assertEquals(db2, activeDatabaseId)
 
     model.addDatabaseSchema(db1, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
-    assertEquals(db2, view.activeDatabase)
+    assertEquals(db2, activeDatabaseId)
 
     model.addDatabaseSchema(db0, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
-    assertEquals(db2, view.activeDatabase)
+    assertEquals(db2, activeDatabaseId)
 
     model.removeDatabaseSchema(db2)
-    assertEquals(db0, view.activeDatabase)
-  }
-
-  fun testSelectDatabaseChangesSelectedDatabase() {
-    // Prepare
-    val database1 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
-    val database2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
-
-    // Act/Assert
-    view.setDatabases(listOf(database1, database2))
-    assertEquals(database1, view.activeDatabase)
-
-    view.activeDatabase = database2
-    assertEquals(database2, view.activeDatabase)
+    assertEquals(db0, activeDatabaseId)
   }
 
   fun testPsiCacheIsDroppedWhenNewDatabaseIsSelected() {
@@ -158,14 +152,14 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val database2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
 
     // Act/Assert
-    view.setDatabases(listOf(database1, database2))
+    view.setDatabases(listOf(database1, database2), database1)
     verify(mockPsiManager).dropPsiCaches()
 
-    view.activeDatabase = database2
-    verify(mockPsiManager, times(2)).dropPsiCaches()
+    view.setDatabases(listOf(database1, database2), database2)
+    verify(mockPsiManager, times(3)).dropPsiCaches()
 
     comboBox.selectedIndex = 0
-    verify(mockPsiManager, times(3)).dropPsiCaches()
+    verify(mockPsiManager, times(4)).dropPsiCaches()
   }
 
   fun testSchemaUpdatedDropsCachesAndGetsNewSchema() {
@@ -176,7 +170,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val database = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
 
-    view.setDatabases(listOf(database))
+    view.setDatabases(listOf(database), database)
 
     // Act
     view.schemaChanged(database)

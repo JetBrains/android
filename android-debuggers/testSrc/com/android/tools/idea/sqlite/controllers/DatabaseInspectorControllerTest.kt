@@ -434,6 +434,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     mockSqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
+    val evaluatorView = mockViewFactory.createEvaluatorView(project, MockSchemaProvider(), mockViewFactory.tableView)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
     // Act
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
@@ -451,10 +454,10 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Assert
-    val evaluatorView = mockViewFactory.createEvaluatorView(project, MockSchemaProvider(), mockViewFactory.tableView)
-    verify(evaluatorView).setDatabases(listOf(databaseId1))
-    verify(evaluatorView).setDatabases(listOf(databaseId1, databaseId2))
-    verify(evaluatorView).setDatabases(listOf(databaseId3, databaseId1, databaseId2))
+    verify(evaluatorView).setDatabases(listOf(), null)
+    verify(evaluatorView).setDatabases(listOf(databaseId1), databaseId1)
+    verify(evaluatorView).setDatabases(listOf(databaseId1, databaseId2), databaseId1)
+    verify(evaluatorView).setDatabases(listOf(databaseId3, databaseId1, databaseId2), databaseId1)
   }
 
   fun testDatabaseIsUpdatedInEvaluatorTabAfterSchemaChanges() {
@@ -493,6 +496,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val evaluatorView = mockViewFactory.sqliteEvaluatorView
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
+    // verify initial state
+    verify(evaluatorView).setDatabases(listOf(databaseId1, databaseId2), databaseId1)
+
     // Act
     runDispatching {
       sqliteController.closeDatabase(databaseId1)
@@ -500,8 +506,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).dispose()
-    verify(evaluatorView).setDatabases(listOf(databaseId1, databaseId2))
-    verify(evaluatorView).setDatabases(listOf(databaseId2))
+    verify(evaluatorView).setDatabases(listOf(databaseId2), databaseId2)
   }
 
   fun testTabsAssociatedWithDatabaseAreRemovedWhenDatabasedIsRemoved() {
