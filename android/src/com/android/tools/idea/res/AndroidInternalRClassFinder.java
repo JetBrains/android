@@ -51,7 +51,7 @@ public class AndroidInternalRClassFinder extends PsiElementFinder {
 
   public AndroidInternalRClassFinder(@NotNull Project project) {
     ApplicationManager.getApplication().getMessageBus().connect(project).subscribe(
-      ProjectJdkTable.JDK_TABLE_TOPIC, new ProjectJdkTable.Adapter() {
+      ProjectJdkTable.JDK_TABLE_TOPIC, new ProjectJdkTable.Listener() {
         @Override
         public void jdkRemoved(@NotNull final Sdk sdk) {
           synchronized (myLock) {
