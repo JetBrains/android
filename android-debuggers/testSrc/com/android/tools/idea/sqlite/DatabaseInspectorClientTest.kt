@@ -40,6 +40,9 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
   private lateinit var hasDatabasePossiblyChangedFunction: () -> Unit
   private var hasDatabasePossiblyChangedInvoked = false
 
+  private lateinit var handleDatabaseClosedFunction: (Int) -> Unit
+  private lateinit var databaseClosedInvocations: MutableList<Int>
+
   override fun setUp() {
     super.setUp()
 
@@ -53,11 +56,15 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     hasDatabasePossiblyChangedInvoked = false
     hasDatabasePossiblyChangedFunction = { hasDatabasePossiblyChangedInvoked = true }
 
+    databaseClosedInvocations = mutableListOf()
+    handleDatabaseClosedFunction = { connectionId -> databaseClosedInvocations.add(connectionId) }
+
     databaseInspectorClient = DatabaseInspectorClient(
       mockMessenger,
       handleErrorFunction,
       openDatabaseFunction,
       hasDatabasePossiblyChangedFunction,
+      handleDatabaseClosedFunction,
       /* not used in test */ MoreExecutors.directExecutor()
     )
   }
@@ -160,5 +167,19 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
 
     // Assert
     assertTrue(hasDatabasePossiblyChangedInvoked)
+  }
+
+  fun testDatabaseClosedCallsCallback() {
+    // Prepare
+    val databaseClosedEvent = SqliteInspectorProtocol.DatabaseClosedEvent.newBuilder().setDatabaseId(1).build()
+    val event = SqliteInspectorProtocol.Event.newBuilder().setDatabaseClosed(databaseClosedEvent).build()
+
+    // Act
+    databaseInspectorClient.rawEventListener.onRawEvent(event.toByteArray())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    assertSize(1, databaseClosedInvocations)
+    assertEquals(1, databaseClosedInvocations.first())
   }
 }

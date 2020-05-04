@@ -138,6 +138,10 @@ interface DatabaseInspectorProjectService {
    */
   @UiThread
   fun stopAppInspectionSession(): SavedUiState
+
+  @UiThread
+  // TODO (b/155837276) whe should pass SqliteDatabaseId here
+  fun handleDatabaseClosed(connectionId: Int)
 }
 
 class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
@@ -221,7 +225,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   @AnyThread
-  override fun openSqliteDatabase(sqliteDatabase: SqliteDatabase): ListenableFuture<Unit> = projectScope.future {
+  override fun openSqliteDatabase(sqliteDatabase: SqliteDatabase): ListenableFuture<Unit> = projectScope.future(uiThread) {
     controller.addSqliteDatabase(sqliteDatabase)
   }
 
@@ -242,6 +246,14 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     }
 
     return savedState
+  }
+
+  @UiThread
+  override fun handleDatabaseClosed(connectionId: Int) {
+    val databaseIdToClose = model.getOpenDatabaseIds()
+      .filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>()
+      .find { it.connectionId == connectionId } ?: return
+    model.removeDatabaseSchema(databaseIdToClose)
   }
 
   @UiThread
