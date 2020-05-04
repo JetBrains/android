@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@ package com.android.tools.profilers.cpu.atrace;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
+import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.ThreadState;
+import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,17 +46,21 @@ public class SystemTraceCpuCapture extends BaseCpuCapture {
   private final SystemTraceSurfaceflingerManager mySurfaceflingerManager;
 
   public SystemTraceCpuCapture(long traceId,
-                               @NotNull Cpu.CpuTraceType type,
-                               @NotNull Range range,
-                               @NotNull AtraceParser parser,
+                               @NotNull SystemTraceModelAdapter model,
+                               @NotNull Map<CpuThreadInfo, CaptureNode> captureNodes,
+                               @NotNull Map<Integer, List<SeriesData<ThreadState>>> threadStateData,
+                               @NotNull Map<Integer, List<SeriesData<CpuThreadSliceInfo>>> cpuSchedData,
+                               @NotNull List<SeriesData<Long>> cpuUtilizationData,
                                @NotNull SystemTraceFrameManager frameManager,
                                @NotNull SystemTraceSurfaceflingerManager surfaceflingerManager) {
-    super(traceId, type, range, parser.getCaptureTrees());
+    super(traceId, model.getSystemTraceTechnology(),
+          new Range(model.getCaptureStartTimestampUs(), model.getCaptureEndTimestampUs()),
+          captureNodes);
 
-    myThreadStateDataSeries = parser.getThreadStateDataSeries();
-    myCpuThreadSliceInfoStates = parser.getCpuThreadSliceInfoStates();
-    myCpuUtilizationSeries = parser.getCpuUtilizationSeries();
-    myIsMissingData = parser.isMissingData();
+    myThreadStateDataSeries = threadStateData;
+    myCpuThreadSliceInfoStates = cpuSchedData;
+    myCpuUtilizationSeries = cpuUtilizationData;
+    myIsMissingData = model.isCapturePossibleCorrupted();
 
     myFrameManager = frameManager;
     mySurfaceflingerManager = surfaceflingerManager;

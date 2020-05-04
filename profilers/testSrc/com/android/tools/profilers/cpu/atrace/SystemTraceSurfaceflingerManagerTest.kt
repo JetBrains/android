@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.atrace.SurfaceflingerEvent.Type
 import com.google.common.truth.Truth.assertThat
@@ -29,7 +30,7 @@ class SystemTraceSurfaceflingerManagerTest {
     val reader = AtraceProducer()
     assertThat(reader.parseFile(file)).isTrue()
     val task = ImportTask(PrintlnImportFeedback())
-    TrebuchetModelAdapter(task.importBuffer(reader))
+    TrebuchetModelAdapter(task.importBuffer(reader), Cpu.CpuTraceType.ATRACE)
   }
 
   @Test
