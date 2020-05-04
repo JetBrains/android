@@ -21,7 +21,12 @@
                       facetIdList="android,apk"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR"
-                      factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"/>
+                      factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
+                      doNotActivateOnStart="true"/>
     <applicationService serviceImplementation="com.android.tools.idea.appinspection.ide.AppInspectionHostService"/>
-  </extensions>>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.run">
+    <androidLaunchTaskContributor implementation="com.android.tools.idea.appinspection.ide.ui.AppInspectionLaunchTaskContributor" />
+  </extensions>
 </idea-plugin>
