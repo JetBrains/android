@@ -142,7 +142,7 @@ public class Track {
    */
   @NotNull
   public Track updateSelected(boolean selected) {
-    myTitleFrontPanel.setBackground(selected ? StudioColorsKt.getContentSelectionBackground() : null);
+    myTitleFrontPanel.setBackground(selected ? StudioColorsKt.getSelectionOverlayBackground() : null);
     myTitleBackPanel.setBorder(selected ? TITLE_BORDER_SELECTED : TITLE_BORDER_DEFAULT);
     myTrackContent.setBorder(selected ? CONTENT_BORDER_SELECTED : CONTENT_BORDER_DEFAULT);
     return this;

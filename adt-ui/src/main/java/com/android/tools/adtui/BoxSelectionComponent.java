@@ -75,7 +75,7 @@ public class BoxSelectionComponent extends RangeSelectionComponent {
     // |   +++++++++++++++    |
     // |         B            |
     // ------------------------
-    g.setColor(StudioColorsKt.getContentDeselectionBackground());
+    g.setColor(StudioColorsKt.getInactiveSelectionOverlayBackground());
     // Left
     if (startX > 0) {
       g.fillRect(0, 0, startX, getHeight());
