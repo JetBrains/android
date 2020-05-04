@@ -15,80 +15,98 @@
  */
 package com.android.tools.profilers.cpu.atrace
 
-import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuThreadInfo
-import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.TEST_PID
-import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.TEST_RENDER_ID
 import com.android.tools.profilers.systemtrace.ProcessModel
 import com.android.tools.profilers.systemtrace.ThreadModel
 import com.android.tools.profilers.systemtrace.TraceEventModel
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
 import org.junit.Test
-import trebuchet.model.Model
-import trebuchet.task.ImportTask
-import trebuchet.util.PrintlnImportFeedback
 import java.util.concurrent.TimeUnit
 
 class SystemTraceFrameManagerTest {
-  private lateinit var model: Model
-  private lateinit var process: ProcessModel
 
-  @Before
-  fun setup() {
-    val file = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
-    val reader = AtraceProducer()
-    assertThat(reader.parseFile(file)).isTrue()
-    val task = ImportTask(PrintlnImportFeedback())
-    model = task.importBuffer(reader)
-    val modelAdapter = TrebuchetModelAdapter(model, Cpu.CpuTraceType.ATRACE)
-    process = modelAdapter.getProcessById(TEST_PID)!!
+  private companion object {
+    val TEST_PID = 1
+    val TEST_RENDER_ID = 2
+
+    val mainThreadModel = ThreadModel(TEST_PID, TEST_PID, "Main",
+                                      listOf(
+                                        createEvent(2, 5, "Choreographer#doFrame"), // Good frame
+                                        createEvent(7, 11, "mainLoop#Compute"), // Not a frame event
+                                        createEvent(15, 35, "Choreographer#doFrame"), // Bad frame
+                                        createEvent(40, 60, "mainLoop#Compute"), // Not a frame event
+                                        createEvent(65, 82, "Choreographer#doFrame") // Good frame
+                                      ),
+                                      listOf())
+    val renderThreadModel = ThreadModel(TEST_RENDER_ID, TEST_PID, CpuThreadInfo.RENDER_THREAD_NAME,
+                                        listOf(
+                                          createEvent(4, 7, "DrawFrame"), // Good frame
+                                          createEvent(10, 13, "doFrame"), // Good frame
+                                          createEvent(17, 35, "DrawFrame"), // Bad frame
+                                          createEvent(36, 39, "waitIO"), // Not a frame event
+                                          createEvent(40, 57, "queueBuffer"), // Good frame
+                                          createEvent(60, 80, "waitIO"), // Not a frame event
+                                          createEvent(81, 100, "queueBuffer") // Bad frame
+                                        ),
+                                        listOf())
+    val processModel = ProcessModel(TEST_PID, "Test",
+                                    mapOf(TEST_PID to mainThreadModel, TEST_RENDER_ID to renderThreadModel),
+                                    emptyMap())
+
+    private fun createEvent(startTimeMillis: Long, endTimeMillis: Long, name: String): TraceEventModel {
+      val startUs = TimeUnit.MILLISECONDS.toMicros(startTimeMillis)
+      val endUs = TimeUnit.MILLISECONDS.toMicros(endTimeMillis)
+      return TraceEventModel(name, startUs, endUs, endUs - startUs, listOf())
+    }
   }
 
   @Test
-  fun filterReturnsFramesOfSameThread() {
-    val frameManager = SystemTraceFrameManager(process)
+  fun framesOfMainThread() {
+    val frameManager = SystemTraceFrameManager(processModel)
     val frames = frameManager.getFramesList(SystemTraceFrame.FrameThread.MAIN)
     // Validation metrics come from systrace for the same file.
-    assertThat(frames).hasSize(122)
-    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.GOOD}).isEqualTo(102)
-    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.BAD}).isEqualTo(20)
+    assertThat(frames).hasSize(3)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.GOOD}).isEqualTo(2)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.BAD}).isEqualTo(1)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.NOT_SET}).isEqualTo(0)
+  }
+
+  @Test
+  fun framesOfRenderThread() {
+    val frameManager = SystemTraceFrameManager(processModel)
+    val frames = frameManager.getFramesList(SystemTraceFrame.FrameThread.RENDER)
+    // Validation metrics come from systrace for the same file.
+    assertThat(frames).hasSize(5)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.GOOD}).isEqualTo(3)
+    assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.BAD}).isEqualTo(2)
     assertThat(frames.count { it.perfClass == SystemTraceFrame.PerfClass.NOT_SET}).isEqualTo(0)
   }
 
   @Test
   fun noMatchingThreadReturnsEmptyList() {
-    val frameManager = SystemTraceFrameManager(process)
-    assertThat(frameManager.getFramesList(
-      SystemTraceFrame.FrameThread.OTHER)).hasSize(0)
-  }
-
-  private fun getSlice(startTime: Long, endTime: Long, name: String): TraceEventModel {
-    val startUs = TimeUnit.SECONDS.toMicros(startTime)
-    val endUs = TimeUnit.SECONDS.toMicros(endTime)
-    return TraceEventModel(name, startUs, endUs, endUs - startUs, listOf())
+    val frameManager = SystemTraceFrameManager(processModel)
+    assertThat(frameManager.getFramesList(SystemTraceFrame.FrameThread.OTHER)).hasSize(0)
   }
 
   @Test
   fun mainThreadFramesShouldBeAssociatedWithRenderThreadFrames() {
     val mainThread = ThreadModel(TEST_PID, TEST_PID, "Main",
                                  listOf(
-                                   getSlice(2, 5, "Choreographer#doFrame"),
-                                   getSlice(7, 11, "Choreographer#doFrame"),
-                                   getSlice(20, 22, "Choreographer#doFrame"),
-                                   getSlice(30, 50, "Choreographer#doFrame")
+                                   createEvent(2, 5, "Choreographer#doFrame"),
+                                   createEvent(7, 11, "Choreographer#doFrame"),
+                                   createEvent(20, 22, "Choreographer#doFrame"),
+                                   createEvent(30, 50, "Choreographer#doFrame")
                                  ),
                                  listOf())
     val renderThread = ThreadModel(TEST_RENDER_ID, TEST_PID, CpuThreadInfo.RENDER_THREAD_NAME,
-                                 listOf(
-                                   getSlice(4, 7, "DrawFrame"),
-                                   getSlice(10, 13, "doFrame"),
-                                   getSlice(15, 17, "queueBuffer"),
-                                   getSlice(18, 20, "DrawFrame"),
-                                   getSlice(40, 55, "queueBuffer")
-                                 ),
-                                 listOf())
+                                   listOf(
+                                     createEvent(4, 7, "DrawFrame"),
+                                     createEvent(10, 13, "doFrame"),
+                                     createEvent(15, 17, "queueBuffer"),
+                                     createEvent(18, 20, "DrawFrame"),
+                                     createEvent(40, 55, "queueBuffer")
+                                   ),
+                                   listOf())
 
     val process = ProcessModel(TEST_PID, "Test",
                                mapOf(TEST_PID to mainThread, TEST_RENDER_ID to renderThread),
@@ -116,10 +134,10 @@ class SystemTraceFrameManagerTest {
 
   @Test
   fun framesEndWithEmptyFrame() {
-    val frameManager = SystemTraceFrameManager(process)
+    val frameManager = SystemTraceFrameManager(processModel)
     val frames = frameManager.getFrames(SystemTraceFrame.FrameThread.MAIN)
     // Each frame has a empty frame after it for spacing.
-    assertThat(frames).hasSize(122 * 2)
+    assertThat(frames).hasSize(3 * 2)
     for (i in 0 until frames.size step 2) {
       assertThat(frames[i].value).isNotEqualTo(SystemTraceFrame.EMPTY)
       assertThat(frames[i + 1].value).isEqualTo(SystemTraceFrame.EMPTY)
