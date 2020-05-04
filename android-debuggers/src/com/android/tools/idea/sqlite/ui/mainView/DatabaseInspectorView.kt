@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.idea.sqlite.controllers.TabId
-import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -69,8 +68,6 @@ interface DatabaseInspectorView {
     fun closeTabActionInvoked(tabId: TabId)
     /** Called when the user wants to open the evaluator tab */
     fun openSqliteEvaluatorTabActionInvoked()
-    /** Called when the user wants to sync a database */
-    fun reDownloadDatabaseFileActionInvoked(database: FileSqliteDatabase)
     /** Called when the user wants to refresh the schema of all open databases */
     fun refreshAllOpenDatabasesSchemaActionInvoked()
   }

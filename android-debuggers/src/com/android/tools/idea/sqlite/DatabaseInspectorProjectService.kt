@@ -20,10 +20,6 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.device.fs.DeviceFileDownloaderService
-import com.android.tools.idea.device.fs.DeviceFileId
-import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorControllerImpl
@@ -34,11 +30,9 @@ import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
-import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.actions.OpenFileAction
 import com.intellij.openapi.application.ApplicationManager
@@ -98,12 +92,6 @@ interface DatabaseInspectorProjectService {
    */
   @UiThread
   fun runSqliteStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement)
-
-  /**
-   * Re-downloads and opens the file associated with the [FileSqliteDatabase] passed as argument.
-   */
-  @AnyThread
-  fun reDownloadAndOpenFile(database: FileSqliteDatabase, progress: DownloadProgress): ListenableFuture<Unit>
 
   /**
    * Returns true if the Sqlite Inspector has an open database, false otherwise.
@@ -257,18 +245,6 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   @UiThread
   override fun runSqliteStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
     projectScope.launch { controller.runSqlStatement(database, sqliteStatement) }
-  }
-
-  @AnyThread
-  override fun reDownloadAndOpenFile(database: FileSqliteDatabase, progress: DownloadProgress): ListenableFuture<Unit> {
-    val deviceFileId = DeviceFileId.fromVirtualFile(database.virtualFile)
-                       ?: return Futures.immediateFailedFuture(IllegalStateException("DeviceFileId not found"))
-    val downloadFuture = DeviceFileDownloaderService.getInstance(project).downloadFile(deviceFileId, progress)
-
-    return downloadFuture.transform(edtExecutor) { downloadedFileData ->
-      fileOpener.accept(downloadedFileData.virtualFile)
-      return@transform
-    }
   }
 
   @UiThread

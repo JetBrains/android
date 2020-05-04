@@ -18,16 +18,12 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
-import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
-import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
-import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -50,7 +46,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.text.trimMiddle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -392,29 +387,6 @@ class DatabaseInspectorControllerImpl(
 
     override fun closeTabActionInvoked(tabId: TabId) {
       closeTab(tabId)
-    }
-
-    override fun reDownloadDatabaseFileActionInvoked(database: FileSqliteDatabase) {
-      val downloadFuture = DatabaseInspectorProjectService.getInstance(project).reDownloadAndOpenFile(database, object : DownloadProgress {
-        override val isCancelled: Boolean
-          get() = false
-
-        override fun onStarting(entryFullPath: String) {
-          view.reportSyncProgress("${entryFullPath.trimMiddle(20, true)}: start sync")
-        }
-
-        override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {
-          view.reportSyncProgress("${entryFullPath.trimMiddle(20, true)}: sync progress $currentBytes/$totalBytes")
-        }
-
-        override fun onCompleted(entryFullPath: String) {
-          view.reportSyncProgress("${entryFullPath.trimMiddle(20, true)}: sync completed")
-        }
-      })
-
-      downloadFuture.transform(edtExecutor) {
-        view.reportSyncProgress("")
-      }
     }
 
     override fun refreshAllOpenDatabasesSchemaActionInvoked() {

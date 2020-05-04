@@ -19,10 +19,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.device.fs.DeviceFileId
-import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
-import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -811,31 +808,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       sqliteDatabase,
       listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(columnToAdd2, 0)), table2))
     )
-  }
-
-  fun testReDownloadFileUpdatesView() {
-    // Prepare
-    val deviceFileId = DeviceFileId("deviceId", "filePath")
-    val virtualFile = tempDirTestFixture.createFile("db")
-    deviceFileId.storeInVirtualFile(virtualFile)
-    val fileDatabase = FileSqliteDatabase(mockDatabaseConnection, virtualFile)
-
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    runDispatching {
-      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
-    }
-
-    val mockSqliteExplorerProjectService = mock(DatabaseInspectorProjectService::class.java)
-    `when`(mockSqliteExplorerProjectService.reDownloadAndOpenFile(any(FileSqliteDatabase::class.java), any(DownloadProgress::class.java)))
-      .thenReturn(Futures.immediateFuture(Unit))
-    project.registerServiceInstance(DatabaseInspectorProjectService::class.java, mockSqliteExplorerProjectService)
-
-    // Act
-    mockSqliteView.viewListeners.single().reDownloadDatabaseFileActionInvoked(fileDatabase)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Assert
-    orderVerifier.verify(mockSqliteView).reportSyncProgress(any(String::class.java))
   }
 
   fun testRefreshAllOpenDatabasesSchemaActionInvokedUpdatesSchemas() {
