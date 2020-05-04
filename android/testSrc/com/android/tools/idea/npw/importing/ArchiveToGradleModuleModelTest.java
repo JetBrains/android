@@ -28,6 +28,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.impl.jar.JarFileSystemImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -109,6 +110,8 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
 
     model.gradlePath.set(":library");
     model.moveArchive.set(true);
+
+    JarFileSystemImpl.cleanupForNextTest(); // TODO(b/155676674): failure on Windows without this line.
     model.handleFinished();
 
     assertArchiveImportedCorrectly(":library", archiveToImport);
@@ -274,6 +277,8 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     model.archive.set(archiveToImport.getAbsolutePath());
     model.gradlePath.set(":library");
     model.moveArchive.set(move);
+
+    JarFileSystemImpl.cleanupForNextTest(); // TODO(b/155676674): failure on Windows without this line.
     model.handleFinished();
 
     return archiveToImport;
