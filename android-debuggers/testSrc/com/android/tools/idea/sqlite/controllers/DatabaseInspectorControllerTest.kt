@@ -586,7 +586,12 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Act
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(newSchema))
-    evaluatorView.listeners.forEach { it.evaluateSqliteStatementActionInvoked(databaseId1, "INSERT INTO t VALUES (42)") }
+
+    evaluatorView.listeners.forEach {
+      it.onDatabaseSelected(databaseId1)
+      it.sqliteStatementTextChangedInvoked("INSERT INTO t VALUES (42)")
+      it.evaluateCurrentStatement()
+    }
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert

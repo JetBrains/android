@@ -57,6 +57,7 @@ class SqliteEvaluatorController(
   private val listeners = mutableListOf<Listener>()
   private val openDatabases = mutableListOf<SqliteDatabaseId>()
   private var activeDatabase: SqliteDatabaseId? = null
+  private var sqliteStatement: String = ""
 
   private val modelListener = object : DatabaseInspectorModel.Listener {
     override fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>) {
@@ -175,15 +176,15 @@ class SqliteEvaluatorController(
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {
-    override fun evaluateSqliteStatementActionInvoked(databaseId: SqliteDatabaseId, sqliteStatement: String) {
+    override fun evaluateCurrentStatement() {
       DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
       )
-
-      evaluateSqlStatement(databaseId, sqliteStatement)
+      activeDatabase?.let { evaluateSqlStatement(it, sqliteStatement) }
     }
 
     override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
+      sqliteStatement = newSqliteStatement
       view.setRunSqliteStatementEnabled(!hasParsingError(project, newSqliteStatement))
     }
 

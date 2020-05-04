@@ -151,10 +151,7 @@ class SqliteEvaluatorViewImpl(
     if (!evaluateSqliteStatementEnabled) return
 
     listeners.forEach {
-      it.evaluateSqliteStatementActionInvoked(
-        (databaseComboBox.selectedItem as SqliteDatabaseId),
-        expandableEditor.activeEditor.text
-      )
+      it.evaluateCurrentStatement()
     }
   }
 
@@ -184,10 +181,6 @@ class SqliteEvaluatorViewImpl(
     if (databaseComboBox.selectedItem != selected) {
       databaseComboBox.selectedItem = selected
     }
-  }
-
-  override fun getSqliteStatement(): String {
-    return expandableEditor.activeEditor.text
   }
 
   override fun addListener(listener: SqliteEvaluatorView.Listener) {

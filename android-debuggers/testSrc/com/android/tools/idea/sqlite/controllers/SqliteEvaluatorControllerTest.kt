@@ -158,7 +158,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorView.listeners.first().evaluateSqliteStatementActionInvoked(databaseId, "SELECT * FROM foo WHERE id = 42")
+    sqliteEvaluatorController.evaluateSqlStatement(databaseId, "SELECT * FROM foo WHERE id = 42")
 
     // Assert
     verify(parametersBindingDialogView, times(0)).show()
@@ -369,11 +369,11 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, mockTrackerService)
 
-    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(EmptySqliteResultSet()))
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(Unit))
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorView.listeners.first().evaluateSqliteStatementActionInvoked(databaseId, "SELECT * FROM foo")
+    sqliteEvaluatorView.listeners.first().evaluateCurrentStatement()
 
     // Assert
     verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT)
