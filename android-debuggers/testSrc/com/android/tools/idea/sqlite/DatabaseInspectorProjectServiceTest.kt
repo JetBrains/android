@@ -30,6 +30,7 @@ import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
+import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -120,5 +121,30 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     runBlocking {
       verify(mockSqliteController).databasePossiblyChanged()
     }
+  }
+
+  fun testHandleDatabaseClosedClosesDatabase() {
+    // Prepare
+    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
+    val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
+
+    val connection = mock(DatabaseConnection::class.java)
+    `when`(connection.close()).thenReturn(Futures.immediateFuture(Unit))
+
+    pumpEventsAndWaitForFuture(
+      databaseInspectorProjectService.openSqliteDatabase(LiveSqliteDatabase(databaseId1, connection))
+    )
+    pumpEventsAndWaitForFuture(
+      databaseInspectorProjectService.openSqliteDatabase(LiveSqliteDatabase(databaseId2, connection))
+    )
+
+    // Act
+    databaseInspectorProjectService.handleDatabaseClosed(1)
+
+    // Assert
+    assertSize(1, model.getOpenDatabaseIds())
+    TestCase.assertEquals(databaseId2, model.getOpenDatabaseIds().first())
+    assertSize(1, model.getCloseDatabaseIds())
+    assertEquals(databaseId1, model.getCloseDatabaseIds().first())
   }
 }

@@ -20,13 +20,13 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import org.jetbrains.ide.PooledThreadExecutor
-import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.intellij.util.concurrency.EdtExecutorService
+import org.jetbrains.ide.PooledThreadExecutor
 import javax.swing.JComponent
 
 class DatabaseInspectorTabProvider : AppInspectorTabProvider {
@@ -58,10 +58,18 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
       }
 
       private val handleError: (String) -> Unit = { databaseInspectorProjectService.handleError(it, null) }
-
       private val onDatabasePossiblyChanged: () -> Unit = { databaseInspectorProjectService.databasePossiblyChanged() }
+      private val onDatabaseClosed: (Int) -> Unit = { connectionId -> databaseInspectorProjectService.handleDatabaseClosed(connectionId) }
 
-      override val client = DatabaseInspectorClient(messenger, handleError, openDatabase, onDatabasePossiblyChanged, taskExecutor, errorsSideChannel)
+      override val client = DatabaseInspectorClient(
+        messenger,
+        handleError,
+        openDatabase,
+        onDatabasePossiblyChanged,
+        onDatabaseClosed,
+        taskExecutor,
+        errorsSideChannel
+      )
 
       override val component: JComponent = databaseInspectorProjectService.sqliteInspectorComponent
 
