@@ -19,7 +19,10 @@ import com.android.tools.idea.appinspection.ide.AppInspectionHostService
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.model.AndroidModuleInfo
+import com.intellij.notification.Notification
 import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationListener
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -28,6 +31,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import javax.swing.JComponent
+import javax.swing.event.HyperlinkEvent
 
 class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {
   /**
@@ -38,15 +42,32 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
     .toList()
 
   private val ideServices = object : AppInspectionIdeServices {
+    private val notificationGroup = NotificationGroup.toolWindowGroup(APP_INSPECTION_ID, APP_INSPECTION_ID)
+
     override fun showToolWindow(callback: () -> Unit) = toolWindow.show(Runnable { callback() })
+    override fun showNotification(title: String,
+                                  content: String,
+                                  severity: AppInspectionIdeServices.Severity,
+                                  hyperlinkClicked: () -> Unit) {
+      val type = when(severity) {
+        AppInspectionIdeServices.Severity.INFORMATION -> NotificationType.INFORMATION
+        AppInspectionIdeServices.Severity.ERROR -> NotificationType.ERROR
+      }
+
+      notificationGroup.createNotification(title, content, type, object : NotificationListener.Adapter() {
+        override fun hyperlinkActivated(notification: Notification, e: HyperlinkEvent) {
+          hyperlinkClicked()
+          notification.expire()
+        }
+      }).notify(project)
+    }
   }
 
   private val appInspectionView = AppInspectionView(
     project,
     AppInspectionHostService.instance.discoveryHost,
     ideServices,
-    ::getPreferredProcesses,
-    DefaultAppInspectionNotificationFactory(NotificationGroup.toolWindowGroup(APP_INSPECTION_ID, APP_INSPECTION_ID))
+    ::getPreferredProcesses
   )
   val component: JComponent = appInspectionView.component
 
