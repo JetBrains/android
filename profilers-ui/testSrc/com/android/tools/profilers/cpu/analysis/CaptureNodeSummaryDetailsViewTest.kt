@@ -60,7 +60,7 @@ class CaptureNodeSummaryDetailsViewTest {
     val view = CaptureNodeSummaryDetailsView(profilersView, model)
     assertThat(view.timeRangeLabel.text).isEqualTo("10.000 - 20.000")
     assertThat(view.dataTypeLabel.text).isEqualTo("Trace Event")
-    // Table for selected node.
-    assertThat(TreeWalker(view.component).descendants().filterIsInstance<JTable>().size).isEqualTo(1)
+    // Selected node basic stats table and longest occurrences table.
+    assertThat(TreeWalker(view.component).descendants().filterIsInstance<JTable>().size).isEqualTo(2)
   }
 }
