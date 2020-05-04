@@ -19,8 +19,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TextFieldWithAutoCompletion;
@@ -125,8 +125,8 @@ public class MorphPanel extends JPanel {
   }
 
   @NotNull
-  private DocumentAdapter createDocumentListener() {
-    return new DocumentAdapter() {
+  private DocumentListener createDocumentListener() {
+    return new DocumentListener() {
       @Override
       public void documentChanged(@NotNull DocumentEvent e) {
         if (myNameChangeConsumer != null) {
