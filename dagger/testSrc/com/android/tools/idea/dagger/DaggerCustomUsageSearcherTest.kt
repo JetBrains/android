@@ -690,7 +690,6 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     """.trimIndent()
     )
 
-
     // Kotlin Component
     myFixture.addFileToProject(
       "test/MyComponentKt.kt",
@@ -704,19 +703,87 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     """.trimIndent()
     )
 
+
+    // Java Subcomponent
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Subcomponent;
+
+      @Subcomponent(modules = { MyModule.class })
+      public interface MyParentSubcomponent {}
+    """.trimIndent()
+    )
+
     myFixture.configureFromExistingVirtualFile(subcomponentFile)
     val component = myFixture.moveCaret("MySubcompon|ent").parentOfType<PsiClass>()!!
     val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
 
     assertThat(presentation).contains(
       """
-      |  Parent component(s) (2 usages)
-      |   ${myFixture.module.name} (2 usages)
-      |    test (2 usages)
+      |  Parent component(s) (3 usages)
+      |   ${myFixture.module.name} (3 usages)
+      |    test (3 usages)
       |     MyComponent.java (1 usage)
       |      5public interface MyComponent {}
+      |     MyParentSubcomponent.java (1 usage)
+      |      5public interface MyParentSubcomponent {}
       |     MyComponentKt.kt (1 usage)
       |      5interface MyComponentKt
+      """.trimMargin()
+    )
+  }
+
+  fun testSubcomponentsForSubcomponent() {
+    // Java Subcomponent
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Subcomponent;
+
+      @Subcomponent
+      public interface MySubcomponent {}
+    """.trimIndent()
+    )
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+
+        import dagger.Module;
+
+        @Module(subcomponents = { MySubcomponent.class })
+        class MyModule { }
+      """.trimIndent()
+    )
+
+    // Java parent Subcomponent
+    val file = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Subcomponent;
+
+      @Subcomponent(modules = { MyModule.class })
+      public interface MyParentSubcomponent {}
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+
+    myFixture.configureFromExistingVirtualFile(file)
+    val component = myFixture.moveCaret("MyParent|Subcomponent").parentOfType<PsiClass>()!!
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
+
+    assertThat(presentation).contains(
+      """
+      |  Subcomponent(s) (1 usage)
+      |   ${myFixture.module.name} (1 usage)
+      |    test (1 usage)
+      |     MySubcomponent.java (1 usage)
+      |      5public interface MySubcomponent {}
       """.trimMargin()
     )
   }
@@ -906,7 +973,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Module(subcomponents = [ MySubcomponent::class ])
       class MyModule
-      
+
       @Component(modules = [ MyModule::class])
       interface MyComponen<caret>t
     """.trimIndent()

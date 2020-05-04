@@ -43,7 +43,7 @@ private val INCLUDED_IN_MODULES_USAGE_TYPE = UsageType(UIStrings.INCLUDED_IN_MOD
 private val MODULES_USAGE_TYPE = UsageType(UIStrings.MODULES_INCLUDED)
 
 /**
- * [UsageTypeProvider] that labels Dagger providers and consumers with the right description.
+ * [UsageTypeProvider] that labels Dagger related PsiElements with the right description.
  */
 class DaggerUsageTypeProvider : UsageTypeProviderEx {
   override fun getUsageType(element: PsiElement?, targets: Array<UsageTarget>): UsageType? {
@@ -61,6 +61,9 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
       target.isDaggerComponent && element.isDaggerSubcomponent -> SUBCOMPONENTS_USAGE_TYPE
       target.isDaggerSubcomponent && element.isDaggerComponent -> PARENT_COMPONENTS_USAGE_TYPE
       target.isDaggerSubcomponent && element.isDaggerModule -> MODULES_USAGE_TYPE
+      target.isDaggerSubcomponent && element.isDaggerSubcomponent -> {
+        if (target.toPsiClass()!!.isParentOf(element.toPsiClass()!!)) SUBCOMPONENTS_USAGE_TYPE else PARENT_COMPONENTS_USAGE_TYPE
+      }
       else -> null
     }
   }
@@ -69,13 +72,7 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
 }
 
 /**
- * Adds custom usages to a find usages window.
- *
- * For Dagger consumers adds providers.
- * For Dagger providers adds consumers.
- *
- * Currently doesn't work for Kotlin if "Search in text occurrences" is not selected.
- * See a bug https://youtrack.jetbrains.com/issue/KT-36657.
+ * Adds custom usages for Dagger related classes to a find usages window.
  */
 class DaggerCustomUsageSearcher : CustomUsageSearcher() {
   private class UsageWithAnalyticsTracking(
@@ -116,18 +113,14 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
     }
   }
 
-  /**
-   * Returns Components that are parents to [subcomponent].
-   */
   private fun getCustomUsagesForSubcomponent(subcomponent: PsiElement): Collection<PsiElement> {
     // [subcomponent] is always PsiClass or KtClass or KtObjectDeclaration, see [isDaggerSubcomponent].
     val asPsiClass = subcomponent.toPsiClass()!!
-    return getDaggerParentComponentsForSubcomponent(asPsiClass) + getModulesForComponent(asPsiClass)
+    return getDaggerParentComponentsForSubcomponent(asPsiClass) +
+           getModulesForComponent(asPsiClass) +
+           getSubcomponents(asPsiClass)
   }
 
-  /**
-   * Returns Components that use a [component] in "dependencies" attr.
-   */
   private fun getCustomUsagesForComponent(component: PsiElement): Collection<PsiElement> {
     // [component] is always PsiClass or KtClass or KtObjectDeclaration, see [isDaggerComponent].
     val asPsiClass = component.toPsiClass()!!
@@ -136,23 +129,13 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
            getModulesForComponent(asPsiClass)
   }
 
-  /**
-   * Returns Components and Subcomponents that uses a [module] in "modules" attr.
-   *
-   * Note: [module] is always PsiClass or KtClass, see [isDaggerModule].
-   */
   @WorkerThread
+  // [module] is always PsiClass or KtClass, see [isDaggerModule].
   private fun getCustomUsagesForModule(module: PsiElement) = getUsagesForDaggerModule(module.toPsiClass()!!)
 
-  /**
-   * Adds Dagger providers of [consumer] to [consumer]'s usages.
-   */
   @WorkerThread
   private fun getCustomUsagesForConsumers(consumer: PsiElement) = getDaggerProvidersFor(consumer)
 
-  /**
-   * Returns Dagger consumers of [provider] and Dagger component's methods associated with [provider].
-   */
   @WorkerThread
   private fun getCustomUsagesForProvider(provider: PsiElement): Collection<PsiElement> = getDaggerConsumersFor(provider) +
                                                                                          getDaggerComponentMethodsForProvider(provider)

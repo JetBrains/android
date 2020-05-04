@@ -418,10 +418,26 @@ internal fun PsiElement.toPsiClass(): PsiClass? = when {
 private val PsiType.unboxed: PsiType
   get() = PsiPrimitiveType.getUnboxedType(this) ?: this
 
-
+/**
+ * Returns PsiClasses from value of "modules" attribute of DAGGER_COMPONENT_ANNOTATION or DAGGER_SUBCOMPONENT_ANNOTATION annotations.
+ */
 internal fun getModulesForComponent(component: PsiClass): Collection<PsiClass> {
   val annotation = component.getAnnotation(DAGGER_COMPONENT_ANNOTATION)
                    ?: component.getAnnotation(DAGGER_SUBCOMPONENT_ANNOTATION)
                    ?: return emptyList()
   return annotation.getClassesFromAttribute(MODULES_ATTR_NAME)
+}
+
+/**
+ * Returns true if [this] component is parent component of a [component] otherwise returns false.
+ *
+ * [this] is an interface annotated [DAGGER_COMPONENT_ANNOTATION] or [DAGGER_SUBCOMPONENT_ANNOTATION].
+ */
+internal fun PsiClass.isParentOf(component: PsiClass): Boolean {
+  val modules = getModulesForComponent(this)
+  return modules.any { module ->
+    val subcomponents = module.getAnnotation(DAGGER_MODULE_ANNOTATION)?.getClassesFromAttribute(SUBCOMPONENTS_ATTR_NAME)
+                        ?: return@any false
+    subcomponents.any { it.qualifiedName == component.qualifiedName }
+  }
 }
