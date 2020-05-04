@@ -17,6 +17,8 @@ package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
+import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.text.DateFormatUtil
@@ -25,7 +27,8 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 
 class BuildOverviewPageView(
-  val model: BuildAnalyzerViewModel
+  val model: BuildAnalyzerViewModel,
+  val actionHandlers: ViewActionHandlers
 ) : BuildAnalyzerDataPageView {
 
   override val component: JPanel = JPanel().apply {
@@ -40,6 +43,22 @@ class BuildOverviewPageView(
     add(JBLabel("Includes:").withBorder(JBUI.Borders.emptyTop(20)))
     add(JBLabel("Build configuration: ${buildSummary.configurationDuration.durationString()}"))
     add(JBLabel("Critical path tasks execution: ${buildSummary.criticalPathDuration.durationString()}"))
+
+    add(JPanel().apply {
+      name = "links"
+      border = JBUI.Borders.emptyTop(20)
+      layout = VerticalLayout(10, SwingConstants.LEFT)
+      add(JBLabel("Common views into this build").withFont(JBUI.Fonts.label().asBold()))
+      add(HyperlinkLabel("Tasks impacting build duration").apply {
+        addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.UNGROUPED) }
+      })
+      add(HyperlinkLabel("Plugins with tasks impacting build duration").apply {
+        addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN) }
+      })
+      add(HyperlinkLabel("All warnings").apply {
+        addHyperlinkListener { actionHandlers.changeViewToWarningsLinkClicked() }
+      })
+    })
   }
 
   override val additionalControls: JPanel = JPanel().apply { name = "build-overview-additional-controls" }

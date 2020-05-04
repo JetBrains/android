@@ -49,7 +49,7 @@ class BuildAnalyzerComboBoxView(
     }
   }
 
-  private val overviewPage = BuildOverviewPageView(model)
+  private val overviewPage = BuildOverviewPageView(model, actionHandlers)
   private val tasksPage = TasksPageView(model.tasksPageModel, actionHandlers)
   private val warningsPage = WarningsPageView(model.warningsPageModel, actionHandlers)
 
