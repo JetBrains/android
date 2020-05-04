@@ -66,15 +66,15 @@ public class MlkitLightClassTest extends AndroidTestCase {
     // Pull in tflite model, which has image(i.e. name: image1) as input tensor and labels as output tensor
     myFixture.setTestDataPath(TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData/models").getPath());
 
-    // Mock TensorImage, TensorBuffer and TensorLabel
+    // Mock TensorImage, TensorBuffer and Category
     myFixture.addFileToProject("src/org/tensorflow/lite/support/image/TensorImage.java",
                                "package org.tensorflow.lite.support.image; public class TensorImage {}");
     myFixture.addFileToProject("src/org/tensorflow/lite/support/tensorbuffer/TensorBuffer.java",
                                "package org.tensorflow.lite.support.tensorbuffer; public class TensorBuffer {}");
-    myFixture.addFileToProject("src/org/tensorflow/lite/support/label/TensorLabel.java",
-                               "package org.tensorflow.lite.support.label; public class TensorLabel {}");
     myFixture.addFileToProject("src/org/tensorflow/lite/support/model/Model.java",
                                "package org.tensorflow.lite.support.model; public class Model { public static class Options {} }");
+    myFixture.addFileToProject("src/org/tensorflow/lite/support/label/Category.java",
+                               "package org.tensorflow.lite.support.label; public class Category {}");
 
     AndroidFacet androidFacet = AndroidFacet.getInstance(myModule);
     VirtualFile manifestFile = ManifestUtils.getMainManifest(androidFacet).getVirtualFile();
@@ -114,8 +114,9 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import java.lang.String;\n" +
       "import java.lang.Float;\n" +
       "import java.util.Map;\n" +
+      "import java.util.List;\n" +
       "import org.tensorflow.lite.support.image.TensorImage;\n" +
-      "import org.tensorflow.lite.support.label.TensorLabel;\n" +
+      "import org.tensorflow.lite.support.label.Category;\n" +
       "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
       "import org.tensorflow.lite.support.model.Model;\n" +
       "import java.io.IOException;\n" +
@@ -133,11 +134,11 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "            MobilenetModel mobilenetModel = MobilenetModel.newInstance(this);\n" +
       "            TensorImage image = null;\n" +
       "            MobilenetModel.Outputs mobilenetOutputs = mobilenetModel.process(image);\n" +
-      "            TensorLabel tensorLabel = mobilenetOutputs.getProbabilityAsTensorLabel();\n" +
+      "            List<Category> categoryList = mobilenetOutputs.getProbabilityAsCategoryList();\n" +
       "\n" +
       "            MobilenetModel219 mobilenetModel219 = MobilenetModel219.newInstance(this, options);\n" +
       "            MobilenetModel219.Outputs mobilenetOutputs2 = mobilenetModel219.process(image);\n" +
-      "            TensorLabel tensorLabel2 = mobilenetOutputs2.getProbabilityAsTensorLabel();\n" +
+      "            List<Category> categoryList2 = mobilenetOutputs2.getProbabilityAsCategoryList();\n" +
       "\n" +
       "            SsdModel ssdModel = SsdModel.newInstance(this);\n" +
       "            SsdModel.Outputs ssdOutputs = ssdModel.process(image);\n" +
@@ -279,13 +280,14 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import android.app.Activity\n" +
       "import android.os.Bundle\n" +
       "import android.util.Log\n" +
-      "import org.tensorflow.lite.support.image.TensorImage;\n" +
-      "import org.tensorflow.lite.support.label.TensorLabel;\n" +
-      "import org.tensorflow.lite.support.model.Model;\n" +
-      "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
-      "import p1.p2.ml.MobilenetModel;\n" +
-      "import p1.p2.ml.SsdModel;\n" +
-      "import p1.p2.ml.StyleTransferModel;\n" +
+      "import kotlin.collections.List\n" +
+      "import org.tensorflow.lite.support.image.TensorImage\n" +
+      "import org.tensorflow.lite.support.label.Category\n" +
+      "import org.tensorflow.lite.support.model.Model\n" +
+      "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer\n" +
+      "import p1.p2.ml.MobilenetModel\n" +
+      "import p1.p2.ml.SsdModel\n" +
+      "import p1.p2.ml.StyleTransferModel\n" +
       "\n" +
       "class MainActivity : Activity() {\n" +
       "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
@@ -296,7 +298,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "\n" +
       "        val mobilenetModel = MobilenetModel.newInstance(this)\n" +
       "        val mobilenetOutputs = mobilenetModel.process(tensorImage)\n" +
-      "        val probability = mobilenetOutputs.probabilityAsTensorLabel\n" +
+      "        val probability = mobilenetOutputs.probabilityAsCategoryList\n" +
       "        Log.d(\"TAG\", \"Result\" + probability)\n" +
       "\n" +
       "        val ssdModel = SsdModel.newInstance(this, options)\n" +
@@ -364,8 +366,9 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import android.os.Bundle;\n" +
       "import java.lang.String;\n" +
       "import java.util.Map;\n" +
+      "import java.util.List;\n" +
       "import org.tensorflow.lite.support.image.TensorImage;\n" +
-      "import org.tensorflow.lite.support.label.TensorLabel;\n" +
+      "import org.tensorflow.lite.support.label.Category;\n" +
       "import java.io.IOException;\n" +
       "import p1.p2.ml.MyModel;\n" +
       "\n" +
@@ -377,7 +380,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "            MyModel myModel = MyModel.newInstance(this);\n" +
       "            TensorImage image = null;\n" +
       "            MyModel.Outputs outputs = myModel.process(image);\n" +
-      "            TensorLabel tensorLabel = outputs.getProbabilityAsTensorLabel();\n" +
+      "            List<Category> categoryList = outputs.getProbabilityAsCategoryList();\n" +
       "        } catch (IOException e) {};\n" +
       "    }\n" +
       "}"
