@@ -66,8 +66,9 @@ DONE.
 
   @Test
   fun testParseNodes() {
+    val resourceLookup = mock(ResourceLookup::class.java)
     val provider = LegacyPropertiesProvider()
-    val propertiesUpdater = LegacyPropertiesProvider.Updater()
+    val propertiesUpdater = LegacyPropertiesProvider.Updater(resourceLookup)
     val (root, hash) = LegacyTreeLoader.parseLiveViewNode(treeSample.toByteArray(Charsets.UTF_8), propertiesUpdater)!!
     propertiesUpdater.apply(provider)
     provider.requestProperties(root)
@@ -120,8 +121,9 @@ DONE.
     responseBytes.putInt(window2.length)
     ByteBufferUtil.putString(responseBytes, window2)
     val ddmClient = FakeClientBuilder().registerResponse(requestMatcher, CHUNK_VULW, responseBytes).build()
+    val resourceLookup = mock(ResourceLookup::class.java)
 
-    val legacyClient = LegacyClient(disposableRule.disposable)
+    val legacyClient = LegacyClient(resourceLookup, disposableRule.disposable)
     legacyClient.selectedClient = ddmClient
 
     val result = LegacyTreeLoader.getAllWindowIds(null, legacyClient)
@@ -130,6 +132,7 @@ DONE.
 
   @Test
   fun testLoadComponentTree() {
+    val resourceLookup = mock(ResourceLookup::class.java)
     val legacyClient = mock(LegacyClient::class.java)
     val client = mock(ClientImpl::class.java)
     `when`(legacyClient.selectedClient).thenReturn(client)
@@ -144,7 +147,7 @@ DONE.
     `when`(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
                                     any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
     val (viewNode, windowId) = LegacyTreeLoader.loadComponentTree(
-      LegacyEvent("window1", LegacyPropertiesProvider.Updater(), listOf("window1")),
+      LegacyEvent("window1", LegacyPropertiesProvider.Updater(resourceLookup), listOf("window1")),
       mock(ResourceLookup::class.java), legacyClient, mock(Project::class.java))!!
     assertThat(windowId).isEqualTo("window1")
     assertThat(viewNode.drawId).isEqualTo(0x41673e3)

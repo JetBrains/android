@@ -149,7 +149,7 @@ class DefaultPropertiesProvider(
         add(InspectorPropertyItem(ANDROID_URI, name, property.type, value, group, source, view, resourceLookup))
       }
       ApplicationManager.getApplication().runReadAction { generateItemsForResolutionStack() }
-      addInternalProperties(table, view)
+      addInternalProperties(table, view, resourceLookup)
       return table
     }
 

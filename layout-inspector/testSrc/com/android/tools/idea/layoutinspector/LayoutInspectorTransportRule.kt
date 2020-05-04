@@ -200,7 +200,9 @@ class LayoutInspectorTransportRule(
   /**
    * Create a [LegacyClient] rather than a [DefaultInspectorClient]
    */
-  fun withLegacyClient() = apply { inspectorClientFactory = { LegacyClient(projectRule.fixture.projectDisposable) } }
+  fun withLegacyClient() = apply { inspectorClientFactory = {
+    LegacyClient(inspectorModel.resourceLookup, projectRule.fixture.projectDisposable) }
+  }
 
   /**
    * The default attach handler just attaches (or fails if [shouldConnectSuccessfully] is false). Use this if you want to do something else.

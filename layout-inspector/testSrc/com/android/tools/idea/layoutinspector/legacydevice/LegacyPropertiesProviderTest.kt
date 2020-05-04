@@ -21,9 +21,11 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import org.mockito.Mockito
 
 class LegacyPropertiesProviderTest {
   private val example =
@@ -64,9 +66,10 @@ class LegacyPropertiesProviderTest {
 
   @Test
   fun testExample() {
+    val resourceLookup = Mockito.mock(ResourceLookup::class.java)
     val root = ViewNode(1234, "TextView", null, 0, 0, 0, 0, null, "", 0)
     val provider = LegacyPropertiesProvider()
-    val propertyLoader = LegacyPropertiesProvider.Updater()
+    val propertyLoader = LegacyPropertiesProvider.Updater(resourceLookup)
     propertyLoader.parseProperties(root, example)
     propertyLoader.apply(provider)
     var properties = PropertiesTable.emptyTable<InspectorPropertyItem>()

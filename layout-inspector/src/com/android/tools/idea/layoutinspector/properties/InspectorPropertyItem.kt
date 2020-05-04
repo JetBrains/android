@@ -60,12 +60,12 @@ open class InspectorPropertyItem(
   var view: ViewNode,
 
   /** The inspector model this item is a part of */
-  val resourceLookup: ResourceLookup?
+  val resourceLookup: ResourceLookup
 
 ) : PropertyItem {
 
   constructor(namespace: String, attrName: String, type: Type, value: String?, group: PropertySection, source: ResourceReference?,
-              view: ViewNode, resourceLookup: ResourceLookup?) :
+              view: ViewNode, resourceLookup: ResourceLookup) :
     this(namespace, attrName, attrName, type, value, group, source, view, resourceLookup)
 
   override fun hashCode(): Int = HashCodes.mix(namespace.hashCode(), attrName.hashCode(), source?.hashCode() ?: 0)
@@ -79,7 +79,7 @@ open class InspectorPropertyItem(
 
   override val helpSupport = object : HelpSupport {
     override fun browse() {
-      val location = resourceLookup?.findFileLocations(this@InspectorPropertyItem, 1)?.singleOrNull() ?: return
+      val location = resourceLookup.findFileLocations(this@InspectorPropertyItem, 1).singleOrNull() ?: return
       location.navigatable?.navigate(true)
     }
   }
@@ -98,7 +98,7 @@ open class InspectorPropertyItem(
     override val action: AnAction? = null
     override val actionIcon: Icon?
       get() {
-        property.resourceLookup?.let { return it.resolveAsIcon(property) }
+        property.resourceLookup.resolveAsIcon(property)?.let { return it }
         val value = property.value
         val color = value?.let { parseColor(value) } ?: return null
         // TODO: Convert this into JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false)) when JBCachingScalableIcon extends JBScalableIcon

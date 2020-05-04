@@ -277,8 +277,8 @@ class ResourceLookupResolverTest {
     val titleId = ResourceReference(exampleNS, ResourceType.ID, "title")
     val buttonId = ResourceReference(exampleNS, ResourceType.ID, "button")
     val model = InspectorPropertiesModel()
-    val inspectorModel = model.layoutInspector?.layoutInspectorModel
-    val resourceLookup = inspectorModel?.resourceLookup
+    val inspectorModel = model.layoutInspector!!.layoutInspectorModel
+    val resourceLookup = inspectorModel.resourceLookup
     val relativeLayout = ViewNode(1, "RelativeLayout", demo, 0, 0, 300, 900, relativeId, "", 0)
     val title = ViewNode(2, "TextView", demo, 30, 60, 300, 100, titleId, "Hello Folks", 0)
     val frameLayout = ViewNode(3, "RelativeLayout", demo, 0, 200, 300, 700, frameId, "", 0)
