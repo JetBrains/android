@@ -20,10 +20,19 @@ import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksPageId
+import com.android.build.attribution.ui.panels.CriticalPathChartLegend.androidPluginColor
+import com.android.build.attribution.ui.panels.CriticalPathChartLegend.buildsrcPluginColor
+import com.android.build.attribution.ui.panels.CriticalPathChartLegend.externalPluginColor
 import com.android.build.attribution.ui.panels.TimeDistributionChart
 import com.android.build.attribution.ui.tree.createPluginChartItems
 import com.android.build.attribution.ui.tree.createTaskChartItems
 import com.intellij.ui.CardLayoutPanel
+import com.intellij.ui.components.panels.VerticalLayout
+import com.intellij.util.ui.ColorIcon
+import java.awt.Component
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.SwingConstants
 
 /**
  * This is temporal solution to show old time distribution visualisation on a tasks page of new navigation model.
@@ -31,7 +40,7 @@ import com.intellij.ui.CardLayoutPanel
  */
 class ChartsPanel(
   reportData: BuildAttributionReportUiData
-) : CardLayoutPanel<TasksPageId, TasksPageId, TimeDistributionChart<*>>() {
+) : CardLayoutPanel<TasksPageId, TasksPageId, Component>() {
 
   val ungroupedChartItems: List<TimeDistributionChart.ChartDataItem<TaskUiData>> = createTaskChartItems(reportData.criticalPathTasks)
 
@@ -71,12 +80,25 @@ class ChartsPanel(
 
   override fun prepare(key: TasksPageId): TasksPageId = key
 
-  override fun create(id: TasksPageId): TimeDistributionChart<*>? = when (id.grouping) {
+  override fun create(id: TasksPageId): Component? = when (id.grouping) {
     TasksDataPageModel.Grouping.UNGROUPED -> pageIdToTaskChartElement[id]?.let {
-      TimeDistributionChart(ungroupedChartItems, it, false).apply { name = "task-chart-selected-${it.text()}" }
+      JPanel().apply {
+        layout = VerticalLayout(0, SwingConstants.LEFT)
+        name = "task-chart-selected-${it.text()}"
+        add(TimeDistributionChart(ungroupedChartItems, it, false))
+        add(tasksLegend())
+      }
     }
     TasksDataPageModel.Grouping.BY_PLUGIN -> pageIdToPluginChartElement[id]?.let {
       TimeDistributionChart(pluginChartItems, it, false).apply { name = "plugin-chart-selected-${it.text()}" }
     }
+  }
+
+  private fun tasksLegend() = JPanel().apply {
+    name = "tasks-chart-legend"
+    layout = VerticalLayout(0, SwingConstants.LEFT)
+    add(JLabel("Project Customizations", ColorIcon(10, buildsrcPluginColor.baseColor), SwingConstants.RIGHT))
+    add(JLabel("Android/Java/Kotlin Plugins", ColorIcon(10, androidPluginColor.baseColor), SwingConstants.RIGHT))
+    add(JLabel("Other Binary Plugins", ColorIcon(10, externalPluginColor.baseColor), SwingConstants.RIGHT))
   }
 }
