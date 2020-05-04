@@ -21,16 +21,15 @@ import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
-import java.io.IOException;
-import java.util.ArrayList;
+import com.intellij.util.containers.ContainerUtil;
+import java.util.Comparator;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 public class CaptureNodeTest {
 
   @Test
-  public void captureNodeSpecificMethods() throws IOException {
+  public void captureNodeSpecificMethods() {
     CaptureNode node = new CaptureNode(new StubCaptureNodeModel());
     assertThat(node.getClockType()).isEqualTo(ClockType.GLOBAL);
 
@@ -48,7 +47,7 @@ public class CaptureNodeTest {
   }
 
   @Test
-  public void hNodeApiMethods() throws IOException {
+  public void hNodeApiMethods() {
     CaptureNode node = new CaptureNode(new StubCaptureNodeModel());
 
     node.setStartThread(0);
@@ -121,7 +120,24 @@ public class CaptureNodeTest {
     assertThat(filterResult.getMatchCount()).isEqualTo(14);
     assertThat(filterResult.getTotalCount()).isEqualTo(14);
     assertThat(filterResult.isFilterEnabled()).isFalse();
-    getDescendants(root).forEach(n -> assertThat(n.getFilterType()).isEqualTo(CaptureNode.FilterType.MATCH));
+    root.getDescendantsStream().forEach(n -> assertThat(n.getFilterType()).isEqualTo(CaptureNode.FilterType.MATCH));
+  }
+
+  @Test
+  public void testGetRootNode() {
+    CaptureNode root = createFilterTestTree();
+    assertThat(root.findRootNode()).isSameAs(root);
+    assertThat(root.getChildAt(0).findRootNode()).isSameAs(root);
+    assertThat(root.getChildAt(1).getChildAt(0).findRootNode()).isSameAs(root);
+    assertThat(root.getChildAt(0).getChildAt(1).getChildAt(0).findRootNode()).isSameAs(root);
+  }
+
+  @Test
+  public void testGetTopKNodes() {
+    CaptureNode root = createFilterTestTree();
+    List<CaptureNode> longestNodes = root.getTopKNodes(
+      4, node -> node.getData().getFullName().equals("otherPackage.method4"), Comparator.comparing(CaptureNode::getDuration));
+    assertThat(ContainerUtil.map(longestNodes, CaptureNode::getDuration)).containsExactly(100L, 100L, 99L, 40L);
   }
 
   /**
@@ -188,18 +204,5 @@ public class CaptureNodeTest {
     node.setEndThread(end);
 
     return node;
-  }
-
-  @NotNull
-  private static List<CaptureNode> getDescendants(@NotNull CaptureNode node) {
-    List<CaptureNode> descendants = new ArrayList<>();
-    descendants.add(node);
-
-    int head = 0;
-    while (head < descendants.size()) {
-      CaptureNode curNode = descendants.get(head++);
-      descendants.addAll(curNode.getChildren());
-    }
-    return descendants;
   }
 }

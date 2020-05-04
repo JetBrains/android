@@ -16,9 +16,14 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.common.primaryContentBackground
+import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ui.components.Label
+import com.intellij.util.ui.JBUI
 import java.awt.Font
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
@@ -39,6 +44,10 @@ class CaptureNodeSummaryDetailsView(profilersView: StudioProfilersView,
     addRowToCommonSection("Time Range", timeRangeLabel)
     addRowToCommonSection("Data Type", dataTypeLabel)
     addSection(buildSelectedNodeTable())
+    // All Occurrences section only applies to single node selection.
+    if (tabModel.dataSeries.size == 1) {
+      addSection(buildAllOccurrencesSection(tabModel.dataSeries[0]))
+    }
   }
 
   private fun buildSelectedNodeTable() = JPanel(TabularLayout("*").setVGap(8)).apply {
@@ -48,5 +57,24 @@ class CaptureNodeSummaryDetailsView(profilersView: StudioProfilersView,
       isOpaque = false
     }), TabularLayout.Constraint(0, 0))
     add(CaptureNodeDetailTable(selectedNodes, tabModel.captureRange).component, TabularLayout.Constraint(1, 0))
+  }
+
+  private fun buildAllOccurrencesSection(model: CaptureNodeAnalysisModel): JComponent {
+    // Table to display longest running occurrences.
+    val topOccurrencesLabel = Label("Longest running occurrences").apply { isOpaque = false }
+    val topOccurrencesTable = CaptureNodeDetailTable(model.getLongestRunningOccurrences(10), tabModel.captureRange)
+
+    val panel = JPanel(TabularLayout("*", "Fit,Fit").setVGap(8)).apply {
+      isOpaque = false
+      add(topOccurrencesLabel, TabularLayout.Constraint(0, 0))
+      add(topOccurrencesTable.component, TabularLayout.Constraint(1, 0))
+    }
+
+    // Wrap everything in a collapsible panel.
+    return HideablePanel(HideablePanel.Builder("All Occurrences", panel)
+                           .setPanelBorder(JBUI.Borders.empty())
+                           .setContentBorder(JBUI.Borders.empty(8, 0, 0, 0))).apply {
+      background = primaryContentBackground
+    }
   }
 }

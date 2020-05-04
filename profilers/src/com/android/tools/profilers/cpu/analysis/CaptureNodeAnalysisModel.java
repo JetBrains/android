@@ -21,6 +21,8 @@ import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalysisModel> {
@@ -40,6 +42,16 @@ public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalys
   @NotNull
   public Range getNodeRange() {
     return new Range(myNode.getStart(), myNode.getEnd());
+  }
+
+  /**
+   * @return top k nodes by duration, with same full name, in descending order.
+   */
+  @NotNull
+  public List<CaptureNode> getLongestRunningOccurrences(int k) {
+    String targetFullName = myNode.getData().getFullName();
+    return myNode.findRootNode().getTopKNodes(k, node -> node.getData().getFullName().equals(targetFullName),
+                                              Comparator.comparing(CaptureNode::getDuration));
   }
 
   @NotNull
