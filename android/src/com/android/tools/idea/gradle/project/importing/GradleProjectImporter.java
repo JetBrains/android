@@ -78,7 +78,7 @@ public class GradleProjectImporter {
   }
 
   public GradleProjectImporter() {
-    this(SdkSync.getInstance(), new TopLevelModuleFactory(IdeInfo.getInstance(), IdeSdks.getInstance()), new ProjectFolder.Factory());
+    this(SdkSync.getInstance(), new TopLevelModuleFactory(IdeInfo.getInstance()), new ProjectFolder.Factory());
   }
 
   @NonInjectable
