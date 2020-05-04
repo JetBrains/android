@@ -88,7 +88,6 @@ private fun toAnalytics(action: ValidationResult.Action): StudioPatchUpdaterEven
     ValidationResult.Action.CREATE -> StudioPatchUpdaterEvent.IssueDialog.Issue.Action.CREATE
     ValidationResult.Action.UPDATE -> StudioPatchUpdaterEvent.IssueDialog.Issue.Action.UPDATE
     ValidationResult.Action.DELETE -> StudioPatchUpdaterEvent.IssueDialog.Issue.Action.DELETE
-    ValidationResult.Action.NO_ACTION -> StudioPatchUpdaterEvent.IssueDialog.Issue.Action.NO_ACTION
     ValidationResult.Action.VALIDATE -> StudioPatchUpdaterEvent.IssueDialog.Issue.Action.VALIDATE
   }
 }
