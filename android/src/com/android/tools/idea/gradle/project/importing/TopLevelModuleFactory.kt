@@ -34,7 +34,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.PathUtil
 import java.io.File
 
-class TopLevelModuleFactory(private val ideInfo: IdeInfo) {
+class TopLevelModuleFactory() {
 
   /**
    * Creates and configures a temporary module holding covering sources in the root of the Gradle project root to solve the
@@ -98,7 +98,7 @@ class TopLevelModuleFactory(private val ideInfo: IdeInfo) {
         )
       val model = ModuleRootManager.getInstance(module).modifiableModel
       model.addContentEntry(contentRoot)
-      if (ideInfo.isAndroidStudio) {
+      if (IdeInfo.getInstance().isAndroidStudio) {
         // If sync fails, make sure that the project has a JDK, otherwise Groovy indices won't work (a common scenario where
         // users will update build.gradle files to fix Gradle sync.)
         // See: https://code.google.com/p/android/issues/detail?id=194621
