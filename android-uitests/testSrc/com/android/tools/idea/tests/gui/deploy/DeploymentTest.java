@@ -25,6 +25,7 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.testutils.TestUtils;
 import com.android.tools.deployer.DeployerTestUtils;
+import com.android.tools.deployer.devices.DeviceId;
 import com.android.tools.deployer.devices.FakeDevice;
 import com.android.tools.deployer.devices.FakeDeviceHandler;
 import com.android.tools.deployer.devices.FakeDeviceLibrary;
@@ -200,7 +201,7 @@ public class DeploymentTest {
   @NotNull
   private List<FakeDevice> connectDevices() throws Exception {
     List<FakeDevice> devices = new ArrayList<>();
-    for (FakeDeviceLibrary.DeviceId id : FakeDeviceLibrary.DeviceId.values()) {
+    for (DeviceId id : DeviceId.values()) {
       FakeDevice device = new FakeDeviceLibrary().build(id);
       devices.add(device);
       myHandler.connect(device, myAdbServer);
@@ -210,7 +211,7 @@ public class DeploymentTest {
       .expecting("device to show up in ddmlib")
       .until(() -> {
         try {
-          return myAdbServer.getDeviceListCopy().get().size() == FakeDeviceLibrary.DeviceId.values().length;
+          return myAdbServer.getDeviceListCopy().get().size() == DeviceId.values().length;
         }
         catch (InterruptedException | ExecutionException e) {
           return false;
