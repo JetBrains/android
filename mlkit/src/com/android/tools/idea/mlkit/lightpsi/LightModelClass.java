@@ -207,7 +207,7 @@ public class LightModelClass extends AndroidLightClassBase {
       .setContainingClass(this);
 
     for (TensorInfo tensorInfo : tensorInfos) {
-      PsiType tensorType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), getProject(), getResolveScope());
+      PsiType tensorType = CodeUtils.getPsiClassType(tensorInfo, getProject(), getResolveScope());
       method.addNullabilityParameter(tensorInfo.getIdentifierName(), tensorType, true);
     }
     method.setNavigationElement(this);

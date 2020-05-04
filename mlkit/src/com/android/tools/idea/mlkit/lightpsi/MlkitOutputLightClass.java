@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
+import com.android.tools.idea.mlkit.MlkitModuleService;
 import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.TensorInfo;
@@ -28,7 +29,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.light.LightMethodBuilder;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
@@ -91,9 +91,10 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
   private PsiMethod buildGetterMethod(@NotNull TensorInfo tensorInfo) {
     Project project = getProject();
     GlobalSearchScope scope = getResolveScope();
-    PsiClassType returnType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), project, scope);
+    PsiClassType returnType = CodeUtils.getPsiClassType(tensorInfo, project, scope);
     LightMethodBuilder method =
-      new NullabilityLightMethodBuilder(myManager, MlkitNames.formatGetterName(tensorInfo.getIdentifierName(), returnType.getClassName()))
+      new NullabilityLightMethodBuilder(myManager,
+                                        MlkitNames.formatGetterName(tensorInfo.getIdentifierName(), CodeUtils.getTypeName(returnType)))
         .setMethodReturnType(returnType, true)
         .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
         .setContainingClass(this);
