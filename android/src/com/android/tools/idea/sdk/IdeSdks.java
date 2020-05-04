@@ -57,6 +57,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -955,6 +956,11 @@ public class IdeSdks {
 
   @TestOnly
   public static void removeJdksOn(@NotNull Disposable disposable) {
+    // TODO: remove when all tests correctly pass the early disposable instead of the project.
+    if (disposable instanceof ProjectEx) {
+      disposable = ((ProjectEx)disposable).getEarlyDisposable();
+    }
+
     Disposer.register(disposable, () -> WriteAction.run(() -> {
       for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
         ProjectJdkTable.getInstance().removeJdk(sdk);

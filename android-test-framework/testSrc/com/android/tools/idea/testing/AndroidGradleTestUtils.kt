@@ -94,6 +94,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -760,7 +761,8 @@ fun setupTestProjectFromAndroidModel(
   setupDataNodesForSelectedVariant(project, androidModels, projectDataNode)
   ProjectDataManager.getInstance().importData(projectDataNode, project, true)
 
-  IdeSdks.removeJdksOn(project)
+  // Effectively getTestRootDisposable(), which is not the project itself but its earlyDisposable.
+  IdeSdks.removeJdksOn((project as? ProjectEx)?.earlyDisposable ?: project)
   runWriteAction {
     task.populateProject(
       projectDataNode,
