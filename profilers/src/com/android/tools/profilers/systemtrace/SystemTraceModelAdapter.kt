@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.systemtrace
 
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.ThreadState
 import java.util.SortedMap
 
@@ -26,19 +27,21 @@ import java.util.SortedMap
  */
 interface SystemTraceModelAdapter {
 
-  fun getCaptureStartTimestampUs() : Long
-  fun getCaptureEndTimestampUs() : Long
+  fun getCaptureStartTimestampUs(): Long
+  fun getCaptureEndTimestampUs(): Long
 
-  fun getProcessById(id: Int) : ProcessModel?
-  fun getProcesses() : List<ProcessModel>
+  fun getProcessById(id: Int): ProcessModel?
+  fun getProcesses(): List<ProcessModel>
 
-  fun getCpuCores() : List<CpuCoreModel>
+  fun getCpuCores(): List<CpuCoreModel>
+
+  fun getSystemTraceTechnology(): Cpu.CpuTraceType
 
   /**
    * Returns true if there is potentially missing data from the capture.
    * It's hard to guarantee if data is missing or not, so this is a best guess.
    */
-  fun isCapturePossibleCorrupted() : Boolean
+  fun isCapturePossibleCorrupted(): Boolean
 }
 
 data class ProcessModel(

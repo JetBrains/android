@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.atrace
 
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.systemtrace.CounterModel
 import com.android.tools.profilers.systemtrace.CpuCoreModel
@@ -30,7 +31,7 @@ import trebuchet.model.SchedulingState
 import trebuchet.model.base.SliceGroup
 import java.util.concurrent.TimeUnit
 
-class TrebuchetModelAdapter(trebuchetModel: Model) : SystemTraceModelAdapter {
+class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Cpu.CpuTraceType) : SystemTraceModelAdapter {
 
   companion object {
     private val SECONDS_TO_US = TimeUnit.SECONDS.toMicros(1)
@@ -59,6 +60,7 @@ class TrebuchetModelAdapter(trebuchetModel: Model) : SystemTraceModelAdapter {
 
   override fun getCpuCores(): List<CpuCoreModel> = cores
 
+  override fun getSystemTraceTechnology() = technology
   override fun isCapturePossibleCorrupted() = possibleCorruption
 
   init {

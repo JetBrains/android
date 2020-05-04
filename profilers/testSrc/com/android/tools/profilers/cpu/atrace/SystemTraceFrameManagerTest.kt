@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.atrace
 
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.TEST_PID
@@ -41,7 +42,7 @@ class SystemTraceFrameManagerTest {
     assertThat(reader.parseFile(file)).isTrue()
     val task = ImportTask(PrintlnImportFeedback())
     model = task.importBuffer(reader)
-    val modelAdapter = TrebuchetModelAdapter(model)
+    val modelAdapter = TrebuchetModelAdapter(model, Cpu.CpuTraceType.ATRACE)
     process = modelAdapter.getProcessById(TEST_PID)!!
   }
 
