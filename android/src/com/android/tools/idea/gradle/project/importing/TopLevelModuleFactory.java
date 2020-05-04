@@ -50,6 +50,28 @@ class TopLevelModuleFactory {
     myIdeInfo = ideInfo;
   }
 
+  /**
+   * Creates and configures a temporary module holding covering sources in the root of the Gradle project root to solve the
+   * following problems:
+   *
+   *   (1) We need a way to display the content of the project in the Android project view while the project is being setup or in the case
+   *       when it cannot be setup. The problem, here, is that there is not a node class capable to show the virtual file system outside of
+   *       the project scope. Nodes that exist like those in Project files view require a different tree model and thus cannot be used
+   *       directly.
+   *
+   *   (2) IDEA automatically configures a top level module when opening a project without modules by [PlatformProjectOpenProvider] which
+   *       happens when re-opening Android Studio and would happen if we do not configure the top level module ourselves in the case of
+   *       failing or not-finished sync.
+   *
+   *   (3) A temporary project structure needs to be configured in a way that excludes Gradle directories like `build` or `.gradle` (to
+   *       some extent) from indexing. Otherwise indexing that might happen before the first sync or will happen if sync fails or Android
+   *       Studio is restarted would index too many files and take too long.
+   *
+   *   (4) The top-level module if created needs to be registered with the external system so that it is later picked up as a module for
+   *       the `:` Gradle project.
+   *
+   *   (5) The support for Groovy based `build.gradle` requires the module holding them to have a JDK.
+   */
   void createTopLevelModule(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
 
