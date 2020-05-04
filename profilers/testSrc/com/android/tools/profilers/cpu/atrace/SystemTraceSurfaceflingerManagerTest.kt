@@ -16,45 +16,95 @@
 package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.SeriesData
-import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.atrace.SurfaceflingerEvent.Type
+import com.android.tools.profilers.systemtrace.CounterModel
+import com.android.tools.profilers.systemtrace.CpuCoreModel
+import com.android.tools.profilers.systemtrace.ProcessModel
+import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
+import com.android.tools.profilers.systemtrace.ThreadModel
+import com.android.tools.profilers.systemtrace.TraceEventModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import trebuchet.task.ImportTask
-import trebuchet.util.PrintlnImportFeedback
+import java.lang.UnsupportedOperationException
 
 class SystemTraceSurfaceflingerManagerTest {
-  private val model by lazy {
-    val file = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
-    val reader = AtraceProducer()
-    assertThat(reader.parseFile(file)).isTrue()
-    val task = ImportTask(PrintlnImportFeedback())
-    TrebuchetModelAdapter(task.importBuffer(reader), Cpu.CpuTraceType.ATRACE)
+
+  private companion object {
+    private val SF_PID = 1
+    private val SF_MAIN_THREAD_MODE = ThreadModel(SF_PID, SF_PID, "SurfaceFlingerMainThread",
+                                                  listOf(
+                                                  createEvent(3000, 5000),
+                                                  createEvent(7000, 15000),
+                                                  createEvent(15000, 20000)),
+                                                  listOf())
+
+    private val VSYNC_COUNTER = CounterModel("VSYNC-sf",
+                                             sortedMapOf(
+                                               5000L to 0.0,
+                                               10000L to 1.0,
+                                               15000L to 0.0,
+                                               20000L to 1.0,
+                                               25000L to 0.0))
+
+    private val SF_PROCESS_MODEL = ProcessModel(SF_PID, "surfaceflinger",
+                                                mapOf(SF_PID to SF_MAIN_THREAD_MODE),
+                                                mapOf("VSYNC-sf" to VSYNC_COUNTER))
+
+    private val MODEL = TestModel(listOf(SF_PROCESS_MODEL))
+
+    private fun createEvent(startTimeUs: Long, endTimeUs: Long): TraceEventModel {
+      return TraceEventModel("UnusedName", startTimeUs, endTimeUs, endTimeUs - startTimeUs, listOf())
+    }
   }
+
+
 
   @Test
   fun surfaceflingerEvents() {
-    val sfManager = SystemTraceSurfaceflingerManager(model)
+    val sfManager = SystemTraceSurfaceflingerManager(MODEL)
     val sfEvents = sfManager.surfaceflingerEvents
 
-    // The test trace contains 96 onMessageReceived trace events. With padded IDLE events we should have 2n + 1 events.
-    assertThat(sfEvents.size).isEqualTo(193)
-    // The first event should be a padded IDLE event.
-    assertThat(sfEvents[0]).isEqualTo(SeriesData(0, SurfaceflingerEvent(0, 87691156624, Type.IDLE)))
-    // The second event should be the first real PROCESSING event.
-    assertThat(sfEvents[1]).isEqualTo(SeriesData(87691156624, SurfaceflingerEvent(87691156624, 87691159184, Type.PROCESSING)))
-    // The last event should be a padded IDLE event.
-    assertThat(sfEvents[sfEvents.lastIndex]).isEqualTo(SeriesData(87701855476, SurfaceflingerEvent(87701855476, Long.MAX_VALUE, Type.IDLE)))
+    // The test trace contains 3 real events + 1 start IDLE + 1 end IDLE + 1 padding IDLE between [3, 5] and [7, 15].
+    assertThat(sfEvents.size).isEqualTo(6)
+    assertThat(sfEvents).containsExactly(
+      // The first event should be a starting IDLE event.
+      SeriesData(0, SurfaceflingerEvent(0, 3000, Type.IDLE)),
+      // The second event should be the first real PROCESSING event.
+      SeriesData(3000, SurfaceflingerEvent(3000, 5000, Type.PROCESSING)),
+      // Then a padded IDLE event.
+      SeriesData(5000, SurfaceflingerEvent(5000, 7000, Type.IDLE)),
+      // Then another PROCESSING EVENT.
+      SeriesData(7000, SurfaceflingerEvent(7000, 15000, Type.PROCESSING)),
+      // Then another PROCESSING EVENT, without a gap because start of this is equal to the previous end.
+      SeriesData(15000, SurfaceflingerEvent(15000, 20000, Type.PROCESSING)),
+      // The last event should be a ending IDLE event.
+      SeriesData(20000, SurfaceflingerEvent(20000, Long.MAX_VALUE, Type.IDLE))
+    ).inOrder()
   }
 
   @Test
   fun vsyncCounterValues() {
-    val sfManager = SystemTraceSurfaceflingerManager(model)
+    val sfManager = SystemTraceSurfaceflingerManager(MODEL)
     val vsyncValues = sfManager.vsyncCounterValues
 
-    assertThat(vsyncValues.size).isEqualTo(244)
-    assertThat(vsyncValues[0]).isEqualTo(SeriesData(87691150767, 1L))
-    assertThat(vsyncValues[1]).isEqualTo(SeriesData(87691169328, 0L))
+    assertThat(vsyncValues.size).isEqualTo(5)
+    assertThat(vsyncValues).containsExactly(
+      SeriesData(5000, 0L),
+      SeriesData(10000, 1L),
+      SeriesData(15000, 0L),
+      SeriesData(20000, 1L),
+      SeriesData(25000, 0L)
+    ).inOrder()
+  }
+
+  private class TestModel(private val processes: List<ProcessModel>) : SystemTraceModelAdapter {
+    override fun getProcesses(): List<ProcessModel> = processes
+
+    override fun getCaptureStartTimestampUs() = throw UnsupportedOperationException("Not Implemented For Test")
+    override fun getCaptureEndTimestampUs() = throw UnsupportedOperationException("Not Implemented For Test")
+    override fun getProcessById(id: Int) = throw UnsupportedOperationException("Not Implemented For Test")
+    override fun getCpuCores(): List<CpuCoreModel> = throw UnsupportedOperationException("Not Implemented For Test")
+    override fun getSystemTraceTechnology() = throw UnsupportedOperationException("Not Implemented For Test")
+    override fun isCapturePossibleCorrupted() = throw UnsupportedOperationException("Not Implemented For Test")
   }
 }
