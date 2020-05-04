@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.addInternalProperties
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.util.concurrent.Futures
@@ -57,7 +58,7 @@ class LegacyPropertiesProvider : PropertiesProvider {
     return Futures.immediateFuture(null)
   }
 
-  class Updater {
+  class Updater(val resourceLookup: ResourceLookup) {
     private var temp = mutableMapOf<Long, PropertiesTable<InspectorPropertyItem>>()
 
     fun apply(provider: LegacyPropertiesProvider) {
@@ -86,7 +87,7 @@ class LegacyPropertiesProvider : PropertiesProvider {
           val name = definition.name
           val type = definition.type
           val value = definition.value_mapper(rawValue)
-          val property = InspectorPropertyItem(SdkConstants.ANDROID_URI, name, name, type, value, section, null, view, null)
+          val property = InspectorPropertyItem(SdkConstants.ANDROID_URI, name, name, type, value, section, null, view, resourceLookup)
           table.put(property.namespace, property.name, property)
         }
 
@@ -116,7 +117,7 @@ class LegacyPropertiesProvider : PropertiesProvider {
       table.remove(SdkConstants.ANDROID_URI, ATTR_BOTTOM)
       table.remove(SdkConstants.ANDROID_URI, ATTR_RIGHT)
 
-      addInternalProperties(table, view)
+      addInternalProperties(table, view, resourceLookup)
 
       temp[view.drawId] = PropertiesTable.create(table)
     }

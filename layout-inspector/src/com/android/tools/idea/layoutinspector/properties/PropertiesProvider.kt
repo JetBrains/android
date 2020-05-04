@@ -21,6 +21,7 @@ import com.android.SdkConstants.ATTR_WIDTH
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.PropertySection.DIMENSION
 import com.android.tools.idea.layoutinspector.properties.PropertySection.VIEW
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.Table
@@ -63,12 +64,12 @@ object EmptyPropertiesProvider : PropertiesProvider {
 /**
  * Add a few fabricated internal attributes.
  */
-internal fun addInternalProperties(table: Table<String, String, InspectorPropertyItem>, view: ViewNode) {
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_NAME, Type.STRING, view.qualifiedName, VIEW, null, view, null))
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_X, Type.INT32, view.x.toString(), DIMENSION, null, view, null))
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_Y, Type.INT32, view.y.toString(), DIMENSION, null, view, null))
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_WIDTH, Type.INT32, view.width.toString(), DIMENSION, null, view, null))
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_HEIGHT, Type.INT32, view.height.toString(), DIMENSION, null, view, null))
+internal fun addInternalProperties(table: Table<String, String, InspectorPropertyItem>, view: ViewNode, lookup: ResourceLookup) {
+  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_NAME, Type.STRING, view.qualifiedName, VIEW, null, view, lookup))
+  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_X, Type.INT32, view.x.toString(), DIMENSION, null, view, lookup))
+  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_Y, Type.INT32, view.y.toString(), DIMENSION, null, view, lookup))
+  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_WIDTH, Type.INT32, view.width.toString(), DIMENSION, null, view, lookup))
+  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_HEIGHT, Type.INT32, view.height.toString(), DIMENSION, null, view, lookup))
 }
 
 private fun add(table: Table<String, String, InspectorPropertyItem>, item: InspectorPropertyItem) {
