@@ -53,7 +53,7 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
     initMocks(this);
 
     myIdeSdks = IdeSdks.getInstance();
-    myTopLevelModuleFactory = new TopLevelModuleFactory(myIdeInfo, myIdeSdks);
+    myTopLevelModuleFactory = new TopLevelModuleFactory(myIdeInfo);
   }
 
   public void testCreateTopLevelModule() throws Exception {

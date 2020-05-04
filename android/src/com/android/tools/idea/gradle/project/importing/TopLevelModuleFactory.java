@@ -24,7 +24,6 @@ import static com.intellij.util.PathUtil.toSystemIndependentName;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.diagnostic.Logger;
@@ -46,11 +45,9 @@ import org.jetbrains.annotations.SystemIndependent;
 class TopLevelModuleFactory {
   private static final Logger LOG = Logger.getInstance(TopLevelModuleFactory.class);
   @NotNull private final IdeInfo myIdeInfo;
-  @NotNull private final IdeSdks myIdeSdks;
 
-  TopLevelModuleFactory(@NotNull IdeInfo ideInfo, @NotNull IdeSdks ideSdks) {
+  TopLevelModuleFactory(@NotNull IdeInfo ideInfo) {
     myIdeInfo = ideInfo;
-    myIdeSdks = ideSdks;
   }
 
   void createTopLevelModule(@NotNull Project project) {
