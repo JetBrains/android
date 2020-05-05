@@ -171,6 +171,11 @@ public class LintIdeGradleVisitor extends GradleVisitor {
           public void visitApplicationStatement(@NotNull GrApplicationStatement applicationStatement) {
             GrClosableBlock block = PsiTreeUtil.getParentOfType(applicationStatement, GrClosableBlock.class, true);
             String parentName = block != null ? getClosureName(block) : null;
+            String parentParentName = null;
+            if (parentName != null) {
+              GrClosableBlock outerBlock = PsiTreeUtil.getParentOfType(block, GrClosableBlock.class, true);
+              parentParentName = outerBlock != null ? getClosureName(outerBlock) : null;
+            }
             String statementName = applicationStatement.getInvokedExpression().getText();
             GrCommandArgumentList argumentList = applicationStatement.getArgumentList();
             Map<String, String> namedArguments = Maps.newHashMap();
@@ -193,7 +198,8 @@ public class LintIdeGradleVisitor extends GradleVisitor {
               }
             }
             for (GradleScanner detector : detectors) {
-              detector.checkMethodCall(context, statementName, parentName, namedArguments, unnamedArguments, applicationStatement);
+              detector.checkMethodCall(context, statementName, parentName, parentParentName, namedArguments, unnamedArguments,
+                                       applicationStatement);
             }
             super.visitApplicationStatement(applicationStatement);
           }
