@@ -16,8 +16,11 @@
 package com.android.tools.idea.uibuilder.structure
 
 import com.android.SdkConstants
+import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification
+import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
+import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility.Companion.convert
 import com.intellij.openapi.actionSystem.Presentation
 import icons.StudioIcons
 
@@ -50,6 +53,10 @@ class NlVisibilityModel(val component: NlComponent) {
           GONE -> "gone"
         }
       }
+
+      fun convert(component: NlComponent, uri: String = SdkConstants.ANDROID_URI): Visibility {
+        return convert(component.getAttribute(uri, "visibility"))
+      }
     }
   }
 
@@ -63,11 +70,8 @@ class NlVisibilityModel(val component: NlComponent) {
   private var myToolsVisibility: Visibility
 
   init {
-    val android = component.getAttribute(SdkConstants.ANDROID_URI, "visibility")
-    val tools = component.getAttribute(SdkConstants.TOOLS_URI, "visibility")
-
-    myAndroidVisibility = Visibility.convert(android)
-    myToolsVisibility = Visibility.convert(tools)
+    myAndroidVisibility = convert(component)
+    myToolsVisibility = convert(component, TOOLS_URI)
   }
 
   /**
@@ -96,7 +100,7 @@ class NlVisibilityModel(val component: NlComponent) {
       Visibility.GONE -> modification.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "gone")
     }
 
-    if (SdkConstants.TOOLS_URI == uri) {
+    if (TOOLS_URI == uri) {
       myToolsVisibility = visibility
     } else if (SdkConstants.ANDROID_URI == uri) {
       myAndroidVisibility = visibility
@@ -112,7 +116,7 @@ class NlVisibilityModel(val component: NlComponent) {
   fun contains(visibility: Visibility, uri: String): Boolean {
     if (SdkConstants.ANDROID_URI == uri) {
       return androidVisibility == visibility
-    } else if (SdkConstants.TOOLS_URI == uri) {
+    } else if (TOOLS_URI == uri) {
       return toolsVisibility == visibility
     }
     return false
@@ -123,28 +127,28 @@ class NlVisibilityModel(val component: NlComponent) {
  * Update the presentation based on the visibility.
  */
 fun updatePresentation(
-  visibility: NlVisibilityModel.Visibility,
+  visibility: Visibility,
   isToolsAttr: Boolean,
   presentation: Presentation) {
 
   when (visibility) {
-    NlVisibilityModel.Visibility.NONE -> {
+    Visibility.NONE -> {
       presentation.icon = StudioIcons.Common.REMOVE
       presentation.text = "Visibility not set"
     }
-    NlVisibilityModel.Visibility.VISIBLE -> {
+    Visibility.VISIBLE -> {
       presentation.icon = if (isToolsAttr)
         StudioIcons.LayoutEditor.Properties.VISIBLE_TOOLS_ATTRIBUTE else
         StudioIcons.LayoutEditor.Properties.VISIBLE
       presentation.text = "visible"
     }
-    NlVisibilityModel.Visibility.INVISIBLE -> {
+    Visibility.INVISIBLE -> {
       presentation.icon = if (isToolsAttr)
         StudioIcons.LayoutEditor.Properties.INVISIBLE_TOOLS_ATTRIBUTE else
         StudioIcons.LayoutEditor.Properties.INVISIBLE
       presentation.text = "invisible"
     }
-    NlVisibilityModel.Visibility.GONE -> {
+    Visibility.GONE -> {
       presentation.icon = if (isToolsAttr)
         StudioIcons.LayoutEditor.Properties.GONE_TOOLS_ATTRIBUTE else
         StudioIcons.LayoutEditor.Properties.GONE
@@ -153,4 +157,27 @@ fun updatePresentation(
   }
   presentation.isEnabled = true
   presentation.isVisible = true
+}
+
+private fun determineVisibility(childVisibility: Visibility, parentVisibility: Visibility): Visibility {
+  return when (parentVisibility) {
+    Visibility.NONE -> childVisibility
+    Visibility.VISIBLE -> childVisibility
+    Visibility.INVISIBLE -> if (childVisibility == Visibility.GONE) Visibility.GONE else Visibility.INVISIBLE
+    Visibility.GONE -> Visibility.GONE
+  }
+}
+
+/**
+ * Loops thru all of its parents and return the actual visibility of the component like in Android Device.
+ */
+fun getVisibilityFromParents(component: NlComponent): Visibility {
+  var visibility = convert(component)
+  var parent = component.parent
+  while (parent != null) {
+    visibility = determineVisibility(visibility, convert(parent))
+    parent = parent.parent
+  }
+
+  return visibility
 }
