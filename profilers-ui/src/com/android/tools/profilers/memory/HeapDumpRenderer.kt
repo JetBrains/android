@@ -18,7 +18,7 @@ package com.android.tools.profilers.memory
 import com.android.tools.adtui.chart.linechart.AbstractDurationDataRenderer
 import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.adtui.common.clickableTextColor
+import com.android.tools.adtui.common.linkForeground
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.common.selectionOverlayBackground
 import com.android.tools.adtui.model.AspectObserver
@@ -109,7 +109,7 @@ class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<
             selectionOverlayBackground
           else primaryContentBackground
         fill(clipRect)
-        color = clickableTextColor
+        color = linkForeground
         stroke = BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, floatArrayOf(8f, 8f), 0f)
         drawLine(left, midY, right, midY)
         stroke = BasicStroke(4f)
