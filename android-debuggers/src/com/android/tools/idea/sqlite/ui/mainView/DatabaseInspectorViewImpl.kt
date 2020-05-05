@@ -23,6 +23,7 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.controllers.TabId
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -67,12 +68,11 @@ class DatabaseInspectorViewImpl(
   override val component: JComponent = workBench
 
   private val openTabs = mutableMapOf<TabId, TabInfo>()
-  private val defaultEmptyStateMessage = "Open a table or run a query to begin inspecting your app's databases."
 
   init {
     workBench.init(centerPanel, viewContext, listOf(createToolWindowDefinition()), false)
 
-    addEmptyStatePanel("Waiting for the app to open a connection to the database...")
+    addEmptyStatePanel(DatabaseInspectorBundle.message("waiting.for.connection"))
 
     tabs.name = "right-panel-tabs-panel"
     tabs.apply {
@@ -119,7 +119,7 @@ class DatabaseInspectorViewImpl(
     }
 
     if (openTabs.isEmpty() || leftPanelView.databasesCount == 0) {
-      addEmptyStatePanel(defaultEmptyStateMessage)
+      addEmptyStatePanel(DatabaseInspectorBundle.message("default.empty.state.message"))
     }
   }
 
@@ -151,7 +151,7 @@ class DatabaseInspectorViewImpl(
     tabs.removeTab(tab)
 
     if (openTabs.isEmpty()) {
-      addEmptyStatePanel(defaultEmptyStateMessage)
+      addEmptyStatePanel(DatabaseInspectorBundle.message("default.empty.state.message"))
     }
   }
 
@@ -196,7 +196,10 @@ class DatabaseInspectorViewImpl(
     tab.`object` = tabId
 
     val tabActionGroup = DefaultActionGroup()
-    tabActionGroup.add(object : AnAction("Close tabs", "Click to close tab", AllIcons.Actions.Close) {
+    tabActionGroup.add(object : AnAction(
+      DatabaseInspectorBundle.message("action.close.tab"),
+      DatabaseInspectorBundle.message("action.close.tab.desc"),
+      AllIcons.Actions.Close) {
       override fun actionPerformed(e: AnActionEvent) {
         listeners.forEach { it.closeTabActionInvoked(tabId) }
       }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
@@ -114,16 +115,21 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
           addNewTableNode(treeModel, databaseNode, diffOp.indexedSqliteTable, diffOp.columns)
         }
         is AddColumns -> {
-          val tableNode = findTableNode(databaseNode, diffOp.tableName) ?: error("No tree node found for table ${diffOp.tableName}")
+          val tableNode = findTableNode(databaseNode, diffOp.tableName)
+                          ?: error(DatabaseInspectorBundle.message("tree.node.not.found", diffOp.tableName))
           tableNode.userObject = diffOp.newTable
           addColumnsToTableNode(treeModel, tableNode, diffOp.columns)
         }
         is RemoveTable -> {
-          val tableNode = findTableNode(databaseNode, diffOp.tableName) ?: error("No tree node found for table ${diffOp.tableName}")
+          val tableNode = findTableNode(databaseNode, diffOp.tableName)
+                          ?: error(DatabaseInspectorBundle.message("tree.node.not.found", diffOp.tableName))
+
           treeModel.removeNodeFromParent(tableNode)
         }
         is RemoveColumns -> {
-          val tableNode = findTableNode(databaseNode, diffOp.tableName) ?: error("No tree node found for table ${diffOp.tableName}")
+          val tableNode = findTableNode(databaseNode, diffOp.tableName)
+                          ?: error(DatabaseInspectorBundle.message("tree.node.not.found", diffOp.tableName))
+
           tableNode.userObject = diffOp.newTable
           diffOp.columnsToRemove.map { findColumnNode(tableNode, it.name) }.forEach { treeModel.removeNodeFromParent(it) }
         }
@@ -157,7 +163,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     refreshSchemaButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Refresh)
     refreshSchemaButton.name = "refresh-schema-button"
     refreshSchemaButton.isEnabled = false
-    refreshSchemaButton.toolTipText = "Refresh schema"
+    refreshSchemaButton.toolTipText = DatabaseInspectorBundle.message("action.refresh.schema.tooltip")
     northPanel.add(refreshSchemaButton)
     refreshSchemaButton.addActionListener {
       mainView.listeners.forEach { it.refreshAllOpenDatabasesSchemaActionInvoked() }
@@ -166,7 +172,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     runSqlButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.DatabaseInspector.NEW_QUERY)
     runSqlButton.name = "run-sql-button"
     runSqlButton.isEnabled = false
-    runSqlButton.toolTipText = "Open New Query tab"
+    runSqlButton.toolTipText = DatabaseInspectorBundle.message("action.run.query.tooltip")
     northPanel.add(runSqlButton)
 
     runSqlButton.addActionListener { mainView.listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
@@ -199,7 +205,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
     tree.model = DefaultTreeModel(null)
     tree.toggleClickCount = 0
-    tree.emptyText.text = "Nothing to show"
+    tree.emptyText.text = DatabaseInspectorBundle.message("nothing.to.show")
     tree.emptyText.isShowAboveCenter = false
 
     tree.name = "left-panel-tree"

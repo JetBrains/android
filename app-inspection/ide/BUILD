@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.app-inspection.ide",
     srcs = ["src"],
     iml_files = ["intellij.android.app-inspection.ide.iml"],
+    resources = ["resources"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",

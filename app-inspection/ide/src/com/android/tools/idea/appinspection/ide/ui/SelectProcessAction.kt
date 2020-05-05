@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.ide.ui
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -28,21 +29,14 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import icons.StudioIcons
 
-val NO_PROCESS_ACTION = object : AnAction("No debuggable processes detected") {
+val NO_PROCESS_ACTION = object : AnAction(AppInspectionBundle.message("action.no.debuggable.process")) {
   override fun actionPerformed(event: AnActionEvent) {}
 }.apply { templatePresentation.isEnabled = false }
-
-// TODO(b/152215087): This text needs to live in an Android Bundle and be internationalized.
-private const val NO_PROCESS_TEXT = "No Process Available"
-
-private const val NO_DEVICE_TEXT = "No devices detected"
-
-private const val NO_SELECTION_TEXT = "No Process Selected"
 
 private val ICON = ColoredIconGenerator.generateColoredIcon(StudioIcons.Avd.DEVICE_PHONE, JBColor(0x6E6E6E, 0xAFB1B3))
 
 class SelectProcessAction(private val model: AppInspectionProcessModel) :
-  DropDownAction("Select Process", "Select a process to connect to.", ICON) {
+  DropDownAction(AppInspectionBundle.message("action.select.process"), AppInspectionBundle.message("action.select.process.desc"), ICON) {
 
   private var currentProcess: ProcessDescriptor? = null
 
@@ -50,7 +44,12 @@ class SelectProcessAction(private val model: AppInspectionProcessModel) :
     currentProcess = model.selectedProcess
     val content = currentProcess?.let {
       "${it.buildDeviceName()} > ${it.processName}"
-    } ?: if (model.processes.isEmpty()) NO_PROCESS_TEXT else NO_SELECTION_TEXT
+    } ?: if (model.processes.isEmpty()) {
+      AppInspectionBundle.message("no.process.available")
+    } else {
+      AppInspectionBundle.message("no.process.selected")
+    }
+
     if (content != event.presentation.text) {
       event.presentation.text = content
     }
@@ -71,7 +70,7 @@ class SelectProcessAction(private val model: AppInspectionProcessModel) :
       add(DeviceAction(serial, deviceName, model))
     }
     if (childrenCount == 0) {
-      val noDeviceAction = object : AnAction(NO_DEVICE_TEXT) {
+      val noDeviceAction = object : AnAction(AppInspectionBundle.message("action.no.devices")) {
         override fun actionPerformed(event: AnActionEvent) {}
       }
       noDeviceAction.templatePresentation.isEnabled = false
