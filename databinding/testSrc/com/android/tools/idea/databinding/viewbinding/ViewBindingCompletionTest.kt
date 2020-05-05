@@ -140,6 +140,7 @@ class ViewBindingCompletionTest {
 
     fixture.completeBasic()
 
+/* b/155929878
     fixture.checkResult(
       // language=JAVA
       """
@@ -151,6 +152,7 @@ class ViewBindingCompletionTest {
           ActivityMainBinding
         }
       """.trimIndent())
+b/155929878 */
   }
 
   /**
