@@ -428,6 +428,78 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     @JvmStatic
+    fun createTabletAvd(parentFolder: Path): Path {
+      val avdId = "Nexus_10_API_29"
+      val avdFolder = parentFolder.resolve("${avdId}.avd")
+      val avdName = avdId.replace('_', ' ')
+      val skinFolder = getSkinFolder("nexus_10")
+
+      val configIni = """
+          AvdId=${avdId}
+          PlayStore.enabled=false
+          abi.type=x86
+          avd.ini.displayname=${avdName}
+          avd.ini.encoding=UTF-8
+          disk.dataPartition.size=800M
+          hw.accelerometer=yes
+          hw.arc=false
+          hw.audioInput=yes
+          hw.battery=yes
+          hw.camera.back=virtualscene
+          hw.camera.front=emulated
+          hw.cpu.arch=x86
+          hw.cpu.ncore=4
+          hw.dPad=no
+          hw.device.name=Nexus 10
+          hw.gps=yes
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          hw.initialOrientation=landscape
+          hw.keyboard=yes
+          hw.lcd.density=320
+          hw.lcd.height=1600
+          hw.lcd.width=2560
+          hw.mainKeys=no
+          hw.ramSize=1536
+          hw.sdCard=yes
+          hw.sensors.orientation=yes
+          hw.sensors.proximity=no
+          hw.trackBall=no
+          image.sysdir.1=system-images/android-29/google_apis/x86/
+          runtime.network.latency=none
+          runtime.network.speed=full
+          sdcard.path=${avdFolder}/sdcard.img
+          sdcard.size=512M
+          showDeviceFrame=yes
+          skin.dynamic=yes
+          skin.name=${skinFolder.fileName}
+          skin.path=${skinFolder}
+          tag.display=Google APIs
+          tag.id=google_apis
+          """.trimIndent()
+
+      val hardwareIni = """
+          hw.cpu.arch = x86
+          hw.cpu.model = qemu32
+          hw.cpu.ncore = 4
+          hw.ramSize = 2048
+          hw.screen = multi-touch
+          hw.dPad = false
+          hw.rotaryInput = false
+          hw.gsmModem = true
+          hw.gps = true
+          hw.battery = true
+          hw.accelerometer = false
+          hw.gyroscope = true
+          hw.audioInput = true
+          hw.audioOutput = true
+          hw.sdCard = false
+          """.trimIndent()
+
+      return createAvd(avdFolder, configIni, hardwareIni)
+    }
+
+    @JvmStatic
     fun createWatchAvd(parentFolder: Path): Path {
       val avdId = "Android_Wear_Round_API_28"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
