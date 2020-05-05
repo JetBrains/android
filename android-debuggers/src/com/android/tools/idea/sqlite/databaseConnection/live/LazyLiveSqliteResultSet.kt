@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.databaseConnection.live
 
 import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow

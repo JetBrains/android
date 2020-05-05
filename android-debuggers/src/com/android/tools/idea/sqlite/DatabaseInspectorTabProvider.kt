@@ -20,8 +20,6 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
-import com.android.tools.idea.sqlite.databaseConnection.live.DatabaseInspectorMessenger
-import com.android.tools.idea.sqlite.databaseConnection.live.ErrorsSideChannel
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.intellij.openapi.diagnostic.logger
