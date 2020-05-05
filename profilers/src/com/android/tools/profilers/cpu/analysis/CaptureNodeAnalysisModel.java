@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalysisModel> {
@@ -49,9 +50,22 @@ public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalys
    */
   @NotNull
   public List<CaptureNode> getLongestRunningOccurrences(int k) {
-    String targetFullName = myNode.getData().getFullName();
-    return myNode.findRootNode().getTopKNodes(k, node -> node.getData().getFullName().equals(targetFullName),
-                                              Comparator.comparing(CaptureNode::getDuration));
+    return myNode.findRootNode().getTopKNodes(k, this::matchesFullName, Comparator.comparing(CaptureNode::getDuration));
+  }
+
+  /**
+   * @return statistics of all occurrences of this node, e.g. count, min, max.
+   */
+  @NotNull
+  public CaptureNodeAnalysisStats getAllOccurrenceStats() {
+    List<CaptureNode> allOccurrences = myNode.findRootNode().getDescendantsStream()
+      .filter(this::matchesFullName)
+      .collect(Collectors.toList());
+    return CaptureNodeAnalysisStats.Companion.fromNodes(allOccurrences);
+  }
+
+  private boolean matchesFullName(@NotNull CaptureNode node) {
+    return myNode.getData().getFullName().equals(node.getData().getFullName());
   }
 
   @NotNull

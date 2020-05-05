@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.tools.adtui.StatLabel
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -58,9 +59,13 @@ class CaptureNodeSummaryDetailsViewTest {
       dataSeries.add(CaptureNodeAnalysisModel(captureNode, Mockito.mock(CpuCapture::class.java)))
     }
     val view = CaptureNodeSummaryDetailsView(profilersView, model)
+    val treeWalker = TreeWalker(view.component)
     assertThat(view.timeRangeLabel.text).isEqualTo("10.000 - 20.000")
     assertThat(view.dataTypeLabel.text).isEqualTo("Trace Event")
     // Selected node basic stats table and longest occurrences table.
-    assertThat(TreeWalker(view.component).descendants().filterIsInstance<JTable>().size).isEqualTo(2)
+    assertThat(treeWalker.descendants().filterIsInstance<JTable>().size).isEqualTo(2)
+    // 5 stat labels: count, average, max, min, std.
+    assertThat(treeWalker.descendants().filterIsInstance<StatLabel>().map { it.getDescText() })
+      .containsExactly("Count", "Average", "Max", "Min", "Std")
   }
 }
