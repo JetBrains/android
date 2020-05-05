@@ -121,6 +121,10 @@ public class DetailsViewContentView {
     return myRootPanel;
   }
 
+  public void setPackageName(@NotNull String packageName) {
+    myRetentionView.setPackageName(packageName);
+  }
+
   public void setAndroidDevice(@NotNull AndroidDevice androidDevice) {
     myAndroidDevice = androidDevice;
     refreshTestResultLabel();
@@ -156,6 +160,7 @@ public class DetailsViewContentView {
 
   private void refreshRetentionView() {
     myRetentionTab.setHidden(myRetentionSnapshot == null);
+    myRetentionView.setSnapshotFile(myRetentionSnapshot);
   }
 
   private void refreshTestResultLabel() {

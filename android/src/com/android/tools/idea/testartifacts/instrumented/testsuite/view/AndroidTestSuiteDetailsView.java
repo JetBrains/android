@@ -156,6 +156,7 @@ public class AndroidTestSuiteDetailsView {
       AndroidTestCaseResult resultForSelectedDevice = myTestResults.getTestCaseResult(mySelectedDevice);
       if (resultForSelectedDevice != null) {
         myContentView.setAndroidDevice(mySelectedDevice);
+        myContentView.setPackageName(myTestResults.getPackageName());
         myContentView.setAndroidTestCaseResult(resultForSelectedDevice);
         myContentView.setLogcat(myTestResults.getLogcat(mySelectedDevice));
         myContentView.setErrorStackTrace(myTestResults.getErrorStackTrace(mySelectedDevice));

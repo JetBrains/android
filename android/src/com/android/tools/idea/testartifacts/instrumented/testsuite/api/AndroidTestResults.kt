@@ -25,9 +25,22 @@ import java.io.File
  */
 interface AndroidTestResults {
   /**
-   * A name of the test case. The name is unique in associated instrumentation test run.
+   * A name of the test method.
    */
-  val testCaseName: String
+  val methodName: String
+  /**
+   * A name of the test class
+   */
+  val className: String
+  /**
+   * A package name of the tested APP.
+   */
+  val packageName: String
+
+  /**
+   * Returns the name of the test case.
+   */
+  fun getTestCaseName(): String = "$className.$methodName"
 
   /**
    * Returns the test case result of a given device. Null if the test is not executed on a given device.
