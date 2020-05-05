@@ -16,7 +16,7 @@
 package com.android.tools.adtui
 
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.adtui.common.clickableTextColor
+import com.android.tools.adtui.common.linkForeground
 import com.android.tools.adtui.model.formatter.NumberFormatter
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.components.JBLabel
@@ -68,9 +68,9 @@ class StatLabel @JvmOverloads constructor(num: Long,
 
     // If there is an associated action, visually indicate so
     if(action != null) {
-      numLabel.foreground = clickableTextColor
-      descLabel.foreground = clickableTextColor
       isFocusable = true
+      numLabel.foreground = linkForeground
+      descLabel.foreground = linkForeground
       val (numOff, numOn) = makeUnderlinedFontSwitchers(numLabel)
       val (descOff, descOn) = makeUnderlinedFontSwitchers(descLabel)
       fun on() { numOn(); descOn() }
