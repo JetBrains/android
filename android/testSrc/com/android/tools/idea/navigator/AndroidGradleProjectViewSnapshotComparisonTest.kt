@@ -36,6 +36,7 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.ui.DeferredIcon
 import com.intellij.ui.LayeredIcon
+import com.intellij.ui.RetrievableIcon
 import com.intellij.ui.RowIcon
 import sun.swing.ImageIconUIResource
 import java.io.File
@@ -155,6 +156,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
       var icon: Icon? = this
       do {
         val previous = icon
+        icon = if (icon is RetrievableIcon) icon.retrieveIcon() else icon
         icon = if (icon is DeferredIcon) icon.evaluate() else icon
         icon = if (icon is RowIcon && icon.allIcons.size == 1) icon.getIcon(0) else icon
         icon = if (icon is LayeredIcon && icon.allLayers.size == 1) icon.getIcon(0) else icon
