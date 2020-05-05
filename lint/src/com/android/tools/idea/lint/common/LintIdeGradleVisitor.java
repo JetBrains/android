@@ -191,9 +191,9 @@ public class LintIdeGradleVisitor extends GradleVisitor {
               else if (groovyPsiElement instanceof GrExpression) {
                 unnamedArguments.add(groovyPsiElement.getText());
               }
-              for (GradleScanner detector : detectors) {
-                detector.checkMethodCall(context, statementName, parentName, namedArguments, unnamedArguments, applicationStatement);
-              }
+            }
+            for (GradleScanner detector : detectors) {
+              detector.checkMethodCall(context, statementName, parentName, namedArguments, unnamedArguments, applicationStatement);
             }
             super.visitApplicationStatement(applicationStatement);
           }
