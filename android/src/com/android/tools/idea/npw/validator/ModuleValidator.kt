@@ -18,11 +18,11 @@ package com.android.tools.idea.npw.validator
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.Validator.Result
 import com.android.tools.adtui.validation.Validator.Severity
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.npw.module.getModuleRoot
 import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.google.common.base.CharMatcher.anyOf
 import com.google.common.base.CharMatcher.inRange
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.annotations.SystemIndependent
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.SystemIndependent
 /**
  * Validates the module name and its location.
  */
-class ModuleValidator constructor (
+class ModuleValidator(
   val project: Project
 ) : Validator<String> {
   private val projectPath: @SystemIndependent String = project.basePath!!
@@ -40,12 +40,15 @@ class ModuleValidator constructor (
 
   override fun validate(moduleGradlePath: String): Result {
     val illegalCharIdx = ILLEGAL_CHAR_MATCHER.indexIn(moduleGradlePath)
+    val rootedModuleGradlePath = if (moduleGradlePath.startsWith(":")) moduleGradlePath else ":" + moduleGradlePath
     return when {
-      moduleGradlePath.isEmpty() -> Result(Severity.ERROR, message("android.wizard.validate.empty.module.name"))
-      ModuleManager.getInstance(project).findModuleByName(moduleGradlePath) != null ->
-        Result(Severity.ERROR, message("android.wizard.validate.module.already.exists", moduleGradlePath))
+      moduleGradlePath.isEmpty() ->
+        Result(Severity.ERROR, message("android.wizard.validate.empty.module.name"))
       illegalCharIdx >= 0 ->
-        Result(Severity.ERROR, message("android.wizard.validate.module.illegal.character", moduleGradlePath[illegalCharIdx], moduleGradlePath))
+        Result(Severity.ERROR,
+               message("android.wizard.validate.module.illegal.character", moduleGradlePath[illegalCharIdx], moduleGradlePath))
+      GradleUtil.findModuleByGradlePath(project, rootedModuleGradlePath) != null ->
+        Result(Severity.ERROR, message("android.wizard.validate.module.already.exists", moduleGradlePath))
       else -> pathValidator.validate(getModuleRoot(projectPath, moduleGradlePath))
     }
   }
