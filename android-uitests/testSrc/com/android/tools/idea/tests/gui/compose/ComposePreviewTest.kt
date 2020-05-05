@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.compose
 
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.CommandHandler
 import com.android.fakeadbserver.DeviceState
@@ -33,6 +32,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.compose.getNotificatio
 import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
+import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import icons.StudioIcons
 import junit.framework.TestCase.assertFalse
@@ -308,13 +308,13 @@ class ComposePreviewTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/150391302
+  @RunIn(TestGroup.UNRELIABLE) // b/155879999
   @Throws(Exception::class)
   fun testDeployPreview() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
 
     // Enable the fake ADB server and attach a fake device to which the preview will be deployed.
-    AndroidDebugBridge.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
+    AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
     adbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29", DeviceState.HostConnectionType.USB)
 
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt").waitForRenderToFinish()

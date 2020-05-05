@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.layoutinspector
 
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -178,11 +177,8 @@ class TransportRule(
       model, parentDisposable -> listOf(DefaultInspectorClient(model, parentDisposable, TEST_CHANNEL_NAME))
     }
 
-    // Terminate the service if it's already started (it's a UI test, so there might be no shutdown between tests).
-    AdbService.getInstance().dispose()
-
     // Start ADB with fake server and its port.
-    AndroidDebugBridge.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
+    AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
   }
 
   private fun after() {
