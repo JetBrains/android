@@ -25,6 +25,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.awt.FlowLayout
 import java.awt.Font
+import java.awt.font.TextAttribute
 import javax.swing.Icon
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -56,6 +57,7 @@ class NlTreeCellRenderer(
   private val primaryLabelMetrics = primaryLabel.getFontMetrics(primaryLabel.font)
   private val secondaryLabelMetrics = secondaryLabel.getFontMetrics(secondaryLabel.font)
   private val nlComponentFont = primaryLabel.font
+  private val nlComponentSecondaryFont = secondaryLabel.font
   private val otherFont = primaryLabel.font.deriveFont(Font.ITALIC)
 
   init {
@@ -87,7 +89,25 @@ class NlTreeCellRenderer(
     }
 
     if (value !is NlComponent) return this
-    primaryLabel.font = nlComponentFont
+
+    // Change the font and forground based on its visibility
+    when (getVisibilityFromParents(value)) {
+      NlVisibilityModel.Visibility.NONE -> {
+        primaryLabel.font = nlComponentFont
+      }
+      NlVisibilityModel.Visibility.VISIBLE -> {
+        primaryLabel.font = nlComponentFont
+      }
+      NlVisibilityModel.Visibility.INVISIBLE -> {
+        primaryLabel.font = nlComponentFont
+        primaryLabel.foreground = UIUtil.makeTransparent(primaryLabel.foreground, primaryLabel.background, 0.5)
+      }
+      NlVisibilityModel.Visibility.GONE -> {
+        primaryLabel.font = nlComponentFont.deriveFont(
+          nlComponentFont.attributes + (TextAttribute.STRIKETHROUGH to TextAttribute.STRIKETHROUGH_ON))
+      }
+    }
+
     val path = tree.getPathForRow(row)
     val leftOffset = getLeftOffset(tree, path)
 
