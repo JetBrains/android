@@ -154,9 +154,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     `when`(mockDatabaseConnection.close()).thenReturn(Futures.immediateFuture(null))
     `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
-    databaseId1 = SqliteDatabaseId("db1", "db1")
-    databaseId2 = SqliteDatabaseId("db2", "db2")
-    databaseId3 = SqliteDatabaseId("db", "db")
+    databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1",  1)
+    databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
+    databaseId3 = SqliteDatabaseId.fromLiveDatabase("db", 3)
 
     sqliteDatabase1 = LiveSqliteDatabase(databaseId1, mockDatabaseConnection)
     sqliteDatabase2 = LiveSqliteDatabase(databaseId2, mockDatabaseConnection)
@@ -591,7 +591,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testUpdateSchemaUpdatesModel() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromVirtualFile(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
     val sqliteDatabase = FileSqliteDatabase(databaseId, realDatabaseConnection)
 
     runDispatching {
@@ -613,7 +613,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testCreateTableUpdatesSchema() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromVirtualFile(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
     val sqliteDatabase = FileSqliteDatabase(databaseId, realDatabaseConnection)
 
     runDispatching {
@@ -639,7 +639,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testAlterTableRenameTableUpdatesSchema() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromVirtualFile(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
     val sqliteDatabase = FileSqliteDatabase(databaseId, realDatabaseConnection)
 
     runDispatching {
@@ -664,7 +664,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testAlterTableAddColumnUpdatesSchema() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromVirtualFile(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
     val sqliteDatabase = FileSqliteDatabase(databaseId, realDatabaseConnection)
 
     runDispatching {
@@ -690,7 +690,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun `test AlterTableAddColumn AlterTableRenameTable UpdatesSchema`() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromVirtualFile(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
     val sqliteDatabase = FileSqliteDatabase(databaseId, realDatabaseConnection)
 
     runDispatching {
@@ -738,7 +738,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testDropTableUpdatesSchema() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromVirtualFile(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
     val sqliteDatabase = FileSqliteDatabase(databaseId, realDatabaseConnection)
 
     runDispatching {
@@ -762,7 +762,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun `test CreateTable AddColumn RenameTable AddColumn UpdatesSchema`() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromVirtualFile(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
     val sqliteDatabase = FileSqliteDatabase(databaseId, realDatabaseConnection)
 
     runDispatching {
@@ -877,7 +877,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testWhenSchemaDiffFailsViewIsRecreated() {
     // Prepare
-    val databaseId = SqliteDatabaseId.fromVirtualFile(sqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(sqliteFile)
     val sqliteDatabase = FileSqliteDatabase(databaseId, mockDatabaseConnection)
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
 
@@ -1083,7 +1083,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testClosedDatabasesAreAddedToView() {
     // Prepare
-    val db1 = SqliteDatabaseId.fromPath("db")
+    val db1 = SqliteDatabaseId.fromLiveDatabase("db", 1)
     mockDatabaseInspectorModel.addDatabaseSchema(db1, mockDatabaseConnection, testSqliteSchema1)
 
     // Act

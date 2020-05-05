@@ -19,19 +19,25 @@ import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.intellij.openapi.vfs.VirtualFile
 import java.sql.JDBCType
 
-data class SqliteDatabaseId(val path: String, val name: String) {
+sealed class SqliteDatabaseId {
+  abstract val path: String
+  abstract val name: String
+
   companion object {
-    fun fromVirtualFile(virtualFile: VirtualFile): SqliteDatabaseId {
+    fun fromFileDatabase(virtualFile: VirtualFile): SqliteDatabaseId {
       val path = virtualFile.path
       val name = virtualFile.path.split("data/data/").getOrNull(1)?.replace("databases/", "") ?: virtualFile.path
-      return SqliteDatabaseId(path, name)
+      return FileSqliteDatabaseId(path, name)
     }
 
-    fun fromPath(path: String): SqliteDatabaseId {
+    fun fromLiveDatabase(path: String, connectionId: Int): SqliteDatabaseId {
       val name = path.substringAfterLast("/")
-      return SqliteDatabaseId(path, name)
+      return LiveSqliteDatabaseId(path, name, connectionId)
     }
   }
+
+  data class LiveSqliteDatabaseId(override val path: String, override val name: String, val connectionId: Int) : SqliteDatabaseId()
+  data class FileSqliteDatabaseId(override val path: String, override val name: String) : SqliteDatabaseId()
 }
 
 /**

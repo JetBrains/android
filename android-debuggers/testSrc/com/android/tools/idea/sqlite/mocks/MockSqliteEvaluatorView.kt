@@ -31,7 +31,7 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
   val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
   override var activeDatabase: SqliteDatabaseId?
-    get() = SqliteDatabaseId.fromPath("path")
+    get() = SqliteDatabaseId.fromLiveDatabase("path", 1)
     set(_) { }
 
   override fun addListener(listener: SqliteEvaluatorView.Listener) { listeners.add(listener) }
