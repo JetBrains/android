@@ -398,6 +398,9 @@ class EmulatorView(
     screenshotFeed?.cancel()
     screenshotReceiver = null
     if (width != 0 && height != 0 && connected) {
+      if (screenshotReceiver == null) {
+        displayRotationInternal = emulator.emulatorConfig.initialOrientation
+      }
       val rotatedDisplaySize = computeRotatedDisplaySize(emulatorConfig, rotation)
       val scale = computeScaleToFit(realSize, rotation)
       val scaledDisplaySize = rotatedDisplaySize.scaled(scale)
