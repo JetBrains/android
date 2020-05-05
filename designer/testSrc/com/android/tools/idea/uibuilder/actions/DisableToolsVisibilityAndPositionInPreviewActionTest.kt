@@ -31,13 +31,13 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @RunWith(JUnit4::class)
-class DisableToolsAttributesInPreviewActionTest {
-  private val disableToolsAction = DisableToolsAttributesInPreviewAction
+class DisableToolsVisibilityAndPositionInPreviewActionTest {
+  private val disableToolsAction = DisableToolsVisibilityAndPositionInPreviewAction
   private val actionManager: ActionManagerEx = mock(ActionManagerEx::class.java)
   private lateinit var context: MapDataContext
 
   private val previewHandler: LayoutPreviewHandler = object: LayoutPreviewHandler {
-    override var previewWithToolsAttributes: Boolean = false
+    override var previewWithToolsVisibilityAndPosition: Boolean = false
   }
 
   private fun createActionEvent(): AnActionEvent {
@@ -58,21 +58,21 @@ class DisableToolsAttributesInPreviewActionTest {
 
   @Test
   fun isSelected() {
-    previewHandler.previewWithToolsAttributes = true
+    previewHandler.previewWithToolsVisibilityAndPosition = true
     assertFalse { disableToolsAction.isSelected(createActionEvent()) }
 
-    previewHandler.previewWithToolsAttributes = false
+    previewHandler.previewWithToolsVisibilityAndPosition = false
     assertTrue { disableToolsAction.isSelected(createActionEvent()) }
   }
 
   @Test
   fun toggle() {
-    previewHandler.previewWithToolsAttributes = true
+    previewHandler.previewWithToolsVisibilityAndPosition = true
 
     disableToolsAction.actionPerformed(createActionEvent())
-    assertFalse { previewHandler.previewWithToolsAttributes }
+    assertFalse { previewHandler.previewWithToolsVisibilityAndPosition }
 
     disableToolsAction.actionPerformed(createActionEvent())
-    assertTrue { previewHandler.previewWithToolsAttributes }
+    assertTrue { previewHandler.previewWithToolsVisibilityAndPosition }
   }
 }

@@ -354,7 +354,7 @@ public class RenderService implements Disposable {
     private boolean isSecurityManagerEnabled = true;
     private float myDownscaleFactor = 1f;
     private boolean showDecorations = true;
-    private boolean showWithToolsAttributes = true;
+    private boolean showWithToolsVisibilityAndPosition = true;
     private int myMaxRenderWidth = -1;
     private int myMaxRenderHeight = -1;
     private boolean isShadowEnabled = StudioFlags.NELE_ENABLE_SHADOW.get();
@@ -496,8 +496,8 @@ public class RenderService implements Disposable {
     }
 
     @NotNull
-    public RenderTaskBuilder disableToolsAttributes() {
-      this.showWithToolsAttributes = false;
+    public RenderTaskBuilder disableToolsVisibilityAndPosition() {
+      this.showWithToolsVisibilityAndPosition = false;
       return this;
     }
 
@@ -597,7 +597,7 @@ public class RenderService implements Disposable {
             .setDecorations(showDecorations)
             .setHighQualityShadows(useHighQualityShadows)
             .setShadowEnabled(isShadowEnabled)
-            .setShowWithToolsAttributes(showWithToolsAttributes)
+            .setShowWithToolsVisibilityAndPosition(showWithToolsVisibilityAndPosition)
             .setEnableLayoutValidator(enableLayoutValidator);
 
           if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {

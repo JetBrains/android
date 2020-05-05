@@ -27,6 +27,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction;
+import com.android.tools.idea.uibuilder.actions.DisableToolsVisibilityAndPositionInPreviewAction;
 import com.android.tools.idea.uibuilder.actions.MorphComponentAction;
 import com.android.tools.idea.uibuilder.actions.SelectAllAction;
 import com.android.tools.idea.uibuilder.actions.SelectNextAction;
@@ -63,6 +64,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.ui.JBUI;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -328,6 +330,21 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     NlComponent sharedParent = findSharedParent(selection);
     addActions(group, sharedParent, null, selection, true);
     return group;
+  }
+
+  @Nullable
+  @Override
+  public JComponent getSceneViewContextToolbar(@NotNull SceneView sceneView) {
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(DisableToolsVisibilityAndPositionInPreviewAction.INSTANCE);
+    ActionToolbar actionToolbar =
+      com.intellij.openapi.actionSystem.ActionManager.getInstance().createActionToolbar("SceneView", group, true);
+    actionToolbar.setTargetComponent(mySurface);
+    actionToolbar.setReservePlaceAutoPopupIcon(false);
+    JComponent toolbarComponent = actionToolbar.getComponent();
+    toolbarComponent.setOpaque(false);
+    toolbarComponent.setBorder(JBUI.Borders.empty());
+    return toolbarComponent;
   }
 
   @NotNull

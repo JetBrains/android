@@ -57,6 +57,7 @@ import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.android.ide.common.resources.sampledata.SampleDataManager.SUBARRAY_SEPARATOR;
 import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutLog;
@@ -88,8 +89,10 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -173,11 +176,12 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   private boolean myUseSrcCompat;
 
   /**
-   * If true, the parser will substitute 'android' and 'app' namespaced attributes with declared 'tools' attributes.
-   * <p>
-   * Eg: 'tools:visibility' will override 'android:visibility'.
+   * When false, the parser will ignore 'visibility', 'layout_editor_absoluteX' and 'layout_editor_absoluteY' tools namespaced attributes.
    */
-  private boolean myUseToolsNamespace;
+  private boolean myUseToolsPositionAndVisibility;
+
+  private HashSet<String> myToolsPositionAndVisibilityAttributes = new HashSet<>(
+    Arrays.asList(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, ATTR_VISIBILITY));
 
   private final ImmutableMap<String, TagSnapshot> myDeclaredAaptAttrs;
 
@@ -246,6 +250,8 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * @param resourceResolver Optional {@link ResourceResolver} that will be used by the parser to
    *                         resolve any resources.
    * @param density      the density factor for the screen.
+   * @param useToolsPositionAndVisibility When false, 'visibility', 'layout_editor_absoluteX' and 'layout_editor_absoluteY' tools namespaced
+   *                                     attributes will be ignored by the parser.
    */
   @NotNull
   public static LayoutPsiPullParser create(@NotNull XmlFile file,
@@ -253,13 +259,13 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                            @Nullable Set<XmlTag> explodeNodes,
                                            @NotNull Density density,
                                            @Nullable ResourceResolver resourceResolver,
-                                           @NotNull Boolean useToolsNamespace) {
+                                           @NotNull Boolean useToolsPositionAndVisibility) {
     if (explodeNodes != null && !explodeNodes.isEmpty()) {
       return new PaddingLayoutPsiPullParser(file, logger, explodeNodes, density);
     } else {
       // This method is only called to create layouts from the preview/editor (not inflated by custom components) so we always honor
       // the tools:parentTag
-      return new LayoutPsiPullParser(file, logger, true, resourceResolver, useToolsNamespace);
+      return new LayoutPsiPullParser(file, logger, true, resourceResolver, useToolsPositionAndVisibility);
     }
   }
 
@@ -312,13 +318,15 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    * @param resourceResolver Optional {@link ResourceResolver} that will be used by the parser to
    *                         resolve any resources.
+   * @param useToolsPositionAndVisibility When false, 'visibility', 'layout_editor_absoluteX' and 'layout_editor_absoluteY' tools namespaced
+   *                                     attributes will be ignored by the parser.
    */
   protected LayoutPsiPullParser(@NotNull XmlFile file,
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resourceResolver,
-                                boolean useToolsNamespace) {
-    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resourceResolver, 0, useToolsNamespace);
+                                boolean useToolsPositionAndVisibility) {
+    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resourceResolver, 0, useToolsPositionAndVisibility);
   }
 
   /**
@@ -368,11 +376,11 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resourceResolver,
                                 int sampleDataCounter,
-                                boolean useToolsNamespace) {
+                                boolean useToolsPositionAndVisibility) {
     myResourceResolver = resourceResolver;
     myLogger = logger;
     mySampleDataCounter = sampleDataCounter;
-    myUseToolsNamespace = useToolsNamespace;
+    myUseToolsPositionAndVisibility = useToolsPositionAndVisibility;
 
     Ref<TagSnapshot> myRootRef = new Ref<>(EMPTY_LAYOUT);
     Ref<ResourceNamespace> myLayoutNamespaceRef = new Ref<>(ResourceNamespace.RES_AUTO);
@@ -675,13 +683,13 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     if (namespace == null) {
       value = tag.getAttribute(localName);
     }
-    else if (!myUseToolsNamespace && namespace.equals(TOOLS_URI)) {
+    else if (!myUseToolsPositionAndVisibility && namespace.equals(TOOLS_URI)) {
       value = null;
     }
     else if (namespace.equals(ANDROID_URI) || namespace.equals(AUTO_URI)) {
       // tools attributes can override both android and app namespace attributes
       String toolsPrefix = myNamespacePrefixes.get(TOOLS_URI);
-      if (toolsPrefix == null || !myUseToolsNamespace) {
+      if (toolsPrefix == null || (!myUseToolsPositionAndVisibility && myToolsPositionAndVisibilityAttributes.contains(localName))) {
         // tools namespace is not declared
         value = tag.getAttribute(localName, namespace);
       }

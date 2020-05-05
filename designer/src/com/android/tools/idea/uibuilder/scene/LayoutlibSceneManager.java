@@ -1050,8 +1050,8 @@ public class LayoutlibSceneManager extends SceneManager {
       taskBuilder.useTransparentBackground();
     }
 
-    if (!getDesignSurface().getPreviewWithToolsAttributes()) {
-      taskBuilder.disableToolsAttributes();
+    if (!getDesignSurface().getPreviewWithToolsVisibilityAndPosition()) {
+      taskBuilder.disableToolsVisibilityAndPosition();
     }
 
     // If two compose previews share the same ClassLoader they share the same compose framework. This way they share the state. In the
