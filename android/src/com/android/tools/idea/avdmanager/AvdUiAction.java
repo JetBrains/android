@@ -70,9 +70,7 @@ public abstract class AvdUiAction implements Action, HyperlinkListener {
   }
 
   @Override
-  @Deprecated
-  public void setEnabled(boolean b) {
-
+  public void setEnabled(boolean enabled) {
   }
 
   @Override

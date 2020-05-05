@@ -16,30 +16,102 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.concurrency.FutureUtils;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.icons.AllIcons;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.function.Function;
+import javax.swing.event.SwingPropertyChangeSupport;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Stop the emulator running an AVD
- */
-public class StopAvdAction extends AvdUiAction {
-  public StopAvdAction(@NotNull AvdInfoProvider provider) {
-    super(provider, "Stop", "Stop the emulator running this AVD", AllIcons.Actions.Suspend);
+final class StopAvdAction extends AvdUiAction {
+  private boolean myEnabled;
+
+  @NotNull
+  private final PropertyChangeSupport myPropertyChangeSupport;
+
+  @NotNull
+  private final Function<AvdInfoProvider, ListenableFuture<Boolean>> myIsAvdRunning;
+
+  @NotNull
+  private final Executor myExecutor;
+
+  StopAvdAction(@NotNull AvdInfoProvider provider) {
+    this(provider, StopAvdAction::isAvdRunning, EdtExecutorService.getInstance());
   }
 
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    AvdInfo avdInfo = getAvdInfo();
-    if (avdInfo != null) {
-      AvdManagerConnection.getDefaultAvdManagerConnection().stopAvd(avdInfo);
-    }
+  @VisibleForTesting
+  StopAvdAction(@NotNull AvdInfoProvider provider,
+                @NotNull Function<AvdInfoProvider, ListenableFuture<Boolean>> isAvdRunning,
+                @NotNull Executor executor) {
+    super(provider, "Stop", "Stop the emulator running this AVD", AllIcons.Actions.Suspend);
+
+    myEnabled = true;
+    myPropertyChangeSupport = new SwingPropertyChangeSupport(this);
+    myIsAvdRunning = isAvdRunning;
+    myExecutor = executor;
+  }
+
+  @NotNull
+  private static ListenableFuture<Boolean> isAvdRunning(@NotNull AvdInfoProvider provider) {
+    ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
+
+    AvdInfo device = provider.getAvdInfo();
+    assert device != null;
+
+    return service.submit(() -> AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(device));
   }
 
   @Override
   public boolean isEnabled() {
-    AvdInfo avdInfo = getAvdInfo();
-    return avdInfo != null && AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(avdInfo);
+    return myEnabled;
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    boolean oldEnabled = myEnabled;
+    myEnabled = enabled;
+
+    myPropertyChangeSupport.firePropertyChange("enabled", oldEnabled, enabled);
+  }
+
+  @Override
+  public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
+    myPropertyChangeSupport.addPropertyChangeListener(listener);
+
+    FutureUtils.addCallback(myIsAvdRunning.apply(myAvdInfoProvider), myExecutor, new FutureCallback<Boolean>() {
+      @Override
+      public void onSuccess(@Nullable Boolean running) {
+        // noinspection ConstantConditions
+        setEnabled(running);
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable throwable) {
+        Logger.getInstance(StopAvdAction.class).warn(throwable);
+      }
+    });
+  }
+
+  @Override
+  public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
+    myPropertyChangeSupport.removePropertyChangeListener(listener);
+  }
+
+  @Override
+  public void actionPerformed(@NotNull ActionEvent event) {
+    AvdManagerConnection.getDefaultAvdManagerConnection().stopAvd(Objects.requireNonNull(getAvdInfo()));
   }
 }
