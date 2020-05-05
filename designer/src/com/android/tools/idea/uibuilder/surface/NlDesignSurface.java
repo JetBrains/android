@@ -95,7 +95,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler {
 
-  private boolean myPreviewWithToolsAttributes = true;
+  private boolean myPreviewWithToolsVisibilityAndPosition = true;
 
   private static final double DEFAULT_MIN_SCALE = 0.1;
   private static final double DEFAULT_MAX_SCALE = 10;
@@ -946,14 +946,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  public boolean getPreviewWithToolsAttributes() {
-    return myPreviewWithToolsAttributes;
+  public boolean getPreviewWithToolsVisibilityAndPosition() {
+    return myPreviewWithToolsVisibilityAndPosition;
   }
 
   @Override
-  public void setPreviewWithToolsAttributes(boolean isPreviewWithToolsAttributes) {
-    if (myPreviewWithToolsAttributes != isPreviewWithToolsAttributes) {
-      myPreviewWithToolsAttributes = isPreviewWithToolsAttributes;
+  public void setPreviewWithToolsVisibilityAndPosition(boolean isPreviewWithToolsVisibilityAndPosition) {
+    if (myPreviewWithToolsVisibilityAndPosition != isPreviewWithToolsVisibilityAndPosition) {
+      myPreviewWithToolsVisibilityAndPosition = isPreviewWithToolsVisibilityAndPosition;
       forceUserRequestedRefresh();
     }
   }

@@ -23,7 +23,6 @@ import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.editor.EditorActionsToolbarActionGroups
-import com.android.tools.idea.uibuilder.actions.DisableToolsAttributesInPreviewAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 
@@ -40,9 +39,6 @@ class EditableDesignSurfaceActionGroups : EditorActionsToolbarActionGroups {
 
   override val otherGroups: List<ActionGroup>
     get() = listOf(
-      DefaultActionGroup().apply {
-        add(DisableToolsAttributesInPreviewAction)
-      },
       DefaultActionGroup().apply {
         add(PanSurfaceAction)
       })
