@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.controllers
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
@@ -251,7 +252,7 @@ class BuildAnalyzerViewControllerTest {
     val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
 
     // Act
-    controller.helpLinkClicked()
+    controller.helpLinkClicked(BuildAnalyzerBrowserLinks.CRITICAL_PATH)
 
     // Verify metrics sent
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }

@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.panels
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
@@ -42,8 +43,6 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
-const val CRITICAL_PATH_LINK = "https://developer.android.com/r/tools/build-attribution/critical-path"
-
 interface TreeLinkListener<T> {
   fun clickedOn(target: T)
 }
@@ -62,7 +61,7 @@ fun pluginInfoPanel(
     .newline()
     .add("determining this build's duration.")
     .closeHtmlBody()
-  add(DescriptionWithHelpLinkLabel(pluginText.html, CRITICAL_PATH_LINK, analytics::helpLinkClicked))
+  add(DescriptionWithHelpLinkLabel(pluginText.html, BuildAnalyzerBrowserLinks.CRITICAL_PATH, analytics::helpLinkClicked))
   add(JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
     border = JBUI.Borders.emptyTop(15)
     add(JBLabel("Warnings detected").withFont(JBUI.Fonts.label().asBold()))
@@ -96,7 +95,7 @@ fun taskInfoPanel(
 
 fun taskInfoPanel(
   taskData: TaskUiData,
-  helpLinkListener: () -> Unit,
+  helpLinkListener: (BuildAnalyzerBrowserLinks) -> Unit,
   generateReportClickedListener: (TaskUiData) -> Unit
 ): JPanel {
   val taskDescription = htmlTextLabel(
@@ -162,7 +161,7 @@ fun taskInfoPanel(
 
 private fun taskWarningDescriptionPanel(
   issue: TaskIssueUiData,
-  helpLinkClickCallback: () -> Unit,
+  helpLinkClickCallback: (BuildAnalyzerBrowserLinks) -> Unit,
   needSeparatorInFront: Boolean
 ): JComponent = JPanel().apply {
   name = "warning-${issue.type.name}"
