@@ -21,6 +21,8 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
@@ -42,7 +44,8 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   private ViewEditor myCustomViewEditor;
 
   public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
-    super(model, model.getSurface(), EdtExecutorService.getInstance(), queue -> queue.setPassThrough(true));
+    super(model, model.getSurface(), EdtExecutorService.getInstance(), queue -> queue.setPassThrough(true),
+          new DefaultSceneManagerHierarchyProvider());
     myDefaultProperties = new HashMap<>();
   }
 

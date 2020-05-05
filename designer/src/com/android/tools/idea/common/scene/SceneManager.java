@@ -40,6 +40,13 @@ import org.jetbrains.annotations.Nullable;
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
  */
 abstract public class SceneManager implements Disposable {
+  /**
+   * Provider mapping {@link NlComponent}s to {@link SceneComponent}/
+   */
+  public interface SceneComponentHierarchyProvider {
+    @NotNull
+    List<SceneComponent> createHierarchy(@NotNull SceneManager manager, @NotNull NlComponent component);
+  }
 
   public static final boolean SUPPORTS_LOCKING = false;
 
@@ -49,12 +56,27 @@ abstract public class SceneManager implements Disposable {
   // This will be initialized when constructor calls updateSceneView().
   @Nullable private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
+  @NotNull private final SceneComponentHierarchyProvider mySceneComponentProvider;
 
-  public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface, @NotNull boolean useLiveRendering) {
+  /**
+   * Creates a new {@link SceneManager}.
+   * @param model the {@NlMode} linked to this {@link SceneManager}.
+   * @param surface the {@DesignSurface} that will render this {@link SceneManager}.
+   * @param useLiveRendering if true, the {@link SceneManager} will re-render on every component update. When false, only when a explicit
+   *                         {@link SceneManager#requestRender} happens.
+   * @param sceneComponentProvider a {@link SceneComponentHierarchyProvider} that will generate the {@link SceneComponent}s from the
+   *                               given {@link NlComponent}.
+   */
+  public SceneManager(
+    @NotNull NlModel model,
+    @NotNull DesignSurface surface,
+    boolean useLiveRendering,
+    @Nullable SceneComponentHierarchyProvider sceneComponentProvider) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
 
+    mySceneComponentProvider = sceneComponentProvider == null ? new DefaultSceneManagerHierarchyProvider() : sceneComponentProvider;
     myScene = new Scene(this, myDesignSurface, useLiveRendering);
   }
 
@@ -138,7 +160,7 @@ abstract public class SceneManager implements Disposable {
       scene.setRoot(null);
     }
 
-    List<SceneComponent> hierarchy = createHierarchy(rootComponent);
+    List<SceneComponent> hierarchy = mySceneComponentProvider.createHierarchy(this, rootComponent);
     SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);
     scene.setRoot(root);
     if (root != null) {
@@ -173,38 +195,6 @@ abstract public class SceneManager implements Disposable {
       }
     }
     return false;
-  }
-
-  /**
-   * Create SceneComponents corresponding to an NlComponent hierarchy
-   */
-  @NotNull
-  protected List<SceneComponent> createHierarchy(@NotNull NlComponent component) {
-    SceneComponent sceneComponent = getScene().getSceneComponent(component);
-    if (sceneComponent == null) {
-      sceneComponent = new SceneComponent(getScene(), component, getHitProvider(component));
-    }
-    sceneComponent.setToolLocked(isComponentLocked(component));
-    Set<SceneComponent> oldChildren = new HashSet<>(sceneComponent.getChildren());
-    for (NlComponent nlChild : component.getChildren()) {
-      List<SceneComponent> children = createHierarchy(nlChild);
-      oldChildren.removeAll(children);
-      for (SceneComponent child : children) {
-        // Even the parent of child is the same, re-add it to make the order same as NlComponent.
-        child.removeFromParent();
-        sceneComponent.addChild(child);
-      }
-    }
-    for (SceneComponent child : oldChildren) {
-      if (child instanceof TemporarySceneComponent && child.getParent() == sceneComponent) {
-        // ignore TemporarySceneComponent since its associated NlComponent has not been added to the hierarchy.
-        continue;
-      }
-      if (child.getParent() == sceneComponent) {
-        child.removeFromParent();
-      }
-    }
-    return ImmutableList.of(sceneComponent);
   }
 
   /**

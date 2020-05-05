@@ -26,6 +26,7 @@ import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.scaledAndroidLength
+import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider
 import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneManager
@@ -92,7 +93,7 @@ private val ACTION_HORIZONTAL_PADDING = scaledAndroidLength(8f)
 open class NavSceneManager(
   model: NlModel,
   surface: NavDesignSurface
-) : SceneManager(model, surface, false) {
+) : SceneManager(model, surface, false, NavSceneComponentHierarchyProvider()) {
 
   private val layoutAlgorithms = listOf(
     NewDestinationLayoutAlgorithm(),
@@ -219,26 +220,6 @@ open class NavSceneManager(
   }
 
   override fun getRoot() = designSurface.currentNavigation
-
-  override fun createHierarchy(component: NlComponent): List<SceneComponent> {
-    if (!shouldCreateHierarchy(component)) {
-      return listOf()
-    }
-
-    val hierarchy = super.createHierarchy(component)
-
-    if (component == root) {
-      for (child in hierarchy) {
-        moveGlobalActions(child)
-        moveRegularActions(child)
-      }
-    }
-    else if (component.isNavigation) {
-      return hierarchy.plus(findAndCreateExitActionComponents(component))
-    }
-
-    return hierarchy
-  }
 
   override fun getSceneScalingFactor() = 1f
 
@@ -514,6 +495,30 @@ open class NavSceneManager(
         action.setPosition(x, y)
       }
       y += (ACTION_HEIGHT + ACTION_VERTICAL_PADDING).toInt()
+    }
+  }
+
+  private class NavSceneComponentHierarchyProvider: DefaultSceneManagerHierarchyProvider() {
+    override fun createHierarchy(manager: SceneManager, component: NlComponent): List<SceneComponent> {
+      val navSceneManager = manager as NavSceneManager
+
+      if (!navSceneManager.shouldCreateHierarchy(component)) {
+        return listOf()
+      }
+
+      val hierarchy = super.createHierarchy(manager, component)
+
+      if (component == navSceneManager.root) {
+        for (child in hierarchy) {
+          navSceneManager.moveGlobalActions(child)
+          navSceneManager.moveRegularActions(child)
+        }
+      }
+      else if (component.isNavigation) {
+        return hierarchy.plus(navSceneManager.findAndCreateExitActionComponents(component))
+      }
+
+      return hierarchy
     }
   }
 }
