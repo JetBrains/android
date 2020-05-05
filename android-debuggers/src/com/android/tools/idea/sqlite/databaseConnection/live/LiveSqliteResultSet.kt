@@ -17,10 +17,8 @@ package com.android.tools.idea.sqlite.databaseConnection.live
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.concurrency.cancelOnDispose
-import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.Executor

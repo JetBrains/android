@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sqlite.databaseConnection.live
+package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Command
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
+import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.Executor
 

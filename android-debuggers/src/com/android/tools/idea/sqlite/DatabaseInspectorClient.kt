@@ -17,8 +17,6 @@ package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.sqlite.databaseConnection.live.DatabaseInspectorMessenger
-import com.android.tools.idea.sqlite.databaseConnection.live.ErrorsSideChannel
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
