@@ -51,6 +51,7 @@ class ImportUtpResultActionTest {
 
   private val importUtpResultAction = ImportUtpResultAction()
 
+  @org.junit.Ignore("b/155928822")
   @Test
   fun importUtpResults() {
     importUtpResultAction.parseResultsAndDisplay("".byteInputStream(), disposableRule.disposable, projectRule.project)
@@ -58,6 +59,7 @@ class ImportUtpResultActionTest {
     assertThat(toolWindow.contentManager.contents).isNotEmpty()
   }
 
+  @org.junit.Ignore("b/155928822")
   @Test
   fun importUtpResultPreCreateContentManager() {
     RunContentManager.getInstance(projectRule.project)
