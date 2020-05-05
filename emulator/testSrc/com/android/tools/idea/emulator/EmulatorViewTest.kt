@@ -333,7 +333,7 @@ class EmulatorViewTest {
 
   private fun assertAppearance(ui: FakeUi, goldenImageName: String) {
     val image = ui.render()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.1)
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.0)
   }
 
   private fun getGoldenFile(name: String): File {
