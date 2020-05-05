@@ -240,7 +240,8 @@ private class AndroidTestResultsTableModel :
    */
   fun addTestResultsRow(device: AndroidDevice, testCase: AndroidTestCase) {
     val row = myTestResultsRows.getOrPut(testCase.id) {
-      AndroidTestResultsRow(testCase.name).also { addRow(it) }
+      AndroidTestResultsRow(testCase.methodName, testCase.className, testCase.packageName)
+        .also { addRow(it) }
     }
     row.addTestCase(device, testCase)
     fireTableDataChanged()
@@ -266,7 +267,7 @@ private class AndroidTestResultsTableModel :
  */
 private object TestNameColumn : ColumnInfo<AndroidTestResultsRow, AndroidTestResultsRow>("Tests") {
   private val myComparator = Comparator<AndroidTestResultsRow> { lhs, rhs ->
-    compareValues(lhs.testCaseName, rhs.testCaseName)
+    compareValues(lhs.getTestCaseName(), rhs.getTestCaseName())
   }
   override fun valueOf(item: AndroidTestResultsRow): AndroidTestResultsRow = item
   override fun getComparator(): Comparator<AndroidTestResultsRow> = myComparator
@@ -287,7 +288,7 @@ private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
                                              column: Int): Component {
     val results = value as? AndroidTestResultsRow ?: return this
 
-    val shortenedName = StringUtil.last(results.testCaseName, maxDisplayNameLength, true)
+    val shortenedName = StringUtil.last(results.getTestCaseName(), maxDisplayNameLength, true)
     super.getTableCellRendererComponent(table, shortenedName, isSelected, hasFocus, row, column)
     icon = getIconFor(results.getTestResultSummary())
     border = myEmptyBorder
@@ -375,7 +376,9 @@ private object AndroidTestResultsColumnCellRenderer : DefaultTableCellRenderer()
 /**
  * A row for displaying test results. Each row has test results for every device.
  */
-private class AndroidTestResultsRow(override val testCaseName: String) : AndroidTestResults {
+private class AndroidTestResultsRow(override val methodName: String,
+                                    override val className: String,
+                                    override val packageName: String) : AndroidTestResults {
   private val myTestCases = mutableMapOf<String, AndroidTestCase>()
 
   /**

@@ -101,7 +101,11 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
   }
 
   override fun testStarted(testId: TestIdentifier) {
-    val testCase = AndroidTestCase(testId.toString(), testId.toString(), AndroidTestCaseResult.IN_PROGRESS)
+    val testCase = AndroidTestCase(testId.toString(),
+                                   testId.testName,
+                                   testId.className,
+                                   "",
+                                   AndroidTestCaseResult.IN_PROGRESS)
     myTestCases[testId] = testCase
     listener.onTestCaseStarted(myDevice, myTestSuite, testCase)
   }
