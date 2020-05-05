@@ -55,6 +55,6 @@ public final class AndroidStudioPreferences {
       }
     }
 
-    projectConfigurable.unregisterExtensions(ep -> !nonStudioExtensions.contains(ep));
+    projectConfigurable.unregisterExtensions(ep -> nonStudioExtensions.contains(ep));
   }
 }
