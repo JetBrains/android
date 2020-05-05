@@ -22,6 +22,7 @@ import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
+import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
@@ -69,7 +70,7 @@ class AppInspectionView(
 
   private val noInspectorsMessage =
     JPanel(BorderLayout()).apply {
-      add(JBLabel("Please select or launch a process to continue.", SwingConstants.CENTER).apply {
+      add(JBLabel(AppInspectionBundle.message("select.process"), SwingConstants.CENTER).apply {
         font = AdtUiUtils.DEFAULT_FONT.biggerOn(3f)
         foreground = UIUtil.getInactiveTextColor()
       })
@@ -77,7 +78,7 @@ class AppInspectionView(
 
   private fun showCrashNotification(inspectorName: String) {
     ideServices.showNotification(
-      AndroidBundle.message("android.appinspection.notification.crash", inspectorName),
+      AppInspectionBundle.message("notification.crash", inspectorName),
       severity = AppInspectionIdeServices.Severity.ERROR
     ) {
       AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()

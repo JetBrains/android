@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.LaunchOptions
@@ -35,8 +36,7 @@ class AppInspectionLaunchTaskContributor : AndroidLaunchTaskContributor {
   override fun getTask(module: Module, applicationId: String, launchOptions: LaunchOptions) = object : LaunchTask {
    val project = module.project
     override fun getId() = APP_INSPECTION_ID
-    // TODO(b/152556591): Rename to "Launching App Inspection"
-    override fun getDescription() = "Launching the Database Inspector"
+    override fun getDescription() = AppInspectionBundle.message("launch.app.inspection.tool.window")
     override fun getDuration() = LaunchTaskDurations.LAUNCH_ACTIVITY
     override fun run(executor: Executor, device: IDevice, launchStatus: LaunchStatus, printer: ConsolePrinter): LaunchResult {
       ApplicationManager.getApplication().invokeLater {
