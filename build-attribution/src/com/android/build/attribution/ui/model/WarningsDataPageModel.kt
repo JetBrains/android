@@ -21,10 +21,13 @@ import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
+import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
+import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import com.intellij.openapi.util.text.StringUtil
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -166,6 +169,7 @@ data class WarningsPageId(
 
 sealed class WarningsTreePresentableNodeDescriptor {
   abstract val pageId: WarningsPageId
+  abstract val analyticsPageType: PageType
   abstract val presentation: BuildAnalyzerTreeNodePresentation
 }
 
@@ -174,6 +178,11 @@ class TaskWarningTypeNodeDescriptor(
   val warningTypeData: TaskIssuesGroup
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.warningType(warningTypeData.type)
+  override val analyticsPageType = when (warningTypeData.type) {
+    TaskIssueType.ALWAYS_RUN_TASKS -> PageType.ALWAYS_RUN_ISSUE_ROOT
+    TaskIssueType.TASK_SETUP_ISSUE -> PageType.TASK_SETUP_ISSUE_ROOT
+  }
+
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = warningTypeData.type.uiName,
@@ -187,6 +196,12 @@ class TaskWarningDetailsNodeDescriptor(
   val issueData: TaskIssueUiData
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.warning(issueData)
+  override val analyticsPageType = when (issueData) {
+    is TaskIssueUiDataContainer.TaskSetupIssue -> PageType.TASK_SETUP_ISSUE_PAGE
+    is TaskIssueUiDataContainer.AlwaysRunNoOutputIssue -> PageType.ALWAYS_RUN_NO_OUTPUTS_PAGE
+    is TaskIssueUiDataContainer.AlwaysRunUpToDateOverride -> PageType.ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
+    else -> PageType.UNKNOWN_PAGE
+  }
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = issueData.task.taskPath,
@@ -200,6 +215,7 @@ class AnnotationProcessorsRootNodeDescriptor(
   val annotationProcessorsReport: AnnotationProcessorsReport
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.annotationProcessorRoot
+  override val analyticsPageType = PageType.ANNOTATION_PROCESSORS_ROOT
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = "Non-incremental Annotation Processors",
@@ -212,6 +228,7 @@ class AnnotationProcessorDetailsNodeDescriptor(
   val annotationProcessorData: AnnotationProcessorUiData
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.annotationProcessor(annotationProcessorData)
+  override val analyticsPageType = PageType.ANNOTATION_PROCESSOR_PAGE
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = annotationProcessorData.className,

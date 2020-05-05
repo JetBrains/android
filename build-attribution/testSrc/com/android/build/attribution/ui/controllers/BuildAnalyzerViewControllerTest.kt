@@ -31,7 +31,7 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -85,11 +85,11 @@ class BuildAnalyzerViewControllerTest {
     assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.TASKS)
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
 
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
       from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
-      to = BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT
+      to = BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE
     )
   }
 
@@ -104,11 +104,12 @@ class BuildAnalyzerViewControllerTest {
     assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.WARNINGS)
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
 
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
       from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
-      to = BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT
+      // First node in warnings tree
+      to = BuildAttributionUiEvent.Page.PageType.ALWAYS_RUN_ISSUE_ROOT
     )
   }
 
@@ -123,17 +124,75 @@ class BuildAnalyzerViewControllerTest {
     assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.OVERVIEW)
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
 
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
-      from = BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT,
+      // First node in warnings tree
+      from = BuildAttributionUiEvent.Page.PageType.ALWAYS_RUN_ISSUE_ROOT,
       to = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY
     )
   }
 
   @Test
   @RunsInEdt
+  fun testOpenTasksUngroupedLinkClicked() {
+    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+
+    // Act
+    controller.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.UNGROUPED)
+
+    // Assert
+    assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.TASKS)
+    assertThat(model.tasksPageModel.selectedGrouping).isEqualTo(TasksDataPageModel.Grouping.UNGROUPED)
+    // Verify metrics sent
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE)
+    }
+  }
+
+  @Test
+  @RunsInEdt
+  fun testOpenTasksGroupedByPluginLinkClicked() {
+    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+
+    // Act
+    controller.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN)
+
+    // Assert
+    assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.TASKS)
+    assertThat(model.tasksPageModel.selectedGrouping).isEqualTo(TasksDataPageModel.Grouping.BY_PLUGIN)
+    // Verify metrics sent
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASK_PAGE)
+    }
+  }
+
+  @Test
+  @RunsInEdt
+  fun testOpenAllWarningsLinkClicked() {
+    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+
+    // Act
+    controller.changeViewToWarningsLinkClicked()
+
+    // Assert
+    assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.WARNINGS)
+    // Verify metrics sent
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.ALWAYS_RUN_ISSUE_ROOT)
+    }
+  }
+
+  @Test
+  @RunsInEdt
   fun testTasksGroupingSelectionUpdated() {
+    model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
     val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
 
     // Act
@@ -141,12 +200,18 @@ class BuildAnalyzerViewControllerTest {
 
     // Assert
     assertThat(model.tasksPageModel.selectedGrouping).isEqualTo(TasksDataPageModel.Grouping.BY_PLUGIN)
-    // TODO (b/154988129): what metrics should be tracked here?
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.GROUPING_CHANGED)
+      assertThat(currentPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASK_PAGE)
+    }
   }
 
   @Test
   @RunsInEdt
   fun testTasksNodeSelectionUpdated() {
+    model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
     val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
     // Second node in current (ungrouped) tasks tree.
     val nodeToSelect = model.tasksPageModel.selectedNode!!.nextNode as TasksTreeNode
@@ -157,7 +222,7 @@ class BuildAnalyzerViewControllerTest {
     // Assert
     assertThat(model.tasksPageModel.selectedNode).isEqualTo(nodeToSelect)
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
       assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE)
@@ -179,7 +244,7 @@ class BuildAnalyzerViewControllerTest {
     assertThat(model.tasksPageModel.selectedNode).isEqualTo(nodeToSelect)
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
       assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE)
@@ -200,7 +265,7 @@ class BuildAnalyzerViewControllerTest {
     assertThat(model.tasksPageModel.selectedNode!!.descriptor.pageId).isEqualTo(pluginPageId)
     assertThat(model.tasksPageModel.selectedGrouping).isEqualTo(TasksDataPageModel.Grouping.BY_PLUGIN)
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
       assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_PAGE)
@@ -210,6 +275,7 @@ class BuildAnalyzerViewControllerTest {
   @Test
   @RunsInEdt
   fun testWarningsNodeSelectionUpdated() {
+    model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
     val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
     // Second node in current (ungrouped) tasks tree.
     val nodeToSelect = model.warningsPageModel.selectedNode!!.nextNode as WarningsTreeNode
@@ -220,13 +286,12 @@ class BuildAnalyzerViewControllerTest {
     // Assert
     assertThat(model.warningsPageModel.selectedNode).isEqualTo(nodeToSelect)
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
       assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.ALWAYS_RUN_NO_OUTPUTS_PAGE)
     }
   }
-
 
   @Test
   @RunsInEdt
@@ -240,7 +305,7 @@ class BuildAnalyzerViewControllerTest {
     // Assert
     Mockito.verify(issueReporter).reportIssue(eq(taskData))
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.GENERATE_REPORT_LINK_CLICKED)
     }
@@ -255,9 +320,10 @@ class BuildAnalyzerViewControllerTest {
     controller.helpLinkClicked(BuildAnalyzerBrowserLinks.CRITICAL_PATH)
 
     // Verify metrics sent
-    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED)
+      assertThat(linkTarget).isEqualTo(BuildAttributionUiEvent.OutgoingLinkTarget.CRITICAL_PATH_HELP)
     }
   }
 
@@ -266,8 +332,7 @@ class BuildAnalyzerViewControllerTest {
     to: BuildAttributionUiEvent.Page.PageType
   ) {
     assertThat(buildAttributionReportSessionId).isEqualTo(buildSessionId)
-    // TODO (b/154988129): update type to combo-box usage when ready
-    assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.UNKNOWN_TYPE)
+    assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.DATA_VIEW_COMBO_SELECTED)
     assertThat(currentPage.pageType).isEqualTo(from)
     assertThat(currentPage.pageEntryIndex).isEqualTo(1)
     assertThat(targetPage.pageType).isEqualTo(to)

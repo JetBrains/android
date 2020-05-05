@@ -15,13 +15,34 @@
  */
 package com.android.build.attribution.ui
 
+import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
+
 enum class BuildAnalyzerBrowserLinks(
-  val urlTarget: String
+  val urlTarget: String,
+  val analyticsValue: BuildAttributionUiEvent.OutgoingLinkTarget
 ) {
-  NON_INCREMENTAL_ANNOTATION_PROCESSORS("https://d.android.com/r/tools/build-attribution/non-incremental-ap"),
-  CRITICAL_PATH("https://developer.android.com/r/tools/build-attribution/critical-path"),
-  DUPLICATE_OUTPUT_FOLDER_ISSUE("https://d.android.com/r/tools/build-attribution/duplicate-output-folder"),
-  NO_OUTPUTS_DECLARED_ISSUE("https://d.android.com/r/tools/build-attribution/no-task-outputs-declared"),
-  UP_TO_DATE_EQUALS_FALSE_ISSUE("https://d.android.com/r/tools/build-attribution/upToDateWhen-equals-false"),
-  OPTIMIZE_CONFIGURATION_PHASE("https://d.android.com/r/tools/build-attribution/optimize-configuration-phase")
+  NON_INCREMENTAL_ANNOTATION_PROCESSORS(
+    "https://d.android.com/r/tools/build-attribution/non-incremental-ap",
+    BuildAttributionUiEvent.OutgoingLinkTarget.NON_INCREMENTAL_ANNOTATION_PROCESSORS_HELP
+  ),
+  CRITICAL_PATH(
+    "https://developer.android.com/r/tools/build-attribution/critical-path",
+    BuildAttributionUiEvent.OutgoingLinkTarget.CRITICAL_PATH_HELP
+  ),
+  DUPLICATE_OUTPUT_FOLDER_ISSUE(
+    "https://d.android.com/r/tools/build-attribution/duplicate-output-folder",
+    BuildAttributionUiEvent.OutgoingLinkTarget.DUPLICATE_OUTPUT_FOLDER_ISSUE_HELP
+  ),
+  NO_OUTPUTS_DECLARED_ISSUE(
+    "https://d.android.com/r/tools/build-attribution/no-task-outputs-declared",
+    BuildAttributionUiEvent.OutgoingLinkTarget.NO_OUTPUTS_DECLARED_ISSUE_HELP
+  ),
+  UP_TO_DATE_EQUALS_FALSE_ISSUE(
+    "https://d.android.com/r/tools/build-attribution/upToDateWhen-equals-false",
+    BuildAttributionUiEvent.OutgoingLinkTarget.UP_TO_DATE_EQUALS_FALSE_ISSUE_HELP
+  ),
+  OPTIMIZE_CONFIGURATION_PHASE(
+    "https://d.android.com/r/tools/build-attribution/optimize-configuration-phase",
+    BuildAttributionUiEvent.OutgoingLinkTarget.OPTIMIZE_CONFIGURATION_PHASE_HELP
+  )
 }
