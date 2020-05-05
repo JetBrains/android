@@ -83,12 +83,14 @@ import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotifications
+import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
+import java.awt.Color
 import java.time.Duration
 import java.util.EnumMap
 import java.util.concurrent.CompletableFuture
@@ -106,6 +108,12 @@ private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = 
                                                              hasSyntaxErrors = false,
                                                              isOutOfDate = false,
                                                              isRefreshing = true)
+
+/**
+ * Background color for the surface while "Interactive" is enabled.
+ */
+private val INTERACTIVE_BACKGROUND_COLOR = JBColor(Color(203, 210, 217),
+                                                   Color(109, 116, 124))
 
 /**
  * [NlModel] associated preview data
@@ -235,9 +243,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             // While in interactive mode, display a small ripple when clicking
             surface.enableMouseClickDisplay()
           }
+          surface.background = INTERACTIVE_BACKGROUND_COLOR
         }
       }
       else { // Disable interactive
+        surface.background = defaultSurfaceBackground
         surface.disableMouseClickDisplay()
         interactionHandler?.let { it.selected = InteractionMode.DEFAULT }
         ticker.stop()
@@ -273,6 +283,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       setScreenMode(SceneMode.COMPOSE, false)
       setMaxFitIntoScale(2f) // Set fit into limit to 200%
     }
+
+  /**
+   * Default background used by the surface. This is used to restore the state after disabling the interactive preview.
+   */
+  private val defaultSurfaceBackground: Color = surface.background
 
   private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
 

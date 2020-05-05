@@ -82,6 +82,7 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import java.awt.Adjustable;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -225,6 +226,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider) {
     super(new BorderLayout());
+
     myConfigurationListener = flags -> {
       if ((flags & (ConfigurationListener.CFG_DEVICE | ConfigurationListener.CFG_DEVICE_STATE)) != 0 && !isLayoutDisabled()) {
         zoom(onChangedZoom, -1, -1);
@@ -1757,5 +1759,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public void disableMouseClickDisplay() {
     myMouseClickDisplayPanel.setEnabled(false);
+  }
+
+  @Override
+  public void setBackground(Color bg) {
+    super.setBackground(bg);
+
+    // setBackground is called before the class initialization is complete so we do the null checking to prevent calling mySceneViewPanel
+    // before the constructor has completed. At that point mySceneViewPanel might still be null.
+    //noinspection ConstantConditions
+    if (mySceneViewPanel != null) {
+      mySceneViewPanel.setBackground(bg);
+    }
   }
 }
