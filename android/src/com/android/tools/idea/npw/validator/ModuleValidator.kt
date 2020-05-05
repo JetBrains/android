@@ -19,37 +19,34 @@ import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.Validator.Result
 import com.android.tools.adtui.validation.Validator.Severity
 import com.android.tools.idea.npw.module.getModuleRoot
-import com.android.tools.idea.observable.core.StringProperty
-import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.google.common.base.CharMatcher.anyOf
 import com.google.common.base.CharMatcher.inRange
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.annotations.SystemIndependent
 
 /**
  * Validates the module name and its location.
  */
-class ModuleValidator(private val projectPath: StringProperty) : Validator<String> {
-  private var project : Project? = null // May be null for new projects
+class ModuleValidator constructor (
+  val project: Project
+) : Validator<String> {
+  private val projectPath: @SystemIndependent String = project.basePath!!
   private val pathValidator: PathValidator = PathValidator.createDefault("module location")
   private val ILLEGAL_CHAR_MATCHER =
     inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).or(anyOf("_-: ")).negate()
 
-  constructor(project: Project) : this(StringValueProperty(project.basePath!!)) {
-    this.project = project
-  }
-
-  override fun validate(name: String): Result {
-    val illegalCharIdx = ILLEGAL_CHAR_MATCHER.indexIn(name)
+  override fun validate(moduleGradlePath: String): Result {
+    val illegalCharIdx = ILLEGAL_CHAR_MATCHER.indexIn(moduleGradlePath)
     return when {
-      name.isEmpty() -> Result(Severity.ERROR, message("android.wizard.validate.empty.module.name"))
-      project != null && ModuleManager.getInstance(project!!).findModuleByName(name) != null ->
-        Result(Severity.ERROR, message("android.wizard.validate.module.already.exists", name))
+      moduleGradlePath.isEmpty() -> Result(Severity.ERROR, message("android.wizard.validate.empty.module.name"))
+      ModuleManager.getInstance(project).findModuleByName(moduleGradlePath) != null ->
+        Result(Severity.ERROR, message("android.wizard.validate.module.already.exists", moduleGradlePath))
       illegalCharIdx >= 0 ->
-        Result(Severity.ERROR, message("android.wizard.validate.module.illegal.character", name[illegalCharIdx], name))
-      else -> pathValidator.validate(getModuleRoot(projectPath.get(), name))
+        Result(Severity.ERROR, message("android.wizard.validate.module.illegal.character", moduleGradlePath[illegalCharIdx], moduleGradlePath))
+      else -> pathValidator.validate(getModuleRoot(projectPath, moduleGradlePath))
     }
   }
 }
