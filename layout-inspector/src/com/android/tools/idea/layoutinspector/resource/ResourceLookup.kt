@@ -56,10 +56,17 @@ class ResourceLookup(private val project: Project) {
   var dpi: Int = DEFAULT_DENSITY
 
   /**
+   * The fontScale currently used on the device.
+   */
+  var fontScale: Float = 0.0f
+
+  /**
    * Update the configuration after a possible configuration change detected on the device.
    */
   fun updateConfiguration(resources: LayoutInspectorProto.ResourceConfiguration, stringTable: StringTable) {
-    dpi = if (resources.configuration.density != 0) resources.configuration.density else DEFAULT_DENSITY
+    val config = resources.configuration
+    dpi = if (config.density != 0) config.density else DEFAULT_DENSITY
+    fontScale = config.fontScale
     val loader = ConfigurationLoader(resources, stringTable)
     val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, loader.packageName) }
     if (facet == null) {

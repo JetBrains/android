@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
+import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -130,6 +131,9 @@ open class InspectorPropertyItem(
     if (resourceLookup.dpi <= 0) {
       // If we are unable to get the dpi from the device, just show pixels
       return "${formatFloat(pixels)}px"
+    }
+    if (name == ATTR_TEXT_SIZE && resourceLookup.fontScale != 0.0f && PropertiesSettings.dimensionUnits == DimensionUnits.DP) {
+      return "${DecimalFormat("0.0").format(pixels * 160.0f / resourceLookup.fontScale / resourceLookup.dpi)}sp"
     }
     return when (PropertiesSettings.dimensionUnits) {
       DimensionUnits.PIXELS -> "${formatFloat(pixels)}px"

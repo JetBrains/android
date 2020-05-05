@@ -140,6 +140,38 @@ class InspectorPropertyItemTest {
   }
 
   @Test
+  fun testFormatTextSizeInPixels() {
+    assertThat(textSizePropertyOf("").value).isEqualTo("")
+    assertThat(textSizePropertyOf("49.0").value).isEqualTo("49.0px")
+    model!!.resourceLookup.fontScale = 0.9f
+    assertThat(textSizePropertyOf("44.0").value).isEqualTo("44.0px")
+
+    model!!.resourceLookup.dpi = -1
+    assertThat(textSizePropertyOf("").value).isEqualTo("")
+    assertThat(textSizePropertyOf("49.0").value).isEqualTo("49.0px")
+    model!!.resourceLookup.fontScale = 0.9f
+    assertThat(textSizePropertyOf("44.0").value).isEqualTo("44.0px")
+  }
+
+  @Test
+  fun testFormatTextSizeInSp() {
+    PropertiesSettings.dimensionUnits = DimensionUnits.DP
+    model!!.resourceLookup.fontScale = 1.0f
+    assertThat(textSizePropertyOf("").value).isEqualTo("")
+    assertThat(textSizePropertyOf("49.0").value).isEqualTo("14.0sp")
+    model!!.resourceLookup.fontScale = 0.9f
+    assertThat(textSizePropertyOf("44.0").value).isEqualTo("14.0sp")
+    model!!.resourceLookup.fontScale = 1.3f
+    assertThat(textSizePropertyOf("64.0").value).isEqualTo("14.1sp")
+
+    model!!.resourceLookup.dpi = -1
+    assertThat(textSizePropertyOf("").value).isEqualTo("")
+    assertThat(textSizePropertyOf("49.0").value).isEqualTo("49.0px")
+    model!!.resourceLookup.fontScale = 0.9f
+    assertThat(textSizePropertyOf("44.0").value).isEqualTo("44.0px")
+  }
+
+  @Test
   fun testBrowseBackgroundInLayout() {
     val descriptor = browseProperty(ATTR_BACKGROUND, Type.DRAWABLE, null)
     assertThat(descriptor.file.name).isEqualTo("demo.xml")
@@ -165,6 +197,12 @@ class InspectorPropertyItemTest {
   private fun dimensionFloatPropertyOf(value: String?): InspectorPropertyItem {
     val node = model!!["title"]!!
     return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, node,
+                                 model!!.resourceLookup)
+  }
+
+  private fun textSizePropertyOf(value: String?): InspectorPropertyItem {
+    val node = model!!["title"]!!
+    return InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_SIZE, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, node,
                                  model!!.resourceLookup)
   }
 
