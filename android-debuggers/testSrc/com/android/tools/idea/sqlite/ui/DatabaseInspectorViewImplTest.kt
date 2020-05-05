@@ -34,7 +34,9 @@ import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import com.intellij.mock.MockVirtualFile
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.ui.treeStructure.Tree
+import icons.StudioIcons
 import java.awt.Dimension
+import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -348,6 +350,26 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
     assertNull(emptyStateRightPanel)
     assertTrue(tabsPanel.isVisible)
+  }
+
+  fun testUpdateKeepConnectionOpenButton() {
+    // Prepare
+    val button = TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as JButton
+
+    // Assert
+    assertEquals(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN, button.icon)
+
+    // Act
+    view.updateKeepConnectionOpenButton(true)
+
+    // Assert
+    assertEquals(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN, button.icon)
+
+    // Act
+    view.updateKeepConnectionOpenButton(false)
+
+    // Assert
+    assertEquals(StudioIcons.DatabaseInspector.ALLOW_DATABASES_TO_CLOSE, button.icon)
   }
 
   private fun assertTreeContainsNodes(tree: Tree, databases: Map<ViewDatabase, List<SqliteTable>>) {

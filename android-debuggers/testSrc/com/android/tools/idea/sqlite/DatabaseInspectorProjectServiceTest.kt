@@ -27,6 +27,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.getAllDatabaseIds
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -109,6 +110,24 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
     // Assert
     assertEmpty(model.getAllDatabaseIds())
+  }
+
+  fun testStopSessionsRemovesDatabaseInspectorClientChannelFromController() {
+    // Prepare
+    val clientCommandsChannel = object : DatabaseInspectorClientCommandsChannel {
+      override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> = Futures.immediateFuture(null)
+    }
+
+    databaseInspectorProjectService.startAppInspectionSession(null, clientCommandsChannel)
+
+    // Act
+    runDispatching {
+      databaseInspectorProjectService.stopAppInspectionSession()
+    }
+
+    // Assert
+    verify(mockSqliteController).setDatabaseInspectorClientCommandsChannel(clientCommandsChannel)
+    verify(mockSqliteController).setDatabaseInspectorClientCommandsChannel(null)
   }
 
   fun testDatabasePossiblyChangedNotifiesController() {

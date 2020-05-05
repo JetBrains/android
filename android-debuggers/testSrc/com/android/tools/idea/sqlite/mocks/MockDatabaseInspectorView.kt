@@ -57,5 +57,7 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
 
   override fun closeTab(tabId: TabId) { }
 
+  override fun updateKeepConnectionOpenButton(keepOpen: Boolean) { }
+
   override fun reportError(message: String, throwable: Throwable?) { }
 }

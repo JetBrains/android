@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvide
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.EdtExecutorService
@@ -73,9 +74,13 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       override val component: JComponent = databaseInspectorProjectService.sqliteInspectorComponent
 
+      val databaseInspectorClientCommands = object : DatabaseInspectorClientCommandsChannel {
+        override fun keepConnectionsOpen(keepOpen: Boolean) = client.keepConnectionsOpen(keepOpen)
+      }
+
       init {
         databaseInspectorProjectService.ideServices = ideServices
-        databaseInspectorProjectService.startAppInspectionSession(savedState)
+        databaseInspectorProjectService.startAppInspectionSession(savedState, databaseInspectorClientCommands)
         client.startTrackingDatabaseConnections()
         client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
           override fun onDispose() {
@@ -89,4 +94,11 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
 fun createErrorSideChannel(project: Project) : ErrorsSideChannel = {
   handleError(project, it.content, logger<DatabaseInspectorMessenger>())
+}
+
+/**
+ * Interface used to send commands to on-device inspector
+ */
+interface DatabaseInspectorClientCommandsChannel {
+  fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?>
 }

@@ -130,7 +130,10 @@ interface DatabaseInspectorProjectService {
    * @param previousState state of UI from previous session if available
    */
   @UiThread
-  fun startAppInspectionSession(previousState: SavedUiState?)
+  fun startAppInspectionSession(
+    previousState: SavedUiState?,
+    databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel
+  )
 
   /**
    * Called when Database Inspector is disconnected from app.
@@ -204,6 +207,8 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     createController(model)
   }
 
+  var myDatabaseInspectorClientCommandsChannelChannel: DatabaseInspectorClientCommandsChannel? = null
+
   override var ideServices: AppInspectionIdeServices? = null
 
   override val sqliteInspectorComponent
@@ -230,12 +235,17 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   @UiThread
-  override fun startAppInspectionSession(previousState: SavedUiState?) {
-      controller.restoreSavedState(previousState)
+  override fun startAppInspectionSession(
+    previousState: SavedUiState?,
+    databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel
+  ) {
+    controller.setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel)
+    controller.restoreSavedState(previousState)
   }
 
   @UiThread
   override fun stopAppInspectionSession(): SavedUiState {
+    controller.setDatabaseInspectorClientCommandsChannel(null)
     val savedState = controller.saveState()
 
     projectScope.launch(uiThread) {

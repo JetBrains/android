@@ -17,11 +17,13 @@ package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.invokeLater
 import java.util.concurrent.Executor
 
@@ -86,5 +88,25 @@ class DatabaseInspectorClient constructor(
         .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
         .build()
     )
+  }
+
+  /**
+   * If [keepOpen] is true, sends a command to the on-device inspector to force connections to databases to stay open,
+   * even after the app closes them.
+   * Return a future boolean that is true if `KeepDatabasesOpen` is enabled, false otherwise and null if the command failed.
+   */
+  fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
+    val response = dbMessenger.sendCommand(
+      SqliteInspectorProtocol.Command.newBuilder()
+        .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(keepOpen).build())
+        .build()
+    )
+
+    return response.transform(taskExecutor) {
+      return@transform when(it.oneOfCase) {
+        SqliteInspectorProtocol.Response.OneOfCase.KEEP_DATABASES_OPEN -> keepOpen
+        else -> null
+      }
+    }
   }
 }
