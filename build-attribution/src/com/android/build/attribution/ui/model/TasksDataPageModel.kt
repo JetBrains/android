@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.model
 
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.TaskUiData
@@ -22,6 +23,7 @@ import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import javax.swing.tree.DefaultMutableTreeNode
 
 /**
@@ -219,6 +221,7 @@ data class TasksPageId(
 
 sealed class TasksTreePresentableNodeDescriptor {
   abstract val pageId: TasksPageId
+  abstract val analyticsPageType: PageType
   abstract val presentation: BuildAnalyzerTreeNodePresentation
 }
 
@@ -228,6 +231,10 @@ class TaskDetailsNodeDescriptor(
   grouping: TasksDataPageModel.Grouping
 ) : TasksTreePresentableNodeDescriptor() {
   override val pageId = TasksPageId.task(taskData, grouping)
+  override val analyticsPageType = when (grouping) {
+    TasksDataPageModel.Grouping.UNGROUPED -> PageType.CRITICAL_PATH_TASK_PAGE
+    TasksDataPageModel.Grouping.BY_PLUGIN -> PageType.PLUGIN_CRITICAL_PATH_TASK_PAGE
+  }
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskData.taskPath,
@@ -242,6 +249,7 @@ class PluginDetailsNodeDescriptor(
   val pluginData: CriticalPathPluginUiData
 ) : TasksTreePresentableNodeDescriptor() {
   override val pageId = TasksPageId.plugin(pluginData)
+  override val analyticsPageType = PageType.PLUGIN_PAGE
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = pluginData.name,

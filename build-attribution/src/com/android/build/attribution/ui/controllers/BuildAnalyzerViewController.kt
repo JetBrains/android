@@ -45,105 +45,73 @@ class BuildAnalyzerViewController(
 ) : ViewActionHandlers {
 
   init {
-    val pageId = model.selectedData.toAnalyticsPage()
-    analytics.initFirstPage(pageId)
+    analytics.initFirstPage(model)
   }
 
   override fun dataSetComboBoxSelectionUpdated(newSelectedData: BuildAnalyzerViewModel.DataSet) {
+    val currentAnalyticsPage = analytics.getStateFromModel(model)
     model.selectedData = newSelectedData
-    val analyticsPageId = newSelectedData.toAnalyticsPage()
-    analytics.pageChange(analyticsPageId, BuildAttributionUiEvent.EventType.UNKNOWN_TYPE)
+    val newAnalyticsPage = analytics.getStateFromModel(model)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.DATA_VIEW_COMBO_SELECTED)
   }
 
   override fun changeViewToTasksLinkClicked(targetGrouping: Grouping) {
+    val currentAnalyticsPage = analytics.getStateFromModel(model)
     model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
     model.tasksPageModel.selectGrouping(targetGrouping)
-    // TODO (b/154988129): what metrics to track on such action?
+    val newAnalyticsPage = analytics.getStateFromModel(model)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
   }
 
   override fun changeViewToWarningsLinkClicked() {
+    val currentAnalyticsPage = analytics.getStateFromModel(model)
     model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
-    // TODO (b/154988129): what metrics to track on such action?
+    val newAnalyticsPage = analytics.getStateFromModel(model)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
   }
 
   override fun tasksGroupingSelectionUpdated(grouping: Grouping) {
+    val currentAnalyticsPage = analytics.getStateFromModel(model)
     model.tasksPageModel.selectGrouping(grouping)
-    // TODO (b/154988129): what metrics to track on such action?
+    val newAnalyticsPage = analytics.getStateFromModel(model)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.GROUPING_CHANGED)
   }
 
   override fun tasksTreeNodeSelected(tasksTreeNode: TasksTreeNode) {
-    // Update selection in the model.
+    val currentAnalyticsPage = analytics.getStateFromModel(model)
     model.tasksPageModel.selectNode(tasksTreeNode)
-    // Track page change in analytics.
-    val pageId = tasksTreeNode.descriptor.pageId.toAnalyticsPage()
-    analytics.pageChange(pageId, BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
+    val newAnalyticsPage = analytics.getStateFromModel(model)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
   }
 
   override fun tasksDetailsLinkClicked(taskPageId: TasksPageId) {
+    val currentAnalyticsPage = analytics.getStateFromModel(model)
     // Make sure tasks page open.
     model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
     // Update selection in the tasks page model.
     model.tasksPageModel.selectPageById(taskPageId)
     // Track page change in analytics.
-    val pageId = taskPageId.toAnalyticsPage()
-    analytics.pageChange(pageId, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
+    val newAnalyticsPage = analytics.getStateFromModel(model)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
   }
 
   override fun warningsTreeNodeSelected(warningTreeNode: WarningsTreeNode) {
+    val currentAnalyticsPage = analytics.getStateFromModel(model)
     // Update selection in the model.
     model.warningsPageModel.selectNode(warningTreeNode)
     // Track page change in analytics.
-    val pageId = warningTreeNode.descriptor.toAnalyticsPage()
-    analytics.pageChange(pageId, BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
+    val newAnalyticsPage = analytics.getStateFromModel(model)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
   }
 
   override fun helpLinkClicked(linkTarget: BuildAnalyzerBrowserLinks) {
-    analytics.helpLinkClicked(linkTarget)
+    val currentAnalyticsPage = analytics.getStateFromModel(model)
+    analytics.helpLinkClicked(currentAnalyticsPage, linkTarget)
   }
 
   override fun generateReportClicked(taskData: TaskUiData) {
-    analytics.bugReportLinkClicked()
+    val currentAnalyticsPage = analytics.getStateFromModel(model)
+    analytics.bugReportLinkClicked(currentAnalyticsPage)
     issueReporter.reportIssue(taskData)
-  }
-
-  private fun BuildAnalyzerViewModel.DataSet.toAnalyticsPage(): BuildAttributionUiAnalytics.AnalyticsPageId {
-    val type = when (this) {
-      BuildAnalyzerViewModel.DataSet.OVERVIEW -> PageType.BUILD_SUMMARY
-      BuildAnalyzerViewModel.DataSet.TASKS -> PageType.CRITICAL_PATH_TASKS_ROOT
-      BuildAnalyzerViewModel.DataSet.WARNINGS -> PageType.WARNINGS_ROOT
-    }
-    return BuildAttributionUiAnalytics.AnalyticsPageId(type, this.name)
-  }
-
-  private fun TasksPageId.toAnalyticsPage(): BuildAttributionUiAnalytics.AnalyticsPageId {
-    val type: PageType = when {
-      grouping == Grouping.UNGROUPED && pageType == TaskDetailsPageType.TASK_DETAILS -> PageType.CRITICAL_PATH_TASK_PAGE
-      grouping == Grouping.BY_PLUGIN && pageType == TaskDetailsPageType.TASK_DETAILS -> PageType.PLUGIN_CRITICAL_PATH_TASK_PAGE
-      grouping == Grouping.BY_PLUGIN && pageType == TaskDetailsPageType.PLUGIN_DETAILS -> PageType.PLUGIN_PAGE
-      else -> PageType.UNKNOWN_PAGE
-    }
-    return BuildAttributionUiAnalytics.AnalyticsPageId(type, this.id)
-  }
-
-  private fun WarningsTreePresentableNodeDescriptor.toAnalyticsPage(): BuildAttributionUiAnalytics.AnalyticsPageId {
-    val type: PageType = when (this) {
-      is TaskWarningTypeNodeDescriptor -> this.warningTypeData.type.toAnalyticsType()
-      is TaskWarningDetailsNodeDescriptor -> this.issueData.toAnalyticsType()
-      is AnnotationProcessorsRootNodeDescriptor -> PageType.ANNOTATION_PROCESSOR_PAGE
-      is AnnotationProcessorDetailsNodeDescriptor -> PageType.ANNOTATION_PROCESSORS_ROOT
-    }
-    return BuildAttributionUiAnalytics.AnalyticsPageId(type, pageId.id)
-  }
-
-  private fun TaskIssueType.toAnalyticsType(): PageType = when (this) {
-    TaskIssueType.ALWAYS_RUN_TASKS -> PageType.ALWAYS_RUN_ISSUE_ROOT
-    TaskIssueType.TASK_SETUP_ISSUE -> PageType.TASK_SETUP_ISSUE_ROOT
-  }
-
-  private fun TaskIssueUiData.toAnalyticsType(): PageType = when (this) {
-    is TaskSetupIssue -> PageType.TASK_SETUP_ISSUE_PAGE
-    is AlwaysRunNoOutputIssue -> PageType.ALWAYS_RUN_NO_OUTPUTS_PAGE
-    is AlwaysRunUpToDateOverride -> PageType.ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
-    else -> PageType.UNKNOWN_PAGE
   }
 }

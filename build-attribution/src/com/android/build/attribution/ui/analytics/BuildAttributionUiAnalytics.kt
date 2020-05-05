@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.analytics
 
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
+import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -37,6 +38,7 @@ class BuildAttributionUiAnalytics(private val project: Project) {
     .build()
   private var currentPage: BuildAttributionUiEvent.Page = unknownPage
 
+  @Deprecated("Left to support older version, should not be used anymore.")
   private var nodeLinkClickRegistered = false
   private var tabOpenEventSource: TabOpenEventSource = TabOpenEventSource.TAB_HEADER
 
@@ -51,7 +53,7 @@ class BuildAttributionUiAnalytics(private val project: Project) {
 
   private fun sendSessionOverIfExist() {
     if (buildAttributionReportSessionId != null) {
-      doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.USAGE_SESSION_OVER))
+      doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.USAGE_SESSION_OVER))
     }
   }
 
@@ -70,21 +72,21 @@ class BuildAttributionUiAnalytics(private val project: Project) {
       TabOpenEventSource.BUILD_OUTPUT_LINK -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_BUILD_OUTPUT_LINK
       TabOpenEventSource.TAB_HEADER -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK
     }
-    doLog(newUiEventBuilderWithPage().setEventType(eventType))
+    doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(eventType))
   }
 
   /**
    * Called when other tab becomes opened on Build toolwindow.
    */
   fun tabHidden() {
-    doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.TAB_HIDDEN))
+    doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.TAB_HIDDEN))
   }
 
   /**
    * Called when "Build Analyzer" tab is getting closed.
    */
   fun tabClosed() {
-    doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.TAB_CLOSED))
+    doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.TAB_CLOSED))
   }
 
   /**
@@ -98,6 +100,7 @@ class BuildAttributionUiAnalytics(private val project: Project) {
    * Registers that page is going to be changed as the result of link click so next [pageChange] call should report it properly.
    * This state will be cleared with any next event sent.
    */
+  @Deprecated("Left to support older version, should not be used anymore.")
   fun registerNodeLinkClick() {
     nodeLinkClickRegistered = true
   }
@@ -124,7 +127,7 @@ class BuildAttributionUiAnalytics(private val project: Project) {
       // Report both cases as TREE_CLICK for now.
       BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK
     }
-    pageChange(AnalyticsPageId(pageType, selectedNodeId), eventType)
+    pageChange(currentPage, toPage(AnalyticsPageId(pageType, selectedNodeId)), eventType)
   }
 
   /**
@@ -132,33 +135,49 @@ class BuildAttributionUiAnalytics(private val project: Project) {
    * Called from the action handler which should be aware of and provide in the parameters
    * what page user is navigation to and what method is used.
    */
-  fun pageChange(pageId: AnalyticsPageId, eventType: BuildAttributionUiEvent.EventType) {
-    val newPage = toPage(pageId)
-    val uiEvent = newUiEventBuilderWithPage().setEventType(eventType).setTargetPage(newPage)
-    doLog(uiEvent)
-
-    currentPage = newPage
+  fun pageChange(
+    currentPage: BuildAttributionUiEvent.Page,
+    targetPage: BuildAttributionUiEvent.Page,
+    eventType: BuildAttributionUiEvent.EventType
+  ) {
+    doLog(newUiEventBuilder()
+            .setEventType(eventType)
+            .setCurrentPage(currentPage)
+            .setTargetPage(targetPage))
+    this.currentPage = targetPage
   }
 
+  @Deprecated("Left to support older version", replaceWith = ReplaceWith("bugReportLinkClicked(currentPageId)"))
   fun bugReportLinkClicked() =
-    doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.GENERATE_REPORT_LINK_CLICKED))
+    doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.GENERATE_REPORT_LINK_CLICKED))
+
+  fun bugReportLinkClicked(currentPage: BuildAttributionUiEvent.Page) {
+    doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.GENERATE_REPORT_LINK_CLICKED))
+  }
 
   fun reportingWindowCopyButtonClicked() =
-    doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.REPORT_DIALOG_TEXT_COPY_CLICKED))
+    doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.REPORT_DIALOG_TEXT_COPY_CLICKED))
 
   fun reportingWindowClosed() =
-    doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.REPORT_DIALOG_CLOSED))
+    doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.REPORT_DIALOG_CLOSED))
 
 
-  //TODO (b/154988129): track target when event ready
-  fun helpLinkClicked(target: BuildAnalyzerBrowserLinks) = doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED))
+  @Deprecated("Left to support older version", replaceWith = ReplaceWith("helpLinkClicked(currentPageId, target)"))
+  fun helpLinkClicked(target: BuildAnalyzerBrowserLinks) = helpLinkClicked(currentPage, target)
+
+  fun helpLinkClicked(
+    currentPageId: BuildAttributionUiEvent.Page,
+    target: BuildAnalyzerBrowserLinks
+  ) = doLog(newUiEventBuilder()
+              .setCurrentPage(currentPageId)
+              .setLinkTarget(target.analyticsValue)
+              .setEventType(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED))
+
 
   private fun newUiEventBuilder(): BuildAttributionUiEvent.Builder {
     requireNotNull(buildAttributionReportSessionId)
     return BuildAttributionUiEvent.newBuilder().setBuildAttributionReportSessionId(buildAttributionReportSessionId)
   }
-
-  private fun newUiEventBuilderWithPage() = newUiEventBuilder().setCurrentPage(currentPage)
 
   private fun registerPage(pageId: AnalyticsPageId): BuildAttributionUiEvent.Page {
     val newPageEntryIndex = pagesCountByType.compute(pageId.pageType) { _, count -> count?.inc() ?: 1 }!!
@@ -187,6 +206,10 @@ class BuildAttributionUiAnalytics(private val project: Project) {
     currentPage = toPage(pageId)
   }
 
+  fun initFirstPage(model: BuildAnalyzerViewModel) {
+    currentPage = getStateFromModel(model)
+  }
+
   /**
    * Set new build id to be sent with the events.
    * If previous session existed, send closing event for it.
@@ -197,6 +220,23 @@ class BuildAttributionUiAnalytics(private val project: Project) {
     pagesCountByType.clear()
     currentPage = unknownPage
     buildAttributionReportSessionId = buildSessionId
+  }
+
+  fun getStateFromModel(model: BuildAnalyzerViewModel): BuildAttributionUiEvent.Page {
+    if (model.selectedData == BuildAnalyzerViewModel.DataSet.OVERVIEW) {
+      return toPage(AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY, BuildAnalyzerViewModel.DataSet.OVERVIEW.uiName))
+    }
+    else if (model.selectedData == BuildAnalyzerViewModel.DataSet.TASKS) {
+      model.tasksPageModel.selectedNode?.let {
+        return toPage(AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id))
+      }
+    }
+    else if (model.selectedData == BuildAnalyzerViewModel.DataSet.WARNINGS) {
+      model.warningsPageModel.selectedNode?.let {
+        return toPage(AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id))
+      }
+    }
+    return unknownPage
   }
 
   data class AnalyticsPageId(
