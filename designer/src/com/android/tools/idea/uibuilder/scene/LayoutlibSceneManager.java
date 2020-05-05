@@ -38,6 +38,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
@@ -248,17 +249,20 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Creates a new LayoutlibSceneManager.
    *
-   * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
-   * @param designSurface the {@link DesignSurface} user to present the result of the renders.
+   * @param model                      the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
+   * @param designSurface              the {@link DesignSurface} user to present the result of the renders.
    * @param renderTaskDisposerExecutor {@link Executor} to be used for running the slow {@link #dispose()} calls.
-   * @param renderingQueueSetup {@link Consumer} of {@link MergingUpdateQueue} to run additional setup on the queue used to handle render
-   *                                            requests.
+   * @param renderingQueueSetup        {@link Consumer} of {@link MergingUpdateQueue} to run additional setup on the queue used to handle render
+   *                                   requests.
+   * @param sceneComponentProvider     a {@link SceneManager.SceneComponentHierarchyProvider providing the mapping from {@link NlComponent} to
+   *                                   {@link SceneComponent}s.
    */
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface designSurface,
                                   @NotNull Executor renderTaskDisposerExecutor,
-                                  @NotNull Consumer<MergingUpdateQueue> renderingQueueSetup) {
-    super(model, designSurface, false);
+                                  @NotNull Consumer<MergingUpdateQueue> renderingQueueSetup,
+                                  @NotNull SceneComponentHierarchyProvider sceneComponentProvider) {
+    super(model, designSurface, false, sceneComponentProvider);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueueSetup = renderingQueueSetup;
     createSceneView();
@@ -277,7 +281,7 @@ public class LayoutlibSceneManager extends SceneManager {
       NlComponent rootComponent = components.get(0).getRoot();
       boolean previous = getScene().isAnimated();
       scene.setAnimated(false);
-      List<SceneComponent> hierarchy = createHierarchy(rootComponent);
+      List<SceneComponent> hierarchy = sceneComponentProvider.createHierarchy(this, rootComponent);
       SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);
       updateFromComponent(root, new HashSet<>());
       scene.setRoot(root);
@@ -296,12 +300,26 @@ public class LayoutlibSceneManager extends SceneManager {
    * Creates a new LayoutlibSceneManager with the default settings for running render requests.
    * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Consumer)}
    *
+   * @param model                  the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
+   * @param designSurface          the {@link DesignSurface} user to present the result of the renders.
+   * @param sceneComponentProvider a {@link SceneManager.SceneComponentHierarchyProvider providing the mapping from {@link NlComponent} to
+   *                               {@link SceneComponent}s.
+   */
+  public LayoutlibSceneManager(@NotNull NlModel model,
+                               @NotNull DesignSurface designSurface,
+                               @NotNull SceneComponentHierarchyProvider sceneComponentProvider) {
+    this(model, designSurface, PooledThreadExecutor.INSTANCE, queue -> {}, sceneComponentProvider);
+  }
+
+  /**
+   * Creates a new LayoutlibSceneManager with the default settings for running render requests.
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Consumer)}
+   *
    * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface the {@link DesignSurface} user to present the result of the renders.
    */
-  public LayoutlibSceneManager(@NotNull NlModel model,
-                               @NotNull DesignSurface designSurface) {
-    this(model, designSurface, PooledThreadExecutor.INSTANCE, queue -> {});
+  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
+    this(model, designSurface, PooledThreadExecutor.INSTANCE, queue -> {}, new DefaultSceneManagerHierarchyProvider());
   }
 
   @NotNull
