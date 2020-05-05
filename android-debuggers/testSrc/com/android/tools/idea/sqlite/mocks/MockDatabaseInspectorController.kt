@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
@@ -59,6 +60,10 @@ open class MockDatabaseInspectorController(val model: DatabaseInspectorModel) : 
 
   override fun saveState(): SavedUiState {
     return object: SavedUiState {}
+  }
+
+  override fun setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel?) {
+
   }
 
   override fun dispose() { }

@@ -57,6 +57,8 @@ interface DatabaseInspectorView {
   fun focusTab(tabId: TabId)
   fun closeTab(tabId: TabId)
 
+  fun updateKeepConnectionOpenButton(keepOpen: Boolean)
+
   fun reportSyncProgress(message: String)
 
   fun reportError(message: String, throwable: Throwable?)
@@ -70,6 +72,8 @@ interface DatabaseInspectorView {
     fun openSqliteEvaluatorTabActionInvoked()
     /** Called when the user wants to refresh the schema of all open databases */
     fun refreshAllOpenDatabasesSchemaActionInvoked()
+    /** Called to request the on-device inspector to force database connections to remain open */
+    fun toggleKeepConnectionOpenActionInvoked()
   }
 }
 

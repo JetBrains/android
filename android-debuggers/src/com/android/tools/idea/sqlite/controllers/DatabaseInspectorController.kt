@@ -18,7 +18,9 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
+import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
@@ -88,7 +90,18 @@ class DatabaseInspectorControllerImpl(
 
   private val sqliteViewListener = SqliteViewListenerImpl()
 
+  private var databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel? = null
+
   private var evaluatorTabCount = 0
+  private var keepConnectionsOpen = false
+  set(value) {
+    databaseInspectorClientCommandsChannel?.keepConnectionsOpen(value)?.transform(edtExecutor) {
+        if (it != null) {
+          field = it
+          view.updateKeepConnectionOpenButton(value)
+        }
+      }
+  }
 
   private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
@@ -131,6 +144,8 @@ class DatabaseInspectorControllerImpl(
   override fun setUp() {
     view.addListener(sqliteViewListener)
     model.addListener(modelListener)
+
+    view.updateKeepConnectionOpenButton(keepConnectionsOpen)
   }
 
   override suspend fun addSqliteDatabase(deferredDatabase: Deferred<SqliteDatabase>) = withContext(uiThread) {
@@ -202,6 +217,11 @@ class DatabaseInspectorControllerImpl(
       }
     }
     return SavedUiStateImpl(tabs)
+  }
+
+  override fun setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel?) {
+    this.databaseInspectorClientCommandsChannel = databaseInspectorClientCommandsChannel
+    databaseInspectorClientCommandsChannel?.keepConnectionsOpen(keepConnectionsOpen)
   }
 
   override suspend fun databasePossiblyChanged() = withContext(uiThread) {
@@ -412,6 +432,10 @@ class DatabaseInspectorControllerImpl(
         model.getOpenDatabaseIds().forEach { updateDatabaseSchema(it) }
       }
     }
+
+    override fun toggleKeepConnectionOpenActionInvoked() {
+      keepConnectionsOpen = !keepConnectionsOpen
+    }
   }
 
   inner class SqliteEvaluatorControllerListenerImpl : SqliteEvaluatorController.Listener {
@@ -475,6 +499,9 @@ interface DatabaseInspectorController : Disposable {
 
   @UiThread
   fun saveState(): SavedUiState
+
+  @UiThread
+  fun setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel?)
 
   interface TabController : Disposable {
     val closeTabInvoked: () -> Unit

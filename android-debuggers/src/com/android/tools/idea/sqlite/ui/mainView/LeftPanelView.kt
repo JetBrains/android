@@ -50,6 +50,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
   private val refreshSchemaButton = CommonButton("Refresh Schema", AllIcons.Actions.Refresh)
   private val runSqlButton = CommonButton("Run Query", StudioIcons.DatabaseInspector.NEW_QUERY)
+  private val keepConnectionsOpenButton = CommonButton("Keep connections open", StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN)
 
   val component = rootPanel
   val databasesCount: Int get() = (tree.model.root as? DefaultMutableTreeNode)?.childCount ?: 0
@@ -62,6 +63,17 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     rootPanel.add(centerPanel, BorderLayout.CENTER)
 
     setUpSchemaTree(tree)
+  }
+
+  fun updateKeepConnectionOpenButton(enabled: Boolean) {
+    if (enabled) {
+      keepConnectionsOpenButton.icon = StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN
+    }
+    else {
+      keepConnectionsOpenButton.icon = StudioIcons.DatabaseInspector.ALLOW_DATABASES_TO_CLOSE
+    }
+
+    keepConnectionsOpenButton.disabledIcon = IconLoader.getDisabledIcon(keepConnectionsOpenButton.icon)
   }
 
   fun addDatabaseSchema(viewDatabase: ViewDatabase, schema: SqliteSchema?, index: Int) {
@@ -77,6 +89,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
     refreshSchemaButton.isEnabled = true
     runSqlButton.isEnabled = true
+    keepConnectionsOpenButton.isEnabled = true
 
     val schemaNode = DefaultMutableTreeNode(viewDatabase)
     schema?.tables?.sortedBy { it.name }?.forEach { table ->
@@ -132,6 +145,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
       refreshSchemaButton.isEnabled = false
       runSqlButton.isEnabled = false
+      keepConnectionsOpenButton.isEnabled = false
     }
 
     return databasesCount
@@ -156,6 +170,14 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     northPanel.add(runSqlButton)
 
     runSqlButton.addActionListener { mainView.listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
+
+    keepConnectionsOpenButton.disabledIcon = IconLoader.getDisabledIcon(keepConnectionsOpenButton.icon)
+    keepConnectionsOpenButton.toolTipText = "Keep database connections open"
+    keepConnectionsOpenButton.name = "keep-connections-open-button"
+    keepConnectionsOpenButton.isEnabled = false
+    northPanel.add(keepConnectionsOpenButton)
+
+    keepConnectionsOpenButton.addActionListener { mainView.listeners.forEach { it.toggleKeepConnectionOpenActionInvoked() } }
 
     return northPanel
   }

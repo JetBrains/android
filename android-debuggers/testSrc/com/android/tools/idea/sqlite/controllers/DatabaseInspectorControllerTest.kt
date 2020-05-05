@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
+import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -53,6 +54,7 @@ import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.project.Project
@@ -1095,5 +1097,64 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       DatabaseDiffOperation.AddDatabase(ViewDatabase(db1, false), null, 0),
       DatabaseDiffOperation.RemoveDatabase(ViewDatabase (db1, true))
     ))
+  }
+
+  fun testKeepConnectionOpenUpdatesSuccessfully() {
+    // Prepare
+    val databaseInspectorClientCommandChannel = object : DatabaseInspectorClientCommandsChannel {
+      override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
+        return Futures.immediateFuture(true)
+      }
+    }
+
+    sqliteController.setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandChannel)
+
+    // Act
+    mockSqliteView.viewListeners.first().toggleKeepConnectionOpenActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockSqliteView).updateKeepConnectionOpenButton(true)
+  }
+
+  fun testKeepConnectionOpenDoesNotUpdateIfOperationFails() {
+    // Prepare
+    val databaseInspectorClientCommandChannel = object : DatabaseInspectorClientCommandsChannel {
+      override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
+        return Futures.immediateFuture(null)
+      }
+    }
+
+    sqliteController.setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandChannel)
+
+    // Act
+    mockSqliteView.viewListeners.first().toggleKeepConnectionOpenActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockSqliteView, times(0)).updateKeepConnectionOpenButton(true)
+    verify(mockSqliteView, times(1)).updateKeepConnectionOpenButton(false)
+  }
+
+  fun testKeepConnectionOpenIsFalseByDefault() {
+    // Assert
+    verify(mockSqliteView).updateKeepConnectionOpenButton(false)
+  }
+
+  fun testSetDatabaseInspectorClientCommandsChannelUpdatesInspectorState() {
+    // Prepare
+    val invocations = mutableListOf<Boolean>()
+    val databaseInspectorClientCommandChannel = object : DatabaseInspectorClientCommandsChannel {
+      override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
+        invocations.add(keepOpen)
+        return Futures.immediateFuture(keepOpen)
+      }
+    }
+
+    // Act
+    sqliteController.setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandChannel)
+
+    // Assert
+    assertEquals(listOf(false), invocations)
   }
 }

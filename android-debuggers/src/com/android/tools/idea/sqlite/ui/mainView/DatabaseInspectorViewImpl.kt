@@ -159,6 +159,10 @@ class DatabaseInspectorViewImpl(
     notifyError(message, throwable)
   }
 
+  override fun updateKeepConnectionOpenButton(keepOpen: Boolean) {
+    leftPanelView.updateKeepConnectionOpenButton(keepOpen)
+  }
+
   override fun reportSyncProgress(message: String) {
   }
 
