@@ -158,9 +158,6 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
   }
 
   private static void setUpWelcomeScreenActions(ActionManager actionManager) {
-    // Force the new "flat" welcome screen.
-    System.setProperty("ide.new.welcome.screen.force", "true");
-
     // Update the Welcome Screen actions
     Actions.replaceAction(actionManager, "WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an Existing Project"));
     Actions.replaceAction(actionManager, "WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Create New Project"));
