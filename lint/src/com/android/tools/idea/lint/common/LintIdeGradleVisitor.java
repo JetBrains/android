@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyRecursiveElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
@@ -64,6 +65,27 @@ public class LintIdeGradleVisitor extends GradleVisitor {
     }
 
     return null;
+  }
+
+  private static void extractMethodCallArguments(GrMethodCall methodCall, List<String> unnamed, Map<String, String> named) {
+    GrArgumentList argumentList = methodCall.getArgumentList();
+    for (GroovyPsiElement groovyPsiElement : argumentList.getAllArguments()) {
+      if (groovyPsiElement instanceof GrNamedArgument) {
+        GrNamedArgument namedArgument = (GrNamedArgument)groovyPsiElement;
+        GrExpression expression = namedArgument.getExpression();
+        if (!(expression instanceof GrLiteral)) {
+          continue;
+        }
+        Object value = ((GrLiteral)expression).getValue();
+        if (value == null) {
+          continue;
+        }
+        named.put(namedArgument.getLabelName(), value.toString());
+      }
+      else if (groovyPsiElement instanceof GrExpression) {
+        unnamed.add(groovyPsiElement.getText());
+      }
+    }
   }
 
   @Override
@@ -177,26 +199,9 @@ public class LintIdeGradleVisitor extends GradleVisitor {
               parentParentName = outerBlock != null ? getClosureName(outerBlock) : null;
             }
             String statementName = applicationStatement.getInvokedExpression().getText();
-            GrCommandArgumentList argumentList = applicationStatement.getArgumentList();
             Map<String, String> namedArguments = Maps.newHashMap();
             List<String> unnamedArguments = Lists.newArrayList();
-            for (GroovyPsiElement groovyPsiElement : argumentList.getAllArguments()) {
-              if (groovyPsiElement instanceof GrNamedArgument) {
-                GrNamedArgument namedArgument = (GrNamedArgument)groovyPsiElement;
-                GrExpression expression = namedArgument.getExpression();
-                if (!(expression instanceof GrLiteral)) {
-                  continue;
-                }
-                Object value = ((GrLiteral)expression).getValue();
-                if (value == null) {
-                  continue;
-                }
-                namedArguments.put(namedArgument.getLabelName(), value.toString());
-              }
-              else if (groovyPsiElement instanceof GrExpression) {
-                unnamedArguments.add(groovyPsiElement.getText());
-              }
-            }
+            extractMethodCallArguments(applicationStatement, unnamedArguments, namedArguments);
             for (GradleScanner detector : detectors) {
               detector.checkMethodCall(context, statementName, parentName, parentParentName, namedArguments, unnamedArguments,
                                        applicationStatement);
