@@ -52,7 +52,9 @@ class DatabaseInspectorClient constructor(
           val openedDatabase = event.databaseOpened
           ApplicationManager.getApplication().invokeLater {
             val connection = LiveDatabaseConnection(dbMessenger, openedDatabase.databaseId, taskExecutor)
-            onDatabaseAddedListener(LiveSqliteDatabase(SqliteDatabaseId.fromPath(openedDatabase.name), connection))
+            onDatabaseAddedListener(
+              LiveSqliteDatabase(SqliteDatabaseId.fromLiveDatabase(openedDatabase.name, openedDatabase.databaseId), connection)
+            )
           }
         }
         event.hasDatabasePossiblyChanged() -> {

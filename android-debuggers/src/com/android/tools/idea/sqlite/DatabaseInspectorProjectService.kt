@@ -210,7 +210,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
     val database = async {
       val connection = databaseConnectionFactory.getDatabaseConnection(file, taskExecutor).await()
-      FileSqliteDatabase(SqliteDatabaseId.fromVirtualFile(file), connection)
+      FileSqliteDatabase(SqliteDatabaseId.fromFileDatabase(file), connection)
     }
 
     withContext(uiThread) {

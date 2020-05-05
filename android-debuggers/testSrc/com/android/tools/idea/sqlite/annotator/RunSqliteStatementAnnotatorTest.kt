@@ -46,8 +46,8 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     super.setUp()
     StudioFlags.DATABASE_INSPECTOR_ENABLED.override(true)
 
-    sqliteDatabaseId1 = SqliteDatabaseId("db1", "db1")
-    sqliteDatabaseId2 = SqliteDatabaseId("db2", "db2")
+    sqliteDatabaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
+    sqliteDatabaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
 
     ideComponents = IdeComponents(myFixture)
     mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)

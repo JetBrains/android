@@ -94,11 +94,11 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     `when`(connection2.close()).thenReturn(Futures.immediateFuture(Unit))
 
     pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(
-      LiveSqliteDatabase(SqliteDatabaseId.fromPath("db1"), connection1)
+      LiveSqliteDatabase(SqliteDatabaseId.fromLiveDatabase("db1", 1), connection1)
     ))
 
     pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(
-      LiveSqliteDatabase(SqliteDatabaseId.fromPath("db2"), connection2)
+      LiveSqliteDatabase(SqliteDatabaseId.fromLiveDatabase("db2", 2), connection2)
     ))
 
     // Act

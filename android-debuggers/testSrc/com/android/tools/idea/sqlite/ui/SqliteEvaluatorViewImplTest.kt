@@ -90,8 +90,8 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Act/Assert
     assertEquals(-1, comboBox.selectedIndex)
 
-    val databaseId1 = SqliteDatabaseId.fromVirtualFile(MockVirtualFile("db1"))
-    val databaseId2 = SqliteDatabaseId.fromVirtualFile(MockVirtualFile("db2"))
+    val databaseId1 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
+    val databaseId2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
 
     view.setDatabases(listOf(databaseId1, databaseId2))
     assertEquals(0, comboBox.selectedIndex)
@@ -113,9 +113,9 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     )
     evaluatorController.setUp()
 
-    val db0 = SqliteDatabaseId.fromVirtualFile(MockVirtualFile("db0"))
-    val db1 = SqliteDatabaseId.fromVirtualFile(MockVirtualFile("db1"))
-    val db2 = SqliteDatabaseId.fromVirtualFile(MockVirtualFile("db2"))
+    val db0 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db0"))
+    val db1 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
+    val db2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
 
     // Act/Assert
     assertEquals(null, view.activeDatabase)
@@ -135,8 +135,8 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testSelectDatabaseChangesSelectedDatabase() {
     // Prepare
-    val database1 = SqliteDatabaseId.fromVirtualFile(MockVirtualFile("db1"))
-    val database2 = SqliteDatabaseId.fromVirtualFile(MockVirtualFile("db2"))
+    val database1 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
+    val database2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
 
     // Act/Assert
     view.setDatabases(listOf(database1, database2))
@@ -154,8 +154,8 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val comboBox = TreeWalker(view.component).descendants().filterIsInstance<JComboBox<*>>().first()
 
-    val database1 = SqliteDatabaseId.fromVirtualFile(MockVirtualFile("db1"))
-    val database2 = SqliteDatabaseId.fromVirtualFile(MockVirtualFile("db2"))
+    val database1 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
+    val database2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
 
     // Act/Assert
     view.setDatabases(listOf(database1, database2))
@@ -174,7 +174,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val mockPsiManager = spy(MockPsiManager(project))
     ideComponents.replaceProjectService(PsiManager::class.java, mockPsiManager)
 
-    val database = SqliteDatabaseId.fromVirtualFile(MockVirtualFile("db1"))
+    val database = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
 
     view.setDatabases(listOf(database))
 
@@ -216,7 +216,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
-    val database = SqliteDatabaseId.fromVirtualFile(sqliteFile)
+    val database = SqliteDatabaseId.fromFileDatabase(sqliteFile)
 
     val model = DatabaseInspectorModelImpl()
     val controller = SqliteEvaluatorController(

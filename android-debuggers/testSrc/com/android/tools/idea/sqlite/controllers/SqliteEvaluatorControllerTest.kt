@@ -91,7 +91,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     )
     Disposer.register(testRootDisposable, sqliteEvaluatorController)
 
-    databaseId = SqliteDatabaseId.fromPath("db")
+    databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     sqliteDatabase = LiveSqliteDatabase(databaseId, mockDatabaseConnection)
     databaseInspectorModel.addDatabaseSchema(databaseId, mockDatabaseConnection, SqliteSchema(emptyList()))
 
@@ -456,7 +456,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     realDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
-    val databaseId = SqliteDatabaseId.fromPath("db")
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
     databaseInspectorModel.addDatabaseSchema(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
 
@@ -479,7 +479,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     realDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
-    val databaseId = SqliteDatabaseId.fromPath("db")
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     databaseInspectorModel.addDatabaseSchema(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
 
     // Act
@@ -500,7 +500,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     realDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
-    val databaseId = SqliteDatabaseId.fromPath("db")
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
     databaseInspectorModel.addDatabaseSchema(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
 
@@ -523,7 +523,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     realDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
-    val databaseId = SqliteDatabaseId.fromPath("db")
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
     databaseInspectorModel.addDatabaseSchema(databaseId, realDatabaseConnection!!, SqliteSchema(emptyList()))
 
