@@ -47,7 +47,21 @@ class CaptureNodeAnalysisModelTest {
     assertThat(CaptureNodeAnalysisModel(BAR_11, capture).getLongestRunningOccurrences(3)).containsExactly(BAR_23, BAR_12, BAR_11).inOrder()
   }
 
+  @Test
+  fun getAllOccurrencesStats() {
+    val capture = Mockito.mock(CpuCapture::class.java).apply {
+      Mockito.`when`(this.range).thenReturn(Range())
+    }
+    val stats = CaptureNodeAnalysisModel(BAR_11, capture).allOccurrenceStats
+    assertThat(stats.count).isEqualTo(5)
+    assertThat(stats.average).isWithin(EPSILON).of(13.2)
+    assertThat(stats.max).isEqualTo(35)
+    assertThat(stats.min).isEqualTo(1)
+    assertThat(stats.standardDeviation).isWithin(EPSILON).of(11.873)
+  }
+
   companion object {
+    private const val EPSILON = 0.001
     /**
      * Build a capture node tree with different timestamp.
      *
