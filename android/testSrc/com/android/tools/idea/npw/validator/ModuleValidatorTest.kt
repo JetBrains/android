@@ -45,7 +45,11 @@ class ModuleValidatorTest {
   @Test
   fun testIsValidModuleName() {
     assertNotOkModuleName("app")
-    assertOkModuleName("lib1")
+    assertNotOkModuleName(":app")
+    assertNotOkModuleName("libs:lib")
+    assertNotOkModuleName(":libs:lib2")
+    assertOkModuleName("lib")
+    assertOkModuleName(":lib")
     assertOkModuleName("lib_LIB0")
     assertOkModuleName("lib-LIB1")
     assertOkModuleName(":libs:lib1") // Module in sub folder
