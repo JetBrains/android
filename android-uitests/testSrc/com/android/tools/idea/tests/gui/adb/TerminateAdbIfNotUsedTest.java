@@ -26,6 +26,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -88,11 +89,8 @@ public class TerminateAdbIfNotUsedTest {
     // Start server execution.
     myAdbServer.start();
 
-    // Terminate the service if it's already started (it's a UI test, so there might be no shutdown between tests).
-    AdbService.getInstance().dispose();
-
     // Start ADB with fake server and its port.
-    AndroidDebugBridge.enableFakeAdbServerMode(myAdbServer.getPort());
+    AndroidDebugBridgeUtils.enableFakeAdbServerMode(myAdbServer.getPort());
   }
 
   private void startAdb(Project project) throws ExecutionException, InterruptedException {
