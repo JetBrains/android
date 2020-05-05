@@ -23,7 +23,6 @@ import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -277,8 +276,6 @@ class ComposePreviewTest {
       .getNotificationsFixture()
       .assertNoNotifications()
 
-    assertFalse(composePreview.hasRenderErrors())
-
     assertEquals(3, composePreview.designSurface
       .allSceneViews
       .size)
@@ -293,6 +290,17 @@ class ComposePreviewTest {
       .waitForRenderToFinish()
 
     assertEquals(1, composePreview.designSurface
+      .allSceneViews
+      .size)
+
+    composePreview
+      .findActionButtonByText("Stop Interactive Preview")
+      .click()
+
+    composePreview
+      .waitForRenderToFinish()
+
+    assertEquals(3, composePreview.designSurface
       .allSceneViews
       .size)
 
