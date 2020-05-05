@@ -50,6 +50,7 @@ import org.mockito.MockitoAnnotations
 /**
  * Unit tests for utility functions of apply-changes run pipeline.
  */
+@org.junit.Ignore("b/155929379")
 @RunWith(JUnit4::class)
 class ApplyChangesUtilsTest {
   @Mock
