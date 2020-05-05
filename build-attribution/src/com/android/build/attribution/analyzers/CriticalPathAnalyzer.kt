@@ -36,6 +36,7 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
                            pluginContainer: PluginContainer)
   : BaseAnalyzer(taskContainer, pluginContainer), BuildEventsAnalyzer {
   private val tasksSet = HashSet<TaskData>()
+
   /**
    * Contains for each task, a list of tasks that this task depends on.
    */
@@ -289,6 +290,8 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
    * graph.
    */
   private fun calculateTasksDeterminingBuildDuration(tasksCriticalPath: List<TaskData>) {
+    val tasksDeterminingBuildDurationList = ArrayList<TaskData>()
+
     val taskListSortedByStartTime = tasksSet.sortedBy { it.executionStartTime }
 
     // Since the critical path tasks are not intersecting, and we iterate through them in start time order, we are able to reuse the
@@ -296,7 +299,8 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
     val listIterator = taskListSortedByStartTime.listIterator()
 
     if (tasksCriticalPath.isEmpty()) {
-      tasksDeterminingBuildDuration.addAll(calculateTasksCriticalPathBasedOnExecution(taskListSortedByStartTime))
+      tasksDeterminingBuildDuration.addAll(calculateTasksCriticalPathBasedOnExecution(
+        taskListSortedByStartTime).filterNot { it.executionMode == TaskData.TaskExecutionMode.UP_TO_DATE })
       return
     }
 
@@ -305,27 +309,30 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
     }
 
     // get critical path of tasks before the start time of the first task in the critical path
-    tasksDeterminingBuildDuration.addAll(
+    tasksDeterminingBuildDurationList.addAll(
       getCriticalPathOfTasksStrictlyInTimeRange(0, tasksCriticalPath.first().executionStartTime, listIterator))
 
     for (i in 0 until tasksCriticalPath.size - 1) {
       val previousCriticalPathTask = tasksCriticalPath[i]
       val nextCriticalPathTask = tasksCriticalPath[i + 1]
-      tasksDeterminingBuildDuration.add(previousCriticalPathTask)
+      tasksDeterminingBuildDurationList.add(previousCriticalPathTask)
 
       // get critical path of tasks in between the end time of the previous critical path task and the start time of the next critical path
       // task
-      tasksDeterminingBuildDuration.addAll(
+      tasksDeterminingBuildDurationList.addAll(
         getCriticalPathOfTasksStrictlyInTimeRange(previousCriticalPathTask.executionEndTime, nextCriticalPathTask.executionStartTime,
                                                   listIterator))
     }
-    tasksDeterminingBuildDuration.add(tasksCriticalPath.last())
+    tasksDeterminingBuildDurationList.add(tasksCriticalPath.last())
 
     // get critical path of tasks after the end time of the last task in the critical path
-    tasksDeterminingBuildDuration.addAll(
+    tasksDeterminingBuildDurationList.addAll(
       getCriticalPathOfTasksStrictlyInTimeRange(tasksCriticalPath.last().executionEndTime,
                                                 Long.MAX_VALUE,
                                                 listIterator))
+
+    tasksDeterminingBuildDuration.addAll(
+      tasksDeterminingBuildDurationList.filterNot { it.executionMode == TaskData.TaskExecutionMode.UP_TO_DATE })
   }
 
   private fun calculatePluginsDeterminingBuildDuration() {
