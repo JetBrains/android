@@ -46,6 +46,7 @@ import org.mockito.MockitoAnnotations
 /**
  * Unit tests for [ExecutionEnvironment] extension functions.
  */
+@org.junit.Ignore("b/155929379")
 @RunWith(JUnit4::class)
 class ExecutionEnvironmentExtTest {
 
