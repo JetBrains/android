@@ -77,7 +77,7 @@ class TaskViewDetailPagesFactory(
       addRow(JLabel("Type: ${taskUiData.taskType}"))
       addRow(JLabel("Duration: ${taskUiData.executionTime.durationString()}"))
       taskUiData.issues.forEach { issue ->
-        val description = DescriptionWithHelpLinkLabel(issue.explanation, issue.helpLink) { actionHandlers.helpLinkClicked() }
+        val description = DescriptionWithHelpLinkLabel(issue.explanation, issue.helpLink) { actionHandlers.helpLinkClicked(issue.helpLink) }
         description.withBorder(JBUI.Borders.emptyTop(5))
         addRow(description, 0, 3)
       }

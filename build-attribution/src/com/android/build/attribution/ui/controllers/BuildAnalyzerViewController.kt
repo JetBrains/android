@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.controllers
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
@@ -96,11 +97,8 @@ class BuildAnalyzerViewController(
     analytics.pageChange(pageId, BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
   }
 
-  override fun helpLinkClicked() {
-    //TODO (b/154988129): currently it is tracked only by currently opened page.
-    // If we have more links on the page it will not be tracked properly.
-    // Change to track the link context.
-    analytics.helpLinkClicked()
+  override fun helpLinkClicked(linkTarget: BuildAnalyzerBrowserLinks) {
+    analytics.helpLinkClicked(linkTarget)
   }
 
   override fun generateReportClicked(taskData: TaskUiData) {

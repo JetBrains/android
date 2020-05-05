@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.analytics
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics.*
 import com.android.build.attribution.ui.tree.AbstractBuildAttributionNode
 import com.android.testutils.VirtualTimeScheduler
@@ -229,7 +230,7 @@ class BuildAttributionUiAnalyticsTest {
   @Test
   fun testHelpLinkClicked() {
     uiAnalytics.initFirstPage(AnalyticsPageId(CRITICAL_PATH_TASK_PAGE, "task1"))
-    uiAnalytics.helpLinkClicked()
+    uiAnalytics.helpLinkClicked(BuildAnalyzerBrowserLinks.CRITICAL_PATH)
 
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     Truth.assertThat(buildAttributionEvents).hasSize(1)
@@ -377,7 +378,7 @@ class BuildAttributionUiAnalyticsTest {
     uiAnalytics.pageChange("pluginsRoot", PLUGINS_ROOT)
     uiAnalytics.pageChange("taskSetupIssues", TASK_SETUP_ISSUE_ROOT)
     uiAnalytics.pageChange("taskSetupIssue1", TASK_SETUP_ISSUE_PAGE)
-    uiAnalytics.helpLinkClicked()
+    uiAnalytics.helpLinkClicked(BuildAnalyzerBrowserLinks.CRITICAL_PATH)
     uiAnalytics.bugReportLinkClicked()
     uiAnalytics.reportingWindowCopyButtonClicked()
     uiAnalytics.reportingWindowClosed()

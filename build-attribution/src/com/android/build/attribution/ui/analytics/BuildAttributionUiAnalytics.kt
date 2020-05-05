@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.analytics
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -149,7 +150,8 @@ class BuildAttributionUiAnalytics(private val project: Project) {
     doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.REPORT_DIALOG_CLOSED))
 
 
-  fun helpLinkClicked() = doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED))
+  //TODO (b/154988129): track target when event ready
+  fun helpLinkClicked(target: BuildAnalyzerBrowserLinks) = doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED))
 
   private fun newUiEventBuilder(): BuildAttributionUiEvent.Builder {
     requireNotNull(buildAttributionReportSessionId)

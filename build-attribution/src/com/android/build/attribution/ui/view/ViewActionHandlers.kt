@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
@@ -57,7 +58,7 @@ interface ViewActionHandlers {
   fun warningsTreeNodeSelected(warningTreeNode: WarningsTreeNode)
 
   /** Called on help link click. */
-  fun helpLinkClicked()
+  fun helpLinkClicked(linkTarget: BuildAnalyzerBrowserLinks)
 
   /** Called on 'generate report' link click. */
   fun generateReportClicked(taskData: TaskUiData)

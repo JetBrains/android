@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.tree
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.colorIcon
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
@@ -23,7 +24,6 @@ import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.mergedIcon
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
-import com.android.build.attribution.ui.panels.CRITICAL_PATH_LINK
 import com.android.build.attribution.ui.panels.ChartBuildAttributionInfoPanel
 import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.panels.TimeDistributionChart
@@ -86,7 +86,7 @@ class CriticalPathTasksRoot(
           .newline()
           .add("Addressing this group provides the greatest likelihood of reducing the overall build duration.")
           .closeHtmlBody()
-        return DescriptionWithHelpLinkLabel(text.html, CRITICAL_PATH_LINK, analytics)
+        return DescriptionWithHelpLinkLabel(text.html, BuildAnalyzerBrowserLinks.CRITICAL_PATH, analytics)
       }
 
       override fun createRightInfoPanel(): JComponent? {

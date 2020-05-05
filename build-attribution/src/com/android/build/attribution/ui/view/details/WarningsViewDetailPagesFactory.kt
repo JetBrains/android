@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view.details
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
@@ -122,8 +123,9 @@ class WarningsViewDetailPagesFactory(
     ).with2pxShift())
     addRow(JBLabel("Consider switching to using an incremental annotation processor.").with2pxShift())
     addRow(HyperlinkLabel("Learn more").apply {
-      addHyperlinkListener { actionHandlers.helpLinkClicked() }
-      setHyperlinkTarget("https://d.android.com/r/tools/build-attribution/non-incremental-ap")
+      val target = BuildAnalyzerBrowserLinks.NON_INCREMENTAL_ANNOTATION_PROCESSORS
+      addHyperlinkListener { actionHandlers.helpLinkClicked(target) }
+      setHyperlinkTarget(target.urlTarget)
     })
     addRow(JPanel().apply { border = JBUI.Borders.emptyTop(10) })
     addRow(JBLabel("Recommendation").withFont(JBUI.Fonts.label().asBold()).with2pxShift())
