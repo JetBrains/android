@@ -67,7 +67,7 @@ class AppInspectionViewTest {
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
   private class TestIdeServices : AppInspectionIdeServices {
-    class NotificationData(val content: String, val severity: AppInspectionIdeServices.Severity)
+    class NotificationData(val content: String, val severity: AppInspectionIdeServices.Severity, val hyperlinkClicked: () -> Unit)
     val notificationListeners = mutableListOf<(NotificationData) -> Unit>()
 
     override fun showToolWindow(callback: () -> Unit) {}
@@ -75,7 +75,7 @@ class AppInspectionViewTest {
                                   title: String,
                                   severity: AppInspectionIdeServices.Severity,
                                   hyperlinkClicked: () -> Unit) {
-      val data = NotificationData(content, severity)
+      val data = NotificationData(content, severity, hyperlinkClicked)
       notificationListeners.forEach { listener -> listener(data) }
     }
   }
@@ -166,10 +166,16 @@ class AppInspectionViewTest {
       listOf(FakeTransportService.FAKE_PROCESS_NAME)
     }
 
-    val tabAddedLatch = CountDownLatch(1)
+    val initialTabsAddedLatch = CountDownLatch(2) // Initial tabs created by the two test providers
+    val retryTabAddedLatch = CountDownLatch(1) // A later tab will be opened by pressing the "retry" notification hyperlink
     inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
       override fun componentAdded(e: ContainerEvent) {
-        tabAddedLatch.countDown()
+        if (initialTabsAddedLatch.count > 0) {
+          initialTabsAddedLatch.countDown()
+        }
+        else {
+          retryTabAddedLatch.countDown()
+        }
       }
     })
 
@@ -179,7 +185,7 @@ class AppInspectionViewTest {
     val fakeProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(1).setDeviceId(1).build()
     transportService.addDevice(fakeDevice)
     transportService.addProcess(fakeDevice, fakeProcess)
-    tabAddedLatch.await()
+    initialTabsAddedLatch.await()
 
     // Generate fake crash event
     transportService.addEventToStream(
@@ -204,5 +210,10 @@ class AppInspectionViewTest {
     notificationLatch.await()
     assertThat(notificationData.content).contains("$INSPECTOR_ID has crashed")
     assertThat(notificationData.severity).isEqualTo(AppInspectionIdeServices.Severity.ERROR)
+
+    // Make sure clicking the notification causes a new tab to get created
+    assertThat(retryTabAddedLatch.count).isGreaterThan(0)
+    notificationData.hyperlinkClicked()
+    retryTabAddedLatch.await()
   }
 }
