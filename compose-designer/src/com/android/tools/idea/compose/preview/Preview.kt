@@ -27,9 +27,9 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
 import com.android.tools.idea.common.surface.SwitchingInteractionHandler
-import com.android.tools.idea.common.util.asLogString
 import com.android.tools.idea.common.util.BuildListener
 import com.android.tools.idea.common.util.ControllableTicker
+import com.android.tools.idea.common.util.asLogString
 import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.common.util.setupChangeListener
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
@@ -37,6 +37,7 @@ import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshActi
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.util.COMPOSE_VIEW_ADAPTER
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
@@ -236,6 +237,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       isInteractive.set(newValue != null)
       if (isInteractive.get()) { // Enable interactive
         this.singleElementFilteredProvider.composableMethodFqn = newValue
+        sceneComponentProvider.enabled = false
         refresh().invokeOnCompletion {
           ticker.start()
           interactionHandler?.let { it.selected = InteractionMode.INTERACTIVE }
@@ -253,6 +255,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         interactionHandler?.let { it.selected = InteractionMode.DEFAULT }
         ticker.stop()
         this.singleElementFilteredProvider.composableMethodFqn = null
+        sceneComponentProvider.enabled = true
         refresh()
       }
     }
@@ -263,6 +266,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       field = value
       forceRefresh()
     }
+
+  /**
+   *
+   */
+  private val sceneComponentProvider = ComposeSceneComponentProvider()
 
   private val surface = NlDesignSurface.builder(project, this)
     .setIsPreview(true)
@@ -278,6 +286,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       interactionHandler
     }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
+    .setSceneManagerProvider { surface, model -> LayoutlibSceneManager(model, surface, sceneComponentProvider)}
     .setEditable(true)
     .setDelegateDataProvider {
       return@setDelegateDataProvider when (it) {
@@ -323,12 +332,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val notificationsPanel = NotificationPanel(
     ExtensionPointName.create("com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
 
+  private val actionsToolbar = ActionsToolbar(this@ComposePreviewRepresentation, surface)
   /**
    * [WorkBench] used to contain all the preview elements.
    */
   private val workbench = WorkBench<DesignSurface>(project, "Compose Preview", null, this).apply {
-
-    val actionsToolbar = ActionsToolbar(this@ComposePreviewRepresentation, surface)
     val contentPanel = JPanel(BorderLayout()).apply {
       add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
 
@@ -698,7 +706,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         previewProvider.previewElements
       }
 
-      if (filePreviewElements == previewElements) {
+      if (filePreviewElements.toList() == previewElements) {
         LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")
         // In this case, there are no new previews. We need to make sure that the surface is still correctly
         // configured and that we are showing the right size for components. For example, if the user switches on/off

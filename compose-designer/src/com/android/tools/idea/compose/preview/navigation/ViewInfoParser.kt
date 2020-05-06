@@ -113,6 +113,9 @@ private fun getBound(viewInfo: Any): PxBounds {
 }
 
 private fun getInt(px: Any): Int {
+  // dev10 started using inline classes so we might have an Int already
+  if (px is Int) return px
+
   val value = px.javaClass.getMethod("getValue").invoke(px)
   // In dev05, the type of Px changed from Float to Int. We need to handle both cases here for backwards compatibility
   return value as? Int ?: (value as Float).toInt()

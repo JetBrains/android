@@ -44,8 +44,20 @@ abstract public class SceneManager implements Disposable {
    * Provider mapping {@link NlComponent}s to {@link SceneComponent}/
    */
   public interface SceneComponentHierarchyProvider {
+    /**
+     * Called by the {@link SceneManager} to create the initially {@link SceneComponent} hierarchy from the given
+     * {@link NlComponent}.
+     */
     @NotNull
     List<SceneComponent> createHierarchy(@NotNull SceneManager manager, @NotNull NlComponent component);
+
+    /**
+     * Call by the {@link SceneManager} to trigger a sync of the {@link NlComponent} to the given {@link SceneComponent}.
+     * This allows for the SceneComponent to sync the latest data from the {@link NlModel} and update the UI
+     * representation. The method will be called when the {@link SceneManager} detects that there is the need to sync.
+     * This could be after a render or after a model change, for example.
+     */
+    void syncFromNlComponent(@NotNull SceneComponent sceneComponent);
   }
 
   public static final boolean SUPPORTS_LOCKING = false;
@@ -206,16 +218,11 @@ abstract public class SceneManager implements Disposable {
   protected final void updateFromComponent(@NotNull SceneComponent component, @NotNull Set<SceneComponent> seenComponents) {
     seenComponents.add(component);
 
-    updateFromComponent(component);
+    syncFromNlComponent(component);
 
     for (SceneComponent child : component.getChildren()) {
       updateFromComponent(child, seenComponents);
     }
-
-    postUpdateFromComponent(component);
-  }
-
-  protected void postUpdateFromComponent(@NotNull SceneComponent component) {
   }
 
   /**
@@ -227,8 +234,8 @@ abstract public class SceneManager implements Disposable {
   /**
    * Updates a single SceneComponent from its corresponding NlComponent.
    */
-  protected void updateFromComponent(SceneComponent sceneComponent) {
-    sceneComponent.setToolLocked(false); // the root is always unlocked.
+  protected final void syncFromNlComponent(SceneComponent sceneComponent) {
+    mySceneComponentProvider.syncFromNlComponent(sceneComponent);
   }
 
   @NotNull
