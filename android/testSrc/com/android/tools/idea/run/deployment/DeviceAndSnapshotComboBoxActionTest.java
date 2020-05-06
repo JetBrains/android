@@ -18,33 +18,24 @@ package com.android.tools.idea.run.deployment;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.execution.RunManager;
 import com.intellij.ide.util.ProjectPropertiesComponentImpl;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.ui.DialogWrapper;
 import icons.StudioIcons;
 import java.awt.Component;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
-import javax.swing.JComponent;
-import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,9 +52,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   private Presentation myPresentation;
   private AnActionEvent myEvent;
-
-  private DataContext myContext;
-  private ActionManager myActionManager;
 
   @Before
   public void mockDevicesGetter() {
@@ -96,17 +84,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
     Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
     Mockito.when(myEvent.getPlace()).thenReturn(ActionPlaces.MAIN_TOOLBAR);
-  }
-
-  @Before
-  public void mockContext() {
-    myContext = Mockito.mock(DataContext.class);
-    Mockito.when(myContext.getData(CommonDataKeys.PROJECT)).thenReturn(myRule.getProject());
-  }
-
-  @Before
-  public void initActionManager() {
-    myActionManager = ActionManager.getInstance();
   }
 
   @Test
@@ -158,208 +135,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     // Assert
     assertEquals(253, component.getPreferredSize().width);
-  }
-
-  @Test
-  public void createPopupActionGroupActionsIsEmpty() {
-    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.emptyList()));
-
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
-      .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setDevicesSelectedServiceGetInstance(project -> myDevicesSelectedService)
-      .setExecutionTargetServiceGetInstance(project -> myExecutionTargetService)
-      .setGetRunManager(project -> myRunManager)
-      .build();
-
-    action.update(myEvent);
-    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
-
-    Object expectedChildren = Arrays.asList(
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID));
-
-    assertEquals(expectedChildren, actualChildren);
-  }
-
-  @Test
-  public void createPopupActionGroupDeviceIsVirtual() {
-    Device.Builder builder = new VirtualDevice.Builder()
-      .setName(TestDevices.PIXEL_2_XL_API_28)
-      .setKey(new Key("Pixel_2_XL_API_28"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
-
-    Device device = builder.build();
-    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
-
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
-      .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setDevicesSelectedServiceGetInstance(project -> myDevicesSelectedService)
-      .setExecutionTargetServiceGetInstance(project -> myExecutionTargetService)
-      .setGetRunManager(project -> myRunManager)
-      .build();
-
-    action.update(myEvent);
-    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
-
-    Object expectedChildren = Arrays.asList(
-      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
-      SelectDeviceAction.newSelectDeviceAction(builder.build(), action),
-      Separator.getInstance(),
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID));
-
-    assertEquals(expectedChildren, actualChildren);
-  }
-
-  @Test
-  public void createPopupActionGroupDeviceIsPhysical() {
-    Device.Builder builder = new PhysicalDevice.Builder()
-      .setName("LGE Nexus 5X")
-      .setKey(new Key("00fff9d2279fa601"))
-      .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
-
-    Device device = builder.build();
-    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
-
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
-      .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setDevicesSelectedServiceGetInstance(project -> myDevicesSelectedService)
-      .setExecutionTargetServiceGetInstance(project -> myExecutionTargetService)
-      .setGetRunManager(project -> myRunManager)
-      .build();
-
-    action.update(myEvent);
-    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
-
-    Object expectedChildren = Arrays.asList(
-      myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
-      SelectDeviceAction.newSelectDeviceAction(builder.build(), action),
-      Separator.getInstance(),
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID));
-
-    assertEquals(expectedChildren, actualChildren);
-  }
-
-  @Test
-  public void createPopupActionGroupDevicesAreVirtualAndPhysical() {
-    Device.Builder virtualDeviceBuilder = new VirtualDevice.Builder()
-      .setName(TestDevices.PIXEL_2_XL_API_28)
-      .setKey(new Key("Pixel_2_XL_API_28"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
-
-    Device.Builder physicalDeviceBuilder = new PhysicalDevice.Builder()
-      .setName("LGE Nexus 5X")
-      .setKey(new Key("00fff9d2279fa601"))
-      .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
-
-    Device device1 = virtualDeviceBuilder.build();
-    Device device2 = physicalDeviceBuilder.build();
-
-    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Arrays.asList(device1, device2)));
-
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
-      .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setDevicesSelectedServiceGetInstance(project -> myDevicesSelectedService)
-      .setExecutionTargetServiceGetInstance(project -> myExecutionTargetService)
-      .setGetRunManager(project -> myRunManager)
-      .build();
-
-    action.update(myEvent);
-    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
-
-    Object expectedChildren = Arrays.asList(
-      myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
-      SelectDeviceAction.newSelectDeviceAction(physicalDeviceBuilder.build(), action),
-      Separator.getInstance(),
-      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
-      SelectDeviceAction.newSelectDeviceAction(virtualDeviceBuilder.build(), action),
-      Separator.getInstance(),
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID));
-
-    assertEquals(expectedChildren, actualChildren);
-  }
-
-  @Test
-  public void createPopupActionGroupDeviceSnapshotIsDefault() {
-    Device.Builder builder = new VirtualDevice.Builder()
-      .setName(TestDevices.PIXEL_2_XL_API_28)
-      .setKey(new Key("Pixel_2_XL_API_28"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshot(Snapshot.quickboot(FileSystems.getDefault()));
-
-    Device device = builder.build();
-    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
-
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
-      .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setDevicesSelectedServiceGetInstance(project -> myDevicesSelectedService)
-      .setExecutionTargetServiceGetInstance(project -> myExecutionTargetService)
-      .setGetRunManager(project -> myRunManager)
-      .build();
-
-    action.update(myEvent);
-    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
-
-    Object expectedChildren = Arrays.asList(
-      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
-      SelectDeviceAction.newSelectDeviceAction(builder.build(), action),
-      Separator.getInstance(),
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID));
-
-    assertEquals(expectedChildren, actualChildren);
-  }
-
-  @Test
-  public void createPopupActionGroupSnapshotIsntDefault() {
-    FileSystem fileSystem = FileSystems.getDefault();
-
-    Device.Builder builder = new VirtualDevice.Builder()
-      .setName(TestDevices.PIXEL_2_XL_API_28)
-      .setKey(new Key("Pixel_2_XL_API_28"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshot(new Snapshot(fileSystem.getPath("snap_2018-08-07_16-27-58"), fileSystem));
-
-    Device device = builder.build();
-    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
-
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
-      .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setDevicesSelectedServiceGetInstance(project -> myDevicesSelectedService)
-      .setExecutionTargetServiceGetInstance(project -> myExecutionTargetService)
-      .setGetRunManager(project -> myRunManager)
-      .build();
-
-    action.update(myEvent);
-    Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
-
-    Object expectedChildren = Arrays.asList(
-      myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
-      SelectDeviceAction.newSelectDeviceAction(builder.build(), action),
-      Separator.getInstance(),
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID));
-
-    assertEquals(expectedChildren, actualChildren);
   }
 
   @Test
