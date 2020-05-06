@@ -327,9 +327,13 @@ public class GradleApkProvider implements ApkProvider {
                                  boolean fromTestArtifact) throws ApkProvisionException {
     IdeVariant variant = androidModel.getSelectedVariant();
     String outputFile = getOutputListingFile(androidModel, variant.getName(), OutputType.Apk, fromTestArtifact);
-    assert outputFile != null;
+    if (outputFile == null) {
+      throw new ApkProvisionException("Cannot get output listing file name from the build model");
+    }
     GenericBuiltArtifacts builtArtifacts = GenericBuiltArtifactsLoader.loadFromFile(new File(outputFile), new LogWrapper(getLogger()));
-    assert builtArtifacts != null;
+    if (builtArtifacts == null) {
+      throw new ApkProvisionException(String.format("Error loading build artifacts from: %s", outputFile));
+    }
     return myBestOutputFinder.findBestOutput(variant, device, builtArtifacts);
   }
 
