@@ -68,8 +68,6 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A console view to display a test execution and result of Android instrumentation tests.
- *
- * Note: This view is under development and most of methods are not implemented yet.
  */
 public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListener, AndroidTestResultsTableListener,
                                              AndroidTestSuiteDetailsViewListener {

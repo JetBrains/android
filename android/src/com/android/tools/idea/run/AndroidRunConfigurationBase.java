@@ -324,7 +324,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     AndroidLaunchTasksProvider launchTasksProvider =
       new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions.build());
 
-    return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, launchTasksProvider);
+    return new AndroidRunState(env, getName(), module, applicationIdProvider,
+                               getConsoleProvider(deviceFutures.getDevices().size() > 1), deviceFutures, launchTasksProvider);
   }
 
   private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
@@ -413,7 +414,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public abstract boolean isTestConfiguration();
 
   @NotNull
-  protected abstract ConsoleProvider getConsoleProvider();
+  protected abstract ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices);
 
   @Nullable
   protected abstract LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
