@@ -34,7 +34,7 @@ class PerfettoParserTest {
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     val parser = PerfettoParser(MainProcessSelector(), services)
-    val capture = parser.parse(traceFile, 0)
+    val capture = parser.parse(traceFile, 1)
 
     assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
     assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.PERFETTO)
@@ -48,13 +48,9 @@ class PerfettoParserTest {
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     val parser = PerfettoParser(MainProcessSelector(), services)
-    try {
-      parser.parse(traceFile, 0)
-      fail()
-    } catch (e: Error) {
-      assertThat(e).isInstanceOf(NotImplementedError::class.java)
-      assertThat(e).hasMessageThat().contains("b/147099951")
-    }
-  }
+    val capture = parser.parse(traceFile, 1)
 
+    assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
+    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.PERFETTO)
+  }
 }

@@ -21,6 +21,9 @@ import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.MainProcessSelector
 import com.android.tools.profilers.cpu.TraceParser
 import com.android.tools.profilers.cpu.atrace.AtraceParser
+import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCaptureBuilder
+import com.android.tools.profilers.cpu.atrace.SystemTraceSurfaceflingerManager
+import com.android.tools.profilers.systemtrace.ProcessListSorter
 import java.io.File
 
 class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
@@ -40,8 +43,21 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
   }
 
   private fun parseUsingTraceProcessor(file: File, traceId: Long): CpuCapture {
-    //noinspection StopShip
-    TODO("b/147099951 Use TraceProcessorService and return a PerfettoCapture.")
-  }
+    val traceProcessor = ideProfilerServices.traceProcessorService
 
+    val processList = traceProcessor.loadTrace(traceId, file)
+    check(processList.isNotEmpty()) { "Invalid trace without any process information." }
+
+    val processListSorter = ProcessListSorter(mainProcessSelector.nameHint)
+    val selectedProcess = mainProcessSelector.apply(processListSorter.sort(processList))
+    checkNotNull(selectedProcess) { "It was not possible to select a process for this trace." }
+
+    val pidsToQuery = mutableListOf(selectedProcess)
+    processList.find { it.name == SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME }?.let{ pidsToQuery.add(it.id) }
+
+    val model = traceProcessor.loadCpuData(traceId, pidsToQuery)
+
+    val builder = SystemTraceCpuCaptureBuilder(model)
+    return builder.build(traceId, selectedProcess)
+  }
 }
