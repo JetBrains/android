@@ -33,12 +33,14 @@ class SurfaceflingerTooltipViewTest {
     timeline.dataRange.set(0.0, MICROS_IN_MILLIS * 3.0)
     timeline.tooltipRange.set(1.0, 1.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.000")
-    assertThat(tooltipView.statusLabel.text).isEqualTo("Idle")
-    assertThat(tooltipView.durationLabel.text).isEqualTo("1 ms")
+    assertThat(tooltipView.eventNameLabel.isVisible).isFalse()
+    assertThat(tooltipView.durationLabel.isVisible).isFalse()
 
     timeline.tooltipRange.set(MICROS_IN_MILLIS + 1.0, MICROS_IN_MILLIS + 1.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.001")
-    assertThat(tooltipView.statusLabel.text).isEqualTo("Processing")
+    assertThat(tooltipView.eventNameLabel.isVisible).isTrue()
+    assertThat(tooltipView.durationLabel.isVisible).isTrue()
+    assertThat(tooltipView.eventNameLabel.text).isEqualTo("onMessageReceived")
     assertThat(tooltipView.durationLabel.text).isEqualTo("2 ms")
   }
 
@@ -46,7 +48,8 @@ class SurfaceflingerTooltipViewTest {
     val MICROS_IN_MILLIS = TimeUnit.MILLISECONDS.toMicros(1)
     val SF_EVENTS = listOf(
       SeriesData(0, SurfaceflingerEvent(0, MICROS_IN_MILLIS, SurfaceflingerEvent.Type.IDLE)),
-      SeriesData(MICROS_IN_MILLIS, SurfaceflingerEvent(MICROS_IN_MILLIS, MICROS_IN_MILLIS * 3, SurfaceflingerEvent.Type.PROCESSING))
+      SeriesData(MICROS_IN_MILLIS,
+                 SurfaceflingerEvent(MICROS_IN_MILLIS, MICROS_IN_MILLIS * 3, SurfaceflingerEvent.Type.PROCESSING, "onMessageReceived"))
     )
   }
 }

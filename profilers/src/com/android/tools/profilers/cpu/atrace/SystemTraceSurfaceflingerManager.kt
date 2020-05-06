@@ -53,7 +53,7 @@ class SystemTraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter
       lastEndTime = endTime
 
       // Add the real event.
-      result.add(SeriesData(startTime, SurfaceflingerEvent(startTime, endTime, SurfaceflingerEvent.Type.PROCESSING)))
+      result.add(SeriesData(startTime, SurfaceflingerEvent(startTime, endTime, SurfaceflingerEvent.Type.PROCESSING, event.name)))
     }
     // Add one last IDLE event to properly terminate the series.
     result.add(SeriesData(lastEndTime, SurfaceflingerEvent(lastEndTime, Long.MAX_VALUE, SurfaceflingerEvent.Type.IDLE)))
@@ -73,7 +73,7 @@ class SystemTraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter
 
   companion object {
     private const val SURFACEFLINGER_PROCESS_NAME = "surfaceflinger"
-    private const val VSYNC_COUNTER_NAME = "VSYNC-sf"
+    private const val VSYNC_COUNTER_NAME = "VSYNC-app"
   }
 
   init {
