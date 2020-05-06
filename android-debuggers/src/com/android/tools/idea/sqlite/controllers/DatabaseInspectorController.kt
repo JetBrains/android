@@ -283,6 +283,8 @@ class DatabaseInspectorControllerImpl(
   }
 
   private suspend fun updateDatabaseSchema(databaseId: SqliteDatabaseId) {
+    if (model.getCloseDatabaseIds().contains(databaseId)) return
+
     val databaseConnection = model.getDatabaseConnection(databaseId)!!
     // TODO(b/154733971) this only works because the suspending function is called first, otherwise we have concurrency issues
     val newSchema = readDatabaseSchema(databaseConnection) ?: return
