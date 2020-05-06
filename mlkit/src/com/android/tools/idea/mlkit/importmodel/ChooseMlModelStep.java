@@ -53,6 +53,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -170,10 +171,12 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     else {
       VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
       VirtualFile existingFile = findExistingModelFile(file.getName());
+      if (Objects.equals(virtualFile, existingFile)) {
+        return new Validator.Result(Validator.Severity.ERROR, "Model file comes from selected ml directory.");
+      }
       if (existingFile != null && existingFile.exists()) {
         return new Validator.Result(Validator.Severity.WARNING, "File already exists and will be override.");
       }
-
       if (virtualFile != null && SingleRootFileViewProvider.isTooLargeForContentLoading(virtualFile)) {
         return new Validator.Result(Validator.Severity.WARNING, "This file is larger than 20 MB and may be a performance impact.");
       }
