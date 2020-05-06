@@ -32,6 +32,8 @@ public class DefaultSelectionModel extends BaseSelectionModel {
   private final ListenerCollection<SelectionListener> myListeners = ListenerCollection.createWithDirectExecutor();
   @Nullable
   Object mySecondarySelection;
+  @Nullable
+  private ImmutableList<NlComponent> myHighlightSelection = null;
 
   @NotNull
   @Override
@@ -47,14 +49,26 @@ public class DefaultSelectionModel extends BaseSelectionModel {
 
   @Override
   public void setSelection(@NotNull List<? extends NlComponent> components, @Nullable NlComponent primary) {
+    if (setSelectionInternal(components, primary)) {
+      notifySelectionChanged();
+    }
+  }
+
+  /**
+   * Returns true if selection is updated. False otherwise.
+   */
+  private boolean setSelectionInternal(
+    @NotNull List<? extends NlComponent> components,
+    @Nullable NlComponent primary) {
     //noinspection EqualsBetweenInconvertibleTypes   This currentlly erroneously shows on this line during psq
     if (components.equals(mySelection)) {
-      return;
+      return false;
     }
     mySelection = ImmutableList.copyOf(components);
+    myHighlightSelection = null;
     mySecondarySelection = null;
     myPrimary = primary;
-    notifySelectionChanged();
+    return true;
   }
 
   @Override
@@ -66,6 +80,7 @@ public class DefaultSelectionModel extends BaseSelectionModel {
     myPrimary = null;
 
     mySecondarySelection = null;
+    myHighlightSelection = null;
     notifySelectionChanged();
   }
 
@@ -110,6 +125,7 @@ public class DefaultSelectionModel extends BaseSelectionModel {
       newPrimary = myPrimary;
     }
 
+    myHighlightSelection = null;
     mySecondarySelection = null;
     setSelection(newSelection, newPrimary);
   }
@@ -147,13 +163,29 @@ public class DefaultSelectionModel extends BaseSelectionModel {
       mySelection = ImmutableList.of(component);
       myPrimary = component;
     }
+    myHighlightSelection = null;
     notifySelectionChanged();
   }
-
 
   @Override
   @Nullable
   public Object getSecondarySelection() {
     return mySecondarySelection;
+  }
+
+  @Override
+  public boolean isHighlighted(@NotNull NlComponent component) {
+    return myHighlightSelection != null && myHighlightSelection.contains(component);
+  }
+
+  @Override
+  public void setHighlightSelection(@NotNull List<? extends NlComponent> highlighted,
+                                    @NotNull List<? extends NlComponent> selected) {
+    boolean updated = setSelectionInternal(selected, null);
+    if (!updated && highlighted.equals(myHighlightSelection)) {
+      return;
+    }
+    myHighlightSelection = ImmutableList.copyOf(highlighted);
+    notifySelectionChanged();
   }
 }

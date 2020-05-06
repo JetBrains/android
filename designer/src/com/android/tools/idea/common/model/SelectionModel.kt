@@ -45,9 +45,38 @@ interface SecondarySelectionModel {
 }
 
 /**
+ * List of components that are selected for highlighting only. It is used for references
+ * which are used by constriant helpers in ConstraintLayout.
+ */
+interface HighlightSelectionModel {
+
+  /**
+   * Returns true if the given component is Highlighted. False otherwise.
+   */
+  fun isHighlighted(component: NlComponent): Boolean
+
+  /**
+   * Set list of components to be highlighted.
+   * Highlighted components will behave like unselected, normal components except they
+   * will be drawn highlighted.
+   *
+   * If a component is both selected and highlight-selected, normal selection behaviour
+   * will take higher priority.
+   *
+   * It is used for references which are used by constriant helpers in ConstraintLayout.
+   *
+   * When [SelectionModel.setSelection] is called, highlighted selection must be cleared.
+   *
+   * @param highlighted - components selected for highlighting
+   * @param selected - normally selected components. It can bey empty.
+   */
+  fun setHighlightSelection(highlighted: List<NlComponent>, selected: List<NlComponent>)
+}
+
+/**
  * Represents a selection of [NlComponent]s.
  */
-interface SelectionModel: SecondarySelectionModel {
+interface SelectionModel: SecondarySelectionModel, HighlightSelectionModel {
   /**
    * The current list of selected [NlComponent]s.
    */
@@ -122,4 +151,6 @@ object NopSelectionModel: BaseSelectionModel() {
   override val secondarySelection: Any? = null
   override fun clearSecondary() {}
   override fun setSecondarySelection(component: NlComponent?, secondary: Any?) {}
+  override fun isHighlighted(component: NlComponent): Boolean { return false }
+  override fun setHighlightSelection(highlighted: List<NlComponent>, selected: List<NlComponent>) { }
 }
