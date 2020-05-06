@@ -251,7 +251,7 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
     fun refreshSummaries() {
       selection.selectedCapture?.let {
         // Hide summary panel for native memory captures.
-        isVisible = !(it is NativeAllocationSampleCaptureObject)
+        isVisible = it is HeapDumpCaptureObject
         totalClassLabel.numValue = countClasses(it)
         setLabelSumBy(it, totalCountLabel) { it.totalObjectCount.toLong() }
         setLabelSumBy(it, totalNativeSizeLabel) { it.totalNativeSize }
