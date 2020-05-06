@@ -96,6 +96,7 @@ public class StudioIcons {
     public static final Icon INTERACTIVE_PREVIEW = load("/studio/icons/compose/toolbar/interactive-preview.svg"); // 16x16
     public static final Icon RUN_CONFIGURATION = load("/studio/icons/compose/toolbar/run-configuration.svg"); // 16x16
     public static final Icon RUN_ON_DEVICE = load("/studio/icons/compose/toolbar/run-on-device.svg"); // 16x16
+    public static final Icon STOP_INTERACTIVE_MODE = load("/studio/icons/compose/toolbar/stop-interactive-mode.svg"); // 16x16
   }
 
   public static class Cursors {
