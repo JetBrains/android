@@ -27,8 +27,7 @@ import icons.StudioIcons
  */
 class StopInteractivePreviewAction: AnActionButton(message("action.stop.interactive.title"),
                                                    message("action.stop.interactive.description"),
-                                                   // TODO(b/155719050): Replace with Compose specific icon
-                                                   StudioIcons.Shell.Toolbar.STOP) {
+                                                   StudioIcons.Compose.STOP_INTERACTIVE_MODE) {
   override fun displayTextInToolbar(): Boolean = true
 
   override fun updateButton(e: AnActionEvent) {
