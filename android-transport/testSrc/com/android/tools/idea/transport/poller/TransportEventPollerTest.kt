@@ -181,7 +181,7 @@ class TransportEventPollerTest {
 
     // Create listener for ECHO event that should remove itself after 3 callbacks.
     val eventLatch1 = CountDownLatch(3)
-    var receivedEventsCount1 = 0;
+    var receivedEventsCount1 = 0
     val echoListener1 = TransportEventListener(
       eventKind = Common.Event.Kind.ECHO,
       startTime = { 0L },
@@ -196,7 +196,7 @@ class TransportEventPollerTest {
       executor = MoreExecutors.directExecutor()
     )
     val eventLatch2 = CountDownLatch(5)
-    var receivedEventsCount2 = 0;
+    var receivedEventsCount2 = 0
     val echoListener2 = TransportEventListener(
       eventKind = Common.Event.Kind.ECHO,
       startTime = { 0L },
@@ -433,6 +433,46 @@ class TransportEventPollerTest {
     transportService.addEventToStream(1L, negativeEvent2Builder.build())
     transportService.addEventToStream(1L, positiveEvent2Builder.build())
 
+    assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+  }
+
+  @Test
+  fun testLastTimestampNotRecordedIfListenerIsNotRegistered() {
+    val transportClient = TransportClient(grpcServer.name)
+    val transportEventPoller = TransportEventPoller.createPoller(transportClient.transportStub, TimeUnit.MILLISECONDS.toNanos(250))
+    var latch = CountDownLatch(1)
+    var runnable = Runnable {}
+    val listener = TransportEventListener(
+      eventKind = Common.Event.Kind.ECHO,
+      executor = MoreExecutors.directExecutor(),
+      callback = {
+        runnable.run()
+        latch.countDown()
+        false
+      })
+    // Simulate that the listener is being unregistered during a poll:
+    runnable = Runnable { transportEventPoller.unregisterListener(listener) }
+
+    // Register the listener and simulate an event from a device at time = 4
+    transportEventPoller.registerListener(listener)
+    val event1 = Common.Event.newBuilder().apply {
+      timestamp = 4
+      kind = Common.Event.Kind.ECHO
+      echo = Echo.EchoData.newBuilder().apply { data = "blah" }.build()
+    }
+    transportService.addEventToStream(1L, event1.build())
+    assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+
+    // Register the same listener and simulate an event from a different device at time = 1
+    latch = CountDownLatch(1)
+    runnable = Runnable {}
+    transportEventPoller.registerListener(listener)
+    val event2 = Common.Event.newBuilder().apply {
+      timestamp = 1
+      kind = Common.Event.Kind.ECHO
+      echo = Echo.EchoData.newBuilder().apply { data = "blah" }.build()
+    }
+    transportService.addEventToStream(1L, event2.build())
     assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
   }
 }
