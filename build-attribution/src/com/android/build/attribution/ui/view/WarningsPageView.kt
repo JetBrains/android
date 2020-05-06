@@ -20,7 +20,6 @@ import com.android.build.attribution.ui.model.WarningsDataPageModel
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.view.details.WarningsViewDetailPagesFactory
-import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
@@ -31,9 +30,7 @@ import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
-import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -41,8 +38,6 @@ import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.Component
-import javax.swing.Box
-import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -65,16 +60,7 @@ class WarningsPageView(
   // Flag to prevent triggering calls to action handler on pulled from the model updates.
   private var fireActionHandlerEvents = true
 
-  val groupingCombo = ComboBox(arrayOf("By Type")).apply {
-    name = "warningsGroupingCombo"
-    isEnabled = false
-  }
-
-  override val additionalControls = JPanel().apply {
-    layout = HorizontalLayout(10)
-    name = "warnings-view-additional-controls"
-    add(groupingCombo)
-  }
+  override val additionalControls = JPanel().apply { name = "warnings-view-additional-controls" }
 
   val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
     isRootVisible = false
