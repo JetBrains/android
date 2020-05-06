@@ -33,7 +33,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger;
  * Provides additional scope for light model classes used by reference resolution and code completion.
  */
 // TODO(b/146511259): handle test scope.
-public class MlkitResolveScopeEnlarger extends ResolveScopeEnlarger {
+public class MlResolveScopeEnlarger extends ResolveScopeEnlarger {
   @Nullable
   @Override
   public SearchScope getAdditionalResolveScope(@NotNull VirtualFile file, Project project) {
@@ -41,19 +41,19 @@ public class MlkitResolveScopeEnlarger extends ResolveScopeEnlarger {
     return module != null ? getAdditionalResolveScope(module) : null;
   }
 
-  public static class MlkitKotlinResolveScopeEnlarger extends KotlinResolveScopeEnlarger {
+  public static class MlKotlinResolveScopeEnlarger extends KotlinResolveScopeEnlarger {
     @Nullable
     @Override
     public SearchScope getAdditionalResolveScope(@NotNull Module module, boolean isTestScope) {
-      return MlkitResolveScopeEnlarger.getAdditionalResolveScope(module);
+      return MlResolveScopeEnlarger.getAdditionalResolveScope(module);
     }
   }
 
   @Nullable
   private static SearchScope getAdditionalResolveScope(@NotNull Module module) {
-    if (MlkitUtils.isMlModelBindingBuildFeatureEnabled(module)) {
+    if (MlUtils.isMlModelBindingBuildFeatureEnabled(module)) {
       Collection<VirtualFile> virtualFiles = new ArrayList<>();
-      for (PsiClass lightClass : MlkitModuleService.getInstance(module).getLightModelClassList()) {
+      for (PsiClass lightClass : MlModuleService.getInstance(module).getLightModelClassList()) {
         virtualFiles.add(lightClass.getContainingFile().getViewProvider().getVirtualFile());
       }
       return GlobalSearchScope.filesWithoutLibrariesScope(module.getProject(), virtualFiles);

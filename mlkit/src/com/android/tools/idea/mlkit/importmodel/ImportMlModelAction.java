@@ -17,36 +17,32 @@ package com.android.tools.idea.mlkit.importmodel;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Action to import machine learning model to Android project
+ * Action to import machine learning model to Android project.
  */
-public class AndroidImportMlModelAction extends AnAction {
+public class ImportMlModelAction extends AnAction {
   private static final String ML_MODEL_BINDING_MIN_AGP_VERSION = "4.1.0-alpha04";
   private static final String TITLE = "TensorFlow Lite Model";
 
-  public AndroidImportMlModelAction() {
+  public ImportMlModelAction() {
     super(TITLE, null, StudioIcons.Shell.Filetree.ANDROID_FILE);
   }
 
@@ -54,7 +50,7 @@ public class AndroidImportMlModelAction extends AnAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     Module module = LangDataKeys.MODULE.getData(e.getDataContext());
     List<NamedModuleTemplate> moduleTemplates = getModuleTemplates(e);
-    if (!moduleTemplates.isEmpty() && module != null) {
+    if (!moduleTemplates.isEmpty() && module != null && e.getProject() != null) {
       String title = "Import TensorFlow Lite model";
       ModelWizard wizard = new ModelWizard.Builder()
         .addStep(new ChooseMlModelStep(new MlWizardModel(module), moduleTemplates, e.getProject(), title))
@@ -65,15 +61,15 @@ public class AndroidImportMlModelAction extends AnAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    Project project = e.getProject();
     Presentation presentation = e.getPresentation();
-    Module module = LangDataKeys.MODULE.getData(e.getDataContext());
 
+    Project project = e.getProject();
     if (project == null) {
       presentation.setEnabled(false);
       return;
     }
 
+    Module module = LangDataKeys.MODULE.getData(e.getDataContext());
     if (module == null) {
       presentation.setEnabled(false);
       return;
@@ -105,8 +101,7 @@ public class AndroidImportMlModelAction extends AnAction {
   }
 
   /**
-   * Gets a list of {@link NamedModuleTemplate} from {@link AnActionEvent}. Returns
-   * empty list if there isn't exist a valid one.
+   * Gets a list of available {@link NamedModuleTemplate} from {@link AnActionEvent}.
    */
   @NotNull
   private static List<NamedModuleTemplate> getModuleTemplates(@NotNull AnActionEvent e) {

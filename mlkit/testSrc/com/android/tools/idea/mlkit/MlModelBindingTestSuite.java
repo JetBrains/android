@@ -21,8 +21,8 @@ import org.junit.runner.RunWith;
 
 @SuppressWarnings({"JUnitTestCaseWithNoTests", "NewClassNamingConvention"})
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(MlkitTestSuite.class)  // a suite mustn't contain itself
-public class MlkitTestSuite extends IdeaTestSuiteBase {
+@JarTestSuiteRunner.ExcludeClasses(MlModelBindingTestSuite.class)  // a suite mustn't contain itself
+public class MlModelBindingTestSuite extends IdeaTestSuiteBase {
   static {
     unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
     unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");

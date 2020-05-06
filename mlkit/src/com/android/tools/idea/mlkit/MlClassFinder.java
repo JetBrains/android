@@ -18,7 +18,7 @@ package com.android.tools.idea.mlkit;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidLightPackage;
-import com.android.tools.mlkit.MlkitNames;
+import com.android.tools.mlkit.MlNames;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
@@ -33,10 +33,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Used to find light model classes and packages based on their fully qualified names.
  */
-public class MlkitClassFinder extends PsiElementFinder {
+public class MlClassFinder extends PsiElementFinder {
   private final Project myProject;
 
-  public MlkitClassFinder(@NotNull Project project) {
+  public MlClassFinder(@NotNull Project project) {
     myProject = project;
   }
 
@@ -50,7 +50,7 @@ public class MlkitClassFinder extends PsiElementFinder {
   @NotNull
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-    if (!StudioFlags.ML_MODEL_BINDING.get() || !qualifiedName.contains(MlkitNames.PACKAGE_SUFFIX)) {
+    if (!StudioFlags.ML_MODEL_BINDING.get() || !qualifiedName.contains(MlNames.PACKAGE_SUFFIX)) {
       return PsiClass.EMPTY_ARRAY;
     }
 
@@ -64,14 +64,14 @@ public class MlkitClassFinder extends PsiElementFinder {
   @Nullable
   @Override
   public PsiPackage findPackage(@NotNull String packageName) {
-    if (!StudioFlags.ML_MODEL_BINDING.get() || !packageName.endsWith(MlkitNames.PACKAGE_SUFFIX)) {
+    if (!StudioFlags.ML_MODEL_BINDING.get() || !packageName.endsWith(MlNames.PACKAGE_SUFFIX)) {
       return null;
     }
 
-    String modulePackageName = StringUtil.substringBeforeLast(packageName, MlkitNames.PACKAGE_SUFFIX);
+    String modulePackageName = StringUtil.substringBeforeLast(packageName, MlNames.PACKAGE_SUFFIX);
     for (AndroidFacet facet : ProjectSystemUtil.getProjectSystem(myProject)
       .getAndroidFacetsWithPackageName(myProject, modulePackageName, GlobalSearchScope.projectScope(myProject))) {
-      if (MlkitUtils.isMlModelBindingBuildFeatureEnabled(facet.getModule())) {
+      if (MlUtils.isMlModelBindingBuildFeatureEnabled(facet.getModule())) {
         return AndroidLightPackage.withName(packageName, myProject);
       }
     }

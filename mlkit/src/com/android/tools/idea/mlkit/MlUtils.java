@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviders;
-import com.android.tools.mlkit.MlkitNames;
+import com.android.tools.mlkit.MlNames;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -34,9 +34,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Provides common utility methods.
  */
-public class MlkitUtils {
+public class MlUtils {
 
-  private MlkitUtils() {
+  private MlUtils() {
   }
 
   public static boolean isMlModelBindingBuildFeatureEnabled(@NotNull Module module) {
@@ -58,7 +58,7 @@ public class MlkitUtils {
   @NotNull
   public static String computeModelClassName(@NotNull Module module, @NotNull VirtualFile file) {
     String relativePath = relativePathToMlModelsFolder(module, file);
-    return relativePath != null ? MlkitNames.computeModelClassName(relativePath) : "";
+    return relativePath != null ? MlNames.computeModelClassName(relativePath) : "";
   }
 
   @Nullable

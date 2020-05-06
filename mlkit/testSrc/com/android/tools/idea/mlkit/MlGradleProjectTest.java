@@ -35,7 +35,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class MlkitGradleProjectTest {
+public class MlGradleProjectTest {
 
   @Rule
   public final AndroidGradleProjectRule myProjectRule = new AndroidGradleProjectRule();
@@ -60,9 +60,9 @@ public class MlkitGradleProjectTest {
   public void testModelClassGeneration() {
     Project project = myProjectRule.getProject();
     Module appModule = TestModuleUtil.findModule(project, "app");
-    assertTrue(MlkitUtils.isMlModelBindingBuildFeatureEnabled(appModule));
+    assertTrue(MlUtils.isMlModelBindingBuildFeatureEnabled(appModule));
     Module module2 = TestModuleUtil.findModule(project, "module2");
-    assertFalse(MlkitUtils.isMlModelBindingBuildFeatureEnabled(module2));
+    assertFalse(MlUtils.isMlModelBindingBuildFeatureEnabled(module2));
 
     JavaCodeInsightTestFixture fixture = ((JavaCodeInsightTestFixture)myProjectRule.getFixture());
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);

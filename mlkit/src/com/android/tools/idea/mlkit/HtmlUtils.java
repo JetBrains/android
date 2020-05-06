@@ -31,8 +31,8 @@ public class HtmlUtils {
 
   /**
    * Converts the given plain text to HTML format.
-   * <p>
-   * It will escape HTML entities and line breaker, and also linkify all urls. The returned result will be wrapped by <html> tag.
+   *
+   * <p>It will escape HTML entities and line breaker, and also linkify all urls. The returned result will be wrapped by &lt;html&gt; tag.
    */
   @NotNull
   public static String plainTextToHtml(@NotNull String text) {
