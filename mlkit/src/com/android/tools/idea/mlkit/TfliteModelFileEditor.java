@@ -24,6 +24,7 @@ import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.android.tools.mlkit.TfliteModelException;
 import com.android.utils.StringHelper;
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Floats;
@@ -401,7 +402,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       tableData.add(
         Lists.newArrayList(
           tensorInfo.getName(),
-          getDisplayContentType(tensorInfo).toString(),
+          getTypeStringForDisplay(tensorInfo),
           breakIntoMultipleLines(tensorInfo.getDescription(), 60),
           Arrays.toString(tensorInfo.getShape()),
           meanStdColumn,
@@ -412,13 +413,26 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private static TensorInfo.ContentType getDisplayContentType(@NotNull TensorInfo tensorInfo) {
-    // Display Image only if it is RGB image.
+  private static String getTypeStringForDisplay(@NotNull TensorInfo tensorInfo) {
+    StringBuilder stringBuilder = new StringBuilder();
     if (tensorInfo.getContentType() == TensorInfo.ContentType.IMAGE) {
-      return tensorInfo.isRGBImage() ? TensorInfo.ContentType.IMAGE : TensorInfo.ContentType.FEATURE;
+      // Display Image only if it is RGB image.
+      stringBuilder.append(tensorInfo.isRGBImage()
+                           ? formatUpperString(CaseFormat.UPPER_CAMEL, TensorInfo.ContentType.IMAGE.toString())
+                           : formatUpperString(CaseFormat.UPPER_CAMEL, TensorInfo.ContentType.FEATURE.toString()));
+    }
+    else {
+      stringBuilder.append(formatUpperString(CaseFormat.UPPER_CAMEL, tensorInfo.getContentType().toString()));
     }
 
-    return tensorInfo.getContentType();
+    stringBuilder.append(LINE_SEPARATOR + "<" + formatUpperString(CaseFormat.LOWER_CAMEL, tensorInfo.getDataType().toString()) + ">");
+
+    return stringBuilder.toString();
+  }
+
+  @NotNull
+  private static String formatUpperString(@NotNull CaseFormat caseFormat, @NotNull String content) {
+    return CaseFormat.UPPER_UNDERSCORE.to(caseFormat, content);
   }
 
   private static boolean isValidMinMaxColumn(@NotNull MetadataExtractor.NormalizationParams params) {
