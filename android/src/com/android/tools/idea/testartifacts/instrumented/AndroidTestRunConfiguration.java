@@ -26,16 +26,13 @@ import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtil;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.run.AndroidDeviceSpec;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
-import com.android.tools.idea.run.NonGradleApkProvider;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
@@ -83,7 +80,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import kotlin.sequences.SequencesKt;
 import org.jetbrains.android.dom.manifest.Instrumentation;
@@ -313,10 +309,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @NotNull
   @Override
-  protected ConsoleProvider getConsoleProvider() {
+  protected ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices) {
     return (parent, handler, executor) -> {
       final ConsoleView consoleView;
-      if (StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get() && DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId())) {
+      if (runOnMultipleDevices
+          && StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()
+          && DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId())) {
         consoleView = new AndroidTestSuiteView(parent, getProject());
         consoleView.attachToProcess(handler);
       } else {
