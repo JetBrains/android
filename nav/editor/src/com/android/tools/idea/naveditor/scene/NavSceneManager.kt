@@ -116,65 +116,6 @@ open class NavSceneManager(
 
   override fun doCreateSceneView(): NavView = NavView(designSurface, this)
 
-  override fun updateFromComponent(sceneComponent: SceneComponent) {
-    super.updateFromComponent(sceneComponent)
-
-    val nlComponent = sceneComponent.nlComponent
-
-    if (isHorizontalAction(nlComponent)) {
-      sceneComponent.setSize(ACTION_WIDTH.toInt(), ACTION_HEIGHT.toInt())
-      return
-    }
-
-    val type = nlComponent.destinationType
-    if (type != null) {
-      sceneComponent.setTargetProvider(if (sceneComponent.nlComponent == designSurface.currentNavigation)
-                                         NavigationTargetProvider
-                                       else
-                                         NavScreenTargetProvider)
-      sceneComponent.updateTargets()
-
-      if (type == NavigationSchema.DestinationType.NAVIGATION) {
-        if (sceneComponent.nlComponent == designSurface.currentNavigation) {
-          // done in post
-          sceneComponent.setSize(-1, -1)
-        }
-        else {
-          sceneComponent.setSize(SUBNAV_WIDTH, SUBNAV_HEIGHT)
-        }
-      }
-      else {
-        val state = model.configuration.deviceState!!
-        val screen = state.hardware.screen
-        @NavCoordinate var x = SCREEN_LONG
-        @NavCoordinate var y = SCREEN_LONG
-        val ratio = screen.xDimension / screen.yDimension.toFloat()
-        if (ratio > 1) {
-          y /= ratio
-        }
-        else {
-          x *= ratio
-        }
-        if (ratio < 1.1 && ratio > 0.9) {
-          // If it's approximately square make it smaller, otherwise it takes up too much space.
-          x /= 2
-          y /= 2
-        }
-        if (state.orientation == ScreenOrientation.LANDSCAPE == ratio < 1) {
-          val tmp = x
-
-          x = y
-          y = tmp
-        }
-        sceneComponent.setSize(x.toInt(), y.toInt())
-      }
-    }
-    else if (sceneComponent.nlComponent.isAction) {
-      sceneComponent.setTargetProvider(NavActionTargetProvider)
-      sceneComponent.updateTargets()
-    }
-  }
-
   override fun update() {
     val rootBounds: Rectangle? = scene.root?.fillDrawRect(0, null)
 
@@ -519,6 +460,66 @@ open class NavSceneManager(
       }
 
       return hierarchy
+    }
+
+    override fun syncFromNlComponent(sceneComponent: SceneComponent) {
+      super.syncFromNlComponent(sceneComponent)
+
+      val nlComponent = sceneComponent.nlComponent
+
+      if ((sceneComponent.scene.sceneManager as NavSceneManager).isHorizontalAction(nlComponent)) {
+        sceneComponent.setSize(ACTION_WIDTH.toInt(), ACTION_HEIGHT.toInt())
+        return
+      }
+
+      val designSurface = sceneComponent.scene.designSurface as NavDesignSurface
+      val type = nlComponent.destinationType
+      if (type != null) {
+        sceneComponent.setTargetProvider(if (sceneComponent.nlComponent == designSurface.currentNavigation)
+                                           NavigationTargetProvider
+                                         else
+                                           NavScreenTargetProvider)
+        sceneComponent.updateTargets()
+
+        if (type == NavigationSchema.DestinationType.NAVIGATION) {
+          if (sceneComponent.nlComponent == designSurface.currentNavigation) {
+            // done in post
+            sceneComponent.setSize(-1, -1)
+          }
+          else {
+            sceneComponent.setSize(SUBNAV_WIDTH, SUBNAV_HEIGHT)
+          }
+        }
+        else {
+          val state = nlComponent.model.configuration.deviceState!!
+          val screen = state.hardware.screen
+          @NavCoordinate var x = SCREEN_LONG
+          @NavCoordinate var y = SCREEN_LONG
+          val ratio = screen.xDimension / screen.yDimension.toFloat()
+          if (ratio > 1) {
+            y /= ratio
+          }
+          else {
+            x *= ratio
+          }
+          if (ratio < 1.1 && ratio > 0.9) {
+            // If it's approximately square make it smaller, otherwise it takes up too much space.
+            x /= 2
+            y /= 2
+          }
+          if (state.orientation == ScreenOrientation.LANDSCAPE == ratio < 1) {
+            val tmp = x
+
+            x = y
+            y = tmp
+          }
+          sceneComponent.setSize(x.toInt(), y.toInt())
+        }
+      }
+      else if (sceneComponent.nlComponent.isAction) {
+        sceneComponent.setTargetProvider(NavActionTargetProvider)
+        sceneComponent.updateTargets()
+      }
     }
   }
 }

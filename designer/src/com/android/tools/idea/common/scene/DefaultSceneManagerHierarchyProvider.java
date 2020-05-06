@@ -57,4 +57,9 @@ public class DefaultSceneManagerHierarchyProvider implements SceneManager.SceneC
     }
     return ImmutableList.of(sceneComponent);
   }
+
+  @Override
+  public void syncFromNlComponent(@NotNull SceneComponent sceneComponent) {
+    sceneComponent.setToolLocked(false); // the root is always unlocked.
+  }
 }

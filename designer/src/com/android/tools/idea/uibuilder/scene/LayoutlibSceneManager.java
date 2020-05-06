@@ -119,7 +119,6 @@ import org.jetbrains.ide.PooledThreadExecutor;
  * {@link SceneManager} that creates a Scene from an NlModel representing a layout using layoutlib.
  */
 public class LayoutlibSceneManager extends SceneManager {
-
   private static final SceneDecoratorFactory DECORATOR_FACTORY = new NlSceneDecoratorFactory();
 
   @Nullable private SceneView mySecondarySceneView;
@@ -319,7 +318,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param designSurface the {@link DesignSurface} user to present the result of the renders.
    */
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
-    this(model, designSurface, PooledThreadExecutor.INSTANCE, queue -> {}, new DefaultSceneManagerHierarchyProvider());
+    this(model, designSurface, PooledThreadExecutor.INSTANCE, queue -> {}, new LayoutlibSceneManagerHierarchyProvider());
   }
 
   @NotNull
@@ -338,7 +337,7 @@ public class LayoutlibSceneManager extends SceneManager {
     tempComponent.setTargetProvider(sceneComponent -> ImmutableList.of(new ConstraintDragDndTarget()));
     scene.setAnimated(false);
     scene.getRoot().addChild(tempComponent);
-    updateFromComponent(tempComponent);
+    syncFromNlComponent(tempComponent);
     scene.setAnimated(true);
 
     return tempComponent;
@@ -489,29 +488,6 @@ public class LayoutlibSceneManager extends SceneManager {
     return mySecondarySceneView;
   }
 
-  @Override
-  protected void updateFromComponent(SceneComponent sceneComponent) {
-    super.updateFromComponent(sceneComponent);
-    NlComponent component = sceneComponent.getNlComponent();
-    boolean animate = getScene().isAnimated() && !sceneComponent.hasNoDimension();
-    SceneManager manager = sceneComponent.getScene().getSceneManager();
-    if (animate) {
-      long time = System.currentTimeMillis();
-      sceneComponent.setPositionTarget(Coordinates.pxToDp(manager, NlComponentHelperKt.getX(component)),
-                                       Coordinates.pxToDp(manager, NlComponentHelperKt.getY(component)),
-                                       time);
-      sceneComponent.setSizeTarget(Coordinates.pxToDp(manager, NlComponentHelperKt.getW(component)),
-                                   Coordinates.pxToDp(manager, NlComponentHelperKt.getH(component)),
-                                   time);
-    }
-    else {
-      sceneComponent.setPosition(Coordinates.pxToDp(manager, NlComponentHelperKt.getX(component)),
-                                 Coordinates.pxToDp(manager, NlComponentHelperKt.getY(component)));
-      sceneComponent.setSize(Coordinates.pxToDp(manager, NlComponentHelperKt.getW(component)),
-                             Coordinates.pxToDp(manager, NlComponentHelperKt.getH(component)));
-    }
-  }
-
   public void updateTargets() {
     SceneComponent root = getScene().getRoot();
     if (root != null) {
@@ -519,7 +495,6 @@ public class LayoutlibSceneManager extends SceneManager {
       root.updateTargets();
     }
   }
-
 
   private static void updateTargetProviders(@NotNull SceneComponent component) {
     ViewHandler handler = NlComponentHelperKt.getViewHandler(component.getNlComponent());
@@ -1316,6 +1291,35 @@ public class LayoutlibSceneManager extends SceneManager {
     @Override
     public List<NlModel.TagSnapshotTreeNode> getChildren() {
       return ContainerUtil.map(myViewInfo.getChildren(), ViewInfoTagSnapshotNode::new);
+    }
+  }
+
+  /**
+   * Default {@link SceneManager.SceneComponentHierarchyProvider} for {@link LayoutlibSceneManager}.
+   * It provides the functionality to sync the {@link NlComponent} hierarchy and the data from Layoutlib to {@link SceneComponent}.
+   */
+  protected static class LayoutlibSceneManagerHierarchyProvider extends DefaultSceneManagerHierarchyProvider {
+    @Override
+    public void syncFromNlComponent(@NotNull SceneComponent sceneComponent) {
+      super.syncFromNlComponent(sceneComponent);
+      NlComponent component = sceneComponent.getNlComponent();
+      boolean animate = sceneComponent.getScene().isAnimated() && !sceneComponent.hasNoDimension();
+      SceneManager manager = sceneComponent.getScene().getSceneManager();
+      if (animate) {
+        long time = System.currentTimeMillis();
+        sceneComponent.setPositionTarget(Coordinates.pxToDp(manager, NlComponentHelperKt.getX(component)),
+                                         Coordinates.pxToDp(manager, NlComponentHelperKt.getY(component)),
+                                         time);
+        sceneComponent.setSizeTarget(Coordinates.pxToDp(manager, NlComponentHelperKt.getW(component)),
+                                     Coordinates.pxToDp(manager, NlComponentHelperKt.getH(component)),
+                                     time);
+      }
+      else {
+        sceneComponent.setPosition(Coordinates.pxToDp(manager, NlComponentHelperKt.getX(component)),
+                                   Coordinates.pxToDp(manager, NlComponentHelperKt.getY(component)));
+        sceneComponent.setSize(Coordinates.pxToDp(manager, NlComponentHelperKt.getW(component)),
+                               Coordinates.pxToDp(manager, NlComponentHelperKt.getH(component)));
+      }
     }
   }
 

@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.idea.common.surface.Layer
+import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.ImmutableList
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
 
@@ -27,13 +30,7 @@ enum class SceneMode(val displayName: String,
   RENDER("Design", ::defaultProvider),
   BLUEPRINT("Blueprint", ::blueprintProvider),
   RENDER_AND_BLUEPRINT("Design + Blueprint", ::defaultProvider, ::blueprintProvider),
-  COMPOSE("Compose",
-          { surface, manager, _ ->
-            ScreenView.newBuilder(surface, manager)
-              .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
-              .build()
-          },
-          visibleToUser = false),
+  COMPOSE("Compose", ::composeProvider, visibleToUser = false),
   RESIZABLE_PREVIEW("Preview",
                     { surface, manager, _ ->
                       ScreenView.newBuilder(surface, manager)

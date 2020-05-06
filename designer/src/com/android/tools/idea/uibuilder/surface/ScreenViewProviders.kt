@@ -105,3 +105,21 @@ internal fun colorBlindProvider(surface: NlDesignSurface,
     }
     .disableBorder()
     .build()
+
+internal fun composeProvider(surface: NlDesignSurface,
+                             manager: LayoutlibSceneManager,
+                             @Suppress("UNUSED_PARAMETER") isSecondary: Boolean): ScreenView =
+  ScreenView.newBuilder(surface, manager)
+    .withLayersProvider {
+      ImmutableList.builder<Layer>().apply {
+        if (it.hasBorderLayer()) {
+          add(BorderLayer(it))
+        }
+        add(ScreenViewLayer(it))
+        add(SceneLayer(it.surface, it, false).apply {
+          isShowOnHover = true
+        })
+      }.build()
+    }
+    .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
+    .build()
