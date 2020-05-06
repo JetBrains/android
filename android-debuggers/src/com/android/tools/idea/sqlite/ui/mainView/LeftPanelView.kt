@@ -48,9 +48,9 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private val rootPanel = JPanel(BorderLayout())
   private val tree = Tree()
 
-  private val refreshSchemaButton = CommonButton("Refresh Schema", AllIcons.Actions.Refresh)
-  private val runSqlButton = CommonButton("Run Query", StudioIcons.DatabaseInspector.NEW_QUERY)
-  private val keepConnectionsOpenButton = CommonButton("Keep connections open", StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN)
+  private val refreshSchemaButton = CommonButton(AllIcons.Actions.Refresh)
+  private val runSqlButton = CommonButton(StudioIcons.DatabaseInspector.NEW_QUERY)
+  private val keepConnectionsOpenButton = CommonButton(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN)
 
   val component = rootPanel
   val databasesCount: Int get() = (tree.model.root as? DefaultMutableTreeNode)?.childCount ?: 0
@@ -307,14 +307,14 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       if (value is DefaultMutableTreeNode) {
         when (val userObject = value.userObject) {
           is ViewDatabase -> {
+            append(userObject.databaseId.name)
             icon = if (userObject.isOpen) {
               StudioIcons.DatabaseInspector.DATABASE
             }
             else {
+              append(" (closed)", colorTextAttributes)
               IconLoader.getDisabledIcon(StudioIcons.DatabaseInspector.DATABASE)
             }
-
-            append(userObject.databaseId.name)
             toolTipText = userObject.databaseId.path
           }
 
