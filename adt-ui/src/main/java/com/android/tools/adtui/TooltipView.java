@@ -90,6 +90,7 @@ public abstract class TooltipView extends AspectObserver {
   @NotNull
   protected abstract JComponent createTooltip();
 
+  @NotNull
   protected static JLabel createTooltipLabel() {
     JLabel label = new JLabel();
     label.setFont(TOOLTIP_BODY_FONT);
