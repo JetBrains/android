@@ -302,6 +302,7 @@ class DefaultInspectorClient(
         selectedProcess = process
         processChangedListeners.forEach { it() }
         setDebugViewAttributes(selectedStream, true)
+        listeners.forEach { transportPoller.registerListener(it) }
         execute(LayoutInspectorCommand.Type.START)
       }
       // TODO: verify that capture started successfully
@@ -309,7 +310,6 @@ class DefaultInspectorClient(
       true // Remove the listener after this callback
     }
     attachListener?.let { transportPoller.registerListener(it) }
-    listeners.forEach { transportPoller.registerListener(it) }
 
     // TODO(b/150503095)
     val response = client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())

@@ -32,24 +32,28 @@ import kotlin.math.max
  */
 class TransportEventPoller(private val transportClient: TransportServiceGrpc.TransportServiceBlockingStub,
                            private val sortOrder: Comparator<Common.Event>) {
+  private val writeLock = Object()
   private val eventListeners: MutableList<TransportEventListener> = CopyOnWriteArrayList() // Used to preserve insertion order
   private val listenersToLastTimestamp = ConcurrentHashMap<TransportEventListener, Long>()
 
   /**
    * Adds a listener to the list to poll for and be notified of changes. Listeners are polled in insertion order.
    */
-  @Synchronized
   fun registerListener(listener: TransportEventListener) {
-    eventListeners.add(listener)
+    synchronized(writeLock) {
+      eventListeners.add(listener)
+      listenersToLastTimestamp[listener] = Long.MIN_VALUE
+    }
   }
 
   /**
    * Removes a listener from the list, or do nothing if it is not in the list
    */
-  @Synchronized
   fun unregisterListener(listener: TransportEventListener) {
-    eventListeners.remove(listener)
-    listenersToLastTimestamp.remove(listener)
+    synchronized(writeLock) {
+      eventListeners.remove(listener)
+      listenersToLastTimestamp.remove(listener)
+    }
   }
 
   fun poll() {
@@ -88,9 +92,14 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
             }
           }
         }
-        val maxTimeEvent = filtered.maxBy {it.timestamp}
+        val maxTimeEvent = filtered.maxBy { it.timestamp }
         // Update last timestamp per listener
-        maxTimeEvent?.let { listenersToLastTimestamp[eventListener] = max(startTimestamp, it.timestamp + 1) }
+        synchronized(writeLock) {
+          // Make sure the listener is still registered before adding a new timestamp
+          if (maxTimeEvent != null && listenersToLastTimestamp.containsKey(eventListener)) {
+            listenersToLastTimestamp[eventListener] = max(startTimestamp, maxTimeEvent.timestamp + 1)
+          }
+        }
       }
     }
   }
