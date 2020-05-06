@@ -38,11 +38,6 @@ interface AndroidTestResults {
   val packageName: String
 
   /**
-   * Returns the name of the test case.
-   */
-  fun getTestCaseName(): String = "$className.$methodName"
-
-  /**
    * Returns the test case result of a given device. Null if the test is not executed on a given device.
    */
   fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult?
@@ -70,4 +65,20 @@ interface AndroidTestResults {
    * Returns the snapshot artifact from Android Test Retention if available.
    */
   fun getRetentionSnapshot(device: AndroidDevice): File?
+}
+
+/**
+ * Returns the name of the test case.
+ */
+fun AndroidTestResults.getTestCaseName(): String = "$className.$methodName"
+
+/**
+ * Returns the fully qualified name of the test case.
+ */
+fun AndroidTestResults.getFullTestCaseName(): String {
+  return if (packageName.isBlank()) {
+    "$className.$methodName"
+  } else {
+    "$packageName.$className.$methodName"
+  }
 }
