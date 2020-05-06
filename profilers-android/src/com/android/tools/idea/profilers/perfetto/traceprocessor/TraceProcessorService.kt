@@ -22,6 +22,7 @@ import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapS
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.android.tools.profilers.systemtrace.ProcessModel
+import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.ServiceManager
@@ -53,6 +54,35 @@ class TraceProcessorServiceImpl : TraceProcessorService, Disposable {
   override fun loadTrace(traceId: Long, traceFile: File): List<ProcessModel> {
     daemonManager.makeSureDaemonIsRunning()
     return client.loadTrace(traceId, traceFile)
+  }
+
+  override fun loadCpuData(traceId: Long, processIds: List<Int>): SystemTraceModelAdapter {
+    val queryBuilder = TraceProcessor.QueryBatchRequest.newBuilder()
+      // Query metadata for all processes, as we need the info from everything to reference in the scheduling events.
+      .addQuery(TraceProcessor.QueryParameters.newBuilder().setProcessMetadataRequest(
+        TraceProcessor.QueryParameters.ProcessMetadataParameters.getDefaultInstance()))
+      // Query scheduling for all processes, as we need it to build the cpu/core data series anyway.
+      .addQuery(TraceProcessor.QueryParameters.newBuilder().setSchedRequest(
+        TraceProcessor.QueryParameters.SchedulingEventsParameters.getDefaultInstance()))
+
+    // Now let's add the queries that we limit for the processes we're interested in:
+    for (id in processIds) {
+      queryBuilder.addQuery(TraceProcessor.QueryParameters.newBuilder().setTraceEventsRequest(
+        TraceProcessor.QueryParameters.TraceEventsParameters.newBuilder().setProcessId(id.toLong())))
+      queryBuilder.addQuery(TraceProcessor.QueryParameters.newBuilder().setCountersRequest(
+          TraceProcessor.QueryParameters.CountersParameters.newBuilder().setProcessId(id.toLong())))
+    }
+
+    daemonManager.makeSureDaemonIsRunning()
+    val response = client.queryBatchRequest(queryBuilder.build())
+
+    val modelBuilder = TraceProcessorModel.Builder()
+    response.resultList.filter { it.hasProcessMetadataResult() }.forEach { modelBuilder.addProcessMetadata(it.processMetadataResult) }
+    response.resultList.filter { it.hasTraceEventsResult() }.forEach { modelBuilder.addTraceEvents(it.traceEventsResult) }
+    response.resultList.filter { it.hasSchedResult() }.forEach { modelBuilder.addSchedulingEvents(it.schedResult) }
+    response.resultList.filter { it.hasCountersResult() }.forEach { modelBuilder.addCounters(it.countersResult) }
+
+    return modelBuilder.build()
   }
 
   override fun loadMemoryData(abi: String, symbolizer: NativeFrameSymbolizer, memorySet: NativeMemoryHeapSet) {

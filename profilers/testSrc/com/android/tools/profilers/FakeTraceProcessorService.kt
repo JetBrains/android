@@ -18,9 +18,12 @@ package com.android.tools.profilers
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
+import com.android.tools.profilers.systemtrace.CpuCoreModel
 import com.android.tools.profilers.systemtrace.ProcessModel
+import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
 import com.android.tools.profilers.systemtrace.ThreadModel
 import java.io.File
+import java.lang.UnsupportedOperationException
 
 class FakeTraceProcessorService: TraceProcessorService {
   override fun loadTrace(traceId: Long, traceFile: File): List<ProcessModel> {
@@ -38,7 +41,22 @@ class FakeTraceProcessorService: TraceProcessorService {
                    mapOf()))
   }
 
+  override fun loadCpuData(traceId: Long, processIds: List<Int>): SystemTraceModelAdapter {
+    // Will populate as needed. Currently no test rely on this.
+    return FakeModelAdapter()
+  }
+
   override fun loadMemoryData(abi: String, symbolizer: NativeFrameSymbolizer, memorySet: NativeMemoryHeapSet) {
     // Will populate as needed. Currently no test rely on this.
+  }
+
+  private class FakeModelAdapter: SystemTraceModelAdapter {
+    override fun getProcesses(): List<ProcessModel> = throw UnsupportedOperationException("Not Implemented For Fake")
+    override fun getCaptureStartTimestampUs() = throw UnsupportedOperationException("Not Implemented For Fake")
+    override fun getCaptureEndTimestampUs() = throw UnsupportedOperationException("Not Implemented For Fake")
+    override fun getProcessById(id: Int) = throw UnsupportedOperationException("Not Implemented For Fake")
+    override fun getCpuCores(): List<CpuCoreModel> = throw UnsupportedOperationException("Not Implemented For Fake")
+    override fun getSystemTraceTechnology() = throw UnsupportedOperationException("Not Implemented For Fake")
+    override fun isCapturePossibleCorrupted() = throw UnsupportedOperationException("Not Implemented For Fake")
   }
 }

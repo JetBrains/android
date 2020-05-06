@@ -18,6 +18,7 @@ package com.android.tools.profilers.perfetto.traceprocessor
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.android.tools.profilers.systemtrace.ProcessModel
+import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
 import java.io.File
 
 /**
@@ -32,6 +33,12 @@ interface TraceProcessorService {
    * Returns a list of available processes from the trace.
    */
   fun loadTrace(traceId: Long, traceFile: File): List<ProcessModel>
+
+  /**
+   * Query the Perfetto trace processor for cpu data regarding a set of processes.
+   * For example, a main process plus surfaceflinger one.
+   */
+  fun loadCpuData(traceId: Long, processIds: List<Int>): SystemTraceModelAdapter
 
   /**
    * Query the Perfetto trace processor for Heapprofd data and populate the profiler {@link NativeMemoryHeapSet} object with the results.
