@@ -808,7 +808,7 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
         STRING_TEMPLATE -> factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes(true))
         ARRAY_ACCESS_EXPRESSION -> when {
           newName.startsWith("ext.") -> {
-            // TODO(b/141842964): this is a bandage over the fact that we don't (yet) have a principled translation from Psi to Dsl to Psi.
+            // TODO(b/148769031): this is a bandage over the fact that we don't (yet) have a principled translation from Psi to Dsl to Psi.
             //  We parse extra["foo"] to ext.foo, so when writing we have to do the reverse.
             val extraExpression = "extra[\"${newName.substring("ext.".length, newName.length)}\"]"
             factory.createExpressionIfPossible(extraExpression)
