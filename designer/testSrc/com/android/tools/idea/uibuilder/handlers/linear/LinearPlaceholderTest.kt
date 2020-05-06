@@ -116,7 +116,6 @@ class LinearPlaceholderTest : SceneTest() {
     assertEquals(200, button.drawX)
   }
 
-  // b/154962720
   fun testMovingComponentDown() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val textView1 = myScene.getSceneComponent("myText1")!!
