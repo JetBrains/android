@@ -18,57 +18,66 @@ package com.android.tools.idea.npw.module
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
 import com.android.tools.idea.device.FormFactor
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.observable.TestInvokeStrategy
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import org.mockito.Mockito.`when`
+import com.intellij.testFramework.RunsInEdt
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito.mock
 
-class ConfigureAndroidModuleStepTest : AndroidGradleTestCase() {
-  override fun setUp() {
-    super.setUp()
+@RunsInEdt
+class ConfigureAndroidModuleStepTest {
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.withAndroidModels(
+    JavaModuleModelBuilder.rootModuleBuilder,
+    AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()),
+    JavaModuleModelBuilder(":libs", buildable = false),
+    AndroidModuleModelBuilder(":libs:lib", "debug", AndroidProjectBuilder()),
+    AndroidModuleModelBuilder(":libs:lib2", "debug", AndroidProjectBuilder())
+  ).onEdt()
+
+  @Before
+  fun setUp() {
     myInvokeStrategy = TestInvokeStrategy()
     BatchInvoker.setOverrideStrategy(myInvokeStrategy)
   }
 
-  public override fun tearDown() {
-    try {
-      BatchInvoker.clearOverrideStrategy()
-    }
-    finally {
-      super.tearDown()
-    }
+  @After
+  fun tearDown() {
+    BatchInvoker.clearOverrideStrategy()
   }
 
   /**
    * When adding two libraries to a project, the second library package name should have a distinct value from the first one
    * (com.example.mylib vs com.example.mylib2). See http://b/68177735 for more details.
    */
-  fun testPackageNameDependsOnModuleName() {
-    val project = mock(Project::class.java)
-    val moduleManager = mock(ModuleManager::class.java)
-
-    `when`(project.getComponent(ModuleManager::class.java)).thenReturn(moduleManager)
-    `when`<String>(project.basePath).thenReturn("/")
-    `when`(moduleManager.modules).thenReturn(Module.EMPTY_ARRAY)
+  @Test
+  fun packageNameDependsOnModuleName() {
+    val disposable = projectRule.fixture.projectDisposable
+    val project = projectRule.project
 
     val basePackage = "com.example"
     val newModuleModel = NewAndroidModuleModel(project, null, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
 
-    Disposer.register(testRootDisposable, newModuleModel)
-    Disposer.register(testRootDisposable, configureAndroidModuleStep)
+    Disposer.register(disposable, newModuleModel)
+    Disposer.register(disposable, configureAndroidModuleStep)
     myInvokeStrategy.updateAllSteps()
 
     fun assertPackageNameIsCorrectAfterSettingModuleName(moduleName: String) {
@@ -83,46 +92,79 @@ class ConfigureAndroidModuleStepTest : AndroidGradleTestCase() {
   /**
    * When adding a parent to a module name (eg :parent:module_name), the package name should ignore the parent, but the module name don't.
    */
-  fun testModuleNamesWithParent() {
-    val project = mock(Project::class.java)
-    val moduleManager = mock(ModuleManager::class.java)
-
-    `when`(project.getComponent(ModuleManager::class.java)).thenReturn(moduleManager)
-    `when`<String>(project.basePath).thenReturn("/")
-    `when`(moduleManager.modules).thenReturn(Module.EMPTY_ARRAY)
+  @Test
+  fun moduleNamesWithParent() {
+    val disposable = projectRule.fixture.projectDisposable
+    val project = projectRule.project
 
     val basePackage = "com.example"
-    val parentName = "parent"
+    val parentName = ":libs"
     val newModuleModel = NewAndroidModuleModel(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
 
-    Disposer.register(testRootDisposable, newModuleModel)
-    Disposer.register(testRootDisposable, configureAndroidModuleStep)
+    Disposer.register(disposable, newModuleModel)
+    Disposer.register(disposable, configureAndroidModuleStep)
     myInvokeStrategy.updateAllSteps()
 
-    fun assertModuleNameIsCorrectAfterSettingApplicationName(applicationName: String) {
+    fun verify(applicationName: String, packageName: String, moduleGradlePath: String) {
       newModuleModel.applicationName.set(applicationName)
       myInvokeStrategy.updateAllSteps()
-      val moduleNameWithoutParent = applicationName.replace(" ", "").toLowerCase()
-      assertThat(newModuleModel.moduleName.get()).isEqualTo(":$parentName:$moduleNameWithoutParent")
-      assertThat(newModuleModel.packageName.get()).isEqualTo("$basePackage.$moduleNameWithoutParent")
+      assertThat(newModuleModel.moduleName.get()).isEqualTo(moduleGradlePath)
+      assertThat(newModuleModel.packageName.get()).isEqualTo(packageName)
     }
 
-    listOf("My Application", "Some what Longer LibName", "lib").forEach { assertModuleNameIsCorrectAfterSettingApplicationName(it) }
+    verify("My Application", "com.example.myapplication", ":libs:myapplication")
+    verify("Some what Longer LibName", "com.example.somewhatlongerlibname", ":libs:somewhatlongerlibname")
+    // Verify unique name generation.
+    verify("lib", "com.example.lib3", ":libs:lib3")
+  }
+
+  /**
+   * When adding a parent to a module name (eg :parent:module_name), the package name should ignore the parent, but the module name don't.
+   */
+  @Test
+  fun moduleNamesWithoutParent() {
+    val disposable = projectRule.fixture.projectDisposable
+    val project = projectRule.project
+
+    val basePackage = "com.example"
+    val parentName = ""
+    val newModuleModel = NewAndroidModuleModel(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, basePackage, "Test Title")
+
+    Disposer.register(disposable, newModuleModel)
+    Disposer.register(disposable, configureAndroidModuleStep)
+    myInvokeStrategy.updateAllSteps()
+
+    fun verify(applicationName: String, packageName: String, moduleGradlePath: String) {
+      newModuleModel.applicationName.set(applicationName)
+      myInvokeStrategy.updateAllSteps()
+      assertThat(newModuleModel.moduleName.get()).isEqualTo(moduleGradlePath)
+      assertThat(newModuleModel.packageName.get()).isEqualTo(packageName)
+    }
+
+    verify("My Application", "com.example.myapplication", "myapplication")
+    verify("Some what Longer LibName", "com.example.somewhatlongerlibname", "somewhatlongerlibname")
+    // Verify unique name generation: no conflict with :libs:lib.
+    verify("lib", "com.example.lib", "lib")
   }
 
   /**
    * This tests assumes Project without androidx configuration.
    * Selecting API <28 should allow the use of "Go Forward", and API >=28 should stop the user from "Go Forward"
    */
-  fun testSelectAndroid_Q_onNonAndroidxProjects() {
+  @Test
+  fun selectAndroid_Q_onNonAndroidxProjects() {
+    val disposable = projectRule.fixture.projectDisposable
+    val project = projectRule.project
+
     val newModuleModel = NewAndroidModuleModel(project, null, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title").apply {
       registerValidators()
     }
 
-    Disposer.register(testRootDisposable, newModuleModel)
-    Disposer.register(testRootDisposable, configureAndroidModuleStep)
+    Disposer.register(disposable, newModuleModel)
+    Disposer.register(disposable, configureAndroidModuleStep)
     myInvokeStrategy.updateAllSteps()
 
     val androidTarget_P = createMockAndroidVersion(VersionCodes.P)
