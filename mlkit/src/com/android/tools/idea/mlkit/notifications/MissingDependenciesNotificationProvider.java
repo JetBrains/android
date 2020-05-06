@@ -16,7 +16,7 @@
 package com.android.tools.idea.mlkit.notifications;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.mlkit.MlkitUtils;
+import com.android.tools.idea.mlkit.MlUtils;
 import com.android.tools.idea.mlkit.TfliteModelFileEditor;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -58,16 +58,16 @@ public class MissingDependenciesNotificationProvider extends EditorNotifications
     }
 
     Module module = ModuleUtilCore.findModuleForFile(file, project);
-    if (module == null || !MlkitUtils.isMlModelBindingBuildFeatureEnabled(module)) {
+    if (module == null || !MlUtils.isMlModelBindingBuildFeatureEnabled(module)) {
       return null;
     }
 
-    if (MlkitUtils.isModelFileInMlModelsFolder(module, file)
-        && !MlkitUtils.getMissingDependencies(module).isEmpty()) {
+    if (MlUtils.isModelFileInMlModelsFolder(module, file)
+        && !MlUtils.getMissingDependencies(module).isEmpty()) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
       panel.setText("TensorFlow Lite model binding dependencies not found.");
       panel.createActionLabel("Add Now", () -> {
-        List<GradleCoordinate> depsToAdd = MlkitUtils.getMissingDependencies(module);
+        List<GradleCoordinate> depsToAdd = MlUtils.getMissingDependencies(module);
         // TODO(b/149224613): switch to use DependencyManagementUtil#addDependencies.
         AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
         if (DependencyManagementUtil.userWantsToAdd(module.getProject(), depsToAdd, "")) {

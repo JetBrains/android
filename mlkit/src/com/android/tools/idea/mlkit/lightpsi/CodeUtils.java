@@ -29,7 +29,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Utility method to generate light class.
+ * Utility methods for generating light class.
  */
 public class CodeUtils {
 
@@ -55,9 +55,8 @@ public class CodeUtils {
 
   /**
    * Gets type name from {@link PsiClassType}.
-   * <p>
-   * If it has parameters, add parameter name to type name. So {@code List<Category>} will become
-   * {@code CategoryList}.
+   *
+   * <p>If it has parameters, add parameter name to type name. So {@code List<Category>} will become {@code CategoryList}.
    */
   @NotNull
   public static String getTypeName(@NotNull PsiClassType psiClassType) {

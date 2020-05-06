@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.mlkit.LightModelClassConfig;
 import com.android.tools.idea.mlkit.LoggingUtils;
 import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
-import com.android.tools.mlkit.MlkitNames;
+import com.android.tools.mlkit.MlNames;
 import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
@@ -52,10 +52,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents a light class auto-generated for a specific model file in the assets folder.
+ * Represents a light class auto-generated for a specific model file in the ml folder.
  *
- * The light class is based on specific model however has structure similar to:
- * <code>
+ * <p>The light class is based on specific model however has structure similar to:
+ * <pre>{@code
  *   public final class ModelName {
  *     public static ModelName newInstance(Context context) throw IOException;
  *     public static ModelName newInstance(Context context, Model.Options options) throw IOException;
@@ -66,9 +66,9 @@ import org.jetbrains.annotations.Nullable;
  *
  *     public final Outputs process(TensorImage image1) { ... }
  *   }
- * </code>
+ * }</pre>
  *
- * @see MlkitOutputLightClass
+ * @see LightModelOutputsClass
  */
 public class LightModelClass extends AndroidLightClassBase {
   private final VirtualFile myModelFile;
@@ -101,7 +101,7 @@ public class LightModelClass extends AndroidLightClassBase {
 
         //Build inner class
         Map<String, PsiClass> innerClassMap = new HashMap<>();
-        MlkitOutputLightClass mlkitOutputClass = new MlkitOutputLightClass(module, modelInfo.getOutputs(), this);
+        LightModelOutputsClass mlkitOutputClass = new LightModelOutputsClass(module, modelInfo.getOutputs(), this);
         innerClassMap.putIfAbsent(mlkitOutputClass.getName(), mlkitOutputClass);
 
         MyClassMembers data =
@@ -196,7 +196,7 @@ public class LightModelClass extends AndroidLightClassBase {
   private PsiMethod buildProcessMethod(@NotNull List<TensorInfo> tensorInfos) {
     GlobalSearchScope scope = getResolveScope();
     String outputClassName =
-      String.join(".", myClassConfig.myPackageName, myClassConfig.myClassName, MlkitNames.OUTPUTS);
+      String.join(".", myClassConfig.myPackageName, myClassConfig.myClassName, MlNames.OUTPUTS);
 
     PsiType outputType = PsiType.getTypeByName(outputClassName, getProject(), scope);
 

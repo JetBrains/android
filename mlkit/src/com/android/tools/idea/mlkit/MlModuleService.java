@@ -17,7 +17,7 @@ package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.mlkit.MlkitNames;
+import com.android.tools.mlkit.MlNames;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -42,18 +42,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Module level service for ML Kit plugin.
+ * Module level service for ML Model Binding feature.
  */
-public class MlkitModuleService {
+public class MlModuleService {
   private final Module myModule;
   private final Map<MlModelMetadata, LightModelClass> myLightModelClassMap = new ConcurrentHashMap<>();
   private final LightModelClassListProvider myLightModelClassListProvider;
 
-  public static MlkitModuleService getInstance(@NotNull Module module) {
-    return Objects.requireNonNull(ModuleServiceManager.getService(module, MlkitModuleService.class));
+  public static MlModuleService getInstance(@NotNull Module module) {
+    return Objects.requireNonNull(ModuleServiceManager.getService(module, MlModuleService.class));
   }
 
-  public MlkitModuleService(@NotNull Module module) {
+  public MlModuleService(@NotNull Module module) {
     myModule = module;
     myLightModelClassListProvider = new LightModelClassListProvider(module);
   }
@@ -63,25 +63,25 @@ public class MlkitModuleService {
     return myLightModelClassMap.computeIfAbsent(modelMetadata, key -> {
       String packageName = ProjectSystemUtil.getModuleSystem(myModule).getPackageName();
       if (packageName == null) {
-        Logger.getInstance(MlkitModuleService.class).warn("Can not determine the package name for module: " + myModule.getName());
+        Logger.getInstance(MlModuleService.class).warn("Can not determine the package name for module: " + myModule.getName());
         return null;
       }
 
       String modelFileUrl = modelMetadata.myModelFileUrl;
       VirtualFile modelFile = VirtualFileManager.getInstance().findFileByUrl(modelFileUrl);
       if (modelFile == null) {
-        Logger.getInstance(MlkitModuleService.class).warn("Failed to find the virtual file for: " + modelFileUrl);
+        Logger.getInstance(MlModuleService.class).warn("Failed to find the virtual file for: " + modelFileUrl);
         return null;
       }
 
-      String className = MlkitUtils.computeModelClassName(myModule, modelFile);
+      String className = MlUtils.computeModelClassName(myModule, modelFile);
       if (Strings.isNullOrEmpty(className)) {
-        Logger.getInstance(MlkitModuleService.class).warn("Can not determine the class name for: " + modelFileUrl);
+        Logger.getInstance(MlModuleService.class).warn("Can not determine the class name for: " + modelFileUrl);
         return null;
       }
 
       LightModelClassConfig classConfig =
-        new LightModelClassConfig(modelMetadata, packageName + MlkitNames.PACKAGE_SUFFIX, className);
+        new LightModelClassConfig(modelMetadata, packageName + MlNames.PACKAGE_SUFFIX, className);
       return new LightModelClass(myModule, modelFile, classConfig);
     });
   }
@@ -91,7 +91,7 @@ public class MlkitModuleService {
    */
   @NotNull
   public List<LightModelClass> getLightModelClassList() {
-    if (!MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule) || DumbService.isDumb(myModule.getProject())) {
+    if (!MlUtils.isMlModelBindingBuildFeatureEnabled(myModule) || DumbService.isDumb(myModule.getProject())) {
       return Collections.emptyList();
     }
 
@@ -108,7 +108,7 @@ public class MlkitModuleService {
     @Nullable
     @Override
     public Result<List<LightModelClass>> compute() {
-      MlkitModuleService service = getInstance(myModule);
+      MlModuleService service = getInstance(myModule);
       Set<MlModelMetadata> latestModelMetadataSet = new HashSet<>();
       GlobalSearchScope searchScope = MlModelFilesSearchScope.inModule(myModule);
       FileBasedIndex index = FileBasedIndex.getInstance();

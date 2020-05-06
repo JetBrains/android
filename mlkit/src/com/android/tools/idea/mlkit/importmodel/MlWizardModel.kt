@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.mlkit.importmodel
 
-import com.android.tools.idea.mlkit.MlkitUtils
+import com.android.tools.idea.mlkit.MlUtils
 import com.android.tools.idea.mlkit.logEvent
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -46,7 +46,7 @@ import java.io.IOException
 class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor {
 
   private val mlkitRecipe: Recipe = {
-    for (dependency in MlkitUtils.getMissingDependencies(module)) {
+    for (dependency in MlUtils.getMissingDependencies(module)) {
       addDependency(dependency.toString())
     }
     setBuildFeature("mlModelBinding", true)

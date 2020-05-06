@@ -72,7 +72,7 @@ iml_module(
     tags = [
         "no_test_windows",  # b/135665870
     ],
-    test_class = "com.android.tools.idea.mlkit.MlkitTestSuite",
+    test_class = "com.android.tools.idea.mlkit.MlModelBindingTestSuite",
     test_data = [
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",

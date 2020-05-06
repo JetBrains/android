@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
-import com.android.tools.idea.mlkit.MlkitModuleService;
 import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
-import com.android.tools.mlkit.MlkitNames;
+import com.android.tools.mlkit.MlNames;
+import com.android.tools.mlkit.MlNames;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
@@ -39,24 +38,23 @@ import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Output class for output tensors. For each tensor it has a private field to store data and a getter method.
+ * Represents a light class auto-generated for getting results from model output tensors.
  *
  * @see LightModelClass
  */
-public class MlkitOutputLightClass extends AndroidLightClassBase {
+public class LightModelOutputsClass extends AndroidLightClassBase {
   private final PsiClass containingClass;
   private final String qualifiedName;
   private final CachedValue<PsiMethod[]> myMethodCache;
 
-  public MlkitOutputLightClass(@NotNull Module module, @NotNull List<TensorInfo> tensorInfos, @NotNull PsiClass containingClass) {
-    super(PsiManager.getInstance(module.getProject()),
-          ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
-    this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlkitNames.OUTPUTS);
+  public LightModelOutputsClass(@NotNull Module module, @NotNull List<TensorInfo> tensorInfos, @NotNull PsiClass containingClass) {
+    super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
+    this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlNames.OUTPUTS);
     this.containingClass = containingClass;
 
     setModuleInfo(module, false);
 
-    // Cache getter methods for output class
+    // Caches getter methods for output class.
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
         PsiMethod[] methods = new PsiMethod[tensorInfos.size()];
@@ -65,8 +63,7 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
         }
 
         return CachedValueProvider.Result.create(methods, ModificationTracker.NEVER_CHANGED);
-      }
-      , false);
+      }, false);
   }
 
   @NotNull
@@ -78,7 +75,7 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
   @NotNull
   @Override
   public String getName() {
-    return MlkitNames.OUTPUTS;
+    return MlNames.OUTPUTS;
   }
 
   @NotNull
@@ -89,12 +86,11 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
 
   @NotNull
   private PsiMethod buildGetterMethod(@NotNull TensorInfo tensorInfo) {
-    Project project = getProject();
     GlobalSearchScope scope = getResolveScope();
-    PsiClassType returnType = CodeUtils.getPsiClassType(tensorInfo, project, scope);
+    PsiClassType returnType = CodeUtils.getPsiClassType(tensorInfo, getProject(), scope);
+    String methodName = MlNames.formatGetterName(tensorInfo.getIdentifierName(), CodeUtils.getTypeName(returnType));
     LightMethodBuilder method =
-      new NullabilityLightMethodBuilder(myManager,
-                                        MlkitNames.formatGetterName(tensorInfo.getIdentifierName(), CodeUtils.getTypeName(returnType)))
+      new NullabilityLightMethodBuilder(myManager, methodName)
         .setMethodReturnType(returnType, true)
         .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
         .setContainingClass(this);

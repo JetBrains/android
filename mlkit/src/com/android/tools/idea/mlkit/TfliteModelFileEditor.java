@@ -19,12 +19,10 @@ import com.android.tools.idea.mlkit.lightpsi.ClassNames;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.MlConstants;
-import com.android.tools.mlkit.MlkitNames;
+import com.android.tools.mlkit.MlNames;
 import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.TensorInfo;
-import com.android.tools.mlkit.exception.TfliteModelException;
-import com.android.tools.mlkit.exception.UnsupportedTfliteException;
-import com.android.tools.mlkit.exception.UnsupportedTfliteMetadataException;
+import com.android.tools.mlkit.TfliteModelException;
 import com.android.utils.StringHelper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -170,14 +168,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
       return contentPanel;
     }
-    catch (UnsupportedTfliteException e) {
-      return createWarningMessagePanel("Unsupported TensorFlow Lite Model: " + e.getMessage());
-    }
-    catch (UnsupportedTfliteMetadataException e) {
-      return createWarningMessagePanel("Unsupported TensorFlow Lite Model Metadata: " + e.getMessage());
-    }
     catch (TfliteModelException e) {
-      return createWarningMessagePanel("Invalid TensorFlow Lite Model: " + e.getMessage());
+      return createWarningMessagePanel(e.getMessage());
     }
     catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
@@ -188,7 +180,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @Nullable
   private LightModelClass getLatestLightModelClass() {
     if (myModule != null) {
-      return MlkitModuleService.getInstance(myModule).getLightModelClassList().stream()
+      return MlModuleService.getInstance(myModule).getLightModelClassList().stream()
         .filter(lightModelClass -> lightModelClass.getModelFile().getUrl().equals(myFile.getUrl()))
         .findFirst()
         .orElse(null);
@@ -654,7 +646,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @Nullable
   private static PsiClass getInnerOutputsClass(@NotNull PsiClass modelClass) {
     for (PsiClass innerClass : modelClass.getInnerClasses()) {
-      if (MlkitNames.OUTPUTS.equals(innerClass.getName())) {
+      if (MlNames.OUTPUTS.equals(innerClass.getName())) {
         return innerClass;
       }
     }

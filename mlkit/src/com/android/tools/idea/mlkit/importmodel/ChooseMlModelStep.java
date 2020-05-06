@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.mlkit.MlkitUtils;
+import com.android.tools.idea.mlkit.MlUtils;
 import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvider;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.ObjectProperty;
@@ -33,7 +33,7 @@ import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.ModelInfo;
-import com.android.tools.mlkit.exception.TfliteModelException;
+import com.android.tools.mlkit.TfliteModelException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
@@ -62,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Wizard step that allows the user to point to an existing ml model file to import as ml model. Also shows
- * necessary deps to use this ml model.
+ * necessary dependencies to use this ml model.
  */
 public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
 
@@ -130,13 +130,13 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     StringBuilder stringBuilder = new StringBuilder();
     Module module = getModel().getModule();
 
-    if (!MlkitUtils.isMlModelBindingBuildFeatureEnabled(module)) {
+    if (!MlUtils.isMlModelBindingBuildFeatureEnabled(module)) {
       stringBuilder.append("buildFeatures {\n" +
                            "  mlModelBinding true\n" +
                            "}\n\n");
     }
 
-    for (GradleCoordinate dep : MlkitUtils.getMissingDependencies(module)) {
+    for (GradleCoordinate dep : MlUtils.getMissingDependencies(module)) {
       stringBuilder.append(dep).append("\n");
     }
 

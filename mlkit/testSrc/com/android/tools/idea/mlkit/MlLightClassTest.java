@@ -55,7 +55,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-public class MlkitLightClassTest extends AndroidTestCase {
+public class MlLightClassTest extends AndroidTestCase {
 
   @Override
   public void setUp() throws Exception {
@@ -694,7 +694,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
     myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_plain_model.tflite");
 
-    MlkitModuleService mlkitService = MlkitModuleService.getInstance(myModule);
+    MlModuleService mlkitService = MlModuleService.getInstance(myModule);
     List<LightModelClass> lightClasses = mlkitService.getLightModelClassList();
     List<String> classNameList = ContainerUtil.map(lightClasses, psiClass -> psiClass.getName());
     assertThat(classNameList).containsExactly("MyModel", "MyPlainModel");

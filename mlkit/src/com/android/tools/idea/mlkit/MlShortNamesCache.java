@@ -30,10 +30,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Used by code completion for unqualified class names and for suggesting imports.
  */
-public class MlkitShortNamesCache extends PsiShortNamesCache {
+public class MlShortNamesCache extends PsiShortNamesCache {
   private final Project myProject;
 
-  public MlkitShortNamesCache(@NotNull Project project) {
+  public MlShortNamesCache(@NotNull Project project) {
     myProject = project;
   }
 
@@ -62,7 +62,6 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public PsiMethod[] getMethodsByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
-    //TODO(jackqdyulei): implement it to return correct methods.
     return PsiMethod.EMPTY_ARRAY;
   }
 

@@ -22,9 +22,9 @@ import com.intellij.testFramework.TestActionEvent;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.MockitoAnnotations;
 
-public class AndroidImportMlModelActionTest extends AndroidTestCase {
+public class ImportMlModelActionTest extends AndroidTestCase {
 
-  private AndroidImportMlModelAction myAction;
+  private ImportMlModelAction myAction;
 
   @Override
   public void setUp() throws Exception {
@@ -32,7 +32,7 @@ public class AndroidImportMlModelActionTest extends AndroidTestCase {
 
     MockitoAnnotations.initMocks(this);
     StudioFlags.ML_MODEL_BINDING.override(true);
-    myAction = new AndroidImportMlModelAction();
+    myAction = new ImportMlModelAction();
   }
 
   @Override
