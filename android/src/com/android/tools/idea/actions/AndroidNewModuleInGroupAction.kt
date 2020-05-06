@@ -41,6 +41,6 @@ class AndroidNewModuleInGroupAction : AndroidNewModuleAction("Module", "Adds a n
   override fun getModulePath(e: AnActionEvent): String? {
     val module = LangDataKeys.MODULE.getData(e.dataContext) ?: return null
 
-    return getGradleModulePath(module)?.removePrefix(":") ?: ""
+    return getGradleModulePath(module)
   }
 }

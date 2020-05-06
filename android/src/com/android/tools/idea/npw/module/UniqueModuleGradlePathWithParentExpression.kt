@@ -15,39 +15,40 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.tools.adtui.validation.Validator
+import com.android.tools.idea.npw.validator.ModuleValidator
 import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.expressions.Expression
 import com.android.tools.idea.ui.validation.validators.PathValidator
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.util.Locale
 
 /**
- * This Expression takes the Application name (eg: "My Application"), and returns a valid module name (eg: "myapplication").
+ * This Expression takes the Application name (eg: "My Application"), and returns a valid module name which may be an absolute Gradle path
+ * if [moduleParent] is provided. (eg: "myapplication", ":libs:myapplication") etc. If application name is already a rooted Gradle path
+ * [moduleParent] is ignored.
+ *
  * It also makes sure that the module name is unique.
  * Further validation of the module name may be needed, if the name is used to create a directory
  * @see PathValidator
  */
 data class UniqueModuleGradlePathWithParentExpression(
-  private val project: Project?,
+  private val project: Project,
   private val applicationName: StringProperty,
   private val moduleParent: String?
 ) : Expression<String>(applicationName) {
   override fun get(): String {
-    val moduleName = applicationName.get().toLowerCase(Locale.US).replace("\\s".toRegex(), "")
+    val moduleValidator = ModuleValidator(project)
 
-    val uniqueModuleName =
-      if (moduleName.isUnique())
-        moduleName
-      else
-        generateSequence(2, Int::inc).map { moduleName + it }.first { it.isUnique() }
+    fun isUnique(name: String): Boolean = moduleValidator.validate(name).severity in setOf(Validator.Severity.OK, Validator.Severity.INFO)
+    fun String.toGradleProjectName() = toLowerCase(Locale.US).replace("\\s".toRegex(), "")
 
-    return if (moduleParent == null) uniqueModuleName else ":$moduleParent:$uniqueModuleName"
+    val parentModulePrefix = moduleParent.orEmpty() + ":"
+    val convertedName = applicationName.get().toGradleProjectName()
+    val moduleGradlePath = if (convertedName.startsWith(":")) convertedName else parentModulePrefix + convertedName
+    val uniqueModuleGradlePath =
+      if (isUnique(moduleGradlePath)) moduleGradlePath
+      else (2..1000).asSequence().map { "$moduleGradlePath$it" }.first { isUnique(it) }
+    return if (parentModulePrefix == ":") uniqueModuleGradlePath.removePrefix(":") else uniqueModuleGradlePath
   }
-
-  /**
-   * True if the given module name is unique inside the given project or the project is null.
-   */
-  private fun String.isUnique(): Boolean =
-    project == null || ModuleManager.getInstance(project)!!.modules.none { it!!.name.equals(this, ignoreCase = false) }
 }
