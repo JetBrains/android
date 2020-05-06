@@ -60,7 +60,7 @@ public class CpuUsage extends LineChartModel {
         Common.Event.Kind.CPU_USAGE,
         profilers.getSession().getPid(),
         events -> extractData(events, false));
-      if (cpuCapture != null && cpuCapture.getType() == Cpu.CpuTraceType.ATRACE) {
+      if (cpuCapture != null && (cpuCapture.getType() == Cpu.CpuTraceType.ATRACE || cpuCapture.getType() == Cpu.CpuTraceType.PERFETTO)) {
         series = new MergeCaptureDataSeries<>(cpuCapture, series, new LazyDataSeries<>(() -> cpuCapture.getCpuUtilizationSeries()));
       }
     }
