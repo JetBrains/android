@@ -30,6 +30,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
+import com.intellij.psi.util.ClassUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.Collections
@@ -103,8 +104,8 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
   override fun testStarted(testId: TestIdentifier) {
     val testCase = AndroidTestCase(testId.toString(),
                                    testId.testName,
-                                   testId.className,
-                                   "",
+                                   ClassUtil.extractClassName(testId.className),
+                                   ClassUtil.extractPackageName(testId.className),
                                    AndroidTestCaseResult.IN_PROGRESS)
     myTestCases[testId] = testCase
     listener.onTestCaseStarted(myDevice, myTestSuite, testCase)

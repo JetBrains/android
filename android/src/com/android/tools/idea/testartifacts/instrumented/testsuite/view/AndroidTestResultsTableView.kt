@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
@@ -24,7 +25,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.progress.util.ColorProgressBar
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.TableView
@@ -33,8 +33,8 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import java.awt.Color
 import java.awt.Component
-import java.util.Comparator
 import java.io.File
+import java.util.Comparator
 import javax.swing.Icon
 import javax.swing.JTable
 import javax.swing.ListSelectionModel
@@ -278,7 +278,6 @@ private object TestNameColumn : ColumnInfo<AndroidTestResultsRow, AndroidTestRes
 }
 
 private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
-  const val maxDisplayNameLength: Int = 40
   private val myEmptyBorder = JBUI.Borders.empty(10)
   override fun getTableCellRendererComponent(table: JTable?,
                                              value: Any?,
@@ -288,8 +287,7 @@ private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
                                              column: Int): Component {
     val results = value as? AndroidTestResultsRow ?: return this
 
-    val shortenedName = StringUtil.last(results.getTestCaseName(), maxDisplayNameLength, true)
-    super.getTableCellRendererComponent(table, shortenedName, isSelected, hasFocus, row, column)
+    super.getTableCellRendererComponent(table, results.getTestCaseName(), isSelected, hasFocus, row, column)
     icon = getIconFor(results.getTestResultSummary())
     border = myEmptyBorder
 

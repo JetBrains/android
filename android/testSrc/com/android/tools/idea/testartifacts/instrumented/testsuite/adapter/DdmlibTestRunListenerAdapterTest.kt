@@ -261,6 +261,36 @@ class DdmlibTestRunListenerAdapterTest {
     assertThat(testSuiteCaptor.value.result).isEqualTo(AndroidTestSuiteResult.CANCELLED)
   }
 
+  @Test
+  fun methodNameAndClassNameAndPackageNameIsExtractedCorrectly() {
+    val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener)
+
+    adapter.testRunStarted("exampleTestSuite", /*testCount=*/1)
+    adapter.testStarted(TestIdentifier("com.example.test.exampleTestClass", "exampleTest1"))
+
+    verify(mockListener).onTestCaseStarted(any(), any(),
+                                           eq(AndroidTestCase("com.example.test.exampleTestClass#exampleTest1",
+                                                              "exampleTest1",
+                                                              "exampleTestClass",
+                                                              "com.example.test",
+                                                              AndroidTestCaseResult.IN_PROGRESS)))
+  }
+
+  @Test
+  fun methodNameAndClassNameAndPackageNameIsExtractedCorrectlyForNestedClass() {
+    val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener)
+
+    adapter.testRunStarted("exampleTestSuite", /*testCount=*/1)
+    adapter.testStarted(TestIdentifier("com.example.test.exampleTestClass\$NestedClassName", "exampleTest1"))
+
+    verify(mockListener).onTestCaseStarted(any(), any(),
+                                           eq(AndroidTestCase("com.example.test.exampleTestClass\$NestedClassName#exampleTest1",
+                                                              "exampleTest1",
+                                                              "exampleTestClass\$NestedClassName",
+                                                              "com.example.test",
+                                                              AndroidTestCaseResult.IN_PROGRESS)))
+  }
+
   private fun device(id: String = "mockDeviceSerialNumber",
                      name: String = "mockDeviceAvdName"): AndroidDevice {
     return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
