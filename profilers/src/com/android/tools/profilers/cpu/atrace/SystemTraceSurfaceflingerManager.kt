@@ -72,7 +72,7 @@ class SystemTraceSurfaceflingerManager(systemTraceModel: SystemTraceModelAdapter
   }
 
   companion object {
-    private const val SURFACEFLINGER_PROCESS_NAME = "surfaceflinger"
+    const val SURFACEFLINGER_PROCESS_NAME = "surfaceflinger"
     private const val VSYNC_COUNTER_NAME = "VSYNC-app"
   }
 
