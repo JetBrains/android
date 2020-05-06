@@ -55,7 +55,7 @@ class RunningEmulatorCatalogTest {
     // Start the first Emulator and check that it is reflected in the catalog after an explicit update.
     emulator1.start()
     val emulators = catalog.updateNow().get()
-    val event1: CatalogEvent = eventQueue.poll(20, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
+    val event1: CatalogEvent = eventQueue.poll(50, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
     assertThat(event1.type).isEqualTo(EventType.ADDED)
     assertThat(event1.emulator.emulatorId.grpcPort).isEqualTo(emulator1.grpcPort)
     assertThat(event1.emulator.emulatorId.avdFolder).isEqualTo(emulator1.avdFolder)
