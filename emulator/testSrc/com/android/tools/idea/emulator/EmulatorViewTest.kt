@@ -109,6 +109,7 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 178 height: 365")
     assertAppearance(ui, "image2")
     assertThat(previousCall.completion.isCancelled).isTrue() // The previous call is cancelled.
+    assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
     assertThat(call.completion.isDone).isFalse() // The latest call is still ongoing.
 
     // Check zoom.
