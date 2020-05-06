@@ -165,6 +165,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       }
     }
     myNdkLocationComboBox.setEnabled(!supportsSideBySideNdk);
+    myNdkDownloadHyperlinkLabel.setEnabled(!supportsSideBySideNdk);
 
     // We can't update The IDE-level ndk directory. Due to that disabling the ndk directory option in the default Project Structure dialog.
     if (!supportsSideBySideNdk && (myProject == null || myProject.isDefault())) {
