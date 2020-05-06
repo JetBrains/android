@@ -161,7 +161,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_HEAPDUMP_SEPARATE = Flag.create(
     PROFILER, "memory.heapdump.separate", "Show heap dump separately",
     "Show heap dump as a separate view instead of sharing with the memory monitor",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_USE_TRACEPROCESSOR = Flag.create(
     PROFILER, "perfetto.traceprocessor", "Enable TraceProcessorDaemon",
