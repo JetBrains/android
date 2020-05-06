@@ -229,7 +229,7 @@ private class CapturePanelUi(private val stage: MemoryProfilerStage,
 
   private fun buildSummaryPanel() = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
     fun mkLabel(desc: String, action: Runnable? = null) =
-      StatLabel(0, desc, numFont = ProfilerFonts.H2_FONT, descFont = ProfilerFonts.H4_FONT, action = action)
+      StatLabel(0L, desc, numFont = ProfilerFonts.H2_FONT, descFont = ProfilerFonts.H4_FONT, action = action)
     val totalClassLabel = mkLabel("Classes")
     val totalLeakLabel = mkLabel("Leaks", action = Runnable(::showLeaks))
     val totalCountLabel = mkLabel("Count")
@@ -241,7 +241,7 @@ private class CapturePanelUi(private val stage: MemoryProfilerStage,
       stage.selectedCapture?.let {
         // Hide summary panel for native memory captures.
         isVisible = !(it is NativeAllocationSampleCaptureObject)
-        totalClassLabel.intContent = countClasses(it)
+        totalClassLabel.numValue = countClasses(it)
         setLabelSumBy(it, totalCountLabel) { it.totalObjectCount.toLong() }
         setLabelSumBy(it, totalNativeSizeLabel) { it.totalNativeSize }
         setLabelSumBy(it, totalShallowSizeLabel) { it.totalShallowSize }
@@ -252,7 +252,7 @@ private class CapturePanelUi(private val stage: MemoryProfilerStage,
           null -> totalLeakLabel.isVisible = false
           else -> totalLeakLabel.apply {
             isVisible = true
-            intContent = leakCount.toLong()
+            numValue = leakCount.toLong()
             icon = if (leakCount > 0) StudioIcons.Common.WARNING else null
           }
         }
@@ -290,6 +290,6 @@ private class CapturePanelUi(private val stage: MemoryProfilerStage,
       ?.size
 
   private fun setLabelSumBy(capture: CaptureObject, label: StatLabel, prop: (ClassifierSet) -> Long) {
-    label.intContent = capture.heapSets.fold(0L) { sum, heapSet -> sum + prop(heapSet) }
+    label.numValue = capture.heapSets.fold(0L) { sum, heapSet -> sum + prop(heapSet) }
   }
 }
