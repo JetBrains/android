@@ -24,7 +24,6 @@ import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.android.tools.mlkit.TfliteModelException;
 import com.android.utils.StringHelper;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Floats;
@@ -111,7 +110,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static final String NAME = "TFLite Model File";
   private static final ImmutableList<String> TENSOR_TABLE_HEADER =
     ImmutableList.of("Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max");
-  private static final int MAX_LINE_LENGTH = 80;
   private static final String LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().getSeparatorString();
 
   private final Project myProject;
@@ -385,11 +383,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   private static List<List<String>> getModelTableData(@NotNull ModelInfo modelInfo) {
     List<List<String>> tableData = new ArrayList<>();
-    tableData.add(Lists.newArrayList("Name", Strings.nullToEmpty(modelInfo.getModelName())));
-    tableData.add(Lists.newArrayList("Description", Strings.nullToEmpty(modelInfo.getModelDescription())));
-    tableData.add(Lists.newArrayList("Version", Strings.nullToEmpty(modelInfo.getModelVersion())));
-    tableData.add(Lists.newArrayList("Author", Strings.nullToEmpty(modelInfo.getModelAuthor())));
-    tableData.add(Lists.newArrayList("License", Strings.nullToEmpty(modelInfo.getModelLicense())));
+    tableData.add(Lists.newArrayList("Name", modelInfo.getModelName()));
+    tableData.add(Lists.newArrayList("Description", breakIntoMultipleLines(modelInfo.getModelDescription(), 80)));
+    tableData.add(Lists.newArrayList("Version", modelInfo.getModelVersion()));
+    tableData.add(Lists.newArrayList("Author", modelInfo.getModelAuthor()));
+    tableData.add(Lists.newArrayList("License", breakIntoMultipleLines(modelInfo.getModelLicense(), 80)));
     return tableData;
   }
 
@@ -398,15 +396,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     List<List<String>> tableData = new ArrayList<>();
     for (TensorInfo tensorInfo : tensorInfoList) {
       MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
-      String meanStdColumn = convertFloatArrayToString(params.getMean()) + " / " + convertFloatArrayToString(params.getStd());
-      String minMaxColumn = isValidMinMaxColumn(params)
-                            ? convertFloatArrayToString(params.getMin()) + " / " + convertFloatArrayToString(params.getMax())
-                            : "";
+      String meanStdColumn = convertFloatArrayPairToString(params.getMean(), params.getStd());
+      String minMaxColumn = isValidMinMaxColumn(params) ? convertFloatArrayPairToString(params.getMin(), params.getMax()) : "";
       tableData.add(
         Lists.newArrayList(
-          Strings.nullToEmpty(tensorInfo.getName()),
+          tensorInfo.getName(),
           getDisplayContentType(tensorInfo).toString(),
-          Strings.nullToEmpty(tensorInfo.getDescription()),
+          breakIntoMultipleLines(tensorInfo.getDescription(), 60),
           Arrays.toString(tensorInfo.getShape()),
           meanStdColumn,
           minMaxColumn
@@ -742,25 +738,34 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private static String breakIntoMultipleLines(@NotNull String text) {
+  private static String breakIntoMultipleLines(@NotNull String text, int maxLineLength) {
     String[] words = text.split(" ");
     StringBuilder result = new StringBuilder();
     StringBuilder tmp = new StringBuilder();
     for (String word : words) {
-      tmp.append(word).append(" ");
-      if (tmp.length() > MAX_LINE_LENGTH) {
-        result.append(tmp).append(LINE_SEPARATOR);
+      if (word.isEmpty()) {
+        continue;
+      }
+
+      if (tmp.length() + word.length() > maxLineLength) {
+        result.append(tmp.toString().trim()).append(LINE_SEPARATOR);
         tmp.setLength(0);
       }
+      tmp.append(word).append(" ");
     }
-    result.append(tmp);
-    return result.toString().trim();
+
+    return result.append(tmp).toString().trim();
   }
 
   @NotNull
-  private static String convertFloatArrayToString(@NotNull float[] values) {
-    DecimalFormat decimalFormat = new DecimalFormat("#.###");
-    return IntStream.range(0, values.length).mapToObj(i -> decimalFormat.format(values[i])).collect(Collectors.joining(", ", "[", "]"));
+  private static String convertFloatArrayPairToString(@NotNull float[] array1, @NotNull float[] array2) {
+    DecimalFormat decimalFormat = new DecimalFormat("#.##");
+    String arrayString1 =
+      IntStream.range(0, array1.length).mapToObj(i -> decimalFormat.format(array1[i])).collect(Collectors.joining(", ", "[", "]"));
+    String arrayString2 =
+      IntStream.range(0, array2.length).mapToObj(i -> decimalFormat.format(array2[i])).collect(Collectors.joining(", ", "[", "]"));
+    String separator = " /" + (array1.length >= 3 || array2.length >= 3 ? LINE_SEPARATOR : " ");
+    return arrayString1 + separator + arrayString2;
   }
 
   private static boolean isCellContentTypeHtml(TableModel tableModel, int rowIndex, int columnIndex) {
@@ -772,13 +777,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     private final List<String> myHeaderData;
 
     private MetadataTableModel(@NotNull List<List<String>> rowDataList, @NotNull List<String> headerData) {
-      myRowDataList = ContainerUtil.map(rowDataList, row -> ContainerUtil.map(row, cellValue -> {
-        String newCellValue = breakIntoMultipleLines(cellValue);
-        if (URLUtil.URL_PATTERN.matcher(newCellValue).find()) {
-          newCellValue = HtmlUtils.plainTextToHtml(newCellValue);
-        }
-        return newCellValue;
-      }));
+      myRowDataList = ContainerUtil.map(rowDataList, row -> ContainerUtil.map(
+        row, cellValue -> URLUtil.URL_PATTERN.matcher(cellValue).find() ? HtmlUtils.plainTextToHtml(cellValue) : cellValue));
       myHeaderData = headerData;
     }
 
