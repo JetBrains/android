@@ -34,17 +34,18 @@ import javax.swing.SwingConstants
 /**
  * This class draws a properly formatted number with a description and optional icon
  */
-class StatLabel @JvmOverloads constructor (num: Long,
-                                           desc: String,
-                                           numFont: Font = AdtUiUtils.DEFAULT_FONT,
-                                           descFont: Font = AdtUiUtils.DEFAULT_FONT,
-                                           private val action: Runnable? = null) : JPanel() {
+class StatLabel @JvmOverloads constructor(num: Long,
+                                          desc: String,
+                                          numFont: Font = AdtUiUtils.DEFAULT_FONT,
+                                          descFont: Font = AdtUiUtils.DEFAULT_FONT,
+                                          private val numFormatter: (Long) -> String = NumberFormatter::formatInteger,
+                                          private val action: Runnable? = null) : JPanel() {
   private val numLabel = JBLabel().apply { font = numFont }
   private val descLabel = JBLabel(desc).apply { font = descFont }
 
-  var intContent: Long = num
-    set(newInt) {
-      numLabel.text = NumberFormatter.formatInteger(newInt)
+  var numValue: Long = num
+    set(newValue) {
+      numLabel.text = numFormatter(newValue)
     }
 
   var icon: Icon?
@@ -54,7 +55,7 @@ class StatLabel @JvmOverloads constructor (num: Long,
     }
 
   init {
-    intContent = num
+    numValue = num
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
     border = BorderFactory.createEmptyBorder(4, 6, 4, 6)
     numLabel.horizontalTextPosition = SwingConstants.LEFT
@@ -72,19 +73,24 @@ class StatLabel @JvmOverloads constructor (num: Long,
           numOn()
           descOn()
         }
+
         override fun mouseExited(e: MouseEvent?) {
           numOff()
           descOff()
         }
+
         override fun mouseClicked(e: MouseEvent?) = action.run()
-        override fun mousePressed(e: MouseEvent?) { }
-        override fun mouseReleased(e: MouseEvent?) { }
+        override fun mousePressed(e: MouseEvent?) {}
+        override fun mouseReleased(e: MouseEvent?) {}
       })
     }
   }
 
   @VisibleForTesting
-  fun getNumText() = numLabel.text
+  fun getNumText(): String = numLabel.text
+
+  @VisibleForTesting
+  fun getDescText(): String = descLabel.text
 }
 
 /**
