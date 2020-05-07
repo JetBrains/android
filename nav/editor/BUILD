@@ -72,7 +72,10 @@ iml_module(
 iml_module(
     name = "intellij.android.nav.editor.tests",
     iml_files = ["intellij.android.nav.editor.tests.iml"],
-    tags = ["no_test_windows"],
+    tags = [
+        "no_test_mac",  # b/156004626
+        "no_test_windows",
+    ],
     test_class = "com.android.tools.idea.naveditor.NavEditorTestSuite",
     # keep sorted
     test_data = [
