@@ -66,6 +66,7 @@ iml_module(
         "block-network",
         "no_test_windows",
     ],
+    test_timeout = "long",  # "medium" is not sufficient on Mac b/155999536
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
