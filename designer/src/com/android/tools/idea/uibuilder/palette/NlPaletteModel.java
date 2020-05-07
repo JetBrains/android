@@ -155,7 +155,6 @@ public class NlPaletteModel implements Disposable {
   private NlPaletteModel(@NotNull Module module) {
     myTypeToPalette = Collections.synchronizedMap(new HashMap<>());
     myModule = module;
-    Disposer.register(module, this);
   }
 
   @NotNull

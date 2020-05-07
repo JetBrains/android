@@ -76,11 +76,9 @@
     </component>
   </project-components>
 
-  <module-components>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.palette.NlPaletteModel</implementation-class>
-    </component>
-  </module-components>
+  <extensions defaultExtensionNs="com.intellij">
+    <moduleService serviceImplementation="com.android.tools.idea.uibuilder.palette.NlPaletteModel" />
+  </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">
     <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpPanelAssistantBundleCreator"/>
