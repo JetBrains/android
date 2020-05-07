@@ -421,6 +421,5 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
 
   @Override
   public void dispose() {
-    setToolContext(null);
   }
 }
