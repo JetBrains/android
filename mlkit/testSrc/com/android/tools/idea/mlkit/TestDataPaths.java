@@ -23,5 +23,5 @@ import com.android.testutils.TestUtils;
 public class TestDataPaths {
   public static final String TEST_DATA_ROOT = TestUtils.getWorkspaceFile("tools/adt/idea/mlkit/testData").getPath();
 
-  public static final String PROJECT_WITH_TWO_MODULES_BUT_ONLY_ONE_ENABLED = "projects/projectWithTwoModulesButOnlyOneEnabled";
+  public static final String PROJECT_WITH_TWO_LIB_MODULES_BUT_ONLY_ONE_ENABLED = "projects/projectWithTwoLibModulesButOnlyOneEnabled";
 }
