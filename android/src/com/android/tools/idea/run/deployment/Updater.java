@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolder;
+import icons.StudioIcons;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -226,7 +227,7 @@ final class Updater {
       }
     }
 
-    myPresentation.setIcon(null);
+    myPresentation.setIcon(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES);
     myPresentation.setText("Multiple Devices");
   }
 
