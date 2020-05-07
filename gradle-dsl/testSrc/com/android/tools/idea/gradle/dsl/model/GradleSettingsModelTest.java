@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import java.io.File;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
@@ -78,7 +79,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib1"), settingsModel.modulePaths());
 
     settingsModel.reparse();
-    assertEquals("include", ImmutableList.of(":", ":lib1", ":app", ":lib"), settingsModel.modulePaths());
+    assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib1"), settingsModel.modulePaths());
 
     verifyFileContents(mySettingsFile, TestFile.ADD_AND_APPLY_MODULE_PATHS_EXPECTED);
   }
@@ -322,6 +323,16 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     verifyFileContents(mySettingsFile, TestFile.EXISTING_VARIABLE_EXPECTED);
   }
 
+  @Test
+  public void testAddIncludeAtTheEnd() throws IOException {
+    writeToSettingsFile(TestFile.ADD_INCLUDE_AT_THE_END);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    settingsModel.addModulePath("libs:mylibrary");
+
+    applyChanges(settingsModel);
+    verifyFileContents(mySettingsFile, TestFile.ADD_INCLUDE_AT_THE_END_EXPECTED);
+  }
+
   private void applyChanges(@NotNull final GradleSettingsModel settingsModel) {
     runWriteCommandAction(myProject, () -> settingsModel.applyChanges());
     assertFalse(settingsModel.isModified());
@@ -356,6 +367,8 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     SET_PROJECT_DIR_FROM_EXISTING_EXPECTED("setProjectDirFromExistingExpected"),
     SET_PROJECT_DIR_NON_RELATIVE_EXPECTED("setProjectDirNonRelativeExpected"),
     SET_PROJECT_DIR_NON_RELATIVE_WINDOWS_EXPECTED("setProjectDirNonRelativeWindowsExpected"),
+    ADD_INCLUDE_AT_THE_END("addIncludeAtTheEnd"),
+    ADD_INCLUDE_AT_THE_END_EXPECTED("addIncludeAtTheEndExpected"),
     ;
     @NotNull private @SystemDependent String path;
     TestFile(@NotNull @SystemDependent String path) {

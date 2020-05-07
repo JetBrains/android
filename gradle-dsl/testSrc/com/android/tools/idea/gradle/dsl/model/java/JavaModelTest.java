@@ -147,8 +147,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
     //   default value and position.
     //
     // I don't believe that the ordering of targetCompatibility and sourceCompatibility in the Dsl output is significant.  This doesn't
-    // test that anyway; the expected files do (and it is a bit weird that the new Groovy ends up before the existing one, but the
-    // opposite in KotlinScript; it is semantically irrelevant, though.
+    // test that anyway; the expected files do.
     PsiElement targetPsi = java.targetCompatibility().getPsiElement();
     PsiElement sourcePsi = java.sourceCompatibility().getPsiElement();
 
@@ -185,6 +184,17 @@ public class JavaModelTest extends GradleFileModelTestCase {
     assertMissingProperty(java.targetCompatibility());
   }
 
+  @Test
+  public void testAddAfterPlugins() throws IOException {
+    writeToBuildFile(TestFile.ADD_AFTER_PLUGINS);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    buildModel.java().sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_8);
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_AFTER_PLUGINS_EXPECTED);
+    assertEquals(LanguageLevel.JDK_1_8, buildModel.java().sourceCompatibility().toLanguageLevel());
+  }
+
   enum TestFile implements TestFileName {
     READ_JAVA_VERSIONS_AS_NUMBERS("readJavaVersionsAsNumbers"),
     READ_JAVA_VERSIONS_AS_SINGLE_QUOTE_STRINGS("readJavaVersionsAsSingleQuoteStrings"),
@@ -201,6 +211,8 @@ public class JavaModelTest extends GradleFileModelTestCase {
     ADD_NON_EXISTED_LANGUAGE_LEVEL("addNonExistedLanguageLevel"),
     ADD_NON_EXISTED_LANGUAGE_LEVEL_EXPECTED("addNonExistedLanguageLevelExpected"),
     DELETE_LANGUAGE_LEVEL("deleteLanguageLevel"),
+    ADD_AFTER_PLUGINS("addAfterPlugins"),
+    ADD_AFTER_PLUGINS_EXPECTED("addAfterPluginsExpected"),
     ;
     @NotNull private @SystemDependent String path;
     TestFile(@NotNull @SystemDependent String path) {
