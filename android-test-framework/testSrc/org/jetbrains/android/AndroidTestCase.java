@@ -205,6 +205,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       try {
         myFixture.tearDown();
       }
+      catch (Throwable e) {
+        addSuppressedException(e);
+      }
       finally {
         super.tearDown();
       }
