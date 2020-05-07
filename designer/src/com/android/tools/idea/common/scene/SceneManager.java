@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
@@ -48,7 +49,7 @@ abstract public class SceneManager implements Disposable {
   @NotNull private final Scene myScene;
   // This will be initialized when constructor calls updateSceneView().
   @SuppressWarnings("NullableProblems")
-  @NotNull private SceneView mySceneView;
+  @Nullable private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
 
   public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface, @NotNull Supplier<RenderSettings> renderSettingsProvider) {
@@ -63,7 +64,11 @@ abstract public class SceneManager implements Disposable {
    * Create the SceneView
    */
   protected void createSceneView() {
+    if (mySceneView != null){
+      Disposer.dispose(mySceneView);
+    }
     mySceneView = doCreateSceneView();
+    Disposer.register(this, mySceneView);
 
     myDesignSurface.addLayers(getLayers());
   }
@@ -80,13 +85,12 @@ abstract public class SceneManager implements Disposable {
    */
   public void updateSceneView() {
     myDesignSurface.removeLayers(getLayers());
-    getLayers().forEach(Layer::dispose);
-
     createSceneView();
   }
 
   @NotNull
   public SceneView getSceneView() {
+    assert mySceneView != null: "createSceneView() should have been called during initialization";
     return mySceneView;
   }
 
@@ -97,7 +101,6 @@ abstract public class SceneManager implements Disposable {
 
   @Override
   public void dispose() {
-    getLayers().forEach(Disposer::dispose);
   }
 
   /**
