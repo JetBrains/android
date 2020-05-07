@@ -57,6 +57,7 @@ public class MotionLayoutComponentHelper {
   private Method mySetAttributesMethod;
   private Method myGetKeyframeMethod;
   private Method myGetKeyFramePositionsMethod;
+  private Method myGetKeyFrameInfoMethod;
   private Method mySetKeyframeMethod;
   private Method myGetPositionKeyframeMethod;
   private Method myGetKeyframeAtLocationMethod;
@@ -1010,6 +1011,16 @@ public class MotionLayoutComponentHelper {
     setAttributes(dpiValue, state, info.getViewObject(), attributes);
   }
 
+  /**
+   * Get the KeyFrames for the view controlled by this MotionController.
+   * The call is designed to be efficient because it will be called 30x Number of views a second
+   *
+   * @param component the view to return keyframe positions
+   * @param type is position(0-100) + 1000*mType(1=Attributes, 2=Position, 3=TimeCycle 4=Cycle 5=Trigger
+   * @param pos the x&y position of the keyFrame along the path
+   * @return Number of keyFrames found
+   */
+
   public int getKeyframePos(NlComponent component, int[] type, float[] pos) {
     if (myDesignTool == null) {
       return -1;
@@ -1040,6 +1051,181 @@ public class MotionLayoutComponentHelper {
           }
           catch (Exception e) {
             myGetKeyFramePositionsMethod = null;
+            if (true) {
+              e.printStackTrace();
+            }
+          }
+          return null;
+        });
+      }
+      catch (Exception e) {
+        if (true) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  /**
+   * A utility class to read MotionLayout KeyFrame info structure
+   */
+  public static class KeyInfo {
+    int[] myInfo;
+    int myKeyInfoCount;
+    int myOffsetCursor = 0;
+    int myCursor = 0;
+    public static final int KEY_TYPE_ATTRIBUTES = 1;
+    public static final int KEY_TYPE_POSITION = 2;
+    public static final int KEY_TYPE_TIME_CYCLE = 3;
+    public static final int KEY_TYPE_CYCLE = 4;
+    public static final int KEY_TYPE_TRIGGER = 5;
+    private final static int OFF_TYPE = 1;
+    private final static int OFF_FRAME_POS = 2;
+    private final static int OFF_LOC_X = 3;
+    private final static int OFF_LOC_Y = 4;
+    private final static int OFF_KEY_POS_TYPE = 5;
+    private final static int OFF_KEY_POS_PERCENT_X = 6;
+    private final static int OFF_KEY_POS_PERCENT_Y = 7;
+
+    public int getIndex() {
+      return myCursor;
+    }
+
+    /**
+     * Debugging utility to dump contents
+     * @param info
+     * @param count
+     */
+    public static void dumpInfo(int[] info, int count) {
+      Debug.println(3,"dumpInfo ");
+      KeyInfo ki = new KeyInfo();
+      ki.setInfo(info, count);
+      ki.dumpInfo();
+
+    }
+    public void dumpInfo( ) {
+      while (next()) {
+        Debug.println("---------record# =" + myCursor+" ("+myOffsetCursor+")----------");
+        Debug.println("          length =" + getRecordLength());
+        Debug.println("            Type =" + getType());
+        Debug.println("  FramePosition =" + getFramePosition());
+        Debug.println("       Location =" + getLocationX() + ", " + getLocationY());
+        if (getType() == KEY_TYPE_POSITION) {
+          Debug.println("   getKeyPosType =" + getKeyPosType());
+          Debug.println("        PercentX =" + getKeyPosPercentX());
+          Debug.println("        PercentY =" + getKeyPosPercentY());
+        }
+      }
+      reset();
+    }
+
+
+    /**
+     * Set the info int array on this object so that it can be parsed
+     * @param info
+     * @param count
+     */
+    public void setInfo(int[] info, int count) {
+      myOffsetCursor = 0;
+      myKeyInfoCount = count;
+      myInfo = info;
+      reset();
+    }
+
+    /**
+     * reset the counters so that they can be used with next()
+     * in a while(next()) {... } reset();
+     */
+    public void reset() {
+      myCursor = -1;
+      myOffsetCursor = 0;
+    }
+
+    public boolean next() {
+      myCursor++;
+      if (myCursor > 0) {
+        int len = myInfo[myOffsetCursor];
+        myOffsetCursor += len ;
+      }
+      return myCursor < myKeyInfoCount;
+    }
+
+    int getRecordLength() {
+      return myInfo[myOffsetCursor];
+    }
+
+    public int getType() {
+      return myInfo[myOffsetCursor + OFF_TYPE];
+    }
+
+    public int getFramePosition() {
+      return myInfo[myOffsetCursor + OFF_FRAME_POS];
+    }
+
+    public float getLocationX() {
+      return Float.intBitsToFloat(myInfo[myOffsetCursor + OFF_LOC_X]);
+    }
+
+    public float getLocationY() {
+      return Float.intBitsToFloat(myInfo[myOffsetCursor + OFF_LOC_Y]);
+    }
+
+    public int getKeyPosType() {
+      return myInfo[myOffsetCursor + OFF_KEY_POS_TYPE];
+    }
+
+    public float getKeyPosPercentX() {
+      return Float.intBitsToFloat(myInfo[myOffsetCursor + OFF_KEY_POS_PERCENT_X]);
+    }
+
+    public float getKeyPosPercentY() {
+      return Float.intBitsToFloat(myInfo[myOffsetCursor + OFF_KEY_POS_PERCENT_Y]);
+    }
+  }
+
+  /**
+   * Get the KeyFrames for the view controlled by this MotionController.
+   * The call is designed to be efficient because it will be called 30x Number of views a second
+   *
+   * @param component the view to return keyframe positions
+   * @param type      type of keyframes your are interested in  1=Attributes, 2=Position, 3=TimeCycle 4=Cycle 5=Trigger, -1 == all
+   * @param keyInfo   the x&y position of the keyFrame along the path
+   * @return Number of keyFrames found
+   */
+
+  public int getKeyframeInfo(NlComponent component, int type, int[] keyInfo) {
+
+    if (myDesignTool == null) {
+      return -1;
+    }
+    ViewInfo info = NlComponentHelperKt.getViewInfo(component);
+
+    if (info == null || (info != null && info.getViewObject() == null)) {
+      return -1;
+    }
+
+    if (myGetKeyFrameInfoMethod == null) {
+      try {
+        myGetKeyFrameInfoMethod = myDesignTool.getClass().getMethod("getKeyFrameInfo",
+                                                                    Object.class, int.class, int[].class);
+      }
+      catch (NoSuchMethodException e) {
+        if (true) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    if (myGetKeyFrameInfoMethod != null) {
+      try {
+        return RenderService.runRenderAction(() -> {
+          try {
+            return (Integer)myGetKeyFrameInfoMethod.invoke(myDesignTool, info.getViewObject(), type, keyInfo);
+          }
+          catch (Exception e) {
+            myGetKeyFrameInfoMethod = null;
             if (true) {
               e.printStackTrace();
             }

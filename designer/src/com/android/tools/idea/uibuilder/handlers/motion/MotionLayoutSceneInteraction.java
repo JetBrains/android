@@ -22,7 +22,6 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintSceneInteraction;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionAccessoryPanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -45,6 +44,10 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
   private int startX;
   private int startY;
   private NlComponent mySelectedComponent;
+  public static final String MOTION_DRAG_KEYFRAME  = "MotionDragKeyFrame";
+  public static final String MOTION_KEY_POS_TYPE  = "MotionDragKeyPosType";
+  public static final String MOTION_KEY_POS_PERCENT  = "MotionDragKeyPosPercent";
+
   private KeyframeCandidate myKeyframeCandidate = new KeyframeCandidate();
 
   private final static int MAX_KEY_POSITIONS = 101; // 0-100 inclusive key positions are allowed
@@ -57,7 +60,15 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
     int position = -1;
     int[] keyFrameTypes = new int[MAX_KEY_POSITIONS];
     float[] keyFramePos = new float[MAX_KEY_POSITIONS * 2];
+    int keyPosType = 0;
+    float keyPosPercentX;
+    float keyPosPercentY;
+    int selectedKeyFrame;
+
     public void clear() { keyframe = null; position = -1; }
+    int[] keyFrameInfo = new int[MAX_KEY_POSITIONS*8];
+    MotionLayoutComponentHelper.KeyInfo myKeyInfo = new MotionLayoutComponentHelper.KeyInfo();
+
   }
 
   /**
@@ -92,6 +103,10 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
     float fy = Coordinates.getAndroidY(mySceneView, y);
 
     if (hitKeyframe(helper, mySelectedComponent, fx, fy, myKeyframeCandidate)) {
+      mySelectedComponent.putClientProperty(MOTION_DRAG_KEYFRAME, myKeyframeCandidate.selectedKeyFrame);
+      mySelectedComponent.putClientProperty(MOTION_KEY_POS_TYPE, myKeyframeCandidate.keyPosType);
+      mySelectedComponent.putClientProperty(MOTION_KEY_POS_PERCENT, new float[]{myKeyframeCandidate.keyPosPercentX,myKeyframeCandidate.keyPosPercentY});
+
       mySurface.setRenderSynchronously(true);
       mySurface.setAnimationScrubbing(true);
     }
@@ -112,7 +127,34 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
 
     keyframeCandidate.clear();
 
+    try {
+      int noOfKeyPosition = helper.getKeyframeInfo(component, MotionLayoutComponentHelper.KeyInfo.KEY_TYPE_POSITION, keyframeCandidate.keyFrameInfo);
+      keyframeCandidate.myKeyInfo.setInfo(keyframeCandidate.keyFrameInfo, noOfKeyPosition);
+      while(keyframeCandidate.myKeyInfo.next()) {
+        if (keyframeCandidate.myKeyInfo.getType() == MotionLayoutComponentHelper.KeyInfo.KEY_TYPE_POSITION) {
+          float x = keyframeCandidate.myKeyInfo.getLocationX();
+          float y = keyframeCandidate.myKeyInfo.getLocationY();
+          double dx = Math.abs(x - fx);
+          double dy = Math.abs(y - fy);
+          if (dx < SLOPE && dy < SLOPE) {
+
+            keyframeCandidate.selectedKeyFrame =  keyframeCandidate.myKeyInfo.getIndex();
+            keyframeCandidate.keyPosType =  keyframeCandidate.myKeyInfo.getKeyPosType();
+            keyframeCandidate.keyPosPercentX =  keyframeCandidate.myKeyInfo.getKeyPosPercentX();
+            keyframeCandidate.keyPosPercentY =  keyframeCandidate.myKeyInfo.getKeyPosPercentY();
+
+            break;
+          }
+
+        }
+      }
+
+    } catch (Exception ex) {
+
+    }
+    Debug.println("  component " + component);
     int keyFrameCount = helper.getKeyframePos(component, keyframeCandidate.keyFrameTypes, keyframeCandidate.keyFramePos);
+
     if (keyFrameCount <= 0) {
       return false;
     }
@@ -125,9 +167,10 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
         double dx = Math.sqrt((kx - fx) * (kx - fx));
         double dy = Math.sqrt((ky - fy) * (ky - fy));
         if (dx < SLOPE && dy < SLOPE) {
-          int framePosition = keyframeCandidate.keyFrameTypes[i] - 2000;
+          int framePosition = (keyframeCandidate.keyFrameTypes[i])%1000;
           keyframeCandidate.keyframe = helper.getKeyframe(view, 2, framePosition);
-          keyframeCandidate.position = framePosition;
+          keyframeCandidate.position = i;
+          break;
         }
       }
     }
@@ -165,6 +208,8 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
     if (myKeyframeCandidate.keyframe == null) {
       return;
     }
+
+
     myPositionAttributes[0] = "percentX";
     myPositionAttributes[1] = "percentY";
     ViewInfo info = NlComponentHelperKt.getViewInfo(mySelectedComponent);
@@ -181,6 +226,36 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
         helper.setKeyframe(myKeyframeCandidate.keyframe, "drawPath", 4);
         mySelectedComponent.getModel().notifyLiveUpdate(false);
       }
+    }
+    try {
+      MotionLayoutComponentHelper helper = MotionLayoutComponentHelper.create(mySelectedComponent);
+      int noOfKeyPosition = helper
+        .getKeyframeInfo(mySelectedComponent, MotionLayoutComponentHelper.KeyInfo.KEY_TYPE_POSITION, myKeyframeCandidate.keyFrameInfo);
+      myKeyframeCandidate.myKeyInfo.setInfo(myKeyframeCandidate.keyFrameInfo, noOfKeyPosition);
+      while (myKeyframeCandidate.myKeyInfo.next()) {
+        if (myKeyframeCandidate.myKeyInfo.getType() == MotionLayoutComponentHelper.KeyInfo.KEY_TYPE_POSITION) {
+          int index = myKeyframeCandidate.myKeyInfo.getIndex();
+          if (index == myKeyframeCandidate.selectedKeyFrame) {
+              Debug.println("setting for index "+index);
+            myKeyframeCandidate.keyPosPercentX = myKeyframeCandidate.myKeyInfo.getKeyPosPercentX();
+            myKeyframeCandidate.keyPosPercentY = myKeyframeCandidate.myKeyInfo.getKeyPosPercentY();
+            float []pos = (float[]) mySelectedComponent.getClientProperty(MOTION_KEY_POS_PERCENT);
+            if (pos != null) {
+              pos[0] = myKeyframeCandidate.keyPosPercentX;
+              pos[1] = myKeyframeCandidate.keyPosPercentY;
+          } else {
+              mySelectedComponent.putClientProperty(MOTION_KEY_POS_PERCENT,
+                                                    new float[]{myKeyframeCandidate.keyPosPercentX,
+                                                      myKeyframeCandidate.keyPosPercentY});
+            }
+
+            break;
+          }
+        }
+      }
+
+    } catch (Exception ex) {
+
     }
   }
 
@@ -200,6 +275,9 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
     if (myKeyframeCandidate.keyframe == null || mySelectedComponent == null) {
       return;
     }
+    mySelectedComponent.putClientProperty(MOTION_DRAG_KEYFRAME, null);
+    mySelectedComponent.putClientProperty(MOTION_KEY_POS_TYPE, null);
+    mySelectedComponent.putClientProperty(MOTION_KEY_POS_PERCENT, null);
 
     myPositionAttributes[0] = "percentX";
     myPositionAttributes[1] = "percentY";

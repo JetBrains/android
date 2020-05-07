@@ -31,7 +31,7 @@ public class Debug {
     StackTraceElement[] st = new Throwable().getStackTrace();
     for (int i = Math.min(st.length - 1, n); i > 0; i--) {
       StackTraceElement element = st[i];
-      String s = ".(" + element.getFileName() + ":" + (element.getLineNumber()) + ")";
+      String s = ".(" + element.getFileName() + ":" + (element.getLineNumber()) + ") "+element.getMethodName()+"()";
       max = Math.max(max, s.length() + 3);
       s = "> " + s + new String(new char[max - s.length()]).replace('\0', ' ');
       s = s.substring(0, max);
