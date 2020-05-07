@@ -579,6 +579,7 @@ class NelePropertyItemTest {
     property.value = "@android:style/TextAppearance.Material.Display2"
 
     val fileManager = mock(FileEditorManager::class.java)
+    `when`(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
     `when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
