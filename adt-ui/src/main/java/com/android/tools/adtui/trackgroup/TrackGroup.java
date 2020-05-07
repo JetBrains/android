@@ -71,6 +71,7 @@ public class TrackGroup extends AspectObserver {
   private final JLabel myTitleLabel;
   private final JLabel myTitleInfoIcon;
   private final JPanel myOverlay;
+  private final JPanel myTrackTitleOverlay;
   private final DragAndDropList<TrackModel> myTrackList;
   private final CommonDropDownButton myActionsDropdown;
   private final FlatSeparator mySeparator = new FlatSeparator();
@@ -143,12 +144,19 @@ public class TrackGroup extends AspectObserver {
     }
     titlePanel.add(toolbarPanel, BorderLayout.EAST);
 
-    // A panel responsible for forwarding mouse events to the tracks.
+    // A panel responsible for forwarding mouse events to the tracks' content component.
     myOverlay = new JPanel();
     myOverlay.setOpaque(false);
-    MouseEventHandler mouseEventHandler = new TrackGroupMouseEventHandler();
-    myOverlay.addMouseListener(mouseEventHandler);
-    myOverlay.addMouseMotionListener(mouseEventHandler);
+    MouseEventHandler trackContentMouseEventHandler = new TrackContentMouseEventHandler();
+    myOverlay.addMouseListener(trackContentMouseEventHandler);
+    myOverlay.addMouseMotionListener(trackContentMouseEventHandler);
+
+    // A panel responsible for forwarding mouse events to the tracks' title component.
+    myTrackTitleOverlay = new JPanel();
+    myTrackTitleOverlay.setOpaque(false);
+    MouseEventHandler trackTitleMouseEventHandler = new TrackTitleMouseEventHandler();
+    myTrackTitleOverlay.addMouseListener(trackTitleMouseEventHandler);
+    myTrackTitleOverlay.addMouseMotionListener(trackTitleMouseEventHandler);
 
     myComponent = new JPanel(new TabularLayout(Track.COL_SIZES, "Fit,Fit"));
     if (groupModel.getRangeSelectionModel() != null) {
@@ -158,6 +166,7 @@ public class TrackGroup extends AspectObserver {
         .installMotionListenerOn(boxSelection);
       myComponent.add(boxSelection, new TabularLayout.Constraint(1, 1));
     }
+    myComponent.add(myTrackTitleOverlay, new TabularLayout.Constraint(1, 0));
     myComponent.add(myOverlay, new TabularLayout.Constraint(1, 1));
     myComponent.add(titlePanel, new TabularLayout.Constraint(0, 0, 1, 2));
     myComponent.add(myTrackList, new TabularLayout.Constraint(1, 0, 1, 2));
@@ -282,6 +291,11 @@ public class TrackGroup extends AspectObserver {
     return myCollapseButton;
   }
 
+  @VisibleForTesting
+  JComponent getTrackTitleOverlay() {
+    return myTrackTitleOverlay;
+  }
+
   /**
    * @return the UI component of this Track Group
    */
@@ -295,7 +309,10 @@ public class TrackGroup extends AspectObserver {
     return myOverlay;
   }
 
-  private class TrackGroupMouseEventHandler extends MouseEventHandler {
+  /**
+   * Mouse adapter for forwarding events to the underlying track content.
+   */
+  private class TrackContentMouseEventHandler extends MouseEventHandler {
     // Track index for the current mouse event.
     private int myTrackIndex = -1;
 
@@ -304,16 +321,9 @@ public class TrackGroup extends AspectObserver {
       int oldTrackIndex = myTrackIndex;
       myTrackIndex = myTrackList.locationToIndex(event.getPoint());
 
-      // Find the origin location of the track (i.e. JList cell).
-      Point trackOrigin = myTrackList.indexToLocation(myTrackIndex);
-      // Manually translate the mouse point relative of the track origin.
-      Point newPoint = event.getPoint();
-      newPoint.translate(0, -trackOrigin.y);
-      // Create a new mouse event with the translated location for the tooltip panel to show up at the correct location.
-      // We may create another event based on this event to reuse the new location.
-      MouseEvent newEvent = SwingUtil.convertMouseEventPoint(event, newPoint);
       // Forward the mouse event to the current track because the cell renderer doesn't construct a component hierarchy tree for the mouse
       // event to propagate.
+      MouseEvent newEvent = convertTrackListEvent(event, myTrackIndex);
       JComponent trackContent = getTrackMap().get(getTrackModelAt(myTrackIndex).getId()).getTrackContent();
       trackContent.dispatchEvent(newEvent);
 
@@ -324,10 +334,40 @@ public class TrackGroup extends AspectObserver {
           JComponent oldTrackContent = getTrackMap().get(getTrackModelAt(oldTrackIndex).getId()).getTrackContent();
           oldTrackContent.dispatchEvent(SwingUtil.convertMouseEventID(newEvent, MouseEvent.MOUSE_EXITED));
         }
-      } else if (event.getID() == MouseEvent.MOUSE_EXITED) {
+      }
+      else if (event.getID() == MouseEvent.MOUSE_EXITED) {
         // Reset track index so we know the next time mouse enters.
         myTrackIndex = -1;
       }
     }
+  }
+
+  /**
+   * Mouse adapter for forwarding the event to the underlying track title and the this track group itself.
+   */
+  private class TrackTitleMouseEventHandler extends MouseEventHandler {
+    @Override
+    protected void handle(MouseEvent event) {
+      // Forward the mouse event to the current track because the cell renderer doesn't construct a component hierarchy tree for the mouse
+      // event to propagate.
+      int trackIndex = myTrackList.locationToIndex(event.getPoint());
+      MouseEvent newEvent = convertTrackListEvent(event, trackIndex);
+      JComponent trackTitle = getTrackMap().get(getTrackModelAt(trackIndex).getId()).getTitleLabel();
+      trackTitle.dispatchEvent(newEvent);
+
+      // Fall through for the track list itself.
+      myTrackList.dispatchEvent(event);
+    }
+  }
+
+  private MouseEvent convertTrackListEvent(MouseEvent oldEvent, int trackIndex) {
+    // Find the origin location of the track (i.e. JList cell).
+    Point trackOrigin = myTrackList.indexToLocation(trackIndex);
+    // Manually translate the mouse point relative of the track origin.
+    Point newPoint = oldEvent.getPoint();
+    newPoint.translate(0, -trackOrigin.y);
+    // Create a new mouse event with the translated location for the tooltip panel to show up at the correct location.
+    // We may create another event based on this event to reuse the new location.
+    return SwingUtil.convertMouseEventPoint(oldEvent, newPoint);
   }
 }

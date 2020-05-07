@@ -15,6 +15,8 @@
  */
 package com.android.build.attribution.ui.data
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
+
 /*
  * The set of interfaces in this file represents the build attribution report data model and is used for any data access from the UI.
  * These interfaces correspond to the tree structure of UI info panels and contain all data required for presentation.
@@ -147,7 +149,7 @@ interface TaskIssueUiData {
   val bugReportTitle: String
   val bugReportBriefDescription: String
   val explanation: String
-  val helpLink: String
+  val helpLink: BuildAnalyzerBrowserLinks
   val buildSrcRecommendation: String
 }
 

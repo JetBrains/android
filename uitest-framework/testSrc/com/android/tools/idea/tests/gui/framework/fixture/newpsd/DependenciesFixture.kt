@@ -17,7 +17,11 @@ package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.ui.IssuesViewerPanel
+import com.android.tools.idea.tests.gui.framework.clickToolButton
+import com.android.tools.idea.tests.gui.framework.dragAndClickItem
 import com.android.tools.idea.tests.gui.framework.findByType
+import com.android.tools.idea.tests.gui.framework.getList
+import com.android.tools.idea.tests.gui.framework.waitForIdle
 import com.intellij.ui.table.TableView
 import org.fest.swing.core.FocusOwnerFinder.inEdtFocusOwner
 import org.fest.swing.core.Robot

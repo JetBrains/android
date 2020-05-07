@@ -21,6 +21,7 @@ import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
+import com.android.tools.idea.databinding.utils.assertExpected
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
@@ -674,25 +675,25 @@ class LightBindingClassTest {
         (inflateMethod.parameters[1] as PsiParameter).assertExpected("ViewGroup", "root", isNullable = true)
         (inflateMethod.parameters[2] as PsiParameter).assertExpected("boolean", "attachToRoot")
         (inflateMethod.parameters[3] as PsiParameter).assertExpected("Object", "bindingComponent", isNullable = true)
-        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+        inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
       }
 
       inflateMethods.first { it.parameters.size == 3 }.let { inflateMethod ->
         (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
         (inflateMethod.parameters[1] as PsiParameter).assertExpected("ViewGroup", "root", isNullable = true)
         (inflateMethod.parameters[2] as PsiParameter).assertExpected("boolean", "attachToRoot")
-        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+        inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
       }
 
       inflateMethods.first { it.parameters.size == 2 }.let { inflateMethod ->
         (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
         (inflateMethod.parameters[1] as PsiParameter).assertExpected("Object", "bindingComponent", isNullable = true)
-        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+        inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
       }
 
       inflateMethods.first { it.parameters.size == 1 }.let { inflateMethod ->
         (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
-        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+        inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
       }
     }
 
@@ -701,12 +702,12 @@ class LightBindingClassTest {
       bindMethods.first { it.parameters.size == 2 }.let { bindMethod ->
         (bindMethod.parameters[0] as PsiParameter).assertExpected("View", "view")
         (bindMethod.parameters[1] as PsiParameter).assertExpected("Object", "bindingComponent", isNullable = true)
-        bindMethod.returnType!!.assertExpected("ActivityMainBinding")
+        bindMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
       }
 
       bindMethods.first { it.parameters.size == 1 }.let { bindMethod ->
         (bindMethod.parameters[0] as PsiParameter).assertExpected("View", "view")
-        bindMethod.returnType!!.assertExpected("ActivityMainBinding")
+        bindMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
       }
     }
   }
@@ -856,19 +857,5 @@ class LightBindingClassTest {
       assertThat(binding.findMethodsByName("getRoot", false)).isEmpty()
       assertThat(binding.findMethodsByName("executePendingBindings", false)).isEmpty()
     }
-  }
-
-  private fun PsiType.assertExpected(typeName: String, isNullable: Boolean = false) {
-    assertThat(presentableText).isEqualTo(typeName)
-    if (this !is PsiPrimitiveType) {
-      val nullabilityManager = NullableNotNullManager.getInstance(fixture.project)
-      val nullabilityAnnotation = if (isNullable) nullabilityManager.defaultNullable else nullabilityManager.defaultNotNull
-      assertThat(annotations.map { it.text }).contains("@$nullabilityAnnotation")
-    }
-  }
-
-  private fun PsiParameter.assertExpected(typeName: String, name: String, isNullable: Boolean = false) {
-    type.assertExpected(typeName, isNullable)
-    assertThat(name).isEqualTo(name)
   }
 }

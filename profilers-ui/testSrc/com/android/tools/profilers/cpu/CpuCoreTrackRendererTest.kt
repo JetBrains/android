@@ -28,7 +28,7 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
+import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -57,7 +57,7 @@ class CpuCoreTrackRendererTest {
 
   @Test
   fun render() {
-    val mockCapture = Mockito.mock(AtraceCpuCapture::class.java)
+    val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
     Mockito.`when`(mockCapture.range).thenReturn(Range())
     Mockito.`when`(mockCapture.mainThreadId).thenReturn(123)
     val coreTrackModel = TrackModel.newBuilder(

@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
@@ -31,21 +30,21 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
 
   val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
+  override var activeDatabase: SqliteDatabaseId?
+    get() = SqliteDatabaseId.fromLiveDatabase("path", 1)
+    set(_) { }
+
   override fun addListener(listener: SqliteEvaluatorView.Listener) { listeners.add(listener) }
 
   override fun removeListener(listener: SqliteEvaluatorView.Listener) { listeners.remove(listener) }
 
   override fun showSqliteStatement(sqliteStatement: String) {  }
 
-  override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) { }
-
-  override fun selectDatabase(database: SqliteDatabase) { }
-
-  override fun getActiveDatabase(): SqliteDatabase { TODO("not implemented") }
+  override fun setDatabases(databaseIds: List<SqliteDatabaseId>) { }
 
   override fun getSqliteStatement(): String { TODO("not implemented") }
 
-  override fun schemaChanged(database: SqliteDatabase) { }
+  override fun schemaChanged(databaseId: SqliteDatabaseId) { }
 
   override fun setRunSqliteStatementEnabled(enabled: Boolean) { }
 }

@@ -64,8 +64,8 @@ class ComponentTreeLoaderTest {
             package_name: 3
             sub_view {
               draw_id: 3
-              x: 10
-              y: 10
+              x: 20
+              y: 20
               width: 20
               height: 50
               class_name: 2

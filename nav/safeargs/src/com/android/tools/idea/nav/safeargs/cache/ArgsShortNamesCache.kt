@@ -82,7 +82,7 @@ class ArgsShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun processMethodsWithName(name: String,
                                       scope: GlobalSearchScope,
-                                      processor: Processor<PsiMethod>): Boolean {
+                                      processor: Processor<in PsiMethod>): Boolean {
     // We are asked to process each method in turn, aborting if false is ever returned, and passing
     // that result back up the chain.
     return getMethodsByName(name, scope).all { method -> processor.process(method) }

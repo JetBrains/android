@@ -87,11 +87,13 @@ public class ScreenView extends ScreenViewBase {
     @Override
     public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
       RenderResult result = screenView.getSceneManager().getRenderResult();
-      if (result != null && result.hasImage()) {
+      if (result != null) {
         ImagePool.Image image = result.getRenderedImage();
-        outDimension.setSize(image.getWidth(), image.getHeight());
 
-        return;
+        if (image.isValid()) {
+          outDimension.setSize(image.getWidth(), image.getHeight());
+          return;
+        }
       }
 
       mySizePolicyDelegate.measure(screenView, outDimension);
@@ -317,9 +319,10 @@ public class ScreenView extends ScreenViewBase {
   private static boolean isErrorResult(@NotNull RenderResult result) {
     // If the RenderResult does not have an image, then we probably have an error. If we do, Layoutlib will
     // sometimes return images of 1x1 when exceptions happen. Try to determine if that's the case here.
+    ImagePool.Image image = result.getRenderedImage();
     return result.getLogger().hasErrors() &&
-           (!result.hasImage() ||
-            result.getRenderedImage().getWidth() * result.getRenderedImage().getHeight() < 2);
+           (!image.isValid() ||
+            image.getWidth() * image.getHeight() < 2);
   }
 
   @Override

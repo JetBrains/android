@@ -35,19 +35,19 @@ import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 
 public class MemoryInstanceFilterView extends AspectModel<MemoryProfilerAspect> {
-  @NotNull private final MemoryProfilerStage myStage;
+  @NotNull private final MemoryCaptureSelection mySelection;
 
   @NotNull private JPanel myFilterToolbar = new JPanel(createToolbarLayout());
   @NotNull private JPanel myFilterDescriptionPanel = new JPanel(new TabularLayout("Fit,*"));
 
-  MemoryInstanceFilterView(@NotNull MemoryProfilerStage stage) {
-    myStage = stage;
+  MemoryInstanceFilterView(@NotNull MemoryCaptureSelection selection) {
+    mySelection = selection;
 
     myFilterDescriptionPanel.setBorder(JBUI.Borders.merge(ProfilerLayout.TOOLBAR_LABEL_BORDER, DEFAULT_TOP_BORDER, true));
     myFilterDescriptionPanel.setBackground(ProfilerColors.WARNING_BAR_COLOR);
     myFilterDescriptionPanel.setVisible(false);
 
-    myStage.getAspect().addDependency(this).onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::updateFilters);
+    mySelection.getAspect().addDependency(this).onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, this::updateFilters);
   }
 
   @NotNull
@@ -61,7 +61,7 @@ public class MemoryInstanceFilterView extends AspectModel<MemoryProfilerAspect> 
 
   private void updateFilters() {
     myFilterToolbar.removeAll();
-    CaptureObject captureObject = myStage.getSelectedCapture();
+    CaptureObject captureObject = mySelection.getSelectedCapture();
 
     if (captureObject == null) {
       return;
@@ -73,11 +73,11 @@ public class MemoryInstanceFilterView extends AspectModel<MemoryProfilerAspect> 
       filterCheckBox.setToolTipText(supportedFilter.getSummaryDescription());
       filterCheckBox.addActionListener(l -> {
         if (filterCheckBox.isSelected()) {
-          captureObject.addInstanceFilter(supportedFilter, SwingUtilities::invokeLater);
-          myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackMemoryProfilerInstanceFilter(supportedFilter);
+          mySelection.addInstanceFilter(supportedFilter, SwingUtilities::invokeLater);
+          mySelection.getIdeServices().getFeatureTracker().trackMemoryProfilerInstanceFilter(supportedFilter);
         }
         else {
-          captureObject.removeInstanceFilter(supportedFilter, SwingUtilities::invokeLater);
+          mySelection.removeInstanceFilter(supportedFilter, SwingUtilities::invokeLater);
         }
 
         boolean hasFilterDescription = false;

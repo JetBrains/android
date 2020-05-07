@@ -29,9 +29,16 @@ import java.awt.GridBagLayout
  */
 class DescriptionWithHelpLinkLabel(
   text: String,
-  learnMoreTarget: String,
-  analytics: BuildAttributionUiAnalytics
+  learnMoreTarget: BuildAnalyzerBrowserLinks,
+  linkClickCallback: (BuildAnalyzerBrowserLinks) -> Unit
 ) : JBPanel<JBPanel<*>>(GridBagLayout()) {
+
+  @Deprecated("Left to support previous version.")
+  constructor(
+    text: String,
+    learnMoreTarget: BuildAnalyzerBrowserLinks,
+    analytics: BuildAttributionUiAnalytics
+  ) : this(text, learnMoreTarget, analytics::helpLinkClicked)
 
   init {
     val descriptionTextLabel = htmlTextLabel(text)
@@ -49,8 +56,8 @@ class DescriptionWithHelpLinkLabel(
         return 0
       }
     }.apply {
-      addHyperlinkListener { analytics.helpLinkClicked() }
-      setHyperlinkTarget(learnMoreTarget)
+      addHyperlinkListener { linkClickCallback(learnMoreTarget) }
+      setHyperlinkTarget(learnMoreTarget.urlTarget)
     }
     val linkConstraints = GridBagConstraints().apply {
       fill = GridBagConstraints.HORIZONTAL

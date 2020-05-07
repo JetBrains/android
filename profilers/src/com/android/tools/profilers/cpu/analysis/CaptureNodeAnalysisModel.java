@@ -21,6 +21,9 @@ import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalysisModel> {
@@ -42,6 +45,29 @@ public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalys
     return new Range(myNode.getStart(), myNode.getEnd());
   }
 
+  /**
+   * @return top k nodes by duration, with same full name, in descending order.
+   */
+  @NotNull
+  public List<CaptureNode> getLongestRunningOccurrences(int k) {
+    return myNode.findRootNode().getTopKNodes(k, this::matchesFullName, Comparator.comparing(CaptureNode::getDuration));
+  }
+
+  /**
+   * @return statistics of all occurrences of this node, e.g. count, min, max.
+   */
+  @NotNull
+  public CaptureNodeAnalysisStats getAllOccurrenceStats() {
+    List<CaptureNode> allOccurrences = myNode.findRootNode().getDescendantsStream()
+      .filter(this::matchesFullName)
+      .collect(Collectors.toList());
+    return CaptureNodeAnalysisStats.Companion.fromNodes(allOccurrences);
+  }
+
+  private boolean matchesFullName(@NotNull CaptureNode node) {
+    return myNode.getData().getFullName().equals(node.getData().getFullName());
+  }
+
   @NotNull
   @Override
   public CpuAnalysisModel<CaptureNodeAnalysisModel> getAnalysisModel() {
@@ -50,7 +76,7 @@ public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalys
     Collection<CaptureNode> nodes = Collections.singleton(myNode);
 
     // Summary
-    CaptureNodeAnalysisSummaryTabModel summary = new CaptureNodeAnalysisSummaryTabModel(myCapture.getRange());
+    CaptureNodeAnalysisSummaryTabModel summary = new CaptureNodeAnalysisSummaryTabModel(myCapture.getRange(), myCapture.getType());
     summary.getDataSeries().add(this);
     model.addTabModel(summary);
 

@@ -16,7 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.issue.BuildIssue
@@ -44,10 +45,10 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
 
     // Log metrics.
     invokeLater {
-      SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR)
+      updateUsageTracker(issueData.projectPath, GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR)
     }
 
-    val description = MessageComposer(message)
+    val buildIssueComposer = BuildIssueComposer(message)
     val wrapperConfiguration = GradleUtil.getWrapperConfiguration(issueData.projectPath)
     if (wrapperConfiguration != null) {
 
@@ -59,18 +60,13 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
           zipFile = zipFile.canonicalFile
         } catch (e : Exception) {}
 
-        description.addDescription("The cached zip file ${zipFile} may be corrupted.")
-        description.addQuickFix(
+        buildIssueComposer.addDescription("The cached zip file ${zipFile} may be corrupted.")
+        buildIssueComposer.addQuickFix(
           "Delete file and sync project", DeleteFileAndSyncQuickFix(zipFile, GradleSyncStats.Trigger.TRIGGER_QF_GRADLE_DISTRIBUTION_DELETED))
       }
     }
 
-    return object : BuildIssue {
-      override val title = "Gradle Sync Issues."
-      override val description = description.buildMessage()
-      override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
+    return buildIssueComposer.composeBuildIssue()
   }
 
   class DeleteFileAndSyncQuickFix(val file: File, private val syncTrigger: GradleSyncStats.Trigger) : BuildIssueQuickFix {

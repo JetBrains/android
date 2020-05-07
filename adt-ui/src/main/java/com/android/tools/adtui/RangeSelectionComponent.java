@@ -431,7 +431,7 @@ public class RangeSelectionComponent extends AnimatedComponent {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     // Draw selection area.
-    g.setColor(StudioColorsKt.getContentSelectionBackground());
+    g.setColor(StudioColorsKt.getSelectionOverlayBackground());
     Rectangle2D.Float rect = new Rectangle2D.Float(startXPos + HANDLE_WIDTH, 0, handleDistance, dim.height);
     g.fill(rect);
 

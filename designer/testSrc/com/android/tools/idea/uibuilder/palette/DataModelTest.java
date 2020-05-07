@@ -144,7 +144,7 @@ public class DataModelTest extends AndroidTestCase {
 
   public void testCommonLayoutGroup() {
     setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
-    assertThat(myCategoryListModel.getSize()).isEqualTo(8);
+    assertThat(myCategoryListModel.getSize()).isEqualTo(9);
     assertThat(myCategoryListModel.getElementAt(0)).isEqualTo(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel)).isEmpty();
     myDataModel.categorySelectionChanged(DataModel.COMMON);
@@ -177,7 +177,7 @@ public class DataModelTest extends AndroidTestCase {
 
   public void testButtonsGroup() {
     setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
-    assertThat(myCategoryListModel.getSize()).isEqualTo(8);
+    assertThat(myCategoryListModel.getSize()).isEqualTo(9);
     assertThat(myCategoryListModel.getElementAt(2).getName()).isEqualTo("Buttons");
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
@@ -186,9 +186,20 @@ public class DataModelTest extends AndroidTestCase {
       "FloatingActionButton").inOrder();
   }
 
+  public void testHelpersGroup() {
+    setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
+    assertThat(myCategoryListModel.getSize()).isEqualTo(9);
+    assertThat(myCategoryListModel.getElementAt(6).getName()).isEqualTo("Helpers");
+    assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(6));
+    assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
+      "Group", "Barrier (Horizontal)", "Barrier (Vertical)", "Flow", "Guideline (Horizontal)", "Guideline (Vertical)",
+      "Layer").inOrder();
+  }
+
   public void testContainersGroup() {
     setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
-    assertThat(myCategoryListModel.getSize()).isEqualTo(8);
+    assertThat(myCategoryListModel.getSize()).isEqualTo(9);
     assertThat(myCategoryListModel.getElementAt(5).getName()).isEqualTo("Containers");
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
@@ -312,8 +323,8 @@ public class DataModelTest extends AndroidTestCase {
     myFixture.addClass(MY_TEXT_VIEW);
     setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
 
-    assertThat(myCategoryListModel.getSize()).isEqualTo(9);
-    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(8));
+    assertThat(myCategoryListModel.getSize()).isEqualTo(10);
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(9));
     assertThat(myItemListModel.getSize()).isEqualTo(1);
     assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo("com.example.MyTextView");
   }

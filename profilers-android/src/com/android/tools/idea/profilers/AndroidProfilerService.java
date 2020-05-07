@@ -20,6 +20,7 @@ import com.android.tools.idea.profilers.eventpreprocessor.EnergyUsagePreprocesso
 import com.android.tools.idea.profilers.eventpreprocessor.SimpleperfPipelinePreprocessor;
 import com.android.tools.idea.profilers.perfd.ProfilerServiceProxyManager;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.transport.TransportDeviceManager;
@@ -135,11 +136,15 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
   }
 
   private boolean shouldEnableMemoryLiveAllocation(@Nullable AndroidRunConfigurationBase runConfig) {
-    if (runConfig != null && runConfig.getProfilerState().STARTUP_CPU_PROFILING_ENABLED) {
+    if (runConfig == null) {
+      return true;
+    }
+    ProfilerState state = runConfig.getProfilerState();
+    if (state.isCpuStartupProfilingEnabled()) {
       String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
       CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(runConfig.getProject()).getConfigByName(configName);
       return startupConfig == null || !startupConfig.isDisableLiveAllocation();
     }
-    return true;
+    return !state.isNativeMemoryStartupProfilingEnabled();
   }
 }

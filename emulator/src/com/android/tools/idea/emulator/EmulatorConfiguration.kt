@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.emulator.control.Rotation.SkinRotation
 import com.google.common.base.Splitter
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import java.io.IOException
@@ -32,7 +33,8 @@ class EmulatorConfiguration private constructor(
   val density: Int,
   val skinFolder: Path?,
   val hasOrientationSensors: Boolean,
-  val hasAudioOutput: Boolean
+  val hasAudioOutput: Boolean,
+  val initialOrientation: SkinRotation
 ) {
 
   companion object {
@@ -42,12 +44,23 @@ class EmulatorConfiguration private constructor(
      */
     fun readAvdDefinition(avdId: String, avdFolder: Path): EmulatorConfiguration? {
       val keysToExtract = setOf("avd.ini.displayname", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density",
-                                "showDeviceFrame", "skin.path", "hw.sensors.orientation")
+                                "hw.sensors.orientation", "hw.initialOrientation", "showDeviceFrame", "skin.path")
       val configIni = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract) ?: return null
 
       val avdName = configIni["avd.ini.displayname"] ?: avdId.replace('_', ' ')
-      val displayWidth = parseInt(configIni["hw.lcd.width"], 0)
-      val displayHeight = parseInt(configIni["hw.lcd.height"], 0)
+      val initialOrientation: SkinRotation
+      val displayWidth: Int
+      val displayHeight: Int
+      if (configIni["hw.initialOrientation"].equals("landscape", ignoreCase = true)) {
+        initialOrientation = SkinRotation.LANDSCAPE
+        displayWidth = parseInt(configIni["hw.lcd.height"], 0)
+        displayHeight = parseInt(configIni["hw.lcd.width"], 0)
+      }
+      else {
+        initialOrientation = SkinRotation.PORTRAIT
+        displayWidth = parseInt(configIni["hw.lcd.width"], 0)
+        displayHeight = parseInt(configIni["hw.lcd.height"], 0)
+      }
       val density = parseInt(configIni["hw.lcd.density"], 0)
       val skinPath = getSkinPath(configIni, avdFolder)
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
@@ -65,7 +78,8 @@ class EmulatorConfiguration private constructor(
                                    density = density,
                                    skinFolder = skinPath,
                                    hasOrientationSensors = hasOrientationSensors,
-                                   hasAudioOutput = hasAudioOutput)
+                                   hasAudioOutput = hasAudioOutput,
+                                   initialOrientation = initialOrientation)
     }
 
     private fun readKeyValueFile(file: Path, keysToExtract: Set<String>): Map<String, String>? {

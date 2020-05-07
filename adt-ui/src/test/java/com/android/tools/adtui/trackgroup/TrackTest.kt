@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.trackgroup
 
-import com.android.tools.adtui.common.contentSelectionBackground
+import com.android.tools.adtui.common.selectionOverlayBackground
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.google.common.truth.Truth.assertThat
@@ -49,7 +49,7 @@ class TrackTest {
     val track = Track.create(trackModel, BooleanTrackRenderer())
     assertThat(track.component.background).isEqualTo(UIManager.getColor("Panel.background"))
     track.updateSelected(true)
-    assertThat(track.titleFrontPanel.background).isEqualTo(contentSelectionBackground)
+    assertThat(track.titleFrontPanel.background).isEqualTo(selectionOverlayBackground)
     assertThat(track.titleLabel.icon).isNull()
   }
 

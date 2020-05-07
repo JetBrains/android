@@ -139,6 +139,70 @@ public class ImageUtils {
   }
 
   /**
+   * Rotates the given image by the given number of quadrants.
+   *
+   * @param source the source image
+   * @param numQuadrants the number of quadrants to rotate by counterclockwise
+   * @return the rotated image
+   */
+  @NotNull
+  public static BufferedImage rotateByQuadrants(@NotNull BufferedImage source, int numQuadrants) {
+    if (numQuadrants % 4 == 0) {
+      return source;
+    }
+
+    while (numQuadrants < 0) {
+      numQuadrants += 4;
+    }
+    numQuadrants %= 4;
+
+    int w = source.getWidth();
+    int h = source.getHeight();
+
+    int rotatedW;
+    int rotatedH;
+    int shiftX;
+    int shiftY;
+    switch (numQuadrants) {
+      default:
+        rotatedW = w;
+        rotatedH = h;
+        shiftX = 0;
+        shiftY = 0;
+        break;
+
+      case 1:
+        rotatedW = h;
+        rotatedH = w;
+        shiftX = 0;
+        shiftY = w;
+        break;
+
+      case 2:
+        rotatedW = w;
+        rotatedH = h;
+        shiftX = w;
+        shiftY = h;
+        break;
+
+      case 3:
+        rotatedW = h;
+        rotatedH = w;
+        shiftX = h;
+        shiftY = 0;
+        break;
+    }
+
+    BufferedImage result = new BufferedImage(rotatedW, rotatedH, source.getType());
+    AffineTransform transform = new AffineTransform();
+    // Please notice that the transformations are applied in the reverse order, starting from rotation.
+    transform.translate(shiftX, shiftY);
+    transform.quadrantRotate(-numQuadrants);
+    AffineTransformOp transformOp = new AffineTransformOp(transform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+    return transformOp.filter(source, result);
+  }
+
+  /**
    * Rotates the given image by the given number of quadrants and scales it to the given dimensions.
    *
    * @param source the source image
@@ -150,6 +214,10 @@ public class ImageUtils {
   @NotNull
   public static BufferedImage rotateByQuadrantsAndScale(
       @NotNull BufferedImage source, int numQuadrants, int destinationWidth, int destinationHeight) {
+    if (numQuadrants % 4 == 0 && destinationWidth == source.getWidth() && destinationHeight == source.getHeight()) {
+      return source;
+    }
+
     while (numQuadrants < 0) {
       numQuadrants += 4;
     }

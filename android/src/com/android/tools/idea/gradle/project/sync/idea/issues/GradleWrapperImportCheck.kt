@@ -17,7 +17,6 @@
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler
 import com.android.tools.idea.gradle.project.sync.idea.RESOLVER_LOG
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.util.GradleWrapper.GRADLEW_PROPERTIES_PATH
@@ -87,7 +86,7 @@ private class GradleWrapperImportChecker : GradleIssueChecker {
     if (issueData.error !is InvalidGradleWrapperException) return null
     val wrapper = (issueData.error as InvalidGradleWrapperException).wrapper
 
-    SyncErrorHandler.updateUsageTracker(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.JDK8_REQUIRED)
+    updateUsageTracker(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.JDK8_REQUIRED)
 
 
     val message = """
@@ -97,7 +96,7 @@ private class GradleWrapperImportChecker : GradleIssueChecker {
       For more details, see https://github.com/gradle/gradle/issues/9361.
     """.trimIndent()
 
-    val messageComposer = MessageComposer(message).apply {
+    return BuildIssueComposer(message).apply {
       try {
         val distUrl = wrapper.distributionUrl
         val distSHA = wrapper.distributionSha256Sum
@@ -109,14 +108,7 @@ private class GradleWrapperImportChecker : GradleIssueChecker {
       } catch (e: IOException) {
         Logger.getInstance(GradleWrapperImportChecker::class.java).warn(e)
       }
-    }
-
-    return object : BuildIssue {
-      override val title: String = "Invalid Gradle wrapper"
-      override val description: String = messageComposer.buildMessage()
-      override val quickFixes: List<BuildIssueQuickFix> = messageComposer.quickFixes
-      override fun getNavigatable(project: Project): Navigatable? = null
-    }
+    }.composeBuildIssue()
   }
 }
 

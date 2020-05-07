@@ -20,7 +20,6 @@ import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.Range
-import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.ThreadState
@@ -28,13 +27,11 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
-import java.text.DecimalFormat
 import java.util.EnumMap
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.table.AbstractTableModel
-import javax.swing.table.DefaultTableCellRenderer
 import kotlin.math.max
 import com.android.tools.adtui.common.border as BorderColor
 
@@ -155,6 +152,34 @@ class CpuThreadStateTable(val profilers: StudioProfilers,
       computeDistribution()
     }
   }
+
+  /**
+   * Column definition for the thread state table.
+   */
+  private enum class Column(val displayName: String, val type: Class<*>) {
+    THREAD_STATE("Thread State", String::class.java) {
+      override fun getValueFrom(data: ThreadStateRow): Any {
+        return data.threadState.displayName
+      }
+    },
+    TIME("Duration", Long::class.java) {
+      override fun getValueFrom(data: ThreadStateRow): Any {
+        return data.duration
+      }
+    },
+    PERCENT("%", Double::class.java) {
+      override fun getValueFrom(data: ThreadStateRow): Any {
+        return data.percentage
+      }
+    },
+    OCCURRENCES("Occurrences", Long::class.java) {
+      override fun getValueFrom(data: ThreadStateRow): Any {
+        return data.occurrences
+      }
+    };
+
+    abstract fun getValueFrom(data: ThreadStateRow): Any
+  }
 }
 
 /**
@@ -165,56 +190,6 @@ private data class ThreadStateRow(val threadState: ThreadState,
                                   var duration: Long = 0,
                                   var occurrences: Long = 0) {
   val percentage get() = duration / totalDuration
-}
-
-/**
- * Column definition for the thread state table.
- */
-private enum class Column(val displayName: String, val type: Class<*>) {
-  THREAD_STATE("Thread State", String::class.java) {
-    override fun getValueFrom(data: ThreadStateRow): Any {
-      return data.threadState.displayName
-    }
-  },
-  TIME("Duration", Long::class.java) {
-    override fun getValueFrom(data: ThreadStateRow): Any {
-      return data.duration
-    }
-  },
-  PERCENT("%", Double::class.java) {
-    override fun getValueFrom(data: ThreadStateRow): Any {
-      return data.percentage
-    }
-  },
-  OCCURRENCES("Occurrences", Long::class.java) {
-    override fun getValueFrom(data: ThreadStateRow): Any {
-      return data.occurrences
-    }
-  };
-
-  abstract fun getValueFrom(data: ThreadStateRow): Any
-}
-
-/**
- * Renders duration in microseconds in human readable format.
- */
-internal class DurationRenderer : DefaultTableCellRenderer() {
-  override fun setValue(value: Any?) {
-    val duration = value as Long
-    text = TimeFormatter.getSingleUnitDurationString(duration)
-  }
-}
-
-/**
- * Renders percentage number in human readable format.
- */
-internal class PercentRenderer : DefaultTableCellRenderer() {
-  private val percentFormatter = DecimalFormat("#.##%")
-
-  override fun setValue(value: Any?) {
-    val percentage = value as Double
-    text = percentFormatter.format(percentage)
-  }
 }
 
 private fun getLogger() = Logger.getInstance(CpuThreadStateTable::class.java)

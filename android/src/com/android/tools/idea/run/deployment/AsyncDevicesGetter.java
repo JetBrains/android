@@ -32,9 +32,9 @@ import java.io.File;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -84,8 +84,8 @@ final class AsyncDevicesGetter {
     myProject = project;
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
 
-    myVirtualDevicesWorker = new Worker<>(Collections.emptyList());
-    myConnectedDevicesWorker = new Worker<>(Collections.emptyList());
+    myVirtualDevicesWorker = new Worker<>();
+    myConnectedDevicesWorker = new Worker<>();
 
     myMap = map;
     myGetName = getName;
@@ -97,17 +97,17 @@ final class AsyncDevicesGetter {
   }
 
   /**
-   * @return a list of devices including the virtual devices ready to be launched, virtual devices that have been launched, and the
-   * connected physical devices
+   * @return an optional list of devices including the virtual devices ready to be launched, virtual devices that have been launched, and
+   * the connected physical devices
    */
   @NotNull
-  List<Device> get() {
+  Optional<List<Device>> get() {
     initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
     File adb = AndroidSdkUtils.getAdb(myProject);
 
     if (adb == null) {
       Logger.getInstance(AsyncDevicesGetter.class).info("adb not found");
-      return Collections.emptyList();
+      return Optional.empty();
     }
 
     boolean snapshotsEnabled = mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean();
@@ -117,7 +117,14 @@ final class AsyncDevicesGetter {
     AndroidDebugBridge bridge = new DdmlibAndroidDebugBridge(adb);
     AsyncSupplier<List<ConnectedDevice>> connectedDevicesTask = new ConnectedDevicesTask(bridge, snapshotsEnabled, myChecker);
 
-    return getImpl(myVirtualDevicesWorker.perform(virtualDevicesTask), myConnectedDevicesWorker.perform(connectedDevicesTask));
+    Optional<Collection<VirtualDevice>> virtualDevices = myVirtualDevicesWorker.perform(virtualDevicesTask);
+    Optional<List<ConnectedDevice>> connectedDevices = myConnectedDevicesWorker.perform(connectedDevicesTask);
+
+    if (!virtualDevices.isPresent() || !connectedDevices.isPresent()) {
+      return Optional.empty();
+    }
+
+    return Optional.of(getImpl(virtualDevices.get(), connectedDevices.get()));
   }
 
   /**

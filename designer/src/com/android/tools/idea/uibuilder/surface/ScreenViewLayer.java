@@ -186,7 +186,7 @@ public class ScreenViewLayer extends Layer {
     double currentScale = myScreenView.getScale();
     //noinspection FloatingPointEquality
     if (drawNewImg || currentScale != myLastScale || !myScreenViewVisibleRect.equals(myCachedScreenViewDisplayRect)) {
-      if (myLastRenderResult != null && myLastRenderResult.hasImage()) {
+      if (myLastRenderResult != null) {
         BufferedImage renderedImage = myLastRenderResult.getRenderedImage().getCopy();
         if (renderedImage != null) {
           int resultImageWidth = renderedImage.getWidth();
@@ -237,7 +237,7 @@ public class ScreenViewLayer extends Layer {
    * @return false if renderResult is null or the same as the previous one or if no image is available, true otherwise
    */
   private boolean newRenderImageAvailable(@Nullable RenderResult renderResult) {
-    return renderResult != null && renderResult.hasImage() && renderResult != myLastRenderResult;
+    return renderResult != null && renderResult != myLastRenderResult;
   }
 
   private void cancelHighQualityScaleRequests() {
@@ -308,15 +308,9 @@ public class ScreenViewLayer extends Layer {
   }
 
   @Override
-  public void releaseCachedResources() {
-    setLastRenderResult(null);
-    myCachedVisibleImage = null;
-  }
-
-  @Override
   public void dispose() {
     super.dispose();
-    releaseCachedResources();
+    setLastRenderResult(null);
     myScheduledExecutorService.shutdown();
   }
 

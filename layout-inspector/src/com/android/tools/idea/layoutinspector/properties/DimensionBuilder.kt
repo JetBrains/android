@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.SdkConstants.ATTR_HEIGHT
+import com.android.SdkConstants.ATTR_WIDTH
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
@@ -36,22 +37,16 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JTable
 
-private const val X = "x"
-private const val Y = "y"
-private const val HEIGHT = "height"
-private const val WIDTH = "width"
-
 /**
  * Adds the bounds of a view to the layout inspectors property table.
  *
  * Currently displayed are: x, y, width, height where the position is relative to the top
  * left of the device.
  */
-class DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
+object DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
-    val view = properties.first?.view ?: return
-    val table = PTable.create(DimensionTableModel(view), null, RendererProvider())
+    val table = PTable.create(DimensionTableModel(properties), null, RendererProvider())
     table.component.addFocusListener(object : FocusAdapter() {
       override fun focusGained(event: FocusEvent) {
         scrollSelectedRowIntoView(table)
@@ -73,16 +68,16 @@ class DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
     return table.getCellRect(row, 1, true)
   }
 
-  private class DimensionTableModel(view: ViewNode): PTableModel {
-    override val items = createDimensionItems(view)
+  private class DimensionTableModel(properties: PropertiesTable<InspectorPropertyItem>): PTableModel {
+    override val items = createDimensionItems(properties)
     override var editedItem: PTableItem? = null
 
-    private fun createDimensionItems(view: ViewNode): List<PTableItem> {
-      return listOf(
-        Item(X, view.bounds.x.toString()),
-        Item(Y, view.bounds.y.toString()),
-        Item(WIDTH, view.bounds.width.toString()),
-        Item(HEIGHT, view.bounds.height.toString()))
+    private fun createDimensionItems(properties: PropertiesTable<InspectorPropertyItem>): List<PTableItem> {
+      return listOfNotNull(
+        properties.getOrNull(NAMESPACE_INTERNAL, ATTR_X),
+        properties.getOrNull(NAMESPACE_INTERNAL, ATTR_Y),
+        properties.getOrNull(NAMESPACE_INTERNAL, ATTR_WIDTH),
+        properties.getOrNull(NAMESPACE_INTERNAL, ATTR_HEIGHT))
     }
 
     override fun addItem(item: PTableItem): PTableItem {
@@ -94,8 +89,6 @@ class DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
       // Not supported
     }
   }
-
-  private class Item(override val name: String, override val value: String) : PTableItem
 
   private class RendererProvider : PTableCellRendererProvider {
     private val renderer = Renderer()

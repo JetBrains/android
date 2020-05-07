@@ -41,10 +41,9 @@ class LegacyClientTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
-
   @get:Rule
   val clientFactoryRule = PropertySetterRule(
-    { _, parentDisposable -> listOf(LegacyClient(parentDisposable)) },
+    { _, parentDisposable -> listOf(LegacyClient(ResourceLookup(projectRule.project), parentDisposable)) },
     InspectorClient.Companion::clientFactory)
 
   @Test

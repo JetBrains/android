@@ -22,33 +22,32 @@ import com.android.tools.idea.gradle.project.sync.GradleModuleModels
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.structure.model.PsResolvedModuleModel
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
-import com.google.common.util.concurrent.SettableFuture
+import com.google.common.util.concurrent.ListenableFutureTask
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.ide.PooledThreadExecutor
 
 class GradleResolver {
   /**
    * Requests Gradle models without updating IDE projects and returns the [ListenableFuture] of the requested models.
    */
   fun requestProjectResolved(project: Project, disposable: Disposable): ListenableFuture<List<PsResolvedModuleModel>> {
-    val executorService = if (ApplicationManager.getApplication().isUnitTestMode) {
-      MoreExecutors.listeningDecorator(MoreExecutors.newDirectExecutorService())
-    } else {
-      MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE)
-    }
-
-    return executorService.submit<List<PsResolvedModuleModel>> {
+    val future = ListenableFutureTask.create {
       GradleSyncInvoker
         .getInstance()
         .fetchGradleModels(project)
         .mapNotNull { findModel(it) }
-    }.also {
-      Disposer.register(disposable, Disposable { it.cancel(true) })
     }
+    object : Task.Backgroundable(project, "Fetching build models", true) {
+      override fun run(indicator: ProgressIndicator) {
+        future.run()
+      }
+    }.queue()
+
+    Disposer.register(disposable, Disposable { future.cancel(true) })
+    return future
   }
 }
 

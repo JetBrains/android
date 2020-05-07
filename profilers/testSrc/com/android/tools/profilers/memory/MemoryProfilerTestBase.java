@@ -42,7 +42,7 @@ public abstract class MemoryProfilerTestBase {
 
     myMockLoader = new FakeCaptureObjectLoader();
     myStage = new MemoryProfilerStage(myProfilers, myMockLoader);
-    myAspectObserver = new MemoryAspectObserver(myStage.getAspect());
+    myAspectObserver = new MemoryAspectObserver(myStage.getAspect(), myStage.getCaptureSelection().getAspect());
 
     // Advance the clock to make sure StudioProfilers has a chance to select device + process.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);

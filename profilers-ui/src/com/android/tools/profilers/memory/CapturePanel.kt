@@ -20,12 +20,17 @@ import com.android.tools.adtui.StatLabel
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.flat.FlatSeparator
 import com.android.tools.adtui.model.AspectObserver
+import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.StreamingTimeline
+import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.ProfilerFonts
 import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_TRIGGER_DELAY_MS
 import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_WIDTH
 import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE
 import com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER
 import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
+import com.android.tools.profilers.StudioProfiler
+import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
@@ -43,23 +48,28 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-internal class CapturePanel(stageView: MemoryProfilerStageView): AspectObserver() {
-  private val myStage = stageView.stage
-  val heapView = MemoryHeapView(myStage)
-  val captureView = MemoryCaptureView(stageView.stage, stageView.ideComponents) // TODO: remove after full migration. Only needed for legacy tests
-  val classGrouping = MemoryClassGrouping(myStage)
-  val classifierView = MemoryClassifierView(myStage, stageView.ideComponents)
-  val classSetView = MemoryClassSetView(myStage, stageView.ideComponents)
-  val instanceDetailsView = MemoryInstanceDetailsView(myStage, stageView.ideComponents)
+class CapturePanel(profilersView: StudioProfilersView,
+                   selection: MemoryCaptureSelection,
+                   selectionTimeLabel: JLabel?,
+                   selectionRange: Range,
+                   ideComponents: IdeProfilerComponents,
+                   timeline: StreamingTimeline,
+                   isFullScreenHeapDumpUi: Boolean): AspectObserver() {
+  val heapView = MemoryHeapView(selection)
+  val captureView = MemoryCaptureView(selection, ideComponents) // TODO: remove after full migration. Only needed for legacy tests
+  val classGrouping = MemoryClassGrouping(selection)
+  val classifierView = MemoryClassifierView(selection, ideComponents)
+  val classSetView = MemoryClassSetView(selection, ideComponents, selectionRange, timeline, isFullScreenHeapDumpUi)
+  val instanceDetailsView = MemoryInstanceDetailsView(selection, ideComponents, timeline)
 
   val captureInfoMessage = JLabel(StudioIcons.Common.WARNING).apply {
     border = TOOLBAR_ICON_BORDER
     // preset the minimize size of the info to only show the icon, so the text can be truncated when the user resizes the vertical splitter.
     minimumSize = preferredSize
     isVisible = false
-    myStage.aspect.addDependency(this@CapturePanel)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS) {
-        when (val infoMessage = myStage.selectedCapture?.infoMessage) {
+    selection.aspect.addDependency(this@CapturePanel)
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS) {
+        when (val infoMessage = selection.selectedCapture?.infoMessage) {
           null -> isVisible = false
           else -> {
             isVisible = true
@@ -72,17 +82,19 @@ internal class CapturePanel(stageView: MemoryProfilerStageView): AspectObserver(
 
   private val filterComponent =
     FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS).apply {
-      model.setFilterHandler(myStage.filterHandler)
+      model.setFilterHandler(selection.filterHandler)
       border = JBEmptyBorder(0, 4, 0, 0)
     }
 
   val component =
-    if (myStage.studioProfilers.ideServices.featureConfig.isSeparateHeapDumpUiEnabled)
-      CapturePanelUi(stageView.stage, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage)
-    else LegacyCapturePanelUi(stageView, captureView, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage)
+    if (selection.ideServices.featureConfig.isSeparateHeapDumpUiEnabled)
+      CapturePanelUi(selection, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage, profilersView)
+    else LegacyCapturePanelUi(selection, selectionTimeLabel,
+                              captureView, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage)
 }
 
-private class LegacyCapturePanelUi(stageView: MemoryProfilerStageView,
+private class LegacyCapturePanelUi(selection: MemoryCaptureSelection,
+                                   selectionTimeLabel: JLabel?,
                                    captureView: MemoryCaptureView,
                                    heapView: MemoryHeapView,
                                    classGrouping: MemoryClassGrouping,
@@ -90,14 +102,14 @@ private class LegacyCapturePanelUi(stageView: MemoryProfilerStageView,
                                    filterComponent: FilterComponent,
                                    captureInfoMessage: JLabel)
   : JPanel(BorderLayout()) {
-  private val instanceFilterView = MemoryInstanceFilterView(stageView.stage)
+  private val instanceFilterView = MemoryInstanceFilterView(selection)
   init {
     val toolbar = JPanel(createToolbarLayout()).apply {
       add(captureView.component)
       add(heapView.component)
       add(classGrouping.component)
       add(instanceFilterView.filterToolbar)
-      if (stageView.stage.studioProfilers.ideServices.featureConfig.isLiveAllocationsSamplingEnabled) {
+      if (selection.ideServices.featureConfig.isLiveAllocationsSamplingEnabled) {
         add(captureInfoMessage)
       }
     }
@@ -107,9 +119,7 @@ private class LegacyCapturePanelUi(stageView: MemoryProfilerStageView,
     FilterComponent.configureKeyBindingAndFocusBehaviors(this, filterComponent, button)
     val buttonToolbar = JPanel(createToolbarLayout()).apply {
       border = JBEmptyBorder(3, 0, 0, 0)
-      if (!stageView.stage.isMemoryCaptureOnly) {
-        add(stageView.selectionTimeLabel)
-      }
+      selectionTimeLabel?.let { add(it) }
       add(FlatSeparator())
       add(button)
     }
@@ -136,18 +146,19 @@ private class LegacyCapturePanelUi(stageView: MemoryProfilerStageView,
 private data class ToolbarComponents(val toolbarPanel: JPanel,
                                      val components: List<Component>)
 
-private class CapturePanelUi(private val stage: MemoryProfilerStage,
+private class CapturePanelUi(private val selection: MemoryCaptureSelection,
                              private val heapView: MemoryHeapView,
                              private val classGrouping: MemoryClassGrouping,
                              private val classifierView: MemoryClassifierView,
                              private val filterComponent: FilterComponent,
-                             private val captureInfoMessage: JLabel)
-      : JPanel(BorderLayout()) {
+                             private val captureInfoMessage: JLabel,
+                             profilersView: StudioProfilersView)
+  : JPanel(BorderLayout()) {
   private val observer = AspectObserver()
-  private val instanceFilterMenu = MemoryInstanceFilterMenu(stage)
+  private val instanceFilterMenu = MemoryInstanceFilterMenu(selection)
   private val toolbarTabPanels = mutableMapOf<String, ToolbarComponents>()
   private val tabListeners = mutableListOf<CapturePanelTabContainer>()
-  private val visualizationView = MemoryVisualizationView(stage)
+  private val visualizationView = MemoryVisualizationView(selection, profilersView)
   private var activeTabIndex = 0
 
   init {
@@ -162,7 +173,7 @@ private class CapturePanelUi(private val stage: MemoryProfilerStage,
   private fun buildDetailsPanel(headingPanel: JPanel) = JPanel(BorderLayout()).apply {
     fun refreshPanel() {
       removeAll()
-      if (stage.selectedCapture is HeapDumpCaptureObject) {
+      if (selection.selectedCapture is HeapDumpCaptureObject) {
         val toolbarPanel = JPanel(createToolbarLayout())
         toolbarDefaults().forEach { toolbarPanel.add(it) }
         headingPanel.add(buildToolbarPanel(toolbarPanel), 0)
@@ -172,7 +183,7 @@ private class CapturePanelUi(private val stage: MemoryProfilerStage,
         add(buildTabPanel(), BorderLayout.CENTER)
       }
     }
-    stage.aspect.addDependency(observer).onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, ::refreshPanel)
+    selection.aspect.addDependency(observer).onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, ::refreshPanel)
     refreshPanel()
   }
 
@@ -206,7 +217,7 @@ private class CapturePanelUi(private val stage: MemoryProfilerStage,
   }
 
   private fun toolbarDefaults() = mutableListOf<Component>().apply {
-    if (!(stage.selectedCapture is NativeAllocationSampleCaptureObject)) {
+    if (!(selection.selectedCapture is NativeAllocationSampleCaptureObject)) {
       add(heapView.component)
     }
     add(classGrouping.component)
@@ -216,7 +227,7 @@ private class CapturePanelUi(private val stage: MemoryProfilerStage,
   private fun toolbarCore() = mutableListOf<Component>().apply {
     add(instanceFilterMenu.component)
     add(filterComponent)
-    if (stage.studioProfilers.ideServices.featureConfig.isLiveAllocationsSamplingEnabled) {
+    if (selection.ideServices.featureConfig.isLiveAllocationsSamplingEnabled) {
       add(captureInfoMessage)
     }
   }
@@ -229,7 +240,7 @@ private class CapturePanelUi(private val stage: MemoryProfilerStage,
 
   private fun buildSummaryPanel() = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
     fun mkLabel(desc: String, action: Runnable? = null) =
-      StatLabel(0, desc, numFont = ProfilerFonts.H2_FONT, descFont = ProfilerFonts.H4_FONT, action = action)
+      StatLabel(0L, desc, numFont = ProfilerFonts.H2_FONT, descFont = ProfilerFonts.H4_FONT, action = action)
     val totalClassLabel = mkLabel("Classes")
     val totalLeakLabel = mkLabel("Leaks", action = Runnable(::showLeaks))
     val totalCountLabel = mkLabel("Count")
@@ -238,10 +249,10 @@ private class CapturePanelUi(private val stage: MemoryProfilerStage,
     val totalRetainedSizeLabel = mkLabel("Retained Size")
 
     fun refreshSummaries() {
-      stage.selectedCapture?.let {
+      selection.selectedCapture?.let {
         // Hide summary panel for native memory captures.
-        isVisible = !(it is NativeAllocationSampleCaptureObject)
-        totalClassLabel.intContent = countClasses(it)
+        isVisible = it is HeapDumpCaptureObject
+        totalClassLabel.numValue = countClasses(it)
         setLabelSumBy(it, totalCountLabel) { it.totalObjectCount.toLong() }
         setLabelSumBy(it, totalNativeSizeLabel) { it.totalNativeSize }
         setLabelSumBy(it, totalShallowSizeLabel) { it.totalShallowSize }
@@ -252,16 +263,16 @@ private class CapturePanelUi(private val stage: MemoryProfilerStage,
           null -> totalLeakLabel.isVisible = false
           else -> totalLeakLabel.apply {
             isVisible = true
-            intContent = leakCount.toLong()
+            numValue = leakCount.toLong()
             icon = if (leakCount > 0) StudioIcons.Common.WARNING else null
           }
         }
       }
     }
 
-    stage.aspect.addDependency(observer)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, ::refreshSummaries)
-      .onChange(MemoryProfilerAspect.CURRENT_FILTER, ::refreshSummaries)
+    selection.aspect.addDependency(observer)
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, ::refreshSummaries)
+      .onChange(CaptureSelectionAspect.CURRENT_FILTER, ::refreshSummaries)
 
     add(totalClassLabel)
     add(totalLeakLabel)
@@ -274,7 +285,7 @@ private class CapturePanelUi(private val stage: MemoryProfilerStage,
   }
 
   private fun showLeaks() {
-    stage.selectedCapture?.activityFragmentLeakFilter?.let {
+    selection.selectedCapture?.activityFragmentLeakFilter?.let {
       instanceFilterMenu.component.selectedItem = it
     }
   }
@@ -290,6 +301,6 @@ private class CapturePanelUi(private val stage: MemoryProfilerStage,
       ?.size
 
   private fun setLabelSumBy(capture: CaptureObject, label: StatLabel, prop: (ClassifierSet) -> Long) {
-    label.intContent = capture.heapSets.fold(0L) { sum, heapSet -> sum + prop(heapSet) }
+    label.numValue = capture.heapSets.fold(0L) { sum, heapSet -> sum + prop(heapSet) }
   }
 }

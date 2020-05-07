@@ -20,8 +20,8 @@ import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallCmakeQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetCmakeDirQuickFix
 import com.android.tools.idea.gradle.util.LocalProperties
@@ -30,7 +30,6 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
-import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -112,13 +111,13 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
 
-    val description = when {
+    val buildIssueComposer = when {
        (matchesCannotFindCmake(message) || matchesTriedInstall(message) || matchesCmakeWithVersion(message)) -> {
-         MessageComposer(message)
+         BuildIssueComposer(message)
       }
       message.startsWith("Failed to find CMake.") || message.startsWith("Unable to get the CMake version") -> {
         updateUsageTracker(issueData.projectPath, GradleSyncFailure.MISSING_CMAKE)
-        MessageComposer("Failed to find CMake.")
+        BuildIssueComposer("Failed to find CMake.")
       }
       else -> return null
     }
@@ -128,34 +127,19 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
     val version = extractCmakeVersionFromError(firstLine)
     if (version == null) {
       // Generic install of CMake.
-      description.addQuickFix("Install CMake", InstallCmakeQuickFix(null))
-      return object : BuildIssue {
-        override val title = "Gradle Sync issues."
-        override val description = description.buildMessage()
-        override val quickFixes = description.quickFixes
-        override fun getNavigatable(project: Project) = null
-      }
+      buildIssueComposer.addQuickFix("Install CMake", InstallCmakeQuickFix(null))
+      return buildIssueComposer.composeBuildIssue()
     }
 
     // Get the Cmake version to install from the error string; if not found, return as showing the quickFix is useless in such case.
     val requestedCmake =
-      parseRevisionOrHigher(version, firstLine) ?: return object : BuildIssue {
-        override val title = "Gradle Sync issues."
-        override val description = description.buildMessage()
-        override val quickFixes = description.quickFixes
-        override fun getNavigatable(project: Project) = null
-      }
+      parseRevisionOrHigher(version, firstLine) ?: return buildIssueComposer.composeBuildIssue()
 
     val sdkManager = getSdkManager()
     val remoteCmakePackages = sdkManager.packages.getRemotePackagesForPrefix(SdkConstants.FD_CMAKE)
     // Fetch the Cmake version that satisfies the request from the SDK. If no version matches, no need to show the quickFix.
     val foundCmakeVersion =
-      findBestMatch(remoteCmakePackages, requestedCmake) ?: return object : BuildIssue {
-        override val title = "Gradle Sync issues."
-        override val description = description.buildMessage()
-        override val quickFixes = description.quickFixes
-        override fun getNavigatable(project: Project) = null
-      }
+      findBestMatch(remoteCmakePackages, requestedCmake) ?: return buildIssueComposer.composeBuildIssue()
 
     val localCmakePackages = sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_CMAKE)
     val alreadyInstalledCmake = getAlreadyInstalled(localCmakePackages, foundCmakeVersion)
@@ -165,54 +149,30 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
         // Get the cmake.dir property from locaissueData.error.getRootCause()l.properties. If none exists, prompt the user to set one
         val cmakeDir= getLocalProperties(issueData.projectPath)
         if (cmakeDir == null) {
-          description.addQuickFix("Set cmake.dir in local.properties to '${alreadyInstalledCmake}' .",
+          buildIssueComposer.addQuickFix("Set cmake.dir in local.properties to '${alreadyInstalledCmake}' .",
                                   SetCmakeDirQuickFix(alreadyInstalledCmake))
-          return object : BuildIssue {
-            override val title = "Gradle Sync issues."
-            override val description = description.buildMessage()
-            override val quickFixes = description.quickFixes
-            override fun getNavigatable(project: Project) = null
-          }
+          return buildIssueComposer.composeBuildIssue()
         }
 
         // If the cmakeDirPath is the same as the path we found then there's no point in offering a hyperlink.
-        if (cmakeDir.path === alreadyInstalledCmake.path) return object : BuildIssue {
-          override val title = "Gradle Sync issues."
-          override val description = description.buildMessage()
-          override val quickFixes = description.quickFixes
-          override fun getNavigatable(project: Project) = null
-        }
+        if (cmakeDir.path === alreadyInstalledCmake.path) return buildIssueComposer.composeBuildIssue()
 
         // There is a cmake.dir setting in local.properties, prompt the user replace it with
         // the one we found.
-        description.addQuickFix("Replace cmake.dir in local.properties with '${alreadyInstalledCmake}' .",
+        buildIssueComposer.addQuickFix("Replace cmake.dir in local.properties with '${alreadyInstalledCmake}' .",
                                 SetCmakeDirQuickFix(alreadyInstalledCmake))
-        return object : BuildIssue {
-          override val title = "Gradle Sync issues."
-          override val description = description.buildMessage()
-          override val quickFixes = description.quickFixes
-          override fun getNavigatable(project: Project) = null
-        }
+        return buildIssueComposer.composeBuildIssue()
       }
       catch (e: IOException) {
         // Couldn't access local.properties for some reason. Don't show a link because we likely won't be able to write to that file.
-        return object : BuildIssue {
-          override val title = "Gradle Sync issues."
-          override val description = description.buildMessage()
-          override val quickFixes = description.quickFixes
-          override fun getNavigatable(project: Project) = null
-        }
+        return buildIssueComposer.composeBuildIssue()
       }
     }
 
     // Offer a version-specific install of Cmake.
-    description.addQuickFix("Install Cmake ${foundCmakeVersion}", InstallCmakeQuickFix(foundCmakeVersion))
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
-      override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
+    buildIssueComposer.addQuickFix("Install Cmake ${foundCmakeVersion}", InstallCmakeQuickFix(foundCmakeVersion))
+
+    return buildIssueComposer.composeBuildIssue()
   }
 
   /**

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.CLASS_COMPOSE_INSPECTABLE;
 import static com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
@@ -46,7 +47,6 @@ import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
@@ -84,6 +84,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -322,6 +323,25 @@ public class RenderTask {
       });
     } catch(Throwable t) {
       LOG.debug(t);
+    }
+  }
+
+  // Workaround for http://b/155861985
+  private void clearComposeTables() {
+    if (!myLayoutlibCallback.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
+      // If Compose has not been loaded, we do not need to care about disposing it
+      return;
+    }
+
+    try {
+      Class<?> inspectableKt = myLayoutlibCallback.findClass(CLASS_COMPOSE_INSPECTABLE);
+      Field tablesField = inspectableKt.getDeclaredField("tables");
+      tablesField.setAccessible(true);
+      Set<?> tables = (Set<?>)tablesField.get(null);
+      tables.clear();
+    }
+    catch (Throwable e) {
+      // The tables field does not exist anymore in dev11
     }
   }
 
@@ -938,6 +958,7 @@ public class RenderTask {
           }
           return result;
         }).whenComplete((result, ex) -> {
+          clearComposeTables();
           // After render clean-up. Dispose the GapWorker cache.
           clearGapWorkerCache();
         });

@@ -23,17 +23,26 @@ import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_NATIVE_M
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.util.containers.ContainerUtil.map;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.BuildEnvironment;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
+import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager;
+import com.intellij.openapi.util.Ref;
 import java.io.File;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -312,5 +321,103 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("release", getVariant("app2"));
     assertEquals("release", getVariant("library1"));
     assertEquals("release", getVariant("library2"));
+  }
+
+  public void testVariantsAreCached() throws Exception {
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
+
+    final Ref<Boolean> syncPerformed = new Ref<>(false);
+    ExternalSystemProgressNotificationManager notificationManager =
+      ServiceManager.getService(ExternalSystemProgressNotificationManager.class);
+    ExternalSystemTaskNotificationListenerAdapter listener = new ExternalSystemTaskNotificationListenerAdapter() {
+      @Override
+      public void onEnd(@NotNull ExternalSystemTaskId id) {
+        syncPerformed.set(true);
+      }
+    };
+    notificationManager.addNotificationListener(listener);
+
+    try {
+      loadProject(TRANSITIVE_DEPENDENCIES);
+
+      // Verify that only debug variant is available.
+      List<String> expectedVariants = ImmutableList.of("debug");
+      verifyContainsVariant("app", expectedVariants);
+      verifyContainsVariant("library1", expectedVariants);
+      verifyContainsVariant("library2", expectedVariants);
+      assertTrue(syncPerformed.get());
+
+      // Switch selected variant from debug to release.
+      syncPerformed.set(false);
+      BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "release");
+
+      // Verify that debug and release variants are both available.
+      expectedVariants = ImmutableList.of("debug", "release");
+      verifyContainsVariant("app", expectedVariants);
+      verifyContainsVariant("library1", expectedVariants);
+      verifyContainsVariant("library2", expectedVariants);
+      assertTrue(syncPerformed.get());
+
+      // Switch back to debug.
+      syncPerformed.set(false);
+      BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "debug");
+      // Verify that no Gradle Sync was performed.
+      assertFalse(syncPerformed.get());
+    }
+    finally {
+      notificationManager.removeNotificationListener(listener);
+    }
+  }
+
+  private void verifyContainsVariant(@NotNull String moduleName, @NotNull List<String> expectedVariantNames) {
+    AndroidModuleModel androidModel = AndroidModuleModel.get(getModule(moduleName));
+    List<String> variantsInModel = map(androidModel.getVariants(), variant -> variant.getName());
+    assertThat(variantsInModel).containsExactlyElementsIn(expectedVariantNames);
+  }
+
+  public void testVariantsAreCachedWithNativeModules() throws Exception {
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
+
+    final Ref<Boolean> syncPerformed = new Ref<>(false);
+    ExternalSystemProgressNotificationManager notificationManager =
+      ServiceManager.getService(ExternalSystemProgressNotificationManager.class);
+    ExternalSystemTaskNotificationListenerAdapter listener = new ExternalSystemTaskNotificationListenerAdapter() {
+      @Override
+      public void onEnd(@NotNull ExternalSystemTaskId id) {
+        syncPerformed.set(true);
+      }
+    };
+    notificationManager.addNotificationListener(listener);
+
+    // app module depends on lib2
+    loadProject(DEPENDENT_NATIVE_MODULES);
+
+    // Verify that only debug-x86 abi is available.
+    List<String> expectedVariants = ImmutableList.of("debug-x86");
+    verifyContainsVariantAbi("app", expectedVariants);
+    verifyContainsVariantAbi("lib2", expectedVariants);
+    assertTrue(syncPerformed.get());
+
+    // Switch selected variant abi from x86 to armeabi-v7a.
+    syncPerformed.set(false);
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedAbi(getProject(), getModule("app").getName(), "armeabi-v7a");
+
+    // Verify that both of debug-x86 and debug-armeabi-v7a are available.
+    expectedVariants = ImmutableList.of("debug-x86", "debug-armeabi-v7a");
+    verifyContainsVariantAbi("app", expectedVariants);
+    verifyContainsVariantAbi("lib2", expectedVariants);
+    assertTrue(syncPerformed.get());
+
+    // Switch back to x86.
+    syncPerformed.set(false);
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedAbi(getProject(), getModule("app").getName(), "x86");
+    // Verify that no Gradle Sync was performed.
+    assertFalse(syncPerformed.get());
+  }
+
+  private void verifyContainsVariantAbi(@NotNull String moduleName, @NotNull List<String> expectedVariantNames) {
+    NdkModuleModel ndkModel = NdkModuleModel.get(getModule(moduleName));
+    List<String> variantsInModel = map(ndkModel.getVariants(), variant -> variant.getName());
+    assertThat(variantsInModel).containsExactlyElementsIn(expectedVariantNames);
   }
 }

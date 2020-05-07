@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 
 /**
- * Returns a [SqliteSchema] for a given [SqliteDatabase].
+ * Returns a [SqliteSchema] for a given [SqliteDatabaseId].
  */
 interface SchemaProvider {
-  fun getSchema(database: SqliteDatabase): SqliteSchema?
+  fun getSchema(databaseId: SqliteDatabaseId): SqliteSchema?
 }

@@ -16,18 +16,14 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.mlkit.lightpsi.ClassNames;
+import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.MlConstants;
-import com.android.tools.mlkit.MlkitNames;
+import com.android.tools.mlkit.MlNames;
 import com.android.tools.mlkit.ModelInfo;
-import com.android.tools.mlkit.ModelVerifier;
 import com.android.tools.mlkit.TensorInfo;
-import com.android.tools.mlkit.exception.TfliteModelException;
-import com.android.tools.mlkit.exception.UnsupportedTfliteException;
-import com.android.tools.mlkit.exception.UnsupportedTfliteMetadataException;
+import com.android.tools.mlkit.TfliteModelException;
 import com.android.utils.StringHelper;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Floats;
@@ -46,9 +42,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.newvfs.BulkFileListener;
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
@@ -117,7 +110,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static final String NAME = "TFLite Model File";
   private static final ImmutableList<String> TENSOR_TABLE_HEADER =
     ImmutableList.of("Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max");
-  private static final int MAX_LINE_LENGTH = 80;
   private static final String LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().getSeparatorString();
 
   private final Project myProject;
@@ -126,30 +118,22 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private final UiStyleTracker myUiStyleTracker;
   private final JBScrollPane myRootPane;
 
-  @VisibleForTesting
-  boolean myIsSampleCodeSectionVisible;
+  @Nullable private LightModelClass myLightModelClass;
 
   public TfliteModelFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myProject = project;
     myFile = file;
     myModule = ModuleUtilCore.findModuleForFile(file, project);
     myUiStyleTracker = new UiStyleTracker();
-    myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
+    myLightModelClass = getLatestLightModelClass();
     myRootPane = new JBScrollPane(createContentPanel());
 
-    project.getMessageBus().connect(project).subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
-      @Override
-      public void after(@NotNull List<? extends VFileEvent> events) {
-        for (VFileEvent event : events) {
-          if (myFile.equals(event.getFile())) {
-            myRootPane.setViewportView(createContentPanel());
-            return;
-          }
-        }
-      }
-    });
-
-    LoggingUtils.logEvent(EventType.MODEL_VIEWER_OPEN, file);
+    if (myLightModelClass != null) {
+      LoggingUtils.logEvent(EventType.MODEL_VIEWER_OPEN, myLightModelClass.getModelInfo());
+    }
+    else {
+      LoggingUtils.logEvent(EventType.MODEL_VIEWER_OPEN, file);
+    }
   }
 
   @NotNull
@@ -158,43 +142,48 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       return createWarningMessagePanel("This file is over the maximum supported size 200 MB.");
     }
 
-    JPanel contentPanel = createPanelWithYAxisBoxLayout(Borders.empty(20));
-    ByteBuffer byteBuffer;
     try {
-      byteBuffer = ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath()));
-      ModelVerifier.verifyModel(byteBuffer);
-    }
-    catch (UnsupportedTfliteException e) {
-      return createWarningMessagePanel("Unsupported TensorFlow Lite Model: " + e.getMessage());
-    }
-    catch (UnsupportedTfliteMetadataException e) {
-      return createWarningMessagePanel("Unsupported TensorFlow Lite Model Metadata: " + e.getMessage());
+      JPanel contentPanel = createPanelWithYAxisBoxLayout(Borders.empty(20));
+      ModelInfo modelInfo;
+      if (myLightModelClass != null) {
+        modelInfo = myLightModelClass.getModelInfo();
+      } else {
+        // Falls back to build model info from model file.
+        modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath())));
+      }
+
+      if (modelInfo.isMetadataExisted()) {
+        contentPanel.add(createModelSection(modelInfo));
+        contentPanel.add(createTensorsSection(modelInfo));
+      }
+      else {
+        contentPanel.add(createNoMetadataSection());
+      }
+
+      if (myLightModelClass != null) {
+        contentPanel.add(createSampleCodeSection(myLightModelClass, modelInfo));
+      }
+
+      return contentPanel;
     }
     catch (TfliteModelException e) {
-      return createWarningMessagePanel("Invalid TensorFlow Lite Model: " + e.getMessage());
+      return createWarningMessagePanel(e.getMessage());
     }
     catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
       return createWarningMessagePanel("Something goes wrong while reading model file.");
     }
+  }
 
-    ModelInfo modelInfo = ModelInfo.buildWithoutVerification(byteBuffer);
-    if (modelInfo.isMetadataExisted()) {
-      contentPanel.add(createModelSection(modelInfo));
-      contentPanel.add(createTensorsSection(modelInfo));
+  @Nullable
+  private LightModelClass getLatestLightModelClass() {
+    if (myModule != null) {
+      return MlModuleService.getInstance(myModule).getLightModelClassList().stream()
+        .filter(lightModelClass -> lightModelClass.getModelFile().getUrl().equals(myFile.getUrl()))
+        .findFirst()
+        .orElse(null);
     }
-    else {
-      contentPanel.add(createNoMetadataSection());
-    }
-    if (myModule != null && myIsSampleCodeSectionVisible) {
-      PsiClass modelClass = MlkitModuleService.getInstance(myModule)
-        .getOrCreateLightModelClass(new MlModelMetadata(myFile.getUrl()));
-      if (modelClass != null) {
-        contentPanel.add(createSampleCodeSection(modelClass, modelInfo));
-      }
-    }
-
-    return contentPanel;
+    return null;
   }
 
   @NotNull
@@ -394,11 +383,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   private static List<List<String>> getModelTableData(@NotNull ModelInfo modelInfo) {
     List<List<String>> tableData = new ArrayList<>();
-    tableData.add(Lists.newArrayList("Name", Strings.nullToEmpty(modelInfo.getModelName())));
-    tableData.add(Lists.newArrayList("Description", Strings.nullToEmpty(modelInfo.getModelDescription())));
-    tableData.add(Lists.newArrayList("Version", Strings.nullToEmpty(modelInfo.getModelVersion())));
-    tableData.add(Lists.newArrayList("Author", Strings.nullToEmpty(modelInfo.getModelAuthor())));
-    tableData.add(Lists.newArrayList("License", Strings.nullToEmpty(modelInfo.getModelLicense())));
+    tableData.add(Lists.newArrayList("Name", modelInfo.getModelName()));
+    tableData.add(Lists.newArrayList("Description", breakIntoMultipleLines(modelInfo.getModelDescription(), 80)));
+    tableData.add(Lists.newArrayList("Version", modelInfo.getModelVersion()));
+    tableData.add(Lists.newArrayList("Author", modelInfo.getModelAuthor()));
+    tableData.add(Lists.newArrayList("License", breakIntoMultipleLines(modelInfo.getModelLicense(), 80)));
     return tableData;
   }
 
@@ -407,15 +396,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     List<List<String>> tableData = new ArrayList<>();
     for (TensorInfo tensorInfo : tensorInfoList) {
       MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
-      String meanStdColumn = convertFloatArrayToString(params.getMean()) + " / " + convertFloatArrayToString(params.getStd());
-      String minMaxColumn = isValidMinMaxColumn(params)
-                            ? convertFloatArrayToString(params.getMin()) + " / " + convertFloatArrayToString(params.getMax())
-                            : "";
+      String meanStdColumn = convertFloatArrayPairToString(params.getMean(), params.getStd());
+      String minMaxColumn = isValidMinMaxColumn(params) ? convertFloatArrayPairToString(params.getMin(), params.getMax()) : "";
       tableData.add(
         Lists.newArrayList(
-          Strings.nullToEmpty(tensorInfo.getName()),
+          tensorInfo.getName(),
           getDisplayContentType(tensorInfo).toString(),
-          Strings.nullToEmpty(tensorInfo.getDescription()),
+          breakIntoMultipleLines(tensorInfo.getDescription(), 60),
           Arrays.toString(tensorInfo.getShape()),
           meanStdColumn,
           minMaxColumn
@@ -479,7 +466,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         .append(LINE_SEPARATOR);
     }
 
-    PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
+    PsiClass outputsClass = getInnerOutputsClass(modelClass);
     if (outputsClass != null) {
       Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
@@ -534,7 +521,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         .append(LINE_SEPARATOR);
     }
 
-    PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
+    PsiClass outputsClass = getInnerOutputsClass(modelClass);
     if (outputsClass != null) {
       Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
@@ -542,7 +529,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         codeBuilder
           .append(String.format("val %s = outputs.%s", tensorName, convertToKotlinPropertyName(psiMethod.getName())))
           .append(LINE_SEPARATOR);
-        switch (psiMethod.getReturnType().getCanonicalText()) {
+        switch (Objects.requireNonNull(psiMethod.getReturnType()).getCanonicalText()) {
           case ClassNames.TENSOR_LABEL:
             codeBuilder.append(String.format("val %sMap = %s.mapWithFloatValue", tensorName, tensorName)).append(LINE_SEPARATOR);
             break;
@@ -574,9 +561,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       switch (parameter.getType().getCanonicalText()) {
         case ClassNames.TENSOR_IMAGE:
           codeBuilder
-            .append(String.format("  TensorImage %s = new TensorImage();", parameter.getName()))
-            .append(LINE_SEPARATOR)
-            .append(String.format("  %s.load(bitmap);", parameter.getName()))
+            .append(String.format("  TensorImage %s = TensorImage.fromBitmap(bitmap);", parameter.getName()))
             .append(LINE_SEPARATOR);
           break;
         case ClassNames.TENSOR_BUFFER:
@@ -607,9 +592,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       switch (parameter.getType().getCanonicalText()) {
         case ClassNames.TENSOR_IMAGE:
           codeBuilder
-            .append(String.format("val %s = TensorImage()", parameter.getName()))
-            .append(LINE_SEPARATOR)
-            .append(String.format("%s.load(bitmap)", parameter.getName()))
+            .append(String.format("val %s = TensorImage.fromBitmap(bitmap)", parameter.getName()))
             .append(LINE_SEPARATOR);
           break;
         case ClassNames.TENSOR_BUFFER:
@@ -657,9 +640,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @Nullable
-  private static PsiClass getInnerClass(@NotNull PsiClass modelClass, @NotNull String innerClassName) {
+  private static PsiClass getInnerOutputsClass(@NotNull PsiClass modelClass) {
     for (PsiClass innerClass : modelClass.getInnerClasses()) {
-      if (innerClassName.equals(innerClass.getName())) {
+      if (MlNames.OUTPUTS.equals(innerClass.getName())) {
         return innerClass;
       }
     }
@@ -669,8 +652,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   @Override
   public JComponent getComponent() {
-    if (myUiStyleTracker.isUiStyleChanged() || myIsSampleCodeSectionVisible != shouldDisplaySampleCodeSection()) {
-      myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
+    LightModelClass lightModelClass = getLatestLightModelClass();
+    if (myUiStyleTracker.isUiStyleChanged() || !Objects.equals(myLightModelClass, lightModelClass)) {
+      myLightModelClass = lightModelClass;
       myRootPane.setViewportView(createContentPanel());
     }
     return myRootPane;
@@ -734,12 +718,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   public void dispose() {
   }
 
-  private boolean shouldDisplaySampleCodeSection() {
-    return myModule != null &&
-           MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule) &&
-           MlkitUtils.isModelFileInMlModelsFolder(myModule, myFile);
-  }
-
   @NotNull
   private static JPanel createPanelWithYAxisBoxLayout(@NotNull Border border) {
     JPanel sectionPanel = new JPanel();
@@ -760,25 +738,34 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private static String breakIntoMultipleLines(@NotNull String text) {
+  private static String breakIntoMultipleLines(@NotNull String text, int maxLineLength) {
     String[] words = text.split(" ");
     StringBuilder result = new StringBuilder();
     StringBuilder tmp = new StringBuilder();
     for (String word : words) {
-      tmp.append(word).append(" ");
-      if (tmp.length() > MAX_LINE_LENGTH) {
-        result.append(tmp).append(LINE_SEPARATOR);
+      if (word.isEmpty()) {
+        continue;
+      }
+
+      if (tmp.length() + word.length() > maxLineLength) {
+        result.append(tmp.toString().trim()).append(LINE_SEPARATOR);
         tmp.setLength(0);
       }
+      tmp.append(word).append(" ");
     }
-    result.append(tmp);
-    return result.toString().trim();
+
+    return result.append(tmp).toString().trim();
   }
 
   @NotNull
-  private static String convertFloatArrayToString(@NotNull float[] values) {
-    DecimalFormat decimalFormat = new DecimalFormat("#.###");
-    return IntStream.range(0, values.length).mapToObj(i -> decimalFormat.format(values[i])).collect(Collectors.joining(", ", "[", "]"));
+  private static String convertFloatArrayPairToString(@NotNull float[] array1, @NotNull float[] array2) {
+    DecimalFormat decimalFormat = new DecimalFormat("#.##");
+    String arrayString1 =
+      IntStream.range(0, array1.length).mapToObj(i -> decimalFormat.format(array1[i])).collect(Collectors.joining(", ", "[", "]"));
+    String arrayString2 =
+      IntStream.range(0, array2.length).mapToObj(i -> decimalFormat.format(array2[i])).collect(Collectors.joining(", ", "[", "]"));
+    String separator = " /" + (array1.length >= 3 || array2.length >= 3 ? LINE_SEPARATOR : " ");
+    return arrayString1 + separator + arrayString2;
   }
 
   private static boolean isCellContentTypeHtml(TableModel tableModel, int rowIndex, int columnIndex) {
@@ -790,13 +777,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     private final List<String> myHeaderData;
 
     private MetadataTableModel(@NotNull List<List<String>> rowDataList, @NotNull List<String> headerData) {
-      myRowDataList = ContainerUtil.map(rowDataList, row -> ContainerUtil.map(row, cellValue -> {
-        String newCellValue = breakIntoMultipleLines(cellValue);
-        if (URLUtil.URL_PATTERN.matcher(newCellValue).find()) {
-          newCellValue = HtmlUtils.plainTextToHtml(newCellValue);
-        }
-        return newCellValue;
-      }));
+      myRowDataList = ContainerUtil.map(rowDataList, row -> ContainerUtil.map(
+        row, cellValue -> URLUtil.URL_PATTERN.matcher(cellValue).find() ? HtmlUtils.plainTextToHtml(cellValue) : cellValue));
       myHeaderData = headerData;
     }
 

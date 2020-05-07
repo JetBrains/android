@@ -19,6 +19,7 @@ import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
@@ -66,23 +67,23 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   }
 
   private class ModuleAction extends DumbAwareAction {
-    @NotNull private final String myModuleName;
+    @NotNull private final String myModuleGradlePath;
 
     ModuleAction(@NotNull PsModule module) {
       super(fullPath(module), "", module.getIcon());
-      myModuleName = module.getName();
+      myModuleGradlePath = module.getGradlePath();
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-      myBasePerspective.selectModule(myModuleName);
+      myBasePerspective.selectModule(myModuleGradlePath);
     }
   }
 
   @NotNull
   private static String fullPath(@NotNull PsModule module) {
     String gradlePath = module.getGradlePath();
-    if (gradlePath == null) {
+    if (module instanceof PsAllModulesFakeModule) {
       return module.getName();
     }
     else {

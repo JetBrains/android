@@ -26,10 +26,10 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import org.jetbrains.android.sdk.AndroidSdkUtils.getTargetLabel
 
 data class InstalledEnvironments(
-    val buildTools: List<ValueDescriptor<String>>,
-    val androidSdks: List<ValueDescriptor<Int>>,
-    val compiledApis: List<ValueDescriptor<String>>,
-    val ndks: List<ValueDescriptor<String>>)
+  val buildTools: List<ValueDescriptor<String>>,
+  val androidSdks: List<ValueDescriptor<Int>>,
+  val compiledApis: List<ValueDescriptor<String>>,
+  val ndks: List<ValueDescriptor<String>>)
 
 fun installedEnvironments(): InstalledEnvironments {
   val sdkHandler = AndroidSdks.getInstance().tryToChooseAndroidSdk()?.sdkHandler
@@ -44,10 +44,10 @@ fun installedEnvironments(): InstalledEnvironments {
 
 fun installedEnvironments(sdkManager: RepoManager, targets: Collection<IAndroidTarget>): InstalledEnvironments {
   fun platformName(target: IAndroidTarget) =
-      if (target.isPlatform)
-        if (target.version.isPreview) AndroidTargetHash.getPlatformHashString(target.version) else target.version.apiString
-      else
-        AndroidTargetHash.getAddonHashString(target.vendor, target.name, target.version)
+    if (target.isPlatform)
+      if (target.version.isPreview) AndroidTargetHash.getPlatformHashString(target.version) else target.version.apiString
+    else
+      AndroidTargetHash.getAddonHashString(target.vendor, target.name, target.version)
 
   val buildToolsLocalPackages = sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_BUILD_TOOLS)
   val ndkLocalPackages = sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_NDK_SIDE_BY_SIDE)
@@ -58,10 +58,11 @@ fun installedEnvironments(sdkManager: RepoManager, targets: Collection<IAndroidT
   val ndksMap = ndkLocalPackages.map { it.version.toString() }.toSet()
 
   return InstalledEnvironments(
-      androidSdks = apisMap.map { ValueDescriptor(value = it.key, description = it.value) },
-      compiledApis = compiledApisMap.map { ValueDescriptor(value = it.key, description = it.value) },
-      buildTools = buildToolsMap.map { ValueDescriptor(value = it, description = null) },
-      ndks = listOf(ValueDescriptor(value = "", description="Use Default")) +
-              ndksMap.map { ValueDescriptor(value = it, description = null)}
+    androidSdks = apisMap.map { ValueDescriptor(value = it.key, description = it.value) },
+    compiledApis = compiledApisMap.map { ValueDescriptor(value = it.key, description = it.value) },
+    buildTools = buildToolsMap.map { ValueDescriptor(value = it, description = null) },
+    ndks = listOf(ValueDescriptor(value = "", description = "Use Default")) + ndksMap.map {
+      ValueDescriptor(value = it, description = null)
+    }
   )
 }

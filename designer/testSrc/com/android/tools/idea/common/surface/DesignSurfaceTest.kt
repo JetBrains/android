@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.google.common.collect.ImmutableList
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -131,6 +132,31 @@ class DesignSurfaceTest : LayoutTestCase() {
 
     assert(scene1.displayListVersion > oldVersion1)
     assert(scene2.displayListVersion > oldVersion2)
+  }
+
+  fun testDesignSurfaceModelOrdering() {
+    val builder = model("relative.xml",
+                        component(RELATIVE_LAYOUT)
+                          .withBounds(0, 0, 1000, 1000)
+                          .matchParentWidth()
+                          .matchParentHeight())
+    val model1 = builder.build()
+    val model2 = builder.build()
+    val model3 = builder.build()
+
+
+    val surface = TestDesignSurface(project, testRootDisposable)
+    surface.addModelWithoutRender(model1)
+    surface.addModelWithoutRender(model2)
+    surface.addModelWithoutRender(model3)
+
+    assertThat(surface.models).containsExactly(model1, model2, model3).inOrder()
+    surface.addModelWithoutRender(model3)
+    assertThat(surface.models).containsExactly(model1, model2, model3).inOrder()
+    surface.addModelWithoutRender(model1)
+    assertThat(surface.models).containsExactly(model2, model3, model1).inOrder()
+    surface.addModelWithoutRender(model3)
+    assertThat(surface.models).containsExactly(model2, model1, model3).inOrder()
   }
 }
 

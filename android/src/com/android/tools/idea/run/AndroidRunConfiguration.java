@@ -223,7 +223,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @NotNull
   @Override
-  protected ConsoleProvider getConsoleProvider() {
+  protected ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices) {
     return new ConsoleProvider() {
       @NotNull
       @Override

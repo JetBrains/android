@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory.chart
 
 import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.RangeTimeScrollBar
+import com.android.tools.adtui.TooltipComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.hchart.HTreeChart
 import com.android.tools.adtui.chart.hchart.HTreeChartVerticalScrollBar
@@ -28,16 +29,18 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.memory.ClassGrouping
+import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MemoryCaptureObjectTestUtils
-import com.android.tools.profilers.memory.MemoryProfilerConfiguration
 import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JComboBox
+import javax.swing.JComponent
 
 
 class MemoryVisualizationViewTest {
@@ -58,10 +61,9 @@ class MemoryVisualizationViewTest {
     loader.setReturnImmediateFuture(true)
     val fakeIdeProfilerServices = FakeIdeProfilerServices()
     fakeIdeProfilerComponents = FakeIdeProfilerComponents()
-    stage = MemoryProfilerStage(
-      StudioProfilers(ProfilerClient(myGrpcChannel.channel), fakeIdeProfilerServices, FakeTimer()),
-      loader)
-    visualizationView = MemoryVisualizationView(stage)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), fakeIdeProfilerServices, FakeTimer())
+    stage = MemoryProfilerStage(profilers, loader)
+    visualizationView = MemoryVisualizationView(stage.captureSelection, StudioProfilersView(profilers, fakeIdeProfilerComponents))
   }
 
   @Test
@@ -75,12 +77,12 @@ class MemoryVisualizationViewTest {
   @Test
   fun classGroupingResetOnDeselected() {
     val heapSet = MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage)
-    heapSet.classGrouping = MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS
-    assertThat(heapSet.classGrouping).isEqualTo(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS)
+    heapSet.classGrouping = ClassGrouping.ARRANGE_BY_CLASS
+    assertThat(heapSet.classGrouping).isEqualTo(ClassGrouping.ARRANGE_BY_CLASS)
     visualizationView.onSelectionChanged(true)
-    assertThat(heapSet.classGrouping).isEqualTo(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK)
+    assertThat(heapSet.classGrouping).isEqualTo(ClassGrouping.ARRANGE_BY_CALLSTACK)
     visualizationView.onSelectionChanged(false)
-    assertThat(heapSet.classGrouping).isEqualTo(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS)
+    assertThat(heapSet.classGrouping).isEqualTo(ClassGrouping.ARRANGE_BY_CLASS)
   }
 
   @Test
@@ -105,7 +107,6 @@ class MemoryVisualizationViewTest {
     assertThat(walker.descendants().filterIsInstance<RangeTimeScrollBar>()).hasSize(1)
     assertThat(walker.descendants().filterIsInstance<HTreeChart<ClassifierSetHNode>>()).hasSize(1)
     assertThat(walker.descendants().filterIsInstance<HTreeChartVerticalScrollBar<ClassifierSetHNode>>()).hasSize(1)
-
   }
 
   @Test
@@ -119,5 +120,18 @@ class MemoryVisualizationViewTest {
       MemoryVisualizationModel.XAxisFilter.TOTAL_COUNT
     axis = TreeWalker(component).descendants().filterIsInstance<AxisComponent>().first()
     assertThat(axis.model.dataRange).isWithin(.002).of(heapSet.totalObjectCount.toDouble())
+  }
+
+  @Test
+  fun chartHasTooltip() {
+    val component = visualizationView.component
+    MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage)
+    visualizationView.onSelectionChanged(true)
+    val walker = TreeWalker(component)
+    val chart = walker.descendants().filterIsInstance<HTreeChart<ClassifierSetHNode>>().first() as JComponent
+    assertThat(chart.mouseMotionListeners).isNotEmpty()
+    assertThat(chart.mouseMotionListeners[0].javaClass.name).contains(HTreeChart::class.java.name)
+    assertThat(chart.mouseMotionListeners[1].javaClass.name).contains(TooltipComponent::class.java.name)
+    assertThat(chart.mouseMotionListeners[2]).isInstanceOf(MemoryVisualizationTooltipView::class.java)
   }
 }

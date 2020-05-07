@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
@@ -100,9 +101,9 @@ class AndroidTestResultsTableViewTest {
     val table = AndroidTestResultsTableView(mockListener)
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
-    val testcase1OnDevice1 = AndroidTestCase("testid1", "testname1")
-    val testcase2OnDevice1 = AndroidTestCase("testid2", "testname2")
-    val testcase1OnDevice2 = AndroidTestCase("testid1", "testname1")
+    val testcase1OnDevice1 = AndroidTestCase("testid1", "method1", "class1", "package1")
+    val testcase2OnDevice1 = AndroidTestCase("testid2", "method2", "class2", "package2")
+    val testcase1OnDevice2 = AndroidTestCase("testid1", "method1", "class1", "package1")
 
     table.addDevice(device1)
     table.addDevice(device2)
@@ -112,10 +113,10 @@ class AndroidTestResultsTableViewTest {
 
     // No test cases are finished yet.
     assertThat(table.getModelForTesting().rowCount).isEqualTo(2)
-    assertThat(table.getModelForTesting().getItem(0).testCaseName).isEqualTo("testname1")
+    assertThat(table.getModelForTesting().getItem(0).getTestCaseName()).isEqualTo("class1.method1")
     assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
     assertThat(table.getModelForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
-    assertThat(table.getModelForTesting().getItem(1).testCaseName).isEqualTo("testname2")
+    assertThat(table.getModelForTesting().getItem(1).getTestCaseName()).isEqualTo("class2.method2")
     assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
     assertThat(table.getModelForTesting().getItem(1).getTestCaseResult(device2)).isNull()
 
@@ -143,7 +144,9 @@ class AndroidTestResultsTableViewTest {
     val device1 = device("deviceId1", "deviceName1")
     val retentionFilePath = "foo"
     val testcase1OnDevice1 = AndroidTestCase(id = "testid1",
-                                             name = "testname1",
+                                             methodName = "method1",
+                                             className = "class1",
+                                             packageName = "package1",
                                              result = AndroidTestCaseResult.FAILED,
                                              retentionSnapshot = File(retentionFilePath))
 
@@ -162,17 +165,17 @@ class AndroidTestResultsTableViewTest {
 
     table.addDevice(device1)
     table.addDevice(device2)
-    table.addTestCase(device1, AndroidTestCase("testid1", "testname1", AndroidTestCaseResult.PASSED, "test logcat message"))
-    table.addTestCase(device1, AndroidTestCase("testid2", "testname2", AndroidTestCaseResult.FAILED))
-    table.addTestCase(device2, AndroidTestCase("testid1", "testname1", AndroidTestCaseResult.SKIPPED))
-    table.addTestCase(device2, AndroidTestCase("testid2", "testname2", AndroidTestCaseResult.SKIPPED))
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.PASSED, "test logcat message"))
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.FAILED))
+    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.SKIPPED))
+    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.SKIPPED))
 
     // Select the test case 1. Click on the test name column.
     table.getTableViewForTesting().addColumnSelectionInterval(0, 0)
     table.getTableViewForTesting().selectionModel.addSelectionInterval(0, 0)
 
     verify(mockListener).onAndroidTestResultsRowSelected(argThat { results ->
-      results.testCaseName == "testname1" &&
+      results.getTestCaseName() == "class1.method1" &&
       results.getTestCaseResult(device1) == AndroidTestCaseResult.PASSED &&
       results.getLogcat(device1) == "test logcat message" &&
       results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
@@ -183,7 +186,7 @@ class AndroidTestResultsTableViewTest {
     table.getTableViewForTesting().selectionModel.addSelectionInterval(1, 1)
 
     verify(mockListener).onAndroidTestResultsRowSelected(argThat { results ->
-      results.testCaseName == "testname2" &&
+      results.getTestCaseName() == "class2.method2" &&
       results.getTestCaseResult(device1) == AndroidTestCaseResult.FAILED &&
       results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
     }, eq(device2))
@@ -194,7 +197,7 @@ class AndroidTestResultsTableViewTest {
     table.getTableViewForTesting().selectionModel.addSelectionInterval(1, 1)
 
     verify(mockListener, times(2)).onAndroidTestResultsRowSelected(argThat { results ->
-      results.testCaseName == "testname2" &&
+      results.getTestCaseName() == "class2.method2" &&
       results.getTestCaseResult(device1) == AndroidTestCaseResult.FAILED &&
       results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
     }, eq(device2))
@@ -204,14 +207,14 @@ class AndroidTestResultsTableViewTest {
   fun setRowFilter() {
     val table = AndroidTestResultsTableView(mockListener)
     val device = device("deviceId", "deviceName")
-    val testcase1 = AndroidTestCase("testid1", "testname1")
-    val testcase2 = AndroidTestCase("testid2", "testname2")
+    val testcase1 = AndroidTestCase("testid1", "method1", "class1", "package1")
+    val testcase2 = AndroidTestCase("testid2", "method2", "class2", "package2")
 
     table.addDevice(device)
     table.addTestCase(device, testcase1)
     table.addTestCase(device, testcase2)
     table.setRowFilter { results ->
-      results.testCaseName == "testname2"
+      results.getTestCaseName() == "class2.method2"
     }
 
     val view = table.getTableViewForTesting()
@@ -251,13 +254,13 @@ class AndroidTestResultsTableViewTest {
     table.addDevice(device1)
     table.addDevice(device2)
     table.addTestCase(device1,
-                      AndroidTestCase("testid1", "Z_testname1", AndroidTestCaseResult.SKIPPED))
+                      AndroidTestCase("testid1", "Z_method1", "Z_class1", "package1", AndroidTestCaseResult.SKIPPED))
     table.addTestCase(device1,
-                      AndroidTestCase("testid2", "A_testname2", AndroidTestCaseResult.PASSED))
+                      AndroidTestCase("testid2", "A_method2", "A_class2", "package2", AndroidTestCaseResult.PASSED))
     table.addTestCase(device2,
-                      AndroidTestCase("testid1", "Z_testname1", AndroidTestCaseResult.FAILED))
+                      AndroidTestCase("testid1", "Z_method1", "Z_class1", "package1", AndroidTestCaseResult.FAILED))
     table.addTestCase(device2,
-                      AndroidTestCase("testid2", "A_testname2", AndroidTestCaseResult.PASSED))
+                      AndroidTestCase("testid2", "A_method2", "A_class2", "package2", AndroidTestCaseResult.PASSED))
 
     val view = table.getTableViewForTesting()
     assertThat(view.rowCount).isEqualTo(2)
@@ -298,7 +301,9 @@ class AndroidTestResultsTableViewTest {
   private fun argThat(matcher: (AndroidTestResults) -> Boolean): AndroidTestResults {
     ArgumentMatchers.argThat(matcher)
     return object : AndroidTestResults {
-      override val testCaseName: String = ""
+      override val methodName: String = ""
+      override val className: String = ""
+      override val packageName: String = ""
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
       override fun getTestResultSummary(): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
       override fun getLogcat(device: AndroidDevice): String = ""

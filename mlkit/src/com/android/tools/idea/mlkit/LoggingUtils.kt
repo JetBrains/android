@@ -34,6 +34,21 @@ import java.nio.ByteBuffer
 
 private val MODEL_METADATA_KEY = Key.create<ModelMetadata>("model_metadata")
 
+fun logEvent(eventType: EventType, modelInfo: ModelInfo) {
+  UsageTracker.log(
+    AndroidStudioEvent.newBuilder()
+      .setKind(AndroidStudioEvent.EventKind.ML_MODEL_BINDING)
+      .setMlModelBindingEvent(
+        MlModelBindingEvent.newBuilder()
+          .setEventType(eventType)
+          .addModelMetadatas(
+            ModelMetadata.newBuilder()
+              .setIsValidModel(true)
+              .setHasMetadata(modelInfo.isMetadataExisted)
+              .setFileSize(modelInfo.modelSize)
+              .setFileHash(modelInfo.modelHash))))
+}
+
 fun logEvent(eventType: EventType, modelFile: VirtualFile) {
   ApplicationManager.getApplication().executeOnPooledThread(Runnable {
     UsageTracker.log(

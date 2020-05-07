@@ -22,14 +22,15 @@ import com.intellij.openapi.util.SimpleModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.util.indexing.FileBasedIndex;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Tracks the modification of model files in the whole project.
  */
-// TODO(b/155121511): try to remove the similar file tracker from MlkitModuleService.
 @Service
 public final class ProjectMlModelFileTracker extends SimpleModificationTracker {
 
@@ -37,12 +38,22 @@ public final class ProjectMlModelFileTracker extends SimpleModificationTracker {
     project.getMessageBus().connect(project).subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
       public void after(@NotNull List<? extends VFileEvent> events) {
+        boolean hasModelFile = false;
+        boolean needRebuildIndex = false;
         for (VFileEvent event : events) {
           VirtualFile file = event.getFile();
           if (file != null && file.getFileType() == TfliteModelFileType.INSTANCE) {
-            incModificationCount();
-            return;
+            hasModelFile = true;
+            if (event instanceof VFileContentChangeEvent) {
+              needRebuildIndex = true;
+            }
           }
+        }
+        if (hasModelFile) {
+          incModificationCount();
+        }
+        if (needRebuildIndex) {
+          FileBasedIndex.getInstance().requestRebuild(MlModelFileIndex.INDEX_ID);
         }
       }
     });

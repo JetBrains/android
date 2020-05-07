@@ -19,10 +19,20 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.util.parentOfType
+import com.intellij.testFramework.UsefulTestCase
+import com.intellij.testFramework.builders.JavaModuleFixtureBuilder
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
+import com.intellij.testFramework.fixtures.ModuleFixture
+import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -30,10 +40,11 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
+import java.io.File
 
 class DaggerUtilTest : DaggerTestCase() {
 
-  private fun getProvidersForInjectedField_kotlin(fieldType: String, qualifier: String = ""): Collection<PsiMethod> {
+  private fun getProvidersForInjectedField_kotlin(fieldType: String, qualifier: String = ""): Collection<PsiNamedElement> {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
       //language=kotlin
@@ -48,10 +59,10 @@ class DaggerUtilTest : DaggerTestCase() {
       """.trimIndent()
     )
 
-    return getDaggerProvidersFor(myFixture.moveCaret("injectedF|ield").parentOfType<KtProperty>()!!)
+    return getDaggerProvidersFor(myFixture.moveCaret("injectedF|ield").parentOfType<KtProperty>()!!) as Collection<PsiNamedElement>
   }
 
-  private fun getProvidersForInjectedField(fieldType: String, qualifier: String = ""): Collection<PsiMethod> {
+  private fun getProvidersForInjectedField(fieldType: String, qualifier: String = ""): Collection<PsiNamedElement> {
     myFixture.configureByText(
       //language=JAVA
       JavaFileType.INSTANCE,
@@ -65,7 +76,7 @@ class DaggerUtilTest : DaggerTestCase() {
         }
       """.trimIndent()
     )
-    return getDaggerProvidersFor(myFixture.moveCaret("injected|Field").parentOfType<PsiField>()!!)
+    return getDaggerProvidersFor(myFixture.moveCaret("injected|Field").parentOfType<PsiField>()!!) as Collection<PsiNamedElement>
   }
 
   fun testIsConsumerForInjectField() {
@@ -814,5 +825,300 @@ class DaggerUtilTest : DaggerTestCase() {
       myFixture.moveCaret("interface MyCompon|entKt").parentOfType<KtClass>()!!.toLightClass()!!)
     assertThat(components).hasSize(1)
     assertThat(components.map { it.name }).contains("MyDependantComponent")
+  }
+
+  fun testIsProvider_BindsInstance() {
+    // Java Module
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      //language=JAVA
+      """
+        package test;
+        import dagger.Module;
+        import dagger.Component;
+        import dagger.BindsInstance;
+
+        @Module
+        class MyModule2 {
+          @BindsInstance String bindsString();
+        }
+      """.trimIndent()
+    )
+
+    val bindsString = myFixture.moveCaret("bindsSt|ring").parentOfType<PsiMethod>()!!
+    assertThat(bindsString.isDaggerProvider).isTrue()
+
+    // Java Component
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      //language=JAVA
+      """
+        package test;
+        import dagger.Component;
+        import dagger.BindsInstance;
+
+        @Component
+        interface Component {
+          String stringBuilder(@BindsInstance String string) {}
+        }
+      """.trimIndent()
+    )
+
+    val string = myFixture.moveCaret("@BindsInstance String st|ring").parentOfType<PsiParameter>()!!
+    assertThat(string.isDaggerProvider).isTrue()
+
+    // Kotlin Module and Component.
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import dagger.BindsInstance
+        import dagger.Component
+        import dagger.Module
+
+        @Module
+        class MyClass {
+          @BindsInstance fun bindsStringKt():String {}
+        }
+
+        @Component
+        interface AppComponent {
+          @Component.Factory
+          interface Factory {
+              fun create(@BindsInstance stringKt: String): AppComponent
+          }
+        }
+      """.trimIndent()
+    )
+
+    val bindsStringKt = myFixture.moveCaret("bindsSt|ringKt").parentOfType<KtFunction>()!!
+    assertThat(bindsStringKt.isDaggerProvider).isTrue()
+
+    val stringKt = myFixture.moveCaret("string|Kt").parentOfType<KtParameter>()!!
+    assertThat(stringKt.isDaggerProvider).isTrue()
+
+  }
+
+  fun testGetDaggerProviders_kotlin_bindsInstanceMethod() {
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import dagger.BindsInstance
+        import dagger.Module
+
+        @Module
+        abstract class MyClass {
+          @BindsInstance abstract fun bindsMethod():String {}
+          fun builder(@BindsInstance str:String) {}
+        }
+      """.trimIndent()
+    )
+
+    // Consumer in JAVA.
+    var providers = getProvidersForInjectedField("String")
+    assertThat(providers).hasSize(2)
+    assertThat(providers.map { it.name }).containsExactly("bindsMethod", "str")
+
+    // Consumer in kotlin.
+    providers = getProvidersForInjectedField_kotlin("String")
+    assertThat(providers).hasSize(2)
+    assertThat(providers.map { it.name }).containsExactly("bindsMethod", "str")
+  }
+
+  fun testGetDaggerProviders_bindsInstanceMethod() {
+    // Java Module
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      //language=JAVA
+      """
+        package test;
+        import dagger.Module;
+        import dagger.Component;
+        import dagger.BindsInstance;
+
+        @Module
+        class MyModule2 {
+          @BindsInstance String bindsString();
+        }
+      """.trimIndent()
+    )
+
+    // Java Component
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      //language=JAVA
+      """
+        package test;
+        import dagger.Component;
+        import dagger.BindsInstance;
+
+        @Component
+        interface Component {
+          String stringBuilder(@BindsInstance String string) {}
+        }
+      """.trimIndent()
+    )
+
+    // Consumer in JAVA.
+    var providers = getProvidersForInjectedField("String")
+    assertThat(providers).hasSize(2)
+    assertThat(providers.map { it.name }).containsExactly("bindsString", "string")
+
+    // Consumer in kotlin.
+    providers = getProvidersForInjectedField_kotlin("String")
+    assertThat(providers).hasSize(2)
+    assertThat(providers.map { it.name }).containsExactly("bindsString", "string")
+  }
+
+  fun testUnboxTypes() {
+    // JAVA provider.
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import dagger.Provides;
+        import dagger.Module;
+
+        @Module
+        class MyClass {
+          @Provides Integer provider() {}
+          @Provides int provider2() {}
+        }
+      """.trimIndent()
+    )
+    // Kotlin provider.
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import dagger.Provides
+        import dagger.Module
+
+        @Module
+        class MyClassKt {
+          @Provides fun provider():Int? {}
+          @Provides fun provider2():Int {}
+        }
+      """.trimIndent()
+    )
+
+    // Consumer in JAVA.
+    assertThat(getProvidersForInjectedField("int")).hasSize(4)
+    assertThat(getProvidersForInjectedField("Integer")).hasSize(4)
+
+    // Consumer in kotlin.
+    assertThat(getProvidersForInjectedField_kotlin("Int")).hasSize(4)
+    assertThat(getProvidersForInjectedField_kotlin("Int?")).hasSize(4)
+  }
+}
+
+class DaggerCrossModuleTest : UsefulTestCase() {
+
+  private lateinit var myFixture: JavaCodeInsightTestFixture
+
+  private lateinit var moduleA: Module
+  private lateinit var moduleDependsOnModuleA: Module
+
+  /**
+   * Set up with two modules where moduleDependsOnModuleA depends on moduleA.
+   */
+  override fun setUp() {
+    super.setUp()
+
+    val projectBuilder = JavaTestFixtureFactory.createFixtureBuilder(name)
+    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture)
+
+    val daggerModuleFixture = newModule(projectBuilder, "DaggerCrossModuleTest_dagger")
+    val moduleAFixture = newModule(projectBuilder, "DaggerCrossModuleTest_moduleA")
+    val moduleDependsOnModuleAFixture = newModule(projectBuilder, "DaggerCrossModuleTest_moduleDependsOnModuleA")
+
+    myFixture.setUp()
+
+    // Make a dagger module actually dagger by adding dagger.Module/Provides annotations.
+    myFixture.addFileToProject(
+      "DaggerCrossModuleTest_dagger/src/dagger/DaggerInit.kt",
+      // language=kotlin
+      """
+      package dagger
+
+      annotation class Module
+      annotation class Provides
+      """.trimIndent()
+    )
+    moduleA = moduleAFixture.module
+    moduleDependsOnModuleA = moduleDependsOnModuleAFixture.module
+
+    ModuleRootModificationUtil.addDependency(moduleDependsOnModuleA, daggerModuleFixture.module)
+    ModuleRootModificationUtil.addDependency(moduleA, daggerModuleFixture.module)
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    myFixture.tearDown()
+  }
+
+  private fun newModule(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>, contentRoot: String): ModuleFixture {
+    val firstProjectBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder::class.java)
+    val tempDirPath = myFixture.tempDirPath
+
+    // Create a new content root for each module, and create a directory for it manually
+    val contentRootPath = "$tempDirPath/$contentRoot"
+    File(contentRootPath).mkdir()
+
+    // Call the builder
+    return firstProjectBuilder
+      .addContentRoot(contentRootPath)
+      .addSourceRoot("src")
+      .fixture
+  }
+
+  fun test() {
+    val fileInModuleThatDependsOnModuleA = myFixture.addFileToProject(
+      "DaggerCrossModuleTest_moduleDependsOnModuleA/src/test2/MyModule2.java",
+      // language=JAVA
+      """
+      package test2;
+      import dagger.Module;
+      import dagger.Provides;
+
+      @Module
+      public class MyModule2 {
+        @Provides String stringProvider() {}
+      }
+      """.trimIndent()
+    ).virtualFile
+
+    val fileInModuleA = myFixture.addFileToProject(
+      "DaggerCrossModuleTest_moduleA/src/test/MyModule1.java",
+      // language=JAVA
+      """
+      package test;
+      import dagger.Module;
+      import dagger.Provides;
+
+      @Module
+      public class MyModule1 {
+        @Provides Integer intProvider(String consumer) {}
+      }
+      """.trimIndent()
+    ).virtualFile
+
+    myFixture.configureFromExistingVirtualFile(fileInModuleA)
+
+    var providers = getDaggerProvidersFor(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>()!!)
+
+    assertThat(providers).hasSize(0)
+
+    ModuleRootModificationUtil.addDependency(moduleDependsOnModuleA, moduleA)
+
+    providers = getDaggerProvidersFor(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>()!!)
+    assertThat(providers).hasSize(1)
+    assertThat((providers.single() as PsiNamedElement).name).isEqualTo("stringProvider")
+
+    myFixture.configureFromExistingVirtualFile(fileInModuleThatDependsOnModuleA)
+    val consumers = getDaggerConsumersFor(myFixture.moveCaret("stringProvid|er").parentOfType<PsiMethod>()!!)
+    assertThat(consumers).hasSize(1)
+    assertThat((consumers.single() as PsiNamedElement).name).isEqualTo("consumer")
   }
 }

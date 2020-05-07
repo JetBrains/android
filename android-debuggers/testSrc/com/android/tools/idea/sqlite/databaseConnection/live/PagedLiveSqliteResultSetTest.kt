@@ -16,27 +16,36 @@
 package com.android.tools.idea.sqlite.databaseConnection.live
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
-import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteValue
-import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.Futures.immediateFuture
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.LightPlatformTestCase.assertThrows
 import org.jetbrains.ide.PooledThreadExecutor
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 
 class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
   private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
+
+  class FakeMessenger(val originalQuery: String, val response: ListenableFuture<ByteArray>) : AppInspectorClient.CommandMessenger {
+    override fun disposeInspector(): ListenableFuture<Unit> = immediateFuture(Unit)
+
+    override fun sendRawCommand(rawData: ByteArray): ListenableFuture<ByteArray> {
+      val parsed = SqliteInspectorProtocol.Command.parseFrom(rawData)
+      assertNotSame("In paged version of ResultSet we should never run the original query ", originalQuery, parsed.query.query)
+      return response
+    }
+  }
 
   fun testColumnsReturnCorrectListOfColumns() {
     // Prepare
@@ -46,11 +55,9 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
       .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addAllColumnNames(columnNames))
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-      .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
-
-    val resultSet = createPagedLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
+    val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
+    val mockMessenger = FakeMessenger(statement.sqliteStatementText, immediateFuture(cursor.toByteArray()))
+    val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
     // Act
     val columnsFromResultSet = pumpEventsAndWaitForFuture(resultSet.columns)
@@ -78,11 +85,9 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
       .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addAllColumnNames(columnNames).addRows(row))
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-      .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
-
-    val resultSet = createPagedLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
+    val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
+    val mockMessenger = FakeMessenger(statement.sqliteStatementText, immediateFuture(cursor.toByteArray()))
+    val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
     // Act
     val rowCount = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
@@ -93,18 +98,10 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
 
   fun testRowCountFailsIfDisposed() {
     // Prepare
-    val row = SqliteInspectorProtocol.Row.newBuilder().build()
-
-    val cursor = SqliteInspectorProtocol.Response.newBuilder()
-      .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addRows(row))
-      .build()
-
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-      .thenReturn(SettableFuture.create())
-
+    val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT COUNT(*) FROM (query)")
+    val mockMessenger = FakeMessenger(statement.sqliteStatementText, SettableFuture.create())
     val resultSet = createPagedLiveSqliteResultSet(
-      SqliteStatement(SqliteStatementType.SELECT, "SELECT COUNT(*) FROM (query)"), mockMessenger
+      statement, mockMessenger
     )
     Disposer.register(project, resultSet)
 
@@ -131,11 +128,9 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
       .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addAllColumnNames(columnNames).addRows(row))
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-      .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
-
-    val resultSet = createPagedLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
+    val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
+    val mockMessenger = FakeMessenger(statement.sqliteStatementText, immediateFuture(cursor.toByteArray()))
+    val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
     // Act
     // Since we are mocking the answer the values passed to getRowBatch don't matter.
@@ -149,17 +144,11 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
 
   fun testGetRowBatchFailsIfDisposed() {
     // Prepare
-    val row = SqliteInspectorProtocol.Row.newBuilder().build()
 
-    val cursor = SqliteInspectorProtocol.Response.newBuilder()
-      .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addRows(row))
-      .build()
+    val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
+    val mockMessenger = FakeMessenger(statement.sqliteStatementText, SettableFuture.create())
+    val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-      .thenReturn(SettableFuture.create())
-
-    val resultSet = createPagedLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
     Disposer.register(project, resultSet)
 
     // Act / Assert
@@ -175,11 +164,9 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
       .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addRows(row))
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-      .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
-
-    val resultSet = createPagedLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
+    val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
+    val mockMessenger = FakeMessenger(statement.sqliteStatementText, immediateFuture(cursor.toByteArray()))
+    val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
     // Act / Assert
     assertThrows<IllegalArgumentException>(IllegalArgumentException::class.java) {
@@ -195,11 +182,9 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
       .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addRows(row))
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-      .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
-
-    val resultSet = createPagedLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
+    val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
+    val mockMessenger = FakeMessenger(statement.sqliteStatementText, immediateFuture(cursor.toByteArray()))
+    val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
     // Act / Assert
     assertThrows<IllegalArgumentException>(IllegalArgumentException::class.java) {
@@ -221,10 +206,9 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
       .setErrorOccurred(errorOccurredEvent)
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
-
-    val resultSet = createPagedLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
+    val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
+    val mockMessenger = FakeMessenger(statement.sqliteStatementText, immediateFuture(cursor.toByteArray()))
+    val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(resultSet.columns)
@@ -252,10 +236,9 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
       .setErrorOccurred(errorOccurredEvent)
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
-
-    val resultSet = createPagedLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
+    val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
+    val mockMessenger = FakeMessenger(statement.sqliteStatementText, immediateFuture(cursor.toByteArray()))
+    val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(resultSet.columns)
@@ -283,10 +266,9 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
       .setErrorOccurred(errorOccurredEvent)
       .build()
 
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
-
-    val resultSet = createPagedLiveSqliteResultSet(SqliteStatement(SqliteStatementType.SELECT, "SELECT"), mockMessenger)
+    val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
+    val mockMessenger = FakeMessenger(statement.sqliteStatementText, immediateFuture(cursor.toByteArray()))
+    val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
     // Act / Assert
     val error1 = pumpEventsAndWaitForFutureException(resultSet.columns)

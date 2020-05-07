@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
-import com.android.tools.profilers.cpu.atrace.AtraceFrame;
+import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
 import java.awt.Color;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
@@ -35,16 +35,16 @@ public class FramesTrackRenderer implements TrackRenderer<CpuFramesModel.FrameSt
   @NotNull
   @Override
   public JComponent render(@NotNull TrackModel<CpuFramesModel.FrameState, ProfilerTrackRendererType> trackModel) {
-    StateChart<AtraceFrame> stateChart = new StateChart<>(
+    StateChart<SystemTraceFrame> stateChart = new StateChart<>(
       trackModel.getDataModel().getModel(), new FrameColorProvider(), new FrameTextConverter());
     stateChart.setRenderMode(StateChart.RenderMode.TEXT);
     return stateChart;
   }
 
-  private static class FrameColorProvider extends StateChartColorProvider<AtraceFrame> {
+  private static class FrameColorProvider extends StateChartColorProvider<SystemTraceFrame> {
     @NotNull
     @Override
-    public Color getColor(boolean isMouseOver, @NotNull AtraceFrame value) {
+    public Color getColor(boolean isMouseOver, @NotNull SystemTraceFrame value) {
       switch (value.getTotalPerfClass()) {
         case BAD:
           return isMouseOver ? ProfilerColors.SLOW_FRAME_COLOR_HIGHLIGHTED : ProfilerColors.SLOW_FRAME_COLOR;
@@ -56,12 +56,12 @@ public class FramesTrackRenderer implements TrackRenderer<CpuFramesModel.FrameSt
     }
   }
 
-  private static class FrameTextConverter implements StateChartTextConverter<AtraceFrame> {
+  private static class FrameTextConverter implements StateChartTextConverter<SystemTraceFrame> {
     @NotNull
     @Override
-    public String convertToString(@NotNull AtraceFrame value) {
+    public String convertToString(@NotNull SystemTraceFrame value) {
       // Show timing on bad frames.
-      if (value.getTotalPerfClass() == AtraceFrame.PerfClass.BAD) {
+      if (value.getTotalPerfClass() == SystemTraceFrame.PerfClass.BAD) {
         return TimeFormatter.getSingleUnitDurationString(value.getDurationUs());
       }
       return "";

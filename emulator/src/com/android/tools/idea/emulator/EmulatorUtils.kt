@@ -19,13 +19,13 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.Rotation.SkinRotation
-import com.android.tools.idea.npw.assetstudio.roundToInt
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 /**
  * Invokes given function on the UI thread regardless of the modality state.
@@ -50,12 +50,6 @@ internal fun createHardwareKeyEvent(keyName: String, eventType: KeyEventType = K
  */
 internal inline val SkinRotation.is90Degrees
   get() = ordinal % 2 != 0
-
-/**
- * Returns the rotation that is that is less than this one by 90 degrees.
- */
-internal fun SkinRotation.decrementedBy90Degrees(): SkinRotation =
-  SkinRotation.forNumber((ordinal + 3) % 4)
 
 /**
  * Returns this integer scaled and rounded to the closest integer.

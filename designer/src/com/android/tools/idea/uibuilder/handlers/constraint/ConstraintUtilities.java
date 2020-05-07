@@ -24,7 +24,7 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.TextWidget;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.TextWidgetConstants;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,17 +50,17 @@ public class ConstraintUtilities {
   };
 
   static {
-    alignmentMap_rtl.put(SdkConstants.TextAlignment.CENTER, TextWidget.TEXT_ALIGNMENT_CENTER);
-    alignmentMap_rtl.put(SdkConstants.TextAlignment.TEXT_START, TextWidget.TEXT_ALIGNMENT_TEXT_START);
-    alignmentMap_rtl.put(SdkConstants.TextAlignment.TEXT_END, TextWidget.TEXT_ALIGNMENT_TEXT_END);
-    alignmentMap_rtl.put(SdkConstants.TextAlignment.VIEW_START, TextWidget.TEXT_ALIGNMENT_VIEW_END);
-    alignmentMap_rtl.put(SdkConstants.TextAlignment.VIEW_END,  TextWidget.TEXT_ALIGNMENT_VIEW_START);
+    alignmentMap_rtl.put(SdkConstants.TextAlignment.CENTER, TextWidgetConstants.TEXT_ALIGNMENT_CENTER);
+    alignmentMap_rtl.put(SdkConstants.TextAlignment.TEXT_START, TextWidgetConstants.TEXT_ALIGNMENT_TEXT_START);
+    alignmentMap_rtl.put(SdkConstants.TextAlignment.TEXT_END, TextWidgetConstants.TEXT_ALIGNMENT_TEXT_END);
+    alignmentMap_rtl.put(SdkConstants.TextAlignment.VIEW_START, TextWidgetConstants.TEXT_ALIGNMENT_VIEW_END);
+    alignmentMap_rtl.put(SdkConstants.TextAlignment.VIEW_END, TextWidgetConstants.TEXT_ALIGNMENT_VIEW_START);
 
-    alignmentMap_ltr.put(SdkConstants.TextAlignment.CENTER, TextWidget.TEXT_ALIGNMENT_CENTER);
-    alignmentMap_ltr.put(SdkConstants.TextAlignment.TEXT_START,  TextWidget.TEXT_ALIGNMENT_TEXT_START);
-    alignmentMap_ltr.put(SdkConstants.TextAlignment.TEXT_END,  TextWidget.TEXT_ALIGNMENT_TEXT_END);
-    alignmentMap_ltr.put(SdkConstants.TextAlignment.VIEW_START, TextWidget.TEXT_ALIGNMENT_VIEW_START);
-    alignmentMap_ltr.put(SdkConstants.TextAlignment.VIEW_END, TextWidget.TEXT_ALIGNMENT_VIEW_END);
+    alignmentMap_ltr.put(SdkConstants.TextAlignment.CENTER, TextWidgetConstants.TEXT_ALIGNMENT_CENTER);
+    alignmentMap_ltr.put(SdkConstants.TextAlignment.TEXT_START, TextWidgetConstants.TEXT_ALIGNMENT_TEXT_START);
+    alignmentMap_ltr.put(SdkConstants.TextAlignment.TEXT_END, TextWidgetConstants.TEXT_ALIGNMENT_TEXT_END);
+    alignmentMap_ltr.put(SdkConstants.TextAlignment.VIEW_START, TextWidgetConstants.TEXT_ALIGNMENT_VIEW_START);
+    alignmentMap_ltr.put(SdkConstants.TextAlignment.VIEW_END, TextWidgetConstants.TEXT_ALIGNMENT_VIEW_END);
   }
 
   public static int getAlignment(String s, boolean rtl) {
@@ -68,7 +68,7 @@ public class ConstraintUtilities {
     if (alignmentMap.containsKey(s)) {
        return alignmentMap.get(s).intValue();
     }
-    return TextWidget.TEXT_ALIGNMENT_VIEW_START;
+    return TextWidgetConstants.TEXT_ALIGNMENT_VIEW_START;
   }
 
   /**

@@ -21,14 +21,10 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensure
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 import com.android.annotations.concurrency.WorkerThread;
-import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -58,25 +54,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
                         @Nullable DataNode<ProjectData> projectInfo) {
     assert projectInfo != null;
     GradleSyncState.getInstance(myProject).setupStarted();
-    boolean importedProject = GradleProjectInfo.getInstance(myProject).isImportedProject();
     doPopulateProject(projectInfo);
-
-    Runnable runnable = () -> {
-      if (importedProject) {
-        // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
-        // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
-        // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
-        // listeners to be registered.
-        AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(myProject);
-        projectComponent.configureGradleProject();
-      }
-    };
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      runnable.run();
-    }
-    else {
-      TransactionGuard.submitTransaction(myProject, runnable);
-    }
   }
 
   @WorkerThread

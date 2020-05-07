@@ -24,8 +24,8 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ConnectionDraw;
-import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
-import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidget;
+import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchorConstants;
+import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidgetConstants;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBDimension;
@@ -419,19 +419,19 @@ public class SingleWidgetView extends JPanel {
   }
 
   private void topKill() {
-    myWidgetModel.killConstraint(ConstraintAnchor.Type.TOP);
+    myWidgetModel.killConstraint(ConstraintAnchorConstants.Type.TOP);
   }
 
   private void leftKill() {
-    myWidgetModel.killConstraint(ConstraintAnchor.Type.LEFT);
+    myWidgetModel.killConstraint(ConstraintAnchorConstants.Type.LEFT);
   }
 
   private void rightKill() {
-    myWidgetModel.killConstraint(ConstraintAnchor.Type.RIGHT);
+    myWidgetModel.killConstraint(ConstraintAnchorConstants.Type.RIGHT);
   }
 
   private void bottomKill() {
-    myWidgetModel.killConstraint(ConstraintAnchor.Type.BOTTOM);
+    myWidgetModel.killConstraint(ConstraintAnchorConstants.Type.BOTTOM);
   }
 
   private void baselineKill() {
@@ -862,10 +862,10 @@ public class SingleWidgetView extends JPanel {
     mVbar1.setState(height);
     mVbar2.setState(height);
 
-    mHbar1.setVisible(mDimensionRatioSide != ConstraintWidget.HORIZONTAL);
-    mHbar2.setVisible(mDimensionRatioSide != ConstraintWidget.HORIZONTAL);
-    mVbar1.setVisible(mDimensionRatioSide != ConstraintWidget.VERTICAL);
-    mVbar2.setVisible(mDimensionRatioSide != ConstraintWidget.VERTICAL);
+    mHbar1.setVisible(mDimensionRatioSide != ConstraintWidgetConstants.HORIZONTAL);
+    mHbar2.setVisible(mDimensionRatioSide != ConstraintWidgetConstants.HORIZONTAL);
+    mVbar1.setVisible(mDimensionRatioSide != ConstraintWidgetConstants.VERTICAL);
+    mVbar2.setVisible(mDimensionRatioSide != ConstraintWidgetConstants.VERTICAL);
 
 
     mVbar1.setToolTipText(statusString[height]);
@@ -886,21 +886,21 @@ public class SingleWidgetView extends JPanel {
     mRatioWidth = -1;
     if (ratio == null || ratio.isEmpty()) {
       mDimensionRatio = 0;
-      mDimensionRatioSide = ConstraintWidget.UNKNOWN;
+      mDimensionRatioSide = ConstraintWidgetConstants.UNKNOWN;
 
       return;
     }
-    int dimensionRatioSide = ConstraintWidget.UNKNOWN;
+    int dimensionRatioSide = ConstraintWidgetConstants.UNKNOWN;
     float dimensionRatio = 0;
     int len = ratio.length();
     int commaIndex = ratio.indexOf(',');
     if (commaIndex > 0 && commaIndex < len - 1) {
       String dimension = ratio.substring(0, commaIndex);
       if (dimension.equalsIgnoreCase("W")) {
-        dimensionRatioSide = ConstraintWidget.HORIZONTAL;
+        dimensionRatioSide = ConstraintWidgetConstants.HORIZONTAL;
       }
       else if (dimension.equalsIgnoreCase("H")) {
-        dimensionRatioSide = ConstraintWidget.VERTICAL;
+        dimensionRatioSide = ConstraintWidgetConstants.VERTICAL;
       }
       commaIndex++;
     }

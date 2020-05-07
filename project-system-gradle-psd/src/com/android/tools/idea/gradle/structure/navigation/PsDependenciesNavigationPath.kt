@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.navigation
 import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsModulePath
-import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsPlaceBasedPath
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.intellij.ui.navigation.Place
@@ -30,7 +29,7 @@ data class PsDependenciesNavigationPath(override val parent: PsModulePath) : PsP
       DependenciesPerspectiveConfigurable::class.java)!!
 
     ProjectStructureConfigurable.putPath(place, target)
-    target.putNavigationPath(place, parent.moduleName)
+    target.putNavigationPath(place, parent.gradlePath)
   }
 
   override val canHide: Boolean get() = true

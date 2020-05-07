@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon
@@ -47,7 +46,7 @@ interface PsContext : Disposable {
    */
   fun getArtifactRepositorySearchServiceFor(module: PsModule): ArtifactRepositorySearchService
 
-  fun setSelectedModule(moduleName: String, source: Any)
+  fun setSelectedModule(gradlePath: String, source: Any)
   fun add(listener: SyncListener, parentDisposable: Disposable)
   fun applyRunAndReparse(runnable: () -> Boolean)
 

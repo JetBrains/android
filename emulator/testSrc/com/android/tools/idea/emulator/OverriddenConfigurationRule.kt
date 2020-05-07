@@ -20,13 +20,13 @@ import org.junit.rules.ExternalResource
 /**
  * Test rule that overrides the default configuration for the duration of every test.
  */
-class OverriddenConfigurationRule(private val configuration: Configuration) : ExternalResource() {
+class OverriddenConfigurationRule(private val configuration: RuntimeConfiguration) : ExternalResource() {
 
   override fun before() {
-    ConfigurationOverrider.overrideConfiguration(configuration)
+    RuntimeConfigurationOverrider.overrideConfiguration(configuration)
   }
 
   override fun after() {
-    ConfigurationOverrider.clearOverride()
+    RuntimeConfigurationOverrider.clearOverride()
   }
 }

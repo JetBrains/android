@@ -17,12 +17,12 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -39,22 +39,17 @@ class UnsupportedModelVersionIssueChecker: GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (message.isEmpty() || !message.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) return null
+    if (message.isBlank() || !message.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) return null
 
     // Log metrics.
     invokeLater {
-      SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_MODEL_VERSION)
+      updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_MODEL_VERSION)
     }
-    val description = MessageComposer(message).apply {
+    return BuildIssueComposer(message).apply {
       addQuickFix(
         "Upgrade plugin to version ${GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())} and sync project",
-        FixAndroidGradlePluginVersionQuickFix(null, null))
-    }
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = message
-      override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
+        FixAndroidGradlePluginVersionQuickFix(null, null)
+      )
+    }.composeBuildIssue()
   }
 }

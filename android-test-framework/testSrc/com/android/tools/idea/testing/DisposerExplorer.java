@@ -122,6 +122,18 @@ public class DisposerExplorer {
   }
 
   /**
+   * If Disposer.isDebugMode() is true and the given disposable is a root, then this returns
+   * the trace from when the disposable was first registered. Otherwise it returns null.
+   */
+  @Nullable
+  public static Throwable getTrace(@NotNull Disposable disposable) {
+    synchronized (treeLock) {
+      Object objectNode = getObjectNode(disposable);
+      return objectNode != null ? getObjectNodeTrace(objectNode) : null;
+    }
+  }
+
+  /**
    * Returns all objects in the tree that satisfy the given filter.
    *
    * @param filter the predicate determining what objects are returned
@@ -252,6 +264,11 @@ public class DisposerExplorer {
   @NotNull
   private static Disposable getObjectNodeDisposable(@NotNull Object objectNode) {
     return getFieldValue(objectNode, "myObject");
+  }
+
+  @Nullable
+  private static Throwable getObjectNodeTrace(@NotNull Object objectNode) {
+    return getFieldValue(objectNode, "myTrace");
   }
 
   // TODO: Replace reflection by a test-only class in the same package as Disposer.

@@ -82,7 +82,7 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun processMethodsWithName(name: String,
                                       scope: GlobalSearchScope,
-                                      processor: Processor<PsiMethod>): Boolean {
+                                      processor: Processor<in PsiMethod>): Boolean {
     // BR files are only fields, no methods
     return true
   }

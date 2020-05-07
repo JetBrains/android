@@ -100,7 +100,7 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
     // Module name is generate from application name in case of Android Module (e.g. mobile, watch) but in all other cases
     // a hardcoded name is used (e.g. "benchmark", "lib").
     val defaultModuleName = if (model.moduleName.isEmpty.get()) model.applicationName else model.moduleName
-    val computedModuleName = UniqueModuleNameWithParentExpression(model.project, defaultModuleName, model.moduleParent)
+    val computedModuleName = UniqueModuleGradlePathWithParentExpression(model.project, defaultModuleName, model.moduleParent)
     bindings.bind(moduleNameText, computedModuleName, isModuleNameSynced)
     bindings.bind(model.moduleName, moduleNameText)
     listeners.listen(moduleNameText) { value: String -> isModuleNameSynced.set(value == computedModuleName.get()) }

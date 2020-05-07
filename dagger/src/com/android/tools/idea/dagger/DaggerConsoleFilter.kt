@@ -21,6 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.filters.ConsoleFilterProvider
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.HyperlinkInfo
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -95,6 +96,7 @@ private fun createLinkToClass(fqcn: String): HyperlinkInfo {
     override fun navigate(project: Project?) {
       if (project == null) return
       PsiNavigateUtil.navigate(getClass(fqcn, project)?.navigationElement)
+      project.service<DaggerAnalyticsTracker>().trackOpenLinkFromError()
     }
   }
 }
@@ -113,6 +115,7 @@ private fun createLinkToMethod(fqcn: String, methodName: String): HyperlinkInfo 
         method = getClass(fqcn, project)?.findMethodsByName(methodName, true)?.firstOrNull()
       }
       PsiNavigateUtil.navigate(method?.navigationElement)
+      project.service<DaggerAnalyticsTracker>().trackOpenLinkFromError()
     }
   }
 }

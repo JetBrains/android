@@ -67,6 +67,9 @@ import java.io.File;
 import java.util.Arrays;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
+import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
+import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer;
 
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
@@ -254,6 +257,9 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
     //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
     ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint(null);
+    configurationProducerExtensionPoint.unregisterExtension(AllInPackageGradleConfigurationProducer.class);
+    configurationProducerExtensionPoint.unregisterExtension(TestClassGradleConfigurationProducer.class);
+    configurationProducerExtensionPoint.unregisterExtension(TestClassGradleConfigurationProducer.class);
 
     //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
     for (RunConfigurationProducer runConfigurationProducer : configurationProducerExtensionPoint.getExtensions()) {

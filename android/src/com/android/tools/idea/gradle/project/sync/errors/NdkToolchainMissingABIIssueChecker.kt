@@ -20,12 +20,11 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.fetchIdeaProjectForGradleProject
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.issue.BuildIssue
-import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -37,21 +36,16 @@ class NdkToolchainMissingABIIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (!message.startsWith(ERROR_MESSAGE)) return null
-    val description = MessageComposer(message)
+    val buildIssueComposer = BuildIssueComposer(message)
     val valid = VALID_ABIS.stream().anyMatch { message.endsWith(it) }
     if (valid && !isArtifactVersionOver3dot0(getAndroidPluginArtifactModel(issueData.projectPath))) {
-      description.addDescription("This version of the NDK may be incompatible with the Android Gradle plugin version 3.0 or older.\n\n" +
+      buildIssueComposer.addDescription("This version of the NDK may be incompatible with the Android Gradle plugin version 3.0 or older.\n\n" +
                                  "Please use plugin version 3.1 or newer.")
-      description.addQuickFix(
+      buildIssueComposer.addQuickFix(
         "Upgrade plugin to version ${GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())} and sync project",
         FixAndroidGradlePluginVersionQuickFix(null, null))
     }
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
-      override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
+    return buildIssueComposer.composeBuildIssue()
   }
 
   /**

@@ -46,6 +46,7 @@ import org.mockito.MockitoAnnotations
 /**
  * Unit tests for [ExecutionEnvironment] extension functions.
  */
+@org.junit.Ignore("b/155929379")
 @RunWith(JUnit4::class)
 class ExecutionEnvironmentExtTest {
 
@@ -72,16 +73,14 @@ class ExecutionEnvironmentExtTest {
     `when`(mockEnv.executionTarget).thenReturn(mockExecutionTarget)
 
     `when`(mockProject.getService(eq(ExecutionManager::class.java))).thenReturn(mockExecutionManager)
-    `when`(mockExecutionManager.runningProcesses).thenReturn(arrayOf())
 
-    `when`(mockProject.getComponent(eq(DebuggerManager::class.java))).thenReturn(mockDebugManager)
+    `when`(mockProject.getService(eq(DebuggerManager::class.java))).thenReturn(mockDebugManager)
     `when`(mockDebugManager.sessions).thenReturn(listOf())
   }
 
   @Test
   fun findExistingProcessHandler_sessionExists() {
     val mockProcessHandler = mock(ProcessHandler::class.java)
-    `when`(mockExecutionManager.runningProcesses).thenReturn(arrayOf(mockProcessHandler))
     val mockSessionInfo = mock(AndroidSessionInfo::class.java)
     `when`(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockSessionInfo)
     `when`(mockSessionInfo.runConfiguration).thenReturn(mockRunProfile)

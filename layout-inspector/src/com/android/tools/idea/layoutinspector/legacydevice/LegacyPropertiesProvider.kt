@@ -24,6 +24,8 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.properties.addInternalProperties
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.util.concurrent.Futures
@@ -56,7 +58,7 @@ class LegacyPropertiesProvider : PropertiesProvider {
     return Futures.immediateFuture(null)
   }
 
-  class Updater {
+  class Updater(val resourceLookup: ResourceLookup) {
     private var temp = mutableMapOf<Long, PropertiesTable<InspectorPropertyItem>>()
 
     fun apply(provider: LegacyPropertiesProvider) {
@@ -85,7 +87,7 @@ class LegacyPropertiesProvider : PropertiesProvider {
           val name = definition.name
           val type = definition.type
           val value = definition.value_mapper(rawValue)
-          val property = InspectorPropertyItem(SdkConstants.ANDROID_URI, name, name, type, value, section, null, view, null)
+          val property = InspectorPropertyItem(SdkConstants.ANDROID_URI, name, name, type, value, section, null, view, resourceLookup)
           table.put(property.namespace, property.name, property)
         }
 
@@ -96,12 +98,12 @@ class LegacyPropertiesProvider : PropertiesProvider {
       }
       while (!stop)
 
-      view.x = (table.remove(SdkConstants.ANDROID_URI, ATTR_LEFT)?.value?.toInt() ?: 0) - (parent?.scrollX ?: 0)
-      view.y = (table.remove(SdkConstants.ANDROID_URI, ATTR_TOP)?.value?.toInt() ?: 0) - (parent?.scrollY ?: 0)
-      view.scrollX = table[SdkConstants.ANDROID_URI, ATTR_SCROLL_X]?.value?.toInt() ?: 0
-      view.scrollY = table[SdkConstants.ANDROID_URI, ATTR_SCROLL_Y]?.value?.toInt() ?: 0
-      view.width = table.remove(SdkConstants.ANDROID_URI, SdkConstants.ATTR_WIDTH)?.value?.toInt() ?: 0
-      view.height = table.remove(SdkConstants.ANDROID_URI, SdkConstants.ATTR_HEIGHT)?.value?.toInt() ?: 0
+      view.x = (table.remove(SdkConstants.ANDROID_URI, ATTR_LEFT)?.dimensionValue ?: 0) - (parent?.legacyScrollX ?: 0)
+      view.y = (table.remove(SdkConstants.ANDROID_URI, ATTR_TOP)?.dimensionValue ?: 0) - (parent?.legacyScrollY ?: 0)
+      view.legacyScrollX = table[SdkConstants.ANDROID_URI, ATTR_SCROLL_X]?.dimensionValue ?: 0
+      view.legacyScrollY = table[SdkConstants.ANDROID_URI, ATTR_SCROLL_Y]?.dimensionValue ?: 0
+      view.width = table.remove(SdkConstants.ANDROID_URI, SdkConstants.ATTR_WIDTH)?.dimensionValue ?: 0
+      view.height = table.remove(SdkConstants.ANDROID_URI, SdkConstants.ATTR_HEIGHT)?.dimensionValue ?: 0
       view.textValue = table[SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT]?.value ?: ""
       val url = table[SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID]?.value?.let { ResourceUrl.parse(it) }
       view.viewId = url?.let { ResourceReference(ResourceNamespace.TODO(), ResourceType.ID, it.name) }
@@ -114,6 +116,8 @@ class LegacyPropertiesProvider : PropertiesProvider {
       table.remove(SdkConstants.ANDROID_URI, ATTR_Z)
       table.remove(SdkConstants.ANDROID_URI, ATTR_BOTTOM)
       table.remove(SdkConstants.ANDROID_URI, ATTR_RIGHT)
+
+      addInternalProperties(table, view, resourceLookup)
 
       temp[view.drawId] = PropertiesTable.create(table)
     }

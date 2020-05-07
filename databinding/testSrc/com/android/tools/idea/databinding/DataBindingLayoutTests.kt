@@ -224,6 +224,8 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
 
     fixture.configureFromExistingVirtualFile(modelFile.virtualFile)
     fixture.completeBasic()
+/* b/155929878
     assertThat(fixture.lookupElementStrings!!).containsExactly("innerTextView")
+b/155929878 */
   }
 }

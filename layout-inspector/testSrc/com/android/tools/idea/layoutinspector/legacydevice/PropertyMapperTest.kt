@@ -16,11 +16,28 @@
 package com.android.tools.idea.layoutinspector.legacydevice
 
 import com.android.SdkConstants
+import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.layoutinspector.properties.DimensionUnits
+import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
+import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.util.PropertiesComponent
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 
 class PropertyMapperTest {
+  @get:Rule
+  val applicationRule = ApplicationRule()
+
+  @Before
+  fun init() {
+    val propertiesComponent = PropertiesComponentMock()
+    applicationRule.testApplication.registerService(PropertiesComponent::class.java, propertiesComponent)
+    PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
+  }
 
   @Test
   fun testRelativeLayoutLayoutParams() {
@@ -50,12 +67,12 @@ class PropertyMapperTest {
 
   @Test
   fun testMarginParams() {
-    check("layout_topMargin", "0", SdkConstants.ATTR_LAYOUT_MARGIN_TOP, Type.INT32, "0")
-    check("layout_bottomMargin", "10", SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, Type.INT32, "10")
-    check("layout_leftMargin", "0", SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, Type.INT32, "0")
-    check("layout_rightMargin", "50", SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, Type.INT32, "50")
-    check("layout_startMargin", "-2147483648", SdkConstants.ATTR_LAYOUT_MARGIN_START, Type.INT32, "-2147483648")
-    check("layout_endMargin", "40", SdkConstants.ATTR_LAYOUT_MARGIN_END, Type.INT32, "40")
+    check("layout_topMargin", "0", SdkConstants.ATTR_LAYOUT_MARGIN_TOP, Type.DIMENSION, "0")
+    check("layout_bottomMargin", "10", SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, Type.DIMENSION, "10")
+    check("layout_leftMargin", "0", SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, Type.DIMENSION, "0")
+    check("layout_rightMargin", "50", SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, Type.DIMENSION, "50")
+    check("layout_startMargin", "-2147483648", SdkConstants.ATTR_LAYOUT_MARGIN_START, Type.DIMENSION, "-2147483648")
+    check("layout_endMargin", "40", SdkConstants.ATTR_LAYOUT_MARGIN_END, Type.DIMENSION, "40")
   }
 
   @Test
@@ -139,12 +156,12 @@ class PropertyMapperTest {
 
   @Test
   fun testLayoutWidthAndHeight() {
-    check("layout_height", "match_parent", SdkConstants.ATTR_LAYOUT_HEIGHT, Type.INT32, "match_parent")
-    check("layout_height", "wrap_content", SdkConstants.ATTR_LAYOUT_HEIGHT, Type.INT32, "wrap_content")
-    check("layout_height", "40", SdkConstants.ATTR_LAYOUT_HEIGHT, Type.INT32, "40")
-    check("layout_width", "match_parent", SdkConstants.ATTR_LAYOUT_WIDTH, Type.INT32, "match_parent")
-    check("layout_width", "wrap_content", SdkConstants.ATTR_LAYOUT_WIDTH, Type.INT32, "wrap_content")
-    check("layout_width", "40", SdkConstants.ATTR_LAYOUT_WIDTH, Type.INT32, "40")
+    check("layout_height", "match_parent", SdkConstants.ATTR_LAYOUT_HEIGHT, Type.DIMENSION, "match_parent")
+    check("layout_height", "wrap_content", SdkConstants.ATTR_LAYOUT_HEIGHT, Type.DIMENSION, "wrap_content")
+    check("layout_height", "40", SdkConstants.ATTR_LAYOUT_HEIGHT, Type.DIMENSION, "40")
+    check("layout_width", "match_parent", SdkConstants.ATTR_LAYOUT_WIDTH, Type.DIMENSION, "match_parent")
+    check("layout_width", "wrap_content", SdkConstants.ATTR_LAYOUT_WIDTH, Type.DIMENSION, "wrap_content")
+    check("layout_width", "40", SdkConstants.ATTR_LAYOUT_WIDTH, Type.DIMENSION, "40")
   }
 
   @Test

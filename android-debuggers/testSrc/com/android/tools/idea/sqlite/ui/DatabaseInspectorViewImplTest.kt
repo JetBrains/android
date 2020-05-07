@@ -17,11 +17,9 @@ package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.sqlite.controllers.TabId
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.AddColumns
@@ -32,11 +30,13 @@ import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteColumn
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.RemoveColumns
 import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
+import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import com.intellij.mock.MockVirtualFile
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.ui.treeStructure.Tree
-import org.mockito.Mockito.mock
+import icons.StudioIcons
 import java.awt.Dimension
+import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -53,121 +53,121 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
 
     // Act
-    view.updateDatabaseSchema(database, listOf(RemoveTable(table1.name)))
+    view.updateDatabaseSchema(ViewDatabase(databaseId, true), listOf(RemoveTable(table1.name)))
 
     // Assert
-    assertTreeContainsNodes(tree, mapOf(Pair(database, emptyList())))
+    assertTreeContainsNodes(tree, mapOf(Pair(ViewDatabase(databaseId, true), emptyList())))
   }
 
   fun testUpdateDatabaseAddsTableNode() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
 
     val tableToAdd = SqliteTable("t2", listOf(column1, column2), null, false)
 
     // Act
     view.updateDatabaseSchema(
-      database,
+      ViewDatabase(databaseId, true),
       listOf(
         AddTable(IndexedSqliteTable(tableToAdd, 1), listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1)))
       )
     )
 
     // Assert
-    assertTreeContainsNodes(tree, mapOf(Pair(database, listOf(table1, tableToAdd))))
+    assertTreeContainsNodes(tree, mapOf(Pair(ViewDatabase(databaseId, true), listOf(table1, tableToAdd))))
   }
 
   fun testUpdateDatabaseAddsColumn() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
 
     val column3 = SqliteColumn("c3", SqliteAffinity.TEXT, false, false)
     val table2 = SqliteTable("t1", listOf(column1, column2, column3), null, false)
 
     // Act
-    view.updateDatabaseSchema(database, listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(column3, 2)), table2)))
+    view.updateDatabaseSchema(ViewDatabase(databaseId, true), listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(column3, 2)), table2)))
 
     // Assert
-    assertTreeContainsNodes(tree, mapOf(Pair(database, listOf(table2))))
+    assertTreeContainsNodes(tree, mapOf(Pair(ViewDatabase(databaseId, true), listOf(table2))))
   }
 
   fun testUpdateDatabaseRemovesColumn() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
 
     val table2 = SqliteTable("t1", listOf(column1), null, false)
 
     // Act
-    view.updateDatabaseSchema(database, listOf(RemoveColumns(table1.name, listOf(column2), table2)))
+    view.updateDatabaseSchema(ViewDatabase(databaseId, true), listOf(RemoveColumns(table1.name, listOf(column2), table2)))
 
     // Assert
-    assertTreeContainsNodes(tree, mapOf(Pair(database, listOf(table2))))
+    assertTreeContainsNodes(tree, mapOf(Pair(ViewDatabase(databaseId, true), listOf(table2))))
   }
 
   fun testUpdateDatabaseReplacesOldTableForNewTable() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
 
     val newTable = SqliteTable("t2", listOf(column1, column2), null, false)
 
     // Act
     view.updateDatabaseSchema(
-      database,
+      ViewDatabase(databaseId, true),
       listOf(
         RemoveTable(table1.name),
         AddTable(IndexedSqliteTable(newTable, 0), listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1))))
     )
 
     // Assert
-    assertTreeContainsNodes(tree, mapOf(Pair(database, listOf(newTable))))
+    assertTreeContainsNodes(tree, mapOf(Pair(ViewDatabase(databaseId, true), listOf(newTable))))
   }
 
   fun testUpdateDatabaseReplacesOldColumnForNewColumn() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
 
     val newColumn = SqliteColumn("c3", SqliteAffinity.TEXT, false, false)
     val table1AfterRemove = SqliteTable("t1", listOf(column1), null, false)
@@ -175,7 +175,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
     // Act
     view.updateDatabaseSchema(
-      database,
+      ViewDatabase(databaseId, true),
       listOf(
         RemoveColumns(table1.name, listOf(column2), table1AfterRemove),
         AddColumns(finalTable.name, listOf(IndexedSqliteColumn(newColumn, 1)), finalTable)
@@ -183,50 +183,50 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     )
 
     // Assert
-    assertTreeContainsNodes(tree, mapOf(Pair(database, listOf(finalTable))))
+    assertTreeContainsNodes(tree, mapOf(Pair(ViewDatabase(databaseId, true), listOf(finalTable))))
   }
 
   fun testUpdateDatabaseAddsTableAccordingToIndex() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
 
     val tableToAdd = SqliteTable("t2", listOf(column1, column2), null, false)
 
     // Act
-    view.updateDatabaseSchema(database, listOf(
+    view.updateDatabaseSchema(ViewDatabase(databaseId, true), listOf(
       AddTable(IndexedSqliteTable(tableToAdd, 0), listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1)))
     ))
 
     // Assert
-    assertTreeContainsNodes(tree, mapOf(Pair(database, listOf(tableToAdd, table1))))
+    assertTreeContainsNodes(tree, mapOf(Pair(ViewDatabase(databaseId, true), listOf(tableToAdd, table1))))
   }
 
   fun testUpdateDatabaseAddsColumnAccordingToIndex() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().filterIsInstance<Tree>().first()
 
-    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, false, false)
     val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, false, false)
     val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
     val schema = SqliteSchema(listOf(table1))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, schema, 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), schema, 0)))
 
     val column3 = SqliteColumn("c3", SqliteAffinity.TEXT, false, false)
     val table2 = SqliteTable("t1", listOf(column3, column1, column2), null, false)
 
     // Act
-    view.updateDatabaseSchema(database, listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(column3, 0)), table2)))
+    view.updateDatabaseSchema(ViewDatabase(databaseId, true), listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(column3, 0)), table2)))
 
     // Assert
-    assertTreeContainsNodes(tree, mapOf(Pair(database, listOf(table2))))
+    assertTreeContainsNodes(tree, mapOf(Pair(ViewDatabase(databaseId, true), listOf(table2))))
   }
 
   fun testEmptyStateIsShownInitially() {
@@ -248,13 +248,12 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testTreeEmptyStateIsHiddenAfterOpeningADatabase() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
-    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
 
     // Act
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(emptyList()), 0)))
 
     // Assert
-    val emptyStateRightPanelAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
     val tabsPanelAfterAddingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
     val syncSchemaButtonAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
     val runSqlButtonAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
@@ -269,10 +268,10 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testRightPanelEmptyStateIsHiddenAfterOpeningATab() {
     // Prepare
-    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
 
     // Act
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(emptyList()), 0)))
     view.openTab(TabId.AdHocQueryTab(), "new tab", JPanel())
 
     // Assert
@@ -285,11 +284,11 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testRightPanelEmptyStateIsShownAfterAllTabsAreClosed() {
     // Prepare
-    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
     val tabId = TabId.AdHocQueryTab()
 
     // Act
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(emptyList()), 0)))
     view.openTab(tabId, "new tab", JPanel())
 
     // Assert
@@ -313,11 +312,11 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testEmptyStateIsShownAfterOpenDatabasesAreRemoved() {
     // Prepare
     val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
-    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("name"))
+    val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
 
     // Act
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, SqliteSchema(emptyList()), 0)))
-    view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(database)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase(ViewDatabase(databaseId, true))))
 
     // Assert
     val emptyStateRightPanelAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
@@ -337,13 +336,13 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
   fun testTabsAreNotHiddenIfANewDatabaseIsAdded() {
     // Prepare
-    val database1 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1"))
-    val database2 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db2"))
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database1, SqliteSchema(emptyList()), 0)))
+    val databaseId1 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
+    val databaseId2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId1, true), SqliteSchema(emptyList()), 0)))
 
     // Act
     view.openTab(TabId.AdHocQueryTab(), "tab", JPanel())
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database2, SqliteSchema(emptyList()), 0)))
+    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId2, true), SqliteSchema(emptyList()), 0)))
 
     // Assert
     val emptyStateRightPanel = TreeWalker(view.component).descendants().firstOrNull() { it.name == "right-panel-empty-state" }
@@ -353,7 +352,27 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     assertTrue(tabsPanel.isVisible)
   }
 
-  private fun assertTreeContainsNodes(tree: Tree, databases: Map<SqliteDatabase, List<SqliteTable>>) {
+  fun testUpdateKeepConnectionOpenButton() {
+    // Prepare
+    val button = TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as JButton
+
+    // Assert
+    assertEquals(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN, button.icon)
+
+    // Act
+    view.updateKeepConnectionOpenButton(true)
+
+    // Assert
+    assertEquals(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN, button.icon)
+
+    // Act
+    view.updateKeepConnectionOpenButton(false)
+
+    // Assert
+    assertEquals(StudioIcons.DatabaseInspector.ALLOW_DATABASES_TO_CLOSE, button.icon)
+  }
+
+  private fun assertTreeContainsNodes(tree: Tree, databases: Map<ViewDatabase, List<SqliteTable>>) {
     val root = tree.model.root
     assertEquals(databases.size, tree.model.getChildCount(root))
 

@@ -18,8 +18,7 @@ package com.android.tools.profilers.memory;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
-
+import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
@@ -88,7 +87,7 @@ import javax.swing.tree.TreeSelectionModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class MemoryClassifierView extends AspectObserver implements CapturePanelTabContainer {
+public final class MemoryClassifierView extends AspectObserver implements CapturePanelTabContainer {
   private static final int LABEL_COLUMN_WIDTH = 800;
   private static final int MODULE_COLUMN_WIDTH = 100;
   private static final int HEAP_UPDATING_DELAY_MS = 250;
@@ -101,7 +100,7 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
   private static final String HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE = "There are no allocations in the selected capture.";
   private static final String HELP_TIP_HEADER_FILTER_NO_MATCH = "Selected filters have no match";
 
-  @NotNull private final MemoryProfilerStage myStage;
+  @NotNull private final MemoryCaptureSelection mySelection;
 
   @NotNull private final ContextMenuInstaller myContextMenuInstaller;
 
@@ -135,22 +134,22 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
 
   @Nullable private Comparator<MemoryObjectTreeNode<ClassifierSet>> myInitialComparator;
 
-  MemoryClassifierView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
-    myStage = stage;
+  MemoryClassifierView(@NotNull MemoryCaptureSelection selection, @NotNull IdeProfilerComponents ideProfilerComponents) {
+    mySelection = selection;
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
     myLoadingPanel = ideProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
     myLoadingPanel.setLoadingText("");
 
-    myStage.getAspect().addDependency(this)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCapture)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeapSet)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATING, this::startHeapLoadingUi)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATED, this::stopHeapLoadingUi)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshTree)
-      .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
-      .onChange(MemoryProfilerAspect.CLASS_GROUPING, this::refreshGrouping)
-      .onChange(MemoryProfilerAspect.CURRENT_FILTER, this::refreshFilter);
+    mySelection.getAspect().addDependency(this)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, this::refreshCapture)
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP, this::refreshHeapSet)
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP_UPDATING, this::startHeapLoadingUi)
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP_UPDATED, this::stopHeapLoadingUi)
+      .onChange(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS, this::refreshTree)
+      .onChange(CaptureSelectionAspect.CURRENT_CLASS, this::refreshClassSet)
+      .onChange(CaptureSelectionAspect.CLASS_GROUPING, this::refreshGrouping)
+      .onChange(CaptureSelectionAspect.CURRENT_FILTER, this::refreshFilter);
 
     myAttributeColumns.put(
       ClassifierAttribute.LABEL,
@@ -201,7 +200,7 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
     Function<MemoryObjectTreeNode<ClassifierSet>, String> textGetter = node ->
       NumberFormatter.formatInteger(prop.applyAsLong(node.getAdapter()));
     final Supplier<ColoredTreeCellRenderer> renderer;
-    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+    if (mySelection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
       // Progress-bar style background that reflects percentage contribution
       renderer = () -> new PercentColumnRenderer<>(
         textGetter, v -> null, SwingConstants.RIGHT,
@@ -293,11 +292,11 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
     myTreeModel = null;
     myTableColumnModel = null;
     myPanel.removeAll();
-    myStage.selectClassSet(null);
+    mySelection.selectClassSet(null);
   }
 
   private void loadCapture() {
-    if (myStage.getSelectedCapture() == null || myCaptureObject != myStage.getSelectedCapture()) {
+    if (mySelection.getSelectedCapture() == null || myCaptureObject != mySelection.getSelectedCapture()) {
       reset();
     }
   }
@@ -309,7 +308,7 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
   }
 
   private void refreshCapture() {
-    myCaptureObject = myStage.getSelectedCapture();
+    myCaptureObject = mySelection.getSelectedCapture();
     if (myCaptureObject == null) {
       reset();
       return;
@@ -348,11 +347,11 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
 
       if (classifierNode.getAdapter() instanceof ClassSet && myClassSet != classifierNode.getAdapter()) {
         myClassSet = (ClassSet)classifierNode.getAdapter();
-        myStage.selectClassSet(myClassSet);
+        mySelection.selectClassSet(myClassSet);
       }
     });
 
-    myContextMenuInstaller.installNavigationContextMenu(myTree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+    myContextMenuInstaller.installNavigationContextMenu(myTree, mySelection.getIdeServices().getCodeNavigator(), () -> {
       TreePath selection = myTree.getSelectionPath();
       if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
         return null;
@@ -410,7 +409,7 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
     builder.setTableIntercellSpacing(new Dimension());
     myColumnTree = builder.build();
 
-    myHelpTipPanel = myStage.getSelectedCapture().isExportable() ?
+    myHelpTipPanel = mySelection.getSelectedCapture().isExportable() ?
                      makeInstructionsPanel(HELP_TIP_HEADER_EXPLICIT_CAPTURE, HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE) :
                      makeInstructionsPanel(HELP_TIP_HEADER_LIVE_ALLOCATION, HELP_TIP_DESCRIPTION_LIVE_ALLOCATION);
     myPanel.add(myClassifierPanel, BorderLayout.CENTER);
@@ -502,7 +501,7 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
       }
     }
 
-    if (!myStage.getFilterHandler().getFilter().isEmpty()) {
+    if (!mySelection.getFilterHandler().getFilter().isEmpty()) {
       MemoryClassifierTreeNode treeNode = myTreeRoot;
       while (treeNode != null) {
         if (treeNode.getAdapter().getIsMatched()) {
@@ -528,7 +527,7 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
   private void refreshHeapSet() {
     assert myCaptureObject != null && myTree != null;
 
-    HeapSet heapSet = myStage.getSelectedHeapSet();
+    HeapSet heapSet = mySelection.getSelectedHeapSet();
     if (heapSet == myHeapSet) {
       return;
     }
@@ -554,7 +553,7 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
    * Refreshes the view based on the "group by" selection from the user.
    */
   private void refreshGrouping() {
-    HeapSet heapSet = myStage.getSelectedHeapSet();
+    HeapSet heapSet = mySelection.getSelectedHeapSet();
     // This gets called when a capture is loading, or we change the profiler configuration.
     // During a loading capture we adjust which configurations are available and reset set the selection to the first one.
     // This triggers this callback to be fired before we have a heapset. In this scenario we just early exit.
@@ -564,7 +563,7 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
 
     Comparator<MemoryObjectTreeNode<ClassifierSet>> comparator = myTreeRoot == null ? myInitialComparator : myTreeRoot.getComparator();
 
-    heapSet.setClassGrouping(myStage.getConfiguration().getClassGrouping());
+    heapSet.setClassGrouping(mySelection.getClassGrouping());
     myTreeRoot = new MemoryClassifierTreeNode(heapSet);
     myTreeRoot.expandNode(); // Expand it once to get all the children, since we won't display the tree root (HeapSet) by default.
     if (comparator != null) {
@@ -577,7 +576,7 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
     // Rename class column depending on group by mechanism
     assert myColumnTree != null;
     String headerName = null;
-    switch (myStage.getConfiguration().getClassGrouping()) {
+    switch (mySelection.getClassGrouping()) {
       case ARRANGE_BY_CLASS:
         headerName = "Class Name";
         break;
@@ -596,9 +595,9 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
     myTableColumnModel.getColumn(0).setHeaderValue(headerName);
 
     // Attempt to reselect the previously selected ClassSet node or FieldPath.
-    ClassSet selectedClassSet = myStage.getSelectedClassSet();
-    InstanceObject selectedInstance = myStage.getSelectedInstanceObject();
-    List<FieldObject> fieldPath = myStage.getSelectedFieldObjectPath();
+    ClassSet selectedClassSet = mySelection.getSelectedClassSet();
+    InstanceObject selectedInstance = mySelection.getSelectedInstanceObject();
+    List<FieldObject> fieldPath = mySelection.getSelectedFieldObjectPath();
 
     refreshClassifierPanel();
 
@@ -615,7 +614,7 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
     }
 
     if (nodeToSelect == null || !(nodeToSelect.getAdapter() instanceof ClassSet)) {
-      myStage.selectClassSet(null);
+      mySelection.selectClassSet(null);
       return;
     }
 
@@ -625,9 +624,9 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
     myTree.expandPath(treePath.getParentPath());
     myTree.setSelectionPath(treePath);
     myTree.scrollPathToVisible(treePath);
-    myStage.selectClassSet(myClassSet);
-    myStage.selectInstanceObject(selectedInstance);
-    myStage.selectFieldObjectPath(fieldPath);
+    mySelection.selectClassSet(myClassSet);
+    mySelection.selectInstanceObject(selectedInstance);
+    mySelection.selectFieldObjectPath(fieldPath);
   }
 
   /**
@@ -658,11 +657,11 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
    * Refreshes the view based on the selected {@link ClassSet}.
    */
   private void refreshClassSet() {
-    if (myTreeRoot == null || myTreeModel == null || myTree == null || myClassSet == myStage.getSelectedClassSet()) {
+    if (myTreeRoot == null || myTreeModel == null || myTree == null || myClassSet == mySelection.getSelectedClassSet()) {
       return;
     }
 
-    myClassSet = myStage.getSelectedClassSet();
+    myClassSet = mySelection.getSelectedClassSet();
     if (myClassSet != null && !myClassSet.isEmpty()) {
       MemoryObjectTreeNode<ClassifierSet> node = findSmallestSuperSetNode(myTreeRoot, myClassSet);
       if (node != null) {
@@ -673,7 +672,7 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
       }
       else {
         myClassSet = null;
-        myStage.selectClassSet(null);
+        mySelection.selectClassSet(null);
       }
     }
 
@@ -759,7 +758,7 @@ final class MemoryClassifierView extends AspectObserver implements CapturePanelT
           String className = classSet.getClassEntry().getSimpleClassName();
           String packageName = classSet.getClassEntry().getPackageName();
           append(className, SimpleTextAttributes.REGULAR_ATTRIBUTES, className);
-          if (myStage.getConfiguration().getClassGrouping() == ARRANGE_BY_CLASS) {
+          if (mySelection.getClassGrouping() == ARRANGE_BY_CLASS) {
             if (!packageName.isEmpty()) {
               String packageText = " (" + packageName + ")";
               append(packageText, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, packageText);

@@ -38,6 +38,8 @@ import org.mockito.Mockito.inOrder
 import org.mockito.MockitoAnnotations
 import kotlin.test.assertFailsWith
 
+private const val TEST_PACKAGE_NAME = "com.example.application"
+
 @RunWith(JUnit4::class)
 class UtpTestResultAdapterTest {
   @Mock
@@ -68,14 +70,14 @@ class UtpTestResultAdapterTest {
         TestResultProto.TestResult.newBuilder()
           .setTestCase(TestCaseProto.TestCase.newBuilder()
                          .setTestClass("ExampleInstrumentedTest")
-                         .setTestPackage("com.example.application")
+                         .setTestPackage(TEST_PACKAGE_NAME)
                          .setTestMethod("useAppContext"))
           .setTestStatus(TestStatusProto.TestStatus.PASSED)
       ).addTestResult(
         TestResultProto.TestResult.newBuilder()
           .setTestCase(TestCaseProto.TestCase.newBuilder()
                          .setTestClass("ExampleInstrumentedTest")
-                         .setTestPackage("com.example.application")
+                         .setTestPackage(TEST_PACKAGE_NAME)
                          .setTestMethod("useAppContext2"))
           .setTestStatus(TestStatusProto.TestStatus.PASSED)
       ).build()
@@ -85,11 +87,11 @@ class UtpTestResultAdapterTest {
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.PASSED && it!!.retentionSnapshot == null
+      it!!.result == AndroidTestCaseResult.PASSED && it!!.retentionSnapshot == null && it!!.packageName == TEST_PACKAGE_NAME
     } ?: mockAndroidTestCase)
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.PASSED && it!!.retentionSnapshot == null
+      it!!.result == AndroidTestCaseResult.PASSED && it!!.retentionSnapshot == null && it!!.packageName == TEST_PACKAGE_NAME
     } ?: mockAndroidTestCase)
     verifyInOrder.verify(mockListener).onTestSuiteFinished(any(), argThat {
       it!!.result == AndroidTestSuiteResult.PASSED
@@ -103,16 +105,14 @@ class UtpTestResultAdapterTest {
         TestResultProto.TestResult.newBuilder()
           .setTestCase(TestCaseProto.TestCase.newBuilder()
                          .setTestClass("ExampleInstrumentedTest")
-                         .setTestPackage
-                         ("com.example.application")
+                         .setTestPackage(TEST_PACKAGE_NAME)
                          .setTestMethod("useAppContext"))
           .setTestStatus(TestStatusProto.TestStatus.PASSED)
       ).addTestResult(
         TestResultProto.TestResult.newBuilder()
           .setTestCase(TestCaseProto.TestCase.newBuilder()
                          .setTestClass("ExampleInstrumentedTest")
-                         .setTestPackage
-                         ("com.example.application")
+                         .setTestPackage(TEST_PACKAGE_NAME)
                          .setTestMethod("useAppContext2"))
           .setTestStatus(TestStatusProto.TestStatus.FAILED)
       ).build()
@@ -126,7 +126,7 @@ class UtpTestResultAdapterTest {
     } ?: mockAndroidTestCase)
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.FAILED && it!!.retentionSnapshot == null
+      it!!.result == AndroidTestCaseResult.FAILED && it!!.retentionSnapshot == null && it!!.packageName == TEST_PACKAGE_NAME
     } ?: mockAndroidTestCase)
     verifyInOrder.verify(mockListener).onTestSuiteFinished(any(), argThat {
       it!!.result == AndroidTestSuiteResult.FAILED
@@ -169,7 +169,7 @@ class UtpTestResultAdapterTest {
         TestResultProto.TestResult.newBuilder()
           .setTestCase(TestCaseProto.TestCase.newBuilder()
                          .setTestClass("ExampleInstrumentedTest")
-                         .setTestPackage("com.example.application")
+                         .setTestPackage(TEST_PACKAGE_NAME)
                          .setTestMethod("useAppContext"))
           .setTestStatus(TestStatusProto.TestStatus.ERROR)
       ).build()
@@ -179,7 +179,7 @@ class UtpTestResultAdapterTest {
     verifyInOrder.verify(mockListener).onTestSuiteStarted(any(), any())
     verifyInOrder.verify(mockListener).onTestCaseStarted(any(), any(), any())
     verifyInOrder.verify(mockListener).onTestCaseFinished(any(), any(), argThat {
-      it!!.result == AndroidTestCaseResult.SKIPPED && it!!.retentionSnapshot == null
+      it!!.result == AndroidTestCaseResult.SKIPPED && it!!.retentionSnapshot == null && it!!.packageName == TEST_PACKAGE_NAME
     } ?: mockAndroidTestCase)
     verifyInOrder.verify(mockListener).onTestSuiteFinished(any(), argThat {
       it!!.result == AndroidTestSuiteResult.PASSED

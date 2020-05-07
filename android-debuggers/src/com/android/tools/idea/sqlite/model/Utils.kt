@@ -17,8 +17,8 @@ package com.android.tools.idea.sqlite.model
 
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.sqlLanguage.getSqliteStatementType
-import com.android.tools.idea.sqlite.sqlLanguage.inlineParameterValues
 import com.android.tools.idea.sqlite.sqlLanguage.getWrappableStatement
+import com.android.tools.idea.sqlite.sqlLanguage.inlineParameterValues
 import com.intellij.openapi.project.Project
 import java.util.LinkedList
 
@@ -66,3 +66,5 @@ fun createSqliteStatement(
   val sqliteStatementTextWithNoTrailingSemicolon = getWrappableStatement(project, sqliteStatementText)
   return SqliteStatement(statementType, sqliteStatementTextWithNoTrailingSemicolon, parametersValues, statementStringRepresentation)
 }
+
+fun DatabaseInspectorModel.getAllDatabaseIds(): List<SqliteDatabaseId> = getOpenDatabaseIds() + getCloseDatabaseIds()

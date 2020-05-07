@@ -47,7 +47,6 @@ import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -475,8 +474,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
         heapType = AndroidProfilerEvent.MemoryHeap.JNI_HEAP;
         break;
       case CaptureObject.NATIVE_HEAP_NAME:
-        // TODO (b/151114094): Enable native metrics when google3 side of things goes in.
-        //heapType = AndroidProfilerEvent.MemoryHeap.NATIVE_HEAP;
+        heapType = AndroidProfilerEvent.MemoryHeap.NATIVE_HEAP;
+        break;
       default:
         getLogger().error("Attempt to report selection of unknown heap name: " + heapName);
         return;

@@ -135,7 +135,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
     ProjectStructureUsageTracker(project).trackProjectStructure()
 
-    SupportedModuleChecker.getInstance().checkForSupportedModules(project);
+    SupportedModuleChecker.getInstance().checkForSupportedModules(project)
 
     findConflicts(project).showSelectionConflicts()
     ProjectSetup(project).setUpProject(false /* sync successful */)
@@ -191,12 +191,6 @@ private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: Andro
     VfsUtilCore.pathToUrl(file.absolutePath)
   }
 
-  // Why to we copy the variant information from the facet to the model, shouldn't this be the over-way around?
-  val currentlySelectedVariant = androidFacet.properties.SELECTED_BUILD_VARIANT
-  if (currentlySelectedVariant.isNotEmpty() && androidModuleModel.variantExists(currentlySelectedVariant)) {
-    androidModuleModel.setSelectedVariantName(currentlySelectedVariant)
-  }
-
   AndroidModel.set(androidFacet, androidModuleModel)
   androidModuleModel.syncSelectedVariantAndTestArtifact(androidFacet)
 }
@@ -204,7 +198,7 @@ private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: Andro
 // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
 private const val SEPARATOR = "/"
 
-private fun relativePath(basePath: File, file: File?) : String {
+private fun relativePath(basePath: File, file: File?): String {
   val relativePath = if (file != null) getRelativePath(basePath, file) else null
   if (relativePath != null && !relativePath.startsWith(SEPARATOR)) {
     return SEPARATOR + toSystemIndependentName(relativePath)

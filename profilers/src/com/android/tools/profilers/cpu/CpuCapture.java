@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profilers.cpu.atrace.AtraceFrame;
+import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.atrace.SurfaceflingerEvent;
 import java.util.ArrayList;
@@ -156,7 +156,7 @@ public interface CpuCapture extends ConfigurableDurationData {
    * Returns a data series with frame performance classes sorted by frame start time.
    */
   @NotNull
-  default List<SeriesData<AtraceFrame>> getFrames(AtraceFrame.FrameThread threadType) {
+  default List<SeriesData<SystemTraceFrame>> getFrames(SystemTraceFrame.FrameThread threadType) {
     return new ArrayList<>();
   }
 

@@ -30,17 +30,6 @@ public class Rectangle {
         this.width = width;
         this.height = height;
     }
-    void grow(int w, int h) {
-        x -= w;
-        y -= h;
-        width += 2 * w;
-        height += 2 * h;
-    }
-
-    boolean intersects(Rectangle bounds) {
-        return x >= bounds.x && x < bounds.x + bounds.width
-                && y >= bounds.y && y < bounds.y + bounds.height;
-    }
 
     public boolean contains(int x, int y) {
         return x >= this.x && x < this.x + this.width

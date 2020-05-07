@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsKt;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult;
 import com.google.common.annotations.VisibleForTesting;
@@ -147,7 +148,7 @@ public class AndroidTestSuiteDetailsView {
     if (myTestResults == null) {
       return;
     }
-    myTitleText.setText(myTestResults.getTestCaseName());
+    myTitleText.setText(AndroidTestResultsKt.getFullTestCaseName(myTestResults));
     myTitleText.setIcon(AndroidTestResultsTableViewKt.getIconFor(myTestResults.getTestResultSummary()));
 
     myDeviceSelectorListView.setAndroidTestResults(myTestResults);
@@ -156,6 +157,7 @@ public class AndroidTestSuiteDetailsView {
       AndroidTestCaseResult resultForSelectedDevice = myTestResults.getTestCaseResult(mySelectedDevice);
       if (resultForSelectedDevice != null) {
         myContentView.setAndroidDevice(mySelectedDevice);
+        myContentView.setPackageName(myTestResults.getPackageName());
         myContentView.setAndroidTestCaseResult(resultForSelectedDevice);
         myContentView.setLogcat(myTestResults.getLogcat(mySelectedDevice));
         myContentView.setErrorStackTrace(myTestResults.getErrorStackTrace(mySelectedDevice));

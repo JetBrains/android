@@ -96,6 +96,7 @@ public class StudioIcons {
     public static final Icon INTERACTIVE_PREVIEW = load("/studio/icons/compose/toolbar/interactive-preview.svg"); // 16x16
     public static final Icon RUN_CONFIGURATION = load("/studio/icons/compose/toolbar/run-configuration.svg"); // 16x16
     public static final Icon RUN_ON_DEVICE = load("/studio/icons/compose/toolbar/run-on-device.svg"); // 16x16
+    public static final Icon STOP_INTERACTIVE_MODE = load("/studio/icons/compose/toolbar/stop-interactive-mode.svg"); // 16x16
   }
 
   public static class Cursors {
@@ -111,6 +112,7 @@ public class StudioIcons {
   public static class DatabaseInspector {
     public static final Icon ALLOW_DATABASES_TO_CLOSE = load("/studio/icons/database-inspector/allow-databases-to-close.svg"); // 16x16
     public static final Icon COLUMN = load("/studio/icons/database-inspector/column.svg"); // 16x16
+    public static final Icon DATABASE_UNAVAILABLE = load("/studio/icons/database-inspector/database-unavailable.svg"); // 16x16
     public static final Icon DATABASE = load("/studio/icons/database-inspector/database.svg"); // 16x16
     public static final Icon KEEP_DATABASES_OPEN = load("/studio/icons/database-inspector/keep-databases-open.svg"); // 16x16
     public static final Icon NEW_QUERY = load("/studio/icons/database-inspector/new-query.svg"); // 16x16
@@ -355,6 +357,12 @@ public class StudioIcons {
       public static final Icon MODIFY_NAV = load("/studio/icons/layout-editor/properties/modify-nav.svg"); // 16x16
       public static final Icon MODIFY_TEXT = load("/studio/icons/layout-editor/properties/modify-text.svg"); // 16x16
       public static final Icon MODIFY_THEME = load("/studio/icons/layout-editor/properties/modify-theme.svg"); // 16x16
+      public static final Icon PACKED_HORIZONTAL = load("/studio/icons/layout-editor/properties/packed-horizontal.svg"); // 16x16
+      public static final Icon PACKED_VERTICAL = load("/studio/icons/layout-editor/properties/packed-vertical.svg"); // 16x16
+      public static final Icon SPREAD_HORIZONTAL = load("/studio/icons/layout-editor/properties/spread-horizontal.svg"); // 16x16
+      public static final Icon SPREAD_INSIDE_HORIZONTAL = load("/studio/icons/layout-editor/properties/spread-inside-horizontal.svg"); // 16x16
+      public static final Icon SPREAD_INSIDE_VERTICAL = load("/studio/icons/layout-editor/properties/spread-inside-vertical.svg"); // 16x16
+      public static final Icon SPREAD_VERTICAL = load("/studio/icons/layout-editor/properties/spread-vertical.svg"); // 16x16
       public static final Icon TEXT_ALIGN_CENTER = load("/studio/icons/layout-editor/properties/text-align-center.svg"); // 16x16
       public static final Icon TEXT_ALIGN_LAYOUT_LEFT = load("/studio/icons/layout-editor/properties/text-align-layout-left.svg"); // 16x16
       public static final Icon TEXT_ALIGN_LAYOUT_RIGHT = load("/studio/icons/layout-editor/properties/text-align-layout-right.svg"); // 16x16

@@ -168,11 +168,11 @@ public class CaptureObjectLoaderTest {
   @Test
   public void testDefaultSupportedClassifiers() {
     TestCaptureObject capture = new TestCaptureObject(new CountDownLatch(1), true, false);
-    assertThat(capture.isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS)).isTrue();
-    assertThat(capture.isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK)).isTrue();
-    assertThat(capture.isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE)).isTrue();
-    assertThat(capture.isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping.NATIVE_ARRANGE_BY_ALLOCATION_METHOD)).isFalse();
-    assertThat(capture.isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK)).isFalse();
+    assertThat(capture.isGroupingSupported(ClassGrouping.ARRANGE_BY_CLASS)).isTrue();
+    assertThat(capture.isGroupingSupported(ClassGrouping.ARRANGE_BY_CALLSTACK)).isTrue();
+    assertThat(capture.isGroupingSupported(ClassGrouping.ARRANGE_BY_PACKAGE)).isTrue();
+    assertThat(capture.isGroupingSupported(ClassGrouping.NATIVE_ARRANGE_BY_ALLOCATION_METHOD)).isFalse();
+    assertThat(capture.isGroupingSupported(ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK)).isFalse();
   }
 
   private static class TestCaptureObject implements CaptureObject {

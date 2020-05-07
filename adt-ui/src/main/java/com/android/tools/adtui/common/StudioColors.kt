@@ -90,6 +90,20 @@ val contentDeselectionBackground = JBColor.namedColor("Content.selectionInactive
                                                       JBColor(Color(0x33121212, true), Color(0x33EDEDED, true)))
 
 /**
+ * Overlay background color for selected range
+ *
+ * Example: box selection overlay in profilers
+ */
+val selectionOverlayBackground = JBColor(Color(0x330478DA, true), Color(0x4C2395F5, true))
+
+/**
+ * Overlay background color for deselected content
+ *
+ * Example: box selection overlay in profilers
+ */
+val inactiveSelectionOverlayBackground = JBColor(Color(0x33121212, true), Color(0x33EDEDED, true))
+
+/**
  * Background color for an active selection.
  *
  * Example: selected track in a track group.

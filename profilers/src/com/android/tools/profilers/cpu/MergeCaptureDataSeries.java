@@ -18,7 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
+import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -58,7 +58,7 @@ public class MergeCaptureDataSeries<T> implements DataSeries<T> {
     double minRangeUs = range.getMin();
     double maxRangeUs = range.getMax();
     List<SeriesData<T>> seriesData = new ArrayList<>();
-    if (myCapture instanceof AtraceCpuCapture) {
+    if (myCapture instanceof SystemTraceCpuCapture) {
       Range traceRange = myCapture.getRange();
       if (traceRange.getMin() <= maxRangeUs && traceRange.getMax() >= minRangeUs) {
         // If our trace starts before our requested we query only for the last bit of data in our range.

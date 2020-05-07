@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
+import com.android.tools.profilers.systemtrace.ProcessModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.fail
 import org.junit.Test
@@ -24,10 +24,10 @@ import org.junit.Test
 class MainProcessSelectorTest {
 
   private val processList = listOf(
-    CpuThreadSliceInfo(100, "process1-Main", 100, "process1"),
-    CpuThreadSliceInfo(200, "process1-Main", 200, "process2"),
-    CpuThreadSliceInfo(300, "process1-Main", 300, "process3"),
-    CpuThreadSliceInfo(400, "process1-Main", 400, "process4"))
+    ProcessModel(100, "process1", mapOf(), mapOf()),
+    ProcessModel(200, "process2", mapOf(), mapOf()),
+    ProcessModel(300, "process3", mapOf(), mapOf()),
+    ProcessModel(400, "process4", mapOf(), mapOf()))
 
   @Test
   fun `first check is by name hint`() {
@@ -51,10 +51,10 @@ class MainProcessSelectorTest {
     service.setListBoxOptionsIndex(1) // process2
     val selector = MainProcessSelector("dont_match", 0, null)
     val newProcessList = listOf(
-      CpuThreadSliceInfo(100, "process1-Main", 100, "process1"),
-      CpuThreadSliceInfo(0, "process0-Main", 0, "process0"))
+      ProcessModel(100, "process1", emptyMap(), emptyMap()),
+      ProcessModel(0, "process0", emptyMap(), emptyMap()))
 
-    assertThat(selector.apply(processList)).isEqualTo(100)
+    assertThat(selector.apply(newProcessList)).isEqualTo(100)
   }
 
   @Test

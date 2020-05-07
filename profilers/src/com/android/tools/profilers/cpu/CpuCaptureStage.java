@@ -37,8 +37,8 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
-import com.android.tools.profilers.cpu.atrace.AtraceFrame;
+import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
+import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
@@ -365,7 +365,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
     // Frame
     CpuFramesModel.FrameState mainFrames = new CpuFramesModel.FrameState(
-      "Main", cpuCapture.getMainThreadId(), AtraceFrame.FrameThread.MAIN, cpuCapture, timeline.getViewRange());
+      "Main", cpuCapture.getMainThreadId(), SystemTraceFrame.FrameThread.MAIN, cpuCapture, timeline.getViewRange());
     CpuFrameTooltip mainFrameTooltip = new CpuFrameTooltip(timeline);
     mainFrameTooltip.setFrameSeries(mainFrames.getSeries());
     display.addTrackModel(
@@ -388,7 +388,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
                                                          @NotNull Timeline timeline,
                                                          @NotNull MultiSelectionModel<CpuAnalyzable> multiSelectionModel) {
     // Collapse threads for ART and SimplePerf traces.
-    boolean collapseThreads = !(capture instanceof AtraceCpuCapture);
+    boolean collapseThreads = !(capture instanceof SystemTraceCpuCapture);
     List<CpuThreadInfo> threadInfos =
       capture.getThreads().stream().sorted(new CaptureThreadComparator(capture)).collect(Collectors.toList());
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());

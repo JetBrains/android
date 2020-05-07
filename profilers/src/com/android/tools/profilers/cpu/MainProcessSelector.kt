@@ -16,9 +16,8 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.profilers.IdeProfilerServices
-import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
+import com.android.tools.profilers.systemtrace.ProcessModel
 import java.util.function.Function
-import kotlin.RuntimeException as RuntimeException1
 
 /**
  * Selects the main process from a list of process, using a number of optional methods: name, id, IDE dialog for the user.
@@ -29,17 +28,17 @@ import kotlin.RuntimeException as RuntimeException1
 class MainProcessSelector(
   val nameHint: String = "",
   val idHint: Int = 0,
-  private val profilerServices: IdeProfilerServices? = null): Function<List<CpuThreadSliceInfo>, Int?> {
+  private val profilerServices: IdeProfilerServices? = null) {
 
-  override fun apply(processList: List<CpuThreadSliceInfo>): Int? {
+  fun apply(processList: List<ProcessModel>): Int? {
     // 1) Use name hint if available.
     if (nameHint.isNotBlank()) {
-      processList.find { nameHint.endsWith(it.processName) }?.let { return it.processId }
+      processList.find { nameHint.endsWith(it.getSafeProcessName()) }?.let { return it.id }
     }
 
     // 2) If we don't have a process based on named find one based on id.
     if (idHint > 0) {
-      processList.find { idHint == it.processId }?.let { return it.processId }
+      processList.find { idHint == it.id }?.let { return it.id }
     }
 
     // 3) Ask the user for input.
@@ -47,16 +46,16 @@ class MainProcessSelector(
       val selection = profilerServices.openListBoxChooserDialog("Select a process",
                                                 "Select the process you want to analyze.",
                                                 processList,
-                                                Function { t: CpuThreadSliceInfo -> t.processName })
+                                                Function { t: ProcessModel -> t.getSafeProcessName() })
       if (selection != null) {
-        return selection.processId
+        return selection.id
       } else {
         throw ProcessSelectorDialogAbortedException()
       }
     }
 
     // 4) Fallback to the first of the list, we know it has at least one.
-    return processList.firstOrNull()?.processId
+    return processList.firstOrNull()?.id
   }
 }
 

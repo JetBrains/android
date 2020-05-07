@@ -1,0 +1,109 @@
+/*
+ * Copyright (C) 2020 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.gradle.project.sync.errors
+
+import com.google.common.truth.Truth.assertThat
+import com.intellij.build.issue.BuildIssueQuickFix
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Test
+
+class DexDisabledIssueCheckerTest {
+  private val INVOKE_CUSTOM = "Invoke-customs are only supported starting with Android O"
+  private val DEFAULT_INTERFACE_METHOD = "Default interface methods are only supported starting with Android N (--min-api 24)"
+  private val STATIC_INTERFACE_METHOD = "Static interface methods are only supported starting with Android N (--min-api 24)"
+  private val FAILED_TASK_MESSAGE = "Execution failed for task ':app:task'."
+
+  private val issueChecker = DexDisabledIssueChecker()
+
+  @Test
+  fun `no builder exception causes null issue`() {
+    val issueData = GradleIssueData("projectFolderPath", Throwable("Error: $INVOKE_CUSTOM"), null, null)
+    val buildIssue = issueChecker.check(issueData)
+    assertThat(buildIssue).isNull()
+  }
+
+  @Test
+  fun `no RuntimeException causes null issue`() {
+    val errorCause = Throwable(DexArchiveBuilderException(FAILED_TASK_MESSAGE, Throwable("Error: $INVOKE_CUSTOM")))
+    val issueData = GradleIssueData("projectFolderPath", errorCause, null, null)
+    val buildIssue = issueChecker.check(issueData)
+    assertThat(buildIssue).isNull()
+  }
+
+  @Test
+  fun `no error message causes null issue`() {
+    val errorCause = Throwable(DexArchiveBuilderException(FAILED_TASK_MESSAGE, RuntimeException("incorrect message")))
+    val issueData = GradleIssueData("projectFolderPath", errorCause, null, null)
+    val buildIssue = issueChecker.check(issueData)
+    assertThat(buildIssue).isNull()
+  }
+
+  @Test
+  fun `unknown message causes null issue`() {
+    val errorCause = Throwable(DexArchiveBuilderException(FAILED_TASK_MESSAGE, RuntimeException("Error: unknown error")))
+    val issueData = GradleIssueData("projectFolderPath", errorCause, null, null)
+    val buildIssue = issueChecker.check(issueData)
+    assertThat(buildIssue).isNull()
+  }
+
+  @Test
+  fun `invoke-customs message`() {
+    verifyWithModule(INVOKE_CUSTOM, "26")
+  }
+
+  @Test
+  fun `default-interface message`() {
+    verifyWithModule(DEFAULT_INTERFACE_METHOD, "24")
+  }
+
+  @Test
+  fun `static-interface message`() {
+    verifyWithModule(STATIC_INTERFACE_METHOD, "24")
+  }
+
+  @Test
+  fun `no task can be found in message`() {
+    val quickFixes = verifyBuildIssueAndGetQuickfixes(INVOKE_CUSTOM, "Task failed")
+    assertThat(quickFixes).hasSize(1)
+    assertThat(quickFixes[0]).isInstanceOf(EnableDexWithApiLevelQuickFixAll::class.java)
+    assertThat(quickFixes[0].id).endsWith("26")
+  }
+
+  private fun verifyWithModule(pattern: String, apiLevel: String?) {
+    val quickFixes = verifyBuildIssueAndGetQuickfixes(pattern, FAILED_TASK_MESSAGE)
+    assertThat(quickFixes).hasSize(2)
+    assertThat(quickFixes.filterIsInstance<EnableDexWithApiLevelQuickFixAll>()).hasSize(1)
+    assertThat(quickFixes.filterIsInstance<EnableDexWithApiLevelQuickFixModule>()).hasSize(1)
+    assertThat(quickFixes.map{it.id}).containsNoDuplicates()
+    if (apiLevel != null) {
+      quickFixes.forEach {
+        assertThat(it.id).endsWith(apiLevel)
+      }
+    }
+  }
+
+  private fun verifyBuildIssueAndGetQuickfixes(rootPattern: String, taskPattern: String): List<BuildIssueQuickFix> {
+    val errorCause = Throwable(DexArchiveBuilderException(taskPattern, RuntimeException("Error: $rootPattern")))
+    val issueData = GradleIssueData("projectFolderPath", errorCause, null, null)
+    val buildIssue = issueChecker.check(issueData)
+    assertThat(buildIssue).isNotNull()
+    assertThat(buildIssue!!.description).startsWith(rootPattern)
+    assertThat(buildIssue.description).contains(taskPattern)
+    return buildIssue.quickFixes
+  }
+}
+
+private class DexArchiveBuilderException(message: String, cause: Throwable): Throwable(message, cause)

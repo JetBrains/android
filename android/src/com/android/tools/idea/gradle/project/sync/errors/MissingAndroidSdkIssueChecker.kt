@@ -16,14 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.FilePosition
 import com.intellij.build.issue.BuildIssue
-import com.intellij.build.issue.BuildIssueQuickFix
-import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -38,23 +36,18 @@ class MissingAndroidSdkIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: return null
-    if (rootCause !is RuntimeException || message.isEmpty() ||
+    if (rootCause !is RuntimeException || message.isBlank() ||
         message != SDK_DIR_PROPERTY_MISSING && !SDK_NOT_FOUND_PATTERN.matcher(message).matches()) return null
 
     // Log metrics.
     updateUsageTracker(issueData.projectPath, GradleSyncFailure.SDK_NOT_FOUND)
 
-    val description = MessageComposer(message)
     val propertiesFile = File(issueData.projectPath, FN_LOCAL_PROPERTIES)
     if (!propertiesFile.isFile) return null
 
-    description.addDescription(FIX_SDK_DIR_PROPERTY)
-    description.addQuickFix("Open local.properties File", OpenFileAtLocationQuickFix(FilePosition(propertiesFile, 0, 0)))
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
-      override val quickFixes: List<BuildIssueQuickFix> = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
+    return BuildIssueComposer(message).apply {
+      addDescription(FIX_SDK_DIR_PROPERTY)
+      addQuickFix("Open local.properties File", OpenFileAtLocationQuickFix(FilePosition(propertiesFile, 0, 0)))
+    }.composeBuildIssue()
   }
 }

@@ -51,6 +51,7 @@ class GradleModuleHierarchyProviderTest : AndroidGradleTestCase() {
     runWriteAction {
       buildFile.setBinaryContent("*** this is an error ***".toByteArray())
     }
+    GradleProjectImporter.configureNewProject(project)
     GradleProjectImporter.getInstance().importProjectNoSync(GradleProjectImporter.Request(project))
     requestSyncAndGetExpectedFailure()
     TruthJUnit.assume().that(ModuleManager.getInstance(project).modules).asList().hasSize(1)

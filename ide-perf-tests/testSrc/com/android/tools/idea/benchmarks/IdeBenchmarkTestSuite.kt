@@ -51,6 +51,7 @@ class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
         // Write Perfgate metadata (e.g. benchmark descriptions).
         val perfData = PerfData()
         perfData.addBenchmark(SimpleHighlightingBenchmark.benchmark)
+        perfData.addBenchmark(MlModelBindingBenchmark.benchmark)
         perfData.addBenchmark(FullProjectBenchmark.highlightingBenchmark)
         perfData.addBenchmark(FullProjectBenchmark.layoutCompletionBenchmark)
         perfData.addBenchmark(FullProjectBenchmark.completionBenchmark)

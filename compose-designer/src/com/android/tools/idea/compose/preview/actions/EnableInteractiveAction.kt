@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.ui.AnActionButton
 import icons.StudioIcons.Compose.INSPECT_PREVIEW
 import icons.StudioIcons.Compose.INTERACTIVE_PREVIEW
 
@@ -30,29 +31,26 @@ import icons.StudioIcons.Compose.INTERACTIVE_PREVIEW
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
  */
 internal class EnableInteractiveAction(private val dataContextProvider: () -> DataContext) :
-  ToggleAction(message("action.interactive.title"), message("action.interactive.description"), INTERACTIVE_PREVIEW) {
+  AnActionButton(message("action.interactive.title"), message("action.interactive.description"), INTERACTIVE_PREVIEW) {
+  private fun isInteractive(): Boolean {
+    val modelDataContext = dataContextProvider()
+    val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return false
 
-  private val isSelected: Boolean
-    get() {
-      val modelDataContext = dataContextProvider()
-      val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return false
+    return manager.interactivePreviewElementFqn != null
+  }
 
-      return manager.interactivePreviewElementFqn != null
-    }
+  override fun updateButton(e: AnActionEvent) {
+    super.updateButton(e)
 
-  override fun isSelected(e: AnActionEvent): Boolean = isSelected
+    e.presentation.isEnabled = true
+    e.presentation.isVisible = !isInteractive()
+  }
 
-  override fun setSelected(e: AnActionEvent, isSelected: Boolean) {
+  override fun actionPerformed(e: AnActionEvent) {
     val modelDataContext = dataContextProvider()
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val composableFqn = modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT)?.composableMethodFqn ?: return
 
-    manager.interactivePreviewElementFqn = if (isSelected) composableFqn else null
-  }
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-
-    e.presentation.icon = if (isSelected) INSPECT_PREVIEW else INTERACTIVE_PREVIEW
+    manager.interactivePreviewElementFqn = composableFqn
   }
 }

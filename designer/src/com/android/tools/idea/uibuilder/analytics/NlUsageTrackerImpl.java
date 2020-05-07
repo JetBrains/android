@@ -186,6 +186,8 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
         return LayoutPaletteEvent.ViewGroup.APP_COMPAT;
       case "Legacy":
         return LayoutPaletteEvent.ViewGroup.LEGACY;
+      case "Helpers":
+        return LayoutPaletteEvent.ViewGroup.HELPERS;
       default:
         return LayoutPaletteEvent.ViewGroup.CUSTOM;
     }

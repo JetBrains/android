@@ -57,7 +57,7 @@ import javax.swing.plaf.ScrollBarUI
 /**
  * Represents contents of the Emulator tool window for a single Emulator instance.
  */
-internal class EmulatorToolWindowPanel(private val emulator: EmulatorController) : BorderLayoutPanel(), DataProvider {
+class EmulatorToolWindowPanel(private val emulator: EmulatorController) : BorderLayoutPanel(), DataProvider {
   private val mainToolbar: ActionToolbar
   private val secondaryToolbar: ActionToolbar
   private var emulatorView: EmulatorView? = null

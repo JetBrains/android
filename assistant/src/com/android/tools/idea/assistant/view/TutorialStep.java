@@ -35,7 +35,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.HorizontalLayout;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
@@ -267,9 +269,9 @@ public class TutorialStep extends JPanel {
    * Create and add the step label.
    */
   private void initLabel() {
-    JLabel label = new JLabel(myStep.getLabel());
+    JBLabel label = new JBLabel(myStep.getLabel());
     Font font = label.getFont();
-    Font plainFont = new Font(font.getFontName(), Font.PLAIN, 18);
+    Font plainFont = new Font(font.getFontName(), Font.PLAIN, JBUIScale.scaleFontSize(18));
     label.setFont(plainFont);
 
     GridBagConstraints c = new GridBagConstraints();
@@ -310,12 +312,12 @@ public class TutorialStep extends JPanel {
     JTextPane stepNumber = new JTextPane();
     stepNumber.setEditable(false);
     stepNumber.setText(String.valueOf(myIndex + 1));
-    Font boldFont = new Font(font.getFontName(), Font.BOLD, 11);
+    Font boldFont = new Font(font.getFontName(), Font.BOLD, JBUIScale.scaleFontSize(11));
     stepNumber.setFont(boldFont);
     stepNumber.setOpaque(false);
     stepNumber.setForeground(NUMBER_COLOR);
     stepNumber.setBorder(new NumberBorder());
-    Dimension size = new Dimension(21, 21);
+    Dimension size = JBUI.size(21, 21);
     stepNumber.setSize(size);
     stepNumber.setPreferredSize(size);
     stepNumber.setMinimumSize(size);
@@ -454,7 +456,7 @@ public class TutorialStep extends JPanel {
       setOneLineMode(false);
       // NOTE: Monospace must be used or the preferred width will be inaccurate (most likely due to line length calculations based on the
       // width of a sample character.
-      setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
+      setFont(new Font(Font.MONOSPACED, Font.PLAIN, JBUIScale.scaleFontSize(11)));
       ensureWillComputePreferredSize();
       getDocument().setReadOnly(true);
 

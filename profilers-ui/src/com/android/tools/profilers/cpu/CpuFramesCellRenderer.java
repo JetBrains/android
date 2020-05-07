@@ -24,7 +24,7 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
-import com.android.tools.profilers.cpu.atrace.AtraceFrame;
+import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
@@ -36,13 +36,13 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import org.jetbrains.annotations.NotNull;
 
-public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameState, AtraceFrame> {
+public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameState, SystemTraceFrame> {
   private final boolean myDebugRenderingEnabled;
 
   /**
    * The current frame that the mouse is over.
    */
-  private AtraceFrame myHighlightedFrame = AtraceFrame.EMPTY;
+  private SystemTraceFrame myHighlightedFrame = SystemTraceFrame.EMPTY;
 
   private JList<CpuFramesModel.FrameState> myCpuStates;
 
@@ -60,7 +60,7 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
 
   @Override
   @NotNull
-  StateChart<AtraceFrame> getChartForModel(@NotNull CpuFramesModel.FrameState model) {
+  StateChart<SystemTraceFrame> getChartForModel(@NotNull CpuFramesModel.FrameState model) {
     return myStateCharts.get(model.getModel().hashCode()).getChart();
   }
 
@@ -86,8 +86,8 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
     // to be called. As this method can be called by Swing more often than our update cycle, we cache the models to avoid
     // recalculating the render states. This causes the rendering time to be substantially improved.
     // TODO: Think about abstracting this to the base class as all renderers have this pattern.
-    StateChartModel<AtraceFrame> model = value.getModel();
-    StateChart<AtraceFrame> stateChart = getOrCreateStateChart(model);
+    StateChartModel<SystemTraceFrame> model = value.getModel();
+    StateChart<SystemTraceFrame> stateChart = getOrCreateStateChart(model);
     stateChart.setDrawDebugInfo(myDebugRenderingEnabled);
     stateChart.setOpaque(true);
     panel.add(myLabel, new TabularLayout.Constraint(0, 0));
@@ -99,7 +99,7 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
     myCpuStates.repaint();
   }
 
-  void setHighlightedFrame(@NotNull AtraceFrame frame) {
+  void setHighlightedFrame(@NotNull SystemTraceFrame frame) {
     if (myHighlightedFrame != frame) {
       myHighlightedFrame = frame;
       // We force the whole list to be repainted as we need the associated frame to be repainted as well.
@@ -111,8 +111,8 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
    * Checks if the frame should be highlighted or not.
    * A frame should be highlighted if the mouse is over it or over a frame that is associated with it.
    */
-  private boolean isFrameHighlighted(@NotNull AtraceFrame frame) {
-    if (myHighlightedFrame == AtraceFrame.EMPTY) {
+  private boolean isFrameHighlighted(@NotNull SystemTraceFrame frame) {
+    if (myHighlightedFrame == SystemTraceFrame.EMPTY) {
       return false;
     }
     return frame == myHighlightedFrame || frame == myHighlightedFrame.getAssociatedFrame();
@@ -121,18 +121,18 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
   /**
    * Returns a {@link StateChart} corresponding to a given thread or create a new one if it doesn't exist.
    */
-  private StateChart<AtraceFrame> getOrCreateStateChart(StateChartModel<AtraceFrame> model) {
+  private StateChart<SystemTraceFrame> getOrCreateStateChart(StateChartModel<SystemTraceFrame> model) {
     if (myStateCharts.containsKey(model.hashCode()) && myStateCharts.get(model.hashCode()).getModel().equals(model)) {
       // State chart is already saved on the map. Return it.
       return myStateCharts.get(model.hashCode()).getChart();
     }
     // The state chart corresponding to the thread is not stored on the map. Create a new one.
-    StateChart<AtraceFrame> stateChart = new StateChart<>(model,
-                                                          new StateChartColorProvider<AtraceFrame>() {
+    StateChart<SystemTraceFrame> stateChart = new StateChart<>(model,
+                                                               new StateChartColorProvider<SystemTraceFrame>() {
                                                             @NotNull
                                                             @Override
                                                             public Color getColor(boolean isMouseOver,
-                                                                                  @NotNull AtraceFrame value) {
+                                                                                  @NotNull SystemTraceFrame value) {
                                                               boolean isHighlighted = isFrameHighlighted(value);
                                                               switch (value.getTotalPerfClass()) {
                                                                 case BAD:
@@ -147,19 +147,19 @@ public class CpuFramesCellRenderer extends CpuCellRenderer<CpuFramesModel.FrameS
                                                                   return ProfilerColors.DEFAULT_STAGE_BACKGROUND;
                                                               }
                                                             }
-                                                          }, new StateChartTextConverter<AtraceFrame>() {
+                                                          }, new StateChartTextConverter<SystemTraceFrame>() {
       @NotNull
       @Override
-      public String convertToString(@NotNull AtraceFrame value) {
+      public String convertToString(@NotNull SystemTraceFrame value) {
         // Show timings on bad frames.
-        if (value.getTotalPerfClass() == AtraceFrame.PerfClass.BAD) {
+        if (value.getTotalPerfClass() == SystemTraceFrame.PerfClass.BAD) {
           return TimeFormatter.getSingleUnitDurationString(value.getDurationUs());
         }
         return "";
       }
     });
     stateChart.setRenderMode(StateChart.RenderMode.TEXT);
-    CpuCellRenderer.StateChartData<AtraceFrame> data = new CpuCellRenderer.StateChartData<>(stateChart, model);
+    CpuCellRenderer.StateChartData<SystemTraceFrame> data = new CpuCellRenderer.StateChartData<>(stateChart, model);
     stateChart.setHeightGap(0.0f); // Default config sets this to 0.5f;
     myStateCharts.put(model.hashCode(), data);
     return stateChart;

@@ -41,6 +41,8 @@ import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStageView;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStageView;
+import com.android.tools.profilers.memory.HeapDumpStage;
+import com.android.tools.profilers.memory.HeapDumpStageView;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStage;
@@ -162,6 +164,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myBinder.bind(CpuProfilerStage.class, CpuProfilerStageView::new);
     myBinder.bind(CpuCaptureStage.class, CpuCaptureStageView::new);
     myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
+    myBinder.bind(HeapDumpStage.class, HeapDumpStageView::new);
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
     myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);
     myBinder.bind(EnergyProfilerStage.class, EnergyProfilerStageView::new);
@@ -297,7 +300,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     JButton button = new CommonButton(AllIcons.Actions.Back);
     button.addActionListener(action -> {
-      myProfiler.setMonitoringStage();
+      myProfiler.setStage(myProfiler.getStage().getParentStage());
       myProfiler.getIdeServices().getFeatureTracker().trackGoBack();
     });
     myCommonToolbar.add(button);
@@ -311,7 +314,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
                                                  // Track first, so current stage is sent with the event
                                                  myProfiler.getIdeServices().getFeatureTracker().trackSelectMonitor();
                                                  myProfiler.setNewStage(stage);
-                                               });
+                                               },
+                                               () -> myProfiler.getStage().getHomeStageClass());
     stageCombo.setRenderer(new StageComboBoxRenderer());
     stages.bind();
     myCommonToolbar.add(stageCombo);

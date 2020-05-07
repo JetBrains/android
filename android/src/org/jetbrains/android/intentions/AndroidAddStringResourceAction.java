@@ -286,9 +286,11 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       }
 
       boolean found = true;
+      PsiParameter[] parameters = parameterList.getParameters();
+      PsiParameter[] otherParameters = otherParameterList.getParameters();
       for (int i = 0; i < parameterCount; i++) {
-        PsiParameter parameter = parameterList.getParameters()[i];
-        PsiParameter otherParameter = otherParameterList.getParameters()[i];
+        PsiParameter parameter = parameters[i];
+        PsiParameter otherParameter = otherParameters[i];
 
         // We want to find a method that all parameters matches except ith parameter be int and annotated with STRING_RES_ANNOTATION.
         if (i == index) {
@@ -447,8 +449,8 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
           PsiMethod resolved = call.resolveMethod();
           if (resolved != null) {
             PsiParameterList parameterList = resolved.getParameterList();
-            if (index < parameterList.getParametersCount()) {
-              PsiParameter psiParameter = parameterList.getParameters()[index];
+            PsiParameter psiParameter = parameterList.getParameter(index);
+            if (psiParameter != null) {
               return psiParameter.getType();
             }
           }

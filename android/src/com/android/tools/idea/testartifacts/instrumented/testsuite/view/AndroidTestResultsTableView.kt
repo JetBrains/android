@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
@@ -24,7 +25,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.progress.util.ColorProgressBar
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.TableView
@@ -33,8 +33,8 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import java.awt.Color
 import java.awt.Component
-import java.util.Comparator
 import java.io.File
+import java.util.Comparator
 import javax.swing.Icon
 import javax.swing.JTable
 import javax.swing.ListSelectionModel
@@ -164,6 +164,7 @@ fun getIconFor(androidTestResult: AndroidTestCaseResult?): Icon? {
     AndroidTestCaseResult.SKIPPED -> AllIcons.RunConfigurations.TestSkipped
     AndroidTestCaseResult.FAILED -> AllIcons.RunConfigurations.TestFailed
     AndroidTestCaseResult.IN_PROGRESS -> SMPoolOfTestIcons.RUNNING_ICON
+    AndroidTestCaseResult.CANCELLED -> SMPoolOfTestIcons.TERMINATED_ICON
     else -> null
   }
 }
@@ -176,6 +177,7 @@ fun getColorFor(androidTestResult: AndroidTestCaseResult?): Color? {
     AndroidTestCaseResult.PASSED -> ColorProgressBar.GREEN
     AndroidTestCaseResult.FAILED -> ColorProgressBar.RED_TEXT
     AndroidTestCaseResult.SKIPPED -> ColorProgressBar.GREEN
+    AndroidTestCaseResult.CANCELLED -> ColorProgressBar.RED_TEXT
     else -> null
   }
 }
@@ -238,7 +240,8 @@ private class AndroidTestResultsTableModel :
    */
   fun addTestResultsRow(device: AndroidDevice, testCase: AndroidTestCase) {
     val row = myTestResultsRows.getOrPut(testCase.id) {
-      AndroidTestResultsRow(testCase.name).also { addRow(it) }
+      AndroidTestResultsRow(testCase.methodName, testCase.className, testCase.packageName)
+        .also { addRow(it) }
     }
     row.addTestCase(device, testCase)
     fireTableDataChanged()
@@ -264,7 +267,7 @@ private class AndroidTestResultsTableModel :
  */
 private object TestNameColumn : ColumnInfo<AndroidTestResultsRow, AndroidTestResultsRow>("Tests") {
   private val myComparator = Comparator<AndroidTestResultsRow> { lhs, rhs ->
-    compareValues(lhs.testCaseName, rhs.testCaseName)
+    compareValues(lhs.getTestCaseName(), rhs.getTestCaseName())
   }
   override fun valueOf(item: AndroidTestResultsRow): AndroidTestResultsRow = item
   override fun getComparator(): Comparator<AndroidTestResultsRow> = myComparator
@@ -275,7 +278,6 @@ private object TestNameColumn : ColumnInfo<AndroidTestResultsRow, AndroidTestRes
 }
 
 private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
-  const val maxDisplayNameLength: Int = 40
   private val myEmptyBorder = JBUI.Borders.empty(10)
   override fun getTableCellRendererComponent(table: JTable?,
                                              value: Any?,
@@ -285,8 +287,7 @@ private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
                                              column: Int): Component {
     val results = value as? AndroidTestResultsRow ?: return this
 
-    val shortenedName = StringUtil.last(results.testCaseName, maxDisplayNameLength, true)
-    super.getTableCellRendererComponent(table, shortenedName, isSelected, hasFocus, row, column)
+    super.getTableCellRendererComponent(table, results.getTestCaseName(), isSelected, hasFocus, row, column)
     icon = getIconFor(results.getTestResultSummary())
     border = myEmptyBorder
 
@@ -373,7 +374,9 @@ private object AndroidTestResultsColumnCellRenderer : DefaultTableCellRenderer()
 /**
  * A row for displaying test results. Each row has test results for every device.
  */
-private class AndroidTestResultsRow(override val testCaseName: String) : AndroidTestResults {
+private class AndroidTestResultsRow(override val methodName: String,
+                                    override val className: String,
+                                    override val packageName: String) : AndroidTestResults {
   private val myTestCases = mutableMapOf<String, AndroidTestCase>()
 
   /**
@@ -419,6 +422,7 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
     return when {
       stats.failed == 1 -> "Fail"
       stats.failed > 0 -> "Fail (${stats.failed})"
+      stats.cancelled > 0 -> "Cancelled"
       stats.skipped == myTestCases.size -> "Skip"
       stats.passed + stats.skipped == myTestCases.size -> "Pass"
       else -> ""
@@ -432,6 +436,7 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
     val stats = getResultStats()
     return when {
       stats.failed > 0 -> AndroidTestCaseResult.FAILED
+      stats.cancelled > 0 -> AndroidTestCaseResult.CANCELLED
       stats.skipped == myTestCases.size -> AndroidTestCaseResult.SKIPPED
       stats.running > 0 -> AndroidTestCaseResult.IN_PROGRESS
       stats.passed + stats.skipped == myTestCases.size -> AndroidTestCaseResult.PASSED
@@ -442,22 +447,25 @@ private class AndroidTestResultsRow(override val testCaseName: String) : Android
   private data class ResultStats(val passed: Int,
                                  val failed: Int,
                                  val skipped: Int,
-                                 val running: Int)
+                                 val running: Int,
+                                 val cancelled: Int)
 
   private fun getResultStats(): ResultStats {
     var passed = 0
     var failed = 0
     var skipped = 0
     var running = 0
+    var cancelled = 0
     myTestCases.values.forEach {
       when(it.result) {
         AndroidTestCaseResult.PASSED -> passed++
         AndroidTestCaseResult.FAILED -> failed++
         AndroidTestCaseResult.SKIPPED -> skipped++
         AndroidTestCaseResult.IN_PROGRESS -> running++
+        AndroidTestCaseResult.CANCELLED -> cancelled++
         else -> {}
       }
     }
-    return ResultStats(passed, failed, skipped, running)
+    return ResultStats(passed, failed, skipped, running, cancelled)
   }
 }

@@ -94,7 +94,7 @@ class InspectorViewDescriptor(private val drawId: Long,
     view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, imageBottom, null, 0, layout, imageType, body)
 
   fun build(): ViewNode {
-    val result = ViewNode(drawId, qualifiedName, layout, x, y, 0, 0, width, height, viewId, textValue, layoutFlags)
+    val result = ViewNode(drawId, qualifiedName, layout, x, y, width, height, viewId, textValue, layoutFlags)
     result.imageBottom = imageBottom
     result.imageTop = imageTop
     result.imageType = imageType

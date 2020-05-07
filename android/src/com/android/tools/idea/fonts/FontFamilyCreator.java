@@ -34,6 +34,7 @@ import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.lint.checks.FontDetector;
 import com.android.utils.XmlUtils;
+import com.intellij.core.CoreBundle;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -43,7 +44,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiBundle;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.xml.XmlFile;
@@ -285,7 +285,7 @@ public class FontFamilyCreator {
                           tag -> tag.getAttributeValue(ATTR_NAME, ANDROID_URI), FontFamilyCreator::setMetaDataAttributes);
     }
     catch (IncorrectOperationException e) {
-      String readOnlyErrorMessage = PsiBundle.message("cannot.modify.a.read.only.file", "").split("\'")[0];
+      String readOnlyErrorMessage = CoreBundle.message("cannot.modify.a.read.only.file", "").split("\'")[0];
       if (e.getMessage().startsWith(readOnlyErrorMessage)) {
         throw new UpdateManifestFileException(
           "Could not add preloaded fonts to read-only manifest file. Please reference the font file manually from Android manifest",

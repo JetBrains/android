@@ -25,6 +25,7 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.testutils.TestUtils;
 import com.android.tools.deployer.DeployerTestUtils;
+import com.android.tools.deployer.devices.DeviceId;
 import com.android.tools.deployer.devices.FakeDevice;
 import com.android.tools.deployer.devices.FakeDeviceHandler;
 import com.android.tools.deployer.devices.FakeDeviceLibrary;
@@ -36,6 +37,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
+import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
 import com.google.common.io.Files;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.ui.RunContentManager;
@@ -112,11 +114,8 @@ public class DeploymentTest {
     // Start server execution.
     myAdbServer.start();
 
-    // Terminate the service if it's already started (it's a UI test, so there might be no shutdown between tests).
-    Disposer.dispose(AdbService.getInstance());
-
     // Start ADB with fake server and its port.
-    AndroidDebugBridge.enableFakeAdbServerMode(myAdbServer.getPort());
+    AndroidDebugBridgeUtils.enableFakeAdbServerMode(myAdbServer.getPort());
 
     myProject = myGuiTest.openProjectAndWaitForIndexingToFinish(PROJECT_NAME);
 
@@ -200,7 +199,7 @@ public class DeploymentTest {
   @NotNull
   private List<FakeDevice> connectDevices() throws Exception {
     List<FakeDevice> devices = new ArrayList<>();
-    for (FakeDeviceLibrary.DeviceId id : FakeDeviceLibrary.DeviceId.values()) {
+    for (DeviceId id : DeviceId.values()) {
       FakeDevice device = new FakeDeviceLibrary().build(id);
       devices.add(device);
       myHandler.connect(device, myAdbServer);
@@ -210,7 +209,7 @@ public class DeploymentTest {
       .expecting("device to show up in ddmlib")
       .until(() -> {
         try {
-          return myAdbServer.getDeviceListCopy().get().size() == FakeDeviceLibrary.DeviceId.values().length;
+          return myAdbServer.getDeviceListCopy().get().size() == DeviceId.values().length;
         }
         catch (InterruptedException | ExecutionException e) {
           return false;

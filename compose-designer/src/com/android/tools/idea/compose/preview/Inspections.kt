@@ -112,8 +112,6 @@ private fun KtParameter.isAcceptableForPreview(): Boolean =
  * Inspection that checks that any function annotated with `@Preview` does not have parameters.
  */
 class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotationInspection() {
-  override fun getDisplayName() = message("inspection.no.parameters.name")
-
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry) {
@@ -133,8 +131,6 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
  * Inspection that checks that any function annotated with `@Preview` is also annotated with `@Composable`.
  */
 class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspection() {
-  override fun getDisplayName() = message("inspection.no.composable.name")
-
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry) {
@@ -152,8 +148,6 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
  * This is to avoid `@Preview` methods to be instance methods of classes that we can not instantiate.
  */
 class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
-  override fun getDisplayName() = message("inspection.top.level.function")
-
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry) {
@@ -170,8 +164,6 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
  * and the height parameter doesn't go higher than [MAX_HEIGHT].
  */
 class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
-  override fun getDisplayName() = message("inspection.dimension.limit.name")
-
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry) {

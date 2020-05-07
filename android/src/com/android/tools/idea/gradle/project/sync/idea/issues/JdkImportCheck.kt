@@ -19,7 +19,6 @@ package com.android.tools.idea.gradle.project.sync.idea.issues
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.sdk.IdeSdks
@@ -33,7 +32,6 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.projectRoots.JdkUtil
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
@@ -62,21 +60,15 @@ class JdkImportIssueChecker : GradleIssueChecker {
     val message = when {
       issueData.error is JdkImportCheckException -> issueData.error.message!!
       issueData.error.message?.contains("Unsupported major.minor version 52.0") == true -> {
-        // TODO(151215857): Replace once updating the usage no longer requires a project.
-        for (project in ProjectManager.getInstance().openProjects) {
-          if (project.basePath == issueData.projectPath) {
-            invokeLater {
-              updateUsageTracker(project, GradleSyncFailure.JDK8_REQUIRED)
-            }
-            break
-          }
+        invokeLater {
+          updateUsageTracker(issueData.projectPath, GradleSyncFailure.JDK8_REQUIRED)
         }
         "${issueData.error.message!!}\nPlease use JDK 8 or newer."
       }
       else -> return null
     }
 
-    val messageComposer = MessageComposer(message).apply {
+    return BuildIssueComposer(message).apply {
       if (IdeInfo.getInstance().isAndroidStudio) {
         val ideSdks = IdeSdks.getInstance()
         if (!ideSdks.isUsingJavaHomeJdk) {
@@ -86,7 +78,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
           }
         }
 
-        if (quickFixes.isEmpty()) {
+        if (issueQuickFixes.isEmpty()) {
           val embeddedJdkPath = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath()
           // TODO: Check we REALLY need to check isJdkRunnableOnPlatform. This spawns a process.
           if (embeddedJdkPath != null && Jdks.isJdkRunnableOnPlatform(embeddedJdkPath.absolutePath)) {
@@ -99,14 +91,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
 
       addQuickFix(SelectJdkFromFileSystemQuickFix())
       addQuickFix(DownloadJdk8QuickFix())
-    }
-
-    return object : BuildIssue {
-      override val title: String = "Invalid Jdk"
-      override val description: String = messageComposer.buildMessage()
-      override val quickFixes: List<BuildIssueQuickFix> = messageComposer.quickFixes
-      override fun getNavigatable(project: Project): Navigatable? = null
-    }
+    }.composeBuildIssue()
   }
 }
 

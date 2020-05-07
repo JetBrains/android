@@ -22,12 +22,14 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.memory.MemoryProfilerConfiguration;
+import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListenableFutureTask;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
@@ -208,15 +210,26 @@ public interface CaptureObject extends MemoryObject {
     return Collections.EMPTY_SET;
   }
 
-  default void addInstanceFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
+  default ListenableFuture<Void> addInstanceFilter(@NotNull CaptureObjectInstanceFilter filter,
+                                                   @NotNull Executor analyzeJoiner) {
+    return CaptureObjectUtils.makeEmptyTask();
+  }
 
-  default void removeInstanceFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
+  default ListenableFuture<Void> removeInstanceFilter(@NotNull CaptureObjectInstanceFilter filter,
+                                                      @NotNull Executor analyzeJoiner) {
+    return CaptureObjectUtils.makeEmptyTask();
+  }
 
-  default void setSingleFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
+  default ListenableFuture<Void> setSingleFilter(@NotNull CaptureObjectInstanceFilter filter,
+                                                 @NotNull Executor analyzeJoiner) {
+    return CaptureObjectUtils.makeEmptyTask();
+  }
 
-  default void removeAllFilters(@NotNull Executor analyzeJoiner) {}
+  default ListenableFuture<Void> removeAllFilters(@NotNull Executor analyzeJoiner) {
+    return CaptureObjectUtils.makeEmptyTask();
+  }
 
-  default boolean isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping grouping) {
+  default boolean isGroupingSupported(ClassGrouping grouping) {
     switch (grouping) {
       case ARRANGE_BY_CLASS:
       case ARRANGE_BY_PACKAGE:
@@ -231,5 +244,11 @@ public interface CaptureObject extends MemoryObject {
 
   default boolean canSafelyLoad() {
     return true;
+  }
+}
+
+class CaptureObjectUtils {
+  static ListenableFutureTask<Void> makeEmptyTask() {
+    return ListenableFutureTask.create(() -> null);
   }
 }

@@ -57,6 +57,6 @@ public class MlModelFilesSearchScope extends GlobalSearchScope {
     }
 
     Module module = ModuleUtilCore.findModuleForFile(file, getProject());
-    return module != null && MlkitUtils.isModelFileInMlModelsFolder(module, file);
+    return module != null && MlUtils.isModelFileInMlModelsFolder(module, file);
   }
 }

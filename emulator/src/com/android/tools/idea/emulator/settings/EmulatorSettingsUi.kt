@@ -41,7 +41,7 @@ internal class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScrol
                                             comment = "Enabling this setting will cause Android Emulator to launch in a tool window. " +
                                                       "Otherwise Android Emulator will launch as a standalone application. Some AVDs " +
                                                       "will launch as standalone applications regardless of this setting due to their " +
-                                                      "hardware profiles or system images.")
+                                                      "hardware profiles or system images.").component
     }
   }
 

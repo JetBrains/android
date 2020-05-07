@@ -22,7 +22,9 @@ import java.io.File
  * Encapsulates an Android test case metadata to be displayed in Android test suite view.
  *
  * @param id a test case identifier. This can be arbitrary string as long as it is unique to other test cases.
- * @param name a display name of this test case
+ * @param methodName a name of the test method
+ * @param className a name of the test class
+ * @param packageName a name of the tested APP
  * @param result a result of this test case. Null when the test case execution hasn't finished yet.
  * @param logcat a logcat message emitted during this test case.
  * @param errorStackTrace an error stack trace. Empty if a test passes.
@@ -30,7 +32,9 @@ import java.io.File
  * @param retentionSnapshot an Android Test Retention snapshot artifact.
  */
 data class AndroidTestCase(val id: String,
-                           val name: String,
+                           val methodName: String,
+                           val className: String,
+                           val packageName: String,
                            var result: AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED,
                            var logcat: String = "",
                            var errorStackTrace: String = "",
@@ -60,6 +64,11 @@ enum class AndroidTestCaseResult(val isTerminalState: Boolean) {
    * A test case is in progress.
    */
   IN_PROGRESS(false),
+
+  /**
+   * A test case which is scheduled to run ends up with cancelled.
+   */
+  CANCELLED(true),
 
   /**
    * A test case is scheduled but not started yet.

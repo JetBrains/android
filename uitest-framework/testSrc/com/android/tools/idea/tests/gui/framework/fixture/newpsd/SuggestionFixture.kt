@@ -19,6 +19,7 @@ import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.tests.gui.framework.findByType
 import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.matcher
+import com.android.tools.idea.tests.gui.framework.plainText
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.components.JBOptionButton
 import org.fest.swing.core.Robot

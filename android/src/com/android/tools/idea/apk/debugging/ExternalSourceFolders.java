@@ -20,6 +20,7 @@ import static com.intellij.ide.util.projectWizard.importSources.JavaSourceRootDe
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
+import com.intellij.ide.JavaUiBundle;
 import com.intellij.ide.util.projectWizard.importSources.JavaModuleSourceRoot;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -29,7 +30,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.progress.util.SmoothProgressAdapter;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -98,14 +98,14 @@ public class ExternalSourceFolders {
     }
     else {
       ProgressWindow progressWindow = new ProgressWindow(true, project);
-      progressWindow.setTitle(ProjectBundle.message("module.paths.searching.source.roots.title"));
+      progressWindow.setTitle(JavaUiBundle.message("module.paths.searching.source.roots.title"));
       progressIndicator = new SmoothProgressAdapter(progressWindow, project);
     }
 
     Runnable searchTask = () -> {
       Runnable process = () -> {
         for (File file : fileToEntryMap.keySet()) {
-          progressIndicator.setText(ProjectBundle.message("module.paths.searching.source.roots.progress", file.getPath()));
+          progressIndicator.setText(JavaUiBundle.message("module.paths.searching.source.roots.progress", file.getPath()));
           Collection<JavaModuleSourceRoot> roots = suggestRoots(file);
           entryToRootMap.put(fileToEntryMap.get(file), roots);
         }

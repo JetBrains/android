@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.appinspection.ide
 
-import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
-import com.android.tools.idea.appinspection.ide.ui.AppInspectionNotificationFactory
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
@@ -34,19 +32,12 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
+import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationListener
-import com.intellij.notification.NotificationType
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.timeout
-import org.mockito.Mockito.verify
 import java.awt.event.ContainerAdapter
 import java.awt.event.ContainerEvent
 import java.util.concurrent.CountDownLatch
@@ -75,9 +66,20 @@ class AppInspectionViewTest {
   private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
-  private val appInspectionCallbacks = object : AppInspectionCallbacks {
+  private class TestIdeServices : AppInspectionIdeServices {
+    class NotificationData(val content: String, val severity: AppInspectionIdeServices.Severity)
+    val notificationListeners = mutableListOf<(NotificationData) -> Unit>()
+
     override fun showToolWindow(callback: () -> Unit) {}
+    override fun showNotification(content: String,
+                                  title: String,
+                                  severity: AppInspectionIdeServices.Severity,
+                                  hyperlinkClicked: () -> Unit) {
+      val data = NotificationData(content, severity)
+      notificationListeners.forEach { listener -> listener(data) }
+    }
   }
+  private val ideServices = TestIdeServices()
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
@@ -93,9 +95,10 @@ class AppInspectionViewTest {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
     val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
-    val inspectionView = AppInspectionView(projectRule.project, discoveryHost, appInspectionCallbacks,
-                                           { listOf(FakeTransportService.FAKE_PROCESS_NAME) },
-                                           mock(AppInspectionNotificationFactory::class.java))
+    val inspectionView = AppInspectionView(projectRule.project, discoveryHost, ideServices) {
+      listOf(FakeTransportService.FAKE_PROCESS_NAME)
+    }
+
     val tabAddedLatch = CountDownLatch(2)
     inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
       override fun componentAdded(e: ContainerEvent) = tabAddedLatch.countDown()
@@ -111,9 +114,9 @@ class AppInspectionViewTest {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
     val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
-    val inspectionView = AppInspectionView(projectRule.project, discoveryHost, appInspectionCallbacks,
-                                           { listOf(FakeTransportService.FAKE_PROCESS_NAME) },
-                                           mock(AppInspectionNotificationFactory::class.java))
+    val inspectionView = AppInspectionView(projectRule.project, discoveryHost, ideServices) {
+      listOf(FakeTransportService.FAKE_PROCESS_NAME)
+    }
     val tabAddedLatch = CountDownLatch(2)
     inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
       override fun componentAdded(e: ContainerEvent) {
@@ -151,17 +154,18 @@ class AppInspectionViewTest {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
     val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
-    // Mock the notification handles that will be used to trigger toast.
-    val notificationFactory = mock(AppInspectionNotificationFactory::class.java)
-    val notification = mock(Notification::class.java)
-    `when`(
-      notificationFactory.createNotification(
-        ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), any(NotificationType::class.java),
-        any(NotificationListener::class.java))).thenReturn(notification)
+    val notificationLatch = CountDownLatch(1)
+    lateinit var notificationData: TestIdeServices.NotificationData
+    ideServices.notificationListeners += { data ->
+      notificationData = data
+      notificationLatch.countDown()
+    }
 
     // Set up the tool window.
-    val inspectionView = AppInspectionView(projectRule.project, discoveryHost, appInspectionCallbacks,
-                                           { listOf(FakeTransportService.FAKE_PROCESS_NAME) }, notificationFactory)
+    val inspectionView = AppInspectionView(projectRule.project, discoveryHost, ideServices) {
+      listOf(FakeTransportService.FAKE_PROCESS_NAME)
+    }
+
     val tabAddedLatch = CountDownLatch(1)
     inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
       override fun componentAdded(e: ContainerEvent) {
@@ -197,6 +201,8 @@ class AppInspectionViewTest {
     )
 
     // Verify crash triggers toast.
-    verify(notification, timeout(5000).times(1)).notify(projectRule.project)
+    notificationLatch.await()
+    assertThat(notificationData.content).contains("$INSPECTOR_ID has crashed")
+    assertThat(notificationData.severity).isEqualTo(AppInspectionIdeServices.Severity.ERROR)
   }
 }

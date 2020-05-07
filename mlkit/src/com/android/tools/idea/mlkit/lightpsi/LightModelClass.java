@@ -18,9 +18,9 @@ package com.android.tools.idea.mlkit.lightpsi;
 import com.android.SdkConstants;
 import com.android.tools.idea.mlkit.LightModelClassConfig;
 import com.android.tools.idea.mlkit.LoggingUtils;
-import com.android.tools.idea.mlkit.MlkitModuleService;
-import com.android.tools.idea.psi.NullabilityUtils;
-import com.android.tools.mlkit.MlkitNames;
+import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
+import com.android.tools.mlkit.MlNames;
+import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
@@ -43,7 +43,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,12 +52,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents a light class auto-generated for a specific model file in the assets folder.
+ * Represents a light class auto-generated for a specific model file in the ml folder.
  *
- * The light class is based on specific model however has structure similar to:
- * <code>
+ * <p>The light class is based on specific model however has structure similar to:
+ * <pre>{@code
  *   public final class ModelName {
  *     public static ModelName newInstance(Context context) throw IOException;
+ *     public static ModelName newInstance(Context context, Model.Options options) throw IOException;
  *     public final class Outputs {
  *       // different get methods
  *       public TensorBuffer getSomeOutput();
@@ -65,9 +66,9 @@ import org.jetbrains.annotations.Nullable;
  *
  *     public final Outputs process(TensorImage image1) { ... }
  *   }
- * </code>
+ * }</pre>
  *
- * @see MlkitOutputLightClass
+ * @see LightModelOutputsClass
  */
 public class LightModelClass extends AndroidLightClassBase {
   private final VirtualFile myModelFile;
@@ -89,47 +90,55 @@ public class LightModelClass extends AndroidLightClassBase {
 
     setModuleInfo(module, false);
 
-    ModificationTracker modificationTracker = MlkitModuleService.getInstance(module).getModelFileModificationTracker();
     myCachedMembers = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
-        List<TensorInfo> inputTensorInfos = myClassConfig.myModelMetadata.getInputTensorInfos();
-        List<TensorInfo> outputTensorInfos = myClassConfig.myModelMetadata.getOutputTensorInfos();
+        ModelInfo modelInfo = getModelInfo();
 
         //Build methods
-        PsiMethod[] methods = new PsiMethod[2];
-        methods[0] = buildProcessMethod(inputTensorInfos);
-        methods[1] = buildNewInstanceStaticMethod();
+        List<PsiMethod> methods = new ArrayList<>();
+        methods.add(buildProcessMethod(modelInfo.getInputs()));
+        methods.addAll(buildNewInstanceStaticMethods());
 
         //Build inner class
         Map<String, PsiClass> innerClassMap = new HashMap<>();
-        MlkitOutputLightClass mlkitOutputClass = new MlkitOutputLightClass(module, outputTensorInfos, this);
+        LightModelOutputsClass mlkitOutputClass = new LightModelOutputsClass(module, modelInfo.getOutputs(), this);
         innerClassMap.putIfAbsent(mlkitOutputClass.getName(), mlkitOutputClass);
 
-        MyClassMembers data = new MyClassMembers(methods, innerClassMap.values().toArray(PsiClass.EMPTY_ARRAY));
-        return CachedValueProvider.Result.create(data, modificationTracker);
+        MyClassMembers data =
+          new MyClassMembers(methods.toArray(PsiMethod.EMPTY_ARRAY), innerClassMap.values().toArray(PsiClass.EMPTY_ARRAY));
+        return CachedValueProvider.Result.create(data, ModificationTracker.NEVER_CHANGED);
       }, false);
 
-    LoggingUtils.logEvent(EventType.MODEL_API_GEN, modelFile);
-  }
-
-  public static List<String> getInnerClassNames() {
-    return Collections.singletonList(MlkitNames.OUTPUTS);
+    LoggingUtils.logEvent(EventType.MODEL_API_GEN, getModelInfo());
   }
 
   @NotNull
-  private PsiMethod buildNewInstanceStaticMethod() {
-    PsiType nonNullReturnType =
-      NullabilityUtils.annotateType(getProject(), PsiType.getTypeByName(getQualifiedName(), getProject(), getResolveScope()), true, this);
-    PsiType nonNullContext =
-      NullabilityUtils.annotateType(getProject(), PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope()), true, this);
-    LightMethodBuilder method = new LightMethodBuilder(getManager(), "newInstance")
-      .setMethodReturnType(nonNullReturnType)
-      .addParameter("context", nonNullContext)
+  private List<PsiMethod> buildNewInstanceStaticMethods() {
+    List<PsiMethod> methods = new ArrayList<>();
+    PsiType thisType = PsiType.getTypeByName(getQualifiedName(), getProject(), getResolveScope());
+    PsiType context = PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope());
+    PsiType options = PsiType.getTypeByName(ClassNames.MODEL_OPTIONS, getProject(), getResolveScope());
+
+    LightMethodBuilder method = new NullabilityLightMethodBuilder(getManager(), "newInstance")
+      .setMethodReturnType(thisType, true)
+      .addNullabilityParameter("context", context, true)
       .addException(ClassNames.IO_EXCEPTION)
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL, PsiModifier.STATIC)
       .setContainingClass(this);
     method.setNavigationElement(this);
-    return method;
+    methods.add(method);
+
+    LightMethodBuilder methodWithOptions = new NullabilityLightMethodBuilder(getManager(), "newInstance")
+      .setMethodReturnType(thisType, true)
+      .addNullabilityParameter("context", context, true)
+      .addNullabilityParameter("options", options, true)
+      .addException(ClassNames.IO_EXCEPTION)
+      .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL, PsiModifier.STATIC)
+      .setContainingClass(this);
+    methodWithOptions.setNavigationElement(this);
+    methods.add(methodWithOptions);
+
+    return methods;
   }
 
   @Override
@@ -163,7 +172,6 @@ public class LightModelClass extends AndroidLightClassBase {
   @NotNull
   @Override
   public PsiMethod[] getMethods() {
-    //TODO(jackqdyulei): Also return constructors here.
     return myCachedMembers.getValue().myMethods;
   }
 
@@ -171,11 +179,10 @@ public class LightModelClass extends AndroidLightClassBase {
   @Override
   public PsiMethod[] getConstructors() {
     if (myConstructors == null) {
-      PsiType nonNullContext =
-        NullabilityUtils.annotateType(getProject(), PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope()), true, this);
+      PsiType contextType = PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope());
       myConstructors = new PsiMethod[]{
-        new LightMethodBuilder(this, JavaLanguage.INSTANCE)
-          .addParameter("context", nonNullContext)
+        new NullabilityLightMethodBuilder(this, JavaLanguage.INSTANCE)
+          .addNullabilityParameter("context", contextType, true)
           .setConstructor(true)
           .addException(ClassNames.IO_EXCEPTION)
           .addModifier(PsiModifier.PRIVATE)
@@ -189,21 +196,19 @@ public class LightModelClass extends AndroidLightClassBase {
   private PsiMethod buildProcessMethod(@NotNull List<TensorInfo> tensorInfos) {
     GlobalSearchScope scope = getResolveScope();
     String outputClassName =
-      String.join(".", myClassConfig.myPackageName, myClassConfig.myClassName, MlkitNames.OUTPUTS);
+      String.join(".", myClassConfig.myPackageName, myClassConfig.myClassName, MlNames.OUTPUTS);
 
-    PsiType nonNullReturnType =
-      NullabilityUtils.annotateType(getProject(), PsiType.getTypeByName(outputClassName, getProject(), scope), true, this);
+    PsiType outputType = PsiType.getTypeByName(outputClassName, getProject(), scope);
 
-    LightMethodBuilder method = new LightMethodBuilder(getManager(), "process")
-      .setMethodReturnType(nonNullReturnType)
+    NullabilityLightMethodBuilder method = new NullabilityLightMethodBuilder(getManager(), "process");
+    method
+      .setMethodReturnType(outputType, true)
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
       .setContainingClass(this);
 
     for (TensorInfo tensorInfo : tensorInfos) {
-      PsiType nonNullPsiType = NullabilityUtils
-        .annotateType(getProject(), PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), getProject(), getResolveScope()),
-                      true, this);
-      method.addParameter(tensorInfo.getIdentifierName(), nonNullPsiType);
+      PsiType tensorType = CodeUtils.getPsiClassType(tensorInfo, getProject(), getResolveScope());
+      method.addNullabilityParameter(tensorInfo.getIdentifierName(), tensorType, true);
     }
     method.setNavigationElement(this);
 
@@ -221,6 +226,21 @@ public class LightModelClass extends AndroidLightClassBase {
   public PsiElement getNavigationElement() {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(myModelFile);
     return psiFile != null ? psiFile : super.getNavigationElement();
+  }
+
+  @NotNull
+  public VirtualFile getModelFile() {
+    return myModelFile;
+  }
+
+  @NotNull
+  public ModelInfo getModelInfo() {
+    return myClassConfig.myModelMetadata.myModelInfo;
+  }
+
+  @Override
+  public boolean equals(@Nullable Object o) {
+    return o instanceof LightModelClass && myClassConfig.myModelMetadata.equals(((LightModelClass)o).myClassConfig.myModelMetadata);
   }
 
   private static class MyClassMembers {

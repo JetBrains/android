@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.Client
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
@@ -41,7 +42,7 @@ private const val MAX_RETRY_COUNT = 60
  * [InspectorClient] that supports pre-api 29 devices.
  * Since it doesn't use [com.android.tools.idea.transport.TransportService], some relevant event listeners are manually fired.
  */
-class LegacyClient(parentDisposable: Disposable) : InspectorClient {
+class LegacyClient(private val resourceLookup: ResourceLookup, parentDisposable: Disposable) : InspectorClient {
 
   var selectedClient: Client? = null
 
@@ -183,7 +184,7 @@ class LegacyClient(parentDisposable: Disposable) : InspectorClient {
     if (windowIds.isEmpty()) {
       return false
     }
-    val propertiesUpdater = LegacyPropertiesProvider.Updater()
+    val propertiesUpdater = LegacyPropertiesProvider.Updater(resourceLookup)
     for (windowId in windowIds) {
       eventListeners[Common.Event.EventGroupIds.COMPONENT_TREE]?.forEach { it(LegacyEvent(windowId, propertiesUpdater, windowIds)) }
     }

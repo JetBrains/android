@@ -63,7 +63,7 @@ public abstract class SceneView extends PositionableContent {
     @Nullable
     @Override
     public Shape getShape(@NotNull SceneView sceneView) {
-      Device device = sceneView.getConfiguration().getDevice();
+      Device device = sceneView.getConfiguration().getCachedDevice();
       if (device == null) {
         return null;
       }
@@ -273,10 +273,6 @@ public abstract class SceneView extends PositionableContent {
   @NotNull
   final public SceneContext getContext() {
     return myContext;
-  }
-
-  final public void onNotVisible() {
-    getLayers().forEach(layer -> layer.releaseCachedResources());
   }
 
   /**

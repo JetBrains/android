@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.execution.ExecutionTarget;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -62,96 +61,19 @@ final class DevicesSelectedService {
   @NotNull
   private final Clock myClock;
 
-  @NotNull
-  private final Function<Project, ExecutionTargetService> myExecutionTargetServiceGetInstance;
-
-  @NotNull
-  private final Function<Project, AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
-
-  @VisibleForTesting
-  static final class Builder {
-    @Nullable
-    private Project myProject;
-
-    @Nullable
-    private Function<Project, PropertiesComponent> myPropertiesComponentGetInstance;
-
-    @Nullable
-    private Clock myClock;
-
-    @Nullable
-    private Function<Project, ExecutionTargetService> myExecutionTargetServiceGetInstance;
-
-    @Nullable
-    private Function<Project, AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
-
-    Builder() {
-      myExecutionTargetServiceGetInstance = project -> null;
-      myAsyncDevicesGetterGetInstance = project -> null;
-    }
-
-    @NotNull
-    Builder setProject(@NotNull Project project) {
-      myProject = project;
-      return this;
-    }
-
-    @NotNull
-    Builder setPropertiesComponentGetInstance(@NotNull Function<Project, PropertiesComponent> propertiesComponentGetInstance) {
-      myPropertiesComponentGetInstance = propertiesComponentGetInstance;
-      return this;
-    }
-
-    @NotNull
-    Builder setClock(@NotNull Clock clock) {
-      myClock = clock;
-      return this;
-    }
-
-    @NotNull
-    Builder setExecutionTargetServiceGetInstance(@NotNull Function<Project, ExecutionTargetService> executionTargetServiceGetInstance) {
-      myExecutionTargetServiceGetInstance = executionTargetServiceGetInstance;
-      return this;
-    }
-
-    @NotNull
-    Builder setAsyncDevicesGetterGetInstance(@NotNull Function<Project, AsyncDevicesGetter> asyncDevicesGetterGetInstance) {
-      myAsyncDevicesGetterGetInstance = asyncDevicesGetterGetInstance;
-      return this;
-    }
-
-    @NotNull
-    DevicesSelectedService build() {
-      return new DevicesSelectedService(this);
-    }
-  }
-
   @SuppressWarnings("unused")
   private DevicesSelectedService(@NotNull Project project) {
-    this(new Builder()
-           .setProject(project)
-           .setPropertiesComponentGetInstance(PropertiesComponent::getInstance)
-           .setClock(Clock.systemDefaultZone())
-           .setExecutionTargetServiceGetInstance(ExecutionTargetService::getInstance)
-           .setAsyncDevicesGetterGetInstance(AsyncDevicesGetter::getInstance));
+    this(project, PropertiesComponent::getInstance, Clock.systemDefaultZone());
   }
 
+  @VisibleForTesting
   @NonInjectable
-  private DevicesSelectedService(@NotNull Builder builder) {
-    assert builder.myProject != null;
-    myProject = builder.myProject;
-
-    assert builder.myPropertiesComponentGetInstance != null;
-    myPropertiesComponentGetInstance = builder.myPropertiesComponentGetInstance;
-
-    assert builder.myClock != null;
-    myClock = builder.myClock;
-
-    assert builder.myExecutionTargetServiceGetInstance != null;
-    myExecutionTargetServiceGetInstance = builder.myExecutionTargetServiceGetInstance;
-
-    assert builder.myAsyncDevicesGetterGetInstance != null;
-    myAsyncDevicesGetterGetInstance = builder.myAsyncDevicesGetterGetInstance;
+  DevicesSelectedService(@NotNull Project project,
+                         @NotNull Function<Project, PropertiesComponent> propertiesComponentGetInstance,
+                         @NotNull Clock clock) {
+    myProject = project;
+    myPropertiesComponentGetInstance = propertiesComponentGetInstance;
+    myClock = clock;
   }
 
   @NotNull
@@ -162,7 +84,7 @@ final class DevicesSelectedService {
   @NotNull
   List<Device> getSelectedDevices(@NotNull List<Device> devices) {
     if (isMultipleDevicesSelectedInComboBox()) {
-      return getDevicesSelectedWithDialog();
+      return getDevicesSelectedWithDialog(devices);
     }
 
     Device device = getDeviceSelectedWithComboBox(devices);
@@ -236,22 +158,14 @@ final class DevicesSelectedService {
     PropertiesComponent properties = myPropertiesComponentGetInstance.apply(myProject);
     properties.unsetValue(MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX);
 
-    ExecutionTarget target;
-
     if (deviceSelectedWithComboBox == null) {
       properties.unsetValue(TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX);
       properties.unsetValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX);
-
-      target = new DeviceAndSnapshotComboBoxExecutionTarget();
     }
     else {
       properties.setValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX, deviceSelectedWithComboBox.getKey().toString());
       properties.setValue(TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX, myClock.instant().toString());
-
-      target = new DeviceAndSnapshotComboBoxExecutionTarget(deviceSelectedWithComboBox);
     }
-
-    myExecutionTargetServiceGetInstance.apply(myProject).setActiveTarget(target);
   }
 
   boolean isMultipleDevicesSelectedInComboBox() {
@@ -264,18 +178,12 @@ final class DevicesSelectedService {
     properties.unsetValue(TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX);
     properties.unsetValue(DEVICE_KEY_SELECTED_WITH_COMBO_BOX);
 
-    ExecutionTarget target;
-
     if (!multipleDevicesSelectedInComboBox) {
       properties.unsetValue(MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX);
-      target = new DeviceAndSnapshotComboBoxExecutionTarget();
     }
     else {
       properties.setValue(MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX, true);
-      target = new DeviceAndSnapshotComboBoxExecutionTarget(getDevicesSelectedWithDialog());
     }
-
-    myExecutionTargetServiceGetInstance.apply(myProject).setActiveTarget(target);
   }
 
   boolean isDialogSelectionEmpty() {
@@ -283,9 +191,9 @@ final class DevicesSelectedService {
   }
 
   @NotNull
-  List<Device> getDevicesSelectedWithDialog() {
+  private List<Device> getDevicesSelectedWithDialog(@NotNull List<Device> devices) {
     Collection<Key> keys = getDeviceKeysSelectedWithDialog();
-    return ContainerUtil.filter(myAsyncDevicesGetterGetInstance.apply(myProject).get(), device -> keys.contains(device.getKey()));
+    return ContainerUtil.filter(devices, device -> keys.contains(device.getKey()));
   }
 
   void setDevicesSelectedWithDialog(@NotNull List<Device> devicesSelectedWithDialog) {

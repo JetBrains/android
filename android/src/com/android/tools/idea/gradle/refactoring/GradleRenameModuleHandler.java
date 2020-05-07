@@ -23,8 +23,10 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -36,7 +38,6 @@ import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.BasicUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
@@ -51,6 +52,7 @@ import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -68,8 +70,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Replaces {@link com.intellij.ide.projectView.impl.RenameModuleHandler}. When renaming the module, the class will:
  * <ol>
- * <li>change the reference in the root settings.gradle file</li>
- * <li>change the references in all dependencies in build.gradle files</li>
+ * <li>change the reference in the root Gradle settings file</li>
+ * <li>change the references in all dependencies in Gradle build files</li>
  * <li>change the directory name of the module</li>
  * </ol>
  */
@@ -124,7 +126,8 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
 
     @Override
     public boolean checkInput(@Nullable String inputString) {
-      return inputString != null && !inputString.isEmpty() && !inputString.equals(myModule.getName()) && !inputString.contains(":")
+      String currentName = ModuleGrouper.instanceFor(myModule.getProject()).getShortenedName(myModule);
+      return inputString != null && !inputString.isEmpty() && !inputString.equals(currentName) && !inputString.contains(":")
         && !inputString.contains(".");
     }
 
@@ -132,9 +135,10 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
     public boolean canClose(@NotNull final String inputString) {
       final Project project = myModule.getProject();
 
-      final GradleSettingsModel settingsModel = GradleSettingsModel.get(project);
+      final ProjectBuildModel projectModel = ProjectBuildModel.get(project);
+      final GradleSettingsModel settingsModel = projectModel.getProjectSettingsModel();
       if (settingsModel == null) {
-        Messages.showErrorDialog(project, "settings.gradle file not found", IdeBundle.message("title.rename.module"));
+        Messages.showErrorDialog(project, "Gradle settings file not found", IdeBundle.message("title.rename.module"));
         return true;
       }
       final VirtualFile moduleRoot = getModuleRootDir(myModule);
@@ -150,17 +154,25 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
         return true;
       }
 
-      // Rename all references in build.gradle
+      // Rename all references in Gradle build files
       final List<GradleBuildModel> modifiedBuildModels = Lists.newArrayList();
       for (Module module : ModuleManager.getInstance(project).getModules()) {
-        GradleBuildModel buildModel = GradleBuildModel.get(module);
+        GradleBuildModel buildModel = projectModel.getModuleBuildModel(module);
         if (buildModel != null) {
           DependenciesModel dependenciesModel = buildModel.dependencies();
           for (ModuleDependencyModel dependency : dependenciesModel.modules()) {
             // TODO consider the case that dependency.path() is not started with :
             ResolvedPropertyModel path = dependency.path();
             if (oldModuleGradlePath.equals(path.forceString())) {
-              path.setValue(getNewPath(path.forceString(), inputString));
+              path.setValue(getNewPath(oldModuleGradlePath, inputString));
+            }
+          }
+          List<GradlePropertyModel> dynamicFeatures = buildModel.android().dynamicFeatures().toList();
+          if (dynamicFeatures != null) {
+            for (GradlePropertyModel feature : dynamicFeatures) {
+              if (oldModuleGradlePath.equals(feature.forceString())) {
+                feature.setValue(getNewPath(oldModuleGradlePath, inputString));
+              }
             }
           }
           if (buildModel.isModified()) {
@@ -169,86 +181,87 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
         }
       }
 
-      String msg = IdeBundle.message("command.renaming.module", myModule.getName());
-      WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, msg) {
-        @Override
-        protected void run(@NotNull Result<Boolean> result) throws Throwable {
-          result.setResult(true);
-
-          if (!settingsModel.modulePaths().contains(oldModuleGradlePath)) {
-            Messages.showErrorDialog(project, "Can't find module '" + myModule.getName() + "' in settings.gradle",
-                                     IdeBundle.message("title.rename.module"));
-            reset(modifiedBuildModels);
-            return;
-          }
-
-          // Rename module
-          ModifiableModuleModel modifiableModel = ModuleManager.getInstance(project).getModifiableModel();
-          String newName = inputString;
-          // If qualified names are enabled then the user should only pick the last part of the group path. To change the actual
-          // structure the Gradle build files should be changed
-          if (ModuleGrouperKt.isQualifiedModuleNamesEnabled(project)) {
-            List<String> groupPath = new ArrayList<>(ModuleGrouper.instanceFor(project).getGroupPath(myModule));
-            groupPath.add(inputString);
-            newName = StringUtil.join(groupPath, ".");
-          }
-          try {
-            modifiableModel.renameModule(myModule, newName);
-          }
-          catch (ModuleWithNameAlreadyExists moduleWithNameAlreadyExists) {
-            ApplicationManager.getApplication().invokeLater(
-              () -> Messages.showErrorDialog(project, IdeBundle.message("error.module.already.exists", inputString),
-                                             IdeBundle.message("title.rename.module")));
-            result.setResult(false);
-            reset(modifiedBuildModels);
-            return;
-          }
-
-          // Changing and applying the Gradle models MUST be done before attempting to change the module roots. If not
-          // the view provider used to construct the psi tree will be marked as invalid and any attempted change will
-          // cause a PsiInvalidAccessException.
-          settingsModel.replaceModulePath(oldModuleGradlePath, getNewPath(oldModuleGradlePath, inputString));
-
-          // Rename all references in build.gradle
-          for (GradleBuildModel buildModel : modifiedBuildModels) {
-            buildModel.applyChanges();
-          }
-          settingsModel.applyChanges();
-
-          // Rename the directory
-          try {
-            moduleRoot.rename(this, inputString);
-          }
-          catch (IOException e) {
-            ApplicationManager.getApplication().invokeLater(
-              () -> Messages.showErrorDialog(project, "Rename folder failed: " + e.getMessage(), IdeBundle.message("title.rename.module")));
-            result.setResult(false);
-            reset(modifiedBuildModels);
-            return;
-          }
-
-          modifiableModel.commit();
-
-          UndoManager.getInstance(project).undoableActionPerformed(new BasicUndoableAction() {
-            @Override
-            public void undo() throws UnexpectedUndoException {
-              requestSync(project);
-            }
-
-            @Override
-            public void redo() throws UnexpectedUndoException {
-              requestSync(project);
-            }
-          });
-          result.setResult(true);
+      String currentName = ModuleGrouper.instanceFor(project).getShortenedName(myModule);
+      String msg = IdeBundle.message("command.renaming.module", currentName);
+      WriteCommandAction.Builder actionBuilder = WriteCommandAction.writeCommandAction(project).withName(msg).withGlobalUndo();
+      ThrowableComputable<Boolean,Throwable> action = () -> {
+        if (!settingsModel.modulePaths().contains(oldModuleGradlePath)) {
+          String settingsFileName = settingsModel.getVirtualFile().getName();
+          Messages.showErrorDialog(project, "Can't find module '" + currentName + "' in " + settingsFileName,
+                                   IdeBundle.message("title.rename.module"));
+          reset(modifiedBuildModels);
+          return true;
         }
+
+        // Rename module
+        ModifiableModuleModel modifiableModel = ModuleManager.getInstance(project).getModifiableModel();
+        String newName = inputString;
+        // If qualified names are enabled then the user should only pick the last part of the group path. To change the actual
+        // structure the Gradle build files should be changed
+        if (ModuleGrouperKt.isQualifiedModuleNamesEnabled(project)) {
+          List<String> groupPath = new ArrayList<>(ModuleGrouper.instanceFor(project).getGroupPath(myModule));
+          groupPath.add(inputString);
+          newName = StringUtil.join(groupPath, ".");
+        }
+        try {
+          modifiableModel.renameModule(myModule, newName);
+        }
+        catch (ModuleWithNameAlreadyExists moduleWithNameAlreadyExists) {
+          ApplicationManager.getApplication().invokeLater(
+            () -> Messages.showErrorDialog(project, IdeBundle.message("error.module.already.exists", inputString),
+                                           IdeBundle.message("title.rename.module")));
+          reset(modifiedBuildModels);
+          return false;
+        }
+
+        // Changing and applying the Gradle models MUST be done before attempting to change the module roots. If not
+        // the view provider used to construct the psi tree will be marked as invalid and any attempted change will
+        // cause a PsiInvalidAccessException.
+        settingsModel.replaceModulePath(oldModuleGradlePath, getNewPath(oldModuleGradlePath, inputString));
+
+        // Rename all references in Gradle build files
+        for (GradleBuildModel buildModel : modifiedBuildModels) {
+          buildModel.applyChanges();
+        }
+        settingsModel.applyChanges();
+
+        // Rename the directory
+        try {
+          moduleRoot.rename(this, inputString);
+        }
+        catch (IOException e) {
+          ApplicationManager.getApplication().invokeLater(
+            () -> Messages.showErrorDialog(project, "Rename folder failed: " + e.getMessage(), IdeBundle.message("title.rename.module")));
+          reset(modifiedBuildModels);
+          return false;
+        }
+
+        modifiableModel.commit();
+
+        UndoManager.getInstance(project).undoableActionPerformed(new BasicUndoableAction() {
+          @Override
+          public void undo() throws UnexpectedUndoException {
+            requestSync(project);
+          }
+
+          @Override
+          public void redo() throws UnexpectedUndoException {
+            requestSync(project);
+          }
+        });
+        return true;
       };
 
-      if (action.execute().getResultObject()) {
-        requestSync(project);
-        return true;
+      try {
+        if (actionBuilder.compute(action)) {
+          requestSync(project);
+          return true;
+        }
+        return false;
       }
-      return false;
+      catch (Throwable c) {
+        return false;
+      }
     }
   }
 

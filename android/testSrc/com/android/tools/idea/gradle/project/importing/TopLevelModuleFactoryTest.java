@@ -36,24 +36,18 @@ import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.mockito.Mock;
 
 /**
  * Tests for {@link TopLevelModuleFactory}.
  */
 public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
-  @Mock private IdeInfo myIdeInfo;
-
-  private IdeSdks myIdeSdks;
   private TopLevelModuleFactory myTopLevelModuleFactory;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    initMocks(this);
 
-    myIdeSdks = IdeSdks.getInstance();
-    myTopLevelModuleFactory = new TopLevelModuleFactory(myIdeInfo, myIdeSdks);
+    myTopLevelModuleFactory = new TopLevelModuleFactory();
   }
 
   public void testCreateTopLevelModule() throws Exception {
@@ -63,8 +57,6 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     Module[] modules = moduleManager.getModules();
     assertThat(modules).isEmpty(); // Just make sure we start with a project with no modules.
-
-    when(myIdeInfo.isAndroidStudio()).thenReturn(true); // Simulate is Android Studio.
 
     ApplicationManager.getApplication().runWriteAction(() -> myTopLevelModuleFactory.createTopLevelModule(project));
 
@@ -80,7 +72,6 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
     // Verify the module has a JDK.
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
     assertNotNull(sdk);
-    assertEquals(myIdeSdks.getJdk().getHomePath(), sdk.getHomePath());
 
     ExternalSystemModulePropertyManager externalSystemProperties = ExternalSystemModulePropertyManager.getInstance(module);
     assertEquals(GRADLE_SYSTEM_ID.getId(), externalSystemProperties.getExternalSystemId());

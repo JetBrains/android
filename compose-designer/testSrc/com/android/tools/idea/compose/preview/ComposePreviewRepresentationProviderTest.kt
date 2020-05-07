@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.util.ThrowableRunnable
 import org.intellij.lang.annotations.Language
@@ -83,7 +84,8 @@ class ComposePreviewRepresentationProviderTest {
     assertTrue(provider.accept(previewFile))
 
     // Exercise the representation initialization to make sure no exception is thrown
-    ReadAction.compute<ComposePreviewRepresentation, Throwable> { provider.createRepresentation(previewFile) }
+    val representation = ReadAction.compute<ComposePreviewRepresentation, Throwable> { provider.createRepresentation(previewFile) }
+    Disposer.register(fixture.testRootDisposable, representation)
   }
 
   /**

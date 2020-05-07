@@ -19,8 +19,6 @@ import com.android.tools.adtui.ASGallery
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.idea.device.FormFactor
-import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep
-import com.android.tools.idea.npw.model.EMPTY_ACTIVITY
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
 import com.android.tools.idea.npw.template.ChooseGalleryItemStep
@@ -29,14 +27,12 @@ import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.npw.template.getDefaultSelectedTemplateIndex
 import com.android.tools.idea.npw.toTemplateFormFactor
 import com.android.tools.idea.npw.ui.WizardGallery
-import com.android.tools.idea.npw.ui.cppIcon
 import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.npw.ui.getTemplateTitle
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.ModelWizard.Facade
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.android.tools.idea.wizard.template.BooleanParameter
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.base.Suppliers
@@ -93,7 +89,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     val renderModel = newProjectModuleModel!!.extraRenderTemplateModel
     return listOf(
       ConfigureAndroidProjectStep(newProjectModuleModel!!, model),
-      ConfigureCppSupportStep(model),
       ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), listOf()))
   }
 
@@ -159,7 +154,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
   override fun onProceeding() {
     val selectedTemplate =  selectedFormFactorInfo.tabPanel.myGallery.selectedElement!!
-    model.enableCppSupport.set(selectedTemplate is CppTemplateRendererWithDescription)
     with(newProjectModuleModel!!) {
       formFactor.set(selectedFormFactorInfo.formFactor)
       when (selectedTemplate) {
@@ -168,12 +162,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
           val hasExtraDetailStep = selectedTemplate.template.uiContexts.contains(WizardUiContext.NewProjectExtraDetail)
           newProjectModuleModel!!.extraRenderTemplateModel.newTemplate =
             if (hasExtraDetailStep) selectedTemplate.template else Template.NoActivity
-        }
-        is CppTemplateRendererWithDescription -> {
-          newRenderTemplate.value = TemplateResolver.getAllTemplates().first { it.name == EMPTY_ACTIVITY }.apply {
-            val p = parameters.find { it.name == "C++ support" } as BooleanParameter
-            p.value = true
-          }
         }
         else -> throw IllegalArgumentException("Add support for additional template renderer")
       }
@@ -201,16 +189,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     val documentationUrl: String?
   }
 
-  data class CppTemplateRendererWithDescription(
-    override val description: String = message("android.wizard.gallery.item.add.cpp.Desc"),
-    override val documentationUrl: String? = "https://developer.android.com/ndk/guides/cpp-support.html",
-    override val label: String = message("android.wizard.gallery.item.add.cpp"),
-    override val icon: Icon? = cppIcon,
-    override val exists: Boolean = true
-  ) : TemplateRendererWithDescription {
-    override fun toString() = label
-  }
-
   private class NewTemplateRendererWithDescription(
     template: Template
   ) : TemplateRendererWithDescription, ChooseGalleryItemStep.NewTemplateRenderer(template) {
@@ -231,10 +209,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
         TemplateResolver.getAllTemplates()
             .filter { WizardUiContext.NewProject in it.uiContexts && it.formFactor == formFactor.toTemplateFormFactor()}
             .forEach { yield(NewTemplateRendererWithDescription(it)) }
-
-        if (formFactor === FormFactor.MOBILE) {
-          yield(CppTemplateRendererWithDescription())
-        }
       }.toList()
 
       return WizardGallery<TemplateRendererWithDescription>(title, { it!!.icon }, { it!!.label }).apply {

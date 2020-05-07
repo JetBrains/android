@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser.util
 
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
@@ -28,17 +29,25 @@ import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListene
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Color
 import java.awt.Component
+import java.awt.FlowLayout
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
+import javax.swing.BoxLayout
 import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
 import javax.swing.JTable
+import javax.swing.SwingConstants
 
 /**
  * Returns a [ResourcePickerDialog], may list sample data, project, library, android and theme attributes resources for the given
@@ -93,8 +102,6 @@ fun createAndShowColorPickerPopup(
   colorPickedCallback: (Color) -> Unit,
   colorResourcePickedCallback: (String) -> Unit
 ) {
-  // TODO(148391228): Create a similar helper for other kind of resources, Eg: Drawables
-  val popupContent: JComponent
   val disposable = Disposer.newDisposable("ResourcePickerPopup")
   val onPopupClosed = {
     Disposer.dispose(disposable)
@@ -119,19 +126,19 @@ fun createAndShowColorPickerPopup(
     })
     .build()
   val facet = configuration?.let { AndroidFacet.getInstance(configuration.module) }
-  popupContent = if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && facet != null) {
+  val popupContent = if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && facet != null) {
     val resourcePicker = CompactResourcePicker(
       facet,
       configuration,
       configuration.resourceResolver,
       ResourceType.COLOR,
-      { selectedResource: String -> colorResourcePickedCallback(selectedResource) },
-      { popupDialog.close() },
+      colorResourcePickedCallback,
+      popupDialog::close,
       disposable
     )
     // TODO: Use relative resource url instead.
     HorizontalTabbedPanelBuilder() // Use tabbed panel instead.
-      .addTab("Resources", resourcePicker.component)
+      .addTab("Resources", resourcePicker)
       .addTab("Custom", colorPicker)
       .setDefaultPage(if (initialColorResource != null) 0 else 1)
       .build()
@@ -140,6 +147,52 @@ fun createAndShowColorPickerPopup(
     colorPicker
   }
   popupDialog.show(popupContent, null, locationToShow ?: MouseInfo.getPointerInfo().location)
+}
+
+/**
+ * Shows a popup with the resource picker.
+ *
+ * Contains different lists for local, libraries, framework and theme attributes resources.
+ *
+ * @param resourceType [ResourceType] to pick from
+ * @param configuration The [Configuration] of the current file, required to have a ResourcePicker in the popup dialog
+ * @param facet [AndroidFacet] from which local and library android resources are obtained
+ * @param locationToShow Preferred location in the screen to show the popup dialog, if null, the current location of the mouse will be used
+ * @param resourcePickedCallback The callback for whenever a resource is selected in the ResourcePicker, returns the string
+ * reference of the resource Eg: @color/colorPrimary
+ */
+fun createAndShowResourcePickerPopup(
+  resourceType: ResourceType,
+  configuration: Configuration,
+  facet: AndroidFacet,
+  locationToShow: Point?,
+  resourcePickedCallback: (String) -> Unit
+) {
+  val disposable = Disposer.newDisposable("ResourcePickerPopup")
+  val onPopupClosed = {
+    Disposer.dispose(disposable)
+  }
+  val popupDialog = LightCalloutPopup(onPopupClosed, onPopupClosed, null)
+  val resourcePicker = CompactResourcePicker(
+    facet,
+    configuration,
+    configuration.resourceResolver,
+    resourceType,
+    resourcePickedCallback,
+    popupDialog::close,
+    disposable
+  )
+  val popupContentPanel = JPanel().apply {
+    layout = VerticalFlowLayout(0,0)
+    isOpaque = false
+    add(JLabel("Choose a resource", SwingConstants.LEADING).apply {
+      border = JBUI.Borders.empty(8)
+      font = font.deriveFont(JBUI.scaleFontSize(10f))
+      isOpaque = false
+    })
+    add(resourcePicker)
+  }
+  popupDialog.show(popupContentPanel, null, locationToShow ?: MouseInfo.getPointerInfo().location)
 }
 
 private fun restoreFocus(restoreFocusTo: Component?) {

@@ -277,6 +277,7 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     assertThat(convertGroupName("Advanced")).isEqualTo(LayoutPaletteEvent.ViewGroup.ADVANCED);
     assertThat(convertGroupName("Design")).isEqualTo(LayoutPaletteEvent.ViewGroup.DESIGN);
     assertThat(convertGroupName("AppCompat")).isEqualTo(LayoutPaletteEvent.ViewGroup.APP_COMPAT);
+    assertThat(convertGroupName("Helpers")).isEqualTo(LayoutPaletteEvent.ViewGroup.HELPERS);
     assertThat(convertGroupName("MyGroup")).isEqualTo(LayoutPaletteEvent.ViewGroup.CUSTOM);
   }
 
