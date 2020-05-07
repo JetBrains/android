@@ -128,9 +128,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     val text = project.dumpAndroidProjectView()
     ProjectUtil.closeAndDispose(project)
 
-/* b/154963231
     assertIsEqualToSnapshot(text)
-b/154963231 */
   }
 
   fun testCompatibilityWithAndroidStudio36Project() {
@@ -149,9 +147,7 @@ b/154963231 */
     project.dumpAndroidProjectView()
   }
 
-/* b/154963231
     assertIsEqualToSnapshot(text)
-b/154963231 */
   }
 
   private fun importSyncAndDumpProject(
