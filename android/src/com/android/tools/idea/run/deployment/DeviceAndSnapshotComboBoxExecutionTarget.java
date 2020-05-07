@@ -110,8 +110,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
       return myDevices.get(0).getIcon();
     }
 
-    // TODO Should we use a better icon?
-    return StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE;
+    return StudioIcons.DeviceExplorer.MULTIPLE_DEVICES;
   }
 
   @Override
