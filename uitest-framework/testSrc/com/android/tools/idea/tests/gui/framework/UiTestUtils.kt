@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.intellij.diagnostic.ThreadDumper
 import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.application.impl.LaterInvocator
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBList
 import org.fest.swing.core.GenericTypeMatcher
@@ -28,36 +27,23 @@ import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import sun.awt.PeerEvent
 import java.awt.Container
 import java.awt.Robot
 import java.awt.Toolkit
-import java.awt.event.InvocationEvent
 import java.awt.event.KeyEvent
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 fun HtmlLabel.plainText(): String = document.getText(0, document.length)
 
-private val lock = run {
-  val f = LaterInvocator::class.java.getDeclaredField("LOCK") //NoSuchFieldException
-  f.setAccessible(true)
-  f.get(null)
-}
-
 fun waitForIdle() {
-  val start = System.currentTimeMillis()
-  val lastEvents = ConcurrentLinkedQueue<String>()  // Always updated on EDT but can be read immediately after timeout.
   fun getDetails() =
     try {
       buildString {
         appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent} (${IdeEventQueue.getInstance().eventCount})")
         appendln("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
-        appendln("lastEvents:")
-        lastEvents.forEach { appendln(it) }
         appendln("EDT: ${ThreadDumper.dumpEdtStackTrace(ThreadDumper.getThreadInfos())}")
       }
     }
@@ -66,27 +52,7 @@ fun waitForIdle() {
     }
 
   try {
-    val d = Disposer.newDisposable()
-    try {
-      IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
-        val eventString = e.toString()
-        lastEvents.offer("[${System.currentTimeMillis() - start}] ${eventString}")
-        if (e is InvocationEvent && eventString.contains("LaterInvocator.FlushQueue")) {
-          @Suppress("INACCESSIBLE_TYPE")
-          synchronized(lock) {
-            LaterInvocator.getLaterInvocatorWtQueue().cast<Collection<Any>>().forEach {
-              lastEvents.offer(it.toString())
-            }
-          }
-        }
-        if (lastEvents.size > 500) lastEvents.remove()
-        false
-      }, d)
-      oneFullSync()
-    }
-    finally {
-      Disposer.dispose(d)
-    }
+    oneFullSync()
   }
   catch (e: WaitTimedOutError) {
     throw WaitTimedOutError("${e.message}\n${getDetails()}")
