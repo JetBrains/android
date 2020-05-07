@@ -40,8 +40,7 @@ public class DeploymentService {
   private final TaskRunner runner;
 
   private final NotNullLazyValue<SqlApkFileDatabase> dexDatabase;
-
-  private final DeploymentCacheDatabase deploymentCacheDatabase;
+  private final NotNullLazyValue<DeploymentCacheDatabase> deploymentCacheDatabase;
 
   @Nullable
   private DeployableProvider myDeployableProvider = null;
@@ -55,9 +54,12 @@ public class DeploymentService {
     this.project = project;
     service = Executors.newFixedThreadPool(5);
     runner = new TaskRunner(service);
-    Path path = Paths.get(PathManager.getSystemPath(), ".deploy.db");
-    dexDatabase  = NotNullLazyValue.createValue(() -> new SqlApkFileDatabase(new File(path.toString()), PathManager.getTempPath()));
-    deploymentCacheDatabase = new DeploymentCacheDatabase();
+
+    Path dexDbPath = Paths.get(PathManager.getSystemPath(), ".dex_cache.db");
+    Path deployDbPath = Paths.get(PathManager.getSystemPath(), ".deploy_cache.db");
+
+    dexDatabase  = NotNullLazyValue.createValue(() -> new SqlApkFileDatabase(dexDbPath.toFile(), PathManager.getTempPath()));
+    deploymentCacheDatabase =  NotNullLazyValue.createValue(() -> new DeploymentCacheDatabase(deployDbPath.toFile()));
   }
 
   public TaskRunner getTaskRunner() {
@@ -69,7 +71,7 @@ public class DeploymentService {
   }
 
   public DeploymentCacheDatabase getDeploymentCacheDatabase() {
-    return deploymentCacheDatabase;
+    return deploymentCacheDatabase.getValue();
   }
 
   public void setDeployableProvider(@Nullable DeployableProvider provider) {
