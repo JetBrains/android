@@ -26,9 +26,14 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.NotNullLazyValue
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
 import com.intellij.psi.PsiIdentifier
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -58,7 +63,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
   private class GotoItemWithAnalyticsTraking(
     fromElement: PsiElement,
     toElement: PsiElement,
-    group: String
+    group: String,
+    val customNameToDisplay: String? = null
   ) : GotoRelatedItem(toElement, group) {
     private val fromElementType = getTypeForMetrics(fromElement)
     private val toElementType = getTypeForMetrics(toElement)
@@ -68,6 +74,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
         ?.trackNavigation(DaggerEditorEvent.NavigationMetadata.NavigationContext.CONTEXT_GUTTER, fromElementType, toElementType)
       super.navigate()
     }
+
+    override fun getCustomName() = customNameToDisplay
   }
 
   override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<PsiElement>>) {
@@ -155,9 +163,18 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
   private fun getIconAndGoToItemsForProvider(provider: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
       override fun compute(): List<GotoRelatedItem> {
-        return getDaggerConsumersFor(provider).map { GotoItemWithAnalyticsTraking(provider, it, UIStrings.CONSUMERS) } +
-               getDaggerComponentMethodsForProvider(provider)
-                 .map { GotoItemWithAnalyticsTraking(provider, it, UIStrings.EXPOSED_BY_COMPONENTS) }
+        val consumers = getDaggerConsumersFor(provider).map {
+          val nameToDisplay = when (it) {
+            is PsiField -> it.parentOfType<PsiClass>()?.name
+            is PsiParameter -> it.parentOfType<PsiMethod>()?.name
+            else -> error("[Dagger editor] invalid consumer type ${it::class}")
+          }
+          GotoItemWithAnalyticsTraking(provider, it, UIStrings.CONSUMERS, nameToDisplay)
+        }
+        val components = getDaggerComponentMethodsForProvider(provider).map {
+          GotoItemWithAnalyticsTraking(provider, it, UIStrings.EXPOSED_BY_COMPONENTS, it.parentOfType<PsiClass>()?.name)
+        }
+        return consumers + components
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
