@@ -54,7 +54,7 @@ class EmulatorToolWindowPanelTest {
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
 
-  var emulator: FakeEmulator
+  private var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
     set(value) { nullableEmulator = value }
 
@@ -116,22 +116,6 @@ class EmulatorToolWindowPanelTest {
     waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getStatus" call.
     return panel
-  }
-
-  @Throws(TimeoutException::class)
-  private fun waitForCondition(timeout: Long, unit: TimeUnit, condition: () -> Boolean) {
-    val timeoutMillis = unit.toMillis(timeout)
-    val deadline = System.currentTimeMillis() + timeoutMillis
-    var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
-    while (waitUnit > 0) {
-      dispatchAllInvocationEvents()
-      if (condition()) {
-        return
-      }
-      Thread.sleep(waitUnit)
-      waitUnit = waitUnit.coerceAtMost(deadline - System.currentTimeMillis())
-    }
-    throw TimeoutException()
   }
 
   @Throws(TimeoutException::class)

@@ -100,21 +100,19 @@ internal class EmulatorToolWindowManager private constructor(private val project
     val messageBusConnection = project.messageBus.connect(project)
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
       @UiThread
-      override fun stateChanged() {
-        if (!project.isDisposed) {
-          ToolWindowManager.getInstance(project).invokeLater(Runnable {
-            if (!project.isDisposed) {
-              val toolWindow = getToolWindow()
+      override fun stateChanged(toolWindowManager: ToolWindowManager) {
+        val toolWindow = toolWindowManager.getToolWindow(EMULATOR_TOOL_WINDOW_ID) ?: return
 
-              if (toolWindow.isVisible) {
-                createContent(toolWindow)
-              }
-              else {
-                destroyContent(toolWindow)
-              }
+        toolWindowManager.invokeLater(Runnable {
+          if (!project.isDisposed) {
+            if (toolWindow.isVisible) {
+              createContent(toolWindow)
             }
-          })
-        }
+            else {
+              destroyContent(toolWindow)
+            }
+          }
+        })
       }
     })
 
@@ -316,7 +314,8 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   private fun getToolWindow(): ToolWindow {
-    return ToolWindowManager.getInstance(project).getToolWindow(ID) ?: throw IllegalStateException("Could not find Emulator tool window")
+    return ToolWindowManager.getInstance(project).getToolWindow(EMULATOR_TOOL_WINDOW_ID) ?:
+           throw IllegalStateException("Could not find Emulator tool window")
   }
 
   @AnyThread
@@ -369,8 +368,6 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
 
   companion object {
-    const val ID = "Emulator"
-
     private const val FRAME_CROPPED_PROPERTY = "com.android.tools.idea.emulator.frame.cropped"
     private const val FRAME_CROPPED_DEFAULT = false
     private const val ZOOM_TOOLBAR_VISIBLE_PROPERTY = "com.android.tools.idea.emulator.zoom.toolbar.visible"

@@ -312,22 +312,6 @@ class EmulatorViewTest {
   }
 
   @Throws(TimeoutException::class)
-  private fun waitForCondition(timeout: Long, unit: TimeUnit, condition: () -> Boolean) {
-    val timeoutMillis = unit.toMillis(timeout)
-    val deadline = System.currentTimeMillis() + timeoutMillis
-    var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
-    while (waitUnit > 0) {
-      dispatchAllInvocationEvents()
-      if (condition()) {
-        return
-      }
-      Thread.sleep(waitUnit)
-      waitUnit = waitUnit.coerceAtMost(deadline - System.currentTimeMillis())
-    }
-    throw TimeoutException()
-  }
-
-  @Throws(TimeoutException::class)
   private fun EmulatorView.waitForFrame(frame: Int, timeout: Long, unit: TimeUnit) {
     waitForCondition(timeout, unit) { frameNumber >= frame }
   }
