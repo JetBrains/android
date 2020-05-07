@@ -577,28 +577,8 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     final OverlayComponent overlay = new OverlayComponent(myRangeSelectionComponent);
     overlay.addDurationDataRenderer(myGcDurationDataRenderer);
     overlayPanel.add(overlay, BorderLayout.CENTER);
-
-    if (getStage().isNativeAllocationSamplingEnabled()) {
-      DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
-        new DurationDataRenderer.Builder<>(getStage().getNativeAllocationInfosDurations(), JBColor.LIGHT_GRAY)
-          .setDurationBg(ProfilerColors.MEMORY_HEAP_DUMP_BG)
-          .setLabelColors(JBColor.DARK_GRAY, JBColor.GRAY, JBColor.LIGHT_GRAY, JBColor.WHITE)
-          .setLabelProvider(
-            data -> String.format("Native Allocation record (%s)", data.getDurationUs() == Long.MAX_VALUE ? "in progress" :
-                                                                   TimeAxisFormatter.DEFAULT
-                                                                     .getFormattedString(viewRange.getLength(), data.getDurationUs(),
-                                                                                         true)))
-          .build();
-      for (RangedContinuousSeries series : memoryUsage.getSeries()) {
-        LineConfig config = lineChart.getLineConfig(series);
-        LineConfig newConfig = LineConfig.copyOf(config).setColor(DataVisualizationColors.INSTANCE.toGrayscale(config.getColor()));
-        allocationRenderer.addCustomLineConfig(series, newConfig);
-      }
-      lineChart.addCustomRenderer(allocationRenderer);
-      overlay.addDurationDataRenderer(allocationRenderer);
-    }
     // Only shows allocation tracking visuals in pre-O, since we are always tracking in O+.
-    else if (!getStage().useLiveAllocationTracking()) {
+    if (!getStage().useLiveAllocationTracking()) {
       DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
         new DurationDataRenderer.Builder<>(getStage().getAllocationInfosDurations(), JBColor.LIGHT_GRAY)
           .setDurationBg(ProfilerColors.MEMORY_ALLOC_BG)
@@ -639,6 +619,27 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
         .build();
       lineChart.addCustomRenderer(myAllocationSamplingRateRenderer);
       overlay.addDurationDataRenderer(myAllocationSamplingRateRenderer);
+    }
+    // Order matters so native allocation tracking goes to the top of the stack. This means when a native allocation recording is captured
+    // the capture appears on top of the other renderers.
+    if (getStage().isNativeAllocationSamplingEnabled()) {
+      DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
+        new DurationDataRenderer.Builder<>(getStage().getNativeAllocationInfosDurations(), JBColor.LIGHT_GRAY)
+          .setDurationBg(ProfilerColors.MEMORY_HEAP_DUMP_BG)
+          .setLabelColors(JBColor.DARK_GRAY, JBColor.GRAY, JBColor.LIGHT_GRAY, JBColor.WHITE)
+          .setLabelProvider(
+            data -> String.format("Native Allocation record (%s)", data.getDurationUs() == Long.MAX_VALUE ? "in progress" :
+                                                                   TimeAxisFormatter.DEFAULT
+                                                                     .getFormattedString(viewRange.getLength(), data.getDurationUs(),
+                                                                                         true)))
+          .build();
+      for (RangedContinuousSeries series : memoryUsage.getSeries()) {
+        LineConfig config = lineChart.getLineConfig(series);
+        LineConfig newConfig = LineConfig.copyOf(config).setColor(DataVisualizationColors.INSTANCE.toGrayscale(config.getColor()));
+        allocationRenderer.addCustomLineConfig(series, newConfig);
+      }
+      lineChart.addCustomRenderer(allocationRenderer);
+      overlay.addDurationDataRenderer(allocationRenderer);
     }
 
     DurationDataRenderer<CaptureDurationData<CaptureObject>> heapDumpRenderer =
