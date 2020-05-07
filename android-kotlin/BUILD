@@ -185,7 +185,10 @@ java_import(
 iml_module(
     name = "intellij.android.kotlin.tests",
     iml_files = ["intellij.android.kotlin.tests.iml"],
-    tags = ["no_test_windows"],
+    tags = [
+        "no_test_mac",  # b/156004634
+        "no_test_windows",
+    ],
     test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
     # keep sorted
     test_data = [
