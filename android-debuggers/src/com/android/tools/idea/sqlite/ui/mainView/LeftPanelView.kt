@@ -314,12 +314,12 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
         when (val userObject = value.userObject) {
           is ViewDatabase -> {
             append(userObject.databaseId.name)
-            icon = if (userObject.isOpen) {
-              StudioIcons.DatabaseInspector.DATABASE
+            if (userObject.isOpen) {
+              icon = StudioIcons.DatabaseInspector.DATABASE
             }
             else {
               append(" (closed)", colorTextAttributes)
-              IconLoader.getDisabledIcon(StudioIcons.DatabaseInspector.DATABASE)
+              icon = StudioIcons.DatabaseInspector.DATABASE_UNAVAILABLE
             }
             toolTipText = userObject.databaseId.path
           }
