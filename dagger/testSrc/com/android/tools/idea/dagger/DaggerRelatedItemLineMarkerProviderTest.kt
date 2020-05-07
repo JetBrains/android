@@ -135,6 +135,21 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(provider.group).isEqualTo("Provider(s)")
     assertThat(provider.element).isEqualTo(providerMethod)
 
+    // Kotlin consumer as function parameter
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      //language=kotlin
+      """
+          import dagger.Module
+          import dagger.Provides
+
+          @Module
+          class MyModule {
+            @Provides fun providerToDisplayAsConsumer(consumer:String)
+          }
+        """.trimIndent()
+    )
+
     // Kotlin consumer as parameter
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
@@ -156,13 +171,18 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
     val icon = icons.find { it.tooltipText == "Dependency Related Files" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     gotoRelatedItems = getGotoElements(icon)
-    assertThat(gotoRelatedItems).hasSize(3)
+    assertThat(gotoRelatedItems).hasSize(4)
     val consumerElements = gotoRelatedItems.map { it.element }
 
     assertThat(consumerElements).containsAllOf(
       consumerField,
       LightClassUtil.getLightClassBackingField(consumerKtField as KtDeclaration),
       parameter.toLightElements()[0]
+    )
+
+    val displayedNames = gotoRelatedItems.map { it.customName }
+    assertThat(displayedNames).containsAllOf(
+      "MyClass2", "MyClass", "MyClass", "providerToDisplayAsConsumer"
     )
 
     clickOnIcon(icon)
@@ -212,6 +232,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val method = gotoRelatedItems.first()
     assertThat(method.group).isEqualTo("Exposed by component(s)")
     assertThat(method.element?.text).isEqualTo("String getString();")
+    assertThat(method.customName).isEqualTo("MyComponent")
 
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(2)
