@@ -125,9 +125,9 @@ public class PalettePanelTest extends LayoutTestCase {
     myPopupMenuComponent = mock(JPopupMenu.class);
     myActionManager = mock(ActionManager.class);
     myGradleDependencyManager = mock(GradleDependencyManager.class);
-    registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);
-    registerApplicationComponent(CopyPasteManager.class, myCopyPasteManager);
-    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
+    replaceApplicationService(BrowserLauncher.class, myBrowserLauncher);
+    replaceApplicationService(CopyPasteManager.class, myCopyPasteManager);
+    replaceApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
     registerApplicationComponentImplementation(ActionManager.class, myActionManager);
     registerProjectComponent(GradleDependencyManager.class, myGradleDependencyManager);
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myPopupMenu);

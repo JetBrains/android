@@ -458,6 +458,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     ServiceContainerUtil.replaceService(getProject(), serviceType, newServiceInstance, getTestRootDisposable());
   }
 
+  public <T> void replaceApplicationService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance, getTestRootDisposable());
+  }
+
   protected final static class MyAdditionalModuleData {
     final AndroidModuleFixtureBuilder<?> myModuleFixtureBuilder;
     final String myDirName;

@@ -30,7 +30,7 @@ class ToggleAutoConnectActionTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
 
-    registerApplicationComponent(PropertiesComponent::class.java, PropertiesComponentMock())
+    replaceApplicationService(PropertiesComponent::class.java, PropertiesComponentMock())
   }
 
   fun testToggle() {
