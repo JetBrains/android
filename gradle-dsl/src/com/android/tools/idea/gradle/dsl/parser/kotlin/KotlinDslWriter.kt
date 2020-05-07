@@ -127,7 +127,9 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
     if (element.isNewEmptyBlockElement) return null  // Avoid creation of an empty block.
 
+    var addBefore = false
     if (needToCreateParent(element)) {
+      addBefore = true
       anchorAfter = null
     }
     else if (anchorAfter == null) {
@@ -278,7 +280,13 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
         }
 
         val firstRealChild = fileBlock?.firstChild
-        if (fileBlock != null && anchor == null && firstRealChild?.node?.elementType == BLOCK_COMMENT) {
+        if (addBefore) {
+          addedElement = parentPsiElement.addBefore(statement, anchor)
+          if (!isWhiteSpaceOrNls(addedElement.prevSibling)) {
+            parentPsiElement.addBefore(lineTerminator, addedElement)
+          }
+        }
+        else if (fileBlock != null && anchor == null && firstRealChild?.node?.elementType == BLOCK_COMMENT) {
           addedElement = fileBlock.addAfter(statement, firstRealChild)
         }
         else {
@@ -291,7 +299,12 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
         if (element.isBlockElement && !isWhiteSpaceOrNls(addedElement.prevSibling)) {
           parentPsiElement.addBefore(lineTerminator, addedElement)
         }
-        parentPsiElement.addBefore(lineTerminator, addedElement)
+        if (addBefore) {
+          parentPsiElement.addAfter(lineTerminator, addedElement)
+        }
+        else {
+          parentPsiElement.addBefore(lineTerminator, addedElement)
+        }
       }
       is KtBlockExpression -> {
         addedElement = parentPsiElement.addAfter(statement, anchor)
