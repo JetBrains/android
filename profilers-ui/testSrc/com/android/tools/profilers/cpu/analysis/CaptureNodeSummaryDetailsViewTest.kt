@@ -66,6 +66,6 @@ class CaptureNodeSummaryDetailsViewTest {
     assertThat(treeWalker.descendants().filterIsInstance<JTable>().size).isEqualTo(2)
     // 5 stat labels: count, average, max, min, std.
     assertThat(treeWalker.descendants().filterIsInstance<StatLabel>().map { it.getDescText() })
-      .containsExactly("Count", "Average", "Max", "Min", "Std")
+      .containsExactly("Count", "Average", "Max", "Min", "Std Dev")
   }
 }
