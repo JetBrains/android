@@ -212,7 +212,8 @@ class AddDynamicFeatureTest {
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
 
-      val expected = """|<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      val expected = """|<?xml version="1.0" encoding="utf-8"?>
+                        |<manifest xmlns:android="http://schemas.android.com/apk/res/android"
                         |    xmlns:dist="http://schemas.android.com/apk/distribution"
                         |    package="com.example.mydynamicfeature">
                         |
