@@ -204,7 +204,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     myType = DesignerEditorFileTypeKt.typeOf(getFile());
     myUpdateQueue = new MergingUpdateQueue("android.layout.preview.edit", DELAY_AFTER_TYPING_MS,
-                                           true, null, null, null, SWING_THREAD);
+                                           true, null, this, null, SWING_THREAD);
     myUpdateQueue.setRestartTimerOnAdd(true);
   }
 

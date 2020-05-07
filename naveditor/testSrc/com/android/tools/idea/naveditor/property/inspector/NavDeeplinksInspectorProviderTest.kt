@@ -188,6 +188,8 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
 
     val realManager = NavPropertiesManager(myFacet, model.surface, myRootDisposable)
     val manager = spy(realManager)
+    Disposer.register(myRootDisposable, manager)
+
     val navInspectorProviders = Mockito.spy(NavInspectorProviders(manager, myRootDisposable))
     Mockito.`when`(navInspectorProviders.providers).thenReturn(listOf(NavDeeplinkInspectorProvider()))
     doReturn(navInspectorProviders).`when`(manager).getInspectorProviders(any())
