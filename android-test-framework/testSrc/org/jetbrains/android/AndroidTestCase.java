@@ -115,6 +115,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     myFacet = addAndroidFacet(myModule);
 
+    // Disable sources autogeneration by default. Tests which need it will enable it per-class.
+    // This is mostly to avoid "AE: VFS changes are not allowed during highlighting" caused by files added to VFS by the generator.
+    myFacet.getProperties().ENABLE_SOURCES_AUTOGENERATION = false;
+
     removeFacetOn(myFixture.getProjectDisposable(), myFacet);
 
     LanguageLevel languageLevel = getLanguageLevel();

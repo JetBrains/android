@@ -21,6 +21,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.DisposerExplorer;
 import com.android.tools.idea.testing.Sdks;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
@@ -79,23 +80,26 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   /**
    * Checks that there are no undisposed Android-related objects.
    */
-  private static void checkUndisposedAndroidRelatedObjects() {
+  public static void checkUndisposedAndroidRelatedObjects() {
     DisposerExplorer.visitTree(disposable -> {
       if (disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbService") ||
           disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbOptionsService") ||
           (disposable instanceof ProjectImpl && (((ProjectImpl)disposable).isDefault() || ((ProjectImpl)disposable).isLight())) ||
           disposable.toString().startsWith("services of " + ProjectImpl.class.getName()) ||
+          disposable instanceof Application ||
           (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME))) {
         // Ignore application services and light projects and modules that are not disposed by tearDown.
         return DisposerExplorer.VisitResult.SKIP_CHILDREN;
       }
       if (disposable.getClass().getName().startsWith("com.android.")) {
         Disposable root = disposable;
+        StringBuilder disposerChain = new StringBuilder(root.toString());
         Disposable parent;
         while ((parent = DisposerExplorer.getParent(root)) != null) {
           root = parent;
+          disposerChain.append(" <- ").append(root);
         }
-        fail("Undisposed object: " + root);
+        fail("Undisposed object: " + disposerChain.append(" (root)").toString());
       }
       return DisposerExplorer.VisitResult.CONTINUE;
     });

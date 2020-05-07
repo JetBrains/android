@@ -44,6 +44,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -94,14 +95,6 @@ public class ViewHandlerManager implements Disposable {
 
   public ViewHandlerManager(@NotNull Project project) {
     myProject = project;
-    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
-      @Override
-      public void projectClosed(@NotNull Project project) {
-        if (project == myProject) {
-          myHandlers.clear();
-        }
-      }
-    });
   }
 
   /**
@@ -167,6 +160,10 @@ public class ViewHandlerManager implements Disposable {
    */
   @Nullable
   public ViewHandler getHandler(@NotNull String viewTag) {
+    if (Disposer.isDisposed(this)) {
+      Logger.getInstance(ViewHandlerManager.class).warn("ViewHandlerManager::getHandler after dispose()");
+      return null;
+    }
     ViewHandler handler = myHandlers.get(viewTag);
     if (handler == null) {
       if (viewTag.indexOf('.') != -1) {
@@ -195,6 +192,10 @@ public class ViewHandlerManager implements Disposable {
    * @param handler corresponding view handler
    */
   public void registerHandler(@NotNull String viewTag, @NotNull ViewHandler handler) {
+    if (Disposer.isDisposed(this)) {
+      Logger.getInstance(ViewHandlerManager.class).warn("ViewHandlerManager::registerHandler(" + viewTag + ", ...) after dispose()");
+      return;
+    }
     myHandlers.put(viewTag, handler);
   }
 
