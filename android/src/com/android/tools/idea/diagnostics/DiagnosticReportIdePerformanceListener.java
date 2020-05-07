@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.diagnostics.DiagnosticReportIdePerformanceListener");
+  private static final Logger LOG = Logger.getInstance(DiagnosticReportIdePerformanceListener.class);
 
   private final Consumer<DiagnosticReport> myReportCallback;
   private @Nullable DiagnosticReportBuilder myBuilder;
