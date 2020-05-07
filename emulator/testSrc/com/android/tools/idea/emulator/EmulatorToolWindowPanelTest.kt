@@ -83,15 +83,15 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     val call = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 253 height: 521")
-    assertAppearance(ui, "image1")
+    assertViewAppearance(ui, "image1")
 
     panel.showLongRunningOperationIndicator("Just a sec...")
     ui.layoutAndDispatchEvents()
-    assertAppearance(ui, "image2")
+    assertViewAppearance(ui, "image2")
 
     panel.hideLongRunningOperationIndicator()
     ui.layoutAndDispatchEvents()
-    assertAppearance(ui, "image1")
+    assertViewAppearance(ui, "image1")
 
     panel.destroyContent()
     assertThat(panel.emulatorView).isNull()
@@ -142,10 +142,10 @@ class EmulatorToolWindowPanelTest {
   private val EmulatorToolWindowPanel.emulatorView
     get() = getData(EMULATOR_VIEW_KEY.name) as EmulatorView?
 
-  private fun assertAppearance(ui: FakeUi, goldenImageName: String) {
+  private fun assertViewAppearance(ui: FakeUi, goldenImageName: String) {
     ui.updateToolbars()
     val image = ui.render()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.02)
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.1)
   }
 
   private fun getGoldenFile(name: String): File {
