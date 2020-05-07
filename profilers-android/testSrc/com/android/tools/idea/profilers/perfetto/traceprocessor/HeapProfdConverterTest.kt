@@ -41,16 +41,16 @@ class HeapProfdConverterTest {
                    .setName(Base64.encode("Frame 1A".toByteArray()))
                    .setModule(Base64.encode("TestModule".toByteArray()))
                    .setRelPc(1234))
-      .addPointers(Memory.StackPointer.newBuilder()
-                     .setId(1)
-                     .setFrameId(1))
-      .addPointers(Memory.StackPointer.newBuilder()
-                     .setId(2)
-                     .setFrameId(2)
-                     .setParentId(1))
-      .addPointers(Memory.StackPointer.newBuilder()
-                     .setId(3)
-                     .setFrameId(3))
+      .putPointers(1, Memory.StackPointer.newBuilder()
+        .setFrameId(1)
+        .build())
+      .putPointers(2, Memory.StackPointer.newBuilder()
+        .setFrameId(2)
+        .setParentId(1)
+        .build())
+      .putPointers(3, Memory.StackPointer.newBuilder()
+        .setFrameId(3)
+        .build())
       .addAllocations(Memory.Allocation.newBuilder()
                         .setTimestamp(1)
                         .setCount(5)
@@ -110,7 +110,7 @@ class HeapProfdConverterTest {
   }
 
   class FakeNameDemangler : NameDemangler {
-    override fun demangleInplace(stackFrames: Collection<com.android.tools.profiler.proto.Memory.AllocationStack.StackFrame.Builder>) {
+    override fun demangleInplace(stackFrames: Collection<NameHolder>) {
     }
   }
 }

@@ -15,33 +15,28 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
-import com.android.tools.profiler.proto.Memory
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
 import org.junit.Assume.assumeFalse
 import org.junit.Assume.assumeTrue
-import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.Executor
 
 class WindowsNameDemanglerTest {
   @Test
   fun demangleStringWindows() {
     assumeTrue(SystemInfo.isWindows)
     val demangler = WindowsNameDemangler()
-    val stackFrame = Memory.AllocationStack.StackFrame.newBuilder()
-      .setMethodName("_ZN7android6Parcel13continueWriteEm")
+    val stackFrame = StackFrameInfo("_ZN7android6Parcel13continueWriteEm")
     demangler.demangleInplace(mutableListOf(stackFrame))
-    assertThat(stackFrame.methodName).isEqualTo("android::Parcel::continueWrite(unsigned long)")
+    assertThat(stackFrame.name).isEqualTo("android::Parcel::continueWrite(unsigned long)")
   }
 
   @Test
   fun demangleStringOther() {
     assumeFalse(SystemInfo.isWindows)
     val demangler = WindowsNameDemangler()
-    val stackFrame = Memory.AllocationStack.StackFrame.newBuilder()
-      .setMethodName("_ZN7android6Parcel13continueWriteEm")
+    val stackFrame = StackFrameInfo("_ZN7android6Parcel13continueWriteEm")
     demangler.demangleInplace(mutableListOf(stackFrame))
-    assertThat(stackFrame.methodName).isEqualTo("_ZN7android6Parcel13continueWriteEm")
+    assertThat(stackFrame.name).isEqualTo("_ZN7android6Parcel13continueWriteEm")
   }
 }

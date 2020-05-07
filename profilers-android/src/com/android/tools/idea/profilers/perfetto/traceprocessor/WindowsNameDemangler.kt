@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
-import com.android.tools.idea.concurrency.executeAsync
-import com.android.tools.profiler.proto.Memory
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
@@ -27,12 +25,7 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.nio.file.Paths
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.Executor
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 /**
  * Class that calls out to the C++Filt tool to demangle itanium names on windows.
@@ -60,7 +53,7 @@ class WindowsNameDemangler(val timeoutMsc: Long = 5000) : NameDemangler {
     return result.toString()
   }
 
-  override fun demangleInplace(stackFrames: Collection<Memory.AllocationStack.StackFrame.Builder>) {
+  override fun demangleInplace(stackFrames: Collection<NameHolder>) {
     if (!SystemInfo.isWindows) {
       // Currently only windows needs an outside process to demangle names, mac/linux are done inside the daemon.
       return
@@ -71,17 +64,17 @@ class WindowsNameDemangler(val timeoutMsc: Long = 5000) : NameDemangler {
     val duplicatesMap = HashMap<String, String>()
     for (frame in stackFrames) {
       try {
-        if (duplicatesMap.containsKey(frame.methodName)) {
-          frame.methodName = duplicatesMap[frame.methodName]
+        if (duplicatesMap.containsKey(frame.name)) {
+          frame.name = duplicatesMap[frame.name]!!
           continue
         }
         // Only submit names that start with _Z. Other names are invalid.
-        if (frame.methodName.startsWith("_Z")) {
-          holder.stdin.write(frame.methodName + "\n")
+        if (frame.name.startsWith("_Z")) {
+          holder.stdin.write(frame.name + "\n")
           holder.stdin.flush()
-          val response = holder.stdout.readLine() ?: frame.methodName
-          duplicatesMap[frame.methodName] = response
-          frame.methodName = response
+          val response = holder.stdout.readLine() ?: frame.name
+          duplicatesMap[frame.name] = response
+          frame.name = response
 
         }
       }

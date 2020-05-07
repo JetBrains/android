@@ -46,7 +46,7 @@ class HeapProfdConverter(private val abi: String,
    * Symbol (File:Line) eg.. operator new (new.cpp:256)
    * The file name and line number are also populated if available.
    */
-  private fun toBestAvailableStackFrame(rawFrame: StackFrame): Memory.AllocationStack.StackFrame.Builder {
+  private fun toBestAvailableStackFrame(rawFrame: StackFrame): StackFrameInfo {
     val module = String(Base64.decode(rawFrame.module))
     val symbolizedFrame = symbolizer.symbolize(abi, Memory.NativeCallStack.NativeFrame.newBuilder()
       .setModuleName(module)
@@ -56,18 +56,15 @@ class HeapProfdConverter(private val abi: String,
       .build())
     val symbolName = symbolizedFrame.symbolName
     if (symbolName.startsWith("0x")) {
-      val methodName = if (rawFrame.name.isNullOrBlank()) UNKNOWN_FRAME.toBuilder().methodName else String(Base64.decode(rawFrame.name))
-      return Memory.AllocationStack.StackFrame.newBuilder()
-        .setMethodName(methodName)
-        .setModuleName(module)
+      val methodName = if (rawFrame.name.isNullOrBlank()) UNKNOWN_FRAME.methodName else String(Base64.decode(rawFrame.name))
+      return StackFrameInfo(name = methodName, moduleName = module)
     }
     val file = File(symbolizedFrame.fileName).name
     val formattedName = "${symbolName} (${file}:${symbolizedFrame.lineNumber})"
-    return Memory.AllocationStack.StackFrame.newBuilder()
-      .setMethodName(formattedName)
-      .setFileName(symbolizedFrame.fileName)
-      .setLineNumber(symbolizedFrame.lineNumber)
-      .setModuleName(symbolizedFrame.moduleName)
+    return StackFrameInfo(name = formattedName,
+                          fileName = symbolizedFrame.fileName,
+                          lineNumber = symbolizedFrame.lineNumber,
+                          moduleName = symbolizedFrame.moduleName)
   }
 
   /**
@@ -75,10 +72,8 @@ class HeapProfdConverter(private val abi: String,
    * a count > 0 it will be added as an allocation. If the count is <= 0 it will be added as a free.
    */
   fun populateHeapSet(context: NativeAllocationContext) {
-    val frameIdToFrame: MutableMap<Long, Memory.AllocationStack.StackFrame.Builder> = HashMap()
-    val stackPointerIdToParentId: MutableMap<Long, Long> = HashMap()
-    val stackPointerIdToFrameName: MutableMap<Long, Memory.AllocationStack.StackFrame> = HashMap()
-    val callSites: Map<Long, NativeAllocationInstanceObject?> = HashMap()
+    val frameIdToFrame: MutableMap<Long, StackFrameInfo> = HashMap()
+    val frames: MutableMap<Long, Memory.AllocationStack.StackFrame> = HashMap()
     val classDb = ClassDb()
 
     context.framesList.forEach {
@@ -86,34 +81,54 @@ class HeapProfdConverter(private val abi: String,
     }
     // Demangle in place is significantly faster than passing in names 1 by 1
     demangler.demangleInplace(frameIdToFrame.values)
-    context.pointersList.forEach {
-      stackPointerIdToFrameName[it.id] = frameIdToFrame[it.frameId]?.build() ?: UNKNOWN_FRAME
-      stackPointerIdToParentId[it.id] = it.parentId
+    // Reduce duplication of UI StackFrame elements, by doing a one time conversion between StackFrameInfo objects and StackFrame protos
+    val it = frameIdToFrame.iterator()
+    while(it.hasNext()) {
+      val next = it.next()
+      frames[next.key] = Memory.AllocationStack.StackFrame.newBuilder()
+        .setModuleName(next.value.moduleName)
+        .setMethodName(next.value.name)
+        .setFileName(next.value.fileName)
+        .setLineNumber(next.value.lineNumber)
+        .build()
+      it.remove() //Remove to reduce temp space required.
     }
-    context.allocationsList.forEach {
+    val pointerMap = context.pointersMap
+    context.allocationsList.forEach { allocation ->
+      // Build allocation stack proto
       val fullStack = Memory.AllocationStack.StackFrameWrapper.newBuilder()
-      var callSiteId = stackPointerIdToParentId[it.stackId]
-      if (!callSites.containsKey(it.stackId)) {
-        while (callSiteId != null && callSiteId != 0L) {
-          fullStack.addFrames(stackPointerIdToFrameName[callSiteId] ?: UNKNOWN_FRAME)
-          callSiteId = stackPointerIdToParentId[callSiteId]
-        }
-        val event = Memory.AllocationEvent.Allocation.newBuilder()
-          .setSize(Math.abs(it.size))
-          .build()
-        val frame = stackPointerIdToFrameName[it.stackId] ?: UNKNOWN_FRAME
-        val stack = Memory.AllocationStack.newBuilder()
-          .setFullStack(fullStack)
-          .build()
-        val instanceObject = NativeAllocationInstanceObject(
-          event, classDb.registerClass(0, 0, frame.methodName), stack, it.count)
-        if (it.count > 0) {
-          memorySet.addDeltaInstanceObject(instanceObject)
-        }
-        else {
-          memorySet.freeDeltaInstanceObject(instanceObject)
-        }
+      var callSiteId = pointerMap[allocation.stackId]?.parentId ?: -1
+      while (callSiteId > 0L) {
+        val frame = pointerMap[callSiteId]?.let { frames[it.frameId] } ?: UNKNOWN_FRAME
+        fullStack.addFrames(frame)
+        callSiteId = pointerMap[callSiteId]?.parentId ?: -1
+      }
+      val stack = Memory.AllocationStack.newBuilder()
+        .setFullStack(fullStack)
+        .build()
+
+      // Build allocation event proto
+      val event = Memory.AllocationEvent.Allocation.newBuilder()
+        .setSize(Math.abs(allocation.size))
+        .build()
+
+      // Build allocation instance object
+      val allocationMethod = pointerMap[allocation.stackId]?.let { frames[it.frameId] } ?: UNKNOWN_FRAME
+      val instanceObject = NativeAllocationInstanceObject(
+        event, classDb.registerClass(0, 0, allocationMethod.methodName), stack, allocation.count)
+
+      // Add it to the heapset book keeping.
+      if (allocation.count > 0) {
+        memorySet.addDeltaInstanceObject(instanceObject)
+      }
+      else {
+        memorySet.freeDeltaInstanceObject(instanceObject)
       }
     }
   }
 }
+
+data class StackFrameInfo(override var name: String,
+                          val fileName: String = "",
+                          val lineNumber: Int = 0,
+                          val moduleName: String = "") : NameHolder
