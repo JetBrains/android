@@ -32,8 +32,12 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import javax.swing.JComponent
 import javax.swing.event.HyperlinkEvent
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 
-class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {
+class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {companion object {
+  fun show(project: Project, callback: Runnable? = null) =
+    ToolWindowManagerEx.getInstanceEx(project).getToolWindow(APP_INSPECTION_ID)?.show(callback)
+}
   /**
    * This dictates the names of the preferred processes. They are drawn from the android applicationIds of the modules in this [project].
    */
