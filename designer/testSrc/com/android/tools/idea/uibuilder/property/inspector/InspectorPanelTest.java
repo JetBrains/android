@@ -62,7 +62,7 @@ public class InspectorPanelTest extends PropertyTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myPropertiesComponent = mock(PropertiesComponent.class);
-    registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
+    replaceApplicationService(PropertiesComponent.class, myPropertiesComponent);
     myInspector = new NlInspectorPanel(getTestRootDisposable(), new JLabel());
   }
 

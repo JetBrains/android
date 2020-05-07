@@ -131,7 +131,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
     myUsageTracker = mockNlUsageTracker(myDesignSurface);
-    registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
+    replaceApplicationService(PropertiesComponent.class, myPropertiesComponent);
   }
 
   @Override
