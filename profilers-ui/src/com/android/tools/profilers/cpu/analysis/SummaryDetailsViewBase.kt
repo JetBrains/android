@@ -77,8 +77,8 @@ open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(val profile
    */
   protected fun formatTimeRangeAsString(range: Range): String {
     return String.format("%s - %s",
-                         TimeFormatter.getSimplifiedClockString(range.min.toLong() - tabModel.captureRange.min.toLong()),
-                         TimeFormatter.getSimplifiedClockString(range.max.toLong() - tabModel.captureRange.min.toLong()))
+                         TimeFormatter.getSemiSimplifiedClockString(range.min.toLong() - tabModel.captureRange.min.toLong()),
+                         TimeFormatter.getSemiSimplifiedClockString(range.max.toLong() - tabModel.captureRange.min.toLong()))
   }
 
   companion object {
