@@ -39,6 +39,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.util.ArrayList;
@@ -67,6 +68,12 @@ public class Jdks {
     return ServiceManager.getService(Jdks.class);
   }
 
+  public Jdks() {
+    this(IdeInfo.getInstance());
+  }
+
+  @NonInjectable
+  @VisibleForTesting
   public Jdks(@NotNull IdeInfo ideInfo) {
     myIdeInfo = ideInfo;
   }
