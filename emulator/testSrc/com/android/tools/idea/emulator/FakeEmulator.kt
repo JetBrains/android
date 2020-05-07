@@ -74,10 +74,10 @@ import kotlin.math.roundToInt
  */
 class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory: Path) {
 
-  private val avdId = StringUtil.trimExtensions(avdFolder.fileName.toString())
+  val avdId = StringUtil.trimExtensions(avdFolder.fileName.toString())
   private val registration = """
-      port.serial=${grpcPort - 3000}
-      port.adb=${grpcPort - 3000 + 1}
+      port.serial=${serialPort}
+      port.adb=${serialPort + 1}
       avd.name=${avdId}
       avd.dir=${avdFolder}
       avd.id=${avdId}
@@ -93,6 +93,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)!!
 
   @Volatile var displayRotation: SkinRotation = SkinRotation.PORTRAIT
+
+  val serialPort
+    get() = grpcPort - 3000 // Just like a real emulator.
 
   val grpcCallLog = LinkedBlockingDeque<GrpcCallRecord>()
 
