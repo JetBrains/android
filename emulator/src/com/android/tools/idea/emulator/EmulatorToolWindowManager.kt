@@ -101,7 +101,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
       @UiThread
       override fun stateChanged() {
-        if (!project.isDisposedOrDisposeInProgress) {
+        if (!project.isDisposed) {
           ToolWindowManager.getInstance(project).invokeLater(Runnable {
             if (!project.isDisposed) {
               val toolWindow = getToolWindow()

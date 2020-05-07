@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.panels
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
@@ -42,8 +43,6 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
-const val CRITICAL_PATH_LINK = "https://developer.android.com/r/tools/build-attribution/critical-path"
-
 interface TreeLinkListener<T> {
   fun clickedOn(target: T)
 }
@@ -62,7 +61,7 @@ fun pluginInfoPanel(
     .newline()
     .add("determining this build's duration.")
     .closeHtmlBody()
-  add(DescriptionWithHelpLinkLabel(pluginText.html, CRITICAL_PATH_LINK, analytics))
+  add(DescriptionWithHelpLinkLabel(pluginText.html, BuildAnalyzerBrowserLinks.CRITICAL_PATH, analytics::helpLinkClicked))
   add(JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
     border = JBUI.Borders.emptyTop(15)
     add(JBLabel("Warnings detected").withFont(JBUI.Fonts.label().asBold()))
@@ -80,10 +79,24 @@ fun pluginInfoPanel(
   withPreferredWidth(400)
 }
 
+@Deprecated("Left to support previous version.")
 fun taskInfoPanel(
   taskData: TaskUiData,
   analytics: BuildAttributionUiAnalytics,
   issueReporter: TaskIssueReporter
+): JPanel = taskInfoPanel(
+  taskData,
+  helpLinkListener = analytics::helpLinkClicked,
+  generateReportClickedListener = {
+    analytics.bugReportLinkClicked()
+    issueReporter.reportIssue(taskData)
+  }
+)
+
+fun taskInfoPanel(
+  taskData: TaskUiData,
+  helpLinkListener: (BuildAnalyzerBrowserLinks) -> Unit,
+  generateReportClickedListener: (TaskUiData) -> Unit
 ): JPanel {
   val taskDescription = htmlTextLabel(
     HtmlBuilder()
@@ -131,11 +144,11 @@ fun taskInfoPanel(
   }
   else {
     if (taskData.sourceType != PluginSourceType.BUILD_SRC) {
-      infoPanel.add(generateReportLinkLabel(analytics, issueReporter, taskData), TabularLayout.Constraint(row++, 0))
+      infoPanel.add(generateReportLinkLabel(taskData, generateReportClickedListener), TabularLayout.Constraint(row++, 0))
     }
     for ((index, issue) in taskData.issues.withIndex()) {
       infoPanel.add(
-        taskWarningDescriptionPanel(issue, analytics, index > 0),
+        taskWarningDescriptionPanel(issue, helpLinkListener, index > 0),
         TabularLayout.Constraint(row++, 0, colSpan = 2)
       )
     }
@@ -148,7 +161,7 @@ fun taskInfoPanel(
 
 private fun taskWarningDescriptionPanel(
   issue: TaskIssueUiData,
-  analytics: BuildAttributionUiAnalytics,
+  helpLinkClickCallback: (BuildAnalyzerBrowserLinks) -> Unit,
   needSeparatorInFront: Boolean
 ): JComponent = JPanel().apply {
   name = "warning-${issue.type.name}"
@@ -159,27 +172,33 @@ private fun taskWarningDescriptionPanel(
   }
   add(JBLabel(warningIcon()).withBorder(JBUI.Borders.emptyRight(5)), TabularLayout.Constraint(1, 0))
   add(JBLabel(issue.type.uiName).withFont(JBUI.Fonts.label().asBold()), TabularLayout.Constraint(1, 1))
-  add(DescriptionWithHelpLinkLabel(issue.explanation, issue.helpLink, analytics), TabularLayout.Constraint(2, 1))
+  add(DescriptionWithHelpLinkLabel(issue.explanation, issue.helpLink, helpLinkClickCallback), TabularLayout.Constraint(2, 1))
   add(htmlTextLabel("<b>Recommendation</b> ${issue.buildSrcRecommendation}"), TabularLayout.Constraint(3, 1))
 }
 
+@Deprecated("Left to support previous version.")
 fun generateReportLinkLabel(
   analytics: BuildAttributionUiAnalytics,
   issueReporter: TaskIssueReporter,
   taskData: TaskUiData
+): JComponent = generateReportLinkLabel(taskData) {
+    analytics.bugReportLinkClicked()
+    issueReporter.reportIssue(taskData)
+  }
+
+fun generateReportLinkLabel(
+  taskData: TaskUiData,
+  generateReportClicked: (TaskUiData) -> Unit
 ): JComponent = object : HyperlinkLabel() {
   override fun getTextOffset(): Int {
     return 0
   }
 }.apply {
-  addHyperlinkListener {
-    analytics.bugReportLinkClicked()
-    issueReporter.reportIssue(taskData)
-  }
+  addHyperlinkListener { generateReportClicked(taskData) }
   setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "")
 }
 
-private fun reasonsToRunList(taskData: TaskUiData) = htmlTextLabel(createReasonsText(taskData.reasonsToRun))
+fun reasonsToRunList(taskData: TaskUiData) = htmlTextLabel(createReasonsText(taskData.reasonsToRun))
 
 private fun createReasonsText(reasons: List<String>): String = if (reasons.isEmpty()) {
   "No info"

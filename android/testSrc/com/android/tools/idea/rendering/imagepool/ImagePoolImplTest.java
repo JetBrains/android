@@ -137,16 +137,7 @@ public class ImagePoolImplTest {
     assertNotEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
     image.dispose();
     assertEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
-    boolean threw = false;
-    try {
-      image.getCopy();
-    }
-    catch (AssertionError e) {
-      // Check than the assertion contains the stack trace fo the first dispose
-      assertTrue(e.getMessage().contains(ImagePoolImplTest.class.getName() + ".testManualFree"));
-      threw = true;
-    }
-    assertTrue("Expected assertion error trying to use an already disposed image", threw);
+    assertNull(image.getCopy());
 
     //noinspection UnusedAssignment
     image = null;

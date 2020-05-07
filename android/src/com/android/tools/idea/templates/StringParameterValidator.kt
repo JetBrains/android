@@ -114,6 +114,7 @@ fun StringParameter.validateStringType(
     }
     SOURCE_SET_FOLDER, MODULE -> false // may only violate uniqueness
     UNIQUE, EXISTS -> false // not applicable
+    //noinspection StopShip
     ID -> TODO()
   }
 

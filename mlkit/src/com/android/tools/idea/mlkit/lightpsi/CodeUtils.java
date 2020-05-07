@@ -15,28 +15,62 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
+import static com.intellij.psi.CommonClassNames.JAVA_UTIL_LIST;
+
 import com.android.tools.mlkit.TensorInfo;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.search.GlobalSearchScope;
+import org.apache.commons.lang.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Utility method to generate light class.
+ * Utility methods for generating light class.
  */
 public class CodeUtils {
 
   /**
-   * Get qualified type name based on {@link TensorInfo}.
+   * Gets {@link PsiClassType} based on {@link TensorInfo}.
    */
   @NotNull
-  public static String getTypeQualifiedName(@NotNull TensorInfo tensorInfo) {
+  public static PsiClassType getPsiClassType(@NotNull TensorInfo tensorInfo, @NotNull Project project, @NotNull GlobalSearchScope scope) {
     if (tensorInfo.isRGBImage()) {
       // Only RGB image is supported right now.
-      return ClassNames.TENSOR_IMAGE;
+      return PsiType.getTypeByName(ClassNames.TENSOR_IMAGE, project, scope);
     }
     else if (tensorInfo.getFileType() == TensorInfo.FileType.TENSOR_AXIS_LABELS) {
-      return ClassNames.TENSOR_LABEL;
+      // Returns List<Category>.
+      PsiClass listClass = JavaPsiFacade.getInstance(project).findClass(JAVA_UTIL_LIST, scope);
+      PsiType value = PsiType.getTypeByName(ClassNames.CATEGORY, project, scope);
+      return PsiElementFactory.getInstance(project).createType(listClass, value);
     }
     else {
-      return ClassNames.TENSOR_BUFFER;
+      return PsiType.getTypeByName(ClassNames.TENSOR_BUFFER, project, scope);
+    }
+  }
+
+  /**
+   * Gets type name from {@link PsiClassType}.
+   *
+   * <p>If it has parameters, add parameter name to type name. So {@code List<Category>} will become {@code CategoryList}.
+   */
+  @NotNull
+  public static String getTypeName(@NotNull PsiClassType psiClassType) {
+    PsiType[] psiTypes = psiClassType.getParameters();
+    if (ArrayUtils.isEmpty(psiTypes)) {
+      return psiClassType.getClassName();
+    }
+    else {
+      StringBuilder stringBuilder = new StringBuilder();
+      for (PsiType psiType : psiTypes) {
+        stringBuilder.append(psiType.getPresentableText());
+      }
+      stringBuilder.append(psiClassType.getClassName());
+      return stringBuilder.toString();
     }
   }
 }

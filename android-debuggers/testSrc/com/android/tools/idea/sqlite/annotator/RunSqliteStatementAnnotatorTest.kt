@@ -20,6 +20,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
@@ -38,19 +39,19 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var ideComponents: IdeComponents
 
   private lateinit var mockDatabaseInspectorProjectService: DatabaseInspectorProjectService
-  private lateinit var sqliteDatabase1: SqliteDatabase
-  private lateinit var sqliteDatabase2: SqliteDatabase
+  private lateinit var sqliteDatabaseId1: SqliteDatabaseId
+  private lateinit var sqliteDatabaseId2: SqliteDatabaseId
 
   override fun setUp() {
     super.setUp()
     StudioFlags.DATABASE_INSPECTOR_ENABLED.override(true)
 
-    sqliteDatabase1 = LiveSqliteDatabase("db1", mock(DatabaseConnection::class.java))
-    sqliteDatabase2 = LiveSqliteDatabase("db2", mock(DatabaseConnection::class.java))
+    sqliteDatabaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
+    sqliteDatabaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
 
     ideComponents = IdeComponents(myFixture)
     mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabase1))
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
   }
 
   override fun tearDown() {

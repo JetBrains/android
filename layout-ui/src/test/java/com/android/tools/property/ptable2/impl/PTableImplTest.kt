@@ -55,7 +55,6 @@ private const val FIRST_FIELD_EDITOR = "First Editor"
 private const val LAST_FIELD_EDITOR = "Last Editor"
 private const val TABLE_NAME = "Table"
 
-@org.junit.Ignore("b/154961070")
 class PTableImplTest {
   private var model: PTableTestModel? = null
   private var table: PTableImpl? = null

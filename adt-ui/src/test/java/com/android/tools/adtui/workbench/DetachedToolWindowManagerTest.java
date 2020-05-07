@@ -37,6 +37,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.mockito.Mock;
 
+@org.junit.Ignore("b/155928554")
 public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   // Hack to avoid: "java.lang.Error: Cannot load com.apple.laf.AquaLookAndFeel"
   @SuppressWarnings("unused")

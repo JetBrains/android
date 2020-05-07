@@ -42,6 +42,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.util.ui.tree.TreeUtil;
+import java.awt.event.KeyEvent;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -56,7 +57,8 @@ import java.awt.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.android.tools.idea.tests.gui.framework.fixture.newpsd.UiTestUtilsKt.waitForIdle;
+import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.fixupWaiting;
+import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.waitForIdle;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -65,7 +67,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
   @NotNull private final IdeFrameFixture ideFrameFixture;
 
   public ProjectViewFixture(@NotNull IdeFrameFixture ideFrameFixture) {
-    super("Project", ideFrameFixture.getProject(), ideFrameFixture.robot());
+    super("Project", ideFrameFixture.getProject(), fixupWaiting(ideFrameFixture.robot()));
     this.ideFrameFixture = ideFrameFixture;
   }
 
@@ -226,7 +228,8 @@ public class ProjectViewFixture extends ToolWindowFixture {
     public IdeFrameFixture clickPath(@NotNull MouseButton button, @NotNull final String... paths) {
       StringBuilder totalPath = new StringBuilder(paths[0]);
       for (int i = 1; i < paths.length; i++) {
-        myTree.expandPath(totalPath.toString());
+        myTree.selectPath(totalPath.toString());
+        myTree.robot().pressAndReleaseKey(KeyEvent.VK_ADD);
         totalPath.append('/').append(paths[i]);
       }
       myTree.clickPath(totalPath.toString(), button);

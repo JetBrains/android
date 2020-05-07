@@ -23,6 +23,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.MouseEventHandler;
 import java.awt.BorderLayout;
+import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.Icon;
@@ -78,8 +79,12 @@ public class Track {
       myTitleLabel.setIcon(trackModel.isCollapsed() ? COLLAPSE_ICON : EXPAND_ICON);
       myTitleLabel.addMouseListener(new MouseAdapter() {
         @Override
-        public void mouseClicked(MouseEvent e) {
-          if (myTitleLabel.contains(e.getPoint()) && e.getClickCount() == 2) {
+        public void mousePressed(MouseEvent e) {
+          // Get the icon's bounding box relative to the label.
+          Rectangle iconRect = new Rectangle(myTitleLabel.getInsets().left, myTitleLabel.getInsets().top,
+                                             getTitleLabel().getIcon().getIconWidth(), myTitleLabel.getIcon().getIconHeight());
+          // Single-clicking the icon or doubling-clicking the label should expand/collapse the track.
+          if (iconRect.contains(e.getPoint()) || e.getClickCount() == 2) {
             trackModel.setCollapsed(!trackModel.isCollapsed());
             myTitleLabel.setIcon(trackModel.isCollapsed() ? COLLAPSE_ICON : EXPAND_ICON);
           }
@@ -142,7 +147,7 @@ public class Track {
    */
   @NotNull
   public Track updateSelected(boolean selected) {
-    myTitleFrontPanel.setBackground(selected ? StudioColorsKt.getContentSelectionBackground() : null);
+    myTitleFrontPanel.setBackground(selected ? StudioColorsKt.getSelectionOverlayBackground() : null);
     myTitleBackPanel.setBorder(selected ? TITLE_BORDER_SELECTED : TITLE_BORDER_DEFAULT);
     myTrackContent.setBorder(selected ? CONTENT_BORDER_SELECTED : CONTENT_BORDER_DEFAULT);
     return this;
@@ -161,9 +166,8 @@ public class Track {
     return myTrackContent;
   }
 
-  @VisibleForTesting
   @NotNull
-  JLabel getTitleLabel() {
+  public JLabel getTitleLabel() {
     return myTitleLabel;
   }
 

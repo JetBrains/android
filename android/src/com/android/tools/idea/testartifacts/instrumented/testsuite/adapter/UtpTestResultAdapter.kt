@@ -58,14 +58,16 @@ class UtpTestResultAdapter(private val listener: AndroidTestResultListener) {
     listener.onTestSuiteStarted(device, testSuite)
     for (testResultProto in resultProto.testResultList) {
       val testCaseProto = testResultProto.testCase
-      val fullName = "${testCaseProto.testPackage}:${testCaseProto.testClass}#${testCaseProto.testMethod}"
+      val fullName = "${testCaseProto.testPackage}.${testCaseProto.testClass}#${testCaseProto.testMethod}"
       val iceboxArtifactRegrex = "snapshot-.*-.*-snapshot.tar.gz".toRegex()
       val iceboxArtifact = testResultProto.outputArtifactList.find {
         iceboxArtifactRegrex.matches(File(it.sourcePath?.path).name)
       }
       val iceboxArtifactPath = iceboxArtifact?.sourcePath?.path
       val testCase = AndroidTestCase(id = fullName,
-                                     name = testCaseProto.testMethod,
+                                     methodName = testCaseProto.testMethod,
+                                     className = testCaseProto.testClass,
+                                     packageName = testCaseProto.testPackage,
                                      retentionSnapshot = if (iceboxArtifactPath != null) {
                                        File(iceboxArtifactPath)
                                      } else {

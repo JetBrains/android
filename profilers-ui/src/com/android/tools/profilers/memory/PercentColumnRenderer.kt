@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.memory
 
+import com.android.tools.adtui.common.contentDeselectionBackground
+import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.memory.adapters.MemoryObject
 import java.awt.Graphics
@@ -30,17 +32,30 @@ internal class PercentColumnRenderer<T: MemoryObject>(
 ): SimpleColumnRenderer<T>(textGetter, iconGetter, alignment) {
 
   private var percent = 0
+  private var hasFocus = false;
 
   override fun paintComponent(g: Graphics) {
     if (percent > 0) {
-      g.color = if (mySelected) ProfilerColors.CAPTURE_SPARKLINE_SELECTED else ProfilerColors.CAPTURE_SPARKLINE
+      g.color = getSparklineColor()
       val barWidth = width * percent / 100
       g.fillRect(width - barWidth, 0, barWidth, height)
-      g.color = if (mySelected) ProfilerColors.CAPTURE_SPARKLINE_SELECTED_ACCENT else ProfilerColors.CAPTURE_SPARKLINE_ACCENT
+      g.color = getSparklineAccentColor()
       g.fillRect(width - barWidth, height - ACCENT_BAR_WIDTH, barWidth, ACCENT_BAR_WIDTH)
     }
     // The percent bar is supposed to  be background, so the call to super should be last
     super.paintComponent(g)
+  }
+
+  private fun getSparklineColor() = when {
+    !mySelected -> ProfilerColors.CAPTURE_SPARKLINE
+    hasFocus    -> ProfilerColors.CAPTURE_SPARKLINE_SELECTED
+    else        -> contentDeselectionBackground
+  }
+
+  private fun getSparklineAccentColor() = when {
+    !mySelected -> ProfilerColors.CAPTURE_SPARKLINE_ACCENT
+    hasFocus    -> ProfilerColors.CAPTURE_SPARKLINE_SELECTED_ACCENT
+    else        -> contentDeselectionBackground
   }
 
   override fun customizeCellRenderer(tree: JTree,
@@ -52,6 +67,7 @@ internal class PercentColumnRenderer<T: MemoryObject>(
                                      hasFocus: Boolean) {
     super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
     if (value is MemoryObjectTreeNode<*>) {
+      this.hasFocus = hasFocus;
       percent = percentGetter.apply(value as MemoryObjectTreeNode<T>)
       require (percent >= 0)
     }

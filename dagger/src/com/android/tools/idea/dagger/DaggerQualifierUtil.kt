@@ -74,7 +74,7 @@ const val QUALIFIER_ANNOTATION_CLASS_FQ = "javax.inject.Qualifier"
  */
 internal data class QualifierInfo(val fqName: String, val attributes: Map<String, String>)
 
-fun isConstantValueSerializableAsString(constant: ConstantValue<*>): Boolean {
+private fun isConstantValueSerializableAsString(constant: ConstantValue<*>): Boolean {
   return constant is StringValue ||
          constant is BooleanValue ||
          constant is DoubleValue ||

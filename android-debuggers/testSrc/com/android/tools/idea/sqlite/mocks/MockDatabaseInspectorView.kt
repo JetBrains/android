@@ -16,11 +16,11 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.controllers.TabId
-import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
 import com.android.tools.idea.sqlite.ui.mainView.SchemaDiffOperation
+import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import org.mockito.Mockito.mock
 import java.util.ArrayList
 import javax.swing.JComponent
@@ -45,6 +45,8 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
 
   override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) { }
 
+  override fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>) { }
+
   override fun openTab(tabId: TabId, tabName: String, component: JComponent) {
     lastDisplayedResultSetTabId = tabId
   }
@@ -55,7 +57,7 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
 
   override fun closeTab(tabId: TabId) { }
 
-  override fun reportError(message: String, throwable: Throwable?) { }
+  override fun updateKeepConnectionOpenButton(keepOpen: Boolean) { }
 
-  override fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) { }
+  override fun reportError(message: String, throwable: Throwable?) { }
 }

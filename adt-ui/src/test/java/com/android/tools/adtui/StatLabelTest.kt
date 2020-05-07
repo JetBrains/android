@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui
 
+import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -24,7 +25,14 @@ class StatLabelTest {
   fun `label display properly formatter number`() {
     val l = StatLabel(123456789, "description")
     assertThat(l.getNumText()).isEqualTo("123,456,789")
-    l.intContent = 65432
+    assertThat(l.getDescText()).isEqualTo("description")
+    l.numValue = 65432
     assertThat(l.getNumText()).isEqualTo("65,432")
+  }
+
+  @Test
+  fun customNumberFormatter() {
+    val label = StatLabel(1000L, "Duration", numFormatter = TimeFormatter::getSingleUnitDurationString)
+    assertThat(label.getNumText()).isEqualTo("1 ms")
   }
 }

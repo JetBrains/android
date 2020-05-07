@@ -306,7 +306,10 @@ public class AndroidFileChangeListener implements Disposable {
         else if (event instanceof VFilePropertyChangeEvent &&
                  ((VFilePropertyChangeEvent)event).getPropertyName().equals(VirtualFile.PROP_NAME)) {
           VFilePropertyChangeEvent renameEvent = (VFilePropertyChangeEvent)event;
-          onFileOrDirectoryCreated(renameEvent.getFile().getParent(), (String)renameEvent.getNewValue());
+          VirtualFile parentFile = renameEvent.getFile().getParent();
+          if (parentFile != null) {
+            onFileOrDirectoryCreated(parentFile, (String)renameEvent.getNewValue());
+          }
         }
         else if (event instanceof VFileContentChangeEvent) {
           // Content changes are not handled at the VFS level but either in fileWithNoDocumentChanged, documentChanged or MyPsiListener.

@@ -1,5 +1,4 @@
 com.android.tools.idea.configurations.Configuration.computeBestDevice|com.android.tools.idea.configurations.Configuration.getDevice
-com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.common.surface.SceneView.getScreenShape
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.configurations.Configuration.getDeviceState
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.configurations.Configuration.getResourceResolver
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.configurations.Configuration.syncFolderConfig

@@ -19,8 +19,12 @@ import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.BuildAttributionStateReporter
 import com.android.build.attribution.BuildAttributionStateReporterImpl
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
+import com.android.build.attribution.ui.controllers.BuildAnalyzerViewController
+import com.android.build.attribution.ui.controllers.TaskIssueReporter
 import com.android.build.attribution.ui.controllers.TaskIssueReporterImpl
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
+import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
+import com.android.build.attribution.ui.view.BuildAnalyzerComboBoxView
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
@@ -40,7 +44,6 @@ import com.intellij.ui.content.impl.ContentImpl
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 interface BuildAttributionUiManager : Disposable {
   fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String)
@@ -129,13 +132,7 @@ class BuildAttributionUiManagerImpl(
     buildAttributionView?.let { treeView -> Disposer.dispose(treeView) }
     val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
     buildAttributionView = if (StudioFlags.NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED.get()) {
-      // TODO (mlazeba): replace with new BA UI
-      object : ComponentContainer {
-        private val panel = JPanel()
-        override fun getPreferredFocusableComponent(): JComponent = panel
-        override fun getComponent(): JComponent = panel
-        override fun dispose() = Unit
-      }
+      NewViewComponentContainer(reportUiData, issueReporter, uiAnalytics)
     }
     else {
       BuildAttributionTreeView(reportUiData, issueReporter, uiAnalytics)
@@ -206,6 +203,26 @@ class BuildAttributionUiManagerImpl(
   override fun hasDataToShow(): Boolean = this::reportUiData.isInitialized
 
   override fun dispose() = cleanUp()
+}
+
+private class NewViewComponentContainer(
+  uiData: BuildAttributionReportUiData,
+  issueReporter: TaskIssueReporter,
+  uiAnalytics: BuildAttributionUiAnalytics
+) : ComponentContainer {
+  val view: BuildAnalyzerComboBoxView
+
+  init {
+    val model = BuildAnalyzerViewModel(uiData)
+    val controller = BuildAnalyzerViewController(model, uiAnalytics, issueReporter)
+    view = BuildAnalyzerComboBoxView(model, controller)
+  }
+
+  override fun getPreferredFocusableComponent(): JComponent = component
+
+  override fun getComponent(): JComponent = view.wholePanel
+
+  override fun dispose() = Unit
 }
 
 private data class OpenRequest(

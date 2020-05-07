@@ -74,28 +74,40 @@ class DdmlibTestRunListenerAdapterTest {
 
     verify(mockListener).onTestCaseStarted(eq(device()),
                                            eq(AndroidTestSuite("exampleTestSuite", "exampleTestSuite", 2)),
-                                           eq(AndroidTestCase("exampleTestClass#exampleTest1", "exampleTestClass#exampleTest1",
+                                           eq(AndroidTestCase("exampleTestClass#exampleTest1",
+                                                              "exampleTest1",
+                                                              "exampleTestClass",
+                                                              "",
                                                               AndroidTestCaseResult.IN_PROGRESS)))
 
     adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1"), mutableMapOf())
 
     verify(mockListener).onTestCaseFinished(eq(device()),
                                            eq(AndroidTestSuite("exampleTestSuite", "exampleTestSuite", 2)),
-                                           eq(AndroidTestCase("exampleTestClass#exampleTest1", "exampleTestClass#exampleTest1",
+                                           eq(AndroidTestCase("exampleTestClass#exampleTest1",
+                                                              "exampleTest1",
+                                                              "exampleTestClass",
+                                                              "",
                                                               AndroidTestCaseResult.PASSED)))
 
     adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest2"))
 
     verify(mockListener).onTestCaseStarted(eq(device()),
                                            eq(AndroidTestSuite("exampleTestSuite", "exampleTestSuite", 2)),
-                                           eq(AndroidTestCase("exampleTestClass#exampleTest2", "exampleTestClass#exampleTest2",
+                                           eq(AndroidTestCase("exampleTestClass#exampleTest2",
+                                                              "exampleTest2",
+                                                              "exampleTestClass",
+                                                              "",
                                                               AndroidTestCaseResult.IN_PROGRESS)))
 
     adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest2"), mutableMapOf())
 
     verify(mockListener).onTestCaseFinished(eq(device()),
                                             eq(AndroidTestSuite("exampleTestSuite", "exampleTestSuite", 2)),
-                                            eq(AndroidTestCase("exampleTestClass#exampleTest2", "exampleTestClass#exampleTest2",
+                                            eq(AndroidTestCase("exampleTestClass#exampleTest2",
+                                                               "exampleTest2",
+                                                               "exampleTestClass",
+                                                               "",
                                                                AndroidTestCaseResult.PASSED)))
 
     adapter.testRunEnded(/*elapsedTime=*/1000, mutableMapOf())
@@ -119,7 +131,10 @@ class DdmlibTestRunListenerAdapterTest {
 
     verify(mockListener).onTestCaseStarted(eq(device()),
                                            eq(AndroidTestSuite("exampleTestSuite", "exampleTestSuite", 2)),
-                                           eq(AndroidTestCase("exampleTestClass#exampleTest1", "exampleTestClass#exampleTest1",
+                                           eq(AndroidTestCase("exampleTestClass#exampleTest1",
+                                                              "exampleTest1",
+                                                              "exampleTestClass",
+                                                              "",
                                                               AndroidTestCaseResult.IN_PROGRESS)))
 
     adapter.testFailed(TestIdentifier("exampleTestClass", "exampleTest1"), "")
@@ -127,21 +142,30 @@ class DdmlibTestRunListenerAdapterTest {
 
     verify(mockListener).onTestCaseFinished(eq(device()),
                                             eq(AndroidTestSuite("exampleTestSuite", "exampleTestSuite", 2, AndroidTestSuiteResult.FAILED)),
-                                            eq(AndroidTestCase("exampleTestClass#exampleTest1", "exampleTestClass#exampleTest1",
+                                            eq(AndroidTestCase("exampleTestClass#exampleTest1",
+                                                               "exampleTest1",
+                                                               "exampleTestClass",
+                                                               "",
                                                                AndroidTestCaseResult.FAILED)))
 
     adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest2"))
 
     verify(mockListener).onTestCaseStarted(eq(device()),
                                            eq(AndroidTestSuite("exampleTestSuite", "exampleTestSuite", 2, AndroidTestSuiteResult.FAILED)),
-                                           eq(AndroidTestCase("exampleTestClass#exampleTest2", "exampleTestClass#exampleTest2",
+                                           eq(AndroidTestCase("exampleTestClass#exampleTest2",
+                                                              "exampleTest2",
+                                                              "exampleTestClass",
+                                                              "",
                                                               AndroidTestCaseResult.IN_PROGRESS)))
 
     adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest2"), mutableMapOf())
 
     verify(mockListener).onTestCaseFinished(eq(device()),
                                             eq(AndroidTestSuite("exampleTestSuite", "exampleTestSuite", 2, AndroidTestSuiteResult.FAILED)),
-                                            eq(AndroidTestCase("exampleTestClass#exampleTest2", "exampleTestClass#exampleTest2",
+                                            eq(AndroidTestCase("exampleTestClass#exampleTest2",
+                                                               "exampleTest2",
+                                                               "exampleTestClass",
+                                                               "",
                                                                AndroidTestCaseResult.PASSED)))
 
     adapter.testRunEnded(/*elapsedTime=*/1000, mutableMapOf())
@@ -167,7 +191,7 @@ class DdmlibTestRunListenerAdapterTest {
     verify(mockListener).onTestCaseStarted(
       any(AndroidDevice::class.java),
       any(AndroidTestSuite::class.java),
-      testCase.capture() ?: AndroidTestCase("", ""))  // Workaround for https://github.com/mockito/mockito/issues/1255
+      testCase.capture() ?: AndroidTestCase("", "", "", ""))  // Workaround for https://github.com/mockito/mockito/issues/1255
 
     adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1"),
                       mutableMapOf(
@@ -212,12 +236,59 @@ class DdmlibTestRunListenerAdapterTest {
     verify(mockListener).onTestCaseStarted(
       any(AndroidDevice::class.java),
       any(AndroidTestSuite::class.java),
-      testCase.capture() ?: AndroidTestCase("", ""))
+      testCase.capture() ?: AndroidTestCase("", "", "", ""))
     adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1"),
                       mutableMapOf(BENCHMARK_TEST_METRICS_KEY to benchmarkOutputFromAndroidX))
     adapter.testRunEnded(/*elapsedTime=*/1000, mutableMapOf())
 
     assertThat(testCase.value.benchmark).isEqualTo(expectedBenchmarkText)
+  }
+
+  @Test
+  fun testResultsShouldChangeToCancelledWhenTestProcessIsKilled() {
+    val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener)
+
+    adapter.testRunStarted("exampleTestSuite", /*testCount=*/1)
+    adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest1"))
+    adapter.testRunEnded(/*elapsedTime=*/1000, mutableMapOf())
+
+    val testCaseCaptor = ArgumentCaptor.forClass(AndroidTestCase::class.java)
+    verify(mockListener).onTestCaseStarted(any(), any(), testCaseCaptor.capture() ?: AndroidTestCase("", "", "", ""))
+    assertThat(testCaseCaptor.value.result).isEqualTo(AndroidTestCaseResult.CANCELLED)
+
+    val testSuiteCaptor = ArgumentCaptor.forClass(AndroidTestSuite::class.java)
+    verify(mockListener).onTestSuiteFinished(any(), testSuiteCaptor.capture() ?: AndroidTestSuite("", "", 0))
+    assertThat(testSuiteCaptor.value.result).isEqualTo(AndroidTestSuiteResult.CANCELLED)
+  }
+
+  @Test
+  fun methodNameAndClassNameAndPackageNameIsExtractedCorrectly() {
+    val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener)
+
+    adapter.testRunStarted("exampleTestSuite", /*testCount=*/1)
+    adapter.testStarted(TestIdentifier("com.example.test.exampleTestClass", "exampleTest1"))
+
+    verify(mockListener).onTestCaseStarted(any(), any(),
+                                           eq(AndroidTestCase("com.example.test.exampleTestClass#exampleTest1",
+                                                              "exampleTest1",
+                                                              "exampleTestClass",
+                                                              "com.example.test",
+                                                              AndroidTestCaseResult.IN_PROGRESS)))
+  }
+
+  @Test
+  fun methodNameAndClassNameAndPackageNameIsExtractedCorrectlyForNestedClass() {
+    val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener)
+
+    adapter.testRunStarted("exampleTestSuite", /*testCount=*/1)
+    adapter.testStarted(TestIdentifier("com.example.test.exampleTestClass\$NestedClassName", "exampleTest1"))
+
+    verify(mockListener).onTestCaseStarted(any(), any(),
+                                           eq(AndroidTestCase("com.example.test.exampleTestClass\$NestedClassName#exampleTest1",
+                                                              "exampleTest1",
+                                                              "exampleTestClass\$NestedClassName",
+                                                              "com.example.test",
+                                                              AndroidTestCaseResult.IN_PROGRESS)))
   }
 
   private fun device(id: String = "mockDeviceSerialNumber",

@@ -20,11 +20,12 @@ import com.android.tools.idea.gradle.structure.navigation.PsBuildTypesNavigation
 import com.android.tools.idea.gradle.structure.navigation.PsBuildVariantsNavigationPath
 import com.android.tools.idea.gradle.structure.navigation.PsDependenciesNavigationPath
 import com.android.tools.idea.gradle.structure.navigation.PsProductFlavorsNavigationPath
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.navigation.Place
 
-data class PsModulePath(val moduleName: String) : PsPlaceBasedPath() {
-  constructor (module: PsModule) : this(module.name)
-  override fun toString(): String = moduleName
+data class PsModulePath @VisibleForTesting constructor (val gradlePath: String) : PsPlaceBasedPath() {
+  constructor (module: PsModule) : this(module.gradlePath)
+  override fun toString(): String = gradlePath
   override fun queryPlace(place: Place, context: PsContext) = throw UnsupportedOperationException()
   override fun getHyperlinkDestination(context: PsContext): String? = null
   val buildVariantsPath: PsBuildVariantsNavigationPath = PsBuildVariantsNavigationPath(this)

@@ -26,6 +26,7 @@ import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFut
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
+import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.createErrorSideChannel
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -494,6 +495,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
   }
 
   private fun createLiveDatabaseConnection(messenger: AppInspectorClient.CommandMessenger): LiveDatabaseConnection {
-    return LiveDatabaseConnection(DatabaseInspectorMessenger(messenger, taskExecutor, createErrorSideChannel(project)), 1, taskExecutor)
+    return LiveDatabaseConnection(
+      DatabaseInspectorMessenger(messenger, taskExecutor, createErrorSideChannel(project)), 1, taskExecutor)
   }
 }

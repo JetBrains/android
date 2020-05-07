@@ -18,6 +18,7 @@ package com.android.build.attribution.ui.panels;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.warningIcon;
 import static com.android.build.attribution.ui.panels.BuildAttributionPanelsKt.htmlTextLabel;
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks;
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel;
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics;
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData;
@@ -34,7 +35,6 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
   private static final String DESCRIPTION = "This annotation processor is non-incremental and causes the JavaCompile task " +
                                             "to always run non-incrementally. " +
                                             "Consider switching to using an incremental annotation processor.";
-  private static final String HELP_LINK = "https://d.android.com/r/tools/build-attribution/non-incremental-ap";
 
   private final BuildAttributionUiAnalytics myAnalytics;
 
@@ -76,7 +76,11 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
       .getHtml();
 
     JLabel iconLabel = new JLabel(warningIcon());
-    JComponent issueDescription = new DescriptionWithHelpLinkLabel(descriptionHtml, HELP_LINK, myAnalytics);
+    JComponent issueDescription = new DescriptionWithHelpLinkLabel(
+      descriptionHtml,
+      BuildAnalyzerBrowserLinks.NON_INCREMENTAL_ANNOTATION_PROCESSORS,
+      myAnalytics
+    );
     JBLabel recommendation = htmlTextLabel(recommendationHtml);
 
     JBPanel<JBPanel> panel = new JBPanel<>(new GridBagLayout());

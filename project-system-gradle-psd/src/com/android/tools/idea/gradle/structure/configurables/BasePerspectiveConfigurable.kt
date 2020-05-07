@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.gradle.structure.configurables.ui.ModuleSelectorDropDownPanel
@@ -80,6 +79,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
   private var toolWindowHeader: ToolWindowHeader? = null
   private var loadingPanel: JBLoadingPanel? = null
+  private var loadingPanelVisible = false
   private var centerComponent: JComponent? = null
   private var moduleSelectorDropDownPanel: ModuleSelectorDropDownPanel? = null
 
@@ -88,7 +88,6 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
   val navigationPathName: String = BASE_PERSPECTIVE_MODULE_PLACE_NAME
   val selectedModule: PsModule? get() = myCurrentConfigurable?.editableObject as? PsModule
-  val selectedModuleName: String? get() = selectedModule?.name
 
   init {
     (splitter as JBSplitter).splitterProportionKey = "android.psd.proportion.modules"
@@ -97,9 +96,11 @@ abstract class BasePerspectiveConfigurable protected constructor(
     context.add(object : PsContext.SyncListener {
       override fun started() {
         loadingPanel?.startLoading()
+        loadingPanelVisible = true
       }
 
       override fun ended() {
+        loadingPanelVisible = false
         stopSyncAnimation()
       }
     }, this)
@@ -121,17 +122,17 @@ abstract class BasePerspectiveConfigurable protected constructor(
     loadingPanel?.stopLoading()
   }
 
-  fun selectModule(moduleName: String): BaseNamedConfigurable<*>? =
-    findModule(moduleName)
+  fun selectModule(gradlePath: String): BaseNamedConfigurable<*>? =
+    findModuleByGradlePath(gradlePath)
       ?.let { MasterDetailsComponent.findNodeByObject(myRoot, it) }
       ?.let { node ->
-        selectNodeInTree(moduleName)
+        selectNodeInTree(node)
         selectedNode = node
         node.configurable as? BaseNamedConfigurable<*>
       }
 
-  protected fun findModule(moduleName: String): PsModule? =
-    context.project.findModuleByName(moduleName) ?: extraModules.find { it.name == moduleName }
+  protected fun findModuleByGradlePath(gradlePath: String): PsModule? =
+    context.project.findModuleByGradlePath(gradlePath) ?: extraModules.find { it.gradlePath == gradlePath }
 
   override fun updateSelection(configurable: NamedConfigurable<*>?) {
     // UpdateSelection might be expensive as it always rebuilds the element tree.
@@ -144,7 +145,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     super.updateSelection(configurable)
     if (configurable is BaseNamedConfigurable<*>) {
       val module = configurable.editableObject
-      context.setSelectedModule(module.name, this)
+      context.setSelectedModule(module.gradlePath, this)
     }
     myHistory.pushQueryPlace()
     moduleSelectorDropDownPanel?.update()
@@ -260,8 +261,11 @@ abstract class BasePerspectiveConfigurable protected constructor(
     reconfigureForCurrentSettings()
     return JBLoadingPanel(BorderLayout(), this).also {
       loadingPanel = it
-      it.setLoadingText("Syncing Project with Gradle")
+      it.setLoadingText("Fetching Gradle build models")
       it.add(contents, BorderLayout.CENTER)
+      if (loadingPanelVisible) {
+        it.startLoading()
+      }
     }
   }
 
@@ -271,13 +275,13 @@ abstract class BasePerspectiveConfigurable protected constructor(
   protected abstract fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *>
 
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback {
-    fun Place.getModuleName() = (getPath(navigationPathName) as? String)?.takeIf { moduleName -> moduleName.isNotEmpty() }
+    fun Place.getModuleGradlePath() = (getPath(navigationPathName) as? String)?.takeIf { moduleName -> moduleName.isNotEmpty() }
     return place
-             ?.getModuleName()
-             ?.let { moduleName ->
+             ?.getModuleGradlePath()
+             ?.let { moduleGradlePath ->
                val callback = ActionCallback()
-               context.setSelectedModule(moduleName, this)
-               selectModule(moduleName)  // TODO(solodkyy): Do not ignore result.
+               context.setSelectedModule(moduleGradlePath, this)
+               selectModule(moduleGradlePath)  // TODO(solodkyy): Do not ignore result.
                selectedConfigurable?.let {
                  goFurther(selectedConfigurable, place, requestFocus).notifyWhenDone(callback)
                  callback
@@ -286,7 +290,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
   }
 
   override fun queryPlace(place: Place) {
-    val moduleName = (selectedConfigurable as? BaseNamedConfigurable<*>)?.editableObject?.name
+    val moduleName = (selectedConfigurable as? BaseNamedConfigurable<*>)?.editableObject?.gradlePath
     if (moduleName != null) {
       place.putPath(navigationPathName, moduleName)
       queryFurther(selectedConfigurable, place)
@@ -298,9 +302,9 @@ abstract class BasePerspectiveConfigurable protected constructor(
   override fun getSelectedConfigurable(): NamedConfigurable<*>? =
     (myTree.selectionPath?.lastPathComponent as? MasterDetailsComponent.MyNode)?.configurable
 
-  fun putNavigationPath(place: Place, moduleName: String) {
-    place.putPath(navigationPathName, moduleName)
-    val module = findModule(moduleName)!!
+  fun putNavigationPath(place: Place, gradlePath: String) {
+    place.putPath(navigationPathName, gradlePath)
+    val module = findModuleByGradlePath(gradlePath) ?: error("Cannot find module with gradle path: $gradlePath")
     val node = MasterDetailsComponent.findNodeByObject(myRoot, module)!!
     val configurable = node.configurable
     assert(configurable is BaseNamedConfigurable<*>)

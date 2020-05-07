@@ -19,6 +19,7 @@ import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.data.InterTaskIssueUiData
 import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.TaskIssueType
@@ -115,7 +116,7 @@ This task declares the same output directory as task '${connectedTask.taskPath}'
 As a result, these tasks are not able to take advantage of incremental build optimizations,
 and might need to run with each subsequent build.
 """
-    override val helpLink = "https://d.android.com/r/tools/build-attribution/duplicate-output-folder"
+    override val helpLink = BuildAnalyzerBrowserLinks.DUPLICATE_OUTPUT_FOLDER_ISSUE
     override val buildSrcRecommendation = "Edit the plugin(s) to ensure each task specifies a unique output directory."
   }
 
@@ -126,7 +127,7 @@ and might need to run with each subsequent build.
     override val bugReportTitle = "${type.uiName} No Output Declared"
     override val bugReportBriefDescription = "Task runs on every build because it declares no outputs."
     override val explanation: String = "This task runs on every build because it declares no outputs, which it must do in order to support incremental builds."
-    override val helpLink = "https://d.android.com/r/tools/build-attribution/no-task-outputs-declared"
+    override val helpLink = BuildAnalyzerBrowserLinks.NO_OUTPUTS_DECLARED_ISSUE
     override val buildSrcRecommendation = "Annotate the task output fields with one of: OutputDirectory, OutputDirectories, OutputFile, OutputFiles"
   }
 
@@ -142,7 +143,7 @@ which means that it must regenerate its output during every build.
 For example, the task might set the following: <code>outputs.upToDateWhen { false }</code>.
 To optimize task execution with up-to-date checks, remove the <code>upToDateWhen</code> enclosure.
 """
-    override val helpLink = "https://d.android.com/r/tools/build-attribution/upToDateWhen-equals-false"
+    override val helpLink = BuildAnalyzerBrowserLinks.UP_TO_DATE_EQUALS_FALSE_ISSUE
     override val buildSrcRecommendation = "Ensure that you don't automatically override up-to-date checks."
   }
 }

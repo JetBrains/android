@@ -18,20 +18,19 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ProfilerCombobox;
 import com.android.tools.profilers.ProfilerComboboxCellRenderer;
-import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import org.jetbrains.annotations.NotNull;
 
 public class MemoryClassGrouping extends AspectObserver {
-  @NotNull private final MemoryProfilerStage myStage;
+  @NotNull private final MemoryCaptureSelection mySelection;
   @NotNull private final JComboBox<ClassGrouping> myComboBox;
 
-  public MemoryClassGrouping(@NotNull MemoryProfilerStage stage) {
-    myStage = stage;
+  public MemoryClassGrouping(@NotNull MemoryCaptureSelection selection) {
+    mySelection = selection;
 
-    myStage.getAspect().addDependency(this).onChange(MemoryProfilerAspect.CLASS_GROUPING, this::groupingChanged);
-    myComboBox = new ProfilerCombobox<>(myStage.getClassGroupingModel());
+    mySelection.getAspect().addDependency(this).onChange(CaptureSelectionAspect.CLASS_GROUPING, this::groupingChanged);
+    myComboBox = new ProfilerCombobox<>(mySelection.getClassGroupingModel());
     myComboBox.setRenderer(new ProfilerComboboxCellRenderer<ClassGrouping>() {
       @Override
       protected void customizeCellRenderer(@NotNull JList<? extends ClassGrouping> list,
@@ -39,13 +38,13 @@ public class MemoryClassGrouping extends AspectObserver {
                                            int index,
                                            boolean selected,
                                            boolean hasFocus) {
-        append(value.myLabel);
+        append(value.getLabel());
       }
     });
     myComboBox.addActionListener(e -> {
       Object item = myComboBox.getSelectedItem();
       if (item instanceof ClassGrouping) {
-        myStage.getConfiguration().setClassGrouping((ClassGrouping)item);
+        mySelection.setClassGrouping((ClassGrouping)item);
       }
     });
   }
@@ -56,8 +55,8 @@ public class MemoryClassGrouping extends AspectObserver {
   }
 
   public void groupingChanged() {
-    if (myComboBox.getSelectedItem() != myStage.getConfiguration().getClassGrouping()) {
-      myComboBox.setSelectedItem(myStage.getConfiguration().getClassGrouping());
+    if (myComboBox.getSelectedItem() != mySelection.getClassGrouping()) {
+      myComboBox.setSelectedItem(mySelection.getClassGrouping());
     }
   }
 }

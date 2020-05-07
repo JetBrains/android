@@ -15,15 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint
 
+import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.RECYCLER_VIEW
 import com.android.SdkConstants.TAG_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.getSelectedIds
 import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.intellij.testFramework.exceptionCases.AbstractExceptionCase
+
+import org.mockito.Mockito
 
 class ConstraintLayoutHandlerTest: SceneTest() {
 
@@ -161,6 +167,50 @@ class ConstraintLayoutHandlerTest: SceneTest() {
                  "        android:layout_height=\"20dp\"\n" +
                  "        tools:layout_editor_absoluteX=\"450dp\"\n" +
                  "        tools:layout_editor_absoluteY=\"526dp\" />")
+  }
+
+  fun testSelectedIdsNull() {
+    val list = ArrayList<NlComponent>()
+    assertNull(getSelectedIds(list))
+
+    list.add(nonViewMockedComponent("button"))
+    list.add(nonViewMockedComponent("button2"))
+
+    assertNull(getSelectedIds(list))
+  }
+
+  fun testSelectedIds() {
+    val model = createTestModel()
+    val list = ArrayList<NlComponent>()
+    list.add(model.find("view1")!!)
+    list.add(model.find("view2")!!)
+    list.add(model.find("non_view1")!!)
+
+    assertEquals("view1,view2", getSelectedIds(list))
+  }
+
+  private fun nonViewMockedComponent(id: String): NlComponent {
+    val component = Mockito.mock(NlComponent::class.java)
+    Mockito.`when`(component.id).thenReturn(id)
+    return component
+  }
+
+  private fun createTestModel(): NlModel {
+    return model("constraint.xml",
+                 component(TAG_LAYOUT)
+                   .children(
+                     component(CONSTRAINT_LAYOUT.defaultName())
+                       .id("@id/root")
+                       .children(
+                         component(CLASS_VIEW)
+                           .id("@id/view1"),
+                         component(CLASS_VIEW)
+                           .id("@id/view2"),
+                         component("Non-view-component")
+                           .id("@id/non_view1")
+                       )
+                   )
+    ).build()
   }
 
   private fun createDataBindingModel(): ModelBuilder {

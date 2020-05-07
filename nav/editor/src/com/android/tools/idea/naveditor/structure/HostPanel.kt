@@ -28,8 +28,10 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.icons.AllIcons
 import com.intellij.ide.GeneralSettings
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -47,6 +49,7 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.ColoredListCellRenderer
+import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.util.Query
@@ -57,6 +60,10 @@ import org.jetbrains.android.dom.layout.LayoutDomFileDescription
 import org.jetbrains.android.dom.navigation.isNavHostFragment
 import java.awt.BorderLayout
 import java.awt.CardLayout
+import java.awt.Component
+import java.awt.Container
+import java.awt.Dimension
+import java.awt.LayoutManager
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.KeyAdapter
@@ -68,10 +75,24 @@ import javax.swing.DefaultListModel
 import javax.swing.DefaultListSelectionModel
 import javax.swing.JList
 
+private const val NO_HOST_TEXT1 = "No NavHostFragments found"
+private const val NO_HOST_TEXT2 = "This nav graph must be"
+private const val NO_HOST_TEXT3 = "referenced from a"
+private const val NO_HOST_TEXT4 = "NavHostFragment in a layout in"
+private const val NO_HOST_TEXT5 = "order to be accessible."
+
+private const val NO_HOST_LINK_TEXT = "Using Navigation Component"
+private const val NO_HOST_LINK_TARGET = "https://developer.android.com/guide/navigation/navigation-getting-started#add-navhost"
+
+private const val SPACING_1 = 6
+private const val SPACING_2 = 24
+private const val SPACING_TOTAL = SPACING_1 + SPACING_2
+
 class HostPanel(private val surface: DesignSurface) : AdtSecondaryPanel(CardLayout()) {
 
   private val asyncIcon = AsyncProcessIcon("find NavHostFragments")
-  @VisibleForTesting val list = JBList<SmartPsiElementPointer<XmlTag>>(DefaultListModel())
+  @VisibleForTesting
+  val list = JBList<SmartPsiElementPointer<XmlTag>>(DefaultListModel())
   private val cardLayout = layout as CardLayout
   private var resourceVersion = 0L
 
@@ -94,12 +115,16 @@ class HostPanel(private val surface: DesignSurface) : AdtSecondaryPanel(CardLayo
     add(loadingPanel, "LOADING")
     add(list, "LIST")
     add(errorLabel, "ERROR")
+    add(createEmptyPanel(), "EMPTY")
     cardLayout.show(this, "LOADING")
 
-    list.emptyText.text = "No NavHostFragments found"
+    if (!StudioFlags.NAV_NEW_COMPONENT_TREE.get()) {
+      list.emptyText.text = "No NavHostFragments found"
+    }
+
     list.background = secondaryPanelBackground
     if (GeneralSettings.getInstance().isSupportScreenReaders) {
-      list.addFocusListener(object: FocusListener {
+      list.addFocusListener(object : FocusListener {
         override fun focusLost(e: FocusEvent?) {
           list.selectedIndices = intArrayOf()
         }
@@ -145,7 +170,7 @@ class HostPanel(private val surface: DesignSurface) : AdtSecondaryPanel(CardLayo
         }
       }
     })
-    list.addKeyListener(object: KeyAdapter() {
+    list.addKeyListener(object : KeyAdapter() {
       override fun keyTyped(e: KeyEvent?) {
         if (e?.keyCode == VK_ENTER || e?.keyChar == '\n') {
           activate(list.selectedIndex)
@@ -199,7 +224,13 @@ class HostPanel(private val surface: DesignSurface) : AdtSecondaryPanel(CardLayo
               }
             }
           }
-          cardLayout.show(this, "LIST")
+          val name = if (list.model.size == 0 && StudioFlags.NAV_NEW_COMPONENT_TREE.get()) {
+            "EMPTY"
+          }
+          else {
+            "LIST"
+          }
+          cardLayout.show(this, name)
         }, EmptyProgressIndicator())
     }
   }
@@ -231,3 +262,69 @@ fun findReferences(psi: XmlFile, module: Module): List<XmlTag> {
   }
   return result
 }
+
+private fun createEmptyPanel(): Component {
+  val panel = AdtSecondaryPanel(HostPanelLayoutManager())
+
+  addLabel(NO_HOST_TEXT1, panel)
+  addLabel(NO_HOST_TEXT2, panel)
+  addLabel(NO_HOST_TEXT3, panel)
+  addLabel(NO_HOST_TEXT4, panel)
+  addLabel(NO_HOST_TEXT5, panel)
+
+  val link = HyperlinkLabel()
+  link.setIcon(AllIcons.General.ContextHelp)
+  link.setHyperlinkText(NO_HOST_LINK_TEXT)
+  link.setHyperlinkTarget(NO_HOST_LINK_TARGET)
+  panel.add(link)
+
+  return panel
+}
+
+private fun addLabel(text: String, container: Container, separation: Int = 0) {
+  val label = JBLabel(text)
+  label.isEnabled = false
+  container.add(label)
+}
+
+private class HostPanelLayoutManager : LayoutManager {
+  override fun layoutContainer(parent: Container) {
+    val insets = parent.insets
+    val width = parent.width - insets.left - insets.right
+    val height = parent.height - insets.top - insets.bottom
+    val components = parent.components
+
+    for (component in components) {
+      component.size = component.preferredSize
+    }
+
+    val totalComponentHeight = components.sumBy { it.preferredSize.height } + SPACING_TOTAL
+    var y = (insets.top + 0.45 * (height - totalComponentHeight)).toInt()
+
+    for ((i, component) in components.withIndex()) {
+      val x = insets.left + (width - component.width) / 2
+      component.setLocation(x, y)
+
+      y += component.height + when (i) {
+        0 -> SPACING_1
+        4 -> SPACING_2
+        else -> 0
+      }
+    }
+  }
+
+  override fun preferredLayoutSize(parent: Container): Dimension {
+    return minimumLayoutSize(parent)
+  }
+
+  override fun minimumLayoutSize(parent: Container): Dimension {
+    val width = ((parent.components.map { it.preferredSize.width }.max() ?: 0) / 0.7).toInt()
+    val height = parent.components.sumBy { it.preferredSize.height } + SPACING_TOTAL
+    return Dimension(width, height)
+  }
+
+  override fun addLayoutComponent(name: String, comp: Component) {}
+  override fun removeLayoutComponent(comp: Component) {}
+}
+
+

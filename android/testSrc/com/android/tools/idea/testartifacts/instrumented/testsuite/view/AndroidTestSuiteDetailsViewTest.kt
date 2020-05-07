@@ -61,9 +61,9 @@ class AndroidTestSuiteDetailsViewTest {
   fun setAndroidTestResultsShouldUpdateUiComponents() {
     val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockListener, projectRule.project)
 
-    view.setAndroidTestResults(createTestResults("testName", AndroidTestCaseResult.PASSED))
+    view.setAndroidTestResults(createTestResults("method1", "class1", AndroidTestCaseResult.PASSED))
 
-    assertThat(view.titleTextViewForTesting.text).isEqualTo("testName")
+    assertThat(view.titleTextViewForTesting.text).isEqualTo("class1.method1")
   }
 
   @Test
@@ -75,10 +75,12 @@ class AndroidTestSuiteDetailsViewTest {
     verify(mockListener).onAndroidTestSuiteDetailsViewCloseButtonClicked()
   }
 
-  private fun createTestResults(testCaseName: String, testCaseResult: AndroidTestCaseResult): AndroidTestResults {
+  private fun createTestResults(methodName: String, className: String, testCaseResult: AndroidTestCaseResult): AndroidTestResults {
     return object: AndroidTestResults {
       override fun getRetentionSnapshot(device: AndroidDevice): File? = null
-      override val testCaseName: String = testCaseName
+      override val methodName: String = methodName
+      override val className: String = className
+      override val packageName: String = ""
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = testCaseResult
       override fun getTestResultSummary(): AndroidTestCaseResult = testCaseResult
       override fun getLogcat(device: AndroidDevice): String = ""

@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenProjectStructureQuickfix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -32,29 +31,22 @@ class DaemonContextMismatchIssueChecker : GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     val messageLines = message.lines()
-    if (messageLines[0].isEmpty() ||
+    if (messageLines[0].isBlank() ||
         !messageLines[0].contains("The newly created daemon process has a different context than expected.") ||
         messageLines.size <= 3 || messageLines[2] != "Java home is different.") return null
 
     val expectedAndActual = parseExpectedAndActualJavaHome(message) ?: return null
-    if (expectedAndActual.isNotEmpty()) {
-      // Log metrics.
-      invokeLater {
-        updateUsageTracker(issueData.projectPath, GradleSyncFailure.DAEMON_CONTEXT_MISMATCH)
-      }
-      val description = MessageComposer(messageLines[2]).apply {
-        addDescription(expectedAndActual)
-        addDescription("Please configure the JDK to match the expected one.")
-        addQuickFix("Open JDK Settings", OpenProjectStructureQuickfix())
-      }
-      return object : BuildIssue {
-        override val title = "Gradle Sync Issues."
-        override val description = description.buildMessage()
-        override val quickFixes = description.quickFixes
-        override fun getNavigatable(project: Project) = null
-      }
+    if (expectedAndActual.isEmpty()) return null
+
+    // Log metrics.
+    invokeLater {
+      updateUsageTracker(issueData.projectPath, GradleSyncFailure.DAEMON_CONTEXT_MISMATCH)
     }
-    return null
+    return BuildIssueComposer(messageLines[2]).apply {
+      addDescription(expectedAndActual)
+      addDescription("Please configure the JDK to match the expected one.")
+      addQuickFix("Open JDK Settings", OpenProjectStructureQuickfix())
+    }.composeBuildIssue()
   }
 
   private fun parseExpectedAndActualJavaHome(message: String): String? {

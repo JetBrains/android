@@ -55,7 +55,7 @@ class AndroidResourcesFindUsagesHandlerFactory : FindUsagesHandlerFactory() {
     return object : FindUsagesHandler(resourceReferencePsiElement) {
 
       @WorkerThread
-      override fun processElementUsages(element: PsiElement, processor: Processor<UsageInfo>, options: FindUsagesOptions): Boolean {
+      override fun processElementUsages(element: PsiElement, processor: Processor<in UsageInfo>, options: FindUsagesOptions): Boolean {
         if (element !is ResourceReferencePsiElement) {
           return true
         }

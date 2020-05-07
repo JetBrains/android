@@ -346,7 +346,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       }
 
       @Override
-      public void generate(@NotNull Processor<Usage> processor) {
+      public void generate(@NotNull Processor<? super Usage> processor) {
         processUsages(processor, project);
       }
     };

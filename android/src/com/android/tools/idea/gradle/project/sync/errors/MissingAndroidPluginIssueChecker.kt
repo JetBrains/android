@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProcessor
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
@@ -40,17 +40,11 @@ class MissingAndroidPluginIssueChecker : GradleIssueChecker {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (!message.startsWith(PATTERN)) return null
 
-    val description = MessageComposer(message).apply {
+    return BuildIssueComposer(message).apply {
       // Display the link to the quickFix, but it will only effectively write to the build file is the block doesn't exist already.
       addQuickFix("Add google Maven repository and sync project", AddGoogleMavenRepositoryQuickFix())
       addQuickFix("Open File", OpenPluginBuildFileQuickFix())
-    }
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
-      override val quickFixes: List<BuildIssueQuickFix> = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
+    }.composeBuildIssue()
   }
 
   class AddGoogleMavenRepositoryQuickFix : BuildIssueQuickFix {

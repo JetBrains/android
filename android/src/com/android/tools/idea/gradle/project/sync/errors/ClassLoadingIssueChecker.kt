@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenProjectStructureQuickfix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.base.Splitter
 import com.intellij.build.issue.BuildIssue
@@ -33,7 +32,6 @@ import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
 import com.intellij.openapi.ui.Messages
-import com.intellij.pom.Navigatable
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import java.util.concurrent.CompletableFuture
@@ -52,7 +50,7 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: ""
 
-    var description = MessageComposer(getExceptionMessage(rootCause, message, issueData.projectPath) ?: return null)
+    var buildIssueComposer = BuildIssueComposer(getExceptionMessage(rootCause, message, issueData.projectPath) ?: return null)
 
     val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
     val stopGradleDaemonQuickFix = StopGradleDaemonQuickFix()
@@ -71,18 +69,18 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
       }
     }
 
-    description.addDescription(Splitter.on("\n").omitEmptyStrings().trimResults().splitToList(message)[0])
+    buildIssueComposer.addDescription(Splitter.on("\n").omitEmptyStrings().trimResults().splitToList(message)[0])
     if (jdk7Hint.isNotEmpty()) {
-      description.apply {
+      buildIssueComposer.apply {
         addDescription("Possible causes for this unexpected error include:")
         addDescription(jdk7Hint)
         addQuickFix("Open JDK Settings", OpenProjectStructureQuickfix())
       }
     }
-    description.apply {
-      description.addDescription("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
-      description.addQuickFix(syncProjectQuickFix.linkText, syncProjectQuickFix)
-      description.addDescription("The state of a Gradle build process (daemon) may be corrupt. Stopping all Gradle daemons may solve this problem.")
+    buildIssueComposer.apply {
+      addDescription("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
+      addQuickFix(syncProjectQuickFix.linkText, syncProjectQuickFix)
+      addDescription("The state of a Gradle build process (daemon) may be corrupt. Stopping all Gradle daemons may solve this problem.")
       when (ApplicationManager.getApplication().isRestartCapable) {
         true -> addQuickFix("Stop Gradle build processes (requires restart)", stopGradleDaemonQuickFix)
         false -> addQuickFix("Open Gradle Daemon documentation", stopGradleDaemonQuickFix)
@@ -92,12 +90,7 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
                      "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.")
     }
 
-    return object: BuildIssue {
-      override val title: String = SyncMessage.DEFAULT_GROUP
-      override val description: String = description.buildMessage()
-      override val quickFixes: List<BuildIssueQuickFix> = description.quickFixes
-      override fun getNavigatable(project: Project): Navigatable? = null
-    }
+    return buildIssueComposer.composeBuildIssue()
   }
 
   private fun getExceptionMessage(exception: Throwable, message: String, projectPath: String): String? {

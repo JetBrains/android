@@ -36,6 +36,7 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.DataVisualizationColors;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.instructions.IconInstruction;
 import com.android.tools.adtui.instructions.InstructionsPanel;
@@ -59,7 +60,6 @@ import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerScrollbar;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
-import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.event.EventMonitorView;
@@ -75,7 +75,6 @@ import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import com.android.tools.profilers.memory.adapters.ValueObject;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
-import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
@@ -92,6 +91,7 @@ import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.FontMetrics;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -107,11 +107,10 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import kotlin.jvm.functions.Function0;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
+public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryProfilerStage> {
   private static Logger getLogger() {
     return Logger.getInstance(MemoryProfilerStageView.class);
   }
@@ -141,7 +140,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private ProfilerAction myStopNativeAllocationAction;
   @NotNull private final JLabel myCaptureElapsedTime;
   @NotNull private final JLabel myAllocationSamplingRateLabel;
-  private final JPanel myToolbar = new JPanel(createToolbarLayout());
 
   @NotNull private DurationDataRenderer<GcDurationData> myGcDurationDataRenderer;
   @NotNull private DurationDataRenderer<AllocationSamplingRateDurationData> myAllocationSamplingRateRenderer;
@@ -160,18 +158,15 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     // Do not initialize the monitor UI if it only contains heap dump data.
     // In this case, myRangeSelectionComponent is null and we will not build the context menu.
     JPanel monitorUi = getStage().isMemoryCaptureOnly() ? null : buildMonitorUi();
-    CapturePanel capturePanel = new CapturePanel(this);
-    Function0<LoadingPanel> makeLoadingPanel = () -> {
-      LoadingPanel loadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
-      loadingPanel.setLoadingText("Fetching results");
-      return loadingPanel;
-    };
-    myLayout = getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() ?
-               new SeparateHeapDumpMemoryProfilerStageLayout(monitorUi, capturePanel, makeLoadingPanel, stage,
-                                                             this::setUpToolbarForTimeline,
-                                                             this::setUpToolbarForCapture,
-                                                             this::setUpToolbarForLoading) :
-               new LegacyMemoryProfilerStageLayout(monitorUi, capturePanel, makeLoadingPanel);
+    CapturePanel capturePanel = new CapturePanel(getProfilersView(),
+                                                 getStage().getCaptureSelection(),
+                                                 getStage().isMemoryCaptureOnly() ? null : getSelectionTimeLabel(),
+                                                 getStage().getRangeSelectionModel().getSelectionRange(),
+                                                 getIdeComponents(),
+                                                 getStage().getTimeline(),
+                                                 false);
+
+    myLayout = new LegacyMemoryProfilerStageLayout(monitorUi, capturePanel, this::makeLoadingPanel);
     getComponent().add(myLayout.getComponent(), BorderLayout.CENTER);
 
     myForceGarbageCollectionButton = new CommonButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
@@ -262,12 +257,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myAllocationSamplingRateDropDown = new ProfilerCombobox();
 
     getStage().getAspect().addDependency(this)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
-      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged)
-      .onChange(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
+      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged);
+    getStage().getCaptureSelection().getAspect().addDependency(this)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
+      .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
 
-    setUpToolbarForTimeline();
+      .onChange(CaptureSelectionAspect.CURRENT_CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
+
     captureObjectChanged();
     allocationTrackingChanged();
     buildContextMenu();
@@ -338,32 +334,30 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @Override
   public JComponent getToolbar() {
     JPanel panel = new JPanel(new BorderLayout());
-    panel.add(myToolbar, BorderLayout.WEST);
-    return panel;
-  }
-
-  private void setUpToolbarForTimeline() {
-    myToolbar.removeAll();
-    myToolbar.add(myForceGarbageCollectionButton);
-    myToolbar.add(myHeapDumpButton);
+    JPanel toolbar = new JPanel(createToolbarLayout());
+    panel.add(toolbar, BorderLayout.WEST);
+    toolbar.removeAll();
+    toolbar.add(myForceGarbageCollectionButton);
+    toolbar.add(myHeapDumpButton);
     if (getStage().useLiveAllocationTracking() &&
         getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
-      JComboBoxView sampleRateComboView =
-        new JComboBoxView<LiveAllocationSamplingMode, MemoryProfilerAspect>(myAllocationSamplingRateDropDown,
-                                                                            getStage().getAspect(),
-                                                                            MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE,
-                                                                            getStage()::getSupportedLiveAllocationSamplingMode,
-                                                                            getStage()::getLiveAllocationSamplingMode,
-                                                                            getStage()::requestLiveAllocationSamplingModeUpdate);
+      toolbar.add(myAllocationSamplingRateLabel);
+      toolbar.add(myAllocationSamplingRateDropDown);
+      if (getStage().isNativeAllocationSamplingEnabled()) {
+        toolbar.add(new FlatSeparator());
+        toolbar.add(myNativeAllocationButton);
+        toolbar.add(myCaptureElapsedTime);
+      }
+
+      JComboBoxView<LiveAllocationSamplingMode, MemoryProfilerAspect> sampleRateComboView =
+        new JComboBoxView<>(myAllocationSamplingRateDropDown,
+                            getStage().getAspect(),
+                            MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE,
+                            getStage()::getSupportedLiveAllocationSamplingMode,
+                            getStage()::getLiveAllocationSamplingMode,
+                            getStage()::requestLiveAllocationSamplingModeUpdate);
       sampleRateComboView.bind();
       myAllocationSamplingRateDropDown.setRenderer(new LiveAllocationSamplingModeRenderer());
-      myToolbar.add(myAllocationSamplingRateLabel);
-      myToolbar.add(myAllocationSamplingRateDropDown);
-      if (getStage().isNativeAllocationSamplingEnabled()) {
-        myToolbar.add(new FlatSeparator());
-        myToolbar.add(myNativeAllocationButton);
-        myToolbar.add(myCaptureElapsedTime);
-      }
     }
     else {
       // useLiveAllocationTracking can return false if the user previously set live allocation tracking to "None". In this case
@@ -371,13 +365,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       // if we should be using native allocation tracking or not.
       // TODO (b/150651682): Remove this condition when useLiveAllocationTracking bug is fixed.
       if (getStage().isNativeAllocationSamplingEnabled()) {
-        myToolbar.add(new FlatSeparator());
-        myToolbar.add(myNativeAllocationButton);
+        toolbar.add(new FlatSeparator());
+        toolbar.add(myNativeAllocationButton);
       }
       else {
-        myToolbar.add(myAllocationButton);
+        toolbar.add(myAllocationButton);
       }
-      myToolbar.add(myCaptureElapsedTime);
+      toolbar.add(myCaptureElapsedTime);
     }
 
     StudioProfilers profilers = getStage().getStudioProfilers();
@@ -391,23 +385,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     };
     profilers.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, toggleButtons);
     toggleButtons.run();
-  }
-
-  private void setUpToolbarForLoading() {
-    myToolbar.removeAll();
-  }
-
-  private void setUpToolbarForCapture() {
-    CaptureObject capture = myCaptureObject;
-    if (capture != null) {
-      myToolbar.removeAll();
-      long startMicros = (long)getStage().getTimeline().getDataRange().getMin();
-      long elapsedMicros = TimeUnit.NANOSECONDS.toMicros(capture.getStartTimeNs()) - startMicros;
-      String timeString = TimeFormatter.getSimplifiedClockString(elapsedMicros);
-      JLabel heapDumpLabel = new JLabel(capture.getName() + ": " + timeString);
-      heapDumpLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
-      myToolbar.add(heapDumpLabel);
-    }
+    return panel;
   }
 
   @VisibleForTesting
@@ -599,28 +577,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     final OverlayComponent overlay = new OverlayComponent(myRangeSelectionComponent);
     overlay.addDurationDataRenderer(myGcDurationDataRenderer);
     overlayPanel.add(overlay, BorderLayout.CENTER);
-
-    if (getStage().isNativeAllocationSamplingEnabled()) {
-      DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
-        new DurationDataRenderer.Builder<>(getStage().getNativeAllocationInfosDurations(), JBColor.LIGHT_GRAY)
-          .setDurationBg(ProfilerColors.MEMORY_HEAP_DUMP_BG)
-          .setLabelColors(JBColor.DARK_GRAY, JBColor.GRAY, JBColor.LIGHT_GRAY, JBColor.WHITE)
-          .setLabelProvider(
-            data -> String.format("Native Allocation record (%s)", data.getDurationUs() == Long.MAX_VALUE ? "in progress" :
-                                                                   TimeAxisFormatter.DEFAULT
-                                                                     .getFormattedString(viewRange.getLength(), data.getDurationUs(),
-                                                                                         true)))
-          .build();
-      for (RangedContinuousSeries series : memoryUsage.getSeries()) {
-        LineConfig config = lineChart.getLineConfig(series);
-        LineConfig newConfig = LineConfig.copyOf(config).setColor(DataVisualizationColors.INSTANCE.toGrayscale(config.getColor()));
-        allocationRenderer.addCustomLineConfig(series, newConfig);
-      }
-      lineChart.addCustomRenderer(allocationRenderer);
-      overlay.addDurationDataRenderer(allocationRenderer);
-    }
     // Only shows allocation tracking visuals in pre-O, since we are always tracking in O+.
-    else if (!getStage().useLiveAllocationTracking()) {
+    if (!getStage().useLiveAllocationTracking()) {
       DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
         new DurationDataRenderer.Builder<>(getStage().getAllocationInfosDurations(), JBColor.LIGHT_GRAY)
           .setDurationBg(ProfilerColors.MEMORY_ALLOC_BG)
@@ -662,6 +620,27 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       lineChart.addCustomRenderer(myAllocationSamplingRateRenderer);
       overlay.addDurationDataRenderer(myAllocationSamplingRateRenderer);
     }
+    // Order matters so native allocation tracking goes to the top of the stack. This means when a native allocation recording is captured
+    // the capture appears on top of the other renderers.
+    if (getStage().isNativeAllocationSamplingEnabled()) {
+      DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
+        new DurationDataRenderer.Builder<>(getStage().getNativeAllocationInfosDurations(), JBColor.LIGHT_GRAY)
+          .setDurationBg(ProfilerColors.MEMORY_HEAP_DUMP_BG)
+          .setLabelColors(JBColor.DARK_GRAY, JBColor.GRAY, JBColor.LIGHT_GRAY, JBColor.WHITE)
+          .setLabelProvider(
+            data -> String.format("Native Allocation record (%s)", data.getDurationUs() == Long.MAX_VALUE ? "in progress" :
+                                                                   TimeAxisFormatter.DEFAULT
+                                                                     .getFormattedString(viewRange.getLength(), data.getDurationUs(),
+                                                                                         true)))
+          .build();
+      for (RangedContinuousSeries series : memoryUsage.getSeries()) {
+        LineConfig config = lineChart.getLineConfig(series);
+        LineConfig newConfig = LineConfig.copyOf(config).setColor(DataVisualizationColors.INSTANCE.toGrayscale(config.getColor()));
+        allocationRenderer.addCustomLineConfig(series, newConfig);
+      }
+      lineChart.addCustomRenderer(allocationRenderer);
+      overlay.addDurationDataRenderer(allocationRenderer);
+    }
 
     DurationDataRenderer<CaptureDurationData<CaptureObject>> heapDumpRenderer =
       new DurationDataRenderer.Builder<>(getStage().getHeapDumpSampleDurations(), JBColor.DARK_GRAY)
@@ -671,13 +650,14 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
           data -> String.format("Dump (%s)", data.getDurationUs() == Long.MAX_VALUE ? "in progress" :
                                              TimeAxisFormatter.DEFAULT
                                                .getFormattedString(viewRange.getLength(), data.getDurationUs(), true)))
+        .setCustomDecorator((graphics, clipRect, isMouseOver) -> {
+          Color boxColor = isMouseOver
+                           ? ProfilerColors.CPU_CALLCHART_VENDOR_HOVER
+                           : StudioColorsKt.getPrimaryContentBackground();
+          HeapDumpDataRangeRenderingKt.draw(graphics, clipRect, boxColor);
+        })
         .build();
 
-    for (RangedContinuousSeries series : memoryUsage.getSeries()) {
-      LineConfig config = lineChart.getLineConfig(series);
-      LineConfig newConfig = LineConfig.copyOf(config).setColor(DataVisualizationColors.INSTANCE.toGrayscale(config.getColor()));
-      heapDumpRenderer.addCustomLineConfig(series, newConfig);
-    }
     lineChart.addCustomRenderer(heapDumpRenderer);
     overlay.addDurationDataRenderer(heapDumpRenderer);
 
@@ -849,7 +829,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private void captureObjectChanged() {
     // Forcefully ends the previous loading operation if it is still ongoing.
     stopLoadingUi();
-    myCaptureObject = getStage().getSelectedCapture();
+    myCaptureObject = getStage().getCaptureSelection().getSelectedCapture();
     if (myCaptureObject == null) {
       boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
       myAllocationButton.setEnabled(isAlive);
@@ -881,7 +861,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myRangeSelectionComponent.requestFocus();
     }
     myHeapDumpButton.setEnabled(isAlive);
-    if (myCaptureObject != getStage().getSelectedCapture() || myCaptureObject == null) {
+    if (myCaptureObject != getStage().getCaptureSelection().getSelectedCapture() || myCaptureObject == null) {
       return;
     }
 

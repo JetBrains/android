@@ -16,12 +16,11 @@
 package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
-import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.MainProcessSelector
 import com.android.tools.profilers.cpu.ThreadState
+import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCaptureBuilder.Companion.UTILIZATION_BUCKET_LENGTH_US
 import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -95,19 +94,18 @@ class AtraceParserTest {
 
   @Test
   fun testGetThreadStateDataSeries() {
-    val dataSeries = myParser.threadStateDataSeries
-    assertThat(dataSeries).hasSize(THREAD_STATE_SERIES_SIZE)
-    assertThat(dataSeries[THREAD_ID]!!.size).isEqualTo(THREAD_STATE_SIZE)
-    assertThat(dataSeries[THREAD_ID]!!.get(0).x).isGreaterThan(EXPECTED_MIN_RANGE.toLong())
+    val dataSeries = myCapture.getThreadStatesForThread(THREAD_ID)
+    assertThat(dataSeries.size).isEqualTo(THREAD_STATE_SIZE)
+    assertThat(dataSeries[0].x).isGreaterThan(EXPECTED_MIN_RANGE.toLong())
     // Waking / Runnable = RUNNABLE.
-    assertThat(dataSeries[THREAD_ID]!!.get(0).value).isEqualTo(ThreadState.RUNNABLE_CAPTURED)
+    assertThat(dataSeries[0].value).isEqualTo(ThreadState.RUNNABLE_CAPTURED)
     // Running = RUNNING
-    assertThat(dataSeries[THREAD_ID]!!.get(1).value).isEqualTo(ThreadState.RUNNING_CAPTURED)
+    assertThat(dataSeries[1].value).isEqualTo(ThreadState.RUNNING_CAPTURED)
   }
 
   @Test
   fun testGetCpuUtilizationDataSeries() {
-    val dataSeries = myParser.cpuUtilizationSeries
+    val dataSeries = myCapture.cpuUtilizationSeries
     var avg = 0.0
     // No values should exceed the bounds
     for (data in dataSeries) {
@@ -120,123 +118,33 @@ class AtraceParserTest {
 
   @Test
   fun testGetCpuProcessData() {
-    val dataSeries = myParser.cpuThreadSliceInfoStates
-    assertThat(dataSeries).hasSize(4)
     for (i in 0..3) {
-      assertThat(dataSeries.containsKey(i))
+      val dataSeries = myCapture.getCpuThreadSliceInfoStates(i)
+      assertThat(dataSeries).isNotEmpty()
     }
     // Verify that we have a perfd process, null process, then rcu process.
     // Verifying the null process is important as it ensures we render the data properly.
-    assertThat(dataSeries[0]!![0].value.name).matches("perfd")
-    assertThat(dataSeries[0]!![1].value).isEqualTo(CpuThreadSliceInfo.NULL_THREAD)
-    assertThat(dataSeries[0]!![2].value.name).matches("rcu_preempt")
-  }
-
-  @Test
-  fun getProcessListReturnsProcessList() {
-    val headOfListExpected = arrayOf(CpuThreadInfo(1510, "system_server"),
-                                     CpuThreadInfo(2652, "splayingbitmaps"),
-                                     CpuThreadInfo(1371, "surfaceflinger"))
-    val tailOfListExpected = arrayOf(CpuThreadInfo(1404, "<1404>"),
-                                     CpuThreadInfo(2732, "<2732>"),
-                                     CpuThreadInfo(2713, "<2713>"))
-    val parser = AtraceParser()
-    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-
-    val processes = parser.getProcessList("")
-    // Validate the head of our list is organized as expected
-    for (i in headOfListExpected.indices) {
-      val threadInfo = headOfListExpected[i]
-      assertThat(processes[i].id).isEqualTo(threadInfo.id)
-      assertThat(processes[i].name).isEqualTo(threadInfo.name)
-    }
-    // Validate the tail of the list has all the <> values.
-    for (i in tailOfListExpected.indices) {
-      val threadInfo = tailOfListExpected[i]
-      val endIndex = processes.size - (i + 1)
-      assertThat(processes[endIndex].id).isEqualTo(threadInfo.id)
-      assertThat(processes[endIndex].name).isEqualTo(threadInfo.name)
-    }
-  }
-
-  @Test
-  fun hintedProcessName_NoHintAlphabetical() {
-    val parser = AtraceParser()
-    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-
-    val processes = parser.getProcessList("")
-    assertThat(processes[0].processName).isEqualTo("system_server")
-  }
-
-  @Test
-  fun hintedProcessName_NoMatchingNameStillAlphabetical() {
-    val parser = AtraceParser()
-    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-
-    val processes = parser.getProcessList("something.crazy.nothing.matches")
-    assertThat(processes[0].processName).isEqualTo("system_server")
-  }
-
-  @Test
-  fun hintedProcessName_SubstringMatches() {
-    val parser = AtraceParser()
-    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-
-
-    val processes = parser.getProcessList("com.google.package.atrace")
-    assertThat(processes[0].processName).isEqualTo("atrace")
-  }
-
-  @Test
-  fun hintedProcessName_ExactString() {
-    val parser = AtraceParser()
-    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-
-    val processes = parser.getProcessList("atrace")
-    assertThat(processes[0].processName).isEqualTo("atrace")
-  }
-
-  @Test
-  fun settingSelectedProcessReturnsParseWithThatProesssId() {
-    val parser = AtraceParser()
-    val parsedFile = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-    assertThat(parsedFile.mainThreadId).isEqualTo(parser.getProcessList("")[0].id)
-  }
-
-  @Test
-  fun processNameThatWouldBePidUsesThreadNameInstead() {
-    val parser = AtraceParser()
-    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-
-    val info = parser.getProcessList(".gms.persistent")[0]
-    assertThat(info.processName).isEqualTo(".gms.persistent")
+    val threadNames = myCapture.getCpuThreadSliceInfoStates(0).map { it.value.name }
+    assertThat(threadNames).containsAllOf("perfd", CpuThreadSliceInfo.NULL_THREAD.name, "rcu_preempt")
   }
 
   @Test
   fun missingDataCaptureReturnsMissingdata() {
     val parser = AtraceParser()
-    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0)
+    val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0)
 
-    assertThat(parser.isMissingData).isTrue()
-  }
-
-  @Test
-  fun perfettoCaptureGetsProcessList() {
-    val parser = AtraceParser(Cpu.CpuTraceType.PERFETTO, MainProcessSelector())
-    parser.parse(CpuProfilerTestUtils.getTraceFile("perfetto.trace"), 0)
-
-    assertThat(parser.getProcessList("")).isNotEmpty()
+    assertThat(capture.isMissingData).isTrue()
   }
 
   @Test
   fun atraceCpuUtilizationBucketed() {
     // Cpu utilization is computed at the same time cpu slices are generated, this makes it challenging to test in isolation.
     // Here we take an already parsed capture and test it has utilization series, as well as the max value in the series.
-    val series = myParser.cpuUtilizationSeries
+    val series = myCapture.cpuUtilizationSeries
     assertThat(series).hasSize(268)
     // To test the bucketing we verify the delta of each point in the series is the bucket time.
     for (i in 1 until series.size) {
-      assertThat(series[i].x - series[i - 1].x).isEqualTo(AtraceParser.UTILIZATION_BUCKET_LENGTH_US)
+      assertThat(series[i].x - series[i - 1].x).isEqualTo(UTILIZATION_BUCKET_LENGTH_US)
     }
   }
 

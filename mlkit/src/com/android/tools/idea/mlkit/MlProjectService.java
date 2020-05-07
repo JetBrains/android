@@ -50,8 +50,8 @@ public final class MlProjectService {
     lightClassMap = CachedValuesManager.getManager(project).createCachedValue(() -> {
       Map<String, List<PsiClass>> lightClassMap = new HashMap<>();
       for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-        if (MlkitUtils.isMlModelBindingBuildFeatureEnabled(module)) {
-          for (LightModelClass lightModelClass : MlkitModuleService.getInstance(module).getLightModelClassList()) {
+        if (MlUtils.isMlModelBindingBuildFeatureEnabled(module)) {
+          for (LightModelClass lightModelClass : MlModuleService.getInstance(module).getLightModelClassList()) {
             lightClassMap.computeIfAbsent(lightModelClass.getName(), key -> new ArrayList<>()).add(lightModelClass);
 
             for (PsiClass innerClass : lightModelClass.getInnerClasses()) {

@@ -16,34 +16,40 @@
 package com.android.tools.idea.npw.validator
 
 import com.android.tools.adtui.validation.Validator
-import com.android.tools.idea.observable.core.StringValueProperty
-import com.google.common.io.Files
-import org.junit.After
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.JavaModuleModelBuilder
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertSame
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class ModuleValidatorTest {
+  @get:Rule
+  val projectRule = AndroidProjectRule.withAndroidModels(
+    JavaModuleModelBuilder.rootModuleBuilder,
+    AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()),
+    JavaModuleModelBuilder(":libs", buildable = false),
+    AndroidModuleModelBuilder(":libs:lib", "debug", AndroidProjectBuilder()),
+    AndroidModuleModelBuilder(":libs:lib2", "debug", AndroidProjectBuilder())
+  )
   private lateinit var moduleValidator: ModuleValidator
-  private lateinit var tmpDir: File
 
   @Before
   fun createModuleValidator() {
-    tmpDir = Files.createTempDir()
-    moduleValidator = ModuleValidator(StringValueProperty(tmpDir.absolutePath))
-  }
-
-  @After
-  fun cleanModuleValidator() {
-    tmpDir.delete()
+    moduleValidator = ModuleValidator(projectRule.project)
   }
 
   @Test
   fun testIsValidModuleName() {
-    assertOkModuleName("app")
+    assertNotOkModuleName("app")
+    assertNotOkModuleName(":app")
+    assertNotOkModuleName("libs:lib")
+    assertNotOkModuleName(":libs:lib2")
     assertOkModuleName("lib")
+    assertOkModuleName(":lib")
     assertOkModuleName("lib_LIB0")
     assertOkModuleName("lib-LIB1")
     assertOkModuleName(":libs:lib1") // Module in sub folder

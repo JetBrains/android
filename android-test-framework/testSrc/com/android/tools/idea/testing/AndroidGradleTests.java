@@ -487,6 +487,7 @@ public class AndroidGradleTests {
     @Nullable SyncIssueFilter issueFilter) {
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
+      GradleProjectImporter.configureNewProject(project);
       GradleProjectImporter.getInstance().importProjectNoSync(request);
       return syncProject(project, syncRequest);
     });

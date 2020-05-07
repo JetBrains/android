@@ -30,7 +30,7 @@ import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
+import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -219,7 +219,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     /**
      * If the thread is imported from a trace file (excluding an atrace one), we use a {@link ImportedTraceThreadDataSeries} to represent
      * its data. Otherwise, we use a {@link MergeCaptureDataSeries} that will combine the sampled {@link DataSeries} pulled from perfd, and
-     * {@link AtraceCpuCapture}, populated when an atrace capture is parsed.
+     * {@link SystemTraceCpuCapture}, populated when an atrace capture is parsed.
      */
     private DataSeries<ThreadState> mySeries;
 
@@ -231,7 +231,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
      * When a not-null {@link CpuCapture} is passed, it means the thread is imported from a trace file. If the {@link CpuCapture} passed is
      * null, it means that we are in a profiling session. Default behavior is to obtain the {@link ThreadState} data from
      * perfd. When a capture is selected applyCapture is called and on atrace captures a {@link MergeCaptureDataSeries} is used to collect
-     * data from perfd as well as the {@link AtraceCpuCapture}.
+     * data from perfd as well as the {@link SystemTraceCpuCapture}.
      */
     public RangedCpuThread(Range range, int threadId, String name, @Nullable CpuCapture capture) {
       myRange = range;

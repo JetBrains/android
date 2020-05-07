@@ -69,6 +69,7 @@ object LegacyTreeLoader : TreeLoader {
     val ddmClient = legacyClient.selectedClient ?: return null
     val hierarchyHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VURT)
     ddmClient.dumpViewHierarchy(window, false, true, false, hierarchyHandler)
+    propertiesUpdater.resourceLookup.dpi = ddmClient.device.density
     val hierarchyData = hierarchyHandler.getData() ?: return null
     val (rootNode, hash) = parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
     val imageHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VUOP)
@@ -157,7 +158,7 @@ object LegacyTreeLoader : TreeLoader {
     val (name, dataWithoutName) = data.split('@', limit = 2)
     val (hash, properties) = dataWithoutName.split(' ', limit = 2)
     val hashId = hash.toLongOrNull(16) ?: 0
-    val view = ViewNode(hashId, name, null, 0, 0, 0, 0, 0, 0, null, "", 0)
+    val view = ViewNode(hashId, name, null, 0, 0, 0, 0, null, "", 0)
     view.parent = parent
     parent?.children?.add(view)
     propertyLoader.parseProperties(view, properties)

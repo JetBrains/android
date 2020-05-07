@@ -15,6 +15,8 @@
  */
 package com.android.tools.property.testing
 
+import com.intellij.ide.ui.NotRoamableUiSettings
+import com.intellij.ide.ui.UISettings
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -22,6 +24,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.TestLoggerFactory
 import org.junit.rules.ExternalResource
+import org.junit.runner.Description
+import org.junit.runners.model.Statement
 import javax.swing.SwingUtilities
 
 /**
@@ -32,8 +36,9 @@ import javax.swing.SwingUtilities
  */
 open class ApplicationRule : ExternalResource() {
 
-  private var rootDisposable: Disposable? = Disposer.newDisposable()
-  private var application: MockApplication? = TestApplication(rootDisposable!!)
+  private lateinit var testName: String
+  private var rootDisposable: Disposable? = null
+  private var application: MockApplication? = null
 
   val testRootDisposable: Disposable
     get() = rootDisposable!!
@@ -47,11 +52,37 @@ open class ApplicationRule : ExternalResource() {
     }
   }
 
+  override fun apply(base: Statement, description: Description): Statement {
+    testName = description.displayName
+    return super.apply(base, description)
+  }
+
   /**
    * Setup a test Application instance with a few common services needed for property tests.
    */
   override fun before() {
+    rootDisposable = Disposer.newDisposable("ApplicationRule::rootDisposable")
+    application = TestApplication(rootDisposable!!, testName)
     ApplicationManager.setApplication(application!!, rootDisposable!!)
+
+    // Needed to avoid this kotlin.KotlinNullPointerException:
+    //  at com.intellij.ide.ui.UISettings$Companion.getInstance(UISettings.kt:423)
+    //  at com.intellij.ide.ui.UISettings$Companion.getInstanceOrNull(UISettings.kt:434)
+    //  at com.intellij.ide.ui.AntialiasingType.getAAHintForSwingComponent(AntialiasingType.java:17)
+    //  at com.intellij.ide.ui.UISettings$Companion.setupComponentAntialiasing(UISettings.kt:483)
+    //  at com.intellij.ide.ui.UISettings.setupComponentAntialiasing(UISettings.kt)
+    //  at com.intellij.ui.SimpleColoredComponent.updateUI(SimpleColoredComponent.java:107)
+    //  at com.intellij.ui.SimpleColoredComponent.<init>(SimpleColoredComponent.java:102)
+    //
+    // And from here:
+    //  ...
+    //  at com.intellij.ide.ui.UISettings.setupComponentAntialiasing(UISettings.kt)
+    //  at com.intellij.ui.components.JBLabel.updateUI(JBLabel.java:241)
+    //  at javax.swing.JLabel.<init>(JLabel.java:164)
+    //
+    // Which can happen if the following settings has changed in a different test:
+    //  LoadingState.CONFIGURATION_STORE_INITIALIZED.isOccurred
+    application!!.registerService(UISettings::class.java, UISettings(NotRoamableUiSettings()))
   }
 
   override fun after() {
@@ -60,9 +91,13 @@ open class ApplicationRule : ExternalResource() {
     application = null
   }
 
-  private class TestApplication(disposable: Disposable): MockApplication(disposable) {
+  private class TestApplication(disposable: Disposable, val name: String): MockApplication(disposable) {
     override fun invokeLater(runnable: Runnable) {
       SwingUtilities.invokeLater(runnable)
+    }
+
+    override fun toString(): String {
+      return "TestApplication@$name"
     }
   }
 }

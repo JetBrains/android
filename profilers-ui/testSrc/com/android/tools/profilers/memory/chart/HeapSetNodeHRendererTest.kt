@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory.chart
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerServices
@@ -70,6 +71,8 @@ class HeapSetNodeHRendererTest {
     val heapSet = MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage)
     val model = MemoryVisualizationModel()
     model.axisFilter = MemoryVisualizationModel.XAxisFilter.TOTAL_COUNT
+    assertThat(model.isSizeAxis()).isFalse()
+    assertThat(model.formatter()).isInstanceOf(SingleUnitAxisFormatter::class.java)
     val simpleNode = ClassifierSetHNode(model, heapSet, 0)
     val name = heapSet.name
     val renderer = HeapSetNodeHRenderer()

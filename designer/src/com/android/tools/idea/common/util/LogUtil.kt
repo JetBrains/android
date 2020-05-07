@@ -1,7 +1,3 @@
-import com.android.tools.idea.rendering.RenderProblem
-import java.io.PrintWriter
-import java.io.StringWriter
-
 /*
  * Copyright (C) 2020 The Android Open Source Project
  *
@@ -17,6 +13,12 @@ import java.io.StringWriter
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.idea.common.util
+
+import com.android.tools.idea.rendering.RenderProblem
+import java.io.PrintWriter
+import java.io.StringWriter
+
 /**
  * Converts a [Throwable] to a string for log printing.
  */

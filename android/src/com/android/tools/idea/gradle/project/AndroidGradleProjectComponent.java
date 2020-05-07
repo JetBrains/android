@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME;
-import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
@@ -30,13 +29,10 @@ import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.execution.RunConfigurationProducerService;
-import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.ide.SaveAndSyncHandler;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.NotificationsConfiguration;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.ProjectComponent;
@@ -44,16 +40,9 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.serviceContainer.NonInjectable;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
-import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
-import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer;
 
 public class AndroidGradleProjectComponent implements ProjectComponent {
   // Copy of a private constant in GradleNotification.java.
@@ -63,8 +52,6 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
   @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final LegacyAndroidProjects myLegacyAndroidProjects;
-
-  @Nullable private Disposable myDisposable;
 
   @NotNull
   public static AndroidGradleProjectComponent getInstance(@NotNull Project project) {
@@ -170,45 +157,6 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
         AndroidNotification.getInstance(myProject).showBalloon("", msg, NotificationType.WARNING,
                                                                SelectJdkFromFileSystemHyperlink.create(myProject));
       }
-    }
-  }
-
-  public void configureGradleProject() {
-    if (myDisposable != null) {
-      return;
-    }
-    myDisposable = Disposer.newDisposable();
-
-    // Prevent IDEA from refreshing project. We will do it ourselves in AndroidGradleProjectStartupActivity.
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      myProject.putUserData(NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
-    }
-
-    List<Class<? extends RunConfigurationProducer<?>>> runConfigurationProducerTypes = new ArrayList<>();
-    runConfigurationProducerTypes.add(AllInPackageGradleConfigurationProducer.class);
-    runConfigurationProducerTypes.add(TestClassGradleConfigurationProducer.class);
-    runConfigurationProducerTypes.add(TestMethodGradleConfigurationProducer.class);
-
-    RunConfigurationProducerService runConfigurationProducerManager = RunConfigurationProducerService.getInstance(myProject);
-    if (myIdeInfo.isAndroidStudio()) {
-      // Make sure the gradle test configurations are ignored in this project. This will modify .idea/runConfigurations.xml
-      for (Class<? extends RunConfigurationProducer<?>> type : runConfigurationProducerTypes) {
-        runConfigurationProducerManager.getState().ignoredProducers.add(type.getName());
-      }
-    }
-    else {
-      // Make sure the gradle test configurations are not ignored in this project, since they already work in Android gradle projects. This
-      // will modify .idea/runConfigurations.xml
-      for (Class<? extends RunConfigurationProducer<?>> type : runConfigurationProducerTypes) {
-        runConfigurationProducerManager.getState().ignoredProducers.remove(type.getName());
-      }
-    }
-  }
-
-  @Override
-  public void projectClosed() {
-    if (myDisposable != null) {
-      Disposer.dispose(myDisposable);
     }
   }
 }

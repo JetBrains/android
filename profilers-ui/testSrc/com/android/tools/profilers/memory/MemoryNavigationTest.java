@@ -89,7 +89,7 @@ public class MemoryNavigationTest {
 
     ClassSet instanceClassSet =
       findDescendantClassSetNodeWithInstance(getRootClassifierSet(myStageView.getClassifierView().getTree()).getAdapter(), instance);
-    myStage.selectClassSet(instanceClassSet);
+    myStage.getCaptureSelection().selectClassSet(instanceClassSet);
 
     MemoryClassSetView view = myStageView.getClassSetView();
     JTree classSetTree = view.getTree();
@@ -115,7 +115,7 @@ public class MemoryNavigationTest {
     // Trigger the context menu action to go to the field's class
     assertTrue(menus.get(0).isEnabled());
     menus.get(0).run();
-    assertEquals(fakeCaptureObject.getHeapSet(DEFAULT_HEAP_ID), myStage.getSelectedHeapSet());
+    assertEquals(fakeCaptureObject.getHeapSet(DEFAULT_HEAP_ID), myStage.getCaptureSelection().getSelectedHeapSet());
     assertEquals(instanceClassSet, myStage.getSelectedClassSet());
     assertEquals(fieldInstance, myStage.getSelectedInstanceObject());
     */
@@ -133,12 +133,12 @@ public class MemoryNavigationTest {
 
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCaptureObject)), null);
-    assertEquals(fakeCaptureObject.getHeapSet(DEFAULT_HEAP_ID), myStage.getSelectedHeapSet());
+    assertEquals(fakeCaptureObject.getHeapSet(DEFAULT_HEAP_ID), myStage.getCaptureSelection().getSelectedHeapSet());
 
     ClassSet instanceClassSet =
       findDescendantClassSetNodeWithInstance(getRootClassifierSet(myStageView.getClassifierView().getTree()).getAdapter(), fakeInstance);
-    myStage.selectClassSet(instanceClassSet);
-    myStage.selectInstanceObject(fakeInstance);
+    myStage.getCaptureSelection().selectClassSet(instanceClassSet);
+    myStage.getCaptureSelection().selectInstanceObject(fakeInstance);
 
     JTree classifierTree = myStageView.getClassifierView().getTree();
     assertNotNull(classifierTree);

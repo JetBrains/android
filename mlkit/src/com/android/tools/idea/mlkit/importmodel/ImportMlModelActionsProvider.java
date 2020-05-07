@@ -21,13 +21,15 @@ import com.android.tools.idea.wizard.template.Category;
 import com.intellij.openapi.actionSystem.AnAction;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class ImportMlModelActionsProvider implements AdditionalTemplateActionsProvider {
+  @NotNull
   @Override
-  public List<AnAction> getAdditionalActions(Category category) {
+  public List<AnAction> getAdditionalActions(@NotNull Category category) {
     List<AnAction> additionalActions = new ArrayList<>();
     if (StudioFlags.ML_MODEL_BINDING.get() && category == Category.Other) {
-      additionalActions.add(new AndroidImportMlModelAction());
+      additionalActions.add(new ImportMlModelAction());
     }
     return additionalActions;
   }

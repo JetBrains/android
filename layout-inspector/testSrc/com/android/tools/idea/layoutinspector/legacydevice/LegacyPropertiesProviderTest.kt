@@ -16,16 +16,35 @@
 package com.android.tools.idea.layoutinspector.legacydevice
 
 import com.android.SdkConstants
+import com.android.SdkConstants.ANDROID_URI
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
+import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.property.panel.api.PropertiesTable
+import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.designer.propertyTable.PropertyTable
-import junit.framework.Assert.fail
+import com.intellij.ide.util.PropertiesComponent
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 
 class LegacyPropertiesProviderTest {
+  @get:Rule
+  val applicationRule = ApplicationRule()
+
+  @Before
+  fun init() {
+    val propertiesComponent = PropertiesComponentMock()
+    applicationRule.testApplication.registerService(PropertiesComponent::class.java, propertiesComponent)
+    PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
+  }
+
   private val example =
     "text:mCurTextColor=11,-1979711488 text:mGravity=7,8388659 text:mText=21,Hello\\nWorld , =  @ : getEllipsize()=4,null " +
     "text:getScaledTextSize()=4,14.0 text:getSelectionEnd()=2,-1 text:getSelectionStart()=2,-1 text:getTextSize()=4,49.0 " +
@@ -64,9 +83,10 @@ class LegacyPropertiesProviderTest {
 
   @Test
   fun testExample() {
-    val root = ViewNode(1234, "TextView", null, 0, 0, 0, 0, 0, 0, null, "", 0)
+    val resourceLookup = Mockito.mock(ResourceLookup::class.java)
+    val root = ViewNode(1234, "TextView", null, 0, 0, 0, 0, null, "", 0)
     val provider = LegacyPropertiesProvider()
-    val propertyLoader = LegacyPropertiesProvider.Updater()
+    val propertyLoader = LegacyPropertiesProvider.Updater(resourceLookup)
     propertyLoader.parseProperties(root, example)
     propertyLoader.apply(provider)
     var properties = PropertiesTable.emptyTable<InspectorPropertyItem>()
@@ -77,27 +97,31 @@ class LegacyPropertiesProviderTest {
     assertThat(root.y).isEqualTo(350)
     assertThat(root.width).isEqualTo(1432)
     assertThat(root.height).isEqualTo(123)
-    assertThat(root.scrollX).isEqualTo(0)
-    assertThat(root.scrollY).isEqualTo(0)
     assertThat(root.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=textView}")
     assertThat(root.isDimBehind).isTrue()
-    check(properties, SdkConstants.ATTR_ID, "@id/textView")
-    check(properties, SdkConstants.ATTR_TEXT, "Hello\\nWorld , =  @ :")
-    check(properties, SdkConstants.ATTR_TEXT_COLOR, "#8A000000")
-    check(properties, SdkConstants.ATTR_ALPHA, "1.0")
-    check(properties, SdkConstants.ATTR_GRAVITY, "top|start")
-    check(properties, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, "0", PropertySection.LAYOUT)
-    check(properties, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, "0", PropertySection.LAYOUT)
-    check(properties, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, "0", PropertySection.LAYOUT)
-    check(properties, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, "0", PropertySection.LAYOUT)
-    check(properties, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, "1", PropertySection.LAYOUT)
+    check(properties, NAMESPACE_INTERNAL, SdkConstants.ATTR_NAME, "TextView", PropertySection.VIEW)
+    check(properties, NAMESPACE_INTERNAL, "x", "4px", PropertySection.DIMENSION)
+    check(properties, NAMESPACE_INTERNAL, "y", "350px", PropertySection.DIMENSION)
+    check(properties, NAMESPACE_INTERNAL, "width", "1432px", PropertySection.DIMENSION)
+    check(properties, NAMESPACE_INTERNAL, "height", "123px", PropertySection.DIMENSION)
+    check(properties, ANDROID_URI, SdkConstants.ATTR_ID, "@id/textView")
+    check(properties, ANDROID_URI, SdkConstants.ATTR_TEXT, "Hello\\nWorld , =  @ :")
+    check(properties, ANDROID_URI, SdkConstants.ATTR_TEXT_COLOR, "#8A000000")
+    check(properties, ANDROID_URI, SdkConstants.ATTR_ALPHA, "1.0")
+    check(properties, ANDROID_URI, SdkConstants.ATTR_GRAVITY, "top|start")
+    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, "0px", PropertySection.LAYOUT)
+    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, "0px", PropertySection.LAYOUT)
+    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, "0px", PropertySection.LAYOUT)
+    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, "0px", PropertySection.LAYOUT)
+    check(properties, ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, "1px", PropertySection.LAYOUT)
   }
 
   private fun check(properties: PropertiesTable<InspectorPropertyItem>,
+                    namespace: String,
                     name: String,
                     expectedValue: String,
                     expectedSection: PropertySection = PropertySection.DEFAULT) {
-    val property = properties.getOrNull(SdkConstants.ANDROID_URI, name) ?: error("Property: $name is missing")
+    val property = properties.getOrNull(namespace, name) ?: error("Property: $name is missing")
     assertThat(property.value).isEqualTo(expectedValue)
     assertThat(property.group).isEqualTo(expectedSection)
   }

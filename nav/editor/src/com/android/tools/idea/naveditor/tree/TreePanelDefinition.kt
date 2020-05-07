@@ -1,3 +1,5 @@
+package com.android.tools.idea.naveditor.tree
+
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split

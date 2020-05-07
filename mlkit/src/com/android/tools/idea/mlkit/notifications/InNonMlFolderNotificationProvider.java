@@ -17,7 +17,7 @@ package com.android.tools.idea.mlkit.notifications;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.LoggingUtils;
-import com.android.tools.idea.mlkit.MlkitUtils;
+import com.android.tools.idea.mlkit.MlUtils;
 import com.android.tools.idea.mlkit.TfliteModelFileEditor;
 import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvider;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
@@ -76,7 +76,7 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
     }
 
     Module module = ModuleUtilCore.findModuleForFile(file, project);
-    if (module != null && !MlkitUtils.isModelFileInMlModelsFolder(module, file)) {
+    if (module != null && !MlUtils.isModelFileInMlModelsFolder(module, file)) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
       panel.setText("This TensorFlow Lite model is not in a configured ml-model directory, model binding is disabled.");
       List<NamedModuleTemplate> moduleTemplateList = ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(file);
@@ -93,6 +93,7 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
                   if (!CopyFilesOrDirectoriesHandler.checkFileExist(
                     mlPsiDir, null, PsiManager.getInstance(project).findFile(file), file.getName(), "Move")) {
                     file.move(this, mlVirtualDir);
+                    EditorNotifications.getInstance(project).updateNotifications(file);
                     LoggingUtils.logEvent(EventType.MODEL_IMPORT_FROM_MOVE_FILE_BUTTON, file);
                   }
                 }

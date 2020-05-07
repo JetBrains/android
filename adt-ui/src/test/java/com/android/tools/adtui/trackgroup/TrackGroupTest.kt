@@ -25,14 +25,13 @@ import com.android.tools.adtui.model.trackgroup.TrackGroupModel
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
-import java.awt.BorderLayout
 import java.awt.Component
-import javax.swing.JPanel
 
 @RunsInEdt
 class TrackGroupTest {
@@ -97,14 +96,36 @@ class TrackGroupTest {
     assertThat(noInfoTrackGroup.titleInfoIcon.isVisible).isFalse()
     assertThat(noInfoTrackGroup.titleInfoIcon.toolTipText).isNull()
 
-    val infoTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Bar").setTitleInfo("Information").build();
+    val infoTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Bar").setTitleInfo("Information").build()
     val infoTrackGroup = TrackGroup(infoTrackGroupModel, TestTrackRendererFactory())
     assertThat(infoTrackGroup.titleInfoIcon.isVisible).isTrue()
     assertThat(infoTrackGroup.titleInfoIcon.toolTipText).isEqualTo("Information")
   }
 
   @Test
-  fun keyboardExpandCollapseTrackListItemTest() {
+  fun mouseClickExpandsCollapsesTrack() {
+    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1").setTrackSelectable(true).build()
+    val trackModel = TrackModel.newBuilder(StringSelectable("Bar1"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar1")
+      .setCollapsible(true)
+      .setCollapsed(true)
+    trackGroupModel.addTrackModel(trackModel)
+    val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
+    trackGroup.trackTitleOverlay.setBounds(0, 0, 100, 100)
+
+    val ui = FakeUi(trackGroup.trackTitleOverlay)
+    // Make sure test doesn't trip in a headless environment.
+    trackGroup.trackList.ui = HeadlessListUI()
+    // Single-click caret icon.
+    ui.mouse.press(29, 4)
+    assertThat(trackGroupModel[0].isCollapsed).isFalse()
+    ui.mouse.release()
+    // Double-click label.
+    ui.mouse.doubleClick(50, 10)
+    assertThat(trackGroupModel[0].isCollapsed).isTrue()
+  }
+
+  @Test
+  fun keyboardExpandsCollapsesTrack() {
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1").setTrackSelectable(true).build()
 
     // build two track models both of which are collapsible and initially in a collapsed state

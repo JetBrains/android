@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.mlkit.notifications
 
-import com.android.tools.idea.mlkit.MlkitUtils
+import com.android.tools.idea.mlkit.MlUtils
 import com.android.tools.idea.mlkit.TfliteModelFileEditor
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -52,7 +52,7 @@ class BuildFeatureOffNotificationProvider : EditorNotifications.Provider<EditorN
     }
 
     val module = ModuleUtilCore.findModuleForFile(file, project)
-    if (module == null || MlkitUtils.isMlModelBindingBuildFeatureEnabled(module) || !MlkitUtils.isModelFileInMlModelsFolder(module, file)) {
+    if (module == null || MlUtils.isMlModelBindingBuildFeatureEnabled(module) || !MlUtils.isModelFileInMlModelsFolder(module, file)) {
       return null
     }
 

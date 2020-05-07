@@ -18,8 +18,11 @@ package com.android.tools.idea.nav.safeargs.psi
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavFragmentData
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiTypesUtil
+import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -44,11 +47,20 @@ import org.jetbrains.android.facet.AndroidFacet
  *  }
  * ```
  */
-class LightArgsClass(facet: AndroidFacet, private val modulePackage: String, navigationResource: ResourceItem, val fragment: NavFragmentData)
+class LightArgsClass(facet: AndroidFacet,
+                     private val modulePackage: String,
+                     navigationResource: ResourceItem,
+                     val fragment: NavFragmentData)
   : SafeArgsLightBaseClass(facet, modulePackage, "Args", navigationResource, fragment.toDestination()) {
 
+  init {
+    setModuleInfo(facet.module, false)
+  }
+
   val builderClass = LightArgsBuilderClass(facet, modulePackage, this)
+  private val _fields by lazy { computeFields() }
   private val _methods by lazy { computeMethods() }
+  private val backingXmlTag by lazy { backingResourceFile?.getXmlTagById(fragment.id) }
 
   override fun getInnerClasses(): Array<PsiClass> = arrayOf(builderClass)
   override fun findInnerClassByName(name: String, checkBases: Boolean): PsiClass? {
@@ -61,19 +73,37 @@ class LightArgsClass(facet: AndroidFacet, private val modulePackage: String, nav
     return allMethods.filter { method -> method.name == name }.toTypedArray()
   }
 
+  override fun getNavigationElement(): PsiElement {
+    return backingXmlTag ?: return super.getNavigationElement()
+  }
+
   private fun computeMethods(): Array<PsiMethod> {
     val thisType = PsiTypesUtil.getClassType(this)
+    val bundleType = parsePsiType(modulePackage, "android.os.Bundle", null, this)
     val fromBundle = createMethod(name = "fromBundle",
                                   modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
                                   returnType = annotateNullability(thisType))
-    fromBundle.addParameter("bundle", parsePsiType(modulePackage, "android.os.Bundle", null, this))
+      .addParameter("bundle", bundleType)
 
     val getters: Array<PsiMethod> = fragment.arguments.map { arg ->
       val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
       createMethod(name = "get${arg.name.capitalize()}",
+                   navigationElement = getFieldNavigationElementByName(arg.name),
                    returnType = annotateNullability(psiType, arg.nullable))
     }.toTypedArray()
 
     return getters + fromBundle
+  }
+
+  private fun computeFields(): Array<PsiField> {
+    return fragment.arguments
+      .asSequence()
+      .map { createField(it, modulePackage, backingXmlTag as XmlTag) }
+      .toList()
+      .toTypedArray()
+  }
+
+  fun getFieldNavigationElementByName(name: String): PsiElement? {
+    return _fields.firstOrNull { it.name == name }?.navigationElement
   }
 }

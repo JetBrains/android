@@ -31,7 +31,7 @@ class ConnectionPermissionDeniedIssueCheckerTest : AndroidGradleTestCase() {
     val buildIssue = connectionPermissionDeniedIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.title).contains("Connection to the Internet denied.")
+    assertThat(buildIssue!!.description).contains("Connection to the Internet denied.")
 
     // Verify Quickfixes
     val quickFixes = buildIssue.quickFixes

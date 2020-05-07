@@ -22,7 +22,12 @@ import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -113,6 +118,18 @@ public class CaptureNode implements HNode<CaptureNode> {
     return myParent;
   }
 
+  /**
+   * @return root node of this node. If this node doesn't have a parent, return this node.
+   */
+  @NotNull
+  public CaptureNode findRootNode() {
+    CaptureNode rootNode = this;
+    while (rootNode.getParent() != null) {
+      rootNode = rootNode.getParent();
+    }
+    return rootNode;
+  }
+
   @Override
   public long getStart() {
     return myClockType == ClockType.THREAD ? myStartThread : myStartGlobal;
@@ -180,6 +197,36 @@ public class CaptureNode implements HNode<CaptureNode> {
 
   public void setDepth(int depth) {
     myDepth = depth;
+  }
+
+  /**
+   * Iterate through all descendants of this node, apply a filter and then find the top k nodes by the given comparator.
+   *
+   * @param k          number of results
+   * @param filter     keep only nodes that satisfies this filter
+   * @param comparator to compare nodes by
+   * @return up to top k nodes from all descendants, in descending order
+   */
+  @NotNull
+  public List<CaptureNode> getTopKNodes(int k, @NotNull Predicate<CaptureNode> filter, @NotNull Comparator<CaptureNode> comparator) {
+    // Put all matched nodes in a priority queue capped at size n, so the queue always contain the n longest running ones.
+    PriorityQueue<CaptureNode> candidates = new PriorityQueue<>(k + 1, comparator);
+    getDescendantsStream().filter(filter).forEach(node -> {
+      candidates.offer(node);
+      if (candidates.size() > k) {
+        candidates.poll();
+      }
+    });
+    List<CaptureNode> result = new ArrayList<>(candidates);
+    Collections.sort(result, comparator.reversed());
+    return result;
+  }
+
+  /**
+   * @return all descendants in pre-order (i.e. node, left, right) as a stream.
+   */
+  public Stream<CaptureNode> getDescendantsStream() {
+    return Stream.concat(Stream.of(this), getChildren().stream().flatMap(CaptureNode::getDescendantsStream));
   }
 
   /**

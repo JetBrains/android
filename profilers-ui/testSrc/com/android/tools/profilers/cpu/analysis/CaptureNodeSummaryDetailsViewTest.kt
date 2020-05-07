@@ -15,8 +15,11 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.tools.adtui.StatLabel
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
@@ -31,6 +34,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
+import javax.swing.JTable
 
 class CaptureNodeSummaryDetailsViewTest {
 
@@ -51,12 +55,17 @@ class CaptureNodeSummaryDetailsViewTest {
       startGlobal = TimeUnit.SECONDS.toMicros(10)
       endGlobal = TimeUnit.SECONDS.toMicros(20)
     }
-    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, Double.MAX_VALUE)).apply {
+    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, Double.MAX_VALUE), Cpu.CpuTraceType.PERFETTO).apply {
       dataSeries.add(CaptureNodeAnalysisModel(captureNode, Mockito.mock(CpuCapture::class.java)))
     }
     val view = CaptureNodeSummaryDetailsView(profilersView, model)
+    val treeWalker = TreeWalker(view.component)
     assertThat(view.timeRangeLabel.text).isEqualTo("10.000 - 20.000")
-    assertThat(view.durationLabel.text).isEqualTo("10 s")
     assertThat(view.dataTypeLabel.text).isEqualTo("Trace Event")
+    // Selected node basic stats table and longest occurrences table.
+    assertThat(treeWalker.descendants().filterIsInstance<JTable>().size).isEqualTo(2)
+    // 5 stat labels: count, average, max, min, std.
+    assertThat(treeWalker.descendants().filterIsInstance<StatLabel>().map { it.getDescText() })
+      .containsExactly("Count", "Average", "Max", "Min", "Std")
   }
 }

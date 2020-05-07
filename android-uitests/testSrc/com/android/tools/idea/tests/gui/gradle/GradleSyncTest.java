@@ -59,6 +59,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
@@ -443,6 +444,57 @@ public class GradleSyncTest {
     // But the models should still be present
     assertThat(AndroidModuleModel.get(ideFrame.getModule("app"))).isNotNull();
     assertThat(GradleFacet.getInstance(ideFrame.getModule("app"))).isNotNull();
+    ideFrame.closeProject();
+  }
+
+  @Test
+  public void gradleModelCachedNoModules() throws IOException {
+    File projectDir = guiTest.setUpProject("SimpleApplication");
+
+    // First time, open the project to sync.
+    IdeFrameFixture ideFrame = guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
+    ideFrame.closeProject();
+
+    new File(projectDir, ".idea/modules.xml").delete();
+    new File(projectDir, ".idea/modules/app/SimpleApplication.app.iml").delete();
+    new File(projectDir, ".idea/modules/SimpleApplication.iml").delete();
+    // Second time, open the project expecting no sync.
+    ideFrame = guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
+
+    ProjectSystemSyncManager.SyncResult lastSyncResult =
+      ProjectSystemService.getInstance(ideFrame.getProject()).getProjectSystem().getSyncManager().getLastSyncResult();
+
+
+    // A sync should not have been performed but the status should have been updated to SKIPPED.
+    assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS);
+    // Make sure lost modules have been removed.
+    assertThat(ModuleManager.getInstance(ideFrame.getProject()).getModules().length).isEqualTo(2);
+
+    ideFrame.closeProject();
+  }
+
+  @Test
+  public void gradleModelCachedNoImlsOnly() throws IOException {
+    File projectDir = guiTest.setUpProject("SimpleApplication");
+
+    // First time, open the project to sync.
+    IdeFrameFixture ideFrame = guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
+    ideFrame.closeProject();
+
+    new File(projectDir, ".idea/modules/app/SimpleApplication.app.iml").delete();
+    new File(projectDir, ".idea/modules/SimpleApplication.iml").delete();
+    // Second time, open the project expecting no sync.
+    ideFrame = guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
+
+    ProjectSystemSyncManager.SyncResult lastSyncResult =
+      ProjectSystemService.getInstance(ideFrame.getProject()).getProjectSystem().getSyncManager().getLastSyncResult();
+
+
+    // A sync should not have been performed but the status should have been updated to SKIPPED.
+    assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS);
+    // Make sure lost modules have been removed.
+    assertThat(ModuleManager.getInstance(ideFrame.getProject()).getModules().length).isEqualTo(2);
+
     ideFrame.closeProject();
   }
 }

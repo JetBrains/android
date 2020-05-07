@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.tree
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.controllers.TreeNodeSelector
 import com.android.build.attribution.ui.data.ConfigurationUiData
 import com.android.build.attribution.ui.data.PluginConfigurationUiData
@@ -136,8 +137,9 @@ private class PluginConfigurationNode(
       ))
 
       add(HyperlinkLabel("Learn more").apply {
-        addHyperlinkListener { analytics.helpLinkClicked() }
-        setHyperlinkTarget("https://d.android.com/r/tools/build-attribution/optimize-configuration-phase")
+        val target = BuildAnalyzerBrowserLinks.OPTIMIZE_CONFIGURATION_PHASE
+        addHyperlinkListener { analytics.helpLinkClicked(target) }
+        setHyperlinkTarget(target.urlTarget)
       })
 
       if (children.isNotEmpty()) {

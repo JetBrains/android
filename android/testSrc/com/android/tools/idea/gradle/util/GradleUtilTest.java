@@ -205,6 +205,19 @@ public class GradleUtilTest {
   }
 
   @Test
+  public void isSafeArgGeneratedSourceFolder() {
+    myTempDir = createTempDir();
+
+    // Ignore generated safe arg base-class directory...
+    assertTrue(isRecognizedAsSafeArgClass("generated/source/navigation-args"));
+  }
+
+  private boolean isRecognizedAsSafeArgClass(@NotNull String path) {
+    File dir = new File(myTempDir, FileUtils.toSystemDependentPath(path));
+    return GradleUtil.isSafeArgGeneratedSourcesFolder(dir, myTempDir);
+  }
+
+  @Test
   public void isDirectChild() {
     assertTrue(GradleUtil.isDirectChild(":app", ":"));
     assertTrue(GradleUtil.isDirectChild(":libs:lib1", ":libs"));

@@ -18,9 +18,8 @@ package com.android.tools.idea.nav.safeargs.psi
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
-import com.google.common.base.CaseFormat
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
-import com.intellij.psi.impl.light.LightMethod
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -55,13 +54,21 @@ class LightDirectionsClass(facet: AndroidFacet,
                            private val data: NavXmlData,
                            private val destination: NavDestinationData)
   : SafeArgsLightBaseClass(facet, modulePackage, "Directions", navigationResource, destination) {
+  init {
+    setModuleInfo(facet.module, false)
+  }
 
   private val _methods by lazy { computeMethods() }
+  private val _navigationElement by lazy { backingResourceFile?.getXmlTagById(destination.id) }
 
   override fun getMethods() = _methods
   override fun getAllMethods() = methods
   override fun findMethodsByName(name: String, checkBases: Boolean): Array<PsiMethod> {
     return allMethods.filter { method -> method.name == name }.toTypedArray()
+  }
+
+  override fun getNavigationElement(): PsiElement {
+    return _navigationElement ?: return super.getNavigationElement()
   }
 
   private fun computeMethods(): Array<PsiMethod> {
@@ -75,17 +82,18 @@ class LightDirectionsClass(facet: AndroidFacet,
           arg to parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
         }
 
-        val methodName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, action.id)
-        val method = createMethod(name = methodName,
-                                  modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
-                                  returnType = annotateNullability(navDirectionsType))
-        types.forEach {
-          val arg = it.first
-          val type = it.second // We know it's non-null because of the "any" check above
-          method.addParameter(arg.name, type)
-        }
-
-        LightMethod(manager, method, this)
+        val methodName = action.id.toCamelCase()
+        createMethod(name = methodName,
+                     navigationElement = backingResourceFile?.getXmlTagById(action.destination),
+                     modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
+                     returnType = annotateNullability(navDirectionsType))
+          .apply {
+            types.forEach {
+              val arg = it.first
+              val type = it.second // We know it's non-null because of the "any" check above
+              this.addParameter(arg.name, type)
+            }
+          }
       }.toTypedArray()
   }
 }

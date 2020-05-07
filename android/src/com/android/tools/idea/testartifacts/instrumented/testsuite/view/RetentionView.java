@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view;
 
+import java.io.File;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,9 @@ import org.jetbrains.annotations.NotNull;
 public class RetentionView {
   private JPanel myRootPanel;
   private JButton myStartDebuggingButton;
+  @NotNull private String packageName = "";
+  private File snapshot = null;
+  @NotNull private String snapshotId = "";
 
   /**
    * Returns the root panel.
@@ -34,5 +38,13 @@ public class RetentionView {
   @NotNull
   public JPanel getRootPanel() {
     return myRootPanel;
+  }
+
+  public void setPackageName(@NotNull String packageName) {
+    this.packageName = packageName;
+  }
+
+  public void setSnapshotFile(File snapshot) {
+    this.snapshot = snapshot;
   }
 }

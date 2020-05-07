@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
+import com.android.tools.idea.databinding.utils.assertExpected
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
@@ -256,6 +257,7 @@ class LightViewBindingClassTest {
       <LinearLayout />
     """.trimIndent())
 
+    val project = fixture.project
     val context = fixture.addClass("public class MainActivity {}")
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
 
@@ -265,12 +267,12 @@ class LightViewBindingClassTest {
         (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
         (inflateMethod.parameters[1] as PsiParameter).assertExpected("ViewGroup", "parent", isNullable = true)
         (inflateMethod.parameters[2] as PsiParameter).assertExpected("boolean", "attachToParent")
-        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+        inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
       }
 
       inflateMethods.first { it.parameters.size == 1 }.let { inflateMethod ->
         (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
-        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+        inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
       }
     }
 
@@ -278,7 +280,7 @@ class LightViewBindingClassTest {
       assertThat(bindMethods).hasSize(1)
       bindMethods.first { it.parameters.size == 1 }.let { bindMethod ->
         (bindMethod.parameters[0] as PsiParameter).assertExpected("View", "view")
-        bindMethod.returnType!!.assertExpected("ActivityMainBinding")
+        bindMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
       }
     }
   }
@@ -290,6 +292,7 @@ class LightViewBindingClassTest {
       <merge />
     """.trimIndent())
 
+    val project = fixture.project
     val context = fixture.addClass("public class MainActivity {}")
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
 
@@ -298,7 +301,7 @@ class LightViewBindingClassTest {
       inflateMethods.first { it.parameters.size == 2 }.let { inflateMethod ->
         (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
         (inflateMethod.parameters[1] as PsiParameter).assertExpected("ViewGroup", "parent") // Not nullable due to <merge> root!
-        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+        inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
       }
     }
 
@@ -306,23 +309,8 @@ class LightViewBindingClassTest {
       assertThat(bindMethods).hasSize(1)
       bindMethods.first { it.parameters.size == 1 }.let { bindMethod ->
         (bindMethod.parameters[0] as PsiParameter).assertExpected("View", "view")
-        bindMethod.returnType!!.assertExpected("ActivityMainBinding")
+        bindMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
       }
     }
   }
-
-  private fun PsiType.assertExpected(typeName: String, isNullable: Boolean = false) {
-    assertThat(presentableText).isEqualTo(typeName)
-    if (this !is PsiPrimitiveType) {
-      val nullabilityManager = NullableNotNullManager.getInstance(fixture.project)
-      val nullabilityAnnotation = if (isNullable) nullabilityManager.defaultNullable else nullabilityManager.defaultNotNull
-      assertThat(annotations.map { it.text }).contains("@$nullabilityAnnotation")
-    }
-  }
-
-  private fun PsiParameter.assertExpected(typeName: String, name: String, isNullable: Boolean = false) {
-    type.assertExpected(typeName, isNullable)
-    assertThat(name).isEqualTo(name)
-  }
-
 }

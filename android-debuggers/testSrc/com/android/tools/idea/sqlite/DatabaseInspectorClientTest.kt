@@ -18,6 +18,8 @@ package com.android.tools.idea.sqlite
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors
@@ -40,6 +42,9 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
   private lateinit var hasDatabasePossiblyChangedFunction: () -> Unit
   private var hasDatabasePossiblyChangedInvoked = false
 
+  private lateinit var handleDatabaseClosedFunction: (Int) -> Unit
+  private lateinit var databaseClosedInvocations: MutableList<Int>
+
   override fun setUp() {
     super.setUp()
 
@@ -53,11 +58,15 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     hasDatabasePossiblyChangedInvoked = false
     hasDatabasePossiblyChangedFunction = { hasDatabasePossiblyChangedInvoked = true }
 
+    databaseClosedInvocations = mutableListOf()
+    handleDatabaseClosedFunction = { connectionId -> databaseClosedInvocations.add(connectionId) }
+
     databaseInspectorClient = DatabaseInspectorClient(
       mockMessenger,
       handleErrorFunction,
       openDatabaseFunction,
       hasDatabasePossiblyChangedFunction,
+      handleDatabaseClosedFunction,
       /* not used in test */ MoreExecutors.directExecutor()
     )
   }
@@ -160,5 +169,92 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
 
     // Assert
     assertTrue(hasDatabasePossiblyChangedInvoked)
+  }
+
+  fun testDatabaseClosedCallsCallback() {
+    // Prepare
+    val databaseClosedEvent = SqliteInspectorProtocol.DatabaseClosedEvent.newBuilder().setDatabaseId(1).build()
+    val event = SqliteInspectorProtocol.Event.newBuilder().setDatabaseClosed(databaseClosedEvent).build()
+
+    // Act
+    databaseInspectorClient.rawEventListener.onRawEvent(event.toByteArray())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    assertSize(1, databaseClosedInvocations)
+    assertEquals(1, databaseClosedInvocations.first())
+  }
+
+  fun testKeepConnectionOpenSuccess() {
+    // Prepare
+    val keepDbsOpenResponse = SqliteInspectorProtocol.Response.newBuilder()
+      .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenResponse.newBuilder().build())
+      .build()
+      .toByteArray()
+
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(keepDbsOpenResponse))
+
+    val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
+      .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build())
+      .build()
+      .toByteArray()
+
+    // Act
+    val result = pumpEventsAndWaitForFuture(databaseInspectorClient.keepConnectionsOpen(true))
+
+    // Assert
+    verify(mockMessenger).sendRawCommand(trackDatabasesCommand)
+    assertEquals(true, result)
+  }
+
+  fun testKeepConnectionOpenError() {
+    // Prepare
+    val keepDbsOpenResponse = SqliteInspectorProtocol.Response.newBuilder()
+      .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenResponse.newBuilder().build())
+      .setErrorOccurred(
+        SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
+          SqliteInspectorProtocol.ErrorContent.newBuilder()
+            .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(true).build())
+            .setMessage("msg")
+            .setStackTrace("stk")
+            .build()
+        ).build())
+      .build()
+      .toByteArray()
+
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(keepDbsOpenResponse))
+
+    val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
+      .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build())
+      .build()
+      .toByteArray()
+
+    // Act
+    pumpEventsAndWaitForFutureException(databaseInspectorClient.keepConnectionsOpen(true))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockMessenger).sendRawCommand(trackDatabasesCommand)
+  }
+
+  fun testKeepConnectionOpenNotSetInResponse() {
+    // Prepare
+    val keepDbsOpenResponse = SqliteInspectorProtocol.Response.newBuilder()
+      .build()
+      .toByteArray()
+
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(keepDbsOpenResponse))
+
+    val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
+      .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build())
+      .build()
+      .toByteArray()
+
+    // Act
+    val result = pumpEventsAndWaitForFuture(databaseInspectorClient.keepConnectionsOpen(true))
+
+    // Assert
+    verify(mockMessenger).sendRawCommand(trackDatabasesCommand)
+    assertEquals(null, result)
   }
 }

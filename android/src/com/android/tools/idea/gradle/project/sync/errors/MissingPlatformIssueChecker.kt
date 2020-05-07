@@ -19,8 +19,8 @@ import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
@@ -56,14 +56,14 @@ class MissingPlatformIssueChecker: GradleIssueChecker {
     val rootCause  = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: return null
     val missingPlatform = getMissingPlatform(message)
-    if (message.isEmpty() || missingPlatform == null ||
+    if (message.isBlank() || missingPlatform == null ||
         (rootCause !is IllegalStateException) && (rootCause !is ExternalSystemException)) return null
 
     // Log metrics.
     invokeLater {
       updateUsageTracker(issueData.projectPath, GradleSyncFailure.MISSING_ANDROID_PLATFORM)
     }
-    val description = MessageComposer(message)
+    val buildIssueComposer = BuildIssueComposer(message)
 
     // Get quickFixes.
     val sdkHandler = AndroidSdks.getInstance().tryToChooseAndroidSdk()?.sdkHandler
@@ -73,11 +73,11 @@ class MissingPlatformIssueChecker: GradleIssueChecker {
         val logger = StudioLoggerProgressIndicator(this::class.java)
         // Get the details about the cause of the error.
         val causes = sdkHandler.getAndroidTargetManager(logger).getErrorForPackage(DetailsTypes.getPlatformPath(version))
-        description.addDescription(if (causes != null) "possible cause: \n ${causes}" else "")
-        description.addQuickFix("Install missing platform(s) and sync project", InstallPlatformQuickFix(listOf(version)))
+        buildIssueComposer.addDescription(if (causes != null) "possible cause: \n ${causes}" else "")
+        buildIssueComposer.addQuickFix("Install missing platform(s) and sync project", InstallPlatformQuickFix(listOf(version)))
       }
     }
-    if (description.quickFixes.isEmpty()) {
+    if (buildIssueComposer.issueQuickFixes.isEmpty()) {
       // We weren't able to offer quickFixes to install the concerned platform.
       // So check if the project has an Android facet to open the SDK manager (Android facet has a reference to Android DSK manager).
 
@@ -92,7 +92,7 @@ class MissingPlatformIssueChecker: GradleIssueChecker {
             val facets = FacetManager.getInstance(module).getFacetsByType(AndroidFacet.ID)
             if (facets.isNotEmpty()) {
               // If android facet found, offer to open Android SDK manager.
-              description.addQuickFix("Open Android SDK Manager", OpenAndroidSdkManagerQuickFix())
+              buildIssueComposer.addQuickFix("Open Android SDK Manager", OpenAndroidSdkManagerQuickFix())
             }
             break
           }
@@ -101,12 +101,7 @@ class MissingPlatformIssueChecker: GradleIssueChecker {
       }
     }
 
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
-      override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
+    return buildIssueComposer.composeBuildIssue()
   }
 
   class InstallPlatformQuickFix(private val androidVersions: List<AndroidVersion>): BuildIssueQuickFix {

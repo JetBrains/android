@@ -22,9 +22,10 @@ import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
+import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
@@ -33,9 +34,6 @@ import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.ActivityTracker
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationListener
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -54,14 +52,12 @@ import java.util.concurrent.CancellationException
 import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.SwingConstants
-import javax.swing.event.HyperlinkEvent
 
 class AppInspectionView(
   private val project: Project,
   private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
-  private val appInspectionCallbacks: AppInspectionCallbacks,
-  getPreferredProcesses: () -> List<String>,
-  private val notificationFactory: AppInspectionNotificationFactory
+  private val ideServices: AppInspectionIdeServices,
+  getPreferredProcesses: () -> List<String>
 ) : Disposable {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
   private val inspectorPanel = JPanel(BorderLayout())
@@ -74,25 +70,20 @@ class AppInspectionView(
 
   private val noInspectorsMessage =
     JPanel(BorderLayout()).apply {
-      add(JBLabel("Please select or launch a process to continue.", SwingConstants.CENTER).apply {
+      add(JBLabel(AppInspectionBundle.message("select.process"), SwingConstants.CENTER).apply {
         font = AdtUiUtils.DEFAULT_FONT.biggerOn(3f)
         foreground = UIUtil.getInactiveTextColor()
       })
     }
 
-  private fun createCrashNotification(inspectorName: String): Notification {
-    return notificationFactory.createNotification(
-      AndroidBundle.message("android.appinspection.notification.crash", inspectorName),
-      "",
-      NotificationType.ERROR,
-      object : NotificationListener.Adapter() {
-        override fun hyperlinkActivated(notification: Notification, e: HyperlinkEvent) {
-          AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
-          launchInspectorTabsForCurrentProcess()
-          notification.expire()
-        }
-      }
-    )
+  private fun showCrashNotification(inspectorName: String) {
+    ideServices.showNotification(
+      AppInspectionBundle.message("notification.crash", inspectorName),
+      severity = AppInspectionIdeServices.Severity.ERROR
+    ) {
+      AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
+      launchInspectorTabsForCurrentProcess()
+    }
   }
 
   private lateinit var currentProcess: ProcessDescriptor
@@ -151,7 +142,7 @@ class AppInspectionView(
           )
         ) { messenger ->
           invokeAndWaitIfNeeded {
-            provider.createTab(project, messenger, appInspectionCallbacks)
+            provider.createTab(project, messenger, ideServices)
               .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
               .also { updateUi() }
           }.client
@@ -159,7 +150,7 @@ class AppInspectionView(
           client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
             override fun onCrashEvent(message: String) {
               AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
-              createCrashNotification(provider.displayName).notify(project)
+              showCrashNotification(provider.displayName)
             }
           }, MoreExecutors.directExecutor())
         }.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Unit> {

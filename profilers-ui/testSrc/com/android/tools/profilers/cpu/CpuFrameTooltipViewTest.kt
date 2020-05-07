@@ -28,7 +28,7 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.atrace.AtraceFrame
+import com.android.tools.profilers.cpu.atrace.SystemTraceFrame
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
 import com.google.common.truth.Truth.assertThat
@@ -76,13 +76,13 @@ class CpuFrameTooltipViewTest {
 
   @Test
   fun textUpdateOnRangeChange() {
-    val mainFrame = AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.MAIN)
-    val renderFrame = AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.RENDER)
+    val mainFrame = SystemTraceFrame(1, 1, 0.0, 0, SystemTraceFrame.FrameThread.MAIN)
+    val renderFrame = SystemTraceFrame(1, 1, 0.0, 0, SystemTraceFrame.FrameThread.RENDER)
     mainFrame.associatedFrame = renderFrame
     renderFrame.associatedFrame = mainFrame
 
     val frames = mutableListOf(SeriesData(0, mainFrame), SeriesData(2, renderFrame))
-    val series = LazyDataSeries<AtraceFrame> { frames }
+    val series = LazyDataSeries<SystemTraceFrame> { frames }
     tooltip.setFrameSeries(series)
     val labels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
     assertThat(labels).hasSize(8)
@@ -105,8 +105,9 @@ class CpuFrameTooltipViewTest {
 
   @Test
   fun renderFramePanelAndSeparatorShouldBeHidden() {
-    val frames = mutableListOf(SeriesData(0, AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.MAIN)))
-    val series = LazyDataSeries<AtraceFrame> { frames }
+    val frames = mutableListOf(
+      SeriesData(0, SystemTraceFrame(1L, 1L, 0.0, 0, SystemTraceFrame.FrameThread.MAIN)))
+    val series = LazyDataSeries<SystemTraceFrame> { frames }
     tooltip.setFrameSeries(series)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
     assertThat(panels).hasSize(4)
@@ -118,8 +119,9 @@ class CpuFrameTooltipViewTest {
 
   @Test
   fun mainFramePanelAndSeparatorShouldBeHidden() {
-    val frames = mutableListOf(SeriesData(0, AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.RENDER)))
-    val series = LazyDataSeries<AtraceFrame> { frames }
+    val frames = mutableListOf(
+      SeriesData(0, SystemTraceFrame(1L, 1L, 0.0, 0, SystemTraceFrame.FrameThread.RENDER)))
+    val series = LazyDataSeries<SystemTraceFrame> { frames }
     tooltip.setFrameSeries(series)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
     assertThat(panels).hasSize(4)
@@ -131,8 +133,8 @@ class CpuFrameTooltipViewTest {
 
   @Test
   fun allPanelsShouldBeHidden() {
-    val frames = mutableListOf<SeriesData<AtraceFrame>>()
-    val series = LazyDataSeries<AtraceFrame> { frames }
+    val frames = mutableListOf<SeriesData<SystemTraceFrame>>()
+    val series = LazyDataSeries<SystemTraceFrame> { frames }
     tooltip.setFrameSeries(series)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
     assertThat(panels).hasSize(4)

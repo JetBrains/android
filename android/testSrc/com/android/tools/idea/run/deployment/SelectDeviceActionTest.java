@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import java.nio.file.FileSystem;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -77,7 +78,7 @@ public final class SelectDeviceActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Arrays.asList(device1, device2));
+    Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Arrays.asList(device1, device2)));
 
     AnAction action = SelectDeviceAction.newSelectDeviceAction(device1, myComboBoxAction);
 
@@ -100,6 +101,7 @@ public final class SelectDeviceActionTest {
       .setSnapshot(new Snapshot(fileSystem.getPath("snap_2018-08-07_16-27-58"), fileSystem))
       .build();
 
+    Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Collections.singletonList(device)));
     Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
 
     AnAction action = SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction);
@@ -121,6 +123,8 @@ public final class SelectDeviceActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
+    Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Collections.singletonList(device)));
+
     AnAction action = SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction);
 
     // Act
@@ -139,7 +143,7 @@ public final class SelectDeviceActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Collections.singletonList(device));
+    Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Collections.singletonList(device)));
 
     AnAction action = SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction);
 

@@ -21,14 +21,14 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
+import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 /**
- * List model that manages CpuState information. When a {@link AtraceCpuCapture} is selected this class is responsible for
+ * List model that manages CpuState information. When a {@link SystemTraceCpuCapture} is selected this class is responsible for
  * updating the list model with each cpu's data series.
  */
 public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {

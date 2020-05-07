@@ -86,7 +86,6 @@ import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
-import java.awt.Rectangle;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -272,7 +271,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     myScrollPane = new MyScrollPane();
     myScrollPane.setViewportView(mySceneViewPanel);
-    myScrollPane.setBorder(null);
+    myScrollPane.setBorder(JBUI.Borders.empty());
     myScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
     myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
     myScrollPane.getHorizontalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
@@ -439,7 +438,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Add an {@link NlModel} to DesignSurface and return the created {@link SceneManager}.
-   * If it is added before then it just returns the associated {@link SceneManager} which created before.
+   * If it is added before then it just returns the associated {@link SceneManager} which created before. The {@link NlModel} will be moved
+   * to the last position which might affect rendering.
    *
    * @param model the added {@link NlModel}
    * @see #addAndRenderModel(NlModel)
@@ -447,8 +447,18 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private SceneManager addModel(@NotNull NlModel model) {
     SceneManager manager = getSceneManager(model);
-    // No need to add same model twice.
     if (manager != null) {
+      // No need to add same model twice. We just move it to the bottom of the model list since order is important.
+      myModelToSceneManagersLock.writeLock().lock();
+      try {
+        SceneManager managerToMove = myModelToSceneManagers.remove(model);
+        if (managerToMove != null) {
+          myModelToSceneManagers.put(model, managerToMove);
+        }
+      }
+      finally {
+        myModelToSceneManagersLock.writeLock().unlock();
+      }
       return manager;
     }
 
@@ -471,10 +481,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, only
-   * the refresh will be triggered.
+   * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, it will
+   * be moved to the bottom of the list and a refresh will be triggered.
    * The callback {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} is triggered after rendering.
    * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
+   * <br/><br/>
+   * Note that the order of the addition might be important for the rendering order. {@link PositionableContentLayoutManager} will receive
+   * the models in the order they are added.
    *
    * @param model the added {@link NlModel}
    * @see #addModel(NlModel)
@@ -504,6 +517,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * This function trigger {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} callback immediately.
    * In the opposite, {@link #addAndRenderModel(NlModel)} triggers {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)}
    * when render is completed.
+   *
+   * <br/><br/>
+   * Note that the order of the addition might be important for the rendering order. {@link PositionableContentLayoutManager} will receive
+   * the models in the order they are added.
    *
    * TODO(b/147225165): Remove #addAndRenderModel function and rename this function as #addModel
    *
@@ -1544,31 +1561,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     }
 
-    List<SceneManager> invisibleSceneManagers = new ArrayList<>();
-    List<SceneManager> visibleSceneManagers = new ArrayList<>();
-    for (SceneManager manager : getSceneManagers()) {
-      if (manager.getSceneViews().stream().anyMatch(view -> isSceneViewVisible(view))) {
-        visibleSceneManagers.add(manager);
-      }
-      else {
-        invisibleSceneManagers.add(manager);
-      }
-    }
-
-    // Release the resources of invisible SceneManagers first to make sure we have enough memories for rendering.
-    for (SceneManager manager : invisibleSceneManagers) {
-      manager.onNotVisible();
-    }
-
     // Cascading the CompletableFuture to make them executing sequentially.
     CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
-    for (SceneManager manager : visibleSceneManagers) {
+    for (SceneManager manager : getSceneManagers()) {
       renderFuture = renderFuture.thenCompose(it -> {
-        // The visible SceneView may become invisible during sequential rendering, check it again.
-        if (manager.getSceneViews().stream().noneMatch(view -> isSceneViewVisible(view))) {
-          manager.onNotVisible();
-          return CompletableFuture.completedFuture(null);
-        }
         CompletableFuture<Void> future = renderRequest.apply(manager);
         invalidate();
         return future;
@@ -1747,12 +1743,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public void setMaxFitIntoScale(float maxFitIntoScale) {
     myMaxFitIntoScale = maxFitIntoScale;
-  }
-
-  private boolean isSceneViewVisible(@NotNull SceneView view) {
-    Dimension size = view.getScaledContentSize();
-    Rectangle place = new Rectangle(view.getX(), view.getY(), size.width, size.height);
-    return place.intersects(myScrollPane.getViewport().getViewRect());
   }
 
   /**

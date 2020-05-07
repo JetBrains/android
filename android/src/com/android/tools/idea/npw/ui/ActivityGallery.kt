@@ -26,8 +26,6 @@ import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.util.IconLoader
 import icons.AndroidIcons
 
-val cppIcon: TemplateIcon get() = TemplateIcon(AndroidIcons.Wizards.CppConfiguration)
-
 fun getTemplateIcon(template: Template): TemplateIcon? {
   if (template == Template.NoActivity) {
     return TemplateIcon(AndroidIcons.Wizards.NoActivity)

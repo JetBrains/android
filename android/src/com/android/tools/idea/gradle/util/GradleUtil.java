@@ -972,6 +972,17 @@ public final class GradleUtil {
   }
 
   /**
+   * Checks if the given folder contains navigation arg classes by safe arg. When the IDE uses light safe arg classes,
+   * these folders are not marked as sources of the module.
+   */
+  public static boolean isSafeArgGeneratedSourcesFolder(@NotNull File folder, @NotNull File buildFolder) {
+    File generatedFolder = new File(buildFolder, FilenameConstants.GENERATED);
+    File safeArgClassSources = FileUtils.join(generatedFolder, FD_SOURCE_GEN, FilenameConstants.SAFE_ARG_CLASS_SOURCES);
+
+    return FileUtil.isAncestor(safeArgClassSources, folder, false);
+  }
+
+  /**
    * Wrapper around {@link BaseArtifact#getGeneratedSourceFolders()} that skips the aapt sources folder when light classes are used by the
    * IDE.
    */
@@ -981,6 +992,7 @@ public final class GradleUtil {
       .stream()
       .filter(folder -> !isAaptGeneratedSourcesFolder(folder, buildFolder))
       .filter(folder -> !isDataBindingGeneratedBaseClassesFolder(folder, buildFolder))
+      .filter(folder -> !isSafeArgGeneratedSourcesFolder(folder, buildFolder))
       .collect(Collectors.toList());
   }
 

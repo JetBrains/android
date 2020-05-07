@@ -39,19 +39,18 @@ const val WINDOW_MANAGER_FLAG_DIM_BEHIND = 0x2
  * @param viewId the id set by the developer in the View.id attribute
  * @param textValue the text value if present
  */
-class ViewNode(var drawId: Long,
-               val qualifiedName: String,
-               val layout: ResourceReference?,
-               var x: Int,
-               var y: Int,
-               var scrollX: Int,
-               var scrollY: Int,
-               var width: Int,
-               var height: Int,
-               var viewId: ResourceReference?,
-               var textValue: String,
-               var layoutFlags: Int) {
-
+open class ViewNode(
+  var drawId: Long,
+  var qualifiedName: String,
+  var layout: ResourceReference?,
+  var x: Int,
+  var y: Int,
+  var width: Int,
+  var height: Int,
+  var viewId: ResourceReference?,
+  var textValue: String,
+  var layoutFlags: Int
+) {
   val bounds: Rectangle
     get() = Rectangle(x, y, width, height)
 
@@ -59,6 +58,13 @@ class ViewNode(var drawId: Long,
 
   val children = mutableListOf<ViewNode>()
   var parent: ViewNode? = null
+
+  val hasProperties: Boolean
+    get() = this !is ComposeViewNode
+
+  // scrollX and scrollY are only needed for loading of nodes from legacy device
+  var legacyScrollX: Int = 0
+  var legacyScrollY: Int = 0
 
   // imageBottom: the image painted before the sub views
   var imageBottom: Image? = null

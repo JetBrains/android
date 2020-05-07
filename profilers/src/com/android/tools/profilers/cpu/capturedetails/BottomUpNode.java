@@ -150,7 +150,8 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     for (CaptureNode node : myNodes) {
       // We use the root node to distinguish if two nodes share the same tree. In the event of multi-select we want to compute the bottom
       // up calculation independently for each tree then sum them after the fact.
-      CaptureNode root = findRootNode(node);
+      // TODO(153306735): Cache the root calculation, otherwise our update algorithm is going to be O(n*depth) instead of O(n)
+      CaptureNode root = node.findRootNode();
       CaptureNode outerSoFar = outerSoFarByParent.getOrDefault(root, null);
       if (outerSoFar == null || node.getEnd() > outerSoFar.getEnd()) {
         if (outerSoFar != null) {
@@ -171,16 +172,6 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
       myGlobalTotal += getIntersection(range, outerSoFar, ClockType.GLOBAL);
     }
     myGlobalChildrenTotal = myGlobalTotal - self;
-  }
-
-  @NotNull
-  private static CaptureNode findRootNode(@NotNull CaptureNode node) {
-    // TODO(153306735): Cache the root calculation, otherwise our update algorithm is going to
-    //                  be O(n^2) instead of O(n)
-    if (node.getParent() != null) {
-      return findRootNode(node.getParent());
-    }
-    return node;
   }
 
   @NotNull

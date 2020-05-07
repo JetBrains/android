@@ -749,7 +749,7 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
     // Makes sure memory profiler stage is now open.
     assertThat(myProfilers.stage).isInstanceOf(MemoryProfilerStage::class.java)
     // Makes sure a HeapDumpCaptureObject is loaded.
-    assertThat((myProfilers.stage as MemoryProfilerStage).selectedCapture).isInstanceOf(HeapDumpCaptureObject::class.java)
+    assertThat((myProfilers.stage as MemoryProfilerStage).captureSelection.selectedCapture).isInstanceOf(HeapDumpCaptureObject::class.java)
 
     // Make sure clicking the export label does not select the session.
     mySessionsManager.setSession(Common.Session.getDefaultInstance())
@@ -799,7 +799,7 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
     // Makes sure memory profiler stage is now open.
     assertThat(myProfilers.stage).isInstanceOf(MemoryProfilerStage::class.java)
     // Makes sure that there is no capture selected.
-    assertThat((myProfilers.stage as MemoryProfilerStage).selectedCapture).isNull()
+    assertThat((myProfilers.stage as MemoryProfilerStage).captureSelection.selectedCapture).isNull()
     assertThat(myProfilers.timeline.isStreaming).isTrue()
   }
 
@@ -839,7 +839,7 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
     // Makes sure memory profiler stage is now open.
     assertThat(myProfilers.stage).isInstanceOf(MemoryProfilerStage::class.java)
     // Makes sure a HeapDumpCaptureObject is loaded.
-    assertThat((myProfilers.stage as MemoryProfilerStage).selectedCapture).isInstanceOf(LegacyAllocationCaptureObject::class.java)
+    assertThat((myProfilers.stage as MemoryProfilerStage).captureSelection.selectedCapture).isInstanceOf(LegacyAllocationCaptureObject::class.java)
 
     // Make sure clicking the export label does not select the session.
     mySessionsManager.setSession(Common.Session.getDefaultInstance())
@@ -889,7 +889,7 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
     // Makes sure memory profiler stage is now open.
     assertThat(myProfilers.stage).isInstanceOf(MemoryProfilerStage::class.java)
     // Makes sure that there is no capture selected.
-    assertThat((myProfilers.stage as MemoryProfilerStage).selectedCapture).isNull()
+    assertThat((myProfilers.stage as MemoryProfilerStage).captureSelection.selectedCapture).isNull()
     assertThat(myProfilers.timeline.isStreaming).isTrue()
   }
 }

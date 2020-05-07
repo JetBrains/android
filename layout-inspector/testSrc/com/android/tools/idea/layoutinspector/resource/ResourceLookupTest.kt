@@ -39,12 +39,10 @@ class ResourceLookupTest {
 
   @Test
   fun testSingleColorIcon() {
-    val model = InspectorPropertiesModel()
-    val inspectorModel = model.layoutInspector?.layoutInspectorModel
-    val title = ViewNode(1, "TextView", null, 30, 60, 0, 0, 300, 100, null, "Hello Folks", 0)
-    val property = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "#CC0000",
-                                         PropertySection.DECLARED, null, title, inspectorModel?.resourceLookup)
     val lookup = ResourceLookup(projectRule.project)
+    val title = ViewNode(1, "TextView", null, 30, 60, 300, 100, null, "Hello Folks", 0)
+    val property = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "#CC0000",
+                                         PropertySection.DECLARED, null, title, lookup)
     val icon = lookup.resolveAsIcon(property)
     Truth.assertThat(icon).isEqualTo(JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, Color(0xCC0000), false)))
   }

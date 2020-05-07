@@ -30,6 +30,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
+import com.intellij.psi.util.ClassUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.Collections
@@ -101,7 +102,11 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
   }
 
   override fun testStarted(testId: TestIdentifier) {
-    val testCase = AndroidTestCase(testId.toString(), testId.toString(), AndroidTestCaseResult.IN_PROGRESS)
+    val testCase = AndroidTestCase(testId.toString(),
+                                   testId.testName,
+                                   ClassUtil.extractClassName(testId.className),
+                                   ClassUtil.extractPackageName(testId.className),
+                                   AndroidTestCaseResult.IN_PROGRESS)
     myTestCases[testId] = testCase
     listener.onTestCaseStarted(myDevice, myTestSuite, testCase)
   }
@@ -144,6 +149,17 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
   }
 
   override fun testRunEnded(elapsedTime: Long, runMetrics: MutableMap<String, String>) {
+    // Ddmlib calls testRunEnded() callback if the target app process has crashed or
+    // killed manually. (For example, if you click "stop" run button from Android Studio,
+    // it kills the app process. Thus, we update test results to cancelled for all
+    // pending tests.
+    for (testCase in myTestCases.values) {
+      if (!testCase.result.isTerminalState) {
+        testCase.result = AndroidTestCaseResult.CANCELLED
+        myTestSuite.result = myTestSuite.result ?: AndroidTestSuiteResult.CANCELLED
+      }
+    }
+
     myTestSuite.result = myTestSuite.result ?: AndroidTestSuiteResult.PASSED
     listener.onTestSuiteFinished(myDevice, myTestSuite)
   }

@@ -84,11 +84,11 @@ class AndroidTestSuiteViewTest {
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
-    val testcase1OnDevice1 = AndroidTestCase("testId1", "testName1")
-    val testcase2OnDevice1 = AndroidTestCase("testId2", "testName2")
+    val testcase1OnDevice1 = AndroidTestCase("testId1", "method1", "class1", "package1")
+    val testcase2OnDevice1 = AndroidTestCase("testId2", "method2", "class2", "package2")
     val testsuiteOnDevice2 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
-    val testcase1OnDevice2 = AndroidTestCase("testId1", "testName1")
-    val testcase2OnDevice2 = AndroidTestCase("testId2", "testName2")
+    val testcase1OnDevice2 = AndroidTestCase("testId1", "method1", "class1", "package1")
+    val testcase2OnDevice2 = AndroidTestCase("testId2", "method2", "class2", "package2")
 
     view.onTestSuiteScheduled(device1)
     view.onTestSuiteScheduled(device2)
@@ -119,7 +119,7 @@ class AndroidTestSuiteViewTest {
 
     // Verifies the details view is visible now.
     assertThat(view.detailsViewForTesting.rootPanel.isVisible).isTrue()
-    assertThat(view.detailsViewForTesting.titleTextViewForTesting.text).isEqualTo("testName2")
+    assertThat(view.detailsViewForTesting.titleTextViewForTesting.text).isEqualTo("package2.class2.method2")
     assertThat(view.detailsViewForTesting.selectedDeviceForTesting).isEqualTo(device1)
 
     // Click on the test case 1 results row in device2 column.
@@ -128,7 +128,7 @@ class AndroidTestSuiteViewTest {
 
     // Verifies the details view is visible now.
     assertThat(view.detailsViewForTesting.rootPanel.isVisible).isTrue()
-    assertThat(view.detailsViewForTesting.titleTextViewForTesting.text).isEqualTo("testName1")
+    assertThat(view.detailsViewForTesting.titleTextViewForTesting.text).isEqualTo("package1.class1.method1")
     assertThat(view.detailsViewForTesting.selectedDeviceForTesting).isEqualTo(device2)
 
     // Finally, close the details view.
@@ -143,10 +143,10 @@ class AndroidTestSuiteViewTest {
 
     val device1 = device("deviceId1", "deviceName1")
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 4)
-    val testcase1OnDevice1 = AndroidTestCase("testId1", "testName1")
-    val testcase2OnDevice1 = AndroidTestCase("testId2", "testName2")
-    val testcase3OnDevice1 = AndroidTestCase("testId3", "testName3")
-    val testcase4OnDevice1 = AndroidTestCase("testId4", "testName4")
+    val testcase1OnDevice1 = AndroidTestCase("testId1", "method1", "class1", "package1")
+    val testcase2OnDevice1 = AndroidTestCase("testId2", "method2", "class2", "package2")
+    val testcase3OnDevice1 = AndroidTestCase("testId3", "method3", "class3", "package3")
+    val testcase4OnDevice1 = AndroidTestCase("testId4", "method4", "class4", "package4")
 
     view.onTestSuiteScheduled(device1)
 
@@ -239,11 +239,11 @@ class AndroidTestSuiteViewTest {
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
-    val testcase1OnDevice1 = AndroidTestCase("testId1", "testName1")
-    val testcase2OnDevice1 = AndroidTestCase("testId2", "testName2")
+    val testcase1OnDevice1 = AndroidTestCase("testId1", "method1", "class1", "package1")
+    val testcase2OnDevice1 = AndroidTestCase("testId2", "method2", "class2", "package2")
     val testsuiteOnDevice2 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
-    val testcase1OnDevice2 = AndroidTestCase("testId1", "testName1")
-    val testcase2OnDevice2 = AndroidTestCase("testId2", "testName2")
+    val testcase1OnDevice2 = AndroidTestCase("testId1", "method1", "class1", "package1")
+    val testcase2OnDevice2 = AndroidTestCase("testId2", "method2", "class2", "package2")
 
     view.onTestSuiteScheduled(device1)
     view.onTestSuiteScheduled(device2)
@@ -285,11 +285,11 @@ class AndroidTestSuiteViewTest {
     val device1 = device("deviceId1", "deviceName1", 29)
     val device2 = device("deviceId2", "deviceName2", 28)
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
-    val testcase1OnDevice1 = AndroidTestCase("testId1", "testName1")
-    val testcase2OnDevice1 = AndroidTestCase("testId2", "testName2")
+    val testcase1OnDevice1 = AndroidTestCase("testId1", "method1", "class1", "package1")
+    val testcase2OnDevice1 = AndroidTestCase("testId2", "method2", "class2", "package2")
     val testsuiteOnDevice2 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
-    val testcase1OnDevice2 = AndroidTestCase("testId1", "testName1")
-    val testcase2OnDevice2 = AndroidTestCase("testId2", "testName2")
+    val testcase1OnDevice2 = AndroidTestCase("testId1", "method1", "class1", "package1")
+    val testcase2OnDevice2 = AndroidTestCase("testId2", "method2", "class2", "package2")
 
     view.onTestSuiteScheduled(device1)
     view.onTestSuiteScheduled(device2)

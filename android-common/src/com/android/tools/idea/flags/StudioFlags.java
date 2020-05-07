@@ -161,7 +161,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_HEAPDUMP_SEPARATE = Flag.create(
     PROFILER, "memory.heapdump.separate", "Show heap dump separately",
     "Show heap dump as a separate view instead of sharing with the memory monitor",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_USE_TRACEPROCESSOR = Flag.create(
     PROFILER, "perfetto.traceprocessor", "Enable TraceProcessorDaemon",
@@ -235,6 +235,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_RESOURCE_POPUP_PICKER = Flag.create(
     NELE, "show.resource.popup.picker", "Enable popup  resource picker in layout editor.",
     "Show the popup picker for resource picking or attribute customization in layout editor.",
+    true);
+
+  public static final Flag<Boolean> NELE_DRAWABLE_POPUP_PICKER = Flag.create(
+    NELE, "show.drawable.popup.picker", "Enable drawable popup picker in Xml Editor.",
+    "Show the resource popup picker for picking drawable resources from the Editor's gutter icon.",
     true);
 
   public static final Flag<Boolean> NELE_LOG_ANDROID_FRAMEWORK = Flag.create(
@@ -352,11 +357,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> NAV_SAFE_ARGS_SUPPORT = Flag.create(
     NAV_EDITOR, "safe.args.enabled", "Enable support for Safe Args",
     "Generate in-memory Safe Args classes if the current module is using the feature.",
-    false);
-
-  public static final Flag<Boolean> NAV_DEEP_LINK_EXTENDED = Flag.create(
-    NAV_EDITOR, "deep.link.ex", "Extended fields for deep link dialog",
-    "Add new fields to the navigation editor's deep link dialog",
     false);
   //endregion
 
@@ -506,7 +506,7 @@ public final class StudioFlags {
     "Enable build attribution.", true);
   public static final Flag<Boolean> NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED = Flag.create(
     GRADLE_IDE, "build.analyzer.new.ui.navigation", "Enable new UI navigation model for \"Build Analyzer\"",
-    "Enable new UI navigation model for \"Build Analyzer\".", false);
+    "Enable new UI navigation model for \"Build Analyzer\".", true);
   public static final Flag<Boolean> KOTLIN_DSL_PARSING = Flag.create(
     GRADLE_IDE, "kotlin.dsl", "Enable parsing for Kotlin build files",
     "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", true);
@@ -568,6 +568,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.devbuild.skia", "Use the locally-built skia rendering server",
     "If enabled and this is a locally-built studio instance, use the locally-built skia server instead of one from the SDK.", false);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.compose.support", "Show inspectables from Compose",
+    "If enabled the component tree will include Composable nodes if they are wrapped in an Inspectable.", false);
   //endregion
 
   //region Embedded Emulator

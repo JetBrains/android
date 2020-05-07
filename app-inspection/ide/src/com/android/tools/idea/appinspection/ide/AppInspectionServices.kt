@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
+import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportClient
@@ -60,7 +61,7 @@ internal class AppInspectionHostService : Disposable {
   ) { device ->
     val jarCopier = findDevice(device)?.createJarCopier()
     if (jarCopier == null) {
-      logger.error("AndroidDebugBridge cannot find device (manufacturer='${device.manufacturer}', '${device.model}', '${device.serial}')")
+      logger.error(AppInspectionBundle.message("device.not.found", device.manufacturer, device.model, device.serial))
     }
     jarCopier
   }

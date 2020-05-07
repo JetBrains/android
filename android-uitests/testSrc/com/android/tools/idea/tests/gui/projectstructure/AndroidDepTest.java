@@ -26,9 +26,9 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.NewJavaClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.AddModuleDependencyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPerspectiveConfigurableFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPerspectiveConfigurableFixtureKt;
@@ -116,7 +116,7 @@ public class AndroidDepTest {
       .selectProjectPane()
       .clickPath(APP_NAME, "library_module", "src", "main", "java", "android.com.library_module");
 
-    invokeNewFileDialog().setName("LibraryClass").clickOk();
+    invokeJavaClass(ideFrame).enterName("LibraryClass").clickOk();
     editor.open("/library_module/src/main/java/android/com/library_module/LibraryClass.java")
       .select("()public class LibraryClass")
       .enterText("import com.google.gson.Gson;\n\n")
@@ -128,8 +128,8 @@ public class AndroidDepTest {
   }
 
   @NotNull
-  private CreateFileFromTemplateDialogFixture invokeNewFileDialog() {
+  private NewJavaClassDialogFixture invokeJavaClass(@NotNull IdeFrameFixture ideFrame) {
     guiTest.ideFrame().invokeMenuPath("File", "New", "Java Class");
-    return CreateFileFromTemplateDialogFixture.find(guiTest.robot());
+    return NewJavaClassDialogFixture.find(ideFrame);
   }
 }

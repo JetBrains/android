@@ -42,6 +42,9 @@ public class ProfilerState {
   public boolean ADVANCED_PROFILING_ENABLED = false;
   public static final String ENABLE_ADVANCED_PROFILING_NAME = "android.profiler.enabled";
 
+  public boolean STARTUP_PROFILING_ENABLED = false;
+  public static final String ENABLE_STARTUP_PROFILING_NAME = "android.profiler.startup.enabled";
+
   public boolean STARTUP_CPU_PROFILING_ENABLED = false;
   public String STARTUP_CPU_PROFILING_CONFIGURATION_NAME = CpuProfilerConfig.Technology.SAMPLED_JAVA.getName();
 
@@ -72,9 +75,18 @@ public class ProfilerState {
     DefaultJDOMExternalizer.writeExternal(this, element);
   }
 
+  public boolean isCpuStartupProfilingEnabled() {
+    return STARTUP_PROFILING_ENABLED && STARTUP_CPU_PROFILING_ENABLED;
+  }
+
+  public boolean isNativeMemoryStartupProfilingEnabled() {
+    return STARTUP_PROFILING_ENABLED && STARTUP_NATIVE_MEMORY_PROFILING_ENABLED;
+  }
+
   public Properties toProperties() {
     Properties result = new Properties();
     result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ADVANCED_PROFILING_ENABLED));
+    result.setProperty(ENABLE_STARTUP_PROFILING_NAME, String.valueOf(STARTUP_PROFILING_ENABLED));
     result.setProperty(ENABLE_UNIFIED_PIPELINE_NAME, String.valueOf(StudioFlags.PROFILER_UNIFIED_PIPELINE.get()));
     result.setProperty(ENABLE_ADVANCED_OKHTTP_PROFILING_NAME, String.valueOf(PROFILING_OKHTTP_ENABLED));
     result.setProperty(STARTUP_MEMORY_PROFILING_NAME, String.valueOf(STARTUP_NATIVE_MEMORY_PROFILING_ENABLED));

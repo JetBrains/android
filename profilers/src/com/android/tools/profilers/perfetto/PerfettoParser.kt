@@ -40,6 +40,7 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
   }
 
   private fun parseUsingTraceProcessor(file: File, traceId: Long): CpuCapture {
+    //noinspection StopShip
     TODO("b/147099951 Use TraceProcessorService and return a PerfettoCapture.")
   }
 

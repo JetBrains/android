@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.sync.setup.post.project.GradleKtsBuildFilesWarningStep
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
 import com.android.tools.idea.gradle.structure.configurables.suggestions.SuggestionsPerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.variables.VariablesConfigurable
@@ -37,10 +36,8 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
     val repositorySearchFactory = CachingRepositorySearchFactory()
     val context = PsContextImpl(PsProjectImpl(project, repositorySearchFactory), parentDisposable, false, false, repositorySearchFactory)
 
-    if (GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES.get(project, false)) {
-      if (!StudioFlags.KOTLIN_DSL_PARSING.get()) {
-        return ktsRestrictedProjectStructure(project, context)
-      }
+    if (!StudioFlags.KOTLIN_DSL_PARSING.get()) {
+      return ktsRestrictedProjectStructure(project, context)
     }
 
     return listOf(

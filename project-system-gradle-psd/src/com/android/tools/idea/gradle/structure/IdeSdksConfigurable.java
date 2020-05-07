@@ -35,12 +35,14 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.ui.LabelAndFileForLocation;
 import com.android.tools.idea.gradle.ui.SdkUiStrings;
 import com.android.tools.idea.gradle.ui.SdkUiUtils;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -154,7 +156,14 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
     myDetailsComponent = new DetailsComponent(false /* no details */, false /* with border */);
     myDetailsComponent.setContent(myWholePanel);
-    Boolean supportsSideBySideNdk = supportsSideBySideNdk(project);
+
+    boolean supportsSideBySideNdk = true;
+    if (myProject != null) {
+      GradleVersion gradleModelNumber = GradleUtil.getAndroidGradleModelVersionInUse(project);
+      if (gradleModelNumber != null) {
+        supportsSideBySideNdk = supportsSideBySideNdk(gradleModelNumber);
+      }
+    }
     myNdkLocationComboBox.setEnabled(!supportsSideBySideNdk);
 
     // We can't update The IDE-level ndk directory. Due to that disabling the ndk directory option in the default Project Structure dialog.

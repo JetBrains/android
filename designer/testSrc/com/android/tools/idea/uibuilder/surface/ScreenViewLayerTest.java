@@ -95,7 +95,6 @@ public class ScreenViewLayerTest {
   private static RenderResult createRenderResultMock(@NotNull ImagePool.Image resultImage) {
     RenderResult result = mock(RenderResult.class);
     when(result.getRenderedImage()).thenReturn(resultImage);
-    when(result.hasImage()).thenReturn(true);
 
     return result;
   }

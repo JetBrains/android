@@ -25,12 +25,11 @@ import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
-import com.android.tools.idea.sqlite.model.FileSqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
-import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
@@ -63,7 +62,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   override fun setUp() {
     super.setUp()
     mockSchemaProvider = mock(SchemaProvider::class.java)
-    `when`(mockSchemaProvider.getSchema(any(SqliteDatabase::class.java))).thenReturn(SqliteSchema(emptyList()))
+    `when`(mockSchemaProvider.getSchema(any(SqliteDatabaseId::class.java))).thenReturn(SqliteSchema(emptyList()))
 
     view = SqliteEvaluatorViewImpl(project, TableViewImpl(), mockSchemaProvider)
     view.component.size = Dimension(600, 200)
@@ -91,36 +90,60 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Act/Assert
     assertEquals(-1, comboBox.selectedIndex)
 
-    val db1 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1"))
-    val db2 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db2"))
+    val databaseId1 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
+    val databaseId2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
 
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(db1, null, 0)))
+    view.setDatabases(listOf(databaseId1, databaseId2))
     assertEquals(0, comboBox.selectedIndex)
 
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(db2, null,1)))
-    assertEquals(0, comboBox.selectedIndex)
-
-    view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase (db1)))
-    assertEquals(0, comboBox.selectedIndex)
-
-    view.updateDatabases(listOf(DatabaseDiffOperation.RemoveDatabase (db2)))
+    view.setDatabases(emptyList())
     assertEquals(-1, comboBox.selectedIndex)
+  }
+
+  fun testActiveDatabaseRemainsActiveWhenNewDbsAreAdded() {
+    // Prepare
+    val model = MockDatabaseInspectorModel()
+    val evaluatorController = SqliteEvaluatorController(
+      project,
+      model,
+      view,
+      {},
+      EdtExecutorService.getInstance(),
+      EdtExecutorService.getInstance()
+    )
+    evaluatorController.setUp()
+
+    val db0 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db0"))
+    val db1 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
+    val db2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
+
+    // Act/Assert
+    assertEquals(null, view.activeDatabase)
+
+    model.addDatabaseSchema(db2, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
+    assertEquals(db2, view.activeDatabase)
+
+    model.addDatabaseSchema(db1, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
+    assertEquals(db2, view.activeDatabase)
+
+    model.addDatabaseSchema(db0, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
+    assertEquals(db2, view.activeDatabase)
+
+    model.removeDatabaseSchema(db2)
+    assertEquals(db0, view.activeDatabase)
   }
 
   fun testSelectDatabaseChangesSelectedDatabase() {
     // Prepare
-    val database1 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1"))
-    val database2 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db2"))
+    val database1 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
+    val database2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
 
     // Act/Assert
-    view.updateDatabases(listOf(
-      DatabaseDiffOperation.AddDatabase(database1, null, 0),
-      DatabaseDiffOperation.AddDatabase(database2, null, 0)
-    ))
-    assertEquals(database1, view.getActiveDatabase())
+    view.setDatabases(listOf(database1, database2))
+    assertEquals(database1, view.activeDatabase)
 
-    view.selectDatabase(database2)
-    assertEquals(database2, view.getActiveDatabase())
+    view.activeDatabase = database2
+    assertEquals(database2, view.activeDatabase)
   }
 
   fun testPsiCacheIsDroppedWhenNewDatabaseIsSelected() {
@@ -131,17 +154,14 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val comboBox = TreeWalker(view.component).descendants().filterIsInstance<JComboBox<*>>().first()
 
-    val database1 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1"))
-    val database2 = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db2"))
+    val database1 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
+    val database2 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db2"))
 
     // Act/Assert
-    view.updateDatabases(listOf(
-      DatabaseDiffOperation.AddDatabase(database1, null, 0),
-      DatabaseDiffOperation.AddDatabase(database2, null, 1)
-    ))
+    view.setDatabases(listOf(database1, database2))
     verify(mockPsiManager).dropPsiCaches()
 
-    view.selectDatabase(database2)
+    view.activeDatabase = database2
     verify(mockPsiManager, times(2)).dropPsiCaches()
 
     comboBox.selectedIndex = 0
@@ -154,9 +174,9 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val mockPsiManager = spy(MockPsiManager(project))
     ideComponents.replaceProjectService(PsiManager::class.java, mockPsiManager)
 
-    val database = FileSqliteDatabase(mock(DatabaseConnection::class.java), MockVirtualFile("db1"))
+    val database = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db1"))
 
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, null, 0)))
+    view.setDatabases(listOf(database))
 
     // Act
     view.schemaChanged(database)
@@ -196,11 +216,12 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
-    val database = FileSqliteDatabase(realDatabaseConnection!!, sqliteFile)
+    val database = SqliteDatabaseId.fromFileDatabase(sqliteFile)
 
+    val model = DatabaseInspectorModelImpl()
     val controller = SqliteEvaluatorController(
       project,
-      MockDatabaseInspectorModel(),
+      model,
       view,
       {},
       EdtExecutorService.getInstance(),
@@ -209,7 +230,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     controller.setUp()
     Disposer.register(testRootDisposable, controller)
 
-    view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(database, null, 0)))
+    model.addDatabaseSchema(database, realDatabaseConnection!!, SqliteSchema(emptyList()))
 
     val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
 
@@ -265,7 +286,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     val invocations = mutableListOf<String>()
     val mockListener = object : SqliteEvaluatorView.Listener {
-      override fun evaluateSqliteStatementActionInvoked(database: SqliteDatabase, sqliteStatement: String) { }
+      override fun evaluateSqliteStatementActionInvoked(databaseId: SqliteDatabaseId, sqliteStatement: String) { }
 
       override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
         invocations.add(newSqliteStatement)

@@ -20,8 +20,8 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.MemoryProfiler;
-import com.android.tools.profilers.memory.MemoryProfilerConfiguration;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
@@ -217,7 +217,7 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
   }
 
   @Override
-  public boolean isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping grouping) {
+  public boolean isGroupingSupported(ClassGrouping grouping) {
     switch (grouping) {
       case NATIVE_ARRANGE_BY_ALLOCATION_METHOD:
       case NATIVE_ARRANGE_BY_CALLSTACK:

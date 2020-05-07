@@ -157,17 +157,9 @@ public class BaseCpuCapture implements CpuCapture {
     myClockType = clockType;
 
     for (CaptureNode tree : getCaptureNodes()) {
-      updateClockType(tree, clockType);
-    }
-  }
-
-  private static void updateClockType(@Nullable CaptureNode node, @NotNull ClockType clockType) {
-    if (node == null) {
-      return;
-    }
-    node.setClockType(clockType);
-    for (CaptureNode child : node.getChildren()) {
-      updateClockType(child, clockType);
+      if (tree != null) {
+        tree.getDescendantsStream().forEach(node -> node.setClockType(clockType));
+      }
     }
   }
 

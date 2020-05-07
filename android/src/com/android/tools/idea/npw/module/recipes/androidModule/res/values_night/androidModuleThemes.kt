@@ -30,8 +30,8 @@ fun androidModuleThemes(useAndroidX: Boolean, themeName: String = "Theme.App"): 
       <item name="colorPrimaryDark">@color/${PURPLE_700.colorName}</item>
       <item name="colorOnPrimary">@color/${BLACK.colorName}</item>
       <!-- Secondary brand color. -->
-      <item name="colorSecondary">@color/${TEEL_200.colorName}</item>
-      <item name="colorSecondaryVariant">@color/${TEEL_200.colorName}</item>
+      <item name="colorSecondary">@color/${TEAL_200.colorName}</item>
+      <item name="colorSecondaryVariant">@color/${TEAL_200.colorName}</item>
       <item name="colorOnSecondary">@color/${BLACK.colorName}</item>
       <!-- Status bar color. -->
       <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>

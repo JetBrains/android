@@ -17,10 +17,8 @@ package com.android.tools.idea.sqlite.databaseConnection.live
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.concurrency.cancelOnDispose
-import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.Executor
@@ -38,17 +36,6 @@ abstract class LiveSqliteResultSet(
   private val connectionId: Int,
   private val taskExecutor: Executor
 ) : SqliteResultSet {
-
-  override val columns: ListenableFuture<List<ResultSetSqliteColumn>> get() {
-    return sendQueryCommand(sqliteStatement).transform(taskExecutor) { response ->
-      response.query.columnNamesList.map { columnName ->
-        ResultSetSqliteColumn(columnName, null, null, null)
-      }
-    }
-  }
-
-  abstract override val totalRowCount: ListenableFuture<Int>
-  abstract override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>>
 
   protected fun sendQueryCommand(sqliteStatement: SqliteStatement): ListenableFuture<SqliteInspectorProtocol.Response> {
     val queryCommand = buildQueryCommand(sqliteStatement, connectionId)

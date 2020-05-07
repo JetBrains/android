@@ -97,7 +97,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
   override val packageName = StringValueProperty()
   override val projectLocation = StringValueProperty()
-  override val enableCppSupport = BoolValueProperty(PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY))
+  override val enableCppSupport = BoolValueProperty()
   override val useAppCompat = BoolValueProperty()
   override val useGradleKts = BoolValueProperty()
   override val cppFlags = StringValueProperty()
@@ -111,6 +111,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     val projectLocation = projectLocation.get()
     val projectBaseDirectory = File(projectLocation)
     project = GradleProjectImporter.getInstance().createProject(projectName, projectBaseDirectory)
+    GradleProjectImporter.configureNewProject(project)
     AndroidNewProjectInitializationStartupActivity.setProjectInitializer(project) {
       logger.info("Rendering a new project.")
       NonProjectFileWritingAccessProvider.disableChecksDuring {
@@ -134,7 +135,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   }
 
   private fun saveWizardState() = with(properties){
-    setValue(PROPERTIES_CPP_SUPPORT_KEY, enableCppSupport.get())
     setValue(PROPERTIES_NPW_LANGUAGE_KEY, language.value.toString())
     setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true)
     setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
@@ -298,7 +298,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     @VisibleForTesting
     const val PROPERTIES_NPW_ASKED_LANGUAGE_KEY = "SAVED_ANDROID_NPW_ASKED_LANGUAGE"
 
-    private const val PROPERTIES_CPP_SUPPORT_KEY = "SAVED_PROJECT_CPP_SUPPORT"
     private const val EXAMPLE_DOMAIN = "example.com"
     private val DISALLOWED_IN_DOMAIN = Pattern.compile("[^a-zA-Z0-9_]")
     private val MODULE_NAME_GROUP = Pattern.compile(".*:") // Anything before ":" belongs to the module parent name

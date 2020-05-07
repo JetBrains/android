@@ -15,41 +15,30 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.getErrorLocation
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.intellij.build.FilePosition
 import com.intellij.build.issue.BuildIssue
-import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getErrorLocation
 import java.io.File
 
 class GenericIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = issueData.error.message ?: return null
-    val description = getBuildIssueDescription(message, issueData.filePosition) ?: return null
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
-      override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
-  }
-
-  private fun getBuildIssueDescription(message: String, fileLocation: FilePosition?): MessageComposer? {
-    val description = MessageComposer(message)
+    val buildIssueComposer = BuildIssueComposer(message)
     if (message.isNotEmpty()) {
       val lines = message.lines()
       val errLocation = getErrorLocation(lines[lines.size - 1])
       if (errLocation != null) {
-        description.addQuickFix("Open file",
-                                OpenFileAtLocationQuickFix(FilePosition(File(errLocation.first), errLocation.second - 1, -1)))
-        return description
+        buildIssueComposer.addQuickFix("Open file",
+                                       OpenFileAtLocationQuickFix(FilePosition(File(errLocation.first), errLocation.second - 1, -1)))
+        return buildIssueComposer.composeBuildIssue()
       }
     }
-    if (fileLocation == null) return null
-    description.addQuickFix("Open file", OpenFileAtLocationQuickFix(fileLocation))
-    return description
+    if (issueData.filePosition == null) return null
+    buildIssueComposer.addQuickFix("Open file", OpenFileAtLocationQuickFix(issueData.filePosition as FilePosition))
+    return buildIssueComposer.composeBuildIssue()
   }
 }

@@ -42,7 +42,7 @@ sealed class OnlyClassesShortNamesCache(private vararg val classNames: String) :
   override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int) = PsiField.EMPTY_ARRAY
   override fun getMethodsByName(name: String, scope: GlobalSearchScope) = PsiMethod.EMPTY_ARRAY
   override fun getMethodsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int) = PsiMethod.EMPTY_ARRAY
-  override fun processMethodsWithName(name: String, scope: GlobalSearchScope, processor: Processor<PsiMethod>) = true
+  override fun processMethodsWithName(name: String, scope: GlobalSearchScope, processor: Processor<in PsiMethod>) = true
 }
 
 /**

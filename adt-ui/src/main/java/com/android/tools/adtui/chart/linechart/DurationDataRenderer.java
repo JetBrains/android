@@ -116,6 +116,8 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   private boolean myClick;
   private boolean myInComponentRegion;
 
+  private final CustomDecorator myCustomDecorator;
+
   public DurationDataRenderer(@NotNull DurationDataModel<E> model, @NotNull Builder<E> builder) {
     myModel = model;
     myColor = builder.myColor;
@@ -143,6 +145,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     else {
       myLineStrokeOffset = 0;
     }
+    myCustomDecorator = builder.myCustomDecorator;
 
     myModel.addDependency(this).onChange(DurationDataModel.Aspect.DURATION_DATA, this::modelChanged);
   }
@@ -325,8 +328,15 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
           g2d.setColor(BACKGROUND_HIGHLIGHT_COLOR);
           g2d.fill(clipRect);
         }
+
         g2d.setClip(originalClip);
       }
+
+      // Do custom drawing as the last step
+      myCustomDecorator.draw(g2d,
+                             clipRect,
+                             myMousePosition != null &&
+                             clipRect.contains(myMousePosition.x, myMousePosition.y));
     }
 
     // Draw the start/end lines if stroke has been set.
@@ -545,6 +555,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     private int myClickRegionPaddingX = 4;
     private int myClickRegionPaddingY = 2;
     private boolean myBackgroundClickable = false;
+    CustomDecorator myCustomDecorator = (graphics, rect, isMouseOver) -> {};
 
     public Builder(@NotNull DurationDataModel<E> model, @NotNull Color color) {
       myModel = model;
@@ -640,9 +651,25 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       return this;
     }
 
+    public Builder<E> setCustomDecorator(CustomDecorator customDecorator) {
+      myCustomDecorator = customDecorator;
+      return this;
+    }
+
     @NotNull
     public DurationDataRenderer<E> build() {
       return new DurationDataRenderer<>(myModel, this);
     }
+  }
+
+  /**
+   * Interface for arbitrary drawing on top of standard drawings by {@link DurationDataRenderer}
+   */
+  public interface CustomDecorator {
+    /**
+     * @param boundary The boundary that the duration data is drawn within
+     * @param isMouseOver Whether the mouse is within the boundary
+     */
+    void draw(Graphics2D graphics, Rectangle2D boundary, boolean isMouseOver);
   }
 }

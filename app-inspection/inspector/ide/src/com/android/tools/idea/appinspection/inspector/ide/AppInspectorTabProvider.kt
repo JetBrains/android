@@ -35,6 +35,6 @@ interface AppInspectorTabProvider {
   fun createTab(
     project: Project,
     messenger: AppInspectorClient.CommandMessenger,
-    appInspectionCallbacks: AppInspectionCallbacks
+    ideServices: AppInspectionIdeServices
   ): AppInspectorTab
 }

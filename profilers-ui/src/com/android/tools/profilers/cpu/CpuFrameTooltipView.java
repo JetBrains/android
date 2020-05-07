@@ -18,11 +18,9 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
-import com.android.tools.profilers.StageView;
-import com.android.tools.profilers.cpu.atrace.AtraceFrame;
+import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
 import com.intellij.util.ui.JBUI;
-import java.util.concurrent.TimeUnit;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -77,9 +75,9 @@ public class CpuFrameTooltipView extends TooltipView {
     tooltip.addDependency(this).onChange(CpuFrameTooltip.Aspect.FRAME_CHANGED, this::timeChanged);
   }
 
-  private static void setLabelText(AtraceFrame frame, JLabel cpuText, JLabel totalTimeText) {
+  private static void setLabelText(SystemTraceFrame frame, JLabel cpuText, JLabel totalTimeText) {
     cpuText.setText(String.format("CPU Time: %s", TimeFormatter
-      .getSingleUnitDurationString((long)(TimeUnit.SECONDS.toMicros(1) * frame.getCpuTimeSeconds()))));
+      .getSingleUnitDurationString((long) frame.getCpuTimeUs())));
     totalTimeText.setText(String.format("Wall Time: %s", TimeFormatter.getSingleUnitDurationString(frame.getDurationUs())));
   }
 
@@ -90,12 +88,12 @@ public class CpuFrameTooltipView extends TooltipView {
     myRenderFramePanel.setVisible(false);
     myTotalTimeText.setVisible(false);
 
-    AtraceFrame frame = myTooltip.getFrame();
-    if (frame == null || frame == AtraceFrame.EMPTY) {
+    SystemTraceFrame frame = myTooltip.getFrame();
+    if (frame == null || frame == SystemTraceFrame.EMPTY) {
       return;
     }
     myContent.setVisible(true);
-    if (frame.getThread() == AtraceFrame.FrameThread.MAIN) {
+    if (frame.getThread() == SystemTraceFrame.FrameThread.MAIN) {
       myMainFramePanel.setVisible(true);
       setLabelText(frame, myMainFrameCpuText, myMainFrameTotalTimeText);
       if (frame.getAssociatedFrame() != null) {
@@ -103,7 +101,7 @@ public class CpuFrameTooltipView extends TooltipView {
         setLabelText(frame.getAssociatedFrame(), myRenderFrameCpuText, myRenderTotalTimeText);
       }
     }
-    else if (frame.getThread() == AtraceFrame.FrameThread.RENDER) {
+    else if (frame.getThread() == SystemTraceFrame.FrameThread.RENDER) {
       myRenderFramePanel.setVisible(true);
       setLabelText(frame, myRenderFrameCpuText, myRenderTotalTimeText);
       if (frame.getAssociatedFrame() != null) {

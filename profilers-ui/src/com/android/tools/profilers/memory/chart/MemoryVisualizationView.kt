@@ -25,13 +25,14 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.axis.AxisComponentModel
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
-import com.android.tools.adtui.model.formatter.MemoryAxisFormatter
-import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.ProfilerCombobox
+import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.CapturePanelTabContainer
+import com.android.tools.profilers.memory.CaptureSelectionAspect
+import com.android.tools.profilers.memory.ClassGrouping
+import com.android.tools.profilers.memory.MemoryCaptureSelection
 import com.android.tools.profilers.memory.MemoryProfilerAspect
-import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping
 import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
 import com.android.tools.profilers.memory.chart.MemoryVisualizationModel.XAxisFilter
@@ -53,7 +54,8 @@ import javax.swing.JPanel
  * Class that manages the memory HTreeChart (CallChart). The UI has a dropdown that allows the user to change the X axis of the
  * chart. This class is responsible for rebuilding the chart when the dropdown changes or a filter is applied.
  */
-class MemoryVisualizationView(private val stage: MemoryProfilerStage) : AspectObserver(), CapturePanelTabContainer {
+class MemoryVisualizationView(private val selection: MemoryCaptureSelection,
+                              private val profilersView: StudioProfilersView) : AspectObserver(), CapturePanelTabContainer {
   private val panel: JPanel = JPanel(BorderLayout())
   private val orderingDropdown: JComboBox<XAxisFilter> = ProfilerCombobox()
   private val model = MemoryVisualizationModel()
@@ -70,7 +72,6 @@ class MemoryVisualizationView(private val stage: MemoryProfilerStage) : AspectOb
     val comboBoxModel: ComboBoxModel<XAxisFilter> = DefaultComboBoxModel(XAxisFilter.values())
     orderingDropdown.model = comboBoxModel
     orderingDropdown.selectedIndex = XAxisFilter.ALLOC_SIZE.ordinal
-    stage.aspect.addDependency(this).onChange(MemoryProfilerAspect.CURRENT_FILTER) { rebuildUI() }
   }
 
   val toolbarComponents: List<Component>
@@ -82,11 +83,13 @@ class MemoryVisualizationView(private val stage: MemoryProfilerStage) : AspectOb
 
   override fun onSelectionChanged(selected: Boolean) {
     if (selected) {
-      initialClassGrouping = stage.selectedHeapSet?.classGrouping ?: return
+      selection.aspect.addDependency(this).onChange(CaptureSelectionAspect.CURRENT_FILTER) { rebuildUI() }
+      initialClassGrouping = selection.selectedHeapSet?.classGrouping ?: return
       rebuildUI()
     }
     else {
-      stage.selectedHeapSet?.classGrouping = initialClassGrouping ?: return
+      selection.aspect.removeDependencies(this)
+      selection.selectedHeapSet?.classGrouping = initialClassGrouping ?: return
     }
   }
 
@@ -94,8 +97,9 @@ class MemoryVisualizationView(private val stage: MemoryProfilerStage) : AspectOb
     // This is not CPU efficient however it is memory efficient. To make this CPU efficient a copy of the HeapSet would need to be
     // maintained for the Visualization view. Instead of managing a duplicate copy of the HeapSet when the visualization tab is activated,
     // the class grouping is updated. This update forces a rebuild of the model in a hierarchical way as is expected by the HTreeChart.
-    stage.selectedHeapSet?.classGrouping = if (stage.selectedCapture is NativeAllocationSampleCaptureObject)
-      ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK else ClassGrouping.ARRANGE_BY_CALLSTACK
+    selection.selectedHeapSet?.classGrouping = if (selection.selectedCapture is NativeAllocationSampleCaptureObject)
+      ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK
+    else ClassGrouping.ARRANGE_BY_CALLSTACK
     panel.removeAll()
     panel.add(createChartPanel(), BorderLayout.CENTER)
   }
@@ -105,9 +109,9 @@ class MemoryVisualizationView(private val stage: MemoryProfilerStage) : AspectOb
 
   private fun createChartPanel(): JPanel {
     // If we don't have a heap selected return an empty panel.
-    stage.selectedHeapSet ?: return JPanel()
+    selection.selectedHeapSet ?: return JPanel()
 
-    val selected = ClassifierSetHNode(model, stage.selectedHeapSet!!, 0)
+    val selected = ClassifierSetHNode(model, selection.selectedHeapSet!!, 0)
     selected.updateChildrenOffsets()
     val captureRange = Range(0.0, selected.end.toDouble())
     // We use selectionRange here instead of nodeRange, because nodeRange synchronises with selectionRange and vice versa.
@@ -115,9 +119,10 @@ class MemoryVisualizationView(private val stage: MemoryProfilerStage) : AspectOb
     // capture range.
     val horizontalScrollBar = RangeTimeScrollBar(captureRange, captureRange, TimeUnit.MICROSECONDS)
     horizontalScrollBar.preferredSize = Dimension(horizontalScrollBar.preferredSize.width, 10)
-    val axis = createAxis(
-      XAxisFilter.values()[orderingDropdown.selectedIndex], captureRange, captureRange)
+    val axis = createAxis(model.formatter(), captureRange, captureRange)
     val chart = createChart(selected, captureRange)
+    chart.addMouseMotionListener(
+      MemoryVisualizationTooltipView(chart, profilersView.component, VisualizationTooltipModel(captureRange, model)))
     val panel = JPanel(TabularLayout("*,Fit", "*,Fit"))
     panel.add(axis, TabularLayout.Constraint(0, 0))
     panel.add(chart, TabularLayout.Constraint(0, 0))
@@ -126,16 +131,9 @@ class MemoryVisualizationView(private val stage: MemoryProfilerStage) : AspectOb
     return panel
   }
 
-  private fun createAxis(filter: XAxisFilter,
+  private fun createAxis(formatter: BaseAxisFormatter,
                          range: Range,
                          globalRange: Range): AxisComponent {
-    val formatter: BaseAxisFormatter
-    formatter = if (filter == XAxisFilter.ALLOC_SIZE || filter == XAxisFilter.TOTAL_SIZE) {
-      MemoryAxisFormatter(1, 10, 1)
-    }
-    else {
-      SingleUnitAxisFormatter(1, 10, 1, "")
-    }
     val axisModel: AxisComponentModel = ResizingAxisComponentModel.Builder(range, formatter).setGlobalRange(globalRange).build()
     val axis = AxisComponent(axisModel, AxisComponent.AxisOrientation.BOTTOM)
     axis.setShowAxisLine(false)

@@ -147,6 +147,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     myWorkBench.setLoadingText("Loading...");
 
     myState = defaultEditorPanelState;
+    mySurface.getAnalyticsManager().setEditorModeWithoutTracking(myState);
     onStateChange();
 
     // The rest of the initialization is done once the state of the surface is set to a visible state. This allows to defer the heavy

@@ -47,9 +47,6 @@ final class Updater {
   @NotNull
   private final List<Device> myDevices;
 
-  @NotNull
-  private final ExecutionTargetService myExecutionTargetService;
-
   @Nullable
   private final RunnerAndConfigurationSettings myConfigurationAndSettings;
 
@@ -70,9 +67,6 @@ final class Updater {
 
     @NotNull
     private List<Device> myDevices = Collections.emptyList();
-
-    @Nullable
-    private ExecutionTargetService myExecutionTargetService;
 
     @Nullable
     private RunnerAndConfigurationSettings myConfigurationAndSettings;
@@ -110,12 +104,6 @@ final class Updater {
     }
 
     @NotNull
-    Builder setExecutionTargetService(@NotNull ExecutionTargetService executionTargetService) {
-      myExecutionTargetService = executionTargetService;
-      return this;
-    }
-
-    @NotNull
     Builder setConfigurationAndSettings(@Nullable RunnerAndConfigurationSettings configurationAndSettings) {
       myConfigurationAndSettings = configurationAndSettings;
       return this;
@@ -147,9 +135,6 @@ final class Updater {
 
     myDevices = builder.myDevices;
 
-    assert builder.myExecutionTargetService != null;
-    myExecutionTargetService = builder.myExecutionTargetService;
-
     myConfigurationAndSettings = builder.myConfigurationAndSettings;
     mySnapshotsEnabled = builder.mySnapshotsEnabled;
   }
@@ -180,9 +165,6 @@ final class Updater {
 
         break;
     }
-
-    List<Device> selectedDevices = myDevicesSelectedService.getSelectedDevices(myDevices);
-    myExecutionTargetService.setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevices));
   }
 
   private void updateDependingOnConfiguration() {

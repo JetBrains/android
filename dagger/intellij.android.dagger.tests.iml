@@ -17,5 +17,8 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.dagger" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="module" module-name="analytics-tracker" />
   </component>
 </module>

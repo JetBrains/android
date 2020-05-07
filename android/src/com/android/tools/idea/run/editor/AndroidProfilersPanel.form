@@ -141,7 +141,7 @@
           <componentClass value="com.intellij.ui.components.JBTextField"/>
           <labelInsets top="0" left="6" bottom="0" right="0"/>
           <labelLocation value="West"/>
-          <text value="Native memory sampling rate (bytes)"/>
+          <text value="Native memory sampling interval (bytes)"/>
         </properties>
       </component>
       <component id="e4b" class="javax.swing.JTextPane" binding="myStartupCpuProfilerDescription">

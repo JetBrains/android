@@ -166,11 +166,15 @@ public class PreviewProvider implements Disposable {
     xml = String.format(LINEAR_LAYOUT, CONTAINER_ID, component.getTagDeprecated().getText());
 
     RenderResult result = renderImage(myRenderTimeoutSeconds, getRenderTask(model.getConfiguration()), xml);
-    if (result == null || !result.hasImage()) {
+    if (result == null) {
       return null;
     }
 
     ImagePool.Image image = result.getRenderedImage();
+    if (!image.isValid()) {
+      return null;
+    }
+
     List<ViewInfo> infos = result.getRootViews();
     if (infos.isEmpty()) {
       return null;

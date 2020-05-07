@@ -169,10 +169,10 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                                               @NotNull ProfilerClient client,
                                               @NotNull IDevice device,
                                               @NotNull Common.Device profilerDevice) {
-    if (profilerState.STARTUP_CPU_PROFILING_ENABLED) {
+    if (profilerState.isCpuStartupProfilingEnabled()) {
       return triggerCpuStartupProfilingAndReturnArtParams(profilerState, appPackageName, project, client, device, profilerDevice);
     }
-    if (profilerState.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED) {
+    if (profilerState.isNativeMemoryStartupProfilingEnabled()) {
       triggerMemoryStartupProfiling(profilerState, appPackageName, project, client, device, profilerDevice);
     }
     return "";

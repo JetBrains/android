@@ -78,8 +78,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
@@ -568,6 +570,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
       Object component = path.getLastPathComponent();
 
+      if (component instanceof String) {
+        NlComponent clicked = findComponent((String) component);
+        mySurface.getSelectionModel().setSelection(Arrays.asList(clicked));
+        return;
+      }
+
       if (!(component instanceof NlComponent)) {
         return;
       }
@@ -577,6 +585,15 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         handler.onActivateInComponentTree((NlComponent)component, mySurface.getSceneManager().getViewEditor());
       }
     }
+  }
+
+  @Nullable
+  private NlComponent findComponent(String id) {
+    Optional<NlComponent> optional = myModel.flattenComponents().filter(it -> id.equals(it.getId())).findFirst();
+    if (optional.isPresent()) {
+      return optional.get();
+    }
+    return null;
   }
 
   private class StructurePaneSelectionListener implements TreeSelectionListener {

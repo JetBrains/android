@@ -100,7 +100,7 @@
               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <toolTipText value="Show failed tests"/>
+              <toolTipText value="Only show failed tests"/>
             </properties>
           </component>
           <component id="58572" class="com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView$MyItemSeparator" binding="myFilterSeparator" custom-create="true">
@@ -114,7 +114,7 @@
               <grid row="0" column="7" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <toolTipText value="Show tests on selected devices"/>
+              <toolTipText value="Filter by device"/>
             </properties>
           </component>
           <component id="ae2bc" class="com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView$MyItemSeparator" binding="myDeviceFilterSeparator" custom-create="true">
@@ -128,7 +128,7 @@
               <grid row="0" column="9" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <toolTipText value="Show tests on selected API levels"/>
+              <toolTipText value="Filter by API level"/>
             </properties>
           </component>
           <component id="85bef" class="com.android.tools.adtui.stdui.CommonToggleButton" binding="myPassedToggleButton" custom-create="true">
@@ -136,7 +136,7 @@
               <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <toolTipText value="Show passed tests"/>
+              <toolTipText value="Only show passed tests"/>
             </properties>
           </component>
           <component id="88546" class="com.android.tools.adtui.stdui.CommonToggleButton" binding="myInProgressToggleButton" custom-create="true">
@@ -144,7 +144,7 @@
               <grid row="0" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <toolTipText value="Show running tests"/>
+              <toolTipText value="Only show running tests"/>
             </properties>
           </component>
           <component id="73128" class="com.android.tools.adtui.stdui.CommonToggleButton" binding="mySkippedToggleButton" custom-create="true">
@@ -152,7 +152,7 @@
               <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <toolTipText value="Show skipped tests"/>
+              <toolTipText value="Only show skipped tests"/>
             </properties>
           </component>
         </children>

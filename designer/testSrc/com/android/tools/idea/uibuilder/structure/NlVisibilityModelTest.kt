@@ -27,6 +27,8 @@ import org.mockito.Mockito
 
 class NlVisibilityModelTest {
 
+  private val listOfVisibility: List<String?> = listOf(null, "invisible", "gone")
+
   companion object {
     fun generateModel(android: Visibility, tools: Visibility): NlVisibilityModel {
       val component: NlComponent = Mockito.mock(NlComponent::class.java)
@@ -101,4 +103,68 @@ class NlVisibilityModelTest {
     model.writeToComponent(Visibility.NONE, uri)
     assertEquals(Visibility.NONE, model.toolsVisibility)
   }
+
+  @Test
+  fun testVisibleComponentFromGoneParent() {
+    val parentVisibility = "gone"
+    listOfVisibility.forEach { assertAgainstParent(it, parentVisibility, Visibility.GONE) }
+  }
+
+  @Test
+  fun testVisibleComponentFromInvisibleParent() {
+    val parentVisibility = "invisible"
+    assertAgainstParent(null, parentVisibility, Visibility.INVISIBLE)
+    assertAgainstParent("invisible", parentVisibility, Visibility.INVISIBLE)
+    assertAgainstParent("gone", parentVisibility, Visibility.GONE)
+  }
+
+  @Test
+  fun testInvisibleComponentFromVisibleParent() {
+    val parentVisibility = null
+    assertAgainstParent(null, parentVisibility, Visibility.NONE)
+    assertAgainstParent("invisible", parentVisibility, Visibility.INVISIBLE)
+    assertAgainstParent("gone", parentVisibility, Visibility.GONE)
+  }
+
+  @Test
+  fun testVisibilityFromGoneGrandParent() {
+    val grandparentVisibility = "gone"
+
+    listOfVisibility.forEach { currVisibility ->
+      listOfVisibility.forEach { parentVisibility ->
+        assertAgainstGrandParent(currVisibility, parentVisibility, grandparentVisibility, Visibility.GONE)
+      }
+    }
+  }
+
+  private fun assertAgainstParent(currentVisibility: String?, parentVisibility: String?, expected: Visibility) {
+    val component = mockComponent(currentVisibility)
+    val parent = mockComponent(parentVisibility)
+
+    Mockito.`when`(component.parent).thenReturn(parent)
+
+    assertEquals(expected, getVisibilityFromParents(component))
+  }
+
+  private fun assertAgainstGrandParent(
+      currentVisibility: String?,
+      parentVisibility: String?,
+      grandparentVisibility: String?,
+      expected: Visibility) {
+    val component = mockComponent(currentVisibility)
+    val parent = mockComponent(parentVisibility)
+    val grandParent = mockComponent(grandparentVisibility)
+
+    Mockito.`when`(component.parent).thenReturn(parent)
+    Mockito.`when`(parent.parent).thenReturn(grandParent)
+
+    assertEquals(expected, getVisibilityFromParents(component))
+  }
+
+  private fun mockComponent(visibility: String? = null): NlComponent {
+    val component: NlComponent = Mockito.mock(NlComponent::class.java)
+    Mockito.`when`(component.getAttribute(SdkConstants.ANDROID_URI, "visibility")).thenReturn(visibility)
+    return component
+  }
+
 }

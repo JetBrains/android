@@ -33,7 +33,6 @@ import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.Executor;
-import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -234,11 +233,11 @@ public abstract class BaseAction extends AnAction {
   private static boolean isExecutorStarting(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
     // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
     for (Executor executor : Executor.EXECUTOR_EXTENSION_NAME.getExtensionList()) {
-      ProgramRunner programRunner = ProgramRunner.getRunner(executor.getId(), runConfiguration);
+      ProgramRunner<?> programRunner = ProgramRunner.getRunner(executor.getId(), runConfiguration);
       if (programRunner == null) {
         continue;
       }
-      if (ExecutorRegistry.getInstance().isStarting(project, executor.getId(), programRunner.getRunnerId())) {
+      if (ExecutionManager.getInstance(project).isStarting(executor.getId(), programRunner.getRunnerId())) {
         return true;
       }
     }

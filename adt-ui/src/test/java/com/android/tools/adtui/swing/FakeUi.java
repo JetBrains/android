@@ -15,15 +15,26 @@
  */
 package com.android.tools.adtui.swing;
 
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.TreeWalker;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.testFramework.PlatformTestUtil;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.util.Enumeration;
+import javax.swing.UIManager;
+import javax.swing.plaf.FontUIResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.OutputStream;
 
 /**
  * A utility class to interact with Swing components in unit tests.
@@ -31,43 +42,82 @@ import java.io.OutputStream;
 public final class FakeUi {
   public final FakeKeyboard keyboard;
   public final FakeMouse mouse;
+  public final double screenScale;
 
   @NotNull
-  private Component myRoot;
+  private final Component root;
 
-  public FakeUi(@NotNull Component root) {
-    myRoot = root;
-    myRoot.setPreferredSize(myRoot.getSize());
+  /**
+   * Initializes the UI emulating a non-HiDPI screen.
+   *
+   * @param rootComponent the top-level component component
+   */
+  public FakeUi(@NotNull Component rootComponent) {
+    this(rootComponent, 1);
+  }
+
+  /**
+   * Initializes the UI emulating a HiDPI screen.
+   *
+   * @param rootComponent the top-level component component
+   * @param screenScale size of a virtual pixel in physical pixels
+   */
+  public FakeUi(@NotNull Component rootComponent, double screenScale) {
+    root = rootComponent;
+    this.screenScale = screenScale;
     keyboard = new FakeKeyboard();
     mouse = new FakeMouse(this, keyboard);
+    if (rootComponent.getParent() == null) {
+      // Applying graphics configuration involves reparenting, so don't do it for a component that already has a parent.
+      applyGraphicsConfiguration(new FakeGraphicsConfiguration(screenScale), root);
+    }
+    root.setPreferredSize(root.getSize());
     layout();
   }
 
   /**
-   * Force a re-layout of all components scoped by this FakeUi instance, for example in response to
+   * Forces a re-layout of all components scoped by this FakeUi instance, for example in response to
    * a parent's bounds changing.
    *
    * Note: The constructor automatically forces a layout pass. You should only need to call this
    * method if you update the UI after constructing the FakeUi.
    */
   public void layout() {
-    new TreeWalker(myRoot).descendantStream().forEach(Component::doLayout);
+    new TreeWalker(root).descendantStream().forEach(Component::doLayout);
   }
 
-  public void render(OutputStream out) throws IOException {
-    BufferedImage bi = new BufferedImage(myRoot.getWidth(), myRoot.getHeight(), BufferedImage.TYPE_INT_ARGB);
-    myRoot.printAll(bi.getGraphics());
-    ImageIO.write(bi, "png", out);
+  /**
+   * Forces a re-layout of all components scoped by this FakeUi instance and dispatches all resulting
+   * resizing events.
+   */
+  public void layoutAndDispatchEvents() throws InterruptedException {
+    layout();
+    // Allow resizing events to propagate,
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+  }
+
+  /**
+   * Renders the component and returns the image reflecting its appearance.
+   */
+  @NotNull
+  public BufferedImage render() {
+    BufferedImage image = ImageUtils.createDipImage((int)(root.getWidth() * screenScale), (int)(root.getHeight() * screenScale),
+                                                    BufferedImage.TYPE_INT_ARGB);
+    Graphics2D graphics = image.createGraphics();
+    graphics.setTransform(AffineTransform.getScaleInstance(screenScale, screenScale));
+    root.printAll(graphics);
+    graphics.dispose();
+    return image;
   }
 
   /**
    * Dumps the content of the Swing tree to stderr.
    */
   public void dump() {
-    dump(myRoot, "");
+    dump(root, "");
   }
 
-  private void dump(Component component, String prefix) {
+  private static void dump(@NotNull Component component, @NotNull String prefix) {
     System.err.println(prefix + component.getClass().getSimpleName() + "@(" +
                        component.getX() + ", " + component.getY() + ") [" +
                        component.getSize().getWidth() + "x" + component.getSize().getHeight() + "]" +
@@ -80,15 +130,16 @@ public final class FakeUi {
     }
   }
 
-  @Nullable
+  @NotNull
   public Component getRoot() {
-    return myRoot;
+    return root;
   }
 
-  public Point getPosition(Component component) {
+  @NotNull
+  public Point getPosition(@NotNull Component component) {
     int rx = 0;
     int ry = 0;
-    while (component != myRoot) {
+    while (component != root) {
       rx += component.getX();
       ry += component.getY();
       component = component.getParent();
@@ -96,12 +147,14 @@ public final class FakeUi {
     return new Point(rx, ry);
   }
 
+  @NotNull
   public Point toRelative(Component component, int x, int y) {
     Point position = getPosition(component);
     return new Point(x - position.x, y - position.y);
   }
 
-  private RelativePoint findTarget(Component component, int x, int y) {
+  @Nullable
+  private static RelativePoint findTarget(@NotNull Component component, int x, int y) {
     if (component.contains(x, y)) {
       if (component instanceof Container) {
         Container container = (Container)component;
@@ -120,14 +173,67 @@ public final class FakeUi {
     return null;
   }
 
-  private boolean isMouseTarget(Component target) {
+  private static boolean isMouseTarget(@NotNull Component target) {
     return target.getMouseListeners().length > 0 ||
            target.getMouseMotionListeners().length > 0 ||
            target.getMouseWheelListeners().length > 0;
   }
 
+  @Nullable
   public RelativePoint targetMouseEvent(int x, int y) {
-    return findTarget(myRoot, x, y);
+    return findTarget(root, x, y);
+  }
+
+  /**
+   * Sets all default fonts to Droid Sans that is included in the bundled JDK. This makes fonts the same across all platforms.
+   */
+  public static void setPortableUiFont() {
+    Enumeration<?> keys = UIManager.getLookAndFeelDefaults().keys();
+    while (keys.hasMoreElements()) {
+      Object key = keys.nextElement();
+      Object value = UIManager.get(key);
+      if (value instanceof FontUIResource) {
+        FontUIResource font = (FontUIResource)value;
+        UIManager.put(key, new FontUIResource("Droid Sans", font.getStyle(), font.getSize()));
+      }
+    }
+  }
+
+  /**
+   * IJ doesn't always refresh the state of the toolbar buttons. This method forces it to refresh.
+   */
+  public void updateToolbars() {
+    updateToolbars(root);
+  }
+
+  private static void updateToolbars(@NotNull Component component) {
+    if (component instanceof ActionButton) {
+      ActionButton button = (ActionButton)component;
+      button.updateUI();
+      button.updateIcon();
+    }
+
+    if (component instanceof ActionToolbar) {
+      ActionToolbar toolbar = (ActionToolbar)component;
+      toolbar.updateActionsImmediately();
+    }
+
+    if (component instanceof Container) {
+      for (Component child : ((Container)component).getComponents()) {
+        updateToolbars(child);
+      }
+    }
+  }
+
+  private static void applyGraphicsConfiguration(@NotNull GraphicsConfiguration config, @NotNull Component component) {
+    // Work around package-private visibility of the Component.setGraphicsConfiguration method.
+    Container container = new Container() {
+      @Override
+      public GraphicsConfiguration getGraphicsConfiguration() {
+        return config;
+      }
+    };
+    container.add(component);
   }
 
   public static class RelativePoint {
@@ -139,6 +245,74 @@ public final class FakeUi {
       this.component = component;
       this.x = x;
       this.y = y;
+    }
+  }
+
+  private static class FakeGraphicsConfiguration extends GraphicsConfiguration {
+    private final AffineTransform transform;
+    private final GraphicsDevice device;
+
+    protected FakeGraphicsConfiguration(double scale) {
+      transform = AffineTransform.getScaleInstance(scale, scale);
+      device = new FakeGraphicsDevice(this);
+    }
+
+    @Override
+    public GraphicsDevice getDevice() {
+      return device;
+    }
+
+    @Override
+    public ColorModel getColorModel() {
+      return ColorModel.getRGBdefault();
+    }
+
+    @Override
+    public ColorModel getColorModel(int transparency) {
+      return ColorModel.getRGBdefault();
+    }
+
+    @Override
+    public AffineTransform getDefaultTransform() {
+      return transform;
+    }
+
+    @Override
+    public AffineTransform getNormalizingTransform() {
+      return transform;
+    }
+
+    @Override
+    public Rectangle getBounds() {
+      return new Rectangle();
+    }
+  }
+
+  private static class FakeGraphicsDevice extends GraphicsDevice {
+    private final GraphicsConfiguration defaultConfiguration;
+
+    FakeGraphicsDevice(GraphicsConfiguration config) {
+      defaultConfiguration = config;
+    }
+
+    @Override
+    public int getType() {
+      return TYPE_RASTER_SCREEN;
+    }
+
+    @Override
+    public String getIDstring() {
+      return "FakeDevice";
+    }
+
+    @Override
+    public GraphicsConfiguration[] getConfigurations() {
+      return new GraphicsConfiguration[0];
+    }
+
+    @Override
+    public GraphicsConfiguration getDefaultConfiguration() {
+      return defaultConfiguration;
     }
   }
 }

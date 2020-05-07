@@ -22,7 +22,7 @@ open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule("<A
   override val descriptor get() = PsModelDescriptor.None
   override val dependencies: PsDependencyCollection<PsModule, Nothing, Nothing, Nothing> get() = throw UnsupportedOperationException()
   override val projectType: PsModuleType = PsModuleType.UNKNOWN
-  override val gradlePath: String? = null
+  override val gradlePath: String = "<All Modules>"
   override val rootDir: File? = null
 
   override var isModified: Boolean

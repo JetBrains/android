@@ -18,12 +18,8 @@ package com.android.tools.idea.sqlite
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.device.fs.DeviceFileDownloaderService
-import com.android.tools.idea.device.fs.DeviceFileId
-import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorControllerImpl
@@ -32,13 +28,11 @@ import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactor
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
-import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteSchema
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
-import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.actions.OpenFileAction
 import com.intellij.openapi.application.ApplicationManager
@@ -72,9 +66,9 @@ interface DatabaseInspectorProjectService {
   }
 
   /**
-   * The tool window containing the Database Inspector.
+   * IDE services useful for interacting with the app inspection tool window that contains the Database Inspector.
    */
-  var toolWindow: AppInspectionCallbacks?
+  var ideServices: AppInspectionIdeServices?
 
   /**
    * [JComponent] that contains the view of the Database Inspector.
@@ -97,13 +91,7 @@ interface DatabaseInspectorProjectService {
    * Runs the query passed as argument in the Sqlite Inspector.
    */
   @UiThread
-  fun runSqliteStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement)
-
-  /**
-   * Re-downloads and opens the file associated with the [FileSqliteDatabase] passed as argument.
-   */
-  @AnyThread
-  fun reDownloadAndOpenFile(database: FileSqliteDatabase, progress: DownloadProgress): ListenableFuture<Unit>
+  fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement)
 
   /**
    * Returns true if the Sqlite Inspector has an open database, false otherwise.
@@ -112,10 +100,10 @@ interface DatabaseInspectorProjectService {
   fun hasOpenDatabase(): Boolean
 
   /**
-   * Returns a list of the currently open [SqliteDatabase].
+   * Returns a list of the currently open databases.
    */
   @AnyThread
-  fun getOpenDatabases(): List<SqliteDatabase>
+  fun getOpenDatabases(): List<SqliteDatabaseId>
 
   /**
    * Shows the error in the Database Inspector.
@@ -142,7 +130,10 @@ interface DatabaseInspectorProjectService {
    * @param previousState state of UI from previous session if available
    */
   @UiThread
-  fun startAppInspectionSession(previousState: SavedUiState?)
+  fun startAppInspectionSession(
+    previousState: SavedUiState?,
+    databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel
+  )
 
   /**
    * Called when Database Inspector is disconnected from app.
@@ -150,6 +141,10 @@ interface DatabaseInspectorProjectService {
    */
   @UiThread
   fun stopAppInspectionSession(): SavedUiState
+
+  @UiThread
+  // TODO (b/155837276) whe should pass SqliteDatabaseId here
+  fun handleDatabaseClosed(connectionId: Int)
 }
 
 class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
@@ -212,7 +207,9 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     createController(model)
   }
 
-  override var toolWindow: AppInspectionCallbacks? = null
+  var myDatabaseInspectorClientCommandsChannelChannel: DatabaseInspectorClientCommandsChannel? = null
+
+  override var ideServices: AppInspectionIdeServices? = null
 
   override val sqliteInspectorComponent
     @UiThread get() = controller.component
@@ -222,7 +219,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
     val database = async {
       val connection = databaseConnectionFactory.getDatabaseConnection(file, taskExecutor).await()
-      FileSqliteDatabase(connection, file)
+      FileSqliteDatabase(SqliteDatabaseId.fromFileDatabase(file), connection)
     }
 
     withContext(uiThread) {
@@ -233,49 +230,52 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   @AnyThread
-  override fun openSqliteDatabase(database: SqliteDatabase): ListenableFuture<Unit> = projectScope.future {
-    controller.addSqliteDatabase(database)
+  override fun openSqliteDatabase(sqliteDatabase: SqliteDatabase): ListenableFuture<Unit> = projectScope.future(uiThread) {
+    controller.addSqliteDatabase(sqliteDatabase)
   }
 
   @UiThread
-  override fun startAppInspectionSession(previousState: SavedUiState?) {
-      controller.restoreSavedState(previousState)
+  override fun startAppInspectionSession(
+    previousState: SavedUiState?,
+    databaseInspectorClientCommandsChannel: DatabaseInspectorClientCommandsChannel
+  ) {
+    controller.setDatabaseInspectorClientCommandsChannel(databaseInspectorClientCommandsChannel)
+    controller.restoreSavedState(previousState)
   }
 
   @UiThread
   override fun stopAppInspectionSession(): SavedUiState {
+    controller.setDatabaseInspectorClientCommandsChannel(null)
     val savedState = controller.saveState()
 
     projectScope.launch(uiThread) {
-      model.getOpenDatabases().filterIsInstance<LiveSqliteDatabase>().forEach {
+      model.getOpenDatabaseIds().forEach {
         controller.closeDatabase(it)
       }
+      model.clearDatabases()
     }
+
     return savedState
   }
 
   @UiThread
-  override fun runSqliteStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
-    projectScope.launch { controller.runSqlStatement(database, sqliteStatement) }
-  }
-
-  @AnyThread
-  override fun reDownloadAndOpenFile(database: FileSqliteDatabase, progress: DownloadProgress): ListenableFuture<Unit> {
-    val deviceFileId = DeviceFileId.fromVirtualFile(database.virtualFile)
-                       ?: return Futures.immediateFailedFuture(IllegalStateException("DeviceFileId not found"))
-    val downloadFuture = DeviceFileDownloaderService.getInstance(project).downloadFile(deviceFileId, progress)
-
-    return downloadFuture.transform(edtExecutor) { downloadedFileData ->
-      fileOpener.accept(downloadedFileData.virtualFile)
-      return@transform
-    }
+  override fun handleDatabaseClosed(connectionId: Int) {
+    val databaseIdToClose = model.getOpenDatabaseIds()
+      .filterIsInstance<SqliteDatabaseId.LiveSqliteDatabaseId>()
+      .find { it.connectionId == connectionId } ?: return
+    model.removeDatabaseSchema(databaseIdToClose)
   }
 
   @UiThread
-  override fun hasOpenDatabase() = model.getOpenDatabases().isNotEmpty()
+  override fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) {
+    projectScope.launch { controller.runSqlStatement(databaseId, sqliteStatement) }
+  }
 
   @UiThread
-  override fun getOpenDatabases(): List<SqliteDatabase> = model.getOpenDatabases()
+  override fun hasOpenDatabase() = model.getOpenDatabaseIds().isNotEmpty()
+
+  @UiThread
+  override fun getOpenDatabases(): List<SqliteDatabaseId> = model.getOpenDatabaseIds()
 
   @AnyThread
   override fun handleError(message: String, throwable: Throwable?) {

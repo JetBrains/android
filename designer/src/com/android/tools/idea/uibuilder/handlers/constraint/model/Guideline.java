@@ -24,24 +24,12 @@ public class Guideline extends ConstraintWidget {
     public static final int HORIZONTAL = 0;
     public static final int VERTICAL = 1;
 
-    public static final int RELATIVE_PERCENT = 0;
-    public static final int RELATIVE_BEGIN = 1;
-    public static final int RELATIVE_END = 2;
-    public static final int RELATIVE_UNKNWON = -1;
-
-    protected float mRelativePercent = -1;
-    protected int mRelativeBegin = -1;
-    protected int mRelativeEnd = -1;
-
     private ConstraintAnchor mAnchor = mTop;
     private int mOrientation = HORIZONTAL;
-    private boolean mIsPositionRelaxed = false;
-    private int mMinimumPosition = 0;
 
-    private Rectangle mHead = new Rectangle();
-    private int mHeadSize = 8;
+    private final Rectangle mHead = new Rectangle();
 
-    public Guideline() {
+  public Guideline() {
         mAnchors.clear();
         mAnchors.add(mAnchor);
         final int count = mListAnchors.length;
@@ -50,26 +38,14 @@ public class Guideline extends ConstraintWidget {
         }
     }
 
-    public int getRelativeBehaviour() {
-        if (mRelativePercent != -1) {
-            return RELATIVE_PERCENT;
-        }
-        if (mRelativeBegin != -1) {
-            return RELATIVE_BEGIN;
-        }
-        if (mRelativeEnd != -1) {
-            return RELATIVE_END;
-        }
-        return RELATIVE_UNKNWON;
-    }
-
     public Rectangle getHead() {
-        mHead.setBounds(getDrawX() - mHeadSize, getDrawY() - 2 * mHeadSize, 2 * mHeadSize,
-                2 * mHeadSize);
+      int headSize = 8;
+      mHead.setBounds(getDrawX() - headSize, getDrawY() - 2 * headSize, 2 * headSize,
+                      2 * headSize);
         if (getOrientation() == HORIZONTAL) {
-            mHead.setBounds(getDrawX() - 2 * mHeadSize,
-                    getDrawY() - mHeadSize,
-                    2 * mHeadSize, 2 * mHeadSize);
+            mHead.setBounds(getDrawX() - 2 * headSize,
+                            getDrawY() - headSize,
+                            2 * headSize, 2 * headSize);
         }
         return mHead;
     }
@@ -110,19 +86,8 @@ public class Guideline extends ConstraintWidget {
         return mOrientation;
     }
 
-    public void setMinimumPosition(int minimum) {
-        mMinimumPosition = minimum;
-    }
-
-    public void setPositionRelaxed(boolean value) {
-        if (mIsPositionRelaxed == value) {
-            return;
-        }
-        mIsPositionRelaxed = value;
-    }
-
     @Override
-    public ConstraintAnchor getAnchor(ConstraintAnchor.Type anchorType) {
+    public ConstraintAnchor getAnchor(ConstraintAnchorConstants.Type anchorType) {
         switch (anchorType) {
             case LEFT:
             case RIGHT: {
@@ -151,107 +116,5 @@ public class Guideline extends ConstraintWidget {
     @Override
     public ArrayList<ConstraintAnchor> getAnchors() {
         return mAnchors;
-    }
-
-    public void setGuidePercent(int value) {
-        setGuidePercent(value / 100f);
-    }
-
-    public void setGuidePercent(float value) {
-        if (value > -1) {
-            mRelativePercent = value;
-            mRelativeBegin = -1;
-            mRelativeEnd = -1;
-        }
-    }
-
-    public void setGuideBegin(int value) {
-        if (value > -1) {
-            mRelativePercent = -1;
-            mRelativeBegin = value;
-            mRelativeEnd = -1;
-        }
-    }
-
-    public void setGuideEnd(int value) {
-        if (value > -1) {
-            mRelativePercent = -1;
-            mRelativeBegin = -1;
-            mRelativeEnd = value;
-        }
-    }
-
-    public float getRelativePercent() {
-        return mRelativePercent;
-    }
-
-    public int getRelativeBegin() {
-        return mRelativeBegin;
-    }
-
-    public int getRelativeEnd() {
-        return mRelativeEnd;
-    }
-
-    @Override
-    public void setDrawOrigin(int x, int y) {
-        if (mOrientation == VERTICAL) {
-            int position = x - mOffsetX;
-            if (mRelativeBegin != -1) {
-                setGuideBegin(position);
-            } else if (mRelativeEnd != -1) {
-                setGuideEnd(getParent().getWidth() - position);
-            } else if (mRelativePercent != -1) {
-                float percent = (position / (float) getParent().getWidth());
-                setGuidePercent(percent);
-            }
-        } else {
-            int position = y - mOffsetY;
-            if (mRelativeBegin != -1) {
-                setGuideBegin(position);
-            } else if (mRelativeEnd != -1) {
-                setGuideEnd(getParent().getHeight() - position);
-            } else if (mRelativePercent != -1) {
-                float percent = (position / (float) getParent().getHeight());
-                setGuidePercent(percent);
-            }
-        }
-    }
-
-    void inferRelativePercentPosition() {
-        float percent = (getX() / (float) getParent().getWidth());
-        if (mOrientation == HORIZONTAL) {
-            percent = (getY() / (float) getParent().getHeight());
-        }
-        setGuidePercent(percent);
-    }
-
-    void inferRelativeBeginPosition() {
-        int position = getX();
-        if (mOrientation == HORIZONTAL) {
-            position = getY();
-        }
-        setGuideBegin(position);
-    }
-
-    void inferRelativeEndPosition() {
-        int position = getParent().getWidth() - getX();
-        if (mOrientation == HORIZONTAL) {
-            position = getParent().getHeight() - getY();
-        }
-        setGuideEnd(position);
-    }
-
-    public void cyclePosition() {
-        if (mRelativeBegin != -1) {
-            // cycle to percent-based position
-            inferRelativePercentPosition();
-        } else if (mRelativePercent != -1) {
-            // cycle to end-based position
-            inferRelativeEndPosition();
-        } else if (mRelativeEnd != -1) {
-            // cycle to begin-based position
-            inferRelativeBeginPosition();
-        }
     }
 }

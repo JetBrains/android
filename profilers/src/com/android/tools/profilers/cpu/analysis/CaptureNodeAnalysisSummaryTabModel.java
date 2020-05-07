@@ -16,21 +16,32 @@
 package com.android.tools.profilers.cpu.analysis;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profiler.proto.Cpu;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Analysis tab model for capture nodes.
  */
 public class CaptureNodeAnalysisSummaryTabModel extends CpuAnalysisSummaryTabModel<CaptureNodeAnalysisModel> {
-  public CaptureNodeAnalysisSummaryTabModel(@NotNull Range captureRange) {
+  @NotNull private final Cpu.CpuTraceType myTraceType;
+
+  public CaptureNodeAnalysisSummaryTabModel(@NotNull Range captureRange, @NotNull Cpu.CpuTraceType traceType) {
     super(captureRange);
+    myTraceType = traceType;
   }
 
   @NotNull
   @Override
   public String getLabel() {
-    // TODO(b/153578821): determine data type from node, i.e. trace event or method call.
-    return "Trace Event";
+    switch (myTraceType) {
+      case ATRACE: // fall through
+      case PERFETTO:
+        return "Trace Event";
+      case ART: // fall through
+      case SIMPLEPERF:
+      default:
+        return "Stack Frame";
+    }
   }
 
   @NotNull

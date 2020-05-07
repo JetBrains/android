@@ -85,13 +85,11 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
     val startX = horizontalPadding
     val gridList = mutableListOf<List<PositionableContent>>()
 
-    val sortedContent = content.sortByPosition()
-
-    val firstView = sortedContent[0]
+    val firstView = content.first()
     var nextX = startX + firstView.widthFunc() + firstView.margin.horizontal + horizontalViewDelta
 
     var columnList = mutableListOf(firstView)
-    for (view in sortedContent.drop(1)) {
+    for (view in content.drop(1)) {
       // The full width is the view width + any horizontal margins
       val totalWidth = view.widthFunc() + view.margin.horizontal
       if (nextX + totalWidth > availableWidth) {

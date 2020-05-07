@@ -32,9 +32,9 @@ import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil;
 import com.android.tools.idea.databinding.util.ViewBindingUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
-import com.android.tools.idea.psi.NullabilityUtils;
 import com.android.tools.idea.psi.light.DeprecatableLightMethodBuilder;
 import com.android.tools.idea.psi.light.NullabilityLightFieldBuilder;
+import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
 import com.intellij.lang.Language;
@@ -98,6 +98,14 @@ import org.jetbrains.annotations.Nullable;
  * be generated.
  */
 public class LightBindingClass extends AndroidLightClassBase {
+  private enum NullabilityType {
+    UNSPECIFIED,
+    NONNULL,
+    NULLABLE;
+
+    public boolean isNullable() { return this == NULLABLE; }
+  }
+
   @NotNull private final LightBindingClassConfig myConfig;
   @NotNull private final PsiJavaFile myBackingFile;
 
@@ -132,8 +140,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     }
 
     if (myConfig.shouldGenerateGettersAndStaticMethods()) {
-      PsiElementFactory elementFactory = PsiElementFactory.getInstance(getProject());
-      createStaticMethods(elementFactory.createType(this), methods);
+      createStaticMethods(methods);
     }
 
     return methods.toArray(PsiMethod.EMPTY_ARRAY);
@@ -433,7 +440,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     }
   }
 
-  private void createStaticMethods(@NotNull PsiClassType bindingType, @NotNull List<PsiMethod> outPsiMethods) {
+  private void createStaticMethods(@NotNull List<PsiMethod> outPsiMethods) {
     XmlFile xmlFile = myConfig.getTargetLayout().toXmlFile();
     if (xmlFile == null) {
       return;
@@ -441,51 +448,45 @@ public class LightBindingClass extends AndroidLightClassBase {
 
     Project project = getProject();
     GlobalSearchScope moduleScope = getModuleScope();
+    PsiClassType bindingType = PsiElementFactory.getInstance(getProject()).createType(this);
     PsiClassType viewGroupType = PsiType.getTypeByName(SdkConstants.CLASS_VIEWGROUP, project, moduleScope);
-
-    PsiClassType nonNullBindingType = NullabilityUtils.annotateType(project, bindingType, true, this);
-    PsiClassType nonNullInflaterType =
-      NullabilityUtils.annotateType(project, PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, project, moduleScope), true, this);
-    PsiClassType nonNullViewGroupType = NullabilityUtils.annotateType(project, viewGroupType, true, this);
-    PsiClassType nullableViewGroupType = NullabilityUtils.annotateType(project, viewGroupType, false, this);
-    PsiClassType nonNullViewType =
-      NullabilityUtils.annotateType(project, PsiType.getTypeByName(SdkConstants.CLASS_VIEW, project, moduleScope), true, this);
-    PsiClassType nullableDataBindingComponent =
-      NullabilityUtils.annotateType(project, PsiType.getJavaLangObject(getManager(), moduleScope), false, this);
+    PsiClassType inflaterType = PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, project, moduleScope);
+    PsiClassType viewType = PsiType.getTypeByName(SdkConstants.CLASS_VIEW, project, moduleScope);
+    PsiClassType dataBindingComponentType = PsiType.getJavaLangObject(getManager(), moduleScope);
 
     List<PsiMethod> methods = new ArrayList<>();
     BindingXmlData xmlData = myConfig.getTargetLayout().getData();
 
     // Methods generated for data binding and view binding diverge a little
     if (xmlData.getLayoutType() == BindingLayoutType.DATA_BINDING_LAYOUT) {
-      DeprecatableLightMethodBuilder inflate4Params = createPublicStaticMethod("inflate", nonNullBindingType);
-      inflate4Params.addParameter("inflater", nonNullInflaterType);
-      inflate4Params.addParameter("root", nullableViewGroupType);
+      DeprecatableLightMethodBuilder inflate4Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+      inflate4Params.addNullabilityParameter("inflater", inflaterType, true);
+      inflate4Params.addNullabilityParameter("root", viewGroupType, false);
       inflate4Params.addParameter("attachToRoot", PsiType.BOOLEAN);
-      inflate4Params.addParameter("bindingComponent", nullableDataBindingComponent);
+      inflate4Params.addNullabilityParameter("bindingComponent", dataBindingComponentType, false);
       // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
       inflate4Params.setDeprecated(true);
 
-      LightMethodBuilder inflate3Params = createPublicStaticMethod("inflate", nonNullBindingType);
-      inflate3Params.addParameter("inflater", nonNullInflaterType);
-      inflate3Params.addParameter("root", nullableViewGroupType);
+      NullabilityLightMethodBuilder inflate3Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+      inflate3Params.addNullabilityParameter("inflater", inflaterType, true);
+      inflate3Params.addNullabilityParameter("root", viewGroupType, false);
       inflate3Params.addParameter("attachToRoot", PsiType.BOOLEAN);
 
-      DeprecatableLightMethodBuilder inflate2Params = createPublicStaticMethod("inflate", nonNullBindingType);
-      inflate2Params.addParameter("inflater", nonNullInflaterType);
-      inflate2Params.addParameter("bindingComponent", nullableDataBindingComponent);
+      DeprecatableLightMethodBuilder inflate2Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+      inflate2Params.addNullabilityParameter("inflater", inflaterType, true);
+      inflate2Params.addNullabilityParameter("bindingComponent", dataBindingComponentType, false);
       // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
       inflate2Params.setDeprecated(true);
 
-      LightMethodBuilder inflate1Param = createPublicStaticMethod("inflate", nonNullBindingType);
-      inflate1Param.addParameter("inflater", nonNullInflaterType);
+      NullabilityLightMethodBuilder inflate1Param = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+      inflate1Param.addNullabilityParameter("inflater", inflaterType, true);
 
-      LightMethodBuilder bind = createPublicStaticMethod("bind", nonNullBindingType);
-      bind.addParameter("view", nonNullViewType);
+      NullabilityLightMethodBuilder bind = createPublicStaticMethod("bind", bindingType, NullabilityType.NONNULL);
+      bind.addNullabilityParameter("view", viewType, true);
 
-      DeprecatableLightMethodBuilder bindWithComponent = createPublicStaticMethod("bind", nonNullBindingType);
-      bindWithComponent.addParameter("view", nonNullViewType);
-      bindWithComponent.addParameter("bindingComponent", nullableDataBindingComponent);
+      DeprecatableLightMethodBuilder bindWithComponent = createPublicStaticMethod("bind", bindingType, NullabilityType.NONNULL);
+      bindWithComponent.addNullabilityParameter("view", viewType, true);
+      bindWithComponent.addNullabilityParameter("bindingComponent", dataBindingComponentType, false);
       // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
       bindWithComponent.setDeprecated(true);
 
@@ -502,27 +503,27 @@ public class LightBindingClass extends AndroidLightClassBase {
 
       // View Binding is a fresh start - don't show the deprecated methods for them
       if (!xmlData.getRootTag().equals(SdkConstants.VIEW_MERGE)) {
-        LightMethodBuilder inflate3Params = createPublicStaticMethod("inflate", nonNullBindingType);
-        inflate3Params.addParameter("inflater", nonNullInflaterType);
-        inflate3Params.addParameter("parent", nullableViewGroupType);
+        NullabilityLightMethodBuilder inflate3Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+        inflate3Params.addNullabilityParameter("inflater", inflaterType, true);
+        inflate3Params.addNullabilityParameter("parent", viewGroupType, false);
         inflate3Params.addParameter("attachToParent", PsiType.BOOLEAN);
 
-        LightMethodBuilder inflate1Param = createPublicStaticMethod("inflate", nonNullBindingType);
-        inflate1Param.addParameter("inflater", nonNullInflaterType);
+        NullabilityLightMethodBuilder inflate1Param = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+        inflate1Param.addNullabilityParameter("inflater", inflaterType, true);
 
         methods.add(inflate1Param);
         methods.add(inflate3Params);
       }
       else {
         // View Bindings with <merge> roots have a different set of inflate methods
-        LightMethodBuilder inflate2Params = createPublicStaticMethod("inflate", nonNullBindingType);
-        inflate2Params.addParameter("inflater", nonNullInflaterType);
-        inflate2Params.addParameter("parent", nonNullViewGroupType);
+        NullabilityLightMethodBuilder inflate2Params = createPublicStaticMethod("inflate", bindingType, NullabilityType.NONNULL);
+        inflate2Params.addNullabilityParameter("inflater", inflaterType, true);
+        inflate2Params.addNullabilityParameter("parent", viewGroupType, true);
         methods.add(inflate2Params);
       }
 
-      LightMethodBuilder bind = createPublicStaticMethod("bind", nonNullBindingType);
-      bind.addParameter("view", nonNullViewType);
+      NullabilityLightMethodBuilder bind = createPublicStaticMethod("bind", bindingType, NullabilityType.NONNULL);
+      bind.addNullabilityParameter("view", viewType, true);
       methods.add(bind);
     }
 
@@ -533,17 +534,31 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   @NotNull
-  private DeprecatableLightMethodBuilder createPublicStaticMethod(@NotNull String name, @NotNull PsiType returnType) {
-    DeprecatableLightMethodBuilder method = createPublicMethod(name, returnType);
+  private DeprecatableLightMethodBuilder createPublicStaticMethod(@NotNull String name,
+                                                                  @NotNull PsiType returnType,
+                                                                  @NotNull NullabilityType nullabilityType) {
+    DeprecatableLightMethodBuilder method = createPublicMethod(name, returnType, nullabilityType);
     method.addModifier("static");
     return method;
   }
 
   @NotNull
   private DeprecatableLightMethodBuilder createPublicMethod(@NotNull String name, @NotNull PsiType returnType) {
+    return createPublicMethod(name, returnType, NullabilityType.UNSPECIFIED);
+  }
+
+  @NotNull
+  private DeprecatableLightMethodBuilder createPublicMethod(@NotNull String name,
+                                                            @NotNull PsiType returnType,
+                                                            @NotNull NullabilityType nullabilityType) {
     DeprecatableLightMethodBuilder method = new DeprecatableLightMethodBuilder(getManager(), JavaLanguage.INSTANCE, name);
     method.setContainingClass(this);
-    method.setMethodReturnType(returnType);
+    if (nullabilityType == NullabilityType.UNSPECIFIED) {
+      method.setMethodReturnType(returnType);
+    }
+    else {
+      method.setMethodReturnType(returnType, !nullabilityType.isNullable());
+    }
     method.addModifier("public");
     return method;
   }

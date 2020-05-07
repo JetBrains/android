@@ -198,7 +198,7 @@ abstract class AbstractQuickFixMultiFileTest : LightJavaCodeInsightFixtureTestCa
           TestCase.fail("Action '$text' is available (but must not) in test $testFilePath")
         }
 
-        CodeInsightTestFixtureImpl.invokeIntention(action, file, editor, action.text)
+        CodeInsightTestFixtureImpl.invokeIntention(action, file, editor)
 
         if (!shouldBeAvailableAfterExecution) {
           val afterAction = findActionByPattern(pattern, getAvailableActions())

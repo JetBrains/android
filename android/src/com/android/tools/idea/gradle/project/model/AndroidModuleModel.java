@@ -23,6 +23,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 
 import com.android.builder.model.AaptOptions;
@@ -112,7 +113,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                                           @NotNull AndroidProject androidProject,
                                           @NotNull String selectedVariantName,
                                           @NotNull IdeDependenciesFactory dependenciesFactory) {
-    return create(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null, Collections.emptyList());
+    return create(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null, emptyList(), emptyList());
   }
 
   public static AndroidModuleModel create(@NotNull String moduleName,
@@ -129,6 +130,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * @param variantName         the name of selected variant.
    * @param dependenciesFactory the factory instance to create {@link IdeDependencies}.
    * @param variantsToAdd       list of variants to add that were requested but not present in the {@link AndroidProject}.
+   * @param cachedVariants      list of IdeVariants to add that were cached from previous Gradle Sync.
    * @param syncIssues          Model containing all sync issues that were produced by Gradle.
    */
   public static AndroidModuleModel create(@NotNull String moduleName,
@@ -137,8 +139,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                                           @NotNull String variantName,
                                           @NotNull IdeDependenciesFactory dependenciesFactory,
                                           @Nullable Collection<Variant> variantsToAdd,
+                                          @NotNull Collection<IdeVariant> cachedVariants,
                                           @NotNull Collection<SyncIssue> syncIssues) {
     IdeAndroidProject ideAndroidProject = IdeAndroidProjectImpl.create(androidProject, dependenciesFactory, variantsToAdd, syncIssues);
+    ideAndroidProject.addVariants(cachedVariants);
     return new AndroidModuleModel(moduleName, rootDirPath, ideAndroidProject, variantName);
   }
 
@@ -233,8 +237,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   public List<SourceProvider> getTestSourceProviders(@NotNull String artifactName) {
     switch (artifactName) {
-      case ARTIFACT_ANDROID_TEST: return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
-      case ARTIFACT_UNIT_TEST: return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariant());
+      case ARTIFACT_ANDROID_TEST:
+        return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
+      case ARTIFACT_UNIT_TEST:
+        return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariant());
     }
     return ImmutableList.of();
   }
@@ -424,6 +430,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return mySelectedVariantName;
   }
 
+  /**
+   * @return a list of synced build variants.
+   */
+  @NotNull
+  public ImmutableList<IdeVariant> getVariants() {
+    return ImmutableList.copyOf(myVariantsByName.values());
+  }
+
   @Nullable
   public IdeVariant findVariantByName(@NotNull String variantName) {
     return myVariantsByName.get(variantName);
@@ -570,7 +584,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * {@link AndroidProject}, and always {@code null} for a legacy Android project.
    *
    * @return the flavor source providers or {@code null} in legacy projects.
-   *
    * @deprecated no reason to use just a subset of source providers outside of Gradle project system.
    */
   @Deprecated

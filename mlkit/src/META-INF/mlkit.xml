@@ -16,22 +16,21 @@
 <idea-plugin>
 
   <extensions defaultExtensionNs="com.intellij">
-    <moduleService serviceImplementation="com.android.tools.idea.mlkit.MlkitModuleService"/>
+    <moduleService serviceImplementation="com.android.tools.idea.mlkit.MlModuleService"/>
     <fileTypeFactory implementation="com.android.tools.idea.mlkit.MlModelFileTypeFactory"/>
     <fileEditorProvider implementation="com.android.tools.idea.mlkit.TfliteModelFileEditorProvider"/>
     <fileBasedIndex implementation="com.android.tools.idea.mlkit.MlModelFileIndex"/>
-    <java.shortNamesCache implementation="com.android.tools.idea.mlkit.MlkitShortNamesCache"/>
-    <java.elementFinder implementation="com.android.tools.idea.mlkit.MlkitClassFinder" id="mlkit.MlkitClassFinder"
+    <java.shortNamesCache implementation="com.android.tools.idea.mlkit.MlShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.mlkit.MlClassFinder" id="mlkit.MlClassFinder"
                         order="first, before java"/>
-    <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlkitResolveScopeEnlarger"/>
-    <problemFileHighlightFilter implementation="com.android.tools.idea.mlkit.MlModelProblemFileHighlightFilter"/>
+    <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlResolveScopeEnlarger"/>
     <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.MissingDependenciesNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.InNonMlFolderNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.BuildFeatureOffNotificationProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlkitResolveScopeEnlarger$MlkitKotlinResolveScopeEnlarger"/>
+    <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlResolveScopeEnlarger$MlKotlinResolveScopeEnlarger"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.templates">

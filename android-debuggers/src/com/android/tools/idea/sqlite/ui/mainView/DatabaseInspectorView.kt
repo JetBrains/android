@@ -16,9 +16,8 @@
 package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.idea.sqlite.controllers.TabId
-import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
@@ -49,14 +48,16 @@ interface DatabaseInspectorView {
 
   /**
    * Updates the UI for an existing database, by adding and removing tables from its schema and columns from its tables.
-   * @param database The database that needs to be updated.
-   * @param diffOperations List of operations to perform the diff of [database]'s schema in the view.
+   * @param viewDatabase The database that needs to be updated.
+   * @param diffOperations List of operations to perform the diff of [viewDatabase]'s schema in the view.
    */
-  fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>)
+  fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>)
 
   fun openTab(tabId: TabId, tabName: String, component: JComponent)
   fun focusTab(tabId: TabId)
   fun closeTab(tabId: TabId)
+
+  fun updateKeepConnectionOpenButton(keepOpen: Boolean)
 
   fun reportSyncProgress(message: String)
 
@@ -64,15 +65,15 @@ interface DatabaseInspectorView {
 
   interface Listener {
     /** Called when the user wants to open a table */
-    fun tableNodeActionInvoked(database: SqliteDatabase, table: SqliteTable)
+    fun tableNodeActionInvoked(databaseId: SqliteDatabaseId, table: SqliteTable)
     /** Called when the user wants to close a tab */
     fun closeTabActionInvoked(tabId: TabId)
     /** Called when the user wants to open the evaluator tab */
     fun openSqliteEvaluatorTabActionInvoked()
-    /** Called when the user wants to sync a database */
-    fun reDownloadDatabaseFileActionInvoked(database: FileSqliteDatabase)
     /** Called when the user wants to refresh the schema of all open databases */
     fun refreshAllOpenDatabasesSchemaActionInvoked()
+    /** Called to request the on-device inspector to force database connections to remain open */
+    fun toggleKeepConnectionOpenActionInvoked()
   }
 }
 
@@ -96,6 +97,8 @@ data class RemoveColumns(val tableName: String, val columnsToRemove: List<Sqlite
 
 /** Subclasses of this class represent operations to do in the UI in order to perform the diff of visible databases */
 sealed class DatabaseDiffOperation {
-  data class AddDatabase(val database: SqliteDatabase, val schema: SqliteSchema?, val index: Int) : DatabaseDiffOperation()
-  data class RemoveDatabase(val database: SqliteDatabase) : DatabaseDiffOperation()
+  data class AddDatabase(val viewDatabase: ViewDatabase, val schema: SqliteSchema?, val index: Int) : DatabaseDiffOperation()
+  data class RemoveDatabase(val viewDatabase: ViewDatabase) : DatabaseDiffOperation()
 }
+
+data class ViewDatabase(val databaseId: SqliteDatabaseId, val isOpen: Boolean)

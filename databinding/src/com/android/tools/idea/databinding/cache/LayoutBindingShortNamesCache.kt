@@ -118,7 +118,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun processMethodsWithName(name: String,
                                       scope: GlobalSearchScope,
-                                      processor: Processor<PsiMethod>): Boolean {
+                                      processor: Processor<in PsiMethod>): Boolean {
     for (method in getMethodsByName(name, scope)) {
       if (!processor.process(method)) {
         return false

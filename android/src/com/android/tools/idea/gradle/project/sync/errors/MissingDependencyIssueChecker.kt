@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.fetchIdeaProjectForGradleProject
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.getErrorLocation
-import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.intellij.build.FilePosition
@@ -38,6 +37,7 @@ import com.intellij.util.AdapterProcessor
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getErrorLocation
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.io.File
 import java.util.concurrent.CompletableFuture
@@ -50,25 +50,20 @@ class MissingDependencyIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (message.isBlank()) return null
-    val description = getBuildIssueDescription(message, issueData.projectPath) ?: return null
-    return object : BuildIssue {
-      override val title = "Gradle Sync issues."
-      override val description = description.buildMessage()
-      override val quickFixes = description.quickFixes
-      override fun getNavigatable(project: Project) = null
-    }
+    val buildIssueComposer = getBuildIssueDescription(message, issueData.projectPath) ?: return null
+    return buildIssueComposer.composeBuildIssue()
   }
 
-  private fun getBuildIssueDescription(message: String, projectPath: String): MessageComposer? {
+  private fun getBuildIssueDescription(message: String, projectPath: String): BuildIssueComposer? {
     val lineSequence = message.lines()
-    val description = MessageComposer(message)
+    val buildIssueComposer = BuildIssueComposer(message)
     val ideaProject = fetchIdeaProjectForGradleProject(projectPath)
 
     val matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(lineSequence[0])
     if (matcher.matches()) {
       val dependency = matcher.group(1)
-      handleMissingDependency(ideaProject, dependency, description)
-      return description
+      handleMissingDependency(ideaProject, dependency, buildIssueComposer)
+      return buildIssueComposer
     }
 
     val matcherMissingDependency = MISSING_DEPENDENCY_PATTERN.matcher(lineSequence[0])
@@ -76,12 +71,12 @@ class MissingDependencyIssueChecker: GradleIssueChecker {
       val dependency = matcherMissingDependency.group(1)
       if (dependency.isNotEmpty()) {
         getErrorLocation(lineSequence.last())?.also {
-          description.addQuickFix("Open file.",
+          buildIssueComposer.addQuickFix("Open file.",
                                   OpenFileAtLocationQuickFix(FilePosition(File(it.first), it.second - 1, -1)))
         }
 
-        handleMissingDependency(ideaProject, dependency, description)
-        return description
+        handleMissingDependency(ideaProject, dependency, buildIssueComposer)
+        return buildIssueComposer
       }
     }
 
@@ -89,8 +84,8 @@ class MissingDependencyIssueChecker: GradleIssueChecker {
       // This happens when Gradle cannot find the Android Gradle plug-in in Maven Central or jcenter.
       val matcherMissingMatching = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(line)
       if (matcherMissingMatching.matches()) {
-        handleMissingDependency(ideaProject, matcherMissingMatching.group(1), description)
-        return description
+        handleMissingDependency(ideaProject, matcherMissingMatching.group(1), buildIssueComposer)
+        return buildIssueComposer
       }
     }
     return null
@@ -133,9 +128,9 @@ class SearchInBuildFilesQuickFix(private val text: String): BuildIssueQuickFix {
   }
 }
 
-private fun handleMissingDependency(project: Project?, dependency: String, description: MessageComposer) {
+private fun handleMissingDependency(project: Project?, dependency: String, buildIssueComposer: BuildIssueComposer) {
   if (project != null && GradleSettings.getInstance(project).isOfflineWork) {
-    description.addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(false))
+    buildIssueComposer.addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(false))
   }
-  description.addQuickFix("Search in build.gradle files", SearchInBuildFilesQuickFix(dependency))
+  buildIssueComposer.addQuickFix("Search in build.gradle files", SearchInBuildFilesQuickFix(dependency))
 }

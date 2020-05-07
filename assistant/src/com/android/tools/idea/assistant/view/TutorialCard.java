@@ -27,6 +27,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -174,8 +175,8 @@ public class TutorialCard extends CardViewPanel {
     c.insets = JBUI.insetsBottom(5);
 
     JBLabel title = new JBLabel(myTutorial.getLabel());
-    title.setFont(title.getFont().deriveFont(Font.PLAIN, 24F));
-    title.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+    title.setFont(title.getFont().deriveFont(Font.PLAIN, JBUIScale.scaleFontSize(24)));
+    title.setBorder(JBUI.Borders.empty(10, 10, 0, 10));
     if (myTutorial.getIcon() != null) {
       title.setIcon(myTutorial.getIcon());
     }
