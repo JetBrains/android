@@ -36,6 +36,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.EventDispatcher;
 import java.awt.Dimension;
 import java.awt.KeyboardFocusManager;
@@ -105,6 +106,7 @@ public class WorkBenchTest extends WorkBenchTestCase {
                                                                       PalettePanelToolContent.getOtherDefinition(),
                                                                       PalettePanelToolContent.getThirdDefinition());
     when(myFileEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor, myFileEditor2});
+    when(myFileEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
     myWorkBench.init(myContent, "CONTEXT", definitions, false);
     myToolWindow1 = myModel.getAllTools().get(0);
     myToolWindow2 = myModel.getAllTools().get(1);

@@ -81,6 +81,7 @@ class EmulatorViewTest {
       filesOpened.add(invocation.getArgument(0))
       return@thenAnswer emptyArray<FileEditor>()
     }
+    `when`(fileEditorManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     projectRule.project.registerComponentInstance(FileEditorManager::class.java, fileEditorManager, projectRule.fixture.testRootDisposable)
   }
 
