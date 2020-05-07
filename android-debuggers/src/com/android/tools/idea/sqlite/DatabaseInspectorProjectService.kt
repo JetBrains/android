@@ -207,8 +207,6 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     createController(model)
   }
 
-  var myDatabaseInspectorClientCommandsChannelChannel: DatabaseInspectorClientCommandsChannel? = null
-
   override var ideServices: AppInspectionIdeServices? = null
 
   override val sqliteInspectorComponent
