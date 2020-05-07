@@ -53,6 +53,9 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     try {
       RenderTestUtil.afterRenderTestCase();
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
     }
