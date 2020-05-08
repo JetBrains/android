@@ -32,6 +32,7 @@ import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.ui.AdtUiCursors;
 import com.intellij.openapi.util.EmptyRunnable;
+import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -415,6 +416,23 @@ public class RangeSelectionComponentTest {
     // Move and verify we get a repaint.
     ui.mouse.moveTo(30, 0);
     verify(parent, times(1)).repaint();
+  }
+
+  @Test
+  public void componentRemovalRestoresCursor() {
+    RangeSelectionModel model = new RangeSelectionModel(new Range(10, 20), new Range(0, 100));
+    RangeSelectionComponent component = new RangeSelectionComponent(model);
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(component, BorderLayout.CENTER);
+    panel.setSize(100, 100);
+    component.setSize(100, 100);
+    FakeUi ui = new FakeUi(panel);
+
+    ui.mouse.moveTo(30, 30);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
+
+    panel.removeAll();
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
   }
 
   private static void shiftAndValidateShift(FakeUi ui, RangeSelectionModel model, FakeKeyboard.Key key, int min, int max) {
