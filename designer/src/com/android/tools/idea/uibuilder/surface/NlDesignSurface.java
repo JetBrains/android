@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 import static com.android.tools.idea.actions.DesignerDataKeys.LAYOUT_VALIDATOR_KEY;
 import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
@@ -62,6 +63,7 @@ import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
+import com.android.tools.idea.validator.ValidatorResult;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -104,14 +106,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * See {@link Builder#setDelegateDataProvider(DataProvider)}
    */
   @Nullable private final DataProvider myDelegateDataProvider;
-
-  private final LayoutValidatorControl myValidatorControl = new LayoutValidatorControl() {
-    @Override
-    public void setLayoutValidationEnabled(boolean enableLayoutValidation) {
-      getSceneManager().isLayoutValidationEnabled = enableLayoutValidation;
-      forceUserRequestedRefresh();
-    }
-  };
 
   private static class NlDesignSurfacePositionableContentLayoutManager extends PositionableContentLayoutManager {
     private final NlDesignSurface myDesignSurface;
@@ -412,6 +406,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   private final Dimension myScrollableViewMinSize = new Dimension();
   @Nullable private NlLayoutValidator myValidator;
+  @Nullable private LayoutValidatorControl myValidatorControl;
 
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
@@ -448,6 +443,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
     if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get()) {
       myValidator = new NlLayoutValidator(myIssueModel, this);
+      myValidatorControl = new NlLayoutValidatorControl(this, myValidator);
     }
 
     myDelegateDataProvider = delegateDataProvider;

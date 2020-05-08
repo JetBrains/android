@@ -203,6 +203,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * the validation. In order to allow validation, the layoutlib needs to re-inflate.
    */
   public boolean isLayoutValidationEnabled = false;
+
   /**
    * {@link Consumer} called when setting up the Rendering {@link MergingUpdateQueue} to do additional setup. This can be used for
    * additional setup required for testing.
