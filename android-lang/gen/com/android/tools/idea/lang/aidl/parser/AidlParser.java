@@ -23,7 +23,6 @@ import com.intellij.lang.PsiBuilder.Marker;
 import static com.android.tools.idea.lang.aidl.lexer.AidlTokenTypes.*;
 import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.IFileElementType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
@@ -41,16 +40,15 @@ public class AidlParser implements PsiParser, LightPsiParser {
     boolean r;
     b = adapt_builder_(t, b, this, EXTENDS_SETS_);
     Marker m = enter_section_(b, 0, _COLLAPSE_, null);
-    if (t instanceof IFileElementType) {
-      r = parse_root_(t, b, 0);
-    }
-    else {
-      r = false;
-    }
+    r = parse_root_(t, b);
     exit_section_(b, 0, m, t, r, true, TRUE_CONDITION);
   }
 
-  protected boolean parse_root_(IElementType t, PsiBuilder b, int l) {
+  protected boolean parse_root_(IElementType t, PsiBuilder b) {
+    return parse_root_(t, b, 0);
+  }
+
+  static boolean parse_root_(IElementType t, PsiBuilder b, int l) {
     return document(b, l + 1);
   }
 
@@ -308,14 +306,12 @@ public class AidlParser implements PsiParser, LightPsiParser {
   private static boolean methodDeclarationRecover_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "methodDeclarationRecover_0")) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = consumeToken(b, ONEWAY_KEYWORD);
     if (!r) r = consumeToken(b, IDENTIFIER);
     if (!r) r = primitiveType(b, l + 1);
     if (!r) r = consumeToken(b, VOID_KEYWORD);
     if (!r) r = consumeToken(b, INTERFACE_KEYWORD);
     if (!r) r = consumeToken(b, RCURLY);
-    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -654,13 +650,11 @@ public class AidlParser implements PsiParser, LightPsiParser {
   private static boolean type_recover_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_recover_0")) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = qualifiedName(b, l + 1);
     if (!r) r = consumeToken(b, LPARENTH);
     if (!r) r = consumeToken(b, COMMA);
     if (!r) r = consumeToken(b, GT);
     if (!r) r = consumeToken(b, LCURLY);
-    exit_section_(b, m, null, r);
     return r;
   }
 

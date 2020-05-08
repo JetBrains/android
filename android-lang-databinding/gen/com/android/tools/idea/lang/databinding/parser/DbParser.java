@@ -23,7 +23,6 @@ import com.intellij.lang.PsiBuilder.Marker;
 import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
 import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.IFileElementType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
@@ -41,16 +40,15 @@ public class DbParser implements PsiParser, LightPsiParser {
     boolean r;
     b = adapt_builder_(t, b, this, EXTENDS_SETS_);
     Marker m = enter_section_(b, 0, _COLLAPSE_, null);
-    if (t instanceof IFileElementType) {
-      r = parse_root_(t, b, 0);
-    }
-    else {
-      r = false;
-    }
+    r = parse_root_(t, b);
     exit_section_(b, 0, m, t, r, true, TRUE_CONDITION);
   }
 
-  protected boolean parse_root_(IElementType t, PsiBuilder b, int l) {
+  protected boolean parse_root_(IElementType t, PsiBuilder b) {
+    return parse_root_(t, b, 0);
+  }
+
+  static boolean parse_root_(IElementType t, PsiBuilder b, int l) {
     return dataBindingExpression(b, l + 1);
   }
 
@@ -70,10 +68,8 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "addOp")) return false;
     if (!nextTokenIs(b, "", MINUS, PLUS)) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = consumeToken(b, PLUS);
     if (!r) r = consumeToken(b, MINUS);
-    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -82,11 +78,9 @@ public class DbParser implements PsiParser, LightPsiParser {
   static boolean bitShiftOp(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "bitShiftOp")) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = consumeToken(b, LTLT);
     if (!r) r = consumeToken(b, GTGTGT);
     if (!r) r = consumeToken(b, GTGT);
-    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -219,10 +213,8 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "eqComparisonOp")) return false;
     if (!nextTokenIs(b, "", EQEQ, NE)) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = consumeToken(b, EQEQ);
     if (!r) r = consumeToken(b, NE);
-    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -277,12 +269,10 @@ public class DbParser implements PsiParser, LightPsiParser {
   static boolean ineqComparisonOp(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ineqComparisonOp")) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = consumeToken(b, LE);
     if (!r) r = consumeToken(b, GTEQ);
     if (!r) r = consumeToken(b, LT);
     if (!r) r = consumeToken(b, GT);
-    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -421,11 +411,9 @@ public class DbParser implements PsiParser, LightPsiParser {
   static boolean mulOp(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "mulOp")) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = consumeToken(b, ASTERISK);
     if (!r) r = consumeToken(b, DIV);
     if (!r) r = consumeToken(b, PERC);
-    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -435,10 +423,8 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "negationOp")) return false;
     if (!nextTokenIs(b, "", EXCL, TILDE)) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = consumeToken(b, TILDE);
     if (!r) r = consumeToken(b, EXCL);
-    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -487,10 +473,8 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "signOp")) return false;
     if (!nextTokenIs(b, "", MINUS, PLUS)) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = consumeToken(b, PLUS);
     if (!r) r = consumeToken(b, MINUS);
-    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -613,10 +597,8 @@ public class DbParser implements PsiParser, LightPsiParser {
   static boolean voidLiteral(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "voidLiteral")) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = consumeToken(b, VOID_KEYWORD);
     if (!r) r = consumeToken(b, "Void");
-    exit_section_(b, m, null, r);
     return r;
   }
 
