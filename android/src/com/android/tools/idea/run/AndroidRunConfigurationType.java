@@ -27,6 +27,13 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
   }
 
   public static class AndroidRunConfigurationFactory extends ConfigurationFactory {
+    @Override
+    @NotNull
+    public String getId() {
+      // This ID must be non-localized, use a rae string instead of the message bundle string.
+      return "Android App";
+    }
+
     protected AndroidRunConfigurationFactory(@NotNull ConfigurationType type) {
       super(type);
     }
