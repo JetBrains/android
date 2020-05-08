@@ -24,6 +24,7 @@ import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl
 import com.intellij.lang.annotation.AnnotationSession
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
+import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.kotlin.psi.KtCallExpression
 import java.awt.Color
 
@@ -155,6 +156,7 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
     annotationHolder.runAnnotatorWithContext(element.parentOfType<KtCallExpression>()!! as PsiElement, ComposeColorAnnotator())
     val iconRenderer = annotationHolder[0].gutterIconRenderer as ColorIconRenderer
     iconRenderer.setColorToAttribute(newColor)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 
   fun testColorIntx3x4() {
