@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property
 
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -52,10 +53,13 @@ class NavPropertiesPanelTest : NavTestCase() {
     navPropertiesManager.propertiesPanel.setItems(selectedItems, HashBasedTable.create())
 
     model.resourcesChanged(setOf(ResourceNotificationManager.Reason.EDIT))
+
+    // Allow com.intellij.util.ui.update.MergingUpdateQueue to pump events
+    Thread.sleep(2L * NlModel.DELAY_AFTER_TYPING_MS)
     UIUtil.dispatchAllInvocationEvents()
 
     verify(inspector1).refresh()
-    verify(inspector1).refresh()
+    verify(inspector2).refresh()
   }
 
   @Suppress("UNCHECKED_CAST")
