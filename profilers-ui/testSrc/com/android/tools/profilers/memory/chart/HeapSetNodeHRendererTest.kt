@@ -56,7 +56,7 @@ class HeapSetNodeHRendererTest {
 
   @Before
   fun setup() {
-    DataVisualizationColors.initialize(
+    DataVisualizationColors.doInitialize(
       FileInputStream(TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/data-colors.json")))
     val loader = FakeCaptureObjectLoader()
     loader.setReturnImmediateFuture(true)
