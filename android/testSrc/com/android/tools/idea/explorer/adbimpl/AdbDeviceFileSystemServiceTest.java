@@ -38,7 +38,6 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 
 public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
-
   private Supplier<File> adbSupplier = () -> AndroidSdkUtils.getAdb(getProject());
   private IdeComponents ideComponents;
 
@@ -144,6 +143,7 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
     pumpEventsAndWaitForFuture(service.start(adbSupplier));
 
     // Act
+    //noinspection ThrowableNotThrown
     Throwable t = pumpEventsAndWaitForFutureException(service.restart(adbSupplier));
 
     doNothing().when(mockAdbService).terminateDdmlib();
@@ -171,6 +171,7 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
     when(mockAdbService.getDebugBridge(any(File.class))).thenReturn(Futures.immediateFailedFuture(new RuntimeException()));
 
     // Act
+    //noinspection ThrowableNotThrown
     pumpEventsAndWaitForFutureException(service.start(adbSupplier));
   }
 }
