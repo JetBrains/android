@@ -51,7 +51,6 @@ import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
@@ -80,7 +79,6 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckException;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -108,7 +106,6 @@ import com.intellij.openapi.externalSystem.model.project.ExternalModuleBuildClas
 import com.intellij.openapi.externalSystem.model.project.ExternalProjectBuildClasspathPojo;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.settings.AbstractExternalSystemLocalSettings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -915,7 +912,6 @@ b/154962759 */
   public void testDaemonStops() throws Exception {
     loadSimpleApplication();
     List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
-/* b/155929877
     assertThat(daemonStatus).isNotEmpty();
     GradleDaemonServices.stopDaemons();
     daemonStatus = GradleDaemonServices.getDaemonsStatus();
@@ -926,7 +922,6 @@ b/154962759 */
     requestSyncAndWait();
     daemonStatus = GradleDaemonServices.getDaemonsStatus();
     assertThat(daemonStatus).isNotEmpty();
-b/155929877 */
   }
 
   @NotNull
