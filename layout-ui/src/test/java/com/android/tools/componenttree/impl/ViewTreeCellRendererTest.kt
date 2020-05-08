@@ -26,7 +26,6 @@ import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
-import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.AbstractExpandableItemsHandler
 import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.ExpandableItemsHandlerFactory
@@ -77,9 +76,8 @@ class ViewTreeCellRendererTest {
 
   @Before
   fun setUp() {
-/* b/144925492
-    appRule.testApplication.registerServiceInstance(ExpandableItemsHandlerFactory::class.java, TestExpandableItemsHandlerFactory())
-(This should probably be moved to testFragmentsWithLessThanOptimalSpaceAndRowExpanded.) */
+    appRule.testApplication.registerService(
+      ExpandableItemsHandlerFactory::class.java, TestExpandableItemsHandlerFactory(), appRule.testRootDisposable)
     doAnswer { focusOwner }.`when`<KeyboardFocusManager>(focusManager!!).focusOwner
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
     tree = TreeImpl(model, contextPopupHandler, doubleClickHandler, emptyList(), "testComponentTree")
@@ -154,7 +152,6 @@ class ViewTreeCellRendererTest {
 
   @Test
   fun testFragmentsWithLessThanOptimalSpaceAndRowExpanded() {
-/* b/144925492
     (tree?.expandableItemsHandler as TestTreeExpansionHandler).expandedRow = TEST_ROW
     tree?.overrideHasApplicationFocus = { true }
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
@@ -163,7 +160,6 @@ class ViewTreeCellRendererTest {
     component.setBounds(0, 0, size.width - 3, size.height)
     component.adjustForPainting()
     checkFragments(component, Fragment("text", bold), Fragment(" - \"Hello\"", grey))
-b/144925492 */
   }
 
   @Test
