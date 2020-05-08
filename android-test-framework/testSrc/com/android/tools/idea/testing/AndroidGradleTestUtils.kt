@@ -98,6 +98,7 @@ import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.runInEdtAndGet
@@ -688,7 +689,7 @@ fun setupTestProjectFromAndroidModel(
   projectDataNode.addChild(
     DataNode<JavaProjectData>(
       JavaProjectData.KEY,
-      JavaProjectData(GRADLE_SYSTEM_ID, buildPath.path),
+      JavaProjectData(GRADLE_SYSTEM_ID, buildPath.path, LanguageLevel.JDK_1_6, null),
       null
     )
   )
