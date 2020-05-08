@@ -39,85 +39,15 @@ public class SmaliParser implements PsiParser, LightPsiParser {
     boolean r;
     b = adapt_builder_(t, b, this, null);
     Marker m = enter_section_(b, 0, _COLLAPSE_, null);
-    if (t == ACCESS_MODIFIER) {
-      r = access_modifier(b, 0);
-    }
-    else if (t == ANNOTATION_PROPERTY) {
-      r = annotation_property(b, 0);
-    }
-    else if (t == ANNOTATIONS_SPEC) {
-      r = annotations_spec(b, 0);
-    }
-    else if (t == BOOL) {
-      r = bool(b, 0);
-    }
-    else if (t == CLASS_NAME) {
-      r = class_name(b, 0);
-    }
-    else if (t == CLASS_SPEC) {
-      r = class_spec(b, 0);
-    }
-    else if (t == FIELD_NAME) {
-      r = field_name(b, 0);
-    }
-    else if (t == FIELD_SPEC) {
-      r = field_spec(b, 0);
-    }
-    else if (t == FIELD_VALUE) {
-      r = field_value(b, 0);
-    }
-    else if (t == IMPLEMENTS_SPEC) {
-      r = implements_spec(b, 0);
-    }
-    else if (t == METHOD_BODY) {
-      r = method_body(b, 0);
-    }
-    else if (t == METHOD_SPEC) {
-      r = method_spec(b, 0);
-    }
-    else if (t == METHOD_START) {
-      r = method_start(b, 0);
-    }
-    else if (t == PARAMETER_DECLARATION) {
-      r = parameter_declaration(b, 0);
-    }
-    else if (t == PRIMITIVE_TYPE) {
-      r = primitive_type(b, 0);
-    }
-    else if (t == PROPERTY_VALUE) {
-      r = property_value(b, 0);
-    }
-    else if (t == REGULAR_METHOD_START) {
-      r = regular_method_start(b, 0);
-    }
-    else if (t == RETURN_TYPE) {
-      r = return_type(b, 0);
-    }
-    else if (t == SINGLE_VALUE) {
-      r = single_value(b, 0);
-    }
-    else if (t == SINGLE_VALUES) {
-      r = single_values(b, 0);
-    }
-    else if (t == SOURCE_SPEC) {
-      r = source_spec(b, 0);
-    }
-    else if (t == SUPER_SPEC) {
-      r = super_spec(b, 0);
-    }
-    else if (t == VALUE_ARRAY) {
-      r = value_array(b, 0);
-    }
-    else if (t == VOID_TYPE) {
-      r = void_type(b, 0);
-    }
-    else {
-      r = parse_root_(t, b, 0);
-    }
+    r = parse_root_(t, b);
     exit_section_(b, 0, m, t, r, true, TRUE_CONDITION);
   }
 
-  protected boolean parse_root_(IElementType t, PsiBuilder b, int l) {
+  protected boolean parse_root_(IElementType t, PsiBuilder b) {
+    return parse_root_(t, b, 0);
+  }
+
+  static boolean parse_root_(IElementType t, PsiBuilder b, int l) {
     return smali_file(b, l + 1);
   }
 
@@ -313,10 +243,8 @@ public class SmaliParser implements PsiParser, LightPsiParser {
   private static boolean constructor_start_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "constructor_start_1")) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = consumeToken(b, "<clinit>");
     if (!r) r = consumeToken(b, "<init>");
-    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -1052,12 +980,12 @@ public class SmaliParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  final static Parser method_recover_parser_ = new Parser() {
+  static final Parser method_recover_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return method_recover(b, l + 1);
     }
   };
-  final static Parser parameterListRecover_parser_ = new Parser() {
+  static final Parser parameterListRecover_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return parameterListRecover(b, l + 1);
     }
