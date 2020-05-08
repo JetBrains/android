@@ -34,10 +34,9 @@ import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.NavDestinationInfo
 import com.google.wireless.android.sdk.stats.NavDestinationInfo.DestinationType.FRAGMENT
 import com.google.wireless.android.sdk.stats.NavEditorEvent
-import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ADD_DESTINATION
-import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ADD_INCLUDE
-import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_FRAGMENT
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.*
 import com.intellij.ide.impl.DataManagerImpl
+import com.intellij.idea.Bombed
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.undo.UndoManager
@@ -59,6 +58,7 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import java.awt.event.MouseEvent
 import java.io.File
+import java.util.*
 import java.util.stream.Collectors
 import javax.swing.JPanel
 
@@ -108,6 +108,8 @@ class AddDestinationMenuTest : NavTestCase() {
     _panel = getMainMenuPanel()
   }
 
+  @Bombed(year = 2020, month = Calendar.OCTOBER, day = 1, user = "Andrei.Kuznetsov",
+          description = "missing path: ../unitTest/res/layout/activity_main.xml")
   fun testContent() {
     val virtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity_main.xml")
     val xmlFile = PsiManager.getInstance(project).findFile(virtualFile!!) as XmlFile
