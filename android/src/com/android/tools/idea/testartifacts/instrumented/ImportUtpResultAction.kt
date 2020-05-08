@@ -28,7 +28,8 @@ import com.intellij.openapi.fileChooser.FileChooser.chooseFile
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.wm.ToolWindowId
+import com.intellij.openapi.wm.RegisterToolWindowTask
+import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import kotlinx.coroutines.launch
 import java.io.InputStream
@@ -37,6 +38,25 @@ import java.io.InputStream
  * An action to import Unified Test Platform (UTP) results, and display them in the test result panel.
  */
 class ImportUtpResultAction : AnAction() {
+  companion object {
+    const val IMPORTED_TEST_WINDOW_ID = "Imported Tests"
+  }
+
+  /**
+   * Get the tool window to display the imported results.
+   *
+   * @param project an Android Studio project.
+   * @return a tool window to display the results.
+   */
+  @VisibleForTesting
+  fun getToolWindow(project: Project): ToolWindow {
+    val toolWindowManager = ToolWindowManager.getInstance(project)
+    val toolWindow = toolWindowManager.getToolWindow(IMPORTED_TEST_WINDOW_ID)
+    if (toolWindow != null) {
+      return toolWindow
+    }
+    return toolWindowManager.registerToolWindow(RegisterToolWindowTask(id = IMPORTED_TEST_WINDOW_ID))
+  }
 
   /**
    * Import test results and display them in the test result panel.
@@ -47,7 +67,7 @@ class ImportUtpResultAction : AnAction() {
   @VisibleForTesting
   fun parseResultsAndDisplay(inputStream: InputStream, disposable: Disposable, project: Project) {
     RunContentManager.getInstance(project)
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.RUN)!!
+    val toolWindow = getToolWindow(project)
     val testSuiteView = AndroidTestSuiteView(disposable, project)
     val contentManager = toolWindow.contentManager
     val content = contentManager.factory.createContent(testSuiteView.component, "Imported Android Test Results", true)
