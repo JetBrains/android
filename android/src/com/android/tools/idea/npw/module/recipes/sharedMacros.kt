@@ -20,6 +20,8 @@ import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstru
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestKt
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
+import com.android.tools.idea.wizard.template.CppStandardType
+import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -99,7 +101,9 @@ fun androidConfig(
   applicationId: String = "",
   hasTests: Boolean = false,
   canUseProguard: Boolean = false,
-  addLintOptions: Boolean = false
+  addLintOptions: Boolean = false,
+  enableCpp: Boolean = false,
+  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
 ): String {
   val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
   val applicationIdBlock = renderIf(hasApplicationId) { "applicationId \"${applicationId}\"" }
@@ -113,6 +117,27 @@ fun androidConfig(
       lintOptions {
           disable ('AllowBackup', 'GoogleAppIndexingWarning', 'MissingApplicationIcon')
       }
+    """
+  }
+
+  val cppConfigBlock = renderIf(enableCpp) {
+    """
+      externalNativeBuild {
+        cmake {
+          cppFlags "${cppStandard.compilerFlag}"
+        }
+      }
+    """
+  }
+
+  val cppReferenceBlock = renderIf(enableCpp) {
+    """
+    externalNativeBuild {
+      cmake {
+        path "src/main/cpp/CMakeLists.txt"
+        version "$DEFAULT_CMAKE_VERSION"
+      }
+    }
     """
   }
 
@@ -130,10 +155,12 @@ fun androidConfig(
 
       $testsBlock
       $proguardConsumerBlock
+      $cppConfigBlock
     }
 
     $proguardConfigBlock
     $lintOptionsBlock
+    $cppReferenceBlock
     }
     """
 }

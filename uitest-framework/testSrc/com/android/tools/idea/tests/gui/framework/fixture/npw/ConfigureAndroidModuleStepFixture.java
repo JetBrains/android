@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import com.android.tools.idea.wizard.template.CppStandardType;
 import com.android.tools.idea.wizard.template.Language;
 import javax.swing.JComboBox;
 import javax.swing.JRootPane;
@@ -64,6 +65,13 @@ public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
   @NotNull
   public ConfigureAndroidModuleStepFixture<W> setUseKtsBuildFiles(boolean select) {
     selectCheckBoxWithText("Use Kotlin script (.kts) for Gradle build files", select);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<W> setCppStandard(@NotNull CppStandardType cppStandard) {
+    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "C++ Standard", JComboBox.class, true))
+      .selectItem(cppStandard.name());
     return this;
   }
 }

@@ -90,6 +90,11 @@ public final class StudioFlags {
     NPW, "new.module.with.side.bar", "New Module with sidebar",
     "Shows latest UX implementation of New Module with a left side bar",
     false);
+
+  public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = Flag.create(
+    NPW, "new.native.module", "New Android Native Module",
+    "Show template to create a new Android Native module in the new module wizard.",
+    false);
   //endregion
 
   //region Profiler

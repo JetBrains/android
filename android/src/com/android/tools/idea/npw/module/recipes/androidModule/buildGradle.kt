@@ -24,6 +24,7 @@ import com.android.tools.idea.npw.module.recipes.getConfigurationName
 import com.android.tools.idea.npw.module.recipes.supportsImprovedTestDeps
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
+import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.has
@@ -45,7 +46,9 @@ fun buildGradle(
   wearProjectName: String = "wear",
   formFactorNames: Map<FormFactor, List<String>>,
   hasTests: Boolean = true,
-  addLintOptions: Boolean = false
+  addLintOptions: Boolean = false,
+  enableCpp: Boolean = false,
+  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
 ): String {
   val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(GradleVersion.parse(gradlePluginVersion), parseRevision(buildToolsVersion))
   val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
@@ -63,7 +66,9 @@ fun buildGradle(
     packageName,
     hasTests = hasTests,
     canUseProguard = true,
-    addLintOptions = addLintOptions
+    addLintOptions = addLintOptions,
+    enableCpp = enableCpp,
+    cppStandard = cppStandard
   )
 
   if (isDynamicFeature) {
@@ -140,6 +145,10 @@ internal fun String.gradleToKtsIfKts(isKts: Boolean): String = if (isKts) {
       .replace("minifyEnabled", "isMinifyEnabled")
       .replace("release {", "getByName(\"release\") {")
       .replace("debug {", "getByName(\"debug\") {")
+      // The followings are for externalNativeBuild
+      .toKtsFunction("cppFlags")
+      .toKtsFunction("path")
+      .toKtsProperty("version")
   }
 }
 else {

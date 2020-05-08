@@ -123,6 +123,12 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
     return new ConfigureNewModuleFromJarStepFixture<>(this, target().getRootPane());
   }
 
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNewNativeLibraryModule() {
+    clickNextToStep(message("android.wizard.module.new.native.library"), message("android.wizard.module.new.native.library"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
+  }
+
   private void clickNextToStep(String moduleName, String nextStepTitle) {
     JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), JBList.class));
     listFixture.replaceCellReader((list, index) -> ((ModuleGalleryEntry)list.getModel().getElementAt(index)).getName());

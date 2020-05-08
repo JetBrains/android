@@ -30,6 +30,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.BytecodeLevel;
+import com.android.tools.idea.wizard.template.CppStandardType;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
@@ -46,11 +47,13 @@ public class NewModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Rule public final RestoreFlagRule<Boolean> restoreNpwFlagRule = new RestoreFlagRule<>(StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR);
+  @Rule public final RestoreFlagRule<Boolean> restoreNpwSidebarFlagRule = new RestoreFlagRule<>(StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR);
+  @Rule public final RestoreFlagRule<Boolean> restoreNpwNativeModuleFlagRule = new RestoreFlagRule<>(StudioFlags.NPW_NEW_NATIVE_MODULE);
 
   @Before
   public void setup() {
     StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.override(true);
+    StudioFlags.NPW_NEW_NATIVE_MODULE.override(true);
   }
 
   @Test
@@ -211,5 +214,36 @@ public class NewModuleTest {
 
     String manifestContents = guiTest.getProjectFileText(moduleName + "/src/main/AndroidManifest.xml");
     assertThat(manifestContents).contains("android:name=\"android.hardware.type.automotive\"");
+  }
+
+  @Test
+  public void addNewCppModule() {
+    WizardUtils.createNewProject(guiTest); // Use androidx
+    final String moduleName = "nativelib";
+    guiTest.ideFrame()
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .clickNewNativeLibraryModule()
+      .enterModuleName(moduleName)
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish();
+
+    String gradleFileContents = guiTest.getProjectFileText(moduleName + "/build.gradle");
+    assertThat(gradleFileContents).contains("externalNativeBuild {");
+    assertThat(gradleFileContents).contains("path \"src/main/cpp/CMakeLists.txt\"");
+    assertThat(gradleFileContents).contains("cppFlags \"\"");
+
+    final String moduleName2 = "nativelib2";
+    guiTest.ideFrame()
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .clickNewNativeLibraryModule()
+      .enterModuleName(moduleName2)
+      .setCppStandard(CppStandardType.valueOf("C++11"))
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish();
+
+    String gradleFileContents2 = guiTest.getProjectFileText(moduleName2 + "/build.gradle");
+    assertThat(gradleFileContents2).contains("externalNativeBuild {");
+    assertThat(gradleFileContents2).contains("path \"src/main/cpp/CMakeLists.txt\"");
+    assertThat(gradleFileContents2).contains("cppFlags \"-std=c++11\"");
   }
 }
