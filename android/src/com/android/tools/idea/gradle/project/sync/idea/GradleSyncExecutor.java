@@ -167,7 +167,7 @@ public class GradleSyncExecutor {
     }
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
-    GradleProjectImportUtil.setupGradleSettings(projectSettings, externalProjectPath, project, null);
+    GradleProjectImportUtil.setupGradleSettings(projectSettings, externalProjectPath, project);
     GradleSettings.getInstance(project).setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(project, SYSTEM_ID).linkProject(projectSettings);
