@@ -72,6 +72,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.Mockito;
 
 /**
  * Fixture for building up models for tests
@@ -191,6 +192,9 @@ public class ModelBuilder {
       SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
       when(surface.getModel()).thenReturn(model);
       when(surface.getConfigurations()).thenReturn(ImmutableList.of(model.getConfiguration()));
+      if (surface.getConfiguration() == null){
+        Mockito.doCallRealMethod().when(surface).getConfiguration();
+      }
       when(surface.getSceneScalingFactor()).thenCallRealMethod();
 
       // TODO: NlDesignSurface should not be referenced from here.
@@ -203,6 +207,7 @@ public class ModelBuilder {
       SceneManager sceneManager = myManagerFactory.apply(model);
       when(surface.getSceneManager()).thenReturn(sceneManager);
       when(surface.getFocusedSceneView()).thenReturn(sceneManager.getSceneView());
+      when(surface.getSceneView(anyInt(), anyInt())).thenCallRealMethod();
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);
       }
