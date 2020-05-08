@@ -61,11 +61,6 @@ import org.jetbrains.annotations.Nullable;
 public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssueReporter {
   private static final String UNRESOLVED_DEPENDENCIES_GROUP = "Unresolved dependencies";
 
-  @NotNull
-  public static UnresolvedDependenciesReporter getInstance() {
-    return ServiceManager.getService(UnresolvedDependenciesReporter.class);
-  }
-
   @Override
   int getSupportedIssueType() {
     return TYPE_UNRESOLVED_DEPENDENCY;
@@ -157,7 +152,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
       return;
     }
     VirtualFile buildFile = getGradleBuildFile(module);
-    List<SyncIssue> syncIssues = unresolvedDependencies.stream().map(s -> new SyncIssue() {
+    List<SyncIssue> syncIssues = ContainerUtil.map(unresolvedDependencies, s -> new SyncIssue() {
       @Override
       public int getSeverity() {
         return SEVERITY_ERROR;
@@ -185,7 +180,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
       public List<String> getMultiLineMessage() {
         return null;
       }
-    }).collect(Collectors.toList());
+    });
 
     SyncIssueUsageReporter syncIssueUsageReporter = SyncIssueUsageReporter.Companion.getInstance(module.getProject());
     reportAll(syncIssues, syncIssues.stream().collect(Collectors.toMap(Function.identity(), k -> module)),

@@ -36,7 +36,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class PostSyncProjectSetup {
   @NotNull private final Project myProject;
-  @NotNull private final GradleSyncState mySyncState;
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
@@ -44,25 +43,24 @@ public class PostSyncProjectSetup {
   }
 
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public PostSyncProjectSetup(@NotNull Project project,
-                              @NotNull GradleSyncState syncState) {
+  public PostSyncProjectSetup(@NotNull Project project) {
     myProject = project;
-    mySyncState = syncState;
   }
 
   public void notifySyncFinished(@NotNull Request request) {
+    GradleSyncState syncState = GradleSyncState.getInstance(myProject);
     // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
     // previous sync, and not the one from the sync that just ended.
     if (request.usingCachedGradleModels) {
-      mySyncState.syncSkipped(null);
+      syncState.syncSkipped(null);
       GradleBuildState.getInstance(myProject).buildFinished(SKIPPED);
     }
     else {
-      if (mySyncState.lastSyncFailed()) {
-        mySyncState.syncFailed("", null, null);
+      if (syncState.lastSyncFailed()) {
+        syncState.syncFailed("", null, null);
       }
       else {
-        mySyncState.syncSucceeded();
+        syncState.syncSucceeded();
       }
       ProjectBuildFileChecksums.saveToDisk(myProject);
     }

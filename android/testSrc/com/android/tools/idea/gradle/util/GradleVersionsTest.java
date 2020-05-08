@@ -45,7 +45,8 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     mySettingsFinder = mock(GradleProjectSettingsFinder.class);
-    myGradleVersions = new GradleVersions(mySettingsFinder);
+    new IdeComponents(getProject()).replaceApplicationService(GradleProjectSettingsFinder.class, mySettingsFinder);
+    myGradleVersions = new GradleVersions();
     myIdeComponents = new IdeComponents(getProject());
   }
 
