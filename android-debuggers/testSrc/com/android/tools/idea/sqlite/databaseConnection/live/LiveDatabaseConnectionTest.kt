@@ -21,9 +21,9 @@ import androidx.sqlite.inspection.SqliteInspectorProtocol.QueryResponse
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Response
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
-import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorMessenger

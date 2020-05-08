@@ -20,6 +20,7 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi.setPortableUiFont
 import com.android.tools.idea.avdmanager.AvdLaunchListener
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.run.AppDeploymentListener
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat

@@ -18,8 +18,8 @@ package com.android.tools.idea.sqlite
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
-import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
+import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors

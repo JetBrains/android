@@ -24,6 +24,7 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString

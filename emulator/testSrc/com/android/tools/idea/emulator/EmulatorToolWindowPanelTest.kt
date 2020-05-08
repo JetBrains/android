@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.FakeUi.setPortableUiFont
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -26,7 +27,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.UiTestRule
-import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
