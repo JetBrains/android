@@ -40,6 +40,7 @@ import org.mockito.Mockito.mock
 import org.picocontainer.MutablePicoContainer
 import kotlin.reflect.KClass
 
+@org.junit.Ignore("b/156122168")
 @RunWith(JUnit4::class)
 class LaunchCompatibilityCheckerTest {
   @get:Rule
