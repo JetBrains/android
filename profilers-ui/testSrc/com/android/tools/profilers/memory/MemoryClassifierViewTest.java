@@ -1195,7 +1195,20 @@ public class MemoryClassifierViewTest {
     selectedNode = (MemoryObjectTreeNode<ClassifierSet>)tree.getSelectionPath().getLastPathComponent();
     assertThat(selectedNode.getAdapter()).isEqualTo(childThatIsBar.getAdapter());
     assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isEqualTo(childThatIsBar.getAdapter());
-    assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isEqualTo(selectedInstance);
+    // If the old instance isn't part of the instances anymore, it shouldn't be selected!!
+    InstanceObject reselectedInstance = capture.getInstances().filter(selectedInstance::equals).findAny().orElse(null);
+    assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isEqualTo(reselectedInstance);
+
+    // Shrink to empty range and make sure class-set and instance are unselected
+    double oldMin = selectionRange.getMin();
+    double oldMax = selectionRange.getMax();
+    selectionRange.setMin(0);
+    selectionRange.setMax(0);
+    assertThat(capture.getInstances().count()).isEqualTo(0);
+    assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isEqualTo(ClassSet.EMPTY_SET);
+    assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isNull();
+    selectionRange.setMin(oldMin);
+    selectionRange.setMax(oldMax);
 
     // Apply an invalid filter
     myStage.getCaptureSelection().getFilterHandler().setFilter(new Filter("BLAH"));

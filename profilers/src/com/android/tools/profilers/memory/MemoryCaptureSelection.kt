@@ -178,6 +178,30 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
   fun refreshSelectedHeap() {
     aspect.changed(CaptureSelectionAspect.CURRENT_HEAP_CONTENTS)
     filterHandler.refreshFilterContent()
+    selectedHeapSet?.let { heap ->
+      // Keep previously selected instance selected if it's still in refreshed heap
+      val prevInst = selectedInstanceObject
+      if (prevInst != null) {
+        when (val newClass = heap.findContainingClassifierSet(prevInst)) {
+          is ClassSet -> {
+            val prevFields = selectedFieldObjectPath
+            selectClassSet(newClass)
+            selectInstanceObject(prevInst)
+            selectFieldObjectPath(prevFields)
+          }
+          null -> selectInstanceObject(null)
+        }
+      }
+
+      // If instance deselected, try to re-select the "same" class-set if it's still relevant
+      if (selectedInstanceObject == null && selectedClassSet != null) {
+        val className = selectedClassSet!!.name
+        when (val newClass = heap.findClassifierSet { it.name == className }) {
+          is ClassSet -> selectClassSet(newClass)
+          else -> selectClassSet(ClassSet.EMPTY_SET)
+        }
+      }
+    }
   }
 
   /**
