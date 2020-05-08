@@ -627,9 +627,15 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       super(action, action.getTemplatePresentation().clone(), TOOL_WINDOW_TOOLBAR_PLACE, buttonSize);
     }
 
+    @Override
     public void update() {
+      // Do not call super.update() because the super method will disable the actions in dumb mode, and actions will not be
+      // updated on a timer as other toolbars and may remain disabled.
+      // If the toolbar were created by: ActionManager.getInstance().createActionToolbar we could super method instead.
       AnActionEvent event = new AnActionEvent(null, getDataContext(), myPlace, myPresentation, ActionManager.getInstance(), 0);
       myAction.update(event);
+      updateToolTipText();
+      updateIcon();
     }
 
     @Override
