@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.util
 
 import com.intellij.ide.file.BatchFileChangeListener
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.components.impl.stores.BatchUpdateListener
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange
@@ -35,8 +34,8 @@ object BatchUpdatesUtil {
   @JvmStatic
   fun startBatchUpdate(project: Project) {
     LOG.info("Starting batch update for project: " + project.toString())
-    TransactionGuard.submitTransaction(
-      project, Runnable {
+    ApplicationManager.getApplication().invokeLater(
+      Runnable {
         executeProjectChangeAction(true, object : DisposeAwareProjectChange(project) {
           override fun execute() {
             project.messageBus.syncPublisher(BatchUpdateListener.TOPIC).onBatchUpdateStarted()
@@ -44,7 +43,7 @@ object BatchUpdatesUtil {
               .syncPublisher(BatchFileChangeListener.TOPIC).batchChangeStarted(project, "batch update")
           }
         })
-      })
+      }, project.disposed)
   }
 
   /**
@@ -53,14 +52,14 @@ object BatchUpdatesUtil {
   @JvmStatic
   fun finishBatchUpdate(project: Project) {
     LOG.info("Finishing batch update for project: " + project.toString())
-    TransactionGuard.submitTransaction(
-      project, Runnable {
+    ApplicationManager.getApplication().invokeLater(
+      Runnable {
         executeProjectChangeAction(true, object : DisposeAwareProjectChange(project) {
           override fun execute() {
             project.messageBus.syncPublisher(BatchUpdateListener.TOPIC).onBatchUpdateFinished()
             ApplicationManager.getApplication().messageBus.syncPublisher(BatchFileChangeListener.TOPIC).batchChangeCompleted(project)
           }
         })
-      })
+      }, project.disposed)
   }
 }
