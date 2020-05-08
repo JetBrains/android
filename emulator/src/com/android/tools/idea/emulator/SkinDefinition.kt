@@ -35,6 +35,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
+import java.nio.file.Paths
 import javax.imageio.ImageIO
 
 /**
@@ -428,14 +429,21 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
       get() = y + height
 
     @JvmStatic
-    private fun readImage(file: URL): BufferedImage? {
+    private fun readImage(url: URL): BufferedImage? {
+      var image: BufferedImage? = null
       try {
-        return ImageIO.read(file)
+        image = ImageIO.read(url)
       }
       catch (e: IOException) {
-        logger.warn("Failed to read Emulator skin image $file")
-        return null
+        // Ignore to return null.
       }
+
+      if (image == null) {
+        val file = Paths.get(url.toURI())
+        val detail = if (Files.notExists(file)) " - the file does not exist" else ""
+        logger.warn("Failed to read Emulator skin image ${file}${detail}")
+      }
+      return image
     }
 
     private const val ALPHA_MASK = 0xFF000000.toInt()
