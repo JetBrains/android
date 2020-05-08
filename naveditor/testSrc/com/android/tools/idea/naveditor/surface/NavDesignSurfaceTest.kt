@@ -35,6 +35,7 @@ import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.intellij.idea.Bombed
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -59,6 +60,7 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
 import java.io.File
+import java.util.*
 import java.util.concurrent.Future
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -483,6 +485,8 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertEquals(root, component)
   }
 
+  @Bombed(year = 2020, month = Calendar.OCTOBER, day = 1, user = "Andrei.Kuznetsov",
+          description = "missing path: ../unitTest/res/navigation/navigation.xml")
   fun testConfiguration() {
     val defaultConfigurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
     val navConfigurationManager = NavDesignSurface(project, project).getConfigurationManager(myFacet)
