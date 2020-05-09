@@ -101,7 +101,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * A wrapper class for communicating with {@link AvdManager} and exposing helper functions
- * for dealing with {@link AvdInfo} objects inside Android studio.
+ * for dealing with {@link AvdInfo} objects inside Android Studio.
  */
 public class AvdManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
@@ -583,7 +583,7 @@ public class AvdManagerConnection {
 
     commandLine.addParameters("-avd", info.getName());
     if (shouldBeLaunchedEmbedded(info)) {
-      commandLine.addParameters("-no-window", "-gpu", "auto-no-window", "-grpc-use-token"); // Launch headless.
+      commandLine.addParameters("-no-window", "-gpu", "auto-no-window", "-grpc-use-token", "-idle-grpc-timeout", "300"); // Launch headless.
     }
   }
 

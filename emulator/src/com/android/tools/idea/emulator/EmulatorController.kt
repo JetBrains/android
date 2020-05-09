@@ -36,6 +36,7 @@ import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.Alarm
 import com.intellij.util.containers.ConcurrentList
 import com.intellij.util.containers.ContainerUtil
 import io.grpc.CallCredentials
@@ -50,6 +51,7 @@ import io.grpc.StatusRuntimeException
 import io.grpc.stub.ClientCalls
 import io.grpc.stub.StreamObserver
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -61,6 +63,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   @Volatile private var snapshotServiceStub: SnapshotServiceGrpc.SnapshotServiceStub? = null
   @Volatile private var emulatorConfigInternal: EmulatorConfiguration? = null
   @Volatile internal var skinDefinition: SkinDefinition? = null
+  private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
   private var stateInternal = AtomicReference(ConnectionState.NOT_INITIALIZED)
   private val connectionStateListeners: ConcurrentList<ConnectionStateListener> = ContainerUtil.createConcurrentList()
   private val connectivityStateWatcher = object : Runnable {
@@ -170,7 +173,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
 
     channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
-    fetchConfiguration()
+    sendKeepAlive()
   }
 
   /**
@@ -253,10 +256,11 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
   }
 
-  private fun fetchConfiguration() {
-    val responseObserver = object : DummyStreamObserver<EmulatorStatus>() {
-      override fun onNext(response: EmulatorStatus) {
+  private fun sendKeepAlive() {
+    val responseObserver = object : DummyStreamObserver<VmRunState>() {
+      override fun onNext(response: VmRunState) {
         connectionState = ConnectionState.CONNECTED
+        alarm.addRequest({ sendKeepAlive() }, KEEP_ALIVE_INTERVAL_MILLIS)
       }
 
       override fun onError(t: Throwable) {
@@ -265,10 +269,10 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
 
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("getStatus()")
+      LOG.info("getVmState()")
     }
-    emulatorController.getStatus(Empty.getDefaultInstance(),
-                                 DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetStatusMethod()))
+    emulatorController.getVmState(Empty.getDefaultInstance(),
+                                  DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetVmStateMethod()))
   }
 
   fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getDummyObserver()) {
@@ -366,19 +370,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     override fun thisUsesUnstableApi() {
     }
   }
+}
 
-  companion object {
-    @JvmStatic
-    private val AUTHORIZATION_METADATA_KEY = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
-    @JvmStatic
-    private val LOG = Logger.getInstance(EmulatorController::class.java)
-    @JvmStatic
-    private val DUMMY_OBSERVER = DummyStreamObserver<Any>()
+private val AUTHORIZATION_METADATA_KEY = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
+private val KEEP_ALIVE_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(2)
+private val LOG = Logger.getInstance(EmulatorController::class.java)
+private val DUMMY_OBSERVER = DummyStreamObserver<Any>()
 
-    @JvmStatic
-    @Suppress("UNCHECKED_CAST")
-    fun <T> getDummyObserver(): StreamObserver<T> {
-      return DUMMY_OBSERVER as StreamObserver<T>
-    }
-  }
+@Suppress("UNCHECKED_CAST")
+fun <T> getDummyObserver(): StreamObserver<T> {
+  return DUMMY_OBSERVER as StreamObserver<T>
 }

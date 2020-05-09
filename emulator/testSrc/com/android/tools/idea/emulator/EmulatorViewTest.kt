@@ -308,7 +308,7 @@ class EmulatorViewTest {
     val emulatorController = emulators.first()
     val view = EmulatorView(emulatorController, projectRule.fixture.testRootDisposable, false)
     waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getStatus" call.
+    emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
     return view
   }
 
