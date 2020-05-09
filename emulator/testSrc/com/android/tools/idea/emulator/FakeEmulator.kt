@@ -232,6 +232,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
 
+    override fun getVmState(request: Empty, responseObserver: StreamObserver<VmRunState>) {
+      executor.execute {
+        val response = VmRunState.newBuilder()
+          .setState(VmRunState.RunState.RUNNING)
+          .build()
+        sendResponse(responseObserver, response)
+      }
+    }
+
     override fun setVmState(request: VmRunState, responseObserver: StreamObserver<Empty>) {
       executor.execute {
         sendEmptyResponse(responseObserver)

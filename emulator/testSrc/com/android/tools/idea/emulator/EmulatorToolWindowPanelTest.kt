@@ -92,9 +92,11 @@ class EmulatorToolWindowPanelTest {
     panel.hideLongRunningOperationIndicator()
     ui.layoutAndDispatchEvents()
     assertAppearance(ui, "image1")
+    assertThat(call.completion.isCancelled).isFalse()
 
     panel.destroyContent()
     assertThat(panel.emulatorView).isNull()
+    assertThat(call.completion.isCancelled).isTrue()
   }
 
   private fun getStreamScreenshotCallAndWaitForFrame(panel: EmulatorToolWindowPanel, frameNumber: Int): GrpcCallRecord {

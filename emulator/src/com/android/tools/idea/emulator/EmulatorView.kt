@@ -358,6 +358,7 @@ class EmulatorView(
   }
 
   override fun dispose() {
+    screenshotFeed?.cancel()
     removeComponentListener(this)
     emulator.removeConnectionStateListener(this)
   }
