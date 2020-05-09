@@ -15,20 +15,27 @@
  */
 package com.android.tools.idea.updater;
 
+import static org.junit.Assert.assertEquals;
+
 import com.intellij.credentialStore.CredentialAttributes;
 import com.intellij.credentialStore.Credentials;
 import com.intellij.ide.passwordSafe.PasswordSafe;
-import org.jetbrains.android.AndroidTestCase;
-
+import com.intellij.testFramework.ApplicationRule;
 import java.net.Authenticator;
 import java.net.InetAddress;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Tests for {@link AndroidSdkUpdaterPlugin}
  */
-public class AndroidSdkUpdaterPluginTest extends AndroidTestCase {
+public class AndroidSdkUpdaterPluginTest {
+  @Rule
+  public ApplicationRule myApplicationRule = new ApplicationRule();
+
+  @Test
   public void testAuthenticator() throws Exception {
     String url = "http://example.com/foo/bar.xml" + System.currentTimeMillis();
     String serviceName = AndroidSdkUpdaterPlugin.getCredentialServiceName(url);
