@@ -40,7 +40,6 @@ import com.android.utils.NullLogger;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.execution.Platform;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
@@ -51,15 +50,13 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
 
 public class AvdManagerConnectionTest extends AndroidTestCase {
-
   private static final File ANDROID_HOME = new File("/android-home");
 
   private AvdManager mAvdManager;
   private AvdManagerConnection mAvdManagerConnection;
   private File mAvdFolder;
   private SystemImage mSystemImage;
-  private MockFileOp mFileOp = new MockFileOp();
-
+  private final MockFileOp mFileOp = new MockFileOp();
 
   @Override
   protected void setUp() throws Exception {
@@ -229,17 +226,17 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     final String COLD_BOOT_COMMAND = "-no-snapstorage";
     final String COLD_BOOT_ONCE_COMMAND = "-no-snapshot-load";
     GeneralCommandLine cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(fastBootAvd, cmdLine);
+    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, cmdLine);
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
 
     cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(coldBootAvd, cmdLine);
+    mAvdManagerConnection.addParameters(getProject(), coldBootAvd, cmdLine);
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
 
     cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(coldBootOnceAvd, cmdLine);
+    mAvdManagerConnection.addParameters(getProject(), coldBootOnceAvd, cmdLine);
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
 
@@ -248,17 +245,17 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // Re-test all AVDs using an Emulator that DOES support fast boot
     cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(fastBootAvd, cmdLine);
+    mAvdManagerConnection.addParameters(getProject(), fastBootAvd, cmdLine);
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
 
     cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(coldBootAvd, cmdLine);
+    mAvdManagerConnection.addParameters(getProject(), coldBootAvd, cmdLine);
     assertTrue(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
 
     cmdLine = new GeneralCommandLine();
-    mAvdManagerConnection.addParameters(coldBootOnceAvd, cmdLine);
+    mAvdManagerConnection.addParameters(getProject(), coldBootOnceAvd, cmdLine);
     assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
     assertTrue(cmdLine.getCommandLineString().contains(COLD_BOOT_ONCE_COMMAND));
   }

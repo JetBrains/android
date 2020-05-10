@@ -18,7 +18,7 @@ package com.android.tools.idea.avdmanager
 import com.intellij.openapi.util.SystemInfo.isChromeOS
 import java.io.File
 
-internal object HardwareAccelerationCheck {
+object HardwareAccelerationCheck {
   /**
    * This should only be executed on Crostini. On any other OS, it will throw an [UnsupportedOperationException].
    */
@@ -32,6 +32,6 @@ internal object HardwareAccelerationCheck {
    * support this now behave like Linux machines when it comes to Studio's emulator functionality. Use this method instead of [isChromeOS]
    * when making choices about virtual devices.
    */
-  @kotlin.jvm.JvmStatic
+  @JvmStatic
   fun isChromeOSAndIsNotHWAccelerated() = isChromeOS && !isHWAccelerated
 }
