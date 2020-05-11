@@ -68,6 +68,7 @@ import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.application.subscribe
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -278,6 +279,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setEditable(true)
+    .setDelegateDataProvider {
+      return@setDelegateDataProvider when (it) {
+        COMPOSE_PREVIEW_MANAGER.name -> this
+        // The Compose preview NlModels do not point to the actual file but to a synthetic file
+        // generated for Layoutlib. This ensures we return the right file.
+        CommonDataKeys.VIRTUAL_FILE.name -> psiFilePointer.virtualFile
+        else -> null
+      }
+    }
     .build()
     .apply {
       setScreenMode(SceneMode.COMPOSE, false)
