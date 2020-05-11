@@ -24,10 +24,8 @@ import com.android.utils.concurrency.AsyncSupplier
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbServiceImpl
-import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
@@ -37,10 +35,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import org.picocontainer.MutablePicoContainer
-import kotlin.reflect.KClass
 
-@org.junit.Ignore("b/156122168")
 @RunWith(JUnit4::class)
 class LaunchCompatibilityCheckerTest {
   @get:Rule
@@ -52,7 +47,8 @@ class LaunchCompatibilityCheckerTest {
   @Before
   fun setUp() {
     facet = AndroidFacet.getInstance(projectRule.module)!!
-    mockManifestManager = projectRule.module.mockService(MergedManifestManager::class)
+    mockManifestManager = mock(MergedManifestManager::class.java)
+    projectRule.module.replaceService(MergedManifestManager::class.java, mockManifestManager, projectRule.module)
   }
 
   @Test
@@ -76,7 +72,7 @@ class LaunchCompatibilityCheckerTest {
     val api27Manifest = mockManifest(AndroidVersion(27))
     val api28Manifest = mockManifest(AndroidVersion(28))
 
-    `when`(mockManifestManager.mergedManifest).thenReturn(object :  AsyncSupplier<MergedManifestSnapshot> {
+    `when`(mockManifestManager.mergedManifest).thenReturn(object : AsyncSupplier<MergedManifestSnapshot> {
       override val now = api27Manifest
       override fun get() = api28Manifest.asFuture()
     })
@@ -93,8 +89,8 @@ class LaunchCompatibilityCheckerTest {
   fun usesComputedManifestForMinSdkIfAvailable() {
     val api28Manifest = mockManifest(AndroidVersion(28))
 
-    `when`(mockManifestManager.mergedManifest).thenReturn(object :  AsyncSupplier<MergedManifestSnapshot> {
-      override val now : MergedManifestSnapshot? = null
+    `when`(mockManifestManager.mergedManifest).thenReturn(object : AsyncSupplier<MergedManifestSnapshot> {
+      override val now: MergedManifestSnapshot? = null
       override fun get() = api28Manifest.asFuture()
     })
 
@@ -108,7 +104,7 @@ class LaunchCompatibilityCheckerTest {
 
   @Test
   fun usesDefaultVersionForMinSdkIfManifestUnavailable() {
-    `when`(mockManifestManager.mergedManifest).thenReturn(object :  AsyncSupplier<MergedManifestSnapshot> {
+    `when`(mockManifestManager.mergedManifest).thenReturn(object : AsyncSupplier<MergedManifestSnapshot> {
       override val now: MergedManifestSnapshot? = null
       override fun get() = SettableFuture.create<MergedManifestSnapshot>()
     })
@@ -124,20 +120,8 @@ class LaunchCompatibilityCheckerTest {
 
 private fun <T> T.asFuture() = Futures.immediateFuture(this)
 
-private fun mockManifest(minSdkVersion: AndroidVersion) : MergedManifestSnapshot {
+private fun mockManifest(minSdkVersion: AndroidVersion): MergedManifestSnapshot {
   return mock(MergedManifestSnapshot::class.java).also {
     `when`(it.minSdkVersion).thenReturn(minSdkVersion)
   }
-}
-
-private fun <T: Any> Module.mockService(serviceInterface: KClass<T>): T {
-  val mockedImplementation = mock(serviceInterface.java)
-  (picoContainer as MutablePicoContainer).apply {
-    unregisterComponent(serviceInterface.java.name)
-    registerComponentInstance(serviceInterface.java.name, mockedImplementation)
-  }
-  if (mockedImplementation is Disposable) {
-      Disposer.register(this, mockedImplementation)
-  }
-  return mockedImplementation
 }
