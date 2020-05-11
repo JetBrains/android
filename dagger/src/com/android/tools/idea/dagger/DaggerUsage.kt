@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.dagger.localization.DaggerBundle.message
 import com.android.tools.idea.flags.StudioFlags.DAGGER_SUPPORT_ENABLED
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.find.findUsages.CustomUsageSearcher
@@ -33,14 +34,14 @@ import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.usages.impl.rules.UsageTypeProviderEx
 import com.intellij.util.Processor
 
-private val PROVIDERS_USAGE_TYPE = UsageType(UIStrings.PROVIDERS)
-private val CONSUMERS_USAGE_TYPE = UsageType(UIStrings.CONSUMERS)
-private val EXPOSED_BY_COMPONENTS_USAGE_TYPE = UsageType(UIStrings.EXPOSED_BY_COMPONENTS)
-private val PARENT_COMPONENTS_USAGE_TYPE = UsageType(UIStrings.PARENT_COMPONENTS)
-private val SUBCOMPONENTS_USAGE_TYPE = UsageType(UIStrings.SUBCOMPONENTS)
-private val INCLUDED_IN_COMPONENTS_USAGE_TYPE = UsageType(UIStrings.INCLUDED_IN_COMPONENTS)
-private val INCLUDED_IN_MODULES_USAGE_TYPE = UsageType(UIStrings.INCLUDED_IN_MODULES)
-private val MODULES_USAGE_TYPE = UsageType(UIStrings.MODULES_INCLUDED)
+private val PROVIDERS_USAGE_TYPE = UsageType { message("providers") }
+private val CONSUMERS_USAGE_TYPE = UsageType { message("consumers") }
+private val EXPOSED_BY_COMPONENTS_USAGE_TYPE = UsageType { message("exposed.by.components") }
+private val PARENT_COMPONENTS_USAGE_TYPE = UsageType { message("parent.components") }
+private val SUBCOMPONENTS_USAGE_TYPE = UsageType { message("subcomponents") }
+private val INCLUDED_IN_COMPONENTS_USAGE_TYPE = UsageType { message("included.in.components") }
+private val INCLUDED_IN_MODULES_USAGE_TYPE = UsageType { message("included.in.modules") }
+private val MODULES_USAGE_TYPE = UsageType { message("modules.included") }
 
 /**
  * [UsageTypeProvider] that labels Dagger related PsiElements with the right description.
