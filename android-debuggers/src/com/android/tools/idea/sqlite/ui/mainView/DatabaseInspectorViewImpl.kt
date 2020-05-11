@@ -42,6 +42,7 @@ import com.intellij.ui.tabs.impl.JBEditorTabsBorder
 import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.intellij.xml.util.XmlStringUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.GridBagLayout
@@ -167,18 +168,15 @@ class DatabaseInspectorViewImpl(
   }
 
   private fun addEmptyStatePanel(text: String) {
-    val escapedText = text.replace("&", "&amp").replace("<", "&lt").replace(">", "&gt")
-    val editorPane = JEditorPane(
-      "text/html",
-      "<h2>Database Inspector</h2>" +
-       escapedText +
-      "<p><a href=\"https://d.android.com/r/studio-ui/db-inspector-help\">Learn more</a></p>"
-    )
+    val escapedText = XmlStringUtil.escapeString(text)
+    val editorPane = JEditorPane()
+    editorPane.editorKit = UIUtil.getHTMLEditorKit()
+    editorPane.text =
+      // language=html
+      "<h2>Database Inspector</h2>${escapedText}<h3><a href='https://d.android.com/r/studio-ui/db-inspector-help'>Learn more</a></h3>"
     val document = editorPane.document as HTMLDocument
-    document.styleSheet.addRule(
-      "body { text-align: center; font-family: ${UIUtil.getLabelFont()}; font-size: ${UIUtil.getLabelFont().size} pt; }"
-    )
-    document.styleSheet.addRule("h2 { font-weight: normal; }")
+    document.styleSheet.addRule("body { text-align: center; }")
+    document.styleSheet.addRule("h2, h3 { font-weight: normal; }")
     editorPane.name = "right-panel-empty-state"
     editorPane.isOpaque = false
     editorPane.isEditable = false

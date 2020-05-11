@@ -99,7 +99,7 @@ class TableViewImpl : TableView {
 
   private val table = JBTable()
   private val tableScrollPane = JBScrollPane(table)
-  private val loadingMessageEditorPane = JEditorPane("text/html", "")
+  private val loadingMessageEditorPane = JEditorPane()
 
   private val centerPanel = JPanel(BorderLayout())
 
@@ -314,9 +314,10 @@ class TableViewImpl : TableView {
 
   private fun setUpLoadingPanel() {
     setLoadingText(loadingMessageEditorPane, stopwatch.elapsed())
+    loadingMessageEditorPane.editorKit = UIUtil.getHTMLEditorKit()
     val document = loadingMessageEditorPane.document as HTMLDocument
     document.styleSheet.addRule(
-      "body { text-align: center; font-family: ${UIUtil.getLabelFont()}; font-size: ${UIUtil.getLabelFont().size} pt; }"
+      "body { text-align: center; }"
     )
     document.styleSheet.addRule("h2, h3 { font-weight: normal; }")
     loadingMessageEditorPane.name = "loading-panel"
@@ -332,9 +333,8 @@ class TableViewImpl : TableView {
 
   private fun setLoadingText(editorPane: JEditorPane, duration: Duration) {
     editorPane.text =
-      "<h2>Running query...</h2>" +
-      "${duration.seconds} sec" +
-      "<h3><a href=\"\">Cancel query</a></h3>"
+      // language=html
+      "<h2>Running query...</h2>${duration.seconds} sec<h3><a href=''>Cancel query</a></h3>"
   }
 
   /**
