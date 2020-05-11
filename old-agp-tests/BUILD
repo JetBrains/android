@@ -34,6 +34,7 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:gradle-distrib-5.3.1",
         "//tools/base/build-system:gradle-distrib-5.5",
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/build-system/previous-versions:1.5.0.zip",
