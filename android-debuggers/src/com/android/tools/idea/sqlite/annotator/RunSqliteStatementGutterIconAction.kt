@@ -59,7 +59,7 @@ class RunSqliteStatementGutterIconAction(
   private val databaseInspectorProjectService: DatabaseInspectorProjectService = DatabaseInspectorProjectService.getInstance(project)
 ) : AnAction() {
   override fun actionPerformed(actionEvent: AnActionEvent) {
-    val openDatabases = DatabaseInspectorProjectService.getInstance(project).getOpenDatabases()
+    val openDatabases = databaseInspectorProjectService.getOpenDatabases()
 
     if (openDatabases.isEmpty()) return
 
@@ -100,13 +100,13 @@ class RunSqliteStatementGutterIconAction(
 
     if (!needsBinding(sqliteStatementPsi)) {
       val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
-      DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(databaseId, createSqliteStatement(project, sqliteStatement))
+      databaseInspectorProjectService.runSqliteStatement(databaseId, createSqliteStatement(project, sqliteStatement))
       databaseInspectorProjectService.ideServices?.showToolWindow()
     }
     else {
       val view = viewFactory.createParametersBindingView(project, sqliteStatementPsi.text)
       ParametersBindingController(view, sqliteStatementPsi) {
-        DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(databaseId, it)
+        databaseInspectorProjectService.runSqliteStatement(databaseId, it)
         databaseInspectorProjectService.ideServices?.showToolWindow()
       }.also {
         it.setUp()
@@ -114,11 +114,6 @@ class RunSqliteStatementGutterIconAction(
         Disposer.register(project, it)
       }
     }
-  }
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    e.presentation.isEnabledAndVisible = DatabaseInspectorProjectService.getInstance(project).hasOpenDatabase()
   }
 
   private class SqliteQueryListCellRenderer : DefaultListCellRenderer() {

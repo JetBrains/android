@@ -70,11 +70,7 @@ private data class RunSqliteStatementGutterIconRenderer(private val element: Psi
   }
 
   override fun getTooltipText(): String {
-    return if (sqliteExplorerProjectService.hasOpenDatabase()) {
-      "Run Sqlite statement in Database Inspector"
-    } else {
-      ""
-    }
+    return "Run Sqlite statement in Database Inspector"
   }
 
   override fun isNavigateAction(): Boolean {
@@ -82,8 +78,6 @@ private data class RunSqliteStatementGutterIconRenderer(private val element: Psi
   }
 
   override fun getClickAction(): AnAction? {
-    if (!sqliteExplorerProjectService.hasOpenDatabase()) return null
-
     return RunSqliteStatementGutterIconAction(element.project, element, DatabaseInspectorViewsFactoryImpl.getInstance())
   }
 }
