@@ -278,7 +278,7 @@ private object TestNameColumn : ColumnInfo<AndroidTestResultsRow, AndroidTestRes
 }
 
 private object TestNameColumnCellRenderer : DefaultTableCellRenderer() {
-  private val myEmptyBorder = JBUI.Borders.empty(10)
+  private val myEmptyBorder = JBUI.Borders.empty(4)
   override fun getTableCellRendererComponent(table: JTable?,
                                              value: Any?,
                                              isSelected: Boolean,
