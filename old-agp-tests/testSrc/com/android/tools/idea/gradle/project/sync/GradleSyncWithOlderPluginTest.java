@@ -19,12 +19,15 @@ import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubj
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.testing.HighlightInfos.getHighlightInfos;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH1_DOT5;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES_PRE30;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
 import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
+import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 import com.android.builder.model.AndroidArtifactOutput;
@@ -38,6 +41,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
+import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
@@ -161,5 +166,46 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     highlights = getHighlightInfos(project, mainActivityFile, matchByDescription);
     // All symbols in AppCompatActivity should be resolved now.
     assertThat(highlights).isEmpty();
+  }
+
+  /**
+   * Verify that Gradle daemons can be stopped for Gradle 3.5 (b/155991417).
+   * @throws Exception
+   */
+  public void testDaemonStops3Dot5() throws Exception {
+    loadProject(SIMPLE_APPLICATION_PRE30, null, "3.5", "2.2.0");
+    verifyDaemonStops();
+  }
+
+  /**
+   * Verify that Gradle daemons can be stopped for Gradle 4.5 (b/155991417).
+   * @throws Exception
+   */
+  public void testDaemonStops4Dot5() throws Exception {
+    loadProject(SIMPLE_APPLICATION, null, "4.5", "3.0.0");
+    verifyDaemonStops();
+  }
+
+  /**
+   * Verify that Gradle daemons can be stopped for Gradle 5.3.1 (b/155991417).
+   * @throws Exception
+   */
+  public void testDaemonStops5Dot3Dot1() throws Exception {
+    loadProject(SIMPLE_APPLICATION, null, "5.3.1", "3.3.2");
+    verifyDaemonStops();
+  }
+
+  private void verifyDaemonStops() throws Exception {
+    List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
+    assertThat(daemonStatus).isNotEmpty();
+    GradleDaemonServices.stopDaemons();
+    daemonStatus = GradleDaemonServices.getDaemonsStatus();
+    assertThat(daemonStatus).isNotEmpty();
+    for (DaemonState status : daemonStatus) {
+      assertThat(equalsIgnoreCase(status.getStatus(), "stopped")).isTrue();
+    }
+    requestSyncAndWait();
+    daemonStatus = GradleDaemonServices.getDaemonsStatus();
+    assertThat(daemonStatus).isNotEmpty();
   }
 }
