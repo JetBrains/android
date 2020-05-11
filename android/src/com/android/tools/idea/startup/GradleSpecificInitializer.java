@@ -341,14 +341,16 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     for (List<String> classes : androidSdksByClasses.keySet()) {
       Collection<Sdk> duplicateSdks = androidSdksByClasses.get(classes);
       if (duplicateSdks.size() > 1) {
-        ApplicationManager.getApplication().runWriteAction(() -> {
-          boolean firstSkipped = false;
-          for (Sdk sdk : duplicateSdks) {
-            if (firstSkipped) {
-              jdkTable.removeJdk(sdk);
+        ApplicationManager.getApplication().invokeLater(() -> {
+          ApplicationManager.getApplication().runWriteAction(() -> {
+            boolean firstSkipped = false;
+            for (Sdk sdk : duplicateSdks) {
+              if (firstSkipped) {
+                jdkTable.removeJdk(sdk);
+              }
+              firstSkipped = true;
             }
-            firstSkipped = true;
-          }
+          });
         });
       }
     }
