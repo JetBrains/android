@@ -119,6 +119,7 @@ public class StudioIcons {
     public static final Icon PRIMARY_KEY = load("/studio/icons/database-inspector/primary-key.svg"); // 16x16
     public static final Icon SCHEMA = load("/studio/icons/database-inspector/schema.svg"); // 16x16
     public static final Icon TABLE = load("/studio/icons/database-inspector/table.svg"); // 16x16
+    public static final Icon VIEW = load("/studio/icons/database-inspector/view.svg"); // 16x16
   }
 
   public static class DeviceConfiguration {
