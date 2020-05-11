@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.dagger
 
+import com.android.tools.idea.dagger.localization.DaggerBundle.message
 import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.codeHighlighting.Pass
@@ -38,20 +39,6 @@ import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
 import org.jetbrains.kotlin.lexer.KtTokens
 import javax.swing.Icon
-
-/**
- * Contains strings that are visible in UI of Dagger tooling support, e.g in gutter icons and "Find usages" window.
- */
-internal object UIStrings {
-  const val MODULES_INCLUDED = "Module(s) included"
-  const val PROVIDERS = "Provider(s)"
-  const val CONSUMERS = "Consumer(s)"
-  const val EXPOSED_BY_COMPONENTS = "Exposed by component(s)"
-  const val PARENT_COMPONENTS = "Parent component(s)"
-  const val SUBCOMPONENTS = "Subcomponent(s)"
-  const val INCLUDED_IN_COMPONENTS = "Included in component(s)"
-  const val INCLUDED_IN_MODULES = "Included in module(s)"
-}
 
 /**
  * Provides [RelatedItemLineMarkerInfo] for Dagger consumers/providers.
@@ -84,7 +71,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     if (!element.canBeLineMarkerProvide) return
 
     // We provide RelatedItemLineMarkerInfo for PsiIdentifier/KtIdentifier (leaf element), not for PsiField/PsiMethod,
-    // that's why we check that `element.parent` isDaggerConsumer, not `element` itself. See [LineMarkerProvider.getLineMarkerInfo]
+    // that's why we check that `element.parent` is Dagger related element, not `element` itself. See [LineMarkerProvider.getLineMarkerInfo]
     val parent = element.parent
     val (icon, gotoTargets) = when {
       parent.isDaggerConsumer -> getIconAndGoToItemsForConsumer(parent)
@@ -125,9 +112,13 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
         // [subcomponent] is always PsiClass or KtClass or KtObjectDeclaration, see [isDaggerSubcomponent].
         val asPsiClass = subcomponent.toPsiClass()!!
         return getDaggerParentComponentsForSubcomponent(asPsiClass)
-                 .map { GotoItemWithAnalyticsTracking(subcomponent, it, UIStrings.PARENT_COMPONENTS) } +
-               getModulesForComponent(asPsiClass).map { GotoItemWithAnalyticsTracking(subcomponent, it, UIStrings.MODULES_INCLUDED) } +
-               getSubcomponents(asPsiClass).map { GotoItemWithAnalyticsTracking(subcomponent, it, UIStrings.SUBCOMPONENTS) }
+                 .map { GotoItemWithAnalyticsTracking(subcomponent, it, message("parent.components")) } +
+               getModulesForComponent(asPsiClass).map {
+                 GotoItemWithAnalyticsTracking(subcomponent, it, message("modules.included"))
+               } +
+               getSubcomponents(asPsiClass).map {
+                 GotoItemWithAnalyticsTracking(subcomponent, it, message("subcomponents"))
+               }
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
@@ -139,9 +130,13 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
         // component is always PsiClass or KtClass, see [isDaggerComponent].
         val componentAsPsiClass = component.toPsiClass()!!
         return getDependantComponentsForComponent(componentAsPsiClass)
-                 .map { GotoItemWithAnalyticsTracking(component, it, UIStrings.PARENT_COMPONENTS) } +
-               getSubcomponents(componentAsPsiClass).map { GotoItemWithAnalyticsTracking(component, it, UIStrings.SUBCOMPONENTS) } +
-               getModulesForComponent(componentAsPsiClass).map { GotoItemWithAnalyticsTracking(component, it, UIStrings.MODULES_INCLUDED) }
+                 .map { GotoItemWithAnalyticsTracking(component, it, message("parent.components")) } +
+               getSubcomponents(componentAsPsiClass).map {
+                 GotoItemWithAnalyticsTracking(component, it, message("subcomponents"))
+               } +
+               getModulesForComponent(componentAsPsiClass).map {
+                 GotoItemWithAnalyticsTracking(component, it, message("modules.included"))
+               }
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
@@ -152,7 +147,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       override fun compute(): List<GotoRelatedItem> {
         // [module] is always PsiClass or KtClass, see [isDaggerModule].
         return getUsagesForDaggerModule(module.toPsiClass()!!).map {
-          val group = if (it.isDaggerComponent) UIStrings.INCLUDED_IN_COMPONENTS else UIStrings.INCLUDED_IN_MODULES
+          val group = if (it.isDaggerComponent) message("included.in.components") else message("included.in.modules")
           GotoItemWithAnalyticsTracking(module, it, group)
         }
       }
@@ -169,10 +164,10 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
             is PsiParameter -> it.parentOfType<PsiMethod>()?.name
             else -> error("[Dagger editor] invalid consumer type ${it::class}")
           }
-          GotoItemWithAnalyticsTracking(provider, it, UIStrings.CONSUMERS, nameToDisplay)
+          GotoItemWithAnalyticsTracking(provider, it, message("consumers"), nameToDisplay)
         }
         val components = getDaggerComponentMethodsForProvider(provider).map {
-          GotoItemWithAnalyticsTracking(provider, it, UIStrings.EXPOSED_BY_COMPONENTS, it.parentOfType<PsiClass>()?.name)
+          GotoItemWithAnalyticsTracking(provider, it, message("exposed.by.components"), it.parentOfType<PsiClass>()?.name)
         }
         return consumers + components
       }
@@ -182,7 +177,9 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
   private fun getIconAndGoToItemsForConsumer(consumer: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {
     val gotoTargets = object : NotNullLazyValue<List<GotoRelatedItem>>() {
-      override fun compute() = getDaggerProvidersFor(consumer).map { GotoItemWithAnalyticsTracking(consumer, it, UIStrings.PROVIDERS) }
+      override fun compute() = getDaggerProvidersFor(consumer).map {
+        GotoItemWithAnalyticsTracking(consumer, it, message("providers"))
+      }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_PROVIDER, gotoTargets)
   }
