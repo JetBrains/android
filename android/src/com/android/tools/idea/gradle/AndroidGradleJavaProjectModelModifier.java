@@ -39,6 +39,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
@@ -55,6 +56,7 @@ import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
@@ -75,9 +77,11 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,6 +96,15 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
                                                                                        "org.jetbrains:annotations", "15.0",
                                                                                        "junit:junit", "4.12",
                                                                                        "org.testng:testng", "6.9.6");
+
+  @NotNull
+  private static final Set<String> ANDROID_PLUGIN_IDENTIFIERS =
+    ImmutableSet.of("android", "android-library",
+                    "com.android.application", "com.android.library", "com.android.instantapp",
+                    "com.android.feature", "com.android.dynamic-feature", "com.android.test");
+
+  @NotNull
+  private static final Set<String> JAVA_PLUGIN_IDENTIFIERS = ImmutableSet.of("java", "java-library");
 
   @Nullable
   @Override
@@ -196,18 +209,19 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       return null;
     }
 
-    // TODO(b/139177813): Do not rely on synced model to choose the way to update the build file.
-    if (com.android.tools.idea.model.AndroidModel.get(module) != null) {
+    List<String> pluginNames = PluginModel.extractNames(buildModel.plugins());
+    List<String> androidPluginNames = new ArrayList<>(pluginNames);
+    androidPluginNames.retainAll(ANDROID_PLUGIN_IDENTIFIERS);
+    List<String> javaPluginNames = new ArrayList<>(pluginNames);
+    javaPluginNames.retainAll(JAVA_PLUGIN_IDENTIFIERS);
+
+    if (!androidPluginNames.isEmpty()) {
       AndroidModel android = buildModel.android();
       CompileOptionsModel compileOptions = android.compileOptions();
       compileOptions.sourceCompatibility().setLanguageLevel(level);
       compileOptions.targetCompatibility().setLanguageLevel(level);
     }
-    else {
-      JavaFacet javaFacet = JavaFacet.getInstance(module);
-      if (javaFacet == null || javaFacet.getJavaModuleModel() == null) {
-        return null;
-      }
+    if (!javaPluginNames.isEmpty()) {
       JavaModel javaModel = buildModel.java();
       javaModel.sourceCompatibility().setLanguageLevel(level);
       javaModel.targetCompatibility().setLanguageLevel(level);
