@@ -20,6 +20,7 @@ import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT
 import com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID
@@ -133,7 +134,7 @@ fun recommendPluginUpgrade(project: Project) {
  * If the user accepted the upgrade then the file are modified and the project is re-synced. This method uses
  * [AndroidPluginVersionUpdater] in order to perform these operations.
  *
- * Returns true if the upgrade was performed and the project was synced, false otherwise.
+ * Returns true if the project should be synced, false otherwise.
  *
  * Note: The [dialogFactory] argument should not be used outside of tests. It should only be used to mock the
  * result of the dialog.
@@ -151,6 +152,10 @@ fun performRecommendedPluginUpgrade(
 
   LOG.info("Gradle model version: $currentVersion, recommended version for IDE: $recommendedVersion, current, recommended")
 
+  if (AGP_UPGRADE_ASSISTANT.get()) {
+    return false
+  }
+
   val userAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
     val updateDialog = dialogFactory.create(project, currentVersion, recommendedVersion)
     updateDialog.showAndGet()
@@ -163,7 +168,7 @@ fun performRecommendedPluginUpgrade(
     val latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION)
     val updateResult = updater.updatePluginVersion(recommendedVersion, latestGradleVersion, currentVersion)
     if (updateResult.versionUpdateSuccess()) {
-      // plugin version updated and a project sync was requested. No need to continue.
+      // plugin version updated; request sync.
       return true
     }
   }
