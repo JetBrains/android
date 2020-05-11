@@ -352,10 +352,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   override fun setExtVar(name: String, value: String) {
+    if (moduleGradleBuildModel?.dependencies()?.isPropertyInScope(name) == true) {
+      return // If in scope, either is a local variable or is already in ext[]
+    }
     val buildModel = projectGradleBuildModel ?: return
     val property = buildModel.buildscript().ext().findProperty(name)
     if (property.valueType != ValueType.NONE) {
-      return // we do not override property value if it exists. TODO(qumeric): ask user?
+      return // we do not override property value if it exists.
     }
     property.setValue(value)
   }
@@ -368,13 +371,42 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val targetDependencyModel = buildScriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME).firstOrNull {
       mavenDependency.equalsIgnoreVersion(it.spec)
     }
-    val unresolvedModel = targetDependencyModel?.version()?.unresolvedModel ?: return valueIfNotFound
+    val unresolvedVersionModel = targetDependencyModel?.version()?.unresolvedModel ?: return valueIfNotFound
 
-    if (unresolvedModel.valueType == ValueType.REFERENCE) {
-      return unresolvedModel.getValue(GradlePropertyModel.STRING_TYPE) ?: valueIfNotFound
+    if (unresolvedVersionModel.valueType == ValueType.REFERENCE) {
+      return unresolvedVersionModel.getValue(GradlePropertyModel.STRING_TYPE) ?: valueIfNotFound
     }
 
     return valueIfNotFound
+  }
+
+  override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) : String {
+    val mavenDependency = ArtifactDependencySpec.create(mavenCoordinate)
+    check(mavenDependency != null) { "$mavenCoordinate is not a valid dependency" }
+
+    val settingsModel: GradleSettingsModel = projectSettingsModel ?: return valueIfNotFound
+    val moduleModel: GradleBuildModel = moduleGradleBuildModel ?: return valueIfNotFound
+
+    val moduleList = settingsModel.modulePaths().mapNotNull { settingsModel.moduleModel(it) }.toMutableList()
+    moduleModel.apply {
+      // If the current module is not the first (index is zero), move it to be first.
+      val currentModuleIdx = moduleList.map { it.virtualFile }.indexOf(virtualFile)
+      if (currentModuleIdx >= 1) {
+        moduleList.add(0, moduleList.removeAt(currentModuleIdx))
+      }
+    }
+
+    val varName = moduleList
+      .flatMap { gradleBuildModel -> gradleBuildModel.dependencies().artifacts() }
+      .asSequence()
+      .filter { artifactDependencyModel -> mavenDependency.equalsIgnoreVersion(artifactDependencyModel.spec) }
+      .map { artifactDependencyModel -> artifactDependencyModel.version().unresolvedModel }
+      .filter { unresolvedVersionProperty -> unresolvedVersionProperty.valueType == ValueType.REFERENCE }
+      .mapNotNull { unresolvedVersionModel -> unresolvedVersionModel.getValue(GradlePropertyModel.STRING_TYPE) }
+      .filter { moduleModel.dependencies().isPropertyInScope(it) }
+      .firstOrNull()
+
+    return varName ?: valueIfNotFound
   }
 
   /**
