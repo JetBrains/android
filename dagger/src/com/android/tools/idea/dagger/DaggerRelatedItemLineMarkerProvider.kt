@@ -34,6 +34,7 @@ import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.presentation.java.SymbolPresentationUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
@@ -89,7 +90,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       element.textRange,
       icon,
       Pass.LINE_MARKERS,
-      { "Dependency Related Files" },
+      getTooltipProvider(parent, gotoTargets),
       { mouseEvent, elt ->
         elt.project.service<DaggerAnalyticsTracker>().trackClickOnGutter(typeForMetrics)
         when (gotoTargets.value.size) {
@@ -104,6 +105,36 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       gotoTargets
     )
     result.add(info)
+  }
+
+  private fun getTooltipProvider(
+    targetElement: PsiElement,
+    gotoTargets: NotNullLazyValue<List<GotoRelatedItem>>
+  ): (PsiElement) -> String {
+    return {
+      val fromElementString = SymbolPresentationUtil.getSymbolPresentableText(targetElement)
+
+      if (gotoTargets.value.size == 1) {
+        with(gotoTargets.value.single()) {
+          val toElementString = customName ?: SymbolPresentationUtil.getSymbolPresentableText(element!!)
+
+          when (group) {
+            message("modules.included") -> message("navigate.to.included.module", fromElementString, toElementString)
+            message("providers") -> message("navigate.to.provider", fromElementString, toElementString)
+            message("consumers") -> message("navigate.to.consumer", fromElementString, toElementString)
+            message("exposed.by.components") -> message("navigate.to.component.exposes", fromElementString, toElementString)
+            message("parent.components") -> message("navigate.to.parent.component", fromElementString, toElementString)
+            message("subcomponents") -> message("navigate.to.subcomponent", fromElementString, toElementString)
+            message("included.in.components") -> message("navigate.to.component.that.include", fromElementString, toElementString)
+            message("included.in.modules") -> message("navigate.to.module.that.include", fromElementString, toElementString)
+            else -> error("[Dagger tools] Unknown navigation group: $group")
+          }
+        }
+      }
+      else {
+        message("dependency.related.files.for", fromElementString)
+      }
+    }
   }
 
   private fun getIconAndGoToItemsForSubcomponent(subcomponent: PsiElement): Pair<Icon, NotNullLazyValue<List<GotoRelatedItem>>> {

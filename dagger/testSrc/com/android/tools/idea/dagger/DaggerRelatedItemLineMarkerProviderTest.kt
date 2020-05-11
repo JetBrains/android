@@ -102,7 +102,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     var icons = myFixture.findAllGutters()
     assertThat(icons).isNotEmpty()
 
-    var gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    var gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "injectedString consumes provider()" }!!)
     assertThat(gotoRelatedItems).hasSize(1)
     var provider = gotoRelatedItems.first()
 
@@ -117,7 +117,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
           import javax.inject.Inject
 
           class MyClass {
-            @Inject val <caret>injectedString:String
+            @Inject val <caret>injectedStringKt:String
           }
         """.trimIndent()
     )
@@ -128,7 +128,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     icons = myFixture.findGuttersAtCaret()
     assertThat(icons).isNotEmpty()
 
-    gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "injectedStringKt consumes provider()" }!!)
     assertThat(gotoRelatedItems).hasSize(1)
     provider = gotoRelatedItems.first()
 
@@ -169,7 +169,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     icons = myFixture.findGuttersAtCaret()
     assertThat(icons).isNotEmpty()
 
-    val icon = icons.find { it.tooltipText == "Dependency Related Files" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val icon = icons.find { it.tooltipText == "Dependency Related Files for provider()" }!!
+      as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(4)
     val consumerElements = gotoRelatedItems.map { it.element }
@@ -226,7 +227,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val icons = myFixture.findGuttersAtCaret()
     assertThat(icons).isNotEmpty()
 
-    val icon = icons.find { it.tooltipText == "Dependency Related Files" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val icon = icons.find { it.tooltipText == "provider() exposed in MyComponent" }!!
+      as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(1)
     val method = gotoRelatedItems.first()
@@ -285,7 +287,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val icons = myFixture.findGuttersAtCaret()
     assertThat(icons).isNotEmpty()
 
-    val icon = icons.find { it.tooltipText == "Dependency Related Files" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val icon = icons.find { it.tooltipText == "Dependency Related Files for MyModule" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(2)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
@@ -329,7 +331,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     myFixture.moveCaret("public interface MyComp|onent {}")
 
     val icons = myFixture.findGuttersAtCaret()
-    val icon = icons.find { it.tooltipText == "Dependency Related Files" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val icon = icons.find { it.tooltipText == "MyDependantComponent is parent of MyComponent" }!!
+      as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     assertThat(icons).isNotEmpty()
 
     val gotoRelatedItems = getGotoElements(icon)
@@ -399,7 +402,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val icons = myFixture.findGuttersAtCaret()
     assertThat(icons).isNotEmpty()
 
-    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files for MySubcomponent" }!!)
     assertThat(gotoRelatedItems).hasSize(2)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
     assertThat(result).containsAllOf("Parent component(s): MyComponent",
@@ -461,7 +464,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val icons = myFixture.findGuttersAtCaret()
     assertThat(icons).isNotEmpty()
 
-    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files for MyComponent" }!!)
     assertThat(gotoRelatedItems).hasSize(3)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
     assertThat(result).containsAllOf("Subcomponent(s): MySubcomponent2",
@@ -513,7 +516,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val icons = myFixture.findGuttersAtCaret()
     assertThat(icons).isNotEmpty()
 
-    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "MyModule is included in component MyComponent" }!!)
     assertThat(gotoRelatedItems).hasSize(1)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
     assertThat(result).containsExactly("Included in component(s): MyComponent")
@@ -570,7 +573,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val icons = myFixture.findGuttersAtCaret()
     assertThat(icons).isNotEmpty()
 
-    val icon = icons.find { it.tooltipText == "Dependency Related Files" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val icon = icons.find { it.tooltipText == "str provides for MyClass" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(1)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
@@ -611,7 +614,9 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val icons = myFixture.findGuttersAtCaret()
     assertThat(icons).isNotEmpty()
 
-    val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files" }!!)
+    val gotoRelatedItems = getGotoElements(
+      icons.find { it.tooltipText == "MySubcomponent includes module MyModule" }!!
+    )
     assertThat(gotoRelatedItems).hasSize(1)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
     assertThat(result).containsExactly("Module(s) included: MyModule")
@@ -658,7 +663,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     myFixture.configureFromExistingVirtualFile(file)
     myFixture.moveCaret("MyParent|Subcomponent")
     val icons = myFixture.findGuttersAtCaret()
-    val icon = icons.find { it.tooltipText == "Dependency Related Files" }!! as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val icon = icons.find { it.tooltipText == "Dependency Related Files for MyParentSubcomponent" }!!
+      as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItems = getGotoElements(icon)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
     assertThat(result).contains("Subcomponent(s): MySubcomponent")
