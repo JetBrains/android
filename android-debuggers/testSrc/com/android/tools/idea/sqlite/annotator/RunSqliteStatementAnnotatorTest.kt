@@ -28,11 +28,12 @@ import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.GutterMark
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.ui.EmptyIcon
+import icons.StudioIcons
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import javax.swing.Icon
 
@@ -134,7 +135,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     )
 
     val highlightInfo = findHighlightInfo()
-    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, AllIcons.RunConfigurations.TestState.Run)
+    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, StudioIcons.DatabaseInspector.NEW_QUERY)
   }
 
   fun testRendererVisibleWhenSqlStatementMadeOfMultipleStrings() {
@@ -157,7 +158,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     )
 
     val highlightInfo = findHighlightInfo()
-    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, AllIcons.RunConfigurations.TestState.Run)
+    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, StudioIcons.DatabaseInspector.NEW_QUERY)
   }
 
   fun testAnnotatorWorksWithKotlin() {
@@ -180,7 +181,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     )
 
     val highlightInfo = findHighlightInfo()
-    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, AllIcons.RunConfigurations.TestState.Run)
+    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, StudioIcons.DatabaseInspector.NEW_QUERY)
   }
 
   private fun findHighlightInfo(): HighlightInfo {
