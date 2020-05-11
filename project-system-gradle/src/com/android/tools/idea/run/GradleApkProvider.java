@@ -389,7 +389,8 @@ public class GradleApkProvider implements ApkProvider {
             for (TestVariantBuildOutput testVariantBuildOutput : variantBuildOutput.getTestingVariants()) {
               if (testVariantBuildOutput.getType().equals(TestVariantBuildOutput.ANDROID_TEST)) {
                 int apiWithSplitApk = AndroidVersion.ALLOW_SPLIT_APK_INSTALLATION.getApiLevel();
-                if (!device.getVersion().isGreaterOrEqualThan(apiWithSplitApk)) {
+                if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE &&
+                    !device.getVersion().isGreaterOrEqualThan(apiWithSplitApk)) {
                   // b/119663247
                   throw new ApkProvisionException(
                     "Running Instrumented Tests for Dynamic Features is currently not supported on API < 21.");
