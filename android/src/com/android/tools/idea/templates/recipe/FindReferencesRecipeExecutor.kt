@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.templates.recipe
 
+import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.SourceSetType
 import com.android.tools.idea.wizard.template.findResource
 import com.intellij.openapi.vfs.VfsUtil
-import com.android.tools.idea.wizard.template.RecipeExecutor
 import java.io.File
 
 /**
@@ -77,6 +77,7 @@ internal class FindReferencesRecipeExecutor(private val context: RenderingContex
   }
 
   override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) = valueIfNotFound
+  override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) = valueIfNotFound
 
   override fun addIncludeToSettings(moduleName: String) {}
 
