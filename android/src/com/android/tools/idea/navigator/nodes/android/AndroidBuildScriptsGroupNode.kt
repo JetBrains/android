@@ -16,9 +16,7 @@
 package com.android.tools.idea.navigator.nodes.android
 
 import com.android.SdkConstants
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.lang.proguard.ProguardFileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectViewNode
@@ -118,8 +116,7 @@ class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
   override fun toTestString(printInfo: PrintInfo?): String? = "Gradle Scripts"
 }
 
-private fun getProguardFileType(): FileType =
-  if (StudioFlags.R8_SUPPORT_ENABLED.get()) ProguardR8FileType.INSTANCE else ProguardFileType.INSTANCE
+private fun getProguardFileType(): FileType = ProguardR8FileType.INSTANCE
 
 private fun findChildAndAddToMapIfFound(
   childName: String,
