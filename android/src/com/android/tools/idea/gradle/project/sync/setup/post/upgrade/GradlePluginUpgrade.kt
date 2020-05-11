@@ -153,7 +153,10 @@ fun performRecommendedPluginUpgrade(
   LOG.info("Gradle model version: $currentVersion, recommended version for IDE: $recommendedVersion, current, recommended")
 
   if (AGP_UPGRADE_ASSISTANT.get()) {
-    return false
+    val processor = AgpUpgradeVersionRefactoringProcessor(project, currentVersion, recommendedVersion)
+    processor.setPreviewUsages(true)
+    processor.run()
+    return true
   }
 
   val userAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
