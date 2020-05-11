@@ -131,7 +131,7 @@ public class AndroidPluginVersionUpdater {
   }
 
   @NotNull
-  private static ThreeState isUpdatablePluginVersion(@NotNull GradleVersion pluginVersion, @NotNull ArtifactDependencyModel model) {
+  public static ThreeState isUpdatablePluginVersion(@NotNull GradleVersion pluginVersion, @NotNull ArtifactDependencyModel model) {
     String artifactId = model.name().forceString();
     String groupId = model.group().toString();
     if (!AndroidPluginInfo.isAndroidPlugin(artifactId, groupId)) {
