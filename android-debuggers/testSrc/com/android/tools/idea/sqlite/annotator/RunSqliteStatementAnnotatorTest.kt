@@ -17,9 +17,11 @@ package com.android.tools.idea.sqlite.annotator
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorController
+import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
+import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
@@ -31,27 +33,30 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.ui.EmptyIcon
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import javax.swing.Icon
 
 class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var ideComponents: IdeComponents
 
-  private lateinit var mockDatabaseInspectorProjectService: DatabaseInspectorProjectService
+  private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectService
   private lateinit var sqliteDatabaseId1: SqliteDatabaseId
-  private lateinit var sqliteDatabaseId2: SqliteDatabaseId
 
   override fun setUp() {
     super.setUp()
     StudioFlags.DATABASE_INSPECTOR_ENABLED.override(true)
 
     sqliteDatabaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
-    sqliteDatabaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
+
+    val model = DatabaseInspectorModelImpl()
+    databaseInspectorProjectService = DatabaseInspectorProjectServiceImpl(
+      project = project,
+      model = model,
+      createController = { MockDatabaseInspectorController(model) }
+    )
 
     ideComponents = IdeComponents(myFixture)
-    mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabaseId1))
+    ideComponents.replaceProjectService(DatabaseInspectorProjectService::class.java, databaseInspectorProjectService)
   }
 
   override fun tearDown() {
@@ -64,7 +69,9 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testAnnotatorDoesntWorkIfSqliteInspectorFlagIsDisabled() {
     StudioFlags.DATABASE_INSPECTOR_ENABLED.override(false)
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(false)
+    databaseInspectorProjectService.openSqliteDatabase(
+      FileSqliteDatabase(sqliteDatabaseId1, mock(DatabaseConnection::class.java))
+    )
 
     myFixture.configureByText(
       StdFileTypes.JAVA,
@@ -89,8 +96,6 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   fun testNoIconWhenDatabaseIsNotOpen() {
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(false)
-
     myFixture.configureByText(
       StdFileTypes.JAVA,
       // language=java
@@ -110,7 +115,9 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   fun testRunIconWhenDatabaseIsOpen() {
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    databaseInspectorProjectService.openSqliteDatabase(
+      FileSqliteDatabase(sqliteDatabaseId1, mock(DatabaseConnection::class.java))
+    )
 
     myFixture.configureByText(
       StdFileTypes.JAVA,
@@ -131,7 +138,9 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   fun testRendererVisibleWhenSqlStatementMadeOfMultipleStrings() {
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    databaseInspectorProjectService.openSqliteDatabase(
+      FileSqliteDatabase(sqliteDatabaseId1, mock(DatabaseConnection::class.java))
+    )
 
     myFixture.configureByText(
       StdFileTypes.JAVA,
@@ -152,7 +161,9 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
   }
 
   fun testAnnotatorWorksWithKotlin() {
-    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(false)
+    databaseInspectorProjectService.openSqliteDatabase(
+      FileSqliteDatabase(sqliteDatabaseId1, mock(DatabaseConnection::class.java))
+    )
 
     myFixture.configureByText(
       StdFileTypes.JAVA,
@@ -169,7 +180,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     )
 
     val highlightInfo = findHighlightInfo()
-    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, EmptyIcon.ICON_0)
+    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, AllIcons.RunConfigurations.TestState.Run)
   }
 
   private fun findHighlightInfo(): HighlightInfo {
