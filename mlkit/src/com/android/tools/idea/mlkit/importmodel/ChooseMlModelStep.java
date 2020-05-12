@@ -34,6 +34,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.TfliteModelException;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
@@ -158,7 +159,8 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   }
 
   @NotNull
-  private Validator.Result checkPath(@NotNull File file) {
+  @VisibleForTesting
+  Validator.Result checkPath(@NotNull File file) {
     if (!file.isFile()) {
       return new Validator.Result(Validator.Severity.ERROR, "Please select a TensorFlow Lite model file to import.");
     }
@@ -230,7 +232,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   }
 
   @NotNull
-  Validator.Result checkFlavor(@NotNull NamedModuleTemplate flavor) {
+  private static Validator.Result checkFlavor(@NotNull NamedModuleTemplate flavor) {
     if (flavor.getPaths().getMlModelsDirectories().isEmpty()) {
       new Validator.Result(Validator.Severity.ERROR, "No valid ml directory in checkFlavor.");
     }

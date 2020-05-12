@@ -142,5 +142,9 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/idea/.idea/libraries:protobuf[test]",
         "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
+        "//tools/base/mlkit-common:studio.android.sdktools.mlkit-common[module, test]",
     ],
 )
