@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.navigator.nodes.GroupNodes;
 import com.android.tools.idea.navigator.nodes.ndk.NdkSourceFolderNode;
 import com.google.common.collect.Iterables;
 import com.intellij.ide.projectView.PresentationData;
@@ -114,6 +115,11 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
     }
 
     return containedInIncludeFolders(moduleModel, file);
+  }
+
+  @Override
+  public boolean canRepresent(Object element) {
+    return GroupNodes.canRepresent(this, element);
   }
 
   @Override

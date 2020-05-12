@@ -23,6 +23,7 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.navigator.nodes.GroupNodes;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
@@ -178,6 +179,11 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
       }
     }
     return false;
+  }
+
+  @Override
+  public boolean canRepresent(Object element) {
+    return GroupNodes.canRepresent(this, element);
   }
 
   @Override
