@@ -19,7 +19,7 @@ import com.android.tools.idea.navigator.nodes.FileGroupNode
 import com.android.tools.idea.navigator.nodes.FolderGroupNode
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.BASIC_CMAKE_APP
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
@@ -33,6 +33,8 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.io.File
 import java.util.ArrayDeque
 
@@ -44,7 +46,25 @@ import java.util.ArrayDeque
  * to refresh the tree in response to changes in the virtual file system.
  */
 @RunsInEdt
+@RunWith(Parameterized::class)
 class AndroidProjectViewNodeConsistencyTest : GradleIntegrationTest {
+
+  @JvmField
+  @Parameterized.Parameter
+  var testProjectName: String? = null
+
+  companion object {
+    @Suppress("unused")
+    @JvmStatic
+    @Parameterized.Parameters(name = "{0}")
+    fun testProjects(): Collection<*> = listOf(
+      TestProjectToSnapshotPaths.BASIC_CMAKE_APP,
+      TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY,
+      TestProjectToSnapshotPaths.COMPOSITE_BUILD,
+      TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS
+    )
+  }
+
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
@@ -68,8 +88,8 @@ class AndroidProjectViewNodeConsistencyTest : GradleIntegrationTest {
     fun child(node: ProjectViewNode<*>): NodeWithParents = NodeWithParents(node, this.parents + this.node)
   }
 
-  private fun runTestOn(projectName: String, test: TestContext.() -> Unit) {
-    val root = prepareGradleProject(projectName, "project")
+  private fun runTest(test: TestContext.() -> Unit) {
+    val root = prepareGradleProject(testProjectName ?: error("unit test parameter not initialized"), "project")
     openPreparedProject("project") { project ->
       val oldHideEmptyPackages = ProjectView.getInstance(project).isHideEmptyMiddlePackages(AndroidProjectViewPane.ID)
       ProjectView.getInstance(project).apply {
@@ -143,7 +163,7 @@ class AndroidProjectViewNodeConsistencyTest : GradleIntegrationTest {
    */
   @Test
   fun testContains() {
-    runTestOn(BASIC_CMAKE_APP) {
+    runTest {
       val nodes: Sequence<NodeWithParents> = rootElement.enumerateNodes()
 
       val expectedForContains: Map<NodeWithParents, Set<VirtualFile>> =
@@ -173,7 +193,7 @@ class AndroidProjectViewNodeConsistencyTest : GradleIntegrationTest {
    */
   @Test
   fun testCanRepresent() {
-    runTestOn(BASIC_CMAKE_APP) {
+    runTest {
       val nodes: Sequence<NodeWithParents> = rootElement.enumerateNodes()
 
       val expectedForCanRepresent =
