@@ -22,6 +22,7 @@ import static com.intellij.util.PlatformIcons.PACKAGE_ICON;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.navigator.nodes.GroupNodes;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -92,6 +93,11 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
       }
     }
     return false;
+  }
+
+  @Override
+  public boolean canRepresent(Object element) {
+    return GroupNodes.canRepresent((FileGroupNode)this, element) || GroupNodes.canRepresent((FolderGroupNode)this, element);
   }
 
   @Override
