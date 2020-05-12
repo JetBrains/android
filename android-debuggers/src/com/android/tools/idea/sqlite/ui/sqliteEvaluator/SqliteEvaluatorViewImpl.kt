@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
 import com.android.tools.idea.sqlite.ui.tableView.TableView
@@ -100,16 +101,21 @@ class SqliteEvaluatorViewImpl(
     }
 
     databaseComboBox.setMinimumAndPreferredWidth(JBUI.scale(300))
-    databaseComboBox.renderer = object : ColoredListCellRenderer<SqliteDatabaseId>() {
+    databaseComboBox.renderer = object : ColoredListCellRenderer<SqliteDatabaseId?>() {
       override fun customizeCellRenderer(
-        list: JList<out SqliteDatabaseId>,
-        sqliteDatabase: SqliteDatabaseId,
+        list: JList<out SqliteDatabaseId?>,
+        sqliteDatabase: SqliteDatabaseId?,
         index: Int,
         selected: Boolean,
         hasFocus: Boolean
       ) {
-        icon = StudioIcons.DatabaseInspector.DATABASE
-        append(sqliteDatabase.name)
+        if (sqliteDatabase != null) {
+          icon = StudioIcons.DatabaseInspector.DATABASE
+          append(sqliteDatabase.name)
+        } else {
+          icon = null
+          append(DatabaseInspectorBundle.message("no.databases.available"))
+        }
       }
     }
 
@@ -172,7 +178,7 @@ class SqliteEvaluatorViewImpl(
 
   override fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?) {
     databaseComboBox.removeAllItems()
-
+    databaseComboBox.isEnabled = databaseIds.isNotEmpty()
     for (database in databaseIds) {
       databaseComboBox.addItem(database)
     }

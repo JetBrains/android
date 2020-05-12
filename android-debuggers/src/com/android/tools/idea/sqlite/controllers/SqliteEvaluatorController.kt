@@ -56,7 +56,10 @@ class SqliteEvaluatorController(
   private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener = SqliteEvaluatorViewListenerImpl()
   private val listeners = mutableListOf<Listener>()
   private val openDatabases = mutableListOf<SqliteDatabaseId>()
+  // currently chosen in combobox
   private var activeDatabase: SqliteDatabaseId? = null
+  // database which was used for last query/update
+  private var queriedDatabase: SqliteDatabaseId? = null
   private var sqliteStatement: String = ""
 
   private val modelListener = object : DatabaseInspectorModel.Listener {
@@ -67,8 +70,12 @@ class SqliteEvaluatorController(
       if (activeDatabase !in openDatabases) {
         activeDatabase = openDatabases.firstOrNull()
       }
+      if (queriedDatabase != null && queriedDatabase!! !in openDatabases) {
+        resetTable()
+      }
 
       view.setDatabases(ArrayList(openDatabases), activeDatabase)
+      updateRunSqliteStatementButtonState()
     }
 
     override fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
@@ -127,6 +134,7 @@ class SqliteEvaluatorController(
     resetTable()
 
     val databaseConnection = model.getDatabaseConnection(databaseId)!!
+    queriedDatabase = databaseId
     return if (
       sqliteStatement.statementType == SqliteStatementType.SELECT ||
       sqliteStatement.statementType == SqliteStatementType.EXPLAIN
@@ -139,10 +147,16 @@ class SqliteEvaluatorController(
   }
 
   private fun resetTable() {
+    queriedDatabase = null
     if (currentTableController != null) {
       Disposer.dispose(currentTableController!!)
+      currentTableController = null
     }
     view.tableView.resetView()
+  }
+
+  private fun updateRunSqliteStatementButtonState() {
+    view.setRunSqliteStatementEnabled(activeDatabase != null && !hasParsingError(project, sqliteStatement))
   }
 
   private fun runQuery(databaseConnection: DatabaseConnection, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
@@ -185,7 +199,7 @@ class SqliteEvaluatorController(
 
     override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
       sqliteStatement = newSqliteStatement
-      view.setRunSqliteStatementEnabled(!hasParsingError(project, newSqliteStatement))
+      updateRunSqliteStatementButtonState()
     }
 
     override fun onDatabaseSelected(databaseId: SqliteDatabaseId) {

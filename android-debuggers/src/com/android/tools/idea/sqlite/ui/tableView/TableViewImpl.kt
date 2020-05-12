@@ -225,12 +225,14 @@ class TableViewImpl : TableView {
     table.emptyText.text = "Table is empty"
 
     setEditable(false)
+
+    setControlButtonsEnabled(false)
+    setFetchNextRowsButtonState(false)
+    setFetchPreviousRowsButtonState(false)
   }
 
   override fun startTableLoading() {
-    liveUpdatesCheckBox.isEnabled = false
-    refreshButton.isEnabled = false
-    pageSizeComboBox.isEnabled = false
+    setControlButtonsEnabled(false)
 
     setLoadingText(loadingMessageEditorPane, stopwatch.elapsed())
 
@@ -246,9 +248,7 @@ class TableViewImpl : TableView {
   }
 
   override fun stopTableLoading() {
-    liveUpdatesCheckBox.isEnabled = true
-    refreshButton.isEnabled = true
-    pageSizeComboBox.isEnabled = true
+    setControlButtonsEnabled(true)
 
     loadingTimer.stop()
     if (stopwatch.isRunning) {
@@ -310,6 +310,12 @@ class TableViewImpl : TableView {
 
   override fun removeListener(listener: TableView.Listener) {
     listeners.remove(listener)
+  }
+
+  private fun setControlButtonsEnabled(enabled: Boolean) {
+    liveUpdatesCheckBox.isEnabled = enabled
+    refreshButton.isEnabled = enabled
+    pageSizeComboBox.isEnabled = enabled
   }
 
   private fun setUpLoadingPanel() {
