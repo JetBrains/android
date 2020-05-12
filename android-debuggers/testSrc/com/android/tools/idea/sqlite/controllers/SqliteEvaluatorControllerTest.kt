@@ -556,11 +556,29 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     // Prepare
     sqliteEvaluatorController.setUp()
 
+    // Initially disabled
+    verify(sqliteEvaluatorView).setRunSqliteStatementEnabled(false)
+
     // Act
     sqliteEvaluatorView.listeners.first().sqliteStatementTextChangedInvoked("random string")
 
     // Assert
+    verify(sqliteEvaluatorView, times(2)).setRunSqliteStatementEnabled(false)
+  }
+
+  fun testRemoveAllDbsDisablesRunStatement() {
+    // Prepare
+    sqliteEvaluatorController.setUp()
     verify(sqliteEvaluatorView).setRunSqliteStatementEnabled(false)
+
+    sqliteEvaluatorView.listeners.first().sqliteStatementTextChangedInvoked("Select * FROM foo")
+    verify(sqliteEvaluatorView).setRunSqliteStatementEnabled(true)
+
+    // Act
+    databaseInspectorModel.removeDatabaseSchema(databaseId)
+
+    // Assert
+    verify(sqliteEvaluatorView, times(2)).setRunSqliteStatementEnabled(false)
   }
 
   private fun evaluateSqlActionFailure(sqliteStatementType: SqliteStatementType, sqliteStatement: String) {
