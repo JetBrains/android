@@ -108,6 +108,11 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
+  fun testBasicCmakeApp() {
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP, initialState = false, filter = this::filterOutMostIncludeFiles)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testDependentNativeModules() {
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.DEPENDENT_NATIVE_MODULES, initialState = false,
                                         filter = this::filterOutMostIncludeFiles)

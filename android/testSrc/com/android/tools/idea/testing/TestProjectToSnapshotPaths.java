@@ -8,6 +8,7 @@ public final class TestProjectToSnapshotPaths {
   public static final String APP_WITH_BUILDSRC = "projects/appWithBuildSrc";
   public static final String APP_WITH_ML_MODELS = "projects/appWithMlModels";
   public static final String BASIC = "projects/basic";
+  public static final String BASIC_CMAKE_APP = "projects/basicCmakeApp";
   public static final String CENTRAL_BUILD_DIRECTORY = "projects/centralBuildDirectory";
   public static final String COMPATIBILITY_TESTS_AS_36 = "projects/compatibility_tests/AS36";
   public static final String COMPATIBILITY_TESTS_AS_36_NO_IML = "projects/compatibility_tests/AS36_noiml";
