@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.mlkit;
+package com.android.tools.idea.mlkit.viewer;
 
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -32,7 +32,7 @@ public class TfliteModelFileType implements FileType {
   @NotNull
   @Override
   public String getName() {
-    return "TFLite model";
+    return "TensorFlow Lite Model";
   }
 
   @NotNull
@@ -65,7 +65,7 @@ public class TfliteModelFileType implements FileType {
 
   @Nullable
   @Override
-  public String getCharset(@NotNull VirtualFile file, @NotNull byte[] content) {
+  public String getCharset(@NotNull VirtualFile file, byte @NotNull [] content) {
     return null;
   }
 }

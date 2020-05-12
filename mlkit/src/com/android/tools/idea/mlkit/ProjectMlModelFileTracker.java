@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.mlkit;
 
+import com.android.tools.idea.mlkit.viewer.TfliteModelFileType;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;

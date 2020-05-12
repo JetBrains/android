@@ -18,7 +18,7 @@ package com.android.tools.idea.mlkit.notifications;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.LoggingUtils;
 import com.android.tools.idea.mlkit.MlUtils;
-import com.android.tools.idea.mlkit.TfliteModelFileEditor;
+import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
 import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvider;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
