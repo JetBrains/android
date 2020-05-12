@@ -49,19 +49,22 @@ import java.util.ArrayDeque
 @RunWith(Parameterized::class)
 class AndroidProjectViewNodeConsistencyTest : GradleIntegrationTest {
 
+  data class TestProject(val template: String, val pathToOpen: String = "")
+
   @JvmField
   @Parameterized.Parameter
-  var testProjectName: String? = null
+  var testProjectName: TestProject? = null
 
   companion object {
     @Suppress("unused")
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testProjects(): Collection<*> = listOf(
-      TestProjectToSnapshotPaths.BASIC_CMAKE_APP,
-      TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY,
-      TestProjectToSnapshotPaths.COMPOSITE_BUILD,
-      TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS
+      TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
+      TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
+      TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),
+      TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS),
+      TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp")
     )
   }
 
@@ -89,8 +92,8 @@ class AndroidProjectViewNodeConsistencyTest : GradleIntegrationTest {
   }
 
   private fun runTest(test: TestContext.() -> Unit) {
-    val root = prepareGradleProject(testProjectName ?: error("unit test parameter not initialized"), "project")
-    openPreparedProject("project") { project ->
+    val root = prepareGradleProject(testProjectName?.template ?: error("unit test parameter not initialized"), "project")
+    openPreparedProject("project${testProjectName?.pathToOpen}") { project ->
       val oldHideEmptyPackages = ProjectView.getInstance(project).isHideEmptyMiddlePackages(AndroidProjectViewPane.ID)
       ProjectView.getInstance(project).apply {
         setHideEmptyPackages(AndroidProjectViewPane.ID, true)

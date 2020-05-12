@@ -957,7 +957,7 @@ fun GradleIntegrationTest.prepareGradleProject(
   val srcPath = resolveTestDataPath(testProjectPath)
   val projectPath = nameToPath(name)
 
-  prepareGradleProject(
+  AndroidGradleTests.prepareProjectForImportCore(
     srcPath, projectPath,
     ThrowableConsumer<File, IOException> { projectRoot ->
       AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion,
