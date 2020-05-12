@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.other;
 
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.navigator.nodes.GroupNodes;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -176,5 +177,10 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
       }
     }
     return folders;
+  }
+
+  @Override
+  public boolean canRepresent(Object element) {
+    return GroupNodes.canRepresent(this, element);
   }
 }
