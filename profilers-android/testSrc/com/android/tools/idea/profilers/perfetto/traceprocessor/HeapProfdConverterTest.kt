@@ -29,6 +29,7 @@ import kotlin.streams.toList
 class HeapProfdConverterTest {
 
   private lateinit var context: Memory.NativeAllocationContext.Builder
+
   @Before
   fun buildBasicContext() {
     context = Memory.NativeAllocationContext.newBuilder()
@@ -41,6 +42,11 @@ class HeapProfdConverterTest {
                    .setName(Base64.encode("Frame 1A".toByteArray()))
                    .setModule(Base64.encode("TestModule".toByteArray()))
                    .setRelPc(1234))
+      .addFrames(Memory.StackFrame.newBuilder()
+                   .setId(3)
+                   .setName(Base64.encode("Frame 2".toByteArray()))
+                   .setModule(Base64.encode("TestModule".toByteArray()))
+                   .setRelPc(1234))
       .putPointers(1, Memory.StackPointer.newBuilder()
         .setFrameId(1)
         .build())
@@ -49,7 +55,11 @@ class HeapProfdConverterTest {
         .setParentId(1)
         .build())
       .putPointers(3, Memory.StackPointer.newBuilder()
+        .setFrameId(4)
+        .build())
+      .putPointers(4, Memory.StackPointer.newBuilder()
         .setFrameId(3)
+        .setParentId(4)
         .build())
       .addAllocations(Memory.Allocation.newBuilder()
                         .setTimestamp(1)
@@ -66,6 +76,26 @@ class HeapProfdConverterTest {
                         .setCount(2)
                         .setSize(16)
                         .setStackId(3))
+  }
+
+  @Test
+  fun recursiveCallstacksHandled() {
+    context.addAllocations(Memory.Allocation.newBuilder()
+                             .setTimestamp(1)
+                             .setCount(2)
+                             .setSize(16)
+                             .setStackId(4))
+    val nativeHeapSet = NativeMemoryHeapSet(FakeCaptureObject.Builder().build())
+    val symbolizer = FakeFrameSymbolizer()
+    symbolizer.addValidSymbol("TestModule", "ValidSymbol")
+    val heapProfdConverter = HeapProfdConverter("", symbolizer, nativeHeapSet, FakeNameDemangler())
+    heapProfdConverter.populateHeapSet(context.build())
+    val instances = nativeHeapSet.instancesStream.toList()
+    // Frame 1 -> Frame1A ( Frame1 has a valid symbol as such formats the name
+    assertThat(instances[3].name).isEqualTo("ValidSymbol (ValidSymbol:123)")
+    assertThat(instances[3].callStackDepth).isEqualTo(2)
+    assertThat(instances[3].allocationCallStack).isNotNull()
+    assertThat(instances[3].allocationCallStack!!.fullStack.getFrames(0).methodName).isEqualTo("[Recursive] ValidSymbol (ValidSymbol:123)")
   }
 
   @Test
