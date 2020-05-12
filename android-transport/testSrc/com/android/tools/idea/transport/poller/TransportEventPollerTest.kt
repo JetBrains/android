@@ -24,6 +24,7 @@ import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.ArrayList
@@ -32,15 +33,24 @@ class TransportEventPollerTest {
 
   private var timer = FakeTimer()
   private var transportService = FakeTransportService(timer, true)
+  private var transportClient: TransportClient? = null
   private var transportEventPoller: TransportEventPoller? = null
 
   @get:Rule
   val grpcServer = FakeGrpcServer.createFakeGrpcServer("TransportEventPollerTestChannel", transportService, transportService)!!
 
+  @Before
+  fun createPoller() {
+    transportClient = TransportClient(grpcServer.name)
+    transportEventPoller = TransportEventPoller(transportClient!!.transportStub)
+  }
+
   @After
   fun close() {
     transportEventPoller?.let { TransportEventPoller.stopPoller(it) }
     transportEventPoller = null
+    transportClient!!.shutdown()
+    transportClient = null
   }
 
   private fun generateEchoEvent(ts: Long) = Common.Event.newBuilder()
@@ -54,9 +64,7 @@ class TransportEventPollerTest {
    */
   @Test
   fun testStreamAndProcessListeners() {
-    val transportClient = TransportClient(grpcServer.name)
     var streamEventSeen = 0
-    transportEventPoller = TransportEventPoller(transportClient.transportStub)
 
     // Create listener for STREAM connected
     val streamConnectedListener = TransportEventListener(
@@ -94,9 +102,7 @@ class TransportEventPollerTest {
    */
   @Test
   fun testEventListeners() {
-    val transportClient = TransportClient(grpcServer.name)
     var eventsSeen = 0
-    transportEventPoller = TransportEventPoller(transportClient.transportStub)
     val expectedEvents = ArrayList<Common.Event>()
 
     // First event exists before listener is registered
@@ -147,9 +153,6 @@ class TransportEventPollerTest {
    */
   @Test
   fun testRemoveEventListener() {
-    val transportClient = TransportClient(grpcServer.name)
-    transportEventPoller = TransportEventPoller(transportClient.transportStub)
-
     val echoEvents = mutableListOf<Common.Event>()
 
     // Create listener for ECHO event that should remove itself after 3 callbacks.
@@ -196,9 +199,6 @@ class TransportEventPollerTest {
 
   @Test
   fun pollerTracksEventListenerTimestamp() {
-    val transportClient = TransportClient(grpcServer.name)
-    transportEventPoller = TransportEventPoller(transportClient.transportStub)
-
     var event10Seen = 0
     var event20Seen = 0
     TransportEventListener(
@@ -243,12 +243,8 @@ class TransportEventPollerTest {
     groupId: Long? = null,
     processId: Int? = null
   ) {
-    val transportClient = TransportClient(grpcServer.name)
     val positiveEvents = mutableListOf<Common.Event>()
     val negativeEvents = mutableListOf<Common.Event>()
-
-    transportEventPoller = TransportEventPoller(transportClient.transportStub)
-
     val otherEventKind = if (eventKind != null) {
       // get the next kind, but skip 0 (so wrap one place early and then add one after)
       val nextKindId = eventKind.ordinal.rem(Common.Event.Kind.values().size - 1) + 1
@@ -359,11 +355,6 @@ class TransportEventPollerTest {
 
   @Test
   fun testCustomFilter() {
-
-    val transportClient = TransportClient(grpcServer.name)
-
-    transportEventPoller = TransportEventPoller(transportClient.transportStub)
-
     val events = mutableListOf<Common.Event>()
     val positiveEventListener = TransportEventListener(
       eventKind = Common.Event.Kind.ECHO,
@@ -414,8 +405,6 @@ class TransportEventPollerTest {
 
   @Test
   fun testLastTimestampNotRecordedIfListenerIsNotRegistered() {
-    val transportClient = TransportClient(grpcServer.name)
-    transportEventPoller = TransportEventPoller(transportClient.transportStub)
     var operation = {}
     val events = mutableListOf<Common.Event>()
     val listener = TransportEventListener(
