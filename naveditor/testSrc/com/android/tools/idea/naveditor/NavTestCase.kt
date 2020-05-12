@@ -77,8 +77,9 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
       UIUtil.dispatchAllInvocationEvents ()
       Disposer.dispose(myRootDisposable)
       deleteManifest()
-    }
-    finally {
+    } catch (t: Throwable){
+      addSuppressedException(t)
+    } finally {
       super.tearDown()
     }
   }

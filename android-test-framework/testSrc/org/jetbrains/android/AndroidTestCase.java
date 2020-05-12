@@ -196,6 +196,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
         RenderSecurityManager.sEnabled = true;
       }
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       try {
         myFixture.tearDown();

@@ -70,10 +70,14 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    mockitoCleaner.cleanupAndTearDown();
-
-    myFixture = null;
-    super.tearDown();
+    try {
+      myFixture = null;
+      mockitoCleaner.cleanupAndTearDown();
+    } catch (Throwable t){
+      addSuppressedException(t);
+    } finally {
+      super.tearDown();
+    }
     checkUndisposedAndroidRelatedObjects();
   }
 
