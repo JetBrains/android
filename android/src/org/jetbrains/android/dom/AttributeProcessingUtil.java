@@ -631,7 +631,7 @@ public class AttributeProcessingUtil {
         if (name != null) {
           PsiClass aClass = getViewClassByTagName(facet, name);
           if (aClass != null) {
-            registerAttributes(facet, element, name, getResourcePackage(aClass), callback, skipAttrNames);
+            registerAttributesForClassAndSuperclasses(facet, element, aClass, callback, skipAttrNames);
           }
         }
         break;
