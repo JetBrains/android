@@ -16,6 +16,7 @@ public final class TestProjectToSnapshotPaths {
   public static final String HELLO_JNI = "projects/helloJni";
   public static final String KOTLIN_GRADLE_DSL = "projects/kotlinGradleDsl";
   public static final String KOTLIN_KAPT = "projects/kotlinKapt";
+  public static final String LINKED = "projects/linked";
   public static final String MULTI_FLAVOR = "projects/multiFlavor";
   public static final String NAVIGATOR_PACKAGEVIEW_COMMONROOTS = "projects/navigator/packageview/commonroots";
   public static final String NAVIGATOR_PACKAGEVIEW_SIMPLE = "projects/navigator/packageview/simple";
