@@ -68,6 +68,7 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.RootProvider;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.projectImport.ProjectOpenProcessor;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -82,6 +83,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.project.open.GradleProjectOpenProcessor;
 
 /**
  * Performs Gradle-specific IDE initialization
@@ -99,6 +101,7 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     Actions.hideAction(actionManager, "Groovy.CheckResources.Make");
     setUpGradleViewToolbarActions(actionManager);
     checkInstallPath();
+    removeGradleProjectOpenProcessor();
 
     // "Configure Plugins..." Not sure why it's called StartupWizard.
     AnAction pluginAction = actionManager.getAction("StartupWizard");
@@ -118,6 +121,10 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
       }
       checkAndSetAndroidSdkSources();
     }
+  }
+
+  private void removeGradleProjectOpenProcessor() {
+    ProjectOpenProcessor.EXTENSION_POINT_NAME.getPoint(null).unregisterExtension(GradleProjectOpenProcessor.class);
   }
 
   /**
