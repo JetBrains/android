@@ -21,6 +21,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
+import javax.swing.Icon
 import javax.swing.JComponent
 
 /**
@@ -53,7 +54,7 @@ interface DatabaseInspectorView {
    */
   fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>)
 
-  fun openTab(tabId: TabId, tabName: String, component: JComponent)
+  fun openTab(tabId: TabId, tabName: String, tabIcon: Icon, component: JComponent)
   fun focusTab(tabId: TabId)
   fun closeTab(tabId: TabId)
 

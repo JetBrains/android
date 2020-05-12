@@ -24,6 +24,7 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
+import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -48,6 +49,7 @@ import java.awt.BorderLayout
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JPanel
@@ -128,7 +130,7 @@ class DatabaseInspectorViewImpl(
     leftPanelView.updateDatabase(viewDatabase, diffOperations)
   }
 
-  override fun openTab(tabId: TabId, tabName: String, component: JComponent) {
+  override fun openTab(tabId: TabId, tabName: String, tabIcon: Icon, component: JComponent) {
     if (openTabs.isEmpty()) {
       centerPanel.removeAll()
       centerPanel.layout = BorderLayout()
@@ -137,7 +139,7 @@ class DatabaseInspectorViewImpl(
       centerPanel.repaint()
     }
 
-    val tab = createTab(tabId, tabName, component)
+    val tab = createTab(tabId, tabName, tabIcon, component)
     tabs.addTab(tab)
     tabs.select(tab, true)
     openTabs[tabId] = tab
@@ -189,7 +191,7 @@ class DatabaseInspectorViewImpl(
     centerPanel.repaint()
   }
 
-  private fun createTab(tabId: TabId, tableName: String, tabContent: JComponent): TabInfo {
+  private fun createTab(tabId: TabId, tabName: String, tabIcon: Icon, tabContent: JComponent): TabInfo {
     val tab = TabInfo(tabContent)
     tab.`object` = tabId
 
@@ -209,8 +211,8 @@ class DatabaseInspectorViewImpl(
       }
     })
     tab.setTabLabelActions(tabActionGroup, ActionPlaces.EDITOR_TAB)
-    tab.icon = StudioIcons.DatabaseInspector.TABLE
-    tab.text = tableName
+    tab.icon = tabIcon
+    tab.text = tabName
     return tab
   }
 
