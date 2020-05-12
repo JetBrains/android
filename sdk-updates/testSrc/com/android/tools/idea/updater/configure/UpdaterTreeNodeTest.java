@@ -22,6 +22,7 @@ import com.android.repository.testframework.FakePackage;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.testing.MockitoInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -365,6 +366,10 @@ public class UpdaterTreeNodeTest {
     UpdaterTreeNode.Renderer renderer = Mockito.mock(UpdaterTreeNode.Renderer.class);
     ColoredTreeCellRenderer cellRenderer = Mockito.mock(ColoredTreeCellRenderer.class);
     Mockito.when(renderer.getTextRenderer()).thenReturn(cellRenderer);
+
+    if (MockitoInfo.canMockFinalMethods()){
+      Mockito.doCallRealMethod().when(cellRenderer).append(text);
+    }
 
     node.customizeRenderer(renderer, null, false, false, false, 0, false);
     Mockito.verify(cellRenderer).append(text, attributes);
