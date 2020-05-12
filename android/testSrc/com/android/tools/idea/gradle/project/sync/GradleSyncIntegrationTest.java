@@ -790,6 +790,9 @@ b/154962759 */
     DataNode<ModuleData> moduleData = GradleUtil.findGradleModuleData(buildSrcModule);
     assertNotNull(moduleData);
 
+    // Ensure no local.properties was created.
+    assertFalse(new File(getProjectFolderPath(), "buildSrc/local.properties").exists());
+
     // Verify that ContentRootData DataNode is created for buildSrc module.
     Collection<DataNode<ContentRootData>> contentRootData = ExternalSystemApiUtil.findAll(moduleData, ProjectKeys.CONTENT_ROOT);
     assertThat(contentRootData).hasSize(1);
