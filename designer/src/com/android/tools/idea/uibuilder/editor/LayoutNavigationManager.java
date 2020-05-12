@@ -44,16 +44,10 @@ public class LayoutNavigationManager implements Disposable {
 
   private LayoutNavigationManager(@NotNull Project project) {
     myProject = project;
-
-    myProject.getMessageBus().connect(myProject).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
-      @Override
-      public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-      }
-    });
   }
 
   public static LayoutNavigationManager getInstance(@NotNull Project project) {
-    return project.getComponent(LayoutNavigationManager.class);
+    return project.getService(LayoutNavigationManager.class);
   }
 
   /**

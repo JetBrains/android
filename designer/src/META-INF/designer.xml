@@ -18,13 +18,8 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
+    <projectService serviceImplementation="com.android.tools.idea.editors.layeredimage.LayersManager" />
   </extensions>
-
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.editors.layeredimage.LayersManager</implementation-class>
-    </component>
-  </project-components>
 
   <!-- Extension points -->
   <extensionPoints>
@@ -51,12 +46,12 @@
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.CustomViewEditorProvider" />
     <editorNotificationProvider implementation="com.android.tools.idea.uibuilder.editor.OutdatedCustomViewNotificationProvider" />
+
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" />
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
   </extensions>
 
   <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.handlers.ViewHandlerManager</implementation-class>
-    </component>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.editor.NlPreviewManager</implementation-class>
       <headless-implementation-class/>
@@ -67,9 +62,6 @@
     </component>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.editor.LayoutNavigationManager</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlXmlEditors</implementation-class>
