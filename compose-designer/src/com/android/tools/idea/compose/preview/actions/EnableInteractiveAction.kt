@@ -18,11 +18,10 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.ui.AnActionButton
-import icons.StudioIcons.Compose.INSPECT_PREVIEW
 import icons.StudioIcons.Compose.INTERACTIVE_PREVIEW
 
 /**
@@ -36,7 +35,7 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
     val modelDataContext = dataContextProvider()
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return false
 
-    return manager.interactivePreviewElementFqn != null
+    return manager.interactivePreviewElementInstanceId != null
   }
 
   override fun updateButton(e: AnActionEvent) {
@@ -49,8 +48,8 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
   override fun actionPerformed(e: AnActionEvent) {
     val modelDataContext = dataContextProvider()
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
-    val composableFqn = modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT)?.composableMethodFqn ?: return
+    val instanceId = (modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance)?.instanceId ?: return
 
-    manager.interactivePreviewElementFqn = composableFqn
+    manager.interactivePreviewElementInstanceId = instanceId
   }
 }
