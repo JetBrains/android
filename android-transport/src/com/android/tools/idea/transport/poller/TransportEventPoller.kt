@@ -30,8 +30,10 @@ import kotlin.math.max
  * Encapsulates most of the polling functionality that Transport Pipeline subscribers would need to implement
  * to listen for updates and Events coming in from the pipeline
  */
-class TransportEventPoller(private val transportClient: TransportServiceGrpc.TransportServiceBlockingStub,
-                           private val sortOrder: Comparator<Common.Event>) {
+class TransportEventPoller(
+  private val transportClient: TransportServiceGrpc.TransportServiceBlockingStub,
+  private val sortOrder: Comparator<Common.Event> = Comparator.comparing(Common.Event::getTimestamp)
+) {
   private val writeLock = Object()
   private val eventListeners: MutableList<TransportEventListener> = CopyOnWriteArrayList() // Used to preserve insertion order
   private val listenersToLastTimestamp = ConcurrentHashMap<TransportEventListener, Long>()

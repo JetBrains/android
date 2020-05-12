@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.transport.poller
 
-
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -24,15 +23,10 @@ import com.android.tools.pipeline.example.proto.Echo
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import junit.framework.TestCase.fail
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import java.util.ArrayList
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-
-private const val TIMEOUT_SECONDS: Long = 10
 
 class TransportEventPollerTest {
 
@@ -61,43 +55,38 @@ class TransportEventPollerTest {
   @Test
   fun testStreamAndProcessListeners() {
     val transportClient = TransportClient(grpcServer.name)
-    val latch = CountDownLatch(2)
-    transportEventPoller = TransportEventPoller.createPoller(
-      transportClient.transportStub,
-      TimeUnit.MILLISECONDS.toNanos(250))
+    var streamEventSeen = 0
+    transportEventPoller = TransportEventPoller(transportClient.transportStub)
 
     // Create listener for STREAM connected
     val streamConnectedListener = TransportEventListener(
       eventKind = Common.Event.Kind.STREAM,
       callback = { event ->
         assertThat(event.stream.streamConnected.stream.streamId).isEqualTo(FakeTransportService.FAKE_DEVICE_ID)
-        latch.countDown()
+        streamEventSeen++
         false
       },
       executor = MoreExecutors.directExecutor(),
       filter = { event -> event.stream.hasStreamConnected() })
     transportEventPoller!!.registerListener(streamConnectedListener)
+    transportEventPoller!!.poll()
 
     // Create listener for PROCESS started
+    var processEventSeen = 0
     val processStartedListener = TransportEventListener(
       eventKind = Common.Event.Kind.PROCESS,
       callback = { event ->
         assertThat(event.process.processStarted.process.pid).isEqualTo(1)
         assertThat(event.process.processStarted.process.deviceId).isEqualTo(FakeTransportService.FAKE_DEVICE_ID)
-        latch.countDown()
+        processEventSeen++
         false
       }, executor = MoreExecutors.directExecutor(),
       filter = { event -> event.process.hasProcessStarted() })
     transportEventPoller!!.registerListener(processStartedListener)
+    transportEventPoller!!.poll()
 
-    // Receive
-    try {
-      assertThat(latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isEqualTo(true)
-    }
-    catch (e: InterruptedException) {
-      e.printStackTrace()
-      fail("Test interrupted")
-    }
+    assertThat(streamEventSeen).isEqualTo(1)
+    assertThat(processEventSeen).isEqualTo(1)
   }
 
   /**
@@ -106,11 +95,8 @@ class TransportEventPollerTest {
   @Test
   fun testEventListeners() {
     val transportClient = TransportClient(grpcServer.name)
-    val eventLatch = CountDownLatch(3)
-    val waitLatch = CountDownLatch(1)
-    transportEventPoller = TransportEventPoller.createPoller(
-      transportClient.transportStub,
-      TimeUnit.MILLISECONDS.toNanos(250))
+    var eventsSeen = 0
+    transportEventPoller = TransportEventPoller(transportClient.transportStub)
     val expectedEvents = ArrayList<Common.Event>()
 
     // First event exists before listener is registered
@@ -126,21 +112,12 @@ class TransportEventPollerTest {
     val echoListener = TransportEventListener(eventKind = Common.Event.Kind.ECHO,
                                               callback = { event ->
                                                 assertThat(event).isEqualTo(expectedEvents.removeAt(0))
-                                                waitLatch.countDown()
-                                                eventLatch.countDown()
+                                                eventsSeen++
                                                 false
                                               },
                                               executor = MoreExecutors.directExecutor())
     transportEventPoller!!.registerListener(echoListener)
-
-    // Wait for the first event to be received
-    try {
-      assertThat(waitLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isEqualTo(true)
-    }
-    catch (e: InterruptedException) {
-      e.printStackTrace()
-      fail("Test interrupted")
-    }
+    transportEventPoller!!.poll()
 
     // Second event created after first is received
     val echoEvent2 = Common.Event.newBuilder()
@@ -159,15 +136,10 @@ class TransportEventPollerTest {
       .build()
     expectedEvents.add(echoEvent3)
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, echoEvent3)
+    transportEventPoller!!.poll()
 
     // Receive the last 2 events
-    try {
-      assertThat(eventLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isEqualTo(true)
-    }
-    catch (e: InterruptedException) {
-      e.printStackTrace()
-      fail("Test interrupted")
-    }
+    assertThat(eventsSeen).isEqualTo(3)
   }
 
   /**
@@ -176,87 +148,68 @@ class TransportEventPollerTest {
   @Test
   fun testRemoveEventListener() {
     val transportClient = TransportClient(grpcServer.name)
-    transportEventPoller = TransportEventPoller.createPoller(
-      transportClient.transportStub,
-      TimeUnit.MILLISECONDS.toNanos(250)
-    )
+    transportEventPoller = TransportEventPoller(transportClient.transportStub)
 
-    // First event exists before listener is registered
     val echoEvents = mutableListOf<Common.Event>()
-    echoEvents.add(generateEchoEvent(0))
-    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, echoEvents[0])
 
     // Create listener for ECHO event that should remove itself after 3 callbacks.
-    val eventLatch1 = CountDownLatch(3)
     var receivedEventsCount1 = 0
     val echoListener1 = TransportEventListener(
       eventKind = Common.Event.Kind.ECHO,
       startTime = { 0L },
-      endTime = { 3L },
+      endTime = { 20L },
       callback = { event ->
         assertThat(event).isEqualTo(echoEvents[receivedEventsCount1])
-        // Update count before countDown() which could trigger await() immediately
         receivedEventsCount1++
-        eventLatch1.countDown()
-        eventLatch1.count == 0L
+        receivedEventsCount1 == 3
       },
       executor = MoreExecutors.directExecutor()
     )
-    val eventLatch2 = CountDownLatch(5)
     var receivedEventsCount2 = 0
     val echoListener2 = TransportEventListener(
       eventKind = Common.Event.Kind.ECHO,
       startTime = { 0L },
-      endTime = { 5L },
+      endTime = { 20L },
       callback = { event ->
         assertThat(event).isEqualTo(echoEvents[receivedEventsCount2])
-        // Update count before countDown() which could trigger await() immediately
         receivedEventsCount2++
-        eventLatch2.countDown()
-        echoEvents.add(generateEchoEvent(receivedEventsCount2.toLong()))
-        transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, echoEvents[receivedEventsCount2])
         false
       },
       executor = MoreExecutors.directExecutor()
     )
+
     transportEventPoller!!.registerListener(echoListener1)
     transportEventPoller!!.registerListener(echoListener2)
 
-    // Wait until both latches are done.
-    try {
-      eventLatch1.await()
-      eventLatch2.await()
-    } catch (e: InterruptedException) {
-      e.printStackTrace()
-      fail("Test interrupted")
+    // Generate 10 events
+    for (time in 1L..10L) {
+      val event = generateEchoEvent(time)
+      transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, event)
+      echoEvents.add(event)
+      transportEventPoller!!.poll()
     }
 
     // we should have stopped triggering the callback after 3 counts.
     assertThat(receivedEventsCount1).isEqualTo(3)
-    assertThat(receivedEventsCount2).isEqualTo(5)
+    assertThat(receivedEventsCount2).isEqualTo(10)
   }
 
   @Test
   fun pollerTracksEventListenerTimestamp() {
     val transportClient = TransportClient(grpcServer.name)
-    transportEventPoller = TransportEventPoller.createPoller(
-      transportClient.transportStub,
-      TimeUnit.MILLISECONDS.toNanos(250)
-    )
+    transportEventPoller = TransportEventPoller(transportClient.transportStub)
 
-    val latch1 = CountDownLatch(1)
-    val latch2 = CountDownLatch(1)
-    var eventsSeen = 0
+    var event10Seen = 0
+    var event20Seen = 0
     TransportEventListener(
       eventKind = Common.Event.Kind.ECHO,
       startTime = { 0L },
       callback = {
         if (it.timestamp == 10L) {
-          eventsSeen ++
-          latch1.countDown()
-        } else if (it.timestamp == 20L) {
-          eventsSeen ++
-          latch2.countDown()
+          event10Seen++
+        }
+        else if (it.timestamp == 20L) {
+          event20Seen++
         }
         false
       },
@@ -265,16 +218,21 @@ class TransportEventPollerTest {
 
     // Add event with timestamp 10
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, generateEchoEvent(10))
-    latch1.await()
+    transportEventPoller!!.poll()
+    assertThat(event10Seen).isEqualTo(1)
+    assertThat(event20Seen).isEqualTo(0)
 
     // Add event with timestamp 5. This shouldn't be picked up by poller because last seen event was ts=10.
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, generateEchoEvent(5))
+    transportEventPoller!!.poll()
+    assertThat(event10Seen).isEqualTo(1)
+    assertThat(event20Seen).isEqualTo(0)
 
     // Add event with timestamp 20
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, generateEchoEvent(20))
-    latch2.await()
-
-    assertThat(eventsSeen).isEqualTo(2)
+    transportEventPoller!!.poll()
+    assertThat(event10Seen).isEqualTo(1)
+    assertThat(event20Seen).isEqualTo(1)
   }
 
   /**
@@ -286,12 +244,10 @@ class TransportEventPollerTest {
     processId: Int? = null
   ) {
     val transportClient = TransportClient(grpcServer.name)
-    val positiveLatch = CountDownLatch(2)
-    val negativeLatch = CountDownLatch(2)
+    val positiveEvents = mutableListOf<Common.Event>()
+    val negativeEvents = mutableListOf<Common.Event>()
 
-    transportEventPoller = TransportEventPoller.createPoller(
-      transportClient.transportStub,
-      TimeUnit.MILLISECONDS.toNanos(250))
+    transportEventPoller = TransportEventPoller(transportClient.transportStub)
 
     val otherEventKind = if (eventKind != null) {
       // get the next kind, but skip 0 (so wrap one place early and then add one after)
@@ -317,7 +273,7 @@ class TransportEventPollerTest {
         assertThat(event.pid).isEqualTo(realProcessId)
         assertThat(event.groupId).isEqualTo(realGroupId)
         assertThat(event.kind).isEqualTo(realEventKind)
-        positiveLatch.countDown()
+        positiveEvents.add(event)
         false
       },
       executor = MoreExecutors.directExecutor())
@@ -332,44 +288,53 @@ class TransportEventPollerTest {
         assertThat(event.pid).isEqualTo(otherProcessId)
         assertThat(event.groupId).isEqualTo(otherGroupId)
         assertThat(event.kind).isEqualTo(otherEventKind)
-        negativeLatch.countDown()
+        negativeEvents.add(event)
         false
       },
       executor = MoreExecutors.directExecutor())
     transportEventPoller!!.registerListener(negativeEventListener)
 
-    val positiveEvent1Builder =
+    val positiveEvent1 =
       Common.Event.newBuilder()
         .setTimestamp(1)
         .setKind(realEventKind)
         .setGroupId(realGroupId)
         .setPid(realProcessId)
+        .build()
 
-    val negativeEvent1Builder = Common.Event.newBuilder()
+    val negativeEvent1 = Common.Event.newBuilder()
       .setTimestamp(2)
       .setKind(otherEventKind)
       .setGroupId(otherGroupId)
       .setPid(otherProcessId)
+      .build()
 
-    val positiveEvent2Builder = Common.Event.newBuilder()
+    val positiveEvent2 = Common.Event.newBuilder()
       .setTimestamp(3)
       .setKind(realEventKind)
       .setGroupId(realGroupId)
       .setPid(realProcessId)
+      .build()
 
-    val negativeEvent2Builder = Common.Event.newBuilder()
+    val negativeEvent2 = Common.Event.newBuilder()
       .setTimestamp(4)
       .setKind(otherEventKind)
       .setGroupId(otherGroupId)
       .setPid(otherProcessId)
+      .build()
 
-    transportService.addEventToStream(1L, positiveEvent1Builder.build())
-    transportService.addEventToStream(1L, negativeEvent1Builder.build())
-    transportService.addEventToStream(1L, positiveEvent2Builder.build())
-    transportService.addEventToStream(1L, negativeEvent2Builder.build())
+    transportService.addEventToStream(1L, positiveEvent1)
+    transportService.addEventToStream(1L, negativeEvent1)
+    transportService.addEventToStream(1L, positiveEvent2)
+    transportService.addEventToStream(1L, negativeEvent2)
 
-    assertThat(positiveLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isEqualTo(true)
-    assertThat(negativeLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isEqualTo(true)
+    transportEventPoller!!.poll()
+    assertThat(positiveEvents.size).isEqualTo(2)
+    assertThat(positiveEvents[0]).isEqualTo(positiveEvent1)
+    assertThat(positiveEvents[1]).isEqualTo(positiveEvent2)
+    assertThat(negativeEvents.size).isEqualTo(2)
+    assertThat(negativeEvents[0]).isEqualTo(negativeEvent1)
+    assertThat(negativeEvents[1]).isEqualTo(negativeEvent2)
   }
 
   @Test
@@ -396,71 +361,73 @@ class TransportEventPollerTest {
   fun testCustomFilter() {
 
     val transportClient = TransportClient(grpcServer.name)
-    val latch = CountDownLatch(2)
 
-    transportEventPoller = TransportEventPoller.createPoller(
-      transportClient.transportStub,
-      TimeUnit.MILLISECONDS.toNanos(250))
+    transportEventPoller = TransportEventPoller(transportClient.transportStub)
 
+    val events = mutableListOf<Common.Event>()
     val positiveEventListener = TransportEventListener(
       eventKind = Common.Event.Kind.ECHO,
       streamId = { 1 },
       filter = { event -> event.echo.data == "blah" },
       callback = { event ->
         assertThat(event.echo.data).isEqualTo("blah")
-        latch.countDown()
+        events.add(event)
         false
       },
       executor = MoreExecutors.directExecutor())
     transportEventPoller!!.registerListener(positiveEventListener)
 
-    val positiveEvent1Builder =
+    val positiveEvent1 =
       Common.Event.newBuilder()
         .setTimestamp(1)
         .setKind(Common.Event.Kind.ECHO)
         .setEcho(Echo.EchoData.newBuilder().setData("blah"))
+        .build()
 
-    val negativeEvent1Builder = Common.Event.newBuilder()
+    val negativeEvent1 = Common.Event.newBuilder()
       .setTimestamp(2)
       .setKind(Common.Event.Kind.ECHO)
       .setEcho(Echo.EchoData.newBuilder().setData("foo"))
+      .build()
 
-    val negativeEvent2Builder = Common.Event.newBuilder()
+    val negativeEvent2 = Common.Event.newBuilder()
       .setTimestamp(3)
       .setKind(Common.Event.Kind.ECHO)
+      .build()
 
-    val positiveEvent2Builder = Common.Event.newBuilder()
+    val positiveEvent2 = Common.Event.newBuilder()
       .setTimestamp(4)
       .setKind(Common.Event.Kind.ECHO)
       .setEcho(Echo.EchoData.newBuilder().setData("blah"))
+      .build()
 
+    transportService.addEventToStream(1L, positiveEvent1)
+    transportService.addEventToStream(1L, negativeEvent1)
+    transportService.addEventToStream(1L, negativeEvent2)
+    transportService.addEventToStream(1L, positiveEvent2)
 
-    transportService.addEventToStream(1L, positiveEvent1Builder.build())
-    transportService.addEventToStream(1L, negativeEvent1Builder.build())
-    transportService.addEventToStream(1L, negativeEvent2Builder.build())
-    transportService.addEventToStream(1L, positiveEvent2Builder.build())
-
-    assertThat(latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isEqualTo(true)
+    transportEventPoller!!.poll()
+    assertThat(events.size).isEqualTo(2)
+    assertThat(events[0]).isEqualTo(positiveEvent1)
+    assertThat(events[1]).isEqualTo(positiveEvent2)
   }
 
   @Test
   fun testLastTimestampNotRecordedIfListenerIsNotRegistered() {
     val transportClient = TransportClient(grpcServer.name)
-    transportEventPoller = TransportEventPoller.createPoller(transportClient.transportStub, TimeUnit.MILLISECONDS.toNanos(250))
-    var latch = CountDownLatch(1)
-    var runnable = Runnable {}
+    transportEventPoller = TransportEventPoller(transportClient.transportStub)
+    var operation = {}
     val events = mutableListOf<Common.Event>()
     val listener = TransportEventListener(
       eventKind = Common.Event.Kind.ECHO,
       executor = MoreExecutors.directExecutor(),
       callback = {
         events.add(it)
-        runnable.run()
-        latch.countDown()
+        operation()
         false
       })
     // Simulate that the listener is being unregistered during a poll:
-    runnable = Runnable { transportEventPoller!!.unregisterListener(listener) }
+    operation = { transportEventPoller!!.unregisterListener(listener) }
 
     val event1 = Common.Event.newBuilder().apply {
       timestamp = 4
@@ -471,15 +438,14 @@ class TransportEventPollerTest {
 
     // Register the listener and simulate an event from a device at time = 4
     transportEventPoller!!.registerListener(listener)
+    transportEventPoller!!.poll()
 
-    assertThat(latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isEqualTo(true)
     assertThat(events.size).isEqualTo(1)
     assertThat(events[0]).isEqualTo(event1)
 
     // Register the same listener and simulate an event from a different device at time = 1
     events.clear()
-    latch = CountDownLatch(2)
-    runnable = Runnable {}
+    operation = {}
     val event2 = Common.Event.newBuilder().apply {
       timestamp = 1
       kind = Common.Event.Kind.ECHO
@@ -487,8 +453,8 @@ class TransportEventPollerTest {
     }.build()
     transportService.addEventToStream(1L, event2)
     transportEventPoller!!.registerListener(listener)
+    transportEventPoller!!.poll()
 
-    assertThat(latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isEqualTo(true)
     assertThat(events.size).isEqualTo(2)
     assertThat(events[0]).isEqualTo(event2)
     assertThat(events[1]).isEqualTo(event1)
