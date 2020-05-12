@@ -150,7 +150,8 @@ class MemoryVisualizationView(private val selection: MemoryCaptureSelection,
   private fun createChart(node: ClassifierSetHNode, range: Range): HTreeChart<ClassifierSetHNode> {
     val orientation = HTreeChart.Orientation.TOP_DOWN
     return HTreeChart.Builder<ClassifierSetHNode>(node, range, HeapSetNodeHRenderer())
-      .setGlobalXRange(range)
+      // Create a new Range for the global range. This allows the global range to remain fixed while the view range updates.
+      .setGlobalXRange(Range(range))
       .setOrientation(orientation)
       .setRootVisible(false)
       .build()
