@@ -15,23 +15,30 @@
  */
 package com.android.tools.adtui.instructions;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.EaseOutModel;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A custom panel that renders a list of {@link RenderInstruction} and optionally fades out after a certain time period.
@@ -79,6 +86,23 @@ public class InstructionsPanel extends JPanel {
     return instructionsComponent.getRenderInstructions();
   }
 
+  @VisibleForTesting
+  @NotNull
+  public InstructionsRenderer getRenderer() {
+    InstructionsRenderer renderer = null;
+    for (int i = 0; i < getComponentCount(); i++) {
+      Component c = getComponent(i);
+      if (c instanceof InstructionsComponent) {
+        renderer = ((InstructionsComponent)c).myRenderer;
+        break;
+      }
+    }
+    // Assert is OK because this is a test-only method. In production, this would only fail if
+    // someone externally removed our children.
+    assert (renderer != null);
+    return renderer;
+  }
+
   private static class InstructionsComponent extends AnimatedComponent {
     private final int myHorizontalPadding;
     private final int myVerticalPadding;
@@ -101,7 +125,14 @@ public class InstructionsPanel extends JPanel {
         myEaseOutModel.addDependency(myAspectObserver).onChange(EaseOutModel.Aspect.EASING, this::modelChanged);
       }
 
-      // TODO handler cursor updates
+      addMouseMotionListener(new MouseMotionAdapter() {
+        @Override
+        public void mouseMoved(MouseEvent e) {
+          RenderInstruction instruction = delegateMouseEvent(e);
+          setCursor((instruction != null) ? instruction.getCursorIcon() : null);
+        }
+      });
+
       addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
@@ -117,6 +148,13 @@ public class InstructionsPanel extends JPanel {
         public void mouseReleased(MouseEvent e) {
           delegateMouseEvent(e);
         }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+          // No need to delegate -- if we're exiting, the event position won't match any
+          // underlying instruction.
+          setCursor(null); // Reset cursor in case it was set by `mouseMoved` above
+        }
       });
     }
 
@@ -129,8 +167,11 @@ public class InstructionsPanel extends JPanel {
     /**
      * When a mouse event occurs on this {@link InstructionsComponent} instance, redirects to the correct {@link RenderInstruction}
      * to handle the event.
+     *
+     * @return the instruction which handled the event, or null if there was no instruction associated with the mouse event.
      */
-    private void delegateMouseEvent(@NotNull MouseEvent event) {
+    @Nullable
+    private RenderInstruction delegateMouseEvent(@NotNull MouseEvent event) {
       // Adjusts the event's point based on this renderer's padding
       event.translatePoint(-myHorizontalPadding, -myVerticalPadding);
 
@@ -144,10 +185,11 @@ public class InstructionsPanel extends JPanel {
           // Transforms the point into the instruction's frame.
           event.translatePoint(-bounds.x, -bounds.y);
           instruction.handleMouseEvent(event);
-          break;
+          return instruction;
         }
         instruction.moveCursor(myRenderer, cursor);
       }
+      return null;
     }
 
     private void modelChanged() {
