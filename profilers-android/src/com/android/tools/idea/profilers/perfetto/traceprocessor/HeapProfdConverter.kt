@@ -23,6 +23,7 @@ import com.android.tools.profilers.memory.adapters.NativeAllocationInstanceObjec
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.intellij.util.Base64
+import gnu.trove.TLongHashSet
 import java.io.File
 import java.util.HashMap
 
@@ -95,14 +96,24 @@ class HeapProfdConverter(private val abi: String,
     }
     val pointerMap = context.pointersMap
     context.allocationsList.forEach { allocation ->
+      // Some callstacks are recursive. Instead of having a fixed callstack length we track what site ids we have visited.
+      val visitedCallSiteIds = TLongHashSet()
       // Build allocation stack proto
       val fullStack = Memory.AllocationStack.StackFrameWrapper.newBuilder()
       var callSiteId = pointerMap[allocation.stackId]?.parentId ?: -1
-      while (callSiteId > 0L) {
+      while (callSiteId > 0L && !visitedCallSiteIds.contains(callSiteId)) {
+        visitedCallSiteIds.add(callSiteId)
         val frame = pointerMap[callSiteId]?.let { frames[it.frameId] } ?: UNKNOWN_FRAME
         fullStack.addFrames(frame)
         callSiteId = pointerMap[callSiteId]?.parentId ?: -1
       }
+      // Found a recursive callstack
+      if (callSiteId > 0L) {
+        val frameName = pointerMap[callSiteId]?.let { frames[it.frameId]?.methodName } ?: UNKNOWN_FRAME.methodName
+        fullStack.addFrames(0, Memory.AllocationStack.StackFrame.newBuilder()
+          .setMethodName("[Recursive] " + frameName))
+      }
+
       val stack = Memory.AllocationStack.newBuilder()
         .setFullStack(fullStack)
         .build()
