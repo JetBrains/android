@@ -70,5 +70,6 @@ iml_module(
         "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs[module]",
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module]",
+        "//tools/adt/idea/android-test-retention:intellij.android.testRetention[module]",
     ],
 )
