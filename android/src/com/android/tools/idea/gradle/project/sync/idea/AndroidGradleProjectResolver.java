@@ -768,6 +768,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void preImportCheck() {
+    // Don't run pre-import checks for the buildSrc project.
+    if (resolverCtx.getBuildSrcGroup() != null) {
+      return;
+    }
+
     simulateRegisteredSyncError();
 
     syncAndroidSdks(SdkSync.getInstance(), resolverCtx.getProjectPath());
