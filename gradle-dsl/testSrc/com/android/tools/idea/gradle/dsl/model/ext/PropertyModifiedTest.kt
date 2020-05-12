@@ -236,7 +236,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    val storeFile = buildModel.android().signingConfigs()[0]!!.storeFile()
+    val storeFile = buildModel.android().signingConfigs()[1]!!.storeFile()
     assertFalse(storeFile.isModified)
     storeFile.setValue("some_file_value.txt")
 
@@ -251,7 +251,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
     writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
-    val storePassword = buildModel.android().signingConfigs()[0]!!.storePassword()
+    val storePassword = buildModel.android().signingConfigs()[1]!!.storePassword()
     assertFalse(storePassword.isModified);
 
     storePassword.setValue("nice")

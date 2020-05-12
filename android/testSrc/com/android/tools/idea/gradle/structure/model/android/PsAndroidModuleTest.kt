@@ -741,7 +741,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     val debugConfig = appModule.findSigningConfig("debug")
     assertNotNull(debugConfig)
-    assertTrue(!debugConfig!!.isDeclared)
+    assertTrue(debugConfig!!.isDeclared)
   }
 
   fun testValidateSigningConfigName() {
@@ -776,7 +776,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.testSubscribeToChangeNotifications()
 
     var signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "myConfig").inOrder()
 
     val myConfig = appModule.addNewSigningConfig("config2")
     assertThat(signingConfigsChanged).isEqualTo(1)
@@ -786,7 +786,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertTrue(myConfig.isDeclared)
 
     signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug", "config2").inOrder()
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "myConfig", "config2").inOrder()
 
     appModule.applyChanges()
     requestSyncAndWait()
@@ -795,7 +795,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertNotNull(appModule); appModule!!
 
     signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "config2", "debug").inOrder()
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "myConfig", "config2").inOrder()
   }
 
   fun testRemoveSigningConfig() {
@@ -809,7 +809,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.testSubscribeToChangeNotifications()
 
     var signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "myConfig").inOrder()
 
     appModule.removeSigningConfig(appModule.findSigningConfig("myConfig")!!)
     assertThat(signingConfigsChanged).isEqualTo(1)
@@ -839,14 +839,14 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.testSubscribeToChangeNotifications()
 
     var signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "myConfig").inOrder()
 
     appModule.findSigningConfig("myConfig")!!.rename("yourConfig")
     assertThat(signingConfigsChanged).isEqualTo(1)
     appModule.removeBuildType(appModule.findBuildType("debug")!!)  // Remove (clean) the build type that refers to the signing config.
 
     signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("yourConfig", "debug")
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "yourConfig").inOrder()
 
     appModule.applyChanges()
     requestSyncAndWait()
@@ -855,7 +855,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertNotNull(appModule); appModule!!
 
     signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("yourConfig", "debug")
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "yourConfig").inOrder()
   }
 
   fun testRenameSigningConfigAndReferences() {
@@ -869,13 +869,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.testSubscribeToChangeNotifications()
 
     var signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "myConfig").inOrder()
 
     appModule.findSigningConfig("myConfig")!!.rename("yourConfig", true)
     assertThat(signingConfigsChanged).isEqualTo(1)
 
     signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("yourConfig", "debug")
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "yourConfig").inOrder()
 
     appModule.applyChanges()
     requestSyncAndWait()
@@ -884,7 +884,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertNotNull(appModule); appModule!!
 
     signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("yourConfig", "debug")
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "yourConfig").inOrder()
 
     val debugSigningConfig = PsBuildType.BuildTypeDescriptors.signingConfig.bind(appModule.findBuildType("debug")!!).getValue()
     assertThat(debugSigningConfig.parsedValue)

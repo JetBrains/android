@@ -47,6 +47,7 @@ public final class SigningConfigsDslElement extends GradleDslElementMap implemen
 
   public SigningConfigsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+    addDefaultProperty(new SigningConfigDslElement(this, GradleNameElement.fake("debug")));
   }
 
   @Override

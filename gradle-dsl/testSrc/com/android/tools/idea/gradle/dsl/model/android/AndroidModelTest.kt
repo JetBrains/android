@@ -662,8 +662,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     android.addSigningConfig("config")
     val signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    assertEquals("signingConfigs", "config", signingConfigs[0].name())
+    assertThat(signingConfigs).hasSize(2)
+    assertEquals("signingConfigs", "config", signingConfigs[1].name())
 
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK_EXPECTED)
@@ -671,8 +671,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    assertThat(android.signingConfigs()).hasSize(1)
-    assertEquals("signingConfigs", "config", android.signingConfigs()[0].name())
+    assertThat(android.signingConfigs()).hasSize(2)
+    assertEquals("signingConfigs", "config", android.signingConfigs()[1].name())
   }
 
   @Test
@@ -879,13 +879,13 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     android.addSigningConfig("config")
     var signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    var signingConfig = signingConfigs[0]
+    assertThat(signingConfigs).hasSize(2)
+    var signingConfig = signingConfigs[1]
     signingConfig.keyAlias().setValue("myKeyAlias")
 
     signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    signingConfig = signingConfigs[0]
+    assertThat(signingConfigs).hasSize(2)
+    signingConfig = signingConfigs[1]
     assertEquals("signingConfigs", "config", signingConfig.name())
     assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias())
 
@@ -893,8 +893,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED)
 
     signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    signingConfig = signingConfigs[0]
+    assertThat(signingConfigs).hasSize(2)
+    signingConfig = signingConfigs[1]
     assertEquals("signingConfigs", "config", signingConfig.name())
     assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias())
 
@@ -903,8 +903,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    signingConfig = signingConfigs[0]
+    assertThat(signingConfigs).hasSize(2)
+    signingConfig = signingConfigs[1]
     assertEquals("signingConfigs", "config", signingConfig.name())
     assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias())
   }
@@ -1050,29 +1050,29 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     var signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(2)
-    assertEquals("signingConfigs", "config1", signingConfigs[0].name())
-    assertEquals("signingConfigs", "config2", signingConfigs[1].name())
+    assertThat(signingConfigs).hasSize(3)
+    assertEquals("signingConfigs", "config1", signingConfigs[1].name())
+    assertEquals("signingConfigs", "config2", signingConfigs[2].name())
 
     android.removeSigningConfig("config2")
     signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    assertEquals("signingConfigs", "config1", signingConfigs[0].name())
+    assertThat(signingConfigs).hasSize(2)
+    assertEquals("signingConfigs", "config1", signingConfigs[1].name())
 
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED)
 
     signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    assertEquals("signingConfigs", "config1", signingConfigs[0].name())
+    assertThat(signingConfigs).hasSize(2)
+    assertEquals("signingConfigs", "config1", signingConfigs[1].name())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
 
     signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    assertEquals("signingConfigs", "config1", signingConfigs[0].name())
+    assertThat(signingConfigs).hasSize(2)
+    assertEquals("signingConfigs", "config1", signingConfigs[1].name())
   }
 
   @Test

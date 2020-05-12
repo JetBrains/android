@@ -286,8 +286,8 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public List<SigningConfigModel> signingConfigs() {
-    SigningConfigsDslElement signingConfigs = myDslElement.getPropertyElement(SIGNING_CONFIGS);
-    return signingConfigs == null ? ImmutableList.of() : signingConfigs.get();
+    SigningConfigsDslElement signingConfigs = myDslElement.ensurePropertyElementAt(SIGNING_CONFIGS, 0);
+    return signingConfigs.get();
   }
 
   @Override

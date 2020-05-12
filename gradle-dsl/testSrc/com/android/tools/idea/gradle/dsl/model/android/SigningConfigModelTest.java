@@ -49,8 +49,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     verifyPasswordModel(signingConfig.storePassword(), "password", PLAIN_TEXT);
@@ -67,8 +67,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     verifyPasswordModel(signingConfig.storePassword(), "password", PLAIN_TEXT);
@@ -85,8 +85,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     verifyPasswordModel(signingConfig.storePassword(), "password", PLAIN_TEXT);
@@ -103,8 +103,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     verifyPasswordModel(signingConfig.storePassword(), "password", PLAIN_TEXT);
@@ -122,7 +122,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
     assertThat(signingConfigs).hasSize(2);
 
-    SigningConfigModel signingConfig1 = signingConfigs.get(0);
+    SigningConfigModel signingConfig1 = signingConfigs.get(1);
     assertEquals("signingConfig1", "release", signingConfig1.name());
     assertEquals("signingConfig1", "release.keystore", signingConfig1.storeFile());
     verifyPasswordModel(signingConfig1.storePassword(), "password", PLAIN_TEXT);
@@ -130,11 +130,12 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertEquals("signingConfig1", "myReleaseKey", signingConfig1.keyAlias());
     verifyPasswordModel(signingConfig1.keyPassword(), "releaseKeyPassword", PLAIN_TEXT);
 
-    SigningConfigModel signingConfig2 = signingConfigs.get(1);
-    assertEquals("signingConfig1", "debug.keystore", signingConfig2.storeFile());
+    SigningConfigModel signingConfig2 = signingConfigs.get(0);
+    assertEquals("signingConfig2", "debug", signingConfig2.name());
+    assertEquals("signingConfig2", "debug.keystore", signingConfig2.storeFile());
     verifyPasswordModel(signingConfig2.storePassword(), "debug_password", PLAIN_TEXT);
-    assertEquals("signingConfig1", "type2", signingConfig2.storeType());
-    assertEquals("signingConfig1", "myDebugKey", signingConfig2.keyAlias());
+    assertEquals("signingConfig2", "type2", signingConfig2.storeType());
+    assertEquals("signingConfig2", "myDebugKey", signingConfig2.keyAlias());
     verifyPasswordModel(signingConfig2.keyPassword(), "debugKeyPassword", PLAIN_TEXT);
   }
 
@@ -146,8 +147,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     verifyPasswordModel(signingConfig.storePassword(), "password", PLAIN_TEXT);
@@ -166,8 +167,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    signingConfig = signingConfigs.get(1);
 
     assertEquals("signingConfig", "debug.keystore", signingConfig.storeFile());
     verifyPasswordModel(signingConfig.storePassword(), "debug_password", PLAIN_TEXT);
@@ -180,8 +181,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    signingConfig = signingConfigs.get(1);
 
     assertEquals("signingConfig", "debug.keystore", signingConfig.storeFile());
     verifyPasswordModel(signingConfig.storePassword(), "debug_password", PLAIN_TEXT);
@@ -198,8 +199,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
 
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     verifyPasswordModel(signingConfig.storePassword(), "password", PLAIN_TEXT);
@@ -221,8 +222,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
 
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     verifyPasswordModel(signingConfig.storePassword(), "password", PLAIN_TEXT);
@@ -242,8 +243,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    signingConfig = signingConfigs.get(1);
 
     assertMissingProperty(signingConfig.storeFile());
     assertMissingProperty(signingConfig.storePassword());
@@ -255,8 +256,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    signingConfig = signingConfigs.get(1);
 
     assertMissingProperty(signingConfig.storeFile());
     assertMissingProperty(signingConfig.storePassword());
@@ -273,8 +274,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     assertMissingProperty(signingConfig.storeFile());
     assertMissingProperty(signingConfig.storePassword());
@@ -293,8 +294,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    signingConfig = signingConfigs.get(1);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     verifyPasswordModel(signingConfig.storePassword(), "password", PLAIN_TEXT);
@@ -306,8 +307,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    signingConfig = signingConfigs.get(1);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     verifyPasswordModel(signingConfig.storePassword(), "password", PLAIN_TEXT);
@@ -324,8 +325,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     verifyPasswordModel(signingConfig.storePassword(), "KSTOREPWD", ENVIRONMENT_VARIABLE);
     verifyPasswordModel(signingConfig.keyPassword(), "KEYPWD", ENVIRONMENT_VARIABLE);
@@ -339,8 +340,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     // TODO(karimai) : verify behaviour with escape characters.
     verifyPasswordModel(signingConfig.storePassword(), "Keystore password: ", CONSOLE_READ);
@@ -355,8 +356,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     verifyPasswordModel(signingConfig.storePassword(), "KSTOREPWD", ENVIRONMENT_VARIABLE);
     verifyPasswordModel(signingConfig.keyPassword(), "KEYPWD", ENVIRONMENT_VARIABLE);
@@ -370,8 +371,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    signingConfig = signingConfigs.get(1);
 
     verifyPasswordModel(signingConfig.storePassword(), "KSTOREPWD1", ENVIRONMENT_VARIABLE);
     verifyPasswordModel(signingConfig.keyPassword(), "KEYPWD1", ENVIRONMENT_VARIABLE);
@@ -385,8 +386,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     verifyPasswordModel(signingConfig.storePassword(), "Keystore password: ", CONSOLE_READ);
     verifyPasswordModel(signingConfig.keyPassword(), "Key password: ", CONSOLE_READ);
@@ -401,8 +402,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    signingConfig = signingConfigs.get(1);
 
     verifyPasswordModel(signingConfig.storePassword(), "Another Keystore Password: ", CONSOLE_READ);
     verifyPasswordModel(signingConfig.keyPassword(), "Another Key Password: ", CONSOLE_READ);
@@ -416,8 +417,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     assertMissingProperty("signingConfig", signingConfig.storePassword());
     assertMissingProperty("signingConfig", signingConfig.keyPassword());
@@ -431,8 +432,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    signingConfig = signingConfigs.get(1);
 
     verifyPasswordModel(signingConfig.storePassword(), "KSTOREPWD", ENVIRONMENT_VARIABLE);
     verifyPasswordModel(signingConfig.keyPassword(), "KEYPWD", ENVIRONMENT_VARIABLE);
@@ -446,8 +447,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     assertMissingProperty("signingConfig", signingConfig.storePassword());
     assertMissingProperty("signingConfig", signingConfig.keyPassword());
@@ -462,8 +463,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    signingConfig = signingConfigs.get(1);
 
     verifyPasswordModel(signingConfig.storePassword(), /*"\n*/"Keystore password: ", CONSOLE_READ);
     verifyPasswordModel(signingConfig.keyPassword(), /*"\n*/"Key password: ", CONSOLE_READ);
@@ -477,8 +478,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     verifyPasswordModel(signingConfig.storePassword(), "KSTOREPWD", ENVIRONMENT_VARIABLE);
     verifyPasswordModel(signingConfig.keyPassword(), "KEYPWD", ENVIRONMENT_VARIABLE);
@@ -493,8 +494,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    signingConfig = signingConfigs.get(1);
 
     verifyPasswordModel(signingConfig.storePassword(), /*"\n*/"Keystore password: ", CONSOLE_READ);
     verifyPasswordModel(signingConfig.keyPassword(), /*"\n*/"Key password: ", CONSOLE_READ);
@@ -508,8 +509,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel signingConfig = signingConfigs.get(1);
 
     verifyPasswordModel(signingConfig.storePassword(), "Keystore password: ", CONSOLE_READ);
     verifyPasswordModel(signingConfig.keyPassword(), "Key password: ", CONSOLE_READ);
@@ -524,8 +525,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    signingConfig = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    signingConfig = signingConfigs.get(1);
 
     verifyPasswordModel(signingConfig.storePassword(), "store_password", PLAIN_TEXT);
     verifyPasswordModel(signingConfig.keyPassword(), "key_password", PLAIN_TEXT);
@@ -539,12 +540,12 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     AndroidModel androidModel = buildModel.android();
 
     List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    assertEquals("release", signingConfigs.get(0).name());
-    assertEquals("myReleaseKey", signingConfigs.get(0).keyAlias().toString());
+    assertThat(signingConfigs).hasSize(2);
+    assertEquals("release", signingConfigs.get(1).name());
+    assertEquals("myReleaseKey", signingConfigs.get(1).keyAlias().toString());
 
     String expectedName = "newName";
-    signingConfigs.get(0).rename(expectedName);
+    signingConfigs.get(1).rename(expectedName);
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.RENAME_EXPECTED);
@@ -553,9 +554,55 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(androidModel);
 
     signingConfigs = androidModel.signingConfigs();
+    assertThat(signingConfigs).hasSize(2);
+    assertEquals("newName", signingConfigs.get(1).name());
+    assertEquals("myReleaseKey", signingConfigs.get(1).keyAlias().toString());
+  }
+
+  @Test
+  public void testRenameImplicit() throws Exception {
+    writeToBuildFile(TestFile.RENAME_IMPLICIT);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+    List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
     assertThat(signingConfigs).hasSize(1);
-    assertEquals("newName", signingConfigs.get(0).name());
-    assertEquals("myReleaseKey", signingConfigs.get(0).keyAlias().toString());
+    assertEquals("debug", signingConfigs.get(0).name());
+    signingConfigs.get(0).rename("newDebug");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.RENAME_IMPLICIT_EXPECTED);
+  }
+
+  @Test
+  public void testRenameExplicit() throws Exception {
+    writeToBuildFile(TestFile.RENAME_EXPLICIT);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+    List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    assertEquals("debug", signingConfigs.get(0).name());
+    signingConfigs.get(0).rename("newDebug");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.RENAME_EXPLICIT_EXPECTED);
+  }
+
+  @Test
+  public void testRenameToImplicit() throws Exception {
+    writeToBuildFile(TestFile.RENAME_TO_IMPLICIT);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+    List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
+    assertThat(signingConfigs).hasSize(2);
+    assertEquals("debug", signingConfigs.get(0).name());
+    assertEquals("notDebug", signingConfigs.get(1).name());
+    signingConfigs.get(1).rename("debug");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.RENAME_TO_IMPLICIT_EXPECTED);
   }
 
   @Test
@@ -566,8 +613,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     AndroidModel androidModel = buildModel.android();
 
     List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel release = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel release = signingConfigs.get(1);
     assertEquals("release", release.name());
     assertEquals("release.keystore", release.storeFile().toString());
     assertEquals("storePassword", release.storePassword().toString());
@@ -595,8 +642,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
     androidModel = buildModel.android();
     signingConfigs = androidModel.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel newRelease = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel newRelease = signingConfigs.get(1);
     assertEquals("newRelease", newRelease.name());
     assertEquals("release.keystore", newRelease.storeFile().toString());
     assertEquals("storePassword", newRelease.storePassword().toString());
@@ -623,8 +670,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     AndroidModel androidModel = buildModel.android();
 
     List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
-    assertThat(signingConfigs).hasSize(1);
-    SigningConfigModel release = signingConfigs.get(0);
+    assertThat(signingConfigs).hasSize(2);
+    SigningConfigModel release = signingConfigs.get(1);
     assertEquals("my release.", release.name());
     assertEquals("release.keystore", release.storeFile().toString());
     assertEquals("storePassword", release.storePassword().toString());
@@ -672,6 +719,12 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   enum TestFile implements TestFileName {
     SIGNING_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS("signingConfigBlockWithApplicationStatements"),
     RENAME_EXPECTED("renameSigningConfigModelExpected"),
+    RENAME_IMPLICIT("renameImplicit"),
+    RENAME_IMPLICIT_EXPECTED("renameImplicitExpected"),
+    RENAME_EXPLICIT("renameExplicit"),
+    RENAME_EXPLICIT_EXPECTED("renameExplicitExpected"),
+    RENAME_TO_IMPLICIT("renameToImplicit"),
+    RENAME_TO_IMPLICIT_EXPECTED("renameToImplicitExpected"),
     RENAME_WITH_REFERENCES("renameWithReferences"),
     RENAME_WITH_REFERENCES_EXPECTED("renameWithReferencesExpected"),
     RENAME_TRICKY_WITH_REFERENCES("renameTrickyWithReferences"),

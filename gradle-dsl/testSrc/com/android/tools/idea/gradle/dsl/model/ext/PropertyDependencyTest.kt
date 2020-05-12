@@ -177,7 +177,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     assertDependencyBetween(minSdkModel, maxSdkModel, "android.defaultConfig.maxSdkVersion")
 
     // Now the signing config
-    val signingConfig = buildModel.android().signingConfigs()[0]
+    val signingConfig = buildModel.android().signingConfigs()[1]
     val storeFileModel = signingConfig.storeFile()
     val storePasswordModel = signingConfig.storePassword()
 
@@ -259,7 +259,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     assertDependencyNumbers(buildToolsModel, 1, 1, 0, 0)
     assertDependencyBetween(buildToolsModel, varRefString, "varRefString")
 
-    val signingConfig = android.signingConfigs()[0]!!
+    val signingConfig = android.signingConfigs()[1]!!
     assertDependencyNumbers(signingConfig.storeFile().fileModelToElement(), 1, 1, 0, 0)
     assertDependencyBetween(signingConfig.storeFile().fileModelToElement(), storeFModel.element(), "vars['signing'].storeF")
     assertDependencyNumbers(signingConfig.storePassword(), 1, 1, 0, 0)
@@ -303,7 +303,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val key3 = filesModel.getMapValue("key3")
     key3.setValue("boo")
     assertDependencyNumbers(key3, 0, 0, 0, 1)
-    val storePass = buildModel.android().signingConfigs()[0]!!.storePassword()
+    val storePass = buildModel.android().signingConfigs()[1]!!.storePassword()
     assertDependencyNumbers(storePass, 1, 1, 0, 0)
     assertDependencyBetween(storePass, key3, "prop2['key3']")
   }

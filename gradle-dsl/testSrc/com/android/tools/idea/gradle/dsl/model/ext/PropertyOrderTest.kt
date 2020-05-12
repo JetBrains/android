@@ -495,7 +495,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     writeToBuildFile(TestFile.RESOLVE_TO_LAST_PROPERTY)
 
     val buildModel = gradleBuildModel
-    val configModel = buildModel.android().signingConfigs()[0]!!
+    val configModel = buildModel.android().signingConfigs()[1]!!
     val fileModel = configModel.storeFile()
     val passwordModel = configModel.storePassword()
 

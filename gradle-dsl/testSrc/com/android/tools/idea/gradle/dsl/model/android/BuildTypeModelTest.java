@@ -1274,10 +1274,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myConfig"));
     // Set the value to be equal to a different config.
     List<SigningConfigModel> signingConfigs = buildModel.android().signingConfigs();
-    assertThat(signingConfigs.size(), equalTo(2));
-    assertThat(signingConfigs.get(0).name(), equalTo("myConfig"));
-    assertThat(signingConfigs.get(1).name(), equalTo("myBetterConfig"));
-    signingConfigModel.setValue(new ReferenceTo(signingConfigs.get(1)));
+    assertThat(signingConfigs.size(), equalTo(3));
+    assertThat(signingConfigs.get(1).name(), equalTo("myConfig"));
+    assertThat(signingConfigs.get(2).name(), equalTo("myBetterConfig"));
+    signingConfigModel.setValue(new ReferenceTo(signingConfigs.get(2)));
 
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myBetterConfig", CUSTOM, REGULAR, 1);
     assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
@@ -1323,7 +1323,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     BuildTypeModel buildTypeModel = android.addBuildType("xyz");
 
-    SigningConfigModel signingConfig = android.signingConfigs().get(0);
+    SigningConfigModel signingConfig = android.signingConfigs().get(1);
     assertMissingProperty(buildTypeModel.signingConfig());
     buildTypeModel.signingConfig().setValue(new ReferenceTo(signingConfig));
 
