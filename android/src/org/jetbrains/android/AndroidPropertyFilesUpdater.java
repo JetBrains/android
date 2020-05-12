@@ -3,6 +3,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.lang.properties.IProperty;
 import com.intellij.lang.properties.psi.PropertiesElementFactory;
 import com.intellij.lang.properties.psi.PropertiesFile;
@@ -16,7 +17,6 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
@@ -101,10 +101,8 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
     final List<VirtualFile> files = new ArrayList<>();
     final List<Runnable> changes = new ArrayList<>();
 
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      final AndroidFacet facet = AndroidFacet.getInstance(module);
-
-      if (facet != null && !facet.requiresAndroidModel()) {
+    for (AndroidFacet facet : ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID)) {
+      if (!facet.requiresAndroidModel()) {
         final String updatePropertyFiles = facet.getProperties().UPDATE_PROPERTY_FILES;
         final boolean ask = updatePropertyFiles.isEmpty();
 
