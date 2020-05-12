@@ -48,7 +48,9 @@ import io.grpc.Metadata
 import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
+import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientCalls
+import io.grpc.stub.ClientResponseObserver
 import io.grpc.stub.StreamObserver
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
@@ -283,6 +285,38 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     snapshotService.saveSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getSaveSnapshotMethod()))
   }
 
+  /**
+   * Loads a snapshot in the emulator.
+   *
+   * @param snapshotId a snapshot ID in the emulator.
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   */
+  fun loadSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getDummyObserver()) {
+    val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("loadSnapshot(${shortDebugString(snapshot)})")
+    }
+    snapshotService.loadSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getLoadSnapshotMethod()))
+  }
+
+  /**
+   * Pushes snapshot packages into the emulator.
+   *
+   * Usually multiple packages need to be sent to push one snapshot file, including one header and one or more payload packages.
+   * The implementation of the stream observer must handle asynchronized events correctly, especially when pushing big files.
+   * This is usually done by overwriting ClientResponseObserver.beforeStart and calling setOnReadyHandler from there.
+   *
+   * @param streamObserver a client stream observer to handle events.
+   *
+   * @return a StreamObserver that can be used to trigger the push.
+   */
+  fun pushSnapshot(streamObserver: ClientResponseObserver<SnapshotPackage, SnapshotPackage>): StreamObserver<SnapshotPackage> {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("pushSnapshot()")
+    }
+    return snapshotService.pushSnapshot(DelegatingClientResponseObserver(streamObserver, SnapshotServiceGrpc.getPushSnapshotMethod()))
+  }
+
   private fun throwNotYetConnected(): Nothing {
     throw IllegalStateException("Not yet connected to the Emulator")
   }
@@ -337,6 +371,20 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
     override fun onCompleted() {
       delegate?.onCompleted()
+    }
+  }
+
+  private open inner class DelegatingClientResponseObserver<RequestT, ResponseT>
+    : ClientResponseObserver<RequestT, ResponseT>, DelegatingStreamObserver<RequestT, ResponseT> {
+    val delegateClientResponseObserver: ClientResponseObserver<RequestT, ResponseT>?
+
+    constructor(delegate: ClientResponseObserver<RequestT, ResponseT>?, method: MethodDescriptor<in RequestT, in ResponseT>) : super(
+      delegate, method) {
+      this.delegateClientResponseObserver = delegate
+    }
+
+    override fun beforeStart(requestStream: ClientCallStreamObserver<RequestT>?) {
+      delegateClientResponseObserver?.beforeStart(requestStream)
     }
   }
 
