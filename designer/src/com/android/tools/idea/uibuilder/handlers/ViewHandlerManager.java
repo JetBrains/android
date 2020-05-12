@@ -41,8 +41,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.JavaPsiFacade;
@@ -80,7 +78,7 @@ public class ViewHandlerManager implements Disposable {
 
   @NotNull
   public static ViewHandlerManager get(@NotNull Project project) {
-    ViewHandlerManager manager = project.getComponent(ViewHandlerManager.class);
+    ViewHandlerManager manager = project.getService(ViewHandlerManager.class);
     assert manager != null;
     return manager;
   }
