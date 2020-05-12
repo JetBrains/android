@@ -19,9 +19,9 @@ import com.android.ide.common.blame.Message
 import com.android.testutils.TestUtils
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.StaticPreviewProvider
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
-import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.PreviewElementTemplateInstanceProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
@@ -93,19 +93,11 @@ class ParametrizedPreviewTest {
     val project = projectRule.project
 
     val parametrizedPreviews = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt",
-                                                ProjectRootManager.getInstance(project).contentRoots[0])!!
+                                                        ProjectRootManager.getInstance(project).contentRoots[0])!!
 
-    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-      .flatMap {
-        if (it is ParametrizedPreviewElementTemplate) {
-          it.instances()
-        }
-        else {
-          sequenceOf(it)
-        }
-      }
-      .filterIsInstance<PreviewElementInstance>()
-
+    val elements = PreviewElementTemplateInstanceProvider(
+      StaticPreviewProvider(AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews).toList()))
+      .previewElements
     assertEquals(3, elements.count())
 
     elements.forEach {

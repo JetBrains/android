@@ -40,9 +40,8 @@ import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandle
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.util.COMPOSE_VIEW_ADAPTER
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
-import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.PreviewElementTemplateInstanceProvider
 import com.android.tools.idea.compose.preview.util.modelAffinity
 import com.android.tools.idea.compose.preview.util.previewElementComparatorBySourcePosition
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
@@ -88,6 +87,7 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -199,13 +199,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Filter to be applied for the preview to display a single [PreviewElement]. Used in interactive mode to focus on a
    * single element.
    */
-  private val singleElementFilteredProvider = SinglePreviewElementFilteredPreviewProvider(memoizedElementsProvider)
+  private val singleElementFilteredProvider = SinglePreviewElementInstanceFilteredPreviewProvider(memoizedElementsProvider)
 
   /**
    * Filter to be applied for the group filtering. This allows multiple [PreviewElement]s belonging to the same group
    */
   private val groupNameFilteredProvider = GroupNameFilteredPreviewProvider(singleElementFilteredProvider)
-  private val previewProvider = groupNameFilteredProvider as PreviewElementProvider
+  private val previewProviderWithFiltersApplied: PreviewElementProvider = groupNameFilteredProvider
+  private val instantiatedElementProvider = PreviewElementTemplateInstanceProvider(previewProvider)
 
   /**
    * A [UniqueTaskCoroutineLauncher] used to run the image rendering. This ensures that only one image rendering is running at time.
@@ -216,7 +217,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (oldValue != newValue) {
       LOG.debug("New group preview element selection: $newValue")
       this.groupNameFilteredProvider.groupName = newValue.name
-      refresh()
+      // Force refresh to ensure the new preview elements are picked up
+      forceRefresh()
     }
   }
   override val availableGroups: Set<PreviewGroup> get() = groupNameFilteredProvider.availableGroups.map {
@@ -233,16 +235,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val isInteractive = AtomicBoolean(false)
 
-  override var interactivePreviewElementFqn: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
+  override var interactivePreviewElementInstanceId: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
       LOG.debug("New single preview element focus: $newValue")
       // The order matters because we first want to change the composable being previewed and then start interactive loop when enabled
       // but we want to stop the loop first and then change the composable when disabled
       isInteractive.set(newValue != null)
       if (isInteractive.get()) { // Enable interactive
-        this.singleElementFilteredProvider.composableMethodFqn = newValue
+        this.singleElementFilteredProvider.instanceId = newValue
         sceneComponentProvider.enabled = false
-        refresh().invokeOnCompletion {
+        forceRefresh().invokeOnCompletion {
           ticker.start()
           interactionHandler?.let { it.selected = InteractionMode.INTERACTIVE }
 
@@ -258,9 +260,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         surface.disableMouseClickDisplay()
         interactionHandler?.let { it.selected = InteractionMode.DEFAULT }
         ticker.stop()
-        this.singleElementFilteredProvider.composableMethodFqn = null
+        this.singleElementFilteredProvider.instanceId = null
         sceneComponentProvider.enabled = true
-        refresh()
+        this.singleElementFilteredProvider.instanceId = null
+        forceRefresh()
       }
     }
   }
@@ -553,16 +556,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val existingModels = surface.models.toMutableList()
 
     // Now we generate all the models (or reuse) for the PreviewElements.
-    val models = filePreviewElements
-      .flatMap {
-        if (it is ParametrizedPreviewElementTemplate) {
-          it.instances()
-        }
-        else {
-          sequenceOf(it)
-        }
-      }
-      .filterIsInstance<PreviewElementInstance>()
+    val models = instantiatedElementProvider
+      .previewElements
       .map {
         val xmlOutput = it.toPreviewXml()
           // Whether to paint the debug boundaries or not
@@ -706,7 +701,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       startRenderingUI()
       val filePreviewElements = withContext(workerThread) {
-        previewProvider.previewElements
+        memoizedElementsProvider.previewElements
       }
 
       if (filePreviewElements.toList() == previewElements) {
@@ -741,9 +736,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       stopRenderingUI()
     }
 
-  private fun forceRefresh() {
+  private fun forceRefresh(): Job {
     previewElements = emptyList() // This will just force a refresh
-    refresh()
+    return refresh()
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {

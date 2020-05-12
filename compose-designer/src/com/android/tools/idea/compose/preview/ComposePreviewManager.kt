@@ -81,7 +81,7 @@ interface ComposePreviewManager {
   /**
    * Name of a [PreviewElement] to run in interactive mode or null if not in interactive mode.
    */
-  var interactivePreviewElementFqn: String?
+  var interactivePreviewElementInstanceId: String?
 }
 
 /**

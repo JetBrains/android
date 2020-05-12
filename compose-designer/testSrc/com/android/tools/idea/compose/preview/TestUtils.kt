@@ -29,7 +29,7 @@ internal fun UFile.method(name: String): UMethod? =
     .filter { it.name == name }
     .singleOrNull()
 
-internal class StaticPreviewProvider(private val list: List<PreviewElement>): PreviewElementProvider {
+internal class StaticPreviewProvider(private val collection: Collection<PreviewElement>): PreviewElementProvider {
   override val previewElements: Sequence<PreviewElement>
-    get() = list.asSequence()
+    get() = collection.asSequence()
 }
