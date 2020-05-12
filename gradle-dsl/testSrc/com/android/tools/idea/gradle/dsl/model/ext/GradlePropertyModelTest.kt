@@ -3119,7 +3119,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       assertThat(listItem.fullExpressionPsiElement!!.text, equalTo(it))
     }
 
-    val configModel = buildModel.android().signingConfigs()[0]!!
+    val configModel = buildModel.android().signingConfigs()[1]!!
     (if (isGroovy) listOf("'my_file.txt'", "file('my_file.txt')") else listOf("\"my_file.txt\"", "file(\"my_file.txt\")")).let {
       assertThat(configModel.storeFile().expressionPsiElement!!.text, equalTo(it[0]))
       assertThat(configModel.storeFile().fullExpressionPsiElement!!.text, equalTo(it[1]))
