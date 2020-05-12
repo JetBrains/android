@@ -159,18 +159,6 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     return false;
   }
 
-  /**
-   * @return true if the Deselect All label should be visible.
-   */
-  public boolean shouldShowDeselectAllLabel() {
-    return false;
-  }
-
-  /**
-   * Perform action for when the Deselect All label is clicked.
-   */
-  public void onDeselectAllAction() {}
-
   protected void tooltipChanged() {
     if (myActiveTooltipView != null) {
       myActiveTooltipView.dispose();
