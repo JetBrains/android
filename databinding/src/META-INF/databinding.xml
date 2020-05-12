@@ -15,6 +15,7 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
+    <customUsageSearcher implementation="com.android.tools.idea.databinding.findusages.DataBindingResourceUsageSearcher"/>
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.BrShortNamesCache"/>
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.LayoutBindingShortNamesCache"/>
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.DataBindingComponentShortNamesCache"/>
