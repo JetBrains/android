@@ -103,7 +103,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
           root = parent;
           disposerChain.append(" <- ").append(root);
         }
-        fail("Undisposed object: " + disposerChain.append(" (root)").toString());
+        fail("Undisposed object: " + disposerChain.append(" (root)"));
       }
       return DisposerExplorer.VisitResult.CONTINUE;
     });

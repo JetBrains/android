@@ -148,7 +148,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
       notFoundPaths.append(dir).append('\n');
     }
 
-    LOG.error("Unable to find embedded layoutlib in paths:\n" + notFoundPaths.toString());
+    LOG.error("Unable to find embedded layoutlib in paths:\n" + notFoundPaths);
     return null;
   }
 

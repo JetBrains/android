@@ -152,7 +152,7 @@ public class FlagManagerTest extends TestCase {
         for (String language : regionToLanguages.get(region)) {
           sb.append(language).append("(").append(LocaleManager.getLanguageName(language)).append(") ");
         }
-        System.out.println(sb.toString());
+        System.out.println(sb);
       }
     }
 
@@ -171,7 +171,7 @@ public class FlagManagerTest extends TestCase {
         sb.append(code.toLowerCase(Locale.US)).append(DOT_PNG).append(" (");
         sb.append(LocaleManager.getRegionName(code)).append(") ");
       }
-      System.out.println(sb.toString());
+      System.out.println(sb);
     }
   }
 
