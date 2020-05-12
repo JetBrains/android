@@ -132,7 +132,8 @@ public class RenderTask {
   /**
    * Executor to run the dispose tasks. The thread will run them sequentially.
    */
-  private static final ExecutorService ourDisposeService = new ThreadPoolExecutor(0, 1, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
+  @VisibleForTesting
+  static final ExecutorService ourDisposeService = new ThreadPoolExecutor(0, 1, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
                                                                                   new ThreadFactory() {
                                                                                     @Override
                                                                                     public Thread newThread(@NotNull Runnable runnable) {
