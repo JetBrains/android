@@ -62,6 +62,7 @@ import com.android.tools.idea.res.findStyleableAttrFieldsForAttr
 import com.android.tools.idea.res.findStyleableAttrFieldsForStyleable
 import com.android.tools.idea.res.getResourceElementFromSurroundingValuesTag
 import com.android.tools.idea.res.scheduleNewResolutionAndHighlighting
+import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 /**
@@ -257,11 +258,15 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
     else {
       // The user has selected an element that does not resolve to a resource, check whether they have selected something nearby and if we
       // can assume the correct resource if any. The allowed matches are:
-      // XmlTag of a values resource. eg. <col${caret}or name="... />
       // XmlValue of a values resource if it is not a reference to another resource. eg. <color name="foo">#12${caret}3456</color>
       val offset = CommonDataKeys.CARET.getData(dataContext)?.offset ?: return null
       val file = CommonDataKeys.PSI_FILE.getData(dataContext) ?: return null
       val elementInFile = file.findElementAt(offset) ?: return null
+      if (elementInFile.parent is XmlTag) {
+        // No longer supporting renaming XmlTags themselves, in this case the caret exists inside a resource tag name eg. <strin<caret>g>
+        // http://b/153850296
+        return null;
+      }
       return getResourceElementFromSurroundingValuesTag(elementInFile)?.toWritableResourceReferencePsiElement()
     }
   }
