@@ -17,7 +17,7 @@ package com.android.tools.idea.mlkit.notifications;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.mlkit.MlUtils;
-import com.android.tools.idea.mlkit.TfliteModelFileEditor;
+import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
