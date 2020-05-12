@@ -168,7 +168,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   // Test that selecting a res group node causes the correct PSI Elements to be selected
-  public void testSelection() throws Exception {
+  // TODO(b/156367441): Re-implement
+  public void /*test*/Selection() throws Exception {
     loadProject(NAVIGATOR_PACKAGEVIEW_SIMPLE);
 
     myPane = createPane();
@@ -188,7 +189,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   // Test that the virtualFileArray for resource nodes actually contains the files for this node.
-  public void testVirtualFileArrayForResNode() throws Exception {
+  // TODO(b/156367441): Re-implement
+  public void /*test*/VirtualFileArrayForResNode() throws Exception {
     loadProject(NAVIGATOR_PACKAGEVIEW_SIMPLE);
 
     myPane = createPane();
@@ -314,7 +316,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertStructureEqual(structure, expected, numLines, createComparator(printInfo), structure.getRootElement(), printInfo);
   }
 
-  public void testResourceGroupWithDifferentExtension() throws Exception {
+  // TODO(b/156367441): Re-implement
+  public void /*test*/ResourceGroupWithDifferentExtension() throws Exception {
     loadProject(NAVIGATOR_PACKAGEVIEW_SIMPLE);
 
     myPane = createPane();
