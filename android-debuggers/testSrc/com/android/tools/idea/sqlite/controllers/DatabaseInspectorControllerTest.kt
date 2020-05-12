@@ -67,6 +67,7 @@ import com.intellij.testFramework.fixtures.TempDirTestFixture
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SameThreadExecutor
+import icons.StudioIcons
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -80,7 +81,6 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.util.concurrent.Executor
-import javax.swing.JComponent
 
 class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   private lateinit var mockSqliteView: MockDatabaseInspectorView
@@ -109,7 +109,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   private lateinit var realDatabaseConnection: DatabaseConnection
   private lateinit var sqliteFile: VirtualFile
 
-  private val testSqliteTable = SqliteTable("testTable", arrayListOf(), null, true)
+  private val testSqliteTable = SqliteTable("testTable", arrayListOf(), null, false)
   private lateinit var sqliteResultSet: SqliteResultSet
 
   private lateinit var tempDirTestFixture: TempDirTestFixture
@@ -281,8 +281,10 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(mockSqliteView).openTab(
-      eq(TabId.TableTab(databaseId1, testSqliteTable.name)),
-      eq(testSqliteTable.name), any(JComponent::class.java)
+      TabId.TableTab(databaseId1, testSqliteTable.name),
+      testSqliteTable.name,
+      StudioIcons.DatabaseInspector.TABLE,
+      mockViewFactory.tableView.component
     )
   }
 
@@ -298,8 +300,12 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockSqliteView)
-      .openTab(any(TabId.AdHocQueryTab::class.java), any(String::class.java), any(JComponent::class.java))
+    verify(mockSqliteView).openTab(
+      TabId.AdHocQueryTab(1),
+      "New Query [1]",
+      StudioIcons.DatabaseInspector.TABLE,
+      mockViewFactory.sqliteEvaluatorView.component
+    )
   }
 
   fun testCloseTabIsCalledForTable() {
@@ -394,8 +400,10 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(mockViewFactory).createTableView()
     verify(mockSqliteView)
       .openTab(
-        eq(TabId.TableTab(databaseId1, testSqliteTable.name)),
-        eq(testSqliteTable.name), any(JComponent::class.java)
+        TabId.TableTab(databaseId1, testSqliteTable.name),
+        testSqliteTable.name,
+        StudioIcons.DatabaseInspector.TABLE,
+        mockViewFactory.tableView.component
       )
     verify(mockSqliteView).focusTab(eq(TabId.TableTab(databaseId1, testSqliteTable.name)))
   }
@@ -1051,20 +1059,26 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Assert that tabs are readded
     verify(mockSqliteView)
       .openTab(
-        eq(TabId.TableTab(databaseId1, testSqliteTable.name)),
-        eq(testSqliteTable.name), any(JComponent::class.java)
+        TabId.TableTab(databaseId1, testSqliteTable.name),
+        testSqliteTable.name,
+        StudioIcons.DatabaseInspector.TABLE,
+        mockViewFactory.tableView.component
       )
 
     verify(mockSqliteView)
       .openTab(
-        eq(TabId.TableTab(databaseId1, table1.name)),
-        eq(table1.name), any(JComponent::class.java)
+        TabId.TableTab(databaseId1, table1.name),
+        table1.name,
+        StudioIcons.DatabaseInspector.TABLE,
+        mockViewFactory.tableView.component
       )
 
     verify(mockSqliteView)
       .openTab(
-        eq(TabId.TableTab(databaseId1, table2.name)),
-        eq(table2.name), any(JComponent::class.java)
+        TabId.TableTab(databaseId1, table2.name),
+        table2.name,
+        StudioIcons.DatabaseInspector.TABLE,
+        mockViewFactory.tableView.component
       )
   }
 
@@ -1166,5 +1180,25 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     assertEquals(listOf(false), invocations)
+  }
+
+  fun testViewTabsHaveViewIcons() {
+    // Prepare
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+
+    // Act
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(databaseId1, SqliteTable("view", emptyList(), null, true))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockSqliteView).openTab(
+      TabId.TableTab(databaseId1, "view"),
+      "view",
+      StudioIcons.DatabaseInspector.VIEW,
+      mockViewFactory.tableView.component
+    )
   }
 }

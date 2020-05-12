@@ -52,6 +52,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -345,7 +346,7 @@ class DatabaseInspectorControllerImpl(
   private fun openNewEvaluatorTab(): SqliteEvaluatorController {
     evaluatorTabCount += 1
 
-    val tabId = TabId.AdHocQueryTab()
+    val tabId = TabId.AdHocQueryTab(evaluatorTabCount)
 
     val sqliteEvaluatorView = viewFactory.createEvaluatorView(
       project,
@@ -353,7 +354,7 @@ class DatabaseInspectorControllerImpl(
       viewFactory.createTableView()
     )
 
-    view.openTab(tabId, "New Query [$evaluatorTabCount]", sqliteEvaluatorView.component)
+    view.openTab(tabId, "New Query [$evaluatorTabCount]", StudioIcons.DatabaseInspector.TABLE, sqliteEvaluatorView.component)
 
     val sqliteEvaluatorController = SqliteEvaluatorController(
       project,
@@ -382,7 +383,8 @@ class DatabaseInspectorControllerImpl(
     }
 
     val tableView = viewFactory.createTableView()
-    view.openTab(tabId, table.name, tableView.component)
+    val icon = if (table.isView) StudioIcons.DatabaseInspector.VIEW else StudioIcons.DatabaseInspector.TABLE
+    view.openTab(tabId, table.name, icon, tableView.component)
 
     val tableController = TableController(
       closeTabInvoked = { closeTab(tabId) },
@@ -528,5 +530,5 @@ interface DatabaseInspectorController : Disposable {
 
 sealed class TabId {
   data class TableTab(val databaseId: SqliteDatabaseId, val tableName: String) : TabId()
-  class AdHocQueryTab : TabId()
+  data class AdHocQueryTab(val tabId: Int) : TabId()
 }

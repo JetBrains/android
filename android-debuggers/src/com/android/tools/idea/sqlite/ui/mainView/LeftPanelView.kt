@@ -325,7 +325,12 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
           }
 
           is SqliteTable -> {
-            icon = StudioIcons.DatabaseInspector.TABLE
+            icon = if (userObject.isView) {
+              StudioIcons.DatabaseInspector.VIEW
+            }
+            else {
+              StudioIcons.DatabaseInspector.TABLE
+            }
             append(userObject.name)
           }
 
