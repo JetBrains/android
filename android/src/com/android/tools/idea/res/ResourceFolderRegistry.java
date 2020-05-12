@@ -164,6 +164,7 @@ public class ResourceFolderRegistry implements Disposable {
     @NotNull private final Project myProject;
 
     public PopulateCachesTask(@NotNull Project project) {
+      super(project);
       myProject = project;
     }
 
