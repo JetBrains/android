@@ -288,7 +288,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
       "values/styles.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
                            "    <declare-styleable name=\"AppStyleable\">\n" +
-                           attributes.toString() +
+                           attributes +
                            "    </declare-styleable>\n" +
                            "</resources>\n"});
     LocalResourceRepository resources = new LocalResourceRepositoryDelegate("resources", repository);

@@ -197,7 +197,7 @@ public class ImportDependenciesUtil {
     if (failed) {
       Messages.showErrorDialog(project, AndroidBundle.message("android.import.dependencies.error.message.header") +
                                         "\n" +
-                                        messageBuilder.toString(), CommonBundle.getErrorTitle());
+                                        messageBuilder, CommonBundle.getErrorTitle());
     }
   }
 

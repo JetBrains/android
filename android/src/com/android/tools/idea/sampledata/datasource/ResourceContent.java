@@ -68,7 +68,7 @@ public class ResourceContent implements Function<OutputStream, Exception> {
       }
     }
 
-    LOG.warn("Unable to sampleData in paths:\n" + notFoundPaths.toString());
+    LOG.warn("Unable to sampleData in paths:\n" + notFoundPaths);
     return null;
   }
 

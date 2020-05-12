@@ -246,7 +246,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
               sb.append(issue);
               sb.append(", ");
             }
-            message = "Unable to resolve dependencies for " + item.getDisplayName() + ": " + sb.toString();
+            message = "Unable to resolve dependencies for " + item.getDisplayName() + ": " + sb;
           }
           else {
             message = "Unable to resolve dependencies for " + item.getDisplayName();

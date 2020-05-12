@@ -322,7 +322,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       sb.append("\nAdded registrations for ").append(missing.size()).append(" issues (out of a total issue count of ")
         .append(allIssues.size()).append(")\n");
 
-      System.out.println(sb.toString());
+      System.out.println(sb);
       return false;
     } else if (LIST_ISSUES_WITH_QUICK_FIXES) {
       System.out.println("The following inspections have quickfixes (used for Reporter.java):\n");

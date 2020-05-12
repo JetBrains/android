@@ -57,7 +57,7 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
         String value = progessArg(v);
         envBuilder.append(k).append("=").append(value);
       });
-      logString("\nenv: " + envBuilder.toString());
+      logString("\nenv: " + envBuilder);
     }
     logString("\n\n");
     try {
