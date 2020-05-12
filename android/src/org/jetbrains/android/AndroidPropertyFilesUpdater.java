@@ -66,7 +66,10 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
   public static class ModuleRootListenerImpl implements ModuleRootListener {
     @Override
     public void rootsChanged(@NotNull final ModuleRootEvent event) {
-      ServiceManager.getService(event.getProject(), AndroidPropertyFilesUpdater.class).onRootsChanged();
+      Project project = event.getProject();
+      if (!project.isDefault()) {
+        ServiceManager.getService(project, AndroidPropertyFilesUpdater.class).onRootsChanged();
+      }
     }
   }
 
@@ -84,10 +87,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
   }
 
   private void onRootsChanged() {
-    if (!ApplicationManager.getApplication().isUnitTestMode() &&           // AE: Please don't register startup activities for
-        !ApplicationManager.getApplication().isHeadlessEnvironment()) {    //   the default project: they won't ever be run
-      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(myAlarm::cancelAndRequest);
-    }
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(myAlarm::cancelAndRequest);
   }
 
   private void updatePropertyFilesIfNecessary() {
