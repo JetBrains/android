@@ -57,7 +57,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
     get() {
       var result = _storage
       if (result == null) {
-        result = this.module.project.getComponent(Storage::class.java)!!
+        result = this.module.project.getService(Storage::class.java)!!
         _storage = result
       }
       return result

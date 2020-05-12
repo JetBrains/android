@@ -74,7 +74,7 @@ class NavPropertyEditors(project: Project) : PropertyEditors(project.messageBus)
 
   companion object Factory {
     fun getInstance(project: Project): NavPropertyEditors {
-      return project.getComponent(NavPropertyEditors::class.java)
+      return project.getService(NavPropertyEditors::class.java)
     }
   }
 }
