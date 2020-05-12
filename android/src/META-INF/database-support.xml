@@ -1,12 +1,12 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <applicationInitializedListener implementation="org.jetbrains.android.database.AndroidDataSourceApplicationComponent"/>
+    <backgroundPostStartupActivity implementation="org.jetbrains.android.database.AndroidDataSourceStorageCleaner" />
   </extensions>
-  <project-components>
-    <component>
-      <implementation-class>org.jetbrains.android.database.AndroidDataSourceProjectComponent</implementation-class>
-    </component>
-  </project-components>
+
+  <applicationListeners>
+    <listener class="org.jetbrains.android.database.AndroidDataSourceProjectListener"
+              topic="com.intellij.openapi.project.ProjectManagerListener"/>
+  </applicationListeners>
 
   <actions>
     <action id="Android.UploadDatabase" class="org.jetbrains.android.database.AndroidUploadDatabaseAction" text="Upload"
