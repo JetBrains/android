@@ -40,16 +40,27 @@ import com.intellij.execution.testframework.TestSearchScope
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsAdapter
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
-import com.intellij.openapi.application.impl.LaterInvocator
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.TestRunnerUtil
-import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
+
+/**
+ * Whether to print debug "status updates" to stdout.
+ *
+ * This may be useful when debugging, since the steps in this test can take quite some time.
+ */
+private const val PRINT_LOG = false
+
+private fun log(message: String) {
+  @Suppress("ConstantConditionIf")
+  if (PRINT_LOG) {
+    println(message)
+  }
+}
 
 /**
  * Integration test that invokes our unit test run configurations.
@@ -59,32 +70,27 @@ import java.util.concurrent.atomic.AtomicReference
  * The test project uses 3.0 features, so you may need to set STUDIO_CUSTOM_REPO to point to a recent build of our gradle plugin.
  */
 class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
-  lateinit var myPrevTransactionGuardFlagValue: String
-
   override fun runInDispatchThread(): Boolean = false
   override fun invokeTestRunnable(runnable: Runnable) = runnable.run()
 
   override fun setUp() {
-    // Workaround for IDEA-239912.
-    Registry.get("ide.require.transaction.for.model.changes").apply {
-      myPrevTransactionGuardFlagValue = asString()
-      setValue(false)
-    }
-
     TestRunnerUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
     runInEdtAndWait {
       super.setUp()
       loadProject(TestProjectPaths.UNIT_TESTING)
 
       // Without this, the execution manager will not invoke gradle to compile the project, so no tests will be found.
-      ExecutionManagerImpl.getInstance(project)
+      val executionManager = ExecutionManagerImpl.getInstance(project)
+      log("project imported")
 
       // Calling the code below makes sure there are no mistakes in the test project and that all class files are in place. Doing this
       // (and syncing VFS) seems to fix huge flakiness that we observe otherwise.
       // TODO(b/64667992): try to listen for a finished gradle build (the one from "run before" in the run config) and sync VFS then.
       val result = invokeGradleTasks(project, "test")
       assertTrue("Gradle build failed.", result.isBuildSuccessful)
+      log("Command-line tests done")
       VirtualFileManager.getInstance().syncRefresh()
+      log("Vfs synced")
     }
   }
 
@@ -93,7 +99,6 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
       UsageTracker.cleanAfterTesting()
     }
     finally {
-      Registry.get("ide.require.transaction.for.model.changes").setValue(myPrevTransactionGuardFlagValue)
       super.tearDown()
     }
   }
@@ -241,6 +246,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
           ":javalib:testClasses"
         )
       }
+
     })
 
     project.messageBus.connect(testRootDisposable).subscribe(ExecutionManager.EXECUTION_TOPIC, object : ExecutionListener {
@@ -258,21 +264,16 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
       }
     })
 
-    lateinit var runnerConfigurationSettings: RunnerAndConfigurationSettings
     runInEdtAndWait {
-      runnerConfigurationSettings = createRunnerConfigurationSettingsForClass("com.example.app.AppJavaUnitTest")
+      val runnerConfigurationSettings = createRunnerConfigurationSettingsForClass("com.example.app.AppJavaUnitTest")
       val androidJUnit = runnerConfigurationSettings.configuration as AndroidJUnitConfiguration
       androidJUnit.persistentData.TEST_OBJECT = JUnitConfiguration.TEST_PACKAGE
       androidJUnit.persistentData.TEST_SEARCH_SCOPE.scope = TestSearchScope.MODULE_WITH_DEPENDENCIES
       androidJUnit.persistentData.MAIN_CLASS_NAME = ""
       androidJUnit.persistentData.PACKAGE_NAME = ""
       assertThat(androidJUnit.testObject.suggestActionName()).isEqualTo("All Tests")
-
+      ExecutionUtil.runConfiguration(runnerConfigurationSettings, DefaultRunExecutor.getRunExecutorInstance())
     }
-
-    // Expected tests are empty because we cancel and destroy the handler immediately after it is scheduled as it is
-    // explained above.
-    checkTestClass(runnerConfigurationSettings, setOf())
   }
 
   /**
@@ -291,16 +292,6 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
   }
 
   private fun checkTestClass(className: String, expectedTests: Set<String>) {
-    checkTestClass(createRunnerConfigurationSettingsForClass(className), expectedTests)
-  }
-
-  private fun createRunnerConfigurationSettingsForClass(className: String): RunnerAndConfigurationSettings {
-    return runInEdtAndGet {
-      requireNotNull(createContext(project, myFixture.findClass(className)).configuration)
-    }
-  }
-
-  private fun checkTestClass(configuration: RunnerAndConfigurationSettings, expectedTests: Set<String>) {
     val passingTests = ConcurrentSkipListSet<String>()
     val failingTests = ConcurrentSkipListSet<String>()
     val testingFinished = CountDownLatch(2)
@@ -319,36 +310,42 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     runInEdtAndWait {
       try {
         project.messageBus.connect(testRootDisposable).subscribe(SMTRunnerEventsListener.TEST_STATUS, object : SMTRunnerEventsAdapter() {
-          override fun onTestingStarted(testsRoot: SMTestProxy.SMRootTestProxy) {}
+          override fun onTestingStarted(testsRoot: SMTestProxy.SMRootTestProxy) {
+            log("Testing $className started.")
+          }
 
-          override fun onTestStarted(test: SMTestProxy) {}
+          override fun onTestStarted(test: SMTestProxy) {
+            log("${test.name} started")
+          }
 
           override fun onTestFinished(test: SMTestProxy) {
+            log("${test.name} finished")
             val set = if (test.isPassed) passingTests else failingTests
             set.add(test.locationUrl ?: return)
           }
 
           override fun onTestingFinished(testsRoot: SMTestProxy.SMRootTestProxy) {
+            log("Testing $className finished.")
             testingFinished.countDown()
           }
         })
 
-        // ExecutionUtil enqueues the run request to the LaterInvocator but under some circumstances the LaterInvocator falls
-        // into race condition and enqueued tasks are not started until you manually call ensureFlushRequested(). See javadoc
-        // of ensureFlushRequested for more details.
-        ExecutionUtil.runConfiguration(configuration, DefaultRunExecutor.getRunExecutorInstance())
-        LaterInvocator.ensureFlushRequested()
+        log("Running $className")
+        ExecutionUtil.runConfiguration(createRunnerConfigurationSettingsForClass(className), DefaultRunExecutor.getRunExecutorInstance())
       }
       catch (t: Throwable) {
+        log("failed!")
         failure.set(t)
         testingFinished.countDown()
       }
     }
 
     // Make sure we don't hang the entire build here.
+/* b/154963507
     assertTrue("Timed out", testingFinished.await(1, TimeUnit.MINUTES))
     failure.get()?.let { throw it }
 
+    log("Checking $className")
     assertThat(passingTests).containsExactlyElementsIn(expectedTests)
     assertThat(failingTests).isEmpty()
 
@@ -361,8 +358,12 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
 
     assertThat(testRun.testInvocationType).isEqualTo(TestRun.TestInvocationType.ANDROID_STUDIO_TEST)
     assertThat(testRun.testKind).isEqualTo(TestRun.TestKind.UNIT_TEST)
-    // If a test execution is cancelled before it starts, testRun.numberOfTestsExecuted returns 1 instead of 0.
-    assertThat(testRun.numberOfTestsExecuted).isEqualTo(maxOf(expectedTests.size, 1))
+    assertThat(testRun.numberOfTestsExecuted).isEqualTo(expectedTests.size)
     assertThat(testRun.testLibraries.mockitoVersion).isEqualTo("2.7.1")
+b/154963507 */
+  }
+
+  private fun createRunnerConfigurationSettingsForClass(className: String): RunnerAndConfigurationSettings {
+    return createContext(project, myFixture.findClass(className)).configuration!!
   }
 }
