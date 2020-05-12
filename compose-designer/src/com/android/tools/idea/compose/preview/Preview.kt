@@ -38,12 +38,15 @@ import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManage
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
-import com.android.tools.idea.compose.preview.util.COMPOSE_VIEW_ADAPTER
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementTemplateInstanceProvider
+import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.isComposeErrorResult
+import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.modelAffinity
 import com.android.tools.idea.compose.preview.util.previewElementComparatorBySourcePosition
+import com.android.tools.idea.compose.preview.util.requestComposeRender
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -329,7 +332,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * we do not have enough information about errors and the rendering to show the preview. Once it has rendered,
    * even with errors, we can display additional information about the state of the preview.
    */
-  private var hasRenderedAtLeastOnce = false
+  private val hasRenderedAtLeastOnce = AtomicBoolean(false)
 
   /**
    * Callback called after refresh has happened
@@ -369,9 +372,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   private val ticker = ControllableTicker({
-                                            surface.models.map {
-                                              surface.getSceneManager(it)
-                                            }.filterIsInstance<LayoutlibSceneManager>().forEach {
+                                            surface.layoutlibSceneManagers.forEach {
                                               it.executeCallbacks().thenRun(
                                                 Runnable { it.requestRender() })
                                             }
@@ -433,14 +434,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var isAutoBuildEnabled: Boolean = COMPOSE_PREVIEW_AUTO_BUILD.get()
     get() = COMPOSE_PREVIEW_AUTO_BUILD.get() && field
 
-  private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce || surface.models.asSequence()
-    .mapNotNull { surface.getSceneManager(it) }
-    .filterIsInstance<LayoutlibSceneManager>()
-    .mapNotNull { it.renderResult?.logger?.brokenClasses?.values }
-    .flatten()
-    .any {
-      it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
-    }
+  private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce.get() || surface.layoutlibSceneManagers
+    .any { it.renderResult.isComposeErrorResult() }
 
   private fun hasSyntaxErrors(): Boolean = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
 
@@ -470,11 +465,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   /**
    * Returns true if the surface has at least one correctly rendered preview.
    */
-  private fun hasAtLeastOneValidPreview() = surface.models.asSequence()
-    .mapNotNull { surface.getSceneManager(it) }
-    .filterIsInstance<LayoutlibSceneManager>()
+  private fun hasAtLeastOneValidPreview() = surface.layoutlibSceneManagers
     .mapNotNull { it.renderResult }
-    .any { it.renderResult.isSuccess && it.logger.brokenClasses.values.isEmpty() }
+    .any { !it.isComposeErrorResult() }
 
   /**
    * Hides the preview content and shows an error message on the surface.
@@ -516,19 +509,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
 
     updateNotifications()
-  }
-
-  /**
-   * Utility method that requests a given [LayoutlibSceneManager] to render. It applies logic that specific to compose to render components
-   * that do not simply render in a first pass.
-   */
-  private fun LayoutlibSceneManager.requestComposeRender(): CompletableFuture<Void> = if (StudioFlags.COMPOSE_PREVIEW_DOUBLE_RENDER.get()) {
-    requestRender()
-      .thenCompose { executeCallbacks() }
-      .thenCompose { requestRender() }
-  }
-  else {
-    requestRender()
   }
 
   /**
@@ -637,6 +617,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         .map { it.requestComposeRender() }
         .toTypedArray())
         .await()
+      hasRenderedAtLeastOnce.set(true)
     }
     else {
       showModalErrorMessage(message("panel.no.previews.defined"))
@@ -646,9 +627,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       LOG.debug("Render completed in ${stopwatch?.duration?.toMillis()}ms")
 
       // Log any rendering errors
-      surface.models.asSequence()
-        .mapNotNull { surface.getSceneManager(it) }
-        .filterIsInstance<LayoutlibSceneManager>()
+      surface.layoutlibSceneManagers
         .forEach {
           val modelName = it.model.modelDisplayName
           it.renderResult?.let { result ->
@@ -669,7 +648,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         .sortedWith(previewElementComparatorBySourcePosition)
         .toList()
     }
-    hasRenderedAtLeastOnce = true
 
     withContext(uiThread) {
       surface.zoomToFit()
