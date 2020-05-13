@@ -57,6 +57,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.LineSeparator;
 import com.intellij.util.containers.ContainerUtil;
@@ -377,7 +378,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         cellWidth = Math.max(cellWidth, preferredSize.width);
         rowHeights[r] = Math.max(rowHeights[r], preferredSize.height);
       }
-      column.setPreferredWidth(cellWidth + 10);
+      column.setPreferredWidth(cellWidth + JBUIScale.scale(10));
     }
     for (int r = 0; r < table.getRowCount(); r++) {
       table.setRowHeight(r, rowHeights[r]);
