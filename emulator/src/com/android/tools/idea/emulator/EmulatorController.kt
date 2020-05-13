@@ -348,7 +348,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   private open inner class DelegatingStreamObserver<RequestT, ResponseT>(
-    val delegate: StreamObserver<in ResponseT>?,
+    open val delegate: StreamObserver<in ResponseT>?,
     val method: MethodDescriptor<in RequestT, in ResponseT>
   ) : StreamObserver<ResponseT> {
 
@@ -374,13 +374,12 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   private open inner class DelegatingClientResponseObserver<RequestT, ResponseT>(
-    delegate: ClientResponseObserver<RequestT, ResponseT>?,
+    override val delegate: ClientResponseObserver<RequestT, ResponseT>?,
     method: MethodDescriptor<in RequestT, in ResponseT>
   ) : DelegatingStreamObserver<RequestT, ResponseT>(delegate, method), ClientResponseObserver<RequestT, ResponseT> {
-    val delegateClientResponseObserver: ClientResponseObserver<RequestT, ResponseT>? = delegate
 
     override fun beforeStart(requestStream: ClientCallStreamObserver<RequestT>?) {
-      delegateClientResponseObserver?.beforeStart(requestStream)
+      delegate?.beforeStart(requestStream)
     }
   }
 
