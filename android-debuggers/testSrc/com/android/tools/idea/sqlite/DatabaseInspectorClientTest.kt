@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.PlatformTestCase
@@ -42,8 +43,8 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
   private lateinit var hasDatabasePossiblyChangedFunction: () -> Unit
   private var hasDatabasePossiblyChangedInvoked = false
 
-  private lateinit var handleDatabaseClosedFunction: (Int) -> Unit
-  private lateinit var databaseClosedInvocations: MutableList<Int>
+  private lateinit var handleDatabaseClosedFunction: (SqliteDatabaseId) -> Unit
+  private lateinit var databaseClosedInvocations: MutableList<SqliteDatabaseId>
 
   override fun setUp() {
     super.setUp()
@@ -59,7 +60,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     hasDatabasePossiblyChangedFunction = { hasDatabasePossiblyChangedInvoked = true }
 
     databaseClosedInvocations = mutableListOf()
-    handleDatabaseClosedFunction = { connectionId -> databaseClosedInvocations.add(connectionId) }
+    handleDatabaseClosedFunction = { databaseId -> databaseClosedInvocations.add(databaseId) }
 
     databaseInspectorClient = DatabaseInspectorClient(
       mockMessenger,
@@ -90,7 +91,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
 
   fun testOnDatabaseOpenedEventOpensDatabase() {
     // Prepare
-    val databaseOpenEvent = SqliteInspectorProtocol.DatabaseOpenedEvent.newBuilder().setDatabaseId(1).setName("name").build()
+    val databaseOpenEvent = SqliteInspectorProtocol.DatabaseOpenedEvent.newBuilder().setDatabaseId(1).setPath("path").build()
     val event = SqliteInspectorProtocol.Event.newBuilder().setDatabaseOpened(databaseOpenEvent).build()
 
     // Act
@@ -182,7 +183,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
 
     // Assert
     assertSize(1, databaseClosedInvocations)
-    assertEquals(1, databaseClosedInvocations.first())
+    assertEquals(SqliteDatabaseId.fromLiveDatabase("", 1), databaseClosedInvocations.first())
   }
 
   fun testKeepConnectionOpenSuccess() {
