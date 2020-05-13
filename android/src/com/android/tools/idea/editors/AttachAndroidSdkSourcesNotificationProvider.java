@@ -75,6 +75,9 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
         return null;
       }
       Sdk sdk = jdkOrderEntry.getJdk();
+      if (sdk == null) {
+        return null;
+      }
 
       String sdkHome = sdk.getHomePath();
       if (sdkHome == null) {
@@ -112,7 +115,8 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
     for (OrderEntry entry : index.getOrderEntriesForFile(file)) {
       if (entry instanceof JdkOrderEntry) {
         JdkOrderEntry jdkOrderEntry = (JdkOrderEntry) entry;
-        if (AndroidSdks.getInstance().isAndroidSdk(jdkOrderEntry.getJdk())) {
+        Sdk jdk = jdkOrderEntry.getJdk();
+        if (jdk != null && AndroidSdks.getInstance().isAndroidSdk(jdk)) {
           return jdkOrderEntry;
         }
       }
