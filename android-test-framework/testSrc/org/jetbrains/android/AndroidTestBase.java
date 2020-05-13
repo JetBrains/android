@@ -101,6 +101,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     DisposerExplorer.visitTree(disposable -> {
       if (disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbService") ||
           disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbOptionsService") ||
+          disposable.getClass().getName().startsWith("com.android.tools.analytics.HighlightingStats") ||
           (disposable instanceof ProjectImpl && (((ProjectImpl)disposable).isDefault() || ((ProjectImpl)disposable).isLight())) ||
           disposable.toString().startsWith("services of " + ProjectImpl.class.getName()) ||
           (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME)) ||

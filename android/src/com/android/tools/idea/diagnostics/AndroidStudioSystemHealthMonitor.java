@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics;
 
 import com.android.tools.analytics.AnalyticsSettings;
+import com.android.tools.analytics.HistogramUtil;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
@@ -95,7 +96,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.analytics.HistogramUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;

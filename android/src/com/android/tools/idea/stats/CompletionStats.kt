@@ -16,6 +16,7 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.toProto
 import com.android.tools.idea.stats.CompletionStats.reportCompletionStats
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorCompletionStats
@@ -30,7 +31,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
-import com.intellij.util.analytics.toProto
 import org.HdrHistogram.SingleWriterRecorder
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap

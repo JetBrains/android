@@ -14,7 +14,7 @@
         message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
         <location
             file="src/com/android/tools/idea/run/LaunchTaskRunner.java"
-            line="230"/>
+            line="239"/>
     </issue>
 
     <issue
@@ -54,7 +54,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="613"/>
+            line="614"/>
     </issue>
 
     <issue
@@ -62,15 +62,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="752"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="917"/>
+            line="753"/>
     </issue>
 
     <issue
@@ -86,7 +78,15 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="1382"/>
+            line="919"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
+            line="1383"/>
     </issue>
 
     <issue
@@ -278,7 +278,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-            line="89"/>
+            line="58"/>
     </issue>
 
     <issue
@@ -286,7 +286,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-            line="90"/>
+            line="59"/>
     </issue>
 
     <issue
@@ -541,8 +541,16 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
+            file="src/com/android/tools/idea/startup/AndroidStudioAnalyticsImpl.java"
+            line="52"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
             file="src/com/android/tools/idea/gradle/project/sync/setup/module/dependency/DependenciesExtractor.java"
-            line="119"/>
+            line="79"/>
     </issue>
 
     <issue
@@ -550,7 +558,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/project/build/invoker/GradleTasksExecutorImpl.java"
-            line="381"/>
+            line="387"/>
     </issue>
 
     <issue
@@ -606,7 +614,7 @@
         message="Use `Double.valueOf(COLUMN_COUNT)` instead">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="985"/>
+            line="986"/>
     </issue>
 
     <issue
@@ -712,7 +720,7 @@
             file="src/com/android/tools/idea/navigator/nodes/apk/ndk/NdkSourceNode.java"
             line="99"/>
     </issue>
- 
+
     <issue
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
@@ -774,7 +782,7 @@
         message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="775"/>
+            line="802"/>
     </issue>
 
     <issue
@@ -783,6 +791,34 @@
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/plugin/SVGAssetRenderer.kt"
             line="45"/>
+    </issue>
+
+</issues>
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 4.1.0-dev">
+
+    <issue
+        id="LintBaseline"
+        severity="Information"
+        message="1 errors/warnings were listed in the baseline file (../../../../../../../../../../../testlogs/tools/adt/idea/android/intellij.android.core_lint_test/test.outputs/lint_baseline.xml) but not found in the project; perhaps they have been fixed? Unmatched issue types: FileComparisons"
+        category="Lint"
+        priority="10"
+        summary="Baseline Issues"
+        explanation="Lint can be configured with a &quot;baseline&quot;; a set of current issues found in a codebase, which future runs of lint will silently ignore. Only new issues not found in the baseline are reported.&#xA;&#xA;Note that while opening files in the IDE, baseline issues are not filtered out; the purpose of baselines is to allow you to get started using lint and break the build on all newly introduced errors, without having to go back and fix the entire codebase up front. However, when you open up existing files you still want to be aware of and fix issues as you come across them.&#xA;&#xA;This issue type is used to emit two types of informational messages in reports: first, whether any issues were filtered out so you don&apos;t have a false sense of security if you forgot that you&apos;ve checked in a baseline file, and second, whether any issues in the baseline file appear to have been fixed such that you can stop filtering them out and get warned if the issues are re-introduced.">
+        <location
+            file="../../../../../../../../../../../testlogs/tools/adt/idea/android/intellij.android.core_lint_test/test.outputs/lint_baseline.xml"/>
+    </issue>
+
+    <issue
+        id="LintBaseline"
+        severity="Information"
+        message="85 errors and 14 warnings were filtered out because they are listed in the baseline file, ../../../../../../../../../../../testlogs/tools/adt/idea/android/intellij.android.core_lint_test/test.outputs/lint_baseline.xml&#xA;"
+        category="Lint"
+        priority="10"
+        summary="Baseline Issues"
+        explanation="Lint can be configured with a &quot;baseline&quot;; a set of current issues found in a codebase, which future runs of lint will silently ignore. Only new issues not found in the baseline are reported.&#xA;&#xA;Note that while opening files in the IDE, baseline issues are not filtered out; the purpose of baselines is to allow you to get started using lint and break the build on all newly introduced errors, without having to go back and fix the entire codebase up front. However, when you open up existing files you still want to be aware of and fix issues as you come across them.&#xA;&#xA;This issue type is used to emit two types of informational messages in reports: first, whether any issues were filtered out so you don&apos;t have a false sense of security if you forgot that you&apos;ve checked in a baseline file, and second, whether any issues in the baseline file appear to have been fixed such that you can stop filtering them out and get warned if the issues are re-introduced.">
+        <location
+            file="../../../../../../../../../../../testlogs/tools/adt/idea/android/intellij.android.core_lint_test/test.outputs/lint_baseline.xml"/>
     </issue>
 
 </issues>
