@@ -55,6 +55,7 @@ import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.application.Application;
@@ -231,6 +232,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
       BuildAttributionManager buildAttributionManager = null;
       boolean enableBuildAttribution = BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject);
+      File attributionFileDir = null;
 
       try {
         AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
@@ -242,8 +244,9 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         }
 
         commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
-        File attributionFileDir = BuildAttributionUtil.getAgpAttributionFileDir(myRequest.getBuildFilePath());
+
         if (enableBuildAttribution) {
+          attributionFileDir = Files.createTempDir();
           commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
                                                          attributionFileDir.getAbsolutePath()));
         }
