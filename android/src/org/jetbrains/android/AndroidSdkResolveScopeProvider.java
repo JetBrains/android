@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.intellij.facet.ProjectFacetManager;
@@ -37,7 +38,7 @@ public class AndroidSdkResolveScopeProvider extends ResolveScopeProvider {
   }
 
   public static class MyJdkScope extends JdkScope {
-    private final Sdk mySdk;
+    private @Nullable final Sdk mySdk;
     private final boolean myIncludeSource;
 
     private MyJdkScope(Project project, @NotNull JdkOrderEntry entry, boolean includeSource) {
@@ -76,7 +77,7 @@ public class AndroidSdkResolveScopeProvider extends ResolveScopeProvider {
 
     @Override
     public boolean contains(@NotNull VirtualFile file) {
-      return super.contains(file) || AndroidInternalRClass.isAndroidInternalR(file, mySdk);
+      return super.contains(file) || (mySdk != null && AndroidInternalRClass.isAndroidInternalR(file, mySdk));
     }
   }
 }
