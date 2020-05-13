@@ -618,4 +618,18 @@ public final class NlComponentTest extends LayoutTestCase {
     NlWriteCommandActionUtil.run(frameLayout, "addTextView", () -> newTextView.addTags(frameLayout, null, InsertType.PASTE));
     assertThat(frameLayout.getChildren()).isEmpty();
   }
+
+  /**
+   * Regression test for b/156068833.
+   */
+  public void testDetachedNlComponentIsRoot() {
+    myModel = createModel();
+    NlComponent textView = myModel.find("textView1");
+    assertNotEquals(textView, textView.getRoot());
+
+    // Detach from the mode
+    textView.getParent().removeChild(textView);
+    // Now textView is a root
+    assertEquals(textView, textView.getRoot());
+  }
 }
