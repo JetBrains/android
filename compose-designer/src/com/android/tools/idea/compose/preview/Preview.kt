@@ -79,6 +79,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
@@ -183,13 +184,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
-  private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
+  private val psiFilePointer = SmartPointerManager.createPointer<PsiFile>(psiFile)
 
   /**
    * [PreviewElementProvider] used to save the result of a call to [previewProvider]. Calls to [previewProvider] can potentially
    * be slow. This saves the last result and it is refreshed on demand when we know is not running on the UI thread.
    */
-  private val memoizedElementsProvider = MemoizedPreviewElementProvider(previewProvider)
+  private val memoizedElementsProvider = MemoizedPreviewElementProvider(previewProvider,
+                                                                        ModificationTracker {
+                                                                          psiFilePointer.element?.modificationStamp ?: -1
+                                                                        })
 
   /**
    * Filter to be applied for the preview to display a single [PreviewElement]. Used in interactive mode to focus on a
@@ -702,7 +706,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       startRenderingUI()
       val filePreviewElements = withContext(workerThread) {
-        memoizedElementsProvider.refresh()
         previewProvider.previewElements
       }
 
