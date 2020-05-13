@@ -312,10 +312,15 @@ public class NlComponent implements NlAttributesHolder {
     return !(getTagDeprecated().getParent() instanceof XmlTag);
   }
 
+  @NotNull
   public NlComponent getRoot() {
     NlComponent component = this;
-    while (component != null && !component.isRoot()) {
-      component = component.getParent();
+    while (!component.isRoot()) {
+      NlComponent parent = component.getParent();
+      if (parent == null) {
+        break;
+      }
+      component = parent;
     }
     return component;
   }
