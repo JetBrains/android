@@ -18,7 +18,6 @@ package com.android.tools.idea.emulator
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.EmulatorControllerGrpc
-import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
@@ -302,12 +301,12 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Pushes snapshot packages into the emulator.
    *
-   * Usually multiple packages need to be sent to push one snapshot file, including one header and one or more payload packages.
-   * The implementation of the stream observer must handle asynchronized events correctly, especially when pushing big files.
-   * This is usually done by overwriting ClientResponseObserver.beforeStart and calling setOnReadyHandler from there.
+   * Usually multiple packages need to be sent to push one snapshot file, including one header and one or more
+   * payload packages. The implementation of the stream observer must handle asynchronous events correctly,
+   * especially when pushing big files. This is usually done by overwriting [ClientResponseObserver.beforeStart]
+   * and calling [io.grpc.stub.CallStreamObserver.setOnReadyHandler] from there.
    *
    * @param streamObserver a client stream observer to handle events.
-   *
    * @return a StreamObserver that can be used to trigger the push.
    */
   fun pushSnapshot(streamObserver: ClientResponseObserver<SnapshotPackage, SnapshotPackage>): StreamObserver<SnapshotPackage> {
@@ -374,14 +373,11 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
   }
 
-  private open inner class DelegatingClientResponseObserver<RequestT, ResponseT>
-    : ClientResponseObserver<RequestT, ResponseT>, DelegatingStreamObserver<RequestT, ResponseT> {
-    val delegateClientResponseObserver: ClientResponseObserver<RequestT, ResponseT>?
-
-    constructor(delegate: ClientResponseObserver<RequestT, ResponseT>?, method: MethodDescriptor<in RequestT, in ResponseT>) : super(
-      delegate, method) {
-      this.delegateClientResponseObserver = delegate
-    }
+  private open inner class DelegatingClientResponseObserver<RequestT, ResponseT>(
+    delegate: ClientResponseObserver<RequestT, ResponseT>?,
+    method: MethodDescriptor<in RequestT, in ResponseT>
+  ) : DelegatingStreamObserver<RequestT, ResponseT>(delegate, method), ClientResponseObserver<RequestT, ResponseT> {
+    val delegateClientResponseObserver: ClientResponseObserver<RequestT, ResponseT>? = delegate
 
     override fun beforeStart(requestStream: ClientCallStreamObserver<RequestT>?) {
       delegateClientResponseObserver?.beforeStart(requestStream)
