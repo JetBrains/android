@@ -56,6 +56,10 @@ class ProjectNavigationResourceModificationTrackerTest {
     NavigationResourcesModificationListener.ensureSubscribed(fixture.project)
   }
 
+/**
+ *  Project structure:
+ *  base app module --> lib1 dep module(safe arg mode is off) --> lib2 dep module(safe arg mode is on)
+ */
   @Test
   fun multiModuleModificationTrackerTest() {
     projectRule.requestSyncAndWait()
@@ -65,7 +69,7 @@ class ProjectNavigationResourceModificationTrackerTest {
       "app/src/main/res/navigation/nav_graph.xml")!!
 
     val navFileInDepModule = projectRule.project.baseDir.findFileByRelativePath(
-      "mylibrary/src/main/res/navigation/libnav_graph.xml")!!
+      "mylibrary2/src/main/res/navigation/libnav_graph.xml")!!
 
     // modify a nav file in base-app module without saving
     WriteCommandAction.runWriteCommandAction(fixture.project) {
