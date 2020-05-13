@@ -50,13 +50,10 @@
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" />
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
     <postStartupActivity implementation="com.android.tools.idea.uibuilder.visual.VisualizationManager$VisualizationManagerPostStartupActivity" />
+    <postStartupActivity implementation="com.android.tools.idea.uibuilder.editor.NlPreviewManager$NlPreviewManagerPostStartupActivity" />
   </extensions>
 
   <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.editor.NlPreviewManager</implementation-class>
-      <headless-implementation-class/>
-    </component>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors</implementation-class>
     </component>
