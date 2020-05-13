@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.nav.safeargs.finder
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
+import com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
+import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
@@ -45,33 +48,37 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
   }
 
   internal fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
-    if (!facet.isSafeArgsEnabled()) return null
+    if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return null
 
     val module = facet.module
     val project = module.project
     return CachedValuesManager.getManager(project).getCachedValue(module) {
-      val lightClasses = mutableListOf<PsiClass>()
-
-      val moduleCache = SafeArgsCacheModuleService.getInstance(facet)
-      lightClasses.addAll(moduleCache.directions)
-      lightClasses.addAll(moduleCache.args)
-      lightClasses.addAll(moduleCache.args.map { it.builderClass })
-
-      // Light classes don't exist on disk, so you have to use their view provider to get a
-      // corresponding virtual file. This same virtual file should be used by finders to verify
-      // that classes they are returning belong to the current scope.
-      val virtualFiles = lightClasses.map { it.containingFile!!.viewProvider.virtualFile }
-      val localScope = GlobalSearchScope.filesWithoutLibrariesScope(project, virtualFiles)
-
+      val localScope = facet.getLocalScope()
       val scopeIncludingDeps = ModuleRootManager.getInstance(module)
         .getDependencies(false)
-        .mapNotNull { module -> module.androidFacet?.takeIf { it.isSafeArgsEnabled() } }
-        .mapNotNull { facet -> getAdditionalResolveScope(facet) }
+        .mapNotNull { module -> module.androidFacet }
+        .map(AndroidFacet::getLocalScope)
         .fold(localScope) { scopeAccum, depScope -> scopeAccum.union(depScope) }
 
       CachedValueProvider.Result.create(scopeIncludingDeps, PsiModificationTracker.MODIFICATION_COUNT)
     }
   }
+}
+
+private fun AndroidFacet.getLocalScope(): GlobalSearchScope {
+  if (!this.isSafeArgsEnabled()) return GlobalSearchScope.EMPTY_SCOPE
+
+  val lightClasses = mutableListOf<PsiClass>()
+  val moduleCache = SafeArgsCacheModuleService.getInstance(this)
+  lightClasses.addAll(moduleCache.directions)
+  lightClasses.addAll(moduleCache.args)
+  lightClasses.addAll(moduleCache.args.map { it.builderClass })
+
+  // Light classes don't exist on disk, so you have to use their view provider to get a
+  // corresponding virtual file. This same virtual file should be used by finders to verify
+  // that classes they are returning belong to the current scope.
+  val virtualFiles = lightClasses.map { it.containingFile!!.viewProvider.virtualFile }
+  return GlobalSearchScope.filesWithoutLibrariesScope(module.project, virtualFiles)
 }
 
 /**

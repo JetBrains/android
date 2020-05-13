@@ -5,7 +5,7 @@
 
     <fragment
         android:id="@+id/firstFragment"
-        android:name="com.example.mylibrary.FirstFragment"
+        android:name="com.example.mylibrary1.FirstFragment"
         android:label="FirstFragment" >
 
         <argument

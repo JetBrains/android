@@ -1,4 +1,4 @@
-package com.example.mylibrary;
+package com.example.mylibrary2;
 
 import androidx.fragment.app.Fragment;
 
