@@ -96,7 +96,7 @@ class EmulatorToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.emulatorView).isNull()
-    assertThat(call.completion.isCancelled).isTrue()
+    waitForCondition(2, TimeUnit.SECONDS) { call.completion.isCancelled }
   }
 
   private fun getStreamScreenshotCallAndWaitForFrame(panel: EmulatorToolWindowPanel, frameNumber: Int): GrpcCallRecord {
