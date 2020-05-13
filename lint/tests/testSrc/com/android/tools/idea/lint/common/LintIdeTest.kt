@@ -22,6 +22,8 @@ import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
+import com.intellij.analytics.AndroidStudioAnalytics
+import com.intellij.analytics.NullAndroidStudioAnalytics
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass.IntentionsInfo
 import com.intellij.codeInsight.intention.IntentionAction
@@ -85,6 +87,7 @@ class LintIdeTest : UsefulTestCase() {
     myModule = moduleFixtureBuilder.fixture!!.module
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
     fixture.allowTreeAccessForAllFiles()
+    AndroidStudioAnalytics.initialize(NullAndroidStudioAnalytics());
   }
 
   override fun tearDown() {

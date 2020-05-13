@@ -16,6 +16,7 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.toProto
 import com.android.tools.idea.stats.TypingLatencyTracker.reportTypingLatency
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorFileType
@@ -23,7 +24,6 @@ import com.google.wireless.android.sdk.stats.TypingLatencyStats
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actionSystem.LatencyListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.util.analytics.toProto
 import org.HdrHistogram.SingleWriterRecorder
 import java.util.concurrent.ConcurrentHashMap
 

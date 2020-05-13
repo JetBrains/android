@@ -39,7 +39,11 @@
   <xi:include href="/com/android/tools/idea/lint/android-lint.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
-
+  <application-components>
+    <component>
+      <implementation-class>com.android.tools.analytics.HighlightingStats</implementation-class>
+    </component>
+  </application-components>
   <project-components>
     <component>
       <implementation-class>org.jetbrains.android.AndroidProjectComponent</implementation-class>
@@ -315,6 +319,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <ApplicationLoadListener implementation="com.android.tools.idea.startup.AndroidStudioInitializer$AndroidStudioLoadListener"/>
     <fileBasedIndex implementation="com.android.tools.idea.model.AndroidManifestIndex"/>
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
