@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.atrace;
 import com.android.tools.idea.protobuf.CodedInputStream;
 import com.android.tools.idea.protobuf.DescriptorProtos;
 import com.android.tools.idea.protobuf.ExtensionRegistryLite;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.Predicate;
@@ -52,6 +53,7 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
   // Maps thread id to thread group id. A tgid is the thread id at the root of the tree. This is also known as the PID in user space.
   private final ArrayDeque<String> myGeneratedTrebuchetLines = new ArrayDeque<>();
   private final PerfettoPacketDBSorter mySorter = new PerfettoPacketDBSorter();
+  private final HashMap<Integer, String> myMappedState = new HashMap<>();
 
   private static double nanosToSeconds(double nanos) {
     return nanos / TimeUnit.SECONDS.toNanos(1);
@@ -121,6 +123,17 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
   }
 
   public PerfettoProducer() {
+    myMappedState.put(1, "S");
+    myMappedState.put(2, "D");
+    myMappedState.put(4, "T");
+    myMappedState.put(8, "t");
+    myMappedState.put(16, "Z");
+    myMappedState.put(32, "X");
+    myMappedState.put(64, "x");
+    myMappedState.put(128, "K");
+    myMappedState.put(256, "W");
+    myMappedState.put(512, "P");
+    myMappedState.put(1024, "N");
   }
 
   @Override
@@ -279,12 +292,12 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
    * Helper function to format specific event protos to the systrace equivalent format.
    * Example: tracing_mark_write: B|123|drawFrame
    */
-  private static String formatEvent(PerfettoTrace.FtraceEvent event) {
+  private String formatEvent(PerfettoTrace.FtraceEvent event) {
     if (event.hasSchedSwitch()) {
       PerfettoTrace.SchedSwitchFtraceEvent sched = event.getSchedSwitch();
       return String.format("sched_switch: prev_comm=%s prev_pid=%d prev_prio=%d prev_state=%s ==> next_comm=%s next_pid=%d next_prio=%d",
-                           sched.getPrevComm(), sched.getPrevPid(), sched.getPrevPrio(), sched.getPrevState(), sched.getNextComm(),
-                           sched.getNextPid(), sched.getNextPrio());
+                           sched.getPrevComm(), sched.getPrevPid(), sched.getPrevPrio(), mapStateToString(sched.getPrevState()),
+                           sched.getNextComm(), sched.getNextPid(), sched.getNextPrio());
     }
     else if (event.hasSchedCpuHotplug()) {
       PerfettoTrace.SchedCpuHotplugFtraceEvent sched = event.getSchedCpuHotplug();
@@ -316,7 +329,30 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
     return "";
   }
 
-  private static class LineFormatter {
+  @VisibleForTesting
+  public String mapStateToString(long state) {
+    // For mapping information see https://github.com/torvalds/linux/blob/v4.4/include/trace/events/sched.h
+    int TASK_STATE_HIGH_BIT_MASK = 0x800;
+    int TASK_STATE_LOW_BITS_MASK = 0x7FF;
+    StringBuilder mappedState = new StringBuilder();
+    // If bits 0-11 are 0 return R.
+    if ((state & TASK_STATE_LOW_BITS_MASK) == 0) {
+      mappedState.append("R");
+    } else {
+      for (int i = 0; i < 11; i++) {
+        int flag = (int)(state & (1 << i));
+        if (flag != 0) {
+          mappedState.append(myMappedState.get(flag));
+        }
+      }
+    }
+    if ((state & TASK_STATE_HIGH_BIT_MASK) != 0) {
+        mappedState.append("+");
+    }
+    return mappedState.toString();
+  }
+
+  private class LineFormatter {
     private final Map<Integer, Integer> myTidToTgid;
     private final Map<Integer, String> myTidToName;
 
