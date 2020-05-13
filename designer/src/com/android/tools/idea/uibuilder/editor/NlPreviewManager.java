@@ -22,11 +22,12 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.visual.VisualizationManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -35,7 +36,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -64,7 +65,6 @@ import javax.swing.JComponent;
 import javax.swing.LayoutFocusTraversalPolicy;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,7 +76,8 @@ import org.jetbrains.annotations.Nullable;
  * (a) the {@link ResourceNotificationManager} for update tracking, and (b) the
  * {@link NlDesignSurface} for layout rendering and direct manipulation editing.
  */
-public class NlPreviewManager implements ProjectComponent {
+@Service
+public final class NlPreviewManager implements Disposable {
   private final MergingUpdateQueue myToolWindowUpdateQueue;
 
   private final Project myProject;
@@ -89,21 +90,23 @@ public class NlPreviewManager implements ProjectComponent {
   @VisibleForTesting
   private int myUpdateCount;
 
+  public static class NlPreviewManagerPostStartupActivity implements StartupActivity {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      getInstance(project).onToolWindowReady();
+    }
+  }
+
   public NlPreviewManager(@NotNull Project project) {
     myProject = project;
-
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.preview", 100, true, null, project);
-
     final MessageBusConnection connection = project.getMessageBus().connect();
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
   }
 
-  @Override
-  public void projectOpened() {
-    StartupManager.getInstance(myProject).registerPostStartupActivity(() -> {
-      myToolWindowReady = true;
-      processFileEditorChange(getActiveLayoutXmlEditor(null));
-    });
+  private void onToolWindowReady(){
+    myToolWindowReady = true;
+    processFileEditorChange(getActiveLayoutXmlEditor(null));
   }
 
   public boolean isWindowVisible() {
@@ -125,6 +128,8 @@ public class NlPreviewManager implements ProjectComponent {
 
   protected void initToolWindow() {
     myToolWindowForm = createPreviewForm();
+    Disposer.register(this, myToolWindowForm);
+
     final String toolWindowId = getToolWindowId();
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
@@ -180,20 +185,12 @@ public class NlPreviewManager implements ProjectComponent {
   }
 
   @Override
-  public void projectClosed() {
+  public void dispose() {
     if (myToolWindowForm != null) {
-      Disposer.dispose(myToolWindowForm);
       myToolWindowForm = null;
       myToolWindow = null;
       myToolWindowDisposed = true;
     }
-  }
-
-  @Override
-  @NotNull
-  @NonNls
-  public String getComponentName() {
-    return "NlPreviewManager";
   }
 
   @VisibleForTesting
@@ -393,8 +390,9 @@ public class NlPreviewManager implements ProjectComponent {
     return false;
   }
 
-  public static NlPreviewManager getInstance(Project project) {
-    return project.getComponent(NlPreviewManager.class);
+  @NotNull
+  public static NlPreviewManager getInstance(@NotNull Project project) {
+    return project.getService(NlPreviewManager.class);
   }
 
   /**
