@@ -71,7 +71,7 @@ class TasksPageViewTest {
   fun testCreateView() {
     assertThat(model.modelUpdatedListener).isNotNull()
     assertThat(view.component.name).isEqualTo("tasks-view")
-    assertThat(view.groupingCombo.selectedItem).isEqualTo(TasksDataPageModel.Grouping.UNGROUPED)
+    assertThat(view.groupingCheckBox.isSelected).isFalse()
     assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
 
     val selectedNode = view.tree.selectionPath?.lastPathComponent as TasksTreeNode
@@ -89,7 +89,7 @@ class TasksPageViewTest {
     model.selectPageById(TasksPageId(TasksDataPageModel.Grouping.BY_PLUGIN, TaskDetailsPageType.PLUGIN_DETAILS, "resources.plugin"))
 
     // Assert view updated values from model
-    assertThat(view.groupingCombo.selectedItem).isEqualTo(TasksDataPageModel.Grouping.BY_PLUGIN)
+    assertThat(view.groupingCheckBox.isSelected).isTrue()
     assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
 
     val selectedNode = view.tree.selectionPath?.lastPathComponent as TasksTreeNode
@@ -104,7 +104,7 @@ class TasksPageViewTest {
   @RunsInEdt
   fun testGroupingChangeTriggersActionHandler() {
     // Act
-    view.groupingCombo.selectedItem = TasksDataPageModel.Grouping.BY_PLUGIN
+    view.groupingCheckBox.doClick()
 
     // Assert
     Mockito.verify(mockHandlers).tasksGroupingSelectionUpdated(TasksDataPageModel.Grouping.BY_PLUGIN)
