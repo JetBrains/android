@@ -15,10 +15,10 @@
  */
 package com.android.build.attribution.ui.model
 
-import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.TaskUiData
+import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
@@ -238,7 +238,7 @@ class TaskDetailsNodeDescriptor(
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskData.taskPath,
-      rightAlignedSuffix = taskData.executionTime.durationString(),
+      rightAlignedSuffix = taskData.executionTime.toRightAlignedNodeDurationText(),
       showWarnIcon = taskData.hasWarning,
       showChartKey = pageId.grouping == TasksDataPageModel.Grouping.UNGROUPED
     )
@@ -254,7 +254,9 @@ class PluginDetailsNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = pluginData.name,
       suffix = if (pluginData.warningCount > 0) issuesCountString(pluginData.warningCount, pluginData.infoCount) else "",
-      rightAlignedSuffix = pluginData.criticalPathDuration.durationString(),
+      rightAlignedSuffix = pluginData.criticalPathDuration.toRightAlignedNodeDurationText(),
       showChartKey = true
     )
 }
+
+private fun TimeWithPercentage.toRightAlignedNodeDurationText() = "%4.1f%% %.1f s".format(percentage, timeS)

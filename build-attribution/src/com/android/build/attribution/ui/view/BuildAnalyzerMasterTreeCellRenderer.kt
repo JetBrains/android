@@ -23,13 +23,14 @@ import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.warningIcon
 import com.intellij.ide.ui.UISettings.Companion.setupAntialiasing
 import com.intellij.ide.util.treeView.NodeRenderer
-import com.intellij.ui.RelativeFont
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.tree.ui.DefaultTreeUI
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
+import java.awt.Font
 import java.awt.Graphics
 import java.awt.Shape
 import javax.swing.JTree
@@ -38,6 +39,7 @@ import javax.swing.tree.DefaultMutableTreeNode
 class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
 
   private val colorIconSize: Int = JBUIScale.scale(12)
+  private val rightAlignedFont = JBUI.Fonts.create(Font.MONOSPACED, 11)
   private var durationTextPresentation: RightAlignedDurationTextPresentation? = null
 
   init {
@@ -80,7 +82,7 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
     append(" ${nodePresentation.suffix}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
 
     durationTextPresentation = nodePresentation.rightAlignedSuffix.let { text ->
-      val metrics = getFontMetrics(RelativeFont.SMALL.derive(font))
+      val metrics = getFontMetrics(rightAlignedFont)
       RightAlignedDurationTextPresentation(
         durationText = text,
         durationWidth = metrics.stringWidth(text),
@@ -110,7 +112,7 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
     else null
 
     durationTextPresentation = nodePresentation.rightAlignedSuffix.let { text ->
-      val metrics = getFontMetrics(RelativeFont.SMALL.derive(font))
+      val metrics = getFontMetrics(rightAlignedFont)
       RightAlignedDurationTextPresentation(
         durationText = text,
         durationWidth = metrics.stringWidth(text),
@@ -136,7 +138,7 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
       width -= it.durationWidth + it.durationOffset + colorIconSize + it.durationOffset / 2
       if (width > 0 && height > 0) {
         g.color = it.durationColor
-        g.font = RelativeFont.SMALL.derive(font)
+        g.font = rightAlignedFont
         g.drawString(it.durationText, width + it.durationOffset / 2, SimpleColoredComponent.getTextBaseLine(g.fontMetrics, height))
         if (it.chartIconColor != null) {
           g.color = it.chartIconColor
