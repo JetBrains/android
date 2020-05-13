@@ -17,12 +17,17 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -43,6 +48,7 @@ public class HaxmAlert extends JPanel {
   private HyperlinkListener myErrorLinkListener;
   private SystemImageDescription myImageDescription;
   private AccelerationErrorCode myAccelerationErrorCode;
+  private Logger myLogger;
 
   public HaxmAlert() {
     myErrorInstructionsLink = new HyperlinkLabel();
@@ -84,80 +90,90 @@ public class HaxmAlert extends JPanel {
       setVisible(false);
       return;
     }
-    boolean hasLink = false;
-    StringBuilder warningTextBuilder = new StringBuilder();
 
-    AccelerationErrorCode accelerationError = getAccelerationState(false);
-    if (accelerationError != AccelerationErrorCode.ALREADY_INSTALLED) {
-      hasLink = true;
-      warningTextBuilder.append(accelerationError.getProblem());
-      warningTextBuilder.append("<br>");
-      myErrorInstructionsLink.setHyperlinkText(accelerationError.getSolution().getDescription());
-      if (myErrorLinkListener != null) {
-        myErrorInstructionsLink.removeHyperlinkListener(myErrorLinkListener);
-      }
-      Runnable refresh = new Runnable() {
-        @Override
-        public void run() {
-          refresh();
-        }
-      };
-      final Runnable action = AccelerationErrorSolution.getActionForFix(accelerationError, null, refresh, null);
-      myErrorLinkListener =
-        new HyperlinkAdapter() {
-          @Override
-          protected void hyperlinkActivated(HyperlinkEvent e) {
-            action.run();
+    ListenableFuture<AccelerationErrorCode> accelerationError = getAccelerationState(false);
+    Futures.addCallback(accelerationError, new FutureCallback<AccelerationErrorCode>() {
+      @Override
+      public void onSuccess(AccelerationErrorCode result) {
+        myAccelerationErrorCode = result;
+
+        boolean hasLink = false;
+        StringBuilder warningTextBuilder = new StringBuilder();
+
+        if (result != AccelerationErrorCode.ALREADY_INSTALLED) {
+          hasLink = true;
+          warningTextBuilder.append(result.getProblem());
+          warningTextBuilder.append("<br>");
+          myErrorInstructionsLink.setHyperlinkText(result.getSolution().getDescription());
+          if (myErrorLinkListener != null) {
+            myErrorInstructionsLink.removeHyperlinkListener(myErrorLinkListener);
           }
-        };
-      myErrorInstructionsLink.addHyperlinkListener(myErrorLinkListener);
-      myErrorInstructionsLink.setToolTipText(accelerationError.getSolution() != NONE ? accelerationError.getSolutionMessage() : null);
-    }
+          final Runnable action = AccelerationErrorSolution.getActionForFix(result, null, () -> refresh(), null);
+          myErrorLinkListener = new HyperlinkAdapter() {
+              @Override
+              protected void hyperlinkActivated(HyperlinkEvent e) {
+                action.run();
+              }
+            };
+          myErrorInstructionsLink.addHyperlinkListener(myErrorLinkListener);
+          myErrorInstructionsLink.setToolTipText(result.getSolution() != NONE ? result.getSolutionMessage() : null);
+        }
 
-    if (myImageDescription.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
-      if (warningTextBuilder.length() > 0) {
-        warningTextBuilder.append("<br>");
+        if (myImageDescription.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
+          if (warningTextBuilder.length() > 0) {
+            warningTextBuilder.append("<br>");
+          }
+          warningTextBuilder.append("This API Level is Deprecated<br>");
+        }
+
+        Abi abi = Abi.getEnum(myImageDescription.getAbiType());
+        if (abi != Abi.X86 && abi != Abi.X86_64) {
+          if (warningTextBuilder.length() > 0) {
+            warningTextBuilder.append("<br>");
+          }
+          warningTextBuilder.append("Consider using an x86 system image on an x86 host for better emulation performance.<br>");
+        }
+
+        if (!TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {
+          if (warningTextBuilder.length() > 0) {
+            warningTextBuilder.append("<br>");
+          }
+          warningTextBuilder.append("Consider using a system image with Google APIs to enable testing with Google Play Services.");
+        }
+
+        String warningText = warningTextBuilder.toString();
+        if (!warningText.isEmpty()) {
+          warningTextBuilder.insert(0, "<html>");
+          warningTextBuilder.append("</html>");
+          myWarningMessage.setText(warningTextBuilder.toString().replaceAll("\n", "<br>"));
+          setVisible(true);
+          myErrorInstructionsLink.setVisible(hasLink);
+        } else {
+          setVisible(false);
+        }
       }
-      warningTextBuilder.append("This API Level is Deprecated<br>");
-    }
 
-    Abi abi = Abi.getEnum(myImageDescription.getAbiType());
-    if (abi != Abi.X86 && abi != Abi.X86_64) {
-      if (warningTextBuilder.length() > 0) {
-        warningTextBuilder.append("<br>");
+      @Override
+      public void onFailure(Throwable t) {
+        if (myLogger == null) {
+          myLogger = Logger.getInstance(HaxmAlert.class);
+        }
+        myLogger.warn("Check for emulation acceleration failed", t);
       }
-      warningTextBuilder.append("Consider using an x86 system image on an x86 host for better emulation performance.<br>");
-    }
-
-    if (!TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {
-      if (warningTextBuilder.length() > 0) {
-        warningTextBuilder.append("<br>");
-      }
-      warningTextBuilder.append("Consider using a system image with Google APIs to enable testing with Google Play Services.");
-    }
-
-    String warningText = warningTextBuilder.toString();
-    if (!warningText.isEmpty()) {
-      warningTextBuilder.insert(0, "<html>");
-      warningTextBuilder.append("</html>");
-      myWarningMessage.setText(warningTextBuilder.toString().replaceAll("\n", "<br>"));
-      setVisible(true);
-      myErrorInstructionsLink.setVisible(hasLink);
-    } else {
-      setVisible(false);
-    }
+    }, EdtExecutorService.getInstance());
   }
 
   @NotNull
-  public AccelerationErrorCode getAccelerationState(boolean forceRefresh) {
+  public ListenableFuture<AccelerationErrorCode> getAccelerationState(boolean forceRefresh) {
     if (myAccelerationErrorCode == null || forceRefresh) {
-      myAccelerationErrorCode = computeAccelerationState();
+      return computeAccelerationState();
     }
-    return myAccelerationErrorCode;
+    return Futures.immediateFuture(myAccelerationErrorCode);
   }
 
-  private static AccelerationErrorCode computeAccelerationState() {
+  @NotNull
+  private static ListenableFuture<AccelerationErrorCode> computeAccelerationState() {
     AvdManagerConnection manager = AvdManagerConnection.getDefaultAvdManagerConnection();
-    return manager.checkAcceleration();
+    return manager.checkAccelerationAsync();
   }
 }
