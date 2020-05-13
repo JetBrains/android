@@ -17,6 +17,8 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.RangeSelectionModel;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -91,6 +93,29 @@ public class BoxSelectionComponent extends RangeSelectionComponent {
     // Bottom
     if (myList.getMaxSelectionIndex() < myList.getModel().getSize() - 1) {
       g.fillRect(startX, endY, endX - startX, getHeight() - endY);
+    }
+
+    // Draw time measurement text, e.g.
+    // |----- 2 ms -----|
+    // Add spaces to both ends as padding between text and indicators.
+    String measurementText = ' ' + TimeFormatter.getSingleUnitDurationString((long)getModel().getSelectionRange().getLength()) + ' ';
+    int textWidth = g.getFontMetrics().stringWidth(measurementText);
+    int textHeight = g.getFontMetrics().getAscent();
+    int textCenterX = startX + (endX - startX) / 2;
+    int textStartX = textCenterX - textWidth / 2;
+    int textEndX = textCenterX + textWidth / 2;
+    g.setColor(UIUtil.getLabelForeground());
+    g.drawString(measurementText, textStartX, endY + textHeight);
+    // Only draw indicators when the text is shorter than the box.
+    if (textStartX > startX) {
+      // Left vertical indicator.
+      g.drawLine(startX, endY, startX, endY + textHeight);
+      // Right vertical indicator.
+      g.drawLine(endX, endY, endX, endY + textHeight);
+      // Left horizontal indicator.
+      g.drawLine(startX, endY + textHeight / 2, textStartX, endY + textHeight / 2);
+      // Right horizontal indicator.
+      g.drawLine(textEndX, endY + textHeight / 2, endX, endY + textHeight / 2);
     }
   }
 
