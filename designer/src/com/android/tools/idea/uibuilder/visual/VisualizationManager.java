@@ -20,18 +20,18 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.DataManager;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerListener;
-import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -73,7 +73,8 @@ import org.jetbrains.annotations.TestOnly;
  * Most of the codes are copied from {@link NlPreviewManager} instead of sharing, because {@link NlPreviewManager} is being
  * removed after we enable split editor.
  */
-public final class VisualizationManager {
+@Service
+public final class VisualizationManager implements Disposable {
   private final MergingUpdateQueue myToolWindowUpdateQueue;
 
   private final Project myProject;
@@ -86,29 +87,23 @@ public final class VisualizationManager {
   @TestOnly
   private int myUpdateCount;
 
+  public static class VisualizationManagerPostStartupActivity implements StartupActivity {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      getInstance(project).onToolWindowReady();
+    }
+  }
+
   public VisualizationManager(@NotNull Project project) {
     myProject = project;
-
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.visual", 100, true, null, project);
-
     MessageBusConnection connection = project.getMessageBus().connect();
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
-    connection.subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
-      @Override
-      public void projectClosed(@NotNull Project project) {
-        if (myToolWindowForm != null) {
-          Disposer.dispose(myToolWindowForm);
-          myToolWindowForm = null;
-          myToolWindow = null;
-          myToolWindowDisposed = true;
-        }
-      }
-    });
+  }
 
-    StartupManager.getInstance(myProject).registerPostStartupActivity(() -> {
-      myToolWindowReady = true;
-      processFileEditorChange(FileEditorManager.getInstance(myProject).getSelectedEditor());
-    });
+  private void onToolWindowReady(){
+    myToolWindowReady = true;
+    processFileEditorChange(FileEditorManager.getInstance(myProject).getSelectedEditor());
   }
 
   public boolean isWindowVisible() {
@@ -126,6 +121,8 @@ public final class VisualizationManager {
 
   private void initToolWindow() {
     myToolWindowForm = createPreviewForm();
+    Disposer.register(this, myToolWindowForm);
+
     final String toolWindowId = getToolWindowId();
     myToolWindow = ToolWindowManager.getInstance(myProject).registerToolWindow(RegisterToolWindowTask.notClosable(toolWindowId, ToolWindowAnchor.RIGHT));
     myToolWindow.setIcon(StudioIcons.Shell.ToolWindows.MULTI_PREVIEW);
@@ -296,6 +293,15 @@ public final class VisualizationManager {
     });
   }
 
+  @Override
+  public void dispose() {
+    if (myToolWindowForm != null) {
+      myToolWindowForm = null;
+      myToolWindow = null;
+      myToolWindowDisposed = true;
+    }
+  }
+
   private static void restoreFocusToEditor(@NotNull FileEditor newEditor) {
     ApplicationManager.getApplication().invokeLater(() -> newEditor.getComponent().requestFocus());
   }
@@ -351,8 +357,9 @@ public final class VisualizationManager {
     return myToolWindowForm;
   }
 
-  public static VisualizationManager getInstance(Project project) {
-    return project.getComponent(VisualizationManager.class);
+  @NotNull
+  public static VisualizationManager getInstance(@NotNull Project project) {
+    return project.getService(VisualizationManager.class);
   }
 
   @NotNull
