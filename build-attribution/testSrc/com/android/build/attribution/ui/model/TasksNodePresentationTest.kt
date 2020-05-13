@@ -27,14 +27,14 @@ class TasksNodePresentationTest {
 
   @Test
   fun testTaskWithoutWarningPresentation() {
-    val task = mockTask(":app", "resources", "resources.plugin", 1200)
+    val task = mockTask(":app", "resources", "resources.plugin", 1200, 10000)
     val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.UNGROUPED)
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",
       suffix = "",
       showWarnIcon = false,
-      rightAlignedSuffix = "1.200 s",
+      rightAlignedSuffix = "12.0% 1.2 s",
       showChartKey = true
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
@@ -42,7 +42,7 @@ class TasksNodePresentationTest {
 
   @Test
   fun testTaskWithWarningPresentation() {
-    val task = mockTask(":app", "resources", "resources.plugin", 1200)
+    val task = mockTask(":app", "resources", "resources.plugin", 1200, 10000)
     task.issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(task))
     val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.UNGROUPED)
 
@@ -50,7 +50,7 @@ class TasksNodePresentationTest {
       mainText = ":app:resources",
       suffix = "",
       showWarnIcon = true,
-      rightAlignedSuffix = "1.200 s",
+      rightAlignedSuffix = "12.0% 1.2 s",
       showChartKey = true
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
@@ -58,8 +58,9 @@ class TasksNodePresentationTest {
 
   @Test
   fun testPluginWithoutWarningPresentation() {
-    val task = mockTask(":app", "resources", "resources.plugin", 800)
-    val plugin = MockUiData().createPluginData("resources.plugin", listOf(task))
+    val mockUiData = MockUiData(criticalPathDurationMs = 1000)
+    val task = mockUiData.mockTask(":app", "resources", "resources.plugin", 855)
+    val plugin = mockUiData.createPluginData("resources.plugin", listOf(task))
 
     val descriptor = PluginDetailsNodeDescriptor(plugin)
 
@@ -67,7 +68,7 @@ class TasksNodePresentationTest {
       mainText = "resources.plugin",
       suffix = "",
       showWarnIcon = false,
-      rightAlignedSuffix = "0.800 s",
+      rightAlignedSuffix = "85.5% 0.9 s",
       showChartKey = true
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
@@ -75,9 +76,10 @@ class TasksNodePresentationTest {
 
   @Test
   fun testPluginWithWarningPresentation() {
-    val task = mockTask(":app", "resources", "resources.plugin", 800)
+    val mockUiData = MockUiData(criticalPathDurationMs = 10000)
+    val task = mockUiData.mockTask(":app", "resources", "resources.plugin", 840)
     task.issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(task))
-    val plugin = MockUiData().createPluginData("resources.plugin", listOf(task))
+    val plugin = mockUiData.createPluginData("resources.plugin", listOf(task))
 
     val descriptor = PluginDetailsNodeDescriptor(plugin)
 
@@ -85,7 +87,7 @@ class TasksNodePresentationTest {
       mainText = "resources.plugin",
       suffix = "1 warning",
       showWarnIcon = false,
-      rightAlignedSuffix = "0.800 s",
+      rightAlignedSuffix = " 8.4% 0.8 s",
       showChartKey = true
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
@@ -93,14 +95,14 @@ class TasksNodePresentationTest {
 
   @Test
   fun testTaskUnderPluginWithoutWarningPresentation() {
-    val task = mockTask(":app", "resources", "resources.plugin", 1200)
+    val task = mockTask(":app", "resources", "resources.plugin", 1200, 10000)
     val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.BY_PLUGIN)
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",
       suffix = "",
       showWarnIcon = false,
-      rightAlignedSuffix = "1.200 s",
+      rightAlignedSuffix = "12.0% 1.2 s",
       showChartKey = false
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
@@ -108,7 +110,7 @@ class TasksNodePresentationTest {
 
   @Test
   fun testTaskUnderPluginWithWarningPresentation() {
-    val task = mockTask(":app", "resources", "resources.plugin", 1200)
+    val task = mockTask(":app", "resources", "resources.plugin", 1200, 10000)
     task.issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(task))
     val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.BY_PLUGIN)
 
@@ -116,7 +118,7 @@ class TasksNodePresentationTest {
       mainText = ":app:resources",
       suffix = "",
       showWarnIcon = true,
-      rightAlignedSuffix = "1.200 s",
+      rightAlignedSuffix = "12.0% 1.2 s",
       showChartKey = false
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)

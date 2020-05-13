@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.ui.panels;
 
-import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.durationString;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
 
 import com.android.build.attribution.ui.data.TimeWithPercentage;
@@ -24,16 +23,16 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.GraphicsUtil;
+import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
-import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.swing.Icon;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +42,7 @@ public class TimeDistributionChart<T> extends JPanel {
   private static final int MIN_OTHER_TASKS_SECTION_HEIGHT_PX = 25;
   private static final int PIXELS_BY_PERCENT = 2;
 
+  private final JBFont myMonospacedFont = JBUI.Fonts.create(Font.MONOSPACED, JBUI.Fonts.label().getSize());
   private final List<ChartItem> myChartItems;
   private final ChartDataItem<T> myHighlightedItem;
 
@@ -164,7 +164,7 @@ public class TimeDistributionChart<T> extends JPanel {
       myDataItem = dataItem;
       myChartBoxHeight = JBUIScale.scale(calculateBoxHeightPx());
       myBaseColor = myDataItem.getLegendColor().baseColor;
-      myTimeLabel = createTableLabel(durationString(time()), this);
+      myTimeLabel = createTableLabel(String.format("%.1f s", time().getTimeS()), this).withFont(myMonospacedFont);
     }
 
     private int calculateBoxHeightPx() {
