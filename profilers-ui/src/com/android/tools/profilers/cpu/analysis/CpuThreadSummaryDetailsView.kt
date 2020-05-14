@@ -50,7 +50,7 @@ class CpuThreadSummaryDetailsView(parentView: StudioProfilersView,
 
     // Thread states section
     // Merge thread state data series from all threads.
-    tabModel.dataSeries.map { it.threadStateSeries }.let { threadStateSeriesList ->
+    tabModel.dataSeries.mapNotNull { it.threadStateSeries }.let { threadStateSeriesList ->
       if (threadStateSeriesList.isNotEmpty()) {
         addSection(CpuThreadStateTable(parentView.studioProfilers, threadStateSeriesList, tabModel.selectionRange).component)
       }

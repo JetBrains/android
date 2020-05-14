@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Track model for CPU threads in CPU capture stage. Consists of thread states and trace events.
@@ -47,6 +48,7 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   @NotNull private final CpuThreadsTooltip myThreadStateTooltip;
   @NotNull private final Function<CaptureNode, CpuCaptureNodeTooltip> myTraceEventTooltipBuilder;
   @NotNull private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel;
+  @Nullable private final DataSeries<ThreadState> myThreadStateSeries;
 
   public CpuThreadTrackModel(@NotNull CpuCapture capture,
                              @NotNull CpuThreadInfo threadInfo,
@@ -62,9 +64,12 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     myMultiSelectionModel = multiSelectionModel;
 
     if (capture.getType() == Cpu.CpuTraceType.ATRACE || capture.getType() == Cpu.CpuTraceType.PERFETTO) {
-      DataSeries<ThreadState> threadStateSeries = getThreadStateSeries();
-      myThreadStateChartModel.addSeries(new RangedSeries<>(timeline.getViewRange(), threadStateSeries));
-      myThreadStateTooltip.setThread(threadInfo.getName(), threadStateSeries);
+      myThreadStateSeries = new LazyDataSeries<>(() -> capture.getThreadStatesForThread(threadInfo.getId()));
+      myThreadStateChartModel.addSeries(new RangedSeries<>(timeline.getViewRange(), myThreadStateSeries));
+      myThreadStateTooltip.setThread(threadInfo.getName(), myThreadStateSeries);
+    }
+    else {
+      myThreadStateSeries = null;
     }
     myTraceEventTooltipBuilder = captureNode -> new CpuCaptureNodeTooltip(timeline, captureNode);
   }
@@ -148,11 +153,11 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   }
 
   /**
-   * @return data series of thread states, if the capture contains thread state data (e.g. SysTrace). Empty otherwise.
+   * @return data series of thread states, if the capture contains thread state data (e.g. SysTrace). Null otherwise.
    */
-  @NotNull
+  @Nullable
   public DataSeries<ThreadState> getThreadStateSeries() {
-    return new LazyDataSeries<>(() -> myCapture.getThreadStatesForThread(myThreadInfo.getId()));
+    return myThreadStateSeries;
   }
 
   private Collection<CaptureNode> getCaptureNode() {
