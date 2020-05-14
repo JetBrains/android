@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageRepor
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.mockito.MockitoEx;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.application.ApplicationManager;
 import com.google.common.collect.ImmutableList;
@@ -163,7 +164,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
   public void testProjectNotInitialized() throws Exception {
     // Check that quickfixes are generated when the project is not initialized
     loadProject(SIMPLE_APPLICATION);
-    Project spyProject = spy(getProject());
+    Project spyProject = MockitoEx.forceInlineMockMaker(() -> spy(getProject()));
     when(spyProject.isInitialized()).thenReturn(false);
     doReturn(getProject().getComponent(ModuleManager.class)).when(spyProject).getComponent(ModuleManager.class);
 

@@ -38,7 +38,7 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
-import org.jetbrains.android.MockitoThreadLocalsCleaner
+import com.android.tools.idea.mockito.MockitoThreadLocalsCleaner
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.runner.Description
 import java.io.File
@@ -163,6 +163,16 @@ class AndroidProjectRule private constructor(
   }
 
   override fun before(description: Description) {
+    try {
+      doBeforeActions(description)
+    } catch (t: Throwable){
+      // cleanup if init failed
+      mockitoCleaner.cleanupAndTearDown()
+      throw t
+    }
+  }
+
+  private fun doBeforeActions(description: Description) {
     mockitoCleaner.setup()
     fixture = if (lightFixture) {
       createLightFixture()
@@ -267,7 +277,7 @@ class AndroidProjectRule private constructor(
       CodeStyleSettingsManager.getInstance(project).dropTemporarySettings()
     }
     fixture.tearDown()
-    mockitoCleaner.cleanupAndTearDown();
+    mockitoCleaner.cleanupAndTearDown()
     AndroidTestBase.checkUndisposedAndroidRelatedObjects()
   }
 }

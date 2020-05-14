@@ -1,16 +1,18 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package org.jetbrains.android;
+package com.android.tools.adtui.mockito;
 
+import org.mockito.Mockito;
+import org.mockito.internal.progress.ThreadSafeMockingProgress;
+import org.mockito.listeners.MockCreationListener;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.mockito.Mockito;
-import org.mockito.internal.progress.ThreadSafeMockingProgress;
-import org.mockito.listeners.MockCreationListener;
 
+// FIXME-ank: adt-ui may not depend on android.testFramework, because testFramework already depends on adt-ui.
+// This dependency should probably be inverted. testFramework only needs 2 classes to work with Images from adt-ui.
 public class MockitoThreadLocalsCleaner {
   protected List<Object> mockitoMocks = new ArrayList<>();
   private MockCreationListener mockCreationListener;
@@ -27,6 +29,7 @@ public class MockitoThreadLocalsCleaner {
       Mockito.framework().removeListener(mockCreationListener);
       mockCreationListener = null;
     }
+
     resetMocks();
     resetWellKnownThreadLocals();
   }
