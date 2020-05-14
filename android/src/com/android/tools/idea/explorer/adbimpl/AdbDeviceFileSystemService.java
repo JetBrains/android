@@ -68,13 +68,17 @@ public final class AdbDeviceFileSystemService implements Disposable, DeviceFileS
   @Nullable private File myAdb;
   @NotNull private SettableFuture<Void> myStartServiceFuture = SettableFuture.create();
 
-  public AdbDeviceFileSystemService() {
+  private AdbDeviceFileSystemService() {
     myEdtExecutor = new FutureCallbackExecutor(EdtExecutorService.getInstance());
     myTaskExecutor = new FutureCallbackExecutor(PooledThreadExecutor.INSTANCE);
   }
 
   @Override
   public void dispose() {
+    AndroidDebugBridge.removeDeviceChangeListener(myDeviceChangeListener);
+    AndroidDebugBridge.removeDebugBridgeChangeListener(myDebugBridgeChangeListener);
+    myBridge = null;
+    myDevices.clear();
     myListeners.clear();
   }
 
