@@ -244,4 +244,60 @@ class AppInspectionViewTest {
     uiExecutor.submit { notificationData.hyperlinkClicked() }
     retryTabAddedLatch.await()
   }
+
+  @Test
+  fun inspectorRestartNotificationShownOnLaunchError() {
+    val uiExecutor = EdtExecutorService.getInstance()
+
+    val fakeDevice = FakeTransportService.FAKE_DEVICE.toBuilder()
+      .setDeviceId(1)
+      .setModel("fakeModel")
+      .setManufacturer("fakeMan")
+      .setSerial("1")
+      .build()
+
+    val fakeProcess = FakeTransportService.FAKE_PROCESS.toBuilder()
+      .setPid(1)
+      .setDeviceId(1)
+      .build()
+
+    transportService.addDevice(fakeDevice)
+    transportService.addProcess(fakeDevice, fakeProcess)
+
+    // Overwrite the handler to simulate a launch error, e.g. an inspector was left over from a previous crash
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer, false, "error"))
+
+    val notificationLatch = CountDownLatch(1)
+    lateinit var notificationData: TestIdeServices.NotificationData
+    ideServices.notificationListeners += { data ->
+      notificationData = data
+      notificationLatch.countDown()
+    }
+
+
+    // Set up the tool window.
+    val tabsAddedLatch = CountDownLatch(1)
+    uiExecutor.submit {
+      val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+
+      inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
+        override fun componentAdded(e: ContainerEvent) {
+          tabsAddedLatch.countDown()
+        }
+      })
+    }
+
+    // Verify we crashed on launch, failing to open the UI and triggering the toast.
+    notificationLatch.await()
+    assertThat(tabsAddedLatch.count).isEqualTo(1)
+    assertThat(notificationData.content).startsWith("Could not launch inspector")
+    assertThat(notificationData.severity).isEqualTo(AppInspectionIdeServices.Severity.ERROR)
+
+    // Restore the working command handler, which emulates relaunching with force == true
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
+    uiExecutor.submit { notificationData.hyperlinkClicked() }
+    tabsAddedLatch.await()
+  }
 }

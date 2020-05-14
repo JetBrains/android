@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.appinspection.inspector.api
 
+abstract class AppInspectionException(message: String): Exception(message)
+
 /**
  * Signals the connection being used to send commands has encountered some sort of error.
  *
  * Example: inspector connection is disposed.
  */
-class AppInspectionConnectionException(message: String): Exception(message)
+class AppInspectionConnectionException(message: String): AppInspectionException(message)
+
+class AppInspectionLaunchException(message: String): AppInspectionException(message)
