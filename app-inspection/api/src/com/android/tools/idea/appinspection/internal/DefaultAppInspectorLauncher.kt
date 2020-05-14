@@ -35,9 +35,8 @@ internal class DefaultAppInspectorLauncher(private val targetManager: AppInspect
     val streamChannel = discovery.getStreamChannel(params.processDescriptor.stream.streamId)
                         ?: return Futures.immediateFailedFuture(ProcessNoLongerExistsException(
                           "Cannot attach to process because the device does not exist. Process: ${params.processDescriptor}"))
-    return targetManager.attachToProcess(params.processDescriptor, jarCopierCreator, streamChannel,
-                                         params.projectName).transformAsync(MoreExecutors.directExecutor()) { target ->
-      target.launchInspector(params, creator)
-    }
+    return targetManager
+      .attachToProcess(params.processDescriptor, jarCopierCreator, streamChannel, params.projectName)
+      .transformAsync(MoreExecutors.directExecutor()) { target -> target.launchInspector(params, creator) }
   }
 }

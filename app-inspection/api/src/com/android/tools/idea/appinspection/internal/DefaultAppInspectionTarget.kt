@@ -22,6 +22,7 @@ import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectorLauncher
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
@@ -106,7 +107,7 @@ internal class DefaultAppInspectionTarget(
           val connectionFuture = SettableFuture.create<AppInspectorConnection>()
           val createInspectorCommand = CreateInspectorCommand.newBuilder()
             .setDexPath(fileDevicePath)
-            .setLaunchMetadata(AppInspection.LaunchMetadata.newBuilder().setLaunchedByName(projectName).build())
+            .setLaunchMetadata(AppInspection.LaunchMetadata.newBuilder().setLaunchedByName(params.projectName).setForce(params.force).build())
             .build()
           val appInspectionCommand = AppInspectionCommand.newBuilder()
             .setInspectorId(params.inspectorId)
@@ -123,7 +124,7 @@ internal class DefaultAppInspectionTarget(
                 connectionFuture.set(AppInspectorConnection(transport, params.inspectorId, event.timestamp))
               } else {
                 connectionFuture.setException(
-                  AppInspectionConnectionException(
+                  AppInspectionLaunchException(
                     "Could not launch inspector ${params.inspectorId}: ${event.appInspectionResponse.errorMessage}")
                 )
               }

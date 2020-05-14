@@ -41,7 +41,11 @@ interface AppInspectorLauncher {
     /**
      * The name of the studio project launching the inspector.
      */
-    val projectName: String
+    val projectName: String,
+    /**
+     * If true, launch the inspector even if one is already running.
+     */
+    val force: Boolean = false
   )
 
   /**

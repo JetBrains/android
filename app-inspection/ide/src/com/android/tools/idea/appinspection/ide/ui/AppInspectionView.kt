@@ -28,6 +28,7 @@ import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalytics
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.internal.ProcessNoLongerExistsException
@@ -150,7 +151,7 @@ class AppInspectionView(
     updateUi()
   }
 
-  private fun launchInspectorTabsForCurrentProcess() {
+  private fun launchInspectorTabsForCurrentProcess(force: Boolean = false) {
     getTabProviders()
       .filter { provider -> provider.isApplicable() }
       .forEach { provider ->
@@ -159,7 +160,8 @@ class AppInspectionView(
             currentProcess,
             provider.inspectorId,
             provider.inspectorAgentJar,
-            project.name
+            project.name,
+            force
           )
         ) { messenger ->
           invokeAndWaitIfNeeded {
@@ -186,13 +188,27 @@ class AppInspectionView(
         }.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Unit> {
           override fun onSuccess(result: Unit?) {}
           override fun onFailure(t: Throwable) {
-            // We don't log cancellation exceptions because they are expected as part of the operation. For example: the service cancels all
-            // outstanding futures when it is turned off.
-            if (t !is CancellationException
-                // This happens when trying to launch an inspector on a process/device that no longer exists. In that case, we can safely
-                // ignore the attempt. We can count on the UI to be refreshed soon to remove the option.
-                && t !is ProcessNoLongerExistsException) {
-              Logger.getInstance(AppInspectionView::class.java).error(t)
+            when (t) {
+              // We don't log cancellation exceptions because they are expected as part of the operation. For example: the service cancels
+              // all outstanding futures when it is turned off.
+              is CancellationException -> {}
+              // This happens when trying to launch an inspector on a process/device that no longer exists. In that case, we can safely
+              // ignore the attempt. We can count on the UI to be refreshed soon to remove the option.
+              is ProcessNoLongerExistsException -> {}
+              // This happens if a user is already interacting with an inspector in another window, or if Studio got killed suddenly and
+              // the old inspector is still running.
+              is AppInspectionLaunchException -> {
+                ideServices.showNotification(
+                  AppInspectionBundle.message("notification.failed.launch", t.message!!),
+                  severity = AppInspectionIdeServices.Severity.ERROR
+                ) {
+                  AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
+                  launchInspectorTabsForCurrentProcess(force = true)
+                  updateUi()
+                }
+              }
+
+              else -> Logger.getInstance(AppInspectionView::class.java).error(t)
             }
           }
         })
