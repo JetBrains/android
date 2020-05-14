@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.utils.FileUtils
 import com.intellij.lang.properties.psi.PropertiesFile
+import com.intellij.lang.properties.psi.Property
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiElement
@@ -47,6 +48,7 @@ class AgpUpgradeVersionRefactoringProcessor(
   val new: GradleVersion
 ) : BaseRefactoringProcessor(project) {
   lateinit var buildModel: ProjectBuildModel
+  val psiSpoilingUsageInfos = mutableListOf<UsageInfo>()
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>?): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
@@ -114,17 +116,35 @@ class AgpUpgradeVersionRefactoringProcessor(
   override fun performRefactoring(usages: Array<out UsageInfo>?) {
     usages?.forEach {
       if (it is AgpUpgradeUsageInfo) {
-        it.performAgpUpgrade()
+        it.performAgpUpgrade(this)
       }
     }
+  }
+
+  override fun performPsiSpoilingRefactoring() {
+    // this is (sort of) an abstraction violation, in that it "knows" that the buildModel is being modified in
+    // performRefactoring().
     buildModel.applyChanges()
+
+    // this is (at present) somewhat speculative generality: it was originally motivated by the refactoring
+    // doing non-undoable things to the Psi, and so preventing Undo for the entire refactoring operation.  However,
+    // the GradleWrapper.foo() manipulations of the properties file was so low-level that even running it in the
+    // context of performPsiSpoilingRefactoring() destroyed Undo, so I rewrote the properties file manipulation,
+    // at which point the manipulation could be done in performRefactoring().
+    psiSpoilingUsageInfos.forEach {
+      if (it is AgpUpgradeUsageInfo)
+        it.performPsiSpoilingAgpUpgrade(this)
+    }
   }
 
   override fun getCommandName() = "Upgrade AGP version from ${current} to ${new}"
+
+  override fun getRefactoringId(): String = "com.android.tools.agp.upgrade"
 }
 
 abstract class AgpUpgradeUsageInfo(element: PsiElement, val current: GradleVersion, val new: GradleVersion): UsageInfo(element) {
-  abstract fun performAgpUpgrade()
+  open fun performAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) { processor.psiSpoilingUsageInfos.add(this) }
+  open fun performPsiSpoilingAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) = Unit
 }
 
 class AgpVersionUsageInfo(
@@ -137,7 +157,7 @@ class AgpVersionUsageInfo(
     return "Upgrade AGP version from ${current} to ${new}"
   }
 
-  override fun performAgpUpgrade() {
+  override fun performAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) {
     resultModel.setValue(new.toString())
   }
 }
@@ -152,7 +172,7 @@ class RepositoriesNoGMavenUsageInfo(
     return "Add google() to repositories"
   }
 
-  override fun performAgpUpgrade() {
+  override fun performAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) {
     // FIXME(xof): this is wrong; the version in question is the version of Gradle, not the new version of AGP.
     //  This means this is intertwingled with the refactoring which upgrades Gradle version, though in practice
     //  it is unlikely to be a problem (the behaviour changed in Gradle 4.0.
@@ -168,8 +188,7 @@ class GradleVersionUsageInfo(element: PsiElement, current: GradleVersion, new: G
     return "Upgrade Gradle version to $GRADLE_LATEST_VERSION"
   }
 
-  override fun performAgpUpgrade() {
-    val gradleWrapper = GradleWrapper.get(VfsUtil.virtualToIoFile(element!!.containingFile.virtualFile), element!!.project)
-    gradleWrapper.updateDistributionUrl(GRADLE_LATEST_VERSION)
+  override fun performAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) {
+    (element as? Property)?.setValue(GradleWrapper.getDistributionUrl(GRADLE_LATEST_VERSION, true))
   }
 }
