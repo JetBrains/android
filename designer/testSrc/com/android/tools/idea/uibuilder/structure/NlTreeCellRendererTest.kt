@@ -55,7 +55,8 @@ class NlTreeCellRendererTest {
   @Test
   fun displayButton() {
     val badgeHandler = mock(NlTreeBadgeHandler::class.java)
-    val tree = NlComponentTree(projectRule.project, null)
+    val panel = mock(NlVisibilityGutterPanel::class.java)
+    val tree = NlComponentTree(projectRule.project, null, panel)
     UIUtil.putClientProperty(tree, ExpandableItemsHandler.EXPANDED_RENDERER, true)
     val button = MockNlComponent.create(
       ApplicationManager.getApplication().runReadAction<XmlTag> {

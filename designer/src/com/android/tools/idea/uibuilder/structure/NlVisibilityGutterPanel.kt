@@ -17,158 +17,108 @@ package com.android.tools.idea.uibuilder.structure
 
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.secondaryPanelBackground
-import com.android.tools.idea.common.model.ModelListener
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.ui.EmptyIcon
-import icons.StudioIcons
+import com.intellij.openapi.util.Disposer
+import com.intellij.ui.CollectionListModel
 import org.jetbrains.kotlin.idea.debugger.readAction
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import java.util.stream.Stream
 import javax.swing.BorderFactory
-import javax.swing.Box
-import javax.swing.Icon
+import javax.swing.BoxLayout
 import javax.swing.JPanel
+import javax.swing.JTree
+import javax.swing.event.TreeExpansionEvent
+import javax.swing.event.TreeExpansionListener
 
 /**
  * Panel that shows the view's visibility in the gutter next to the component tree.
  * Clicking each icon would show popup menu that allows users to choose visibility.
  */
-class NlVisibilityGutterPanel: JPanel(), ModelListener {
+open class NlVisibilityGutterPanel: JPanel(), TreeExpansionListener, Disposable {
 
   companion object {
-    private const val PADDING_Y = 2
     private const val PADDING_X = 10
+    const val WIDTH = RESOURCE_ICON_SIZE + PADDING_X
   }
-  private val LOG = Logger.getInstance(NlVisibilityGutterPanel::class.java)
-  private var myModel: NlModel? = null
+
+  @VisibleForTesting
+  val list = NlVisibilityJBList()
 
   init {
-    layout = GridBagLayout()
+    layout = BoxLayout(this, BoxLayout.Y_AXIS)
     alignmentX = Component.CENTER_ALIGNMENT
-    alignmentY = Component.TOP_ALIGNMENT
+
     background = secondaryPanelBackground
+    preferredSize = Dimension(WIDTH, 0)
+
+    list.model = CollectionListModel()
+    list.cellRenderer = NlVisibilityButtonCellRenderer()
+
+    // These are required to remove blue bazel when focused.
+    list.border = null
+    list.isFocusable = false
+    isFocusable = false
+
+    add(list)
+
+    Disposer.register(this, list)
+  }
+
+  override fun updateUI() {
+    super.updateUI()
     border = BorderFactory.createMatteBorder(
-        0, 1, 0, 0, AdtUiUtils.DEFAULT_BORDER_COLOR)
+      0, 1, 0, 0, AdtUiUtils.DEFAULT_BORDER_COLOR)
   }
 
-  fun setDesignSurface(surface: DesignSurface?) {
-    setModel(surface?.model)
-  }
-
-  fun setModel(model: NlModel?) {
-    if (model === myModel) {
-      return
-    }
-    if (myModel != null) {
-      myModel!!.removeListener(this)
-    }
-    myModel = model
-    if (myModel != null) {
-      myModel!!.addListener(this)
-    }
-    updateList(myModel)
-  }
-
-  override fun modelDerivedDataChanged(model: NlModel) {
-    updateList(model)
-  }
-
-  private fun updateList(nlModel: NlModel?) {
-    if (nlModel == null) {
-      return
-    }
-
+  /**
+   * Update the gutter icons according to the tree paths.
+   */
+  fun update(tree: JTree) {
     val application = ApplicationManager.getApplication()
     if (!application.isReadAccessAllowed) {
-      application.readAction { updateList(nlModel) }
-      return
-    }
-    val buttons = nlModel.flattenComponents().map { component ->
-      val model = NlVisibilityModel(component)
-      return@map createActionButton(model)
-    }
-    updateList(buttons)
-  }
-
-  /** Update the gutter ui. */
-  private fun updateList(buttons: Stream<UpdatableActionButton>) {
-    val application = ApplicationManager.getApplication()
-    if (!application.isDispatchThread) {
-      application.invokeLater { updateList(buttons) }
-      return
+      return application.readAction { update(tree) }
     }
 
-    removeAll()
-    val c = GridBagConstraints()
-    c.fill = GridBagConstraints.NONE
-    c.anchor = GridBagConstraints.NORTH
-    c.gridx = 0
-    c.gridy = 0
-    c.ipadx = PADDING_X
-    c.ipady = PADDING_Y
+    val toReturn = ArrayList<ButtonPresentation>()
+    for (i in 0 until tree.rowCount) {
+      val path = tree.getPathForRow(i)
+      val last = path.lastPathComponent
 
-    buttons.forEach{
-      add(it, c)
-      c.gridy++
+      if (last is NlComponent) {
+        toReturn.add(createItem(last))
+      }
+      else {
+        // Anything else (e.g. Referent id) we don't support visibility change.
+        toReturn.add(createItem())
+      }
     }
 
-    // Add invisible filter at the bottom
-    c.anchor = GridBagConstraints.SOUTH
-    c.weighty = 100.0
-    add(Box.Filler(Dimension(0, 0), Dimension(0, Int.MAX_VALUE), Dimension(0, Int.MAX_VALUE)), c)
+    list.model = CollectionListModel(toReturn)
     revalidate()
   }
 
-  /** Creates a clickable visibility button in the gutter. When clicked pops up a menu. */
-  private fun createActionButton(model: NlVisibilityModel): UpdatableActionButton {
-
-    val menu = NlVisibilityPopupMenu()
-    val action = object: ControllableToggleAction() {
-      override fun setSelected(e: AnActionEvent, state: Boolean) {
-        isSelected = state
-        menu.showMenu(model, e)
-      }
-    }
-    val presentation = Presentation()
-    val visibility = model.getCurrentVisibility()
-    updatePresentation(visibility.first, visibility.second, presentation)
-    if (visibility.first == NlVisibilityModel.Visibility.NONE) {
-      // hover-show
-      presentation.hoveredIcon = StudioIcons.LayoutEditor.Properties.VISIBLE
-      presentation.icon = null
+  private fun createItem(component: NlComponent? = null): ButtonPresentation {
+    if (component == null) {
+      return ButtonPresentation()
     }
 
-    val dim = Dimension(RESOURCE_ICON_SIZE, RESOURCE_ICON_SIZE)
-    val button = UpdatableActionButton(action, presentation, "Update Visibility", dim)
-    button.size = dim
-    button.isEnabled = true
-    menu.invoker = button
-    return button
+    val model = NlVisibilityModel(component)
+    return ButtonPresentation(model)
   }
-}
 
-/**
- * [ActionButton] that exposes action, and fixes the fallback icon.
- * Default fallback icon for action button is 18x18, causes everything to misalign
- * in the layout editor where all default icons are 16x16.
- */
-class UpdatableActionButton(
-  val toggleAction: ControllableToggleAction,
-  val presentation: Presentation,
-  place: String,
-  minimumSize: Dimension) : ActionButton(toggleAction, presentation, place, minimumSize) {
+  override fun treeExpanded(event: TreeExpansionEvent?) {
+    update(event?.source as JTree)
+  }
 
-  override fun getFallbackIcon(enabled: Boolean): Icon {
-    return EmptyIcon.ICON_16
+  override fun treeCollapsed(event: TreeExpansionEvent?) {
+    update(event?.source as JTree)
+  }
+
+  override fun dispose() {
+    removeAll()
   }
 }
