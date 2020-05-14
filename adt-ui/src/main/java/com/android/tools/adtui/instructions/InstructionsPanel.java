@@ -45,15 +45,33 @@ import org.jetbrains.annotations.Nullable;
  * A custom panel that renders a list of {@link RenderInstruction} and optionally fades out after a certain time period.
  */
 public class InstructionsPanel extends JPanel {
+  public enum Mode {
+    /**
+     * If floating, the instructions will appear in a small, floating panel that's sized to fit
+     * tightly around them. The rest of the panel will be transparent.
+     *
+     * This option is good for showing instructions that temporarily block but still allow the user
+     * to see some underlying UI.
+     */
+    FLOATING,
+
+    /**
+     * If filled, the whole panel will be opaque, with instructions centered in the middle of it.
+     */
+    FILL_PANEL,
+  }
 
   @Nullable private final EaseOutModel myEaseOutModel;
   @Nullable private AspectObserver myObserver;
   @Nullable private Consumer<InstructionsPanel> myEaseOutCompletionCallback;
 
   private InstructionsPanel(@NotNull Builder builder) {
-    super(new TabularLayout("*,Fit-,*", "*,Fit-,*"));
+    // Aim for layout as described in https://jetbrains.github.io/ui/principles/empty_state/
+    super(new TabularLayout("*,Fit-,*", "45*,Fit-,55*"));
 
-    setOpaque(false);
+    if (builder.myMode == Mode.FLOATING) {
+      setOpaque(false);
+    }
     setBackground(builder.myBackgroundColor);
     setForeground(builder.myForegroundColor);
     InstructionsComponent component = new InstructionsComponent(builder);
@@ -122,6 +140,10 @@ public class InstructionsPanel extends JPanel {
     @Nullable private RenderInstruction myFocusInstruction;
 
     public InstructionsComponent(@NotNull Builder builder) {
+      if (builder.myMode == Mode.FILL_PANEL) {
+        setBackground(null);
+      }
+
       myEaseOutModel = builder.myEaseOutModel;
       myHorizontalPadding = builder.myHorizontalPadding;
       myVerticalPadding = builder.myVerticalPadding;
@@ -257,7 +279,7 @@ public class InstructionsPanel extends JPanel {
       g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, myAlpha));
 
       // Draw the background round rectangle for the instruction panel.
-      Color background = getBackground();
+      Color background = isBackgroundSet() ? getBackground() : null;
       if (background != null) {
         g2d.setColor(getBackground());
         Dimension size = getPreferredSize();
@@ -272,6 +294,8 @@ public class InstructionsPanel extends JPanel {
   }
 
   public static final class Builder {
+    private Mode myMode = Mode.FLOATING;
+
     /**
      * The overlay instruction background is slightly transparent to not block the data being rendered below.
      */
@@ -295,11 +319,17 @@ public class InstructionsPanel extends JPanel {
       myInstructions = Arrays.asList(instructions);
     }
 
+    @NotNull
+    public Builder setMode(Mode mode) {
+      myMode = mode;
+      return this;
+    }
+
     /**
      * @param foregroundColor color to be used for instructions rendering texts.
      * @param backgroundColor color to be used for the rectangle wrapping the instructions. By default, the instructions are wrapped with a
      *                        rounded rectangle with a bg {@link #INSTRUCTIONS_BACKGROUND}. Set this to null if the wrapping rectangle is
-     *                        unnecessary/undesirable.
+     *                        unnecessary/undesirable, or if you want to default to the default system color.
      */
     @NotNull
     public Builder setColors(@NotNull Color foregroundColor, @Nullable Color backgroundColor) {
