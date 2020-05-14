@@ -71,14 +71,11 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    try {
-      myFixture = null;
-      mockitoCleaner.cleanupAndTearDown();
-    } catch (Throwable t){
-      addSuppressedException(t);
-    } finally {
-      super.tearDown();
-    }
+    // super.tearDown will dispose testRootDisposable, which may invoke methods on mocked objects => project may leak
+    // super.tearDown will also clean all the local fields. Make a copy of mockitoCleaner to invoke cleanupAndTearDown() after super.
+    MockitoThreadLocalsCleaner cleaner = mockitoCleaner;
+    super.tearDown();
+    cleaner.cleanupAndTearDown();
     checkUndisposedAndroidRelatedObjects();
   }
 
