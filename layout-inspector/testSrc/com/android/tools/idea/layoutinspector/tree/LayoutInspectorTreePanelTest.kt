@@ -47,8 +47,9 @@ import javax.swing.JTree
 @RunsInEdt
 class LayoutInspectorTreePanelTest {
   private val inspectorRule = LayoutInspectorTransportRule(projectRule = AndroidProjectRule.withSdk())
-    .withDefaultDevice(connected = true)
+    .withDefaultDevice()
     .withDemoLayout()
+    .attach()
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectorRule).around(EdtRule())!!
