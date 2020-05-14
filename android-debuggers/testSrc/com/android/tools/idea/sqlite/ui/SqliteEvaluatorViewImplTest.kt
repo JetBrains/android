@@ -206,7 +206,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(
-      controller.evaluateSqlStatement(database, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+      controller.showAndExecuteSqlStatement(database, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
 
     // Assert
@@ -217,7 +217,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(
-      controller.evaluateSqlStatement(database, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+      controller.showAndExecuteSqlStatement(database, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
 
     // Assert
@@ -291,7 +291,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
 
     pumpEventsAndWaitForFuture(
-      controller.evaluateSqlStatement(database, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+      controller.showAndExecuteSqlStatement(database, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
     )
     // check before that table isn't empty
     assertEquals(1, table.model.rowCount)
