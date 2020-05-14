@@ -187,9 +187,9 @@ public class ModelBuilder {
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
 
-      DesignSurface surface = createSurface(project, mySurfaceClass);
+      DesignSurface surface = createSurface(myFixture.getTestRootDisposable(), mySurfaceClass);
       when(surface.getComponentRegistrar()).thenReturn(myComponentConsumer);
-      SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
+      SyncNlModel model = SyncNlModel.create(surface, myFixture.getTestRootDisposable(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
       when(surface.getModel()).thenReturn(model);
       when(surface.getConfigurations()).thenReturn(ImmutableList.of(model.getConfiguration()));
       if (surface.getConfiguration() == null){
