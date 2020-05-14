@@ -117,7 +117,9 @@ class DefaultInspectorClient(
   private var loggedInitialRender = false
 
   private val processChangedListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
-  private val lastResponseTimePerGroup = mutableMapOf<Long, Long>()
+
+  // Map of message group id to map of root view drawId to timestamp
+  private val lastResponseTimePerGroup = mutableMapOf<Long, MutableMap<Long?, Long>>()
   private var adb: ListenableFuture<AndroidDebugBridge>? = null
   private var adbBridge: AndroidDebugBridge? = null
 
@@ -143,6 +145,7 @@ class DefaultInspectorClient(
 
   init {
     registerProcessEnded()
+    // TODO: this doesn't seem to be needed now that this is a Disposable
     registerProjectClosed(project)
     // TODO: retry getting adb if it fails the first time
     adb = AndroidSdkUtils.getAdb(project)?.let { AdbService.getInstance()?.getDebugBridge(it) } ?:
@@ -168,16 +171,24 @@ class DefaultInspectorClient(
       streamId = { selectedStream.streamId },
       groupId = { groupId.number.toLong() },
       processId = { selectedProcess.pid }) {
+      val groupLastResponseTimes = lastResponseTimePerGroup.getOrPut(it.groupId, ::mutableMapOf)
+      val rootId = it.layoutInspectorEvent?.tree?.root?.drawId
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance() && isConnected &&
-          it.timestamp > lastResponseTimePerGroup.getOrDefault(it.groupId, Long.MIN_VALUE)) {
+          it.timestamp > groupLastResponseTimes.getOrDefault(rootId, Long.MIN_VALUE)) {
         try {
           callback(it.layoutInspectorEvent)
         }
         catch (ex: Exception) {
           Logger.getInstance(DefaultInspectorClient::class.java.name).warn(ex)
         }
-        lastResponseTimePerGroup[it.groupId] = it.timestamp
+        groupLastResponseTimes[rootId] = it.timestamp
+        if (rootId != null) {
+          // Remove entries corresponding to windows we no longer know about (but keep any that we don't know about now but will in the
+          // future, if we happen to process messages out of order).
+          groupLastResponseTimes.entries.removeIf { (viewId, timestamp) ->
+            viewId !in it.layoutInspectorEvent.tree.allWindowIdsList && timestamp < it.timestamp }
+        }
       }
       false
     })

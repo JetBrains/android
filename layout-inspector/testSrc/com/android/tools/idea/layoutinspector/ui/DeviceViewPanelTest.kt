@@ -70,7 +70,7 @@ class DeviceViewPanelWithFullInspectorTest {
   val edtRule = EdtRule()
 
   @get:Rule
-  val inspectorRule = LayoutInspectorTransportRule().withDefaultDevice(connected = true)
+  val inspectorRule = LayoutInspectorTransportRule().withDefaultDevice().attach()
 
   @Test
   fun testLiveControlEnabled() {
@@ -203,7 +203,7 @@ class DeviceViewPanelLegacyTest {
   val edtRule = EdtRule()
 
   @get:Rule
-  val inspectorRule = LayoutInspectorTransportRule().withLegacyClient().withDefaultDevice(connected = true)
+  val inspectorRule = LayoutInspectorTransportRule().withLegacyClient().withDefaultDevice().attach()
 
   @Test
   fun testLiveControlDisabled() {
