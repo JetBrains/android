@@ -100,7 +100,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
         // Inline color
         assert (element.getColor() != null);
         Color color = element.getColor();
-        gutterIconRenderer = new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, null, true, configuration);
+        gutterIconRenderer = new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, resolver, null, true, configuration);
       }
       if (gutterIconRenderer != null) {
         rendererMap.put(element.getPsiElement(), gutterIconRenderer);
@@ -161,7 +161,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     // For java and kotlin files, we should open color resource picker only and set R.color.[resource_name] to the field.
     // TODO: Open color resource picker for java and kotlin files.
     boolean isClickable = AndroidAnnotatorUtil.getFileType(element) == StdFileTypes.XML;
-    return new AndroidAnnotatorUtil.ColorRenderer(element, color, reference, isClickable, configuration);
+    return new AndroidAnnotatorUtil.ColorRenderer(element, color, resourceResolver, reference, isClickable, configuration);
   }
 
   @Override
