@@ -465,6 +465,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance, getTestRootDisposable());
   }
 
+  public <T> void registerApplicationServiceInstance(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
+    ServiceContainerUtil.registerServiceInstance(ApplicationManager.getApplication(), serviceType, newServiceInstance);
+  }
+
   protected final static class MyAdditionalModuleData {
     final AndroidModuleFixtureBuilder<?> myModuleFixtureBuilder;
     final String myDirName;

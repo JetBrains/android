@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTreeUI;
@@ -98,7 +99,8 @@ import org.jetbrains.annotations.Nullable;
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
                                                      DataProvider {
   private final AtomicBoolean mySelectionIsUpdating;
-  private final MergingUpdateQueue myUpdateQueue;
+  @VisibleForTesting
+  final MergingUpdateQueue myUpdateQueue;
   private final NlTreeBadgeHandler myBadgeHandler;
 
   @Nullable private NlModel myModel;
