@@ -100,6 +100,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
   private final NlTreeBadgeHandler myBadgeHandler;
+  private final NlVisibilityGutterPanel myVisibilityGutterPanel;
 
   @Nullable private NlModel myModel;
   private boolean mySkipWait;
@@ -110,7 +111,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Nullable private Rectangle myInsertionReceiverBounds;
   @Nullable private NlDesignSurface mySurface;
 
-  public NlComponentTree(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
+  public NlComponentTree(@NotNull Project project,
+                         @Nullable NlDesignSurface designSurface,
+                         NlVisibilityGutterPanel visibilityGutter) {
     mySelectionIsUpdating = new AtomicBoolean(false);
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
@@ -146,6 +149,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       return !components.isEmpty() ? components.get(0).getTagName() : null;
     });
     help.registerCustomShortcutSet(KeyEvent.VK_F1, InputEvent.SHIFT_MASK, this);
+    myVisibilityGutterPanel = visibilityGutter;
+    addTreeExpansionListener(myVisibilityGutterPanel);
   }
 
   private void enableDnD() {
@@ -324,6 +329,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   private void updateSelection() {
+    // When updating selection it can expand collapsed paths.
+    myVisibilityGutterPanel.update(NlComponentTree.this);
     if (!mySelectionIsUpdating.compareAndSet(false, true)) {
       return;
     }

@@ -48,7 +48,7 @@ public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolConte
   public NlComponentTreePanel(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);
-    myTree = new NlComponentTree(project, null);
+    myTree = new NlComponentTree(project, null, myVisibilityGutter);
     myTreeContainer.setOpaque(true);
     myTreeContainer.setBackground(StudioColorsKt.getSecondaryPanelBackground());
     myTreeContainer.add(myTree, BorderLayout.CENTER);
@@ -62,6 +62,7 @@ public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolConte
     add(pane, BorderLayout.CENTER);
     myTree.setBackground(StudioColorsKt.getSecondaryPanelBackground());
     Disposer.register(this, myTree);
+    Disposer.register(this, myVisibilityGutter);
   }
 
   @Override
@@ -73,7 +74,6 @@ public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolConte
   public void setToolContext(@Nullable DesignSurface designSurface) {
     myNavigationComponent.setDesignSurface(designSurface);
     myTree.setDesignSurface((NlDesignSurface)designSurface);
-    myVisibilityGutter.setDesignSurface(designSurface);
   }
 
   @NotNull
