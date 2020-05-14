@@ -19,6 +19,7 @@ import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.EaseOutModel;
+import com.android.tools.adtui.util.SwingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
@@ -112,6 +113,14 @@ public class InstructionsPanel extends JPanel {
     @Nullable private EaseOutModel myEaseOutModel;
     @NotNull private final InstructionsRenderer myRenderer;
 
+    /**
+     * This will be set to the most recent instruction found under the mouse cursor, or null if
+     * the mouse cursor isn't over any of them.
+     *
+     * @see {@link #delegateMouseEvent(MouseEvent)}
+     */
+    @Nullable private RenderInstruction myFocusInstruction;
+
     public InstructionsComponent(@NotNull Builder builder) {
       myEaseOutModel = builder.myEaseOutModel;
       myHorizontalPadding = builder.myHorizontalPadding;
@@ -151,9 +160,14 @@ public class InstructionsPanel extends JPanel {
 
         @Override
         public void mouseExited(MouseEvent e) {
-          // No need to delegate -- if we're exiting, the event position won't match any
-          // underlying instruction.
-          setCursor(null); // Reset cursor in case it was set by `mouseMoved` above
+          // When the cursor moves off this component, we're 100% sure it won't be over any
+          // instruction, so no use calling delegateMouseEvent. Instead, just direct the event
+          // to the last instruction we were over.
+          if (myFocusInstruction != null) {
+            handleMouseEvent(myFocusInstruction, e);
+            myFocusInstruction = null;
+            setCursor(null); // Reset cursor in case it was set by `mouseMoved` above
+          }
         }
       });
     }
@@ -179,17 +193,39 @@ public class InstructionsPanel extends JPanel {
       // instruction for handling.
       Point position = event.getPoint();
       Point cursor = new Point(myRenderer.getStartX(0), 0);
+      RenderInstruction focusInstruction = null;
       for (RenderInstruction instruction : myRenderer.getInstructions()) {
         Rectangle bounds = instruction.getBounds(myRenderer, cursor);
         if (bounds.contains(position)) {
           // Transforms the point into the instruction's frame.
           event.translatePoint(-bounds.x, -bounds.y);
-          instruction.handleMouseEvent(event);
-          return instruction;
+          focusInstruction = instruction;
+          break;
         }
         instruction.moveCursor(myRenderer, cursor);
       }
-      return null;
+
+      if (myFocusInstruction != focusInstruction) {
+        // Normally, Swing generates EXITED events automatically when you move focus between
+        // components. However, we are emulating child components, since really we're just this
+        // single large component, so we have to generate this exit event manually.
+        if (myFocusInstruction != null) {
+          handleMouseEvent(myFocusInstruction, SwingUtil.convertMouseEventID(event, MouseEvent.MOUSE_EXITED));
+        }
+        myFocusInstruction = focusInstruction;
+      }
+
+      if (myFocusInstruction != null) {
+        handleMouseEvent(myFocusInstruction, event);
+      }
+
+      return myFocusInstruction;
+    }
+
+    private void handleMouseEvent(@NotNull RenderInstruction instruction, @NotNull MouseEvent e) {
+      // Some instructions change visually after mouse events, so repaint just in case
+      instruction.handleMouseEvent(e);
+      repaint();
     }
 
     private void modelChanged() {
