@@ -128,8 +128,8 @@ public class PalettePanelTest extends LayoutTestCase {
     replaceApplicationService(BrowserLauncher.class, myBrowserLauncher);
     replaceApplicationService(CopyPasteManager.class, myCopyPasteManager);
     replaceApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
-    registerApplicationComponentImplementation(ActionManager.class, myActionManager);
-    registerProjectComponent(GradleDependencyManager.class, myGradleDependencyManager);
+    //replaceApplicationService(ActionManager.class, myActionManager); // ActionManager is too complex to be mocked in a heavy test
+    replaceProjectService(GradleDependencyManager.class, myGradleDependencyManager);
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myPopupMenu);
     when(myPopupMenu.getComponent()).thenReturn(myPopupMenuComponent);
     myPanel = new PalettePanel(getProject(), myDependencyManager, getProject());
@@ -152,9 +152,11 @@ public class PalettePanelTest extends LayoutTestCase {
       myPopupMenuComponent = null;
       myActionManager = null;
       myTrackingDesignSurface = null;
-      myPopupMenu = null;
       myPanel = null;
       myModel = null;
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
@@ -441,7 +443,7 @@ public class PalettePanelTest extends LayoutTestCase {
     WindowManager windowManager = mock(WindowManagerEx.class);
     IdeFrame frame = mock(IdeFrame.class);
     StatusBarEx statusBar = mock(StatusBarEx.class);
-    registerApplicationComponentImplementation(WindowManager.class, windowManager);
+    replaceApplicationService(WindowManager.class, windowManager);
     when(windowManager.getIdeFrame(getProject())).thenReturn(frame);
     when(frame.getStatusBar()).thenReturn(statusBar);
     return statusBar;
