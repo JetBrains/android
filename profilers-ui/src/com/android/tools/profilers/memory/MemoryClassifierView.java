@@ -761,7 +761,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
           if (mySelection.getClassGrouping() == ARRANGE_BY_CLASS) {
             if (!packageName.isEmpty()) {
               String packageText = " (" + packageName + ")";
-              append(packageText, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, packageText);
+              append(packageText, SimpleTextAttributes.GRAY_ATTRIBUTES, packageText);
             }
           }
         }
@@ -783,7 +783,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
 
           if (!Strings.isNullOrEmpty(className)) {
             String classNameText = " (" + className + ")";
-            append(classNameText, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, classNameText);
+            append(classNameText, SimpleTextAttributes.GRAY_ATTRIBUTES, classNameText);
           }
         }
         else if (node.getAdapter() instanceof ThreadSet) {
