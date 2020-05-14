@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_KOTLIN
-import com.android.tools.lint.detector.api.isNullLiteral
 import com.intellij.pom.java.LanguageLevel
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat

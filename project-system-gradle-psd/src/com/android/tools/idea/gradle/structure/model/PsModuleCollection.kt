@@ -105,12 +105,15 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
 
     // Module type cannot be changed within the PSD.
     return when (key.kind) {
-      ModuleKind.ANDROID ->
+      ModuleKind.ANDROID -> {
+        val androidModuleResolvedModel = moduleResolvedModel as? PsResolvedModuleModel.PsAndroidModuleResolvedModel
         (model as PsAndroidModule)
             .init(moduleName,
                   findParentModuleFor(key.gradlePath),
-                  (moduleResolvedModel as? PsResolvedModuleModel.PsAndroidModuleResolvedModel)?.model,
+                  androidModuleResolvedModel?.model,
+                  androidModuleResolvedModel?.nativeModel,
                   moduleParsedModel)
+      }
       ModuleKind.JAVA ->
         (model as PsJavaModule)
             .init(moduleName,

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
+import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.structure.model.PsResolvedModuleModel
@@ -54,8 +55,22 @@ class GradleResolver {
 private fun findModel(module: GradleModuleModels): PsResolvedModuleModel? {
   val gradleModuleModel = module.findModel(GradleModuleModel::class.java) ?: return null
   val gradlePath = gradleModuleModel.gradlePath
-  return module.findModel(AndroidModuleModel::class.java)
-             ?.let { PsResolvedModuleModel.PsAndroidModuleResolvedModel(gradlePath, gradleModuleModel.buildFilePath?.absolutePath, it) }
-         ?: module.findModel(JavaModuleModel::class.java)
-             ?.let { PsResolvedModuleModel.PsJavaModuleResolvedModel(gradlePath, gradleModuleModel.buildFilePath?.absolutePath, it) }
+
+  fun tryAndroidModels(): PsResolvedModuleModel.PsAndroidModuleResolvedModel? {
+    val androidModel = module.findModel(AndroidModuleModel::class.java) ?: return null
+    val nativeModel = module.findModel(NdkModuleModel::class.java)
+    return PsResolvedModuleModel.PsAndroidModuleResolvedModel(
+      gradlePath,
+      gradleModuleModel.buildFilePath?.absolutePath,
+      androidModel,
+      nativeModel
+    )
+  }
+
+  fun tryJavaModels(): PsResolvedModuleModel.PsJavaModuleResolvedModel? {
+    val javaModel = module.findModel(JavaModuleModel::class.java) ?: return null
+    return PsResolvedModuleModel.PsJavaModuleResolvedModel(gradlePath, gradleModuleModel.buildFilePath?.absolutePath, javaModel)
+  }
+
+  return tryAndroidModels() ?: tryJavaModels()
 }
