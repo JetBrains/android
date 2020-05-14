@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.getMaxJavaLanguageLevel;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_CACHED_SETUP_FAILED;
@@ -29,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.builder.model.AndroidProject;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -49,14 +49,11 @@ import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FinishBuildEvent;
 import com.intellij.execution.BeforeRunTask;
-import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
-import com.intellij.mock.MockProgressIndicator;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
@@ -82,12 +79,10 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
   @Mock private PluginVersionUpgrade myVersionUpgrade;
   @Mock private VersionCompatibilityChecker myVersionCompatibilityChecker;
   @Mock private GradleProjectBuilder myProjectBuilder;
-  @Mock private RunManagerEx myRunManager;
   @Mock private ExternalSystemTaskId myTaskId;
   @Mock private SyncViewManager myViewManager;
 
   private ProjectStructureStub myProjectStructure;
-  private ProgressIndicator myProgressIndicator;
   private PostSyncProjectSetup mySetup;
 
   @Override
@@ -95,22 +90,17 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     super.setUp();
     initMocks(this);
 
-    myProgressIndicator = new MockProgressIndicator();
-
     Project project = getProject();
-    myRunManager = RunManagerImpl.getInstanceImpl(project);
-
     new IdeComponents(myProject).replaceProjectService(SyncViewManager.class, myViewManager);
 
     myProjectStructure = new ProjectStructureStub(project);
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, myProjectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
                                        myDependencySetupIssues, myProjectSetup, myModuleSetup, myVersionUpgrade,
-                                       myVersionCompatibilityChecker, myProjectBuilder, myRunManager);
+                                       myVersionCompatibilityChecker, myProjectBuilder);
   }
 
   @Override
   protected void tearDown() throws Exception {
-    myRunManager = null;
     mySetup = null;
     super.tearDown();
   }
@@ -123,27 +113,28 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     ConfigurationFactory configurationFactory = AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0];
     Project project = getProject();
     AndroidJUnitConfiguration jUnitConfiguration = new AndroidJUnitConfiguration(project, configurationFactory);
-    RunnerAndConfigurationSettings settings = myRunManager.createConfiguration(jUnitConfiguration, configurationFactory);
+    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(project);
+    RunnerAndConfigurationSettings settings = runManager.createConfiguration(jUnitConfiguration, configurationFactory);
     settings.storeInDotIdeaFolder();
-    myRunManager.addConfiguration(settings);
+    runManager.addConfiguration(settings);
 
-    List<RunConfiguration> junitRunConfigurations = myRunManager.getConfigurationsList(AndroidJUnitConfigurationType.getInstance());
+    List<RunConfiguration> junitRunConfigurations = runManager.getConfigurationsList(AndroidJUnitConfigurationType.getInstance());
     for (RunConfiguration runConfiguration : junitRunConfigurations) {
-      assertSize(1, myRunManager.getBeforeRunTasks(runConfiguration));
-      assertEquals(MakeBeforeRunTaskProvider.ID, myRunManager.getBeforeRunTasks(runConfiguration).get(0).getProviderId());
+      assertSize(1, runManager.getBeforeRunTasks(runConfiguration));
+      assertEquals(MakeBeforeRunTaskProvider.ID, runManager.getBeforeRunTasks(runConfiguration).get(0).getProviderId());
     }
 
     RunConfiguration runConfiguration = junitRunConfigurations.get(0);
-    List<BeforeRunTask> tasks = new LinkedList<>(myRunManager.getBeforeRunTasks(runConfiguration));
+    List<BeforeRunTask> tasks = new LinkedList<>(runManager.getBeforeRunTasks(runConfiguration));
 
     MakeBeforeRunTaskProvider taskProvider = new MakeBeforeRunTaskProvider(project);
     BeforeRunTask newTask = taskProvider.createTask(runConfiguration);
     newTask.setEnabled(true);
     tasks.add(newTask);
-    myRunManager.setBeforeRunTasks(runConfiguration, tasks);
+    runManager.setBeforeRunTasks(runConfiguration, tasks);
 
     mySetup.setUpProject(request, myTaskId, null);
-    assertSize(2, myRunManager.getBeforeRunTasks(runConfiguration));
+    assertSize(2, runManager.getBeforeRunTasks(runConfiguration));
 
     verify(myGradleProjectInfo, times(2)).setNewProject(false);
     verify(myGradleProjectInfo, times(2)).setImportedProject(false);
@@ -298,7 +289,7 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     // Setup the fields that are necessary to run mySetup.SetUpProject.
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
     when(model.getAndroidProject()).thenReturn(androidProject);
-    when(androidProject.getProjectType()).thenReturn(PROJECT_TYPE_APP);
+    when(androidProject.getProjectType()).thenReturn(AndroidProject.PROJECT_TYPE_APP);
     when(model.getFeatures()).thenReturn(mock(AndroidModelFeatures.class));
   }
 
