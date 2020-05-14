@@ -652,7 +652,6 @@ fun setupTestProjectFromAndroidModel(
       }
       if (module.name != project.name) {
         modifiableModel.renameModule(module, project.name)
-        modifiableModel.setModuleGroupPath(module, arrayOf(project.name))
       }
       modifiableModel.commit()
       ExternalSystemModulePropertyManager
