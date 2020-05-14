@@ -263,6 +263,6 @@ fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: St
   return maxOf(resolved, minCoordinate, GradleCoordinate.COMPARE_PLUS_LOWER).toString()
 }
 
-fun capitalizeAppName(appName: String?) = appName?.split(" ")?.joinToString("") {
+fun capitalizeAppName(appName: String) = appName.split(" ").joinToString("") {
   it.usLocaleCapitalize()
 }
