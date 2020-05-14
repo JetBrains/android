@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.mockito.MockitoEx;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
@@ -252,7 +253,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     Module appModule = myModules.getAppModule();
     Module spyAppModule = spy(appModule);
-    Project spyProject = spy(spyAppModule.getProject());
+    Project spyProject = MockitoEx.forceInlineMockMaker(() -> spy(spyAppModule.getProject()));
     when(spyAppModule.getProject()).thenReturn(spyProject);
     when(spyProject.isInitialized()).thenReturn(false);
     doReturn(appModule.getProject().getComponent(ModuleManager.class)).when(spyProject).getComponent(ModuleManager.class);

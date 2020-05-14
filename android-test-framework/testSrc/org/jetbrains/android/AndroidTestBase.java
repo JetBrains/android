@@ -16,6 +16,7 @@
 package org.jetbrains.android;
 
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.mockito.MockitoThreadLocalsCleaner;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.DisposerExplorer;

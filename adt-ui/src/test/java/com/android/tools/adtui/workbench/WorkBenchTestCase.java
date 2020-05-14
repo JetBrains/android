@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.android.tools.adtui.workbench;
 
+import com.android.tools.adtui.mockito.MockitoThreadLocalsCleaner;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -20,11 +21,13 @@ import org.jetbrains.annotations.NotNull;
 public abstract class WorkBenchTestCase extends HeavyPlatformTestCase {
   private ComponentStack myApplicationComponentStack;
   private ComponentStack myProjectComponentStack;
+  MockitoThreadLocalsCleaner cleaner = new MockitoThreadLocalsCleaner();
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
 
+    cleaner.setup();
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
     myProjectComponentStack = new ComponentStack(getProject());
   }
@@ -32,6 +35,7 @@ public abstract class WorkBenchTestCase extends HeavyPlatformTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      cleaner.cleanupAndTearDown();
       myApplicationComponentStack.restoreComponents();
       myApplicationComponentStack = null;
       myProjectComponentStack.restoreComponents();
