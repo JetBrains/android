@@ -43,7 +43,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
@@ -394,9 +393,9 @@ public class AndroidAnnotatorUtil {
 
     private void setColorStringAttribute(@NotNull String colorString) {
       Project project = myElement.getProject();
-      TransactionGuard.submitTransaction(project, () ->
-        WriteCommandAction.runWriteCommandAction(project, SET_COLOR_COMMAND_NAME, null, () -> mySetColorTask.consume(colorString))
-      );
+      ApplicationManager.getApplication().invokeLater(
+        () -> WriteCommandAction.runWriteCommandAction(project, SET_COLOR_COMMAND_NAME, null, () -> mySetColorTask.consume(colorString)),
+        project.getDisposed());
     }
 
     @Override
