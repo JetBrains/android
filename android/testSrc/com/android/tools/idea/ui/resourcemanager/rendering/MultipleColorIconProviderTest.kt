@@ -54,7 +54,7 @@ private const val COLOR_RESOURCE_FILE_CONTENTS =
   "</resources>"
 
 
-class ColorIconProviderTest {
+class MultipleColorIconProviderTest {
   @get:Rule
   val rule = AndroidProjectRule.onDisk()
 
