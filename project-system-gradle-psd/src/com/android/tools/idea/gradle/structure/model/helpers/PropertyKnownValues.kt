@@ -43,7 +43,6 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.search.FilenameIndex
 import java.io.File
@@ -61,8 +60,10 @@ fun installedSdksAsInts(model: Any?): ListenableFuture<List<ValueDescriptor<Int>
 fun installedBuildTools(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().buildTools)
 
-fun installedNdks(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
-  immediateFuture(installedEnvironments().ndks)
+fun ndkVersionValues(model: PsAndroidModule?): ListenableFuture<List<ValueDescriptor<String>>> {
+  val defaultNdkVersion = model?.resolvedNativeModel?.androidProject?.defaultNdkVersion?.let { ValueDescriptor(it) }
+  return immediateFuture((listOfNotNull(defaultNdkVersion) + installedEnvironments().ndks).distinct())
+}
 
 fun installedCompiledApis(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().compiledApis)
