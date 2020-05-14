@@ -23,6 +23,7 @@ import com.android.emulator.control.Rotation.SkinRotation
 import com.android.ide.common.util.Cancelable
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
@@ -325,7 +326,7 @@ class EmulatorView(
   }
 
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
-    invokeLater {
+    invokeLaterInAnyModalityState {
       updateConnectionState(connectionState)
     }
   }
@@ -459,7 +460,7 @@ class EmulatorView(
       // If the received rotation is different from the assumed one, ignore this screenshot and request
       // a fresh feed for the accurate rotation.
       if (screenshot.rotation != displayShape.rotation) {
-        invokeLater {
+        invokeLaterInAnyModalityState {
           requestScreenshotFeed(screenshot.rotation)
         }
         return
@@ -476,7 +477,7 @@ class EmulatorView(
     private fun updateSkinAndDisplayImageAsync(screenshot: Screenshot) {
       screenshotForSkinUpdate.set(screenshot)
 
-      ApplicationManager.getApplication().executeOnPooledThread {
+      executeOnPooledThread {
         // If the screenshot feed has not been cancelled, update the skin and the display image.
         if (screenshotReceiver == this) {
           updateSkinAndDisplayImage()
@@ -495,7 +496,7 @@ class EmulatorView(
     private fun updateDisplayImageAsync(screenshot: Screenshot) {
       screenshotForDisplay.set(screenshot)
 
-      invokeLater {
+      invokeLaterInAnyModalityState {
         // If the screenshot feed has not been cancelled, update the display image.
         if (screenshotReceiver == this) {
           updateDisplayImage()

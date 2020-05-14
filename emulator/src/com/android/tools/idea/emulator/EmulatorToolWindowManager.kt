@@ -122,7 +122,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
                                    AvdLaunchListener { avd, commandLine, project ->
                                      if (project == this.project && isEmbeddedEmulator(commandLine)) {
                                        RunningEmulatorCatalog.getInstance().updateNow()
-                                       invokeLater { onEmulatorUsed(avd.name) }
+                                       invokeLaterInAnyModalityState { onEmulatorUsed(avd.name) }
                                      }
                                    })
 
@@ -334,7 +334,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
   @AnyThread
   override fun emulatorAdded(emulator: EmulatorController) {
-    invokeLater {
+    invokeLaterInAnyModalityState {
       if (contentCreated && emulators.add(emulator)) {
         addEmulatorPanel(emulator)
       }
@@ -343,7 +343,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
   @AnyThread
   override fun emulatorRemoved(emulator: EmulatorController) {
-    invokeLater {
+    invokeLaterInAnyModalityState {
       if (contentCreated && emulators.remove(emulator)) {
         removeEmulatorPanel(emulator)
       }
