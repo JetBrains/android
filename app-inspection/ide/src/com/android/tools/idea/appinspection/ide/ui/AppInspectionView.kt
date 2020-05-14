@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.CommonTabbedPane
+import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
@@ -41,17 +42,13 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.components.JBLabel
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.util.concurrent.CancellationException
 import javax.swing.JPanel
 import javax.swing.JSeparator
-import javax.swing.SwingConstants
 
 class AppInspectionView(
   private val project: Project,
@@ -68,13 +65,7 @@ class AppInspectionView(
   @VisibleForTesting
   val processModel: AppInspectionProcessModel
 
-  private val noInspectorsMessage =
-    JPanel(BorderLayout()).apply {
-      add(JBLabel(AppInspectionBundle.message("select.process"), SwingConstants.CENTER).apply {
-        font = AdtUiUtils.DEFAULT_FONT.biggerOn(3f)
-        foreground = UIUtil.getInactiveTextColor()
-      })
-    }
+  private val noInspectorsMessage = EmptyStatePanel(AppInspectionBundle.message("select.process"))
 
   private fun showCrashNotification(inspectorName: String) {
     ideServices.showNotification(
