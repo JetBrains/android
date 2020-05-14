@@ -22,7 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -121,9 +121,10 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
 
   private void setAttribute(@NotNull String colorString) {
     Project project = myFacet.getModule().getProject();
-    TransactionGuard.submitTransaction(project, () ->
-      WriteCommandAction.runWriteCommandAction(project, SET_RESOURCE_COMMAND_NAME, null, () -> mySetAttributeTask.consume(colorString))
-    );
+    ApplicationManager.getApplication().invokeLater(
+      () -> WriteCommandAction.runWriteCommandAction(
+        project, SET_RESOURCE_COMMAND_NAME, null, () -> mySetAttributeTask.consume(colorString)),
+      project.getDisposed());
   }
 
   private static void openImageResourceTab(@NotNull Project project, @NotNull VirtualFile navigationTarget) {
