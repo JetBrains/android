@@ -66,8 +66,10 @@ import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.FocusTraversalPolicy;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -125,6 +127,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private final UiStyleTracker myUiStyleTracker;
   private final JBScrollPane myRootPane;
 
+  @Nullable private JBTabbedPane myTabbedCodePaneForFocus;
   @Nullable private LightModelClass myLightModelClass;
 
   public TfliteModelFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
@@ -134,6 +137,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     myUiStyleTracker = new UiStyleTracker();
     myLightModelClass = getLatestLightModelClass();
     myRootPane = new JBScrollPane(createContentPanel());
+    myRootPane.setFocusCycleRoot(true);
+    myRootPane.setFocusTraversalPolicy(new EditorFocusTraversalPolicy());
 
     if (myLightModelClass != null) {
       LoggingUtils.logEvent(EventType.MODEL_VIEWER_OPEN, myLightModelClass.getModelInfo());
@@ -311,6 +316,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     String sampleJavaCode = buildSampleCodeInJava(modelClass, modelInfo);
     tabbedCodePane.add("Java", createCodeEditor(myProject, JavaFileType.INSTANCE, sampleJavaCode));
     codePaneContainer.add(tabbedCodePane);
+    myTabbedCodePaneForFocus = tabbedCodePane;
 
     return sectionPanel;
   }
@@ -680,7 +686,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myRootPane;
+    return myTabbedCodePaneForFocus;
   }
 
   @NotNull
@@ -923,6 +929,53 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       myLabelFont = StartupUiUtil.getLabelFont();
       myUnderDarcula = StartupUiUtil.isUnderDarcula();
       return true;
+    }
+  }
+
+  /**
+   * {@link FocusTraversalPolicy} for {@link TfliteModelFileEditor} to traverse focus in viewer.
+   */
+  private class EditorFocusTraversalPolicy extends FocusTraversalPolicy {
+
+    @Override
+    @Nullable
+    public Component getComponentAfter(@NotNull Container aContainer,@NotNull Component aComponent) {
+      if (aComponent == myTabbedCodePaneForFocus) {
+        return myTabbedCodePaneForFocus.getSelectedComponent();
+      } else {
+        return myTabbedCodePaneForFocus;
+      }
+    }
+
+    @Override
+    @Nullable
+    public Component getComponentBefore(@NotNull Container aContainer,@NotNull Component aComponent) {
+      if (aComponent == myTabbedCodePaneForFocus) {
+        return myTabbedCodePaneForFocus.getSelectedComponent();
+      } else {
+        return myTabbedCodePaneForFocus;
+      }
+    }
+
+    @Override
+    @Nullable
+    public Component getFirstComponent(@NotNull Container aContainer) {
+      return myTabbedCodePaneForFocus;
+    }
+
+    @Override
+    @Nullable
+    public Component getLastComponent(@NotNull Container aContainer) {
+      if (myTabbedCodePaneForFocus != null) {
+        return myTabbedCodePaneForFocus.getSelectedComponent();
+      }
+      return null;
+    }
+
+    @Override
+    @Nullable
+    public Component getDefaultComponent(@NotNull Container aContainer) {
+      return myTabbedCodePaneForFocus;
     }
   }
 }
