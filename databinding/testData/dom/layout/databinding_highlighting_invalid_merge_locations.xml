@@ -10,8 +10,8 @@
         android:orientation="horizontal" android:layout_width="wrap_content"
         android:layout_height="match_parent">
         <<warning descr="Element merge is not allowed here">merge</warning>>
-            <<warning descr="Element ImageView is not allowed here">ImageView</warning> android:layout_width="20dp" android:layout_height="20dp" />
-            <<warning descr="Element TextView is not allowed here">TextView</warning> android:layout_width="wrap_content" android:layout_height="match_parent" />
+            <ImageView android:layout_width="20dp" android:layout_height="20dp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="match_parent" />
         </<warning descr="Element merge is not allowed here">merge</warning>>
     </LinearLayout>
 </layout>
