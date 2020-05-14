@@ -39,7 +39,7 @@ public class MlShortNamesCache extends PsiShortNamesCache {
 
   @NotNull
   @Override
-  public PsiClass[] getClassesByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
+  public PsiClass @NotNull [] getClassesByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
     if (!StudioFlags.ML_MODEL_BINDING.get()) {
       return PsiClass.EMPTY_ARRAY;
     }
@@ -51,7 +51,7 @@ public class MlShortNamesCache extends PsiShortNamesCache {
 
   @NotNull
   @Override
-  public String[] getAllClassNames() {
+  public String @NotNull [] getAllClassNames() {
     if (!StudioFlags.ML_MODEL_BINDING.get()) {
       return ArrayUtil.EMPTY_STRING_ARRAY;
     }
@@ -61,42 +61,44 @@ public class MlShortNamesCache extends PsiShortNamesCache {
 
   @NotNull
   @Override
-  public PsiMethod[] getMethodsByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
+  public PsiMethod @NotNull [] getMethodsByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
     return PsiMethod.EMPTY_ARRAY;
   }
 
   @NotNull
   @Override
-  public PsiMethod[] getMethodsByNameIfNotMoreThan(@NotNull String name, @NotNull GlobalSearchScope scope, int maxCount) {
+  public PsiMethod @NotNull [] getMethodsByNameIfNotMoreThan(@NotNull String name, @NotNull GlobalSearchScope scope, int maxCount) {
     return PsiMethod.EMPTY_ARRAY;
   }
 
   @NotNull
   @Override
-  public PsiField[] getFieldsByNameIfNotMoreThan(@NotNull String name, @NotNull GlobalSearchScope scope, int maxCount) {
+  public PsiField @NotNull [] getFieldsByNameIfNotMoreThan(@NotNull String name, @NotNull GlobalSearchScope scope, int maxCount) {
     return PsiField.EMPTY_ARRAY;
   }
 
   @Override
-  public boolean processMethodsWithName(@NotNull String name, @NotNull GlobalSearchScope scope, @NotNull Processor<? super PsiMethod> processor) {
+  public boolean processMethodsWithName(@NotNull String name,
+                                        @NotNull GlobalSearchScope scope,
+                                        @NotNull Processor<? super PsiMethod> processor) {
     return true;
   }
 
   @NotNull
   @Override
-  public String[] getAllMethodNames() {
+  public String @NotNull [] getAllMethodNames() {
     return ArrayUtil.EMPTY_STRING_ARRAY;
   }
 
   @NotNull
   @Override
-  public PsiField[] getFieldsByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
+  public PsiField @NotNull [] getFieldsByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
     return PsiField.EMPTY_ARRAY;
   }
 
   @NotNull
   @Override
-  public String[] getAllFieldNames() {
+  public String @NotNull [] getAllFieldNames() {
     return ArrayUtil.EMPTY_STRING_ARRAY;
   }
 }
