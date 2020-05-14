@@ -49,7 +49,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.ui.BrowserHyperlinkListener;
-import com.intellij.ui.ColorUtil;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
@@ -117,6 +116,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   // Do not use this separator in sample code block as it would cause document creation failure on Windows, see b/156460170.
   private static final String LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().getSeparatorString();
   private static final String INDENT = "    ";
+  private static final Color CODE_PANE_BORDER_COLOR = new JBColor(0xC9C9C9, 0x2C2F30);
+  private static final Color CODE_EDITOR_BG_COLOR = JBColor.namedColor("MlModelBinding.Viewer.CodeEditor.background", 0xF1F3F4, 0x3D3F41);
 
   private final Project myProject;
   private final VirtualFile myFile;
@@ -303,7 +304,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
     JBTabbedPane tabbedCodePane = new JBTabbedPane();
     tabbedCodePane.setBackground(UIUtil.getTextFieldBackground());
-    tabbedCodePane.setBorder(BorderFactory.createLineBorder(new JBColor(ColorUtil.fromHex("#C9C9C9"), ColorUtil.fromHex("#2C2F30"))));
+    tabbedCodePane.setBorder(BorderFactory.createLineBorder(CODE_PANE_BORDER_COLOR));
     tabbedCodePane.setTabComponentInsets(JBUI.insets(0));
     String sampleKotlinCode = buildSampleCodeInKotlin(modelClass, modelInfo);
     tabbedCodePane.add("Kotlin", createCodeEditor(myProject, KotlinFileType.INSTANCE, sampleKotlinCode));
@@ -316,11 +317,10 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @NotNull
   private static EditorTextField createCodeEditor(@NotNull Project project, @NotNull FileType fileType, @NotNull String codeBody) {
-    Color bgColor = new JBColor(ColorUtil.fromHex("#F1F3F4"), ColorUtil.fromHex("#3D3F41"));
     EditorTextField codeEditor = new EditorTextField(codeBody, project, fileType);
     codeEditor.setAlignmentX(Component.LEFT_ALIGNMENT);
-    codeEditor.setBackground(bgColor);
-    codeEditor.setBorder(Borders.customLine(bgColor, 12));
+    codeEditor.setBackground(CODE_EDITOR_BG_COLOR);
+    codeEditor.setBorder(Borders.customLine(CODE_EDITOR_BG_COLOR, 12));
     codeEditor.setFont(new Font(Font.MONOSPACED, Font.PLAIN, StartupUiUtil.getLabelFont().getSize()));
     codeEditor.setOneLineMode(false);
     codeEditor.getDocument().setReadOnly(true);
