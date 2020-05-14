@@ -192,7 +192,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         setProjectDefaults(project)
         language = this@NewProjectModel.language.value
         bytecodeLevel = this@NewProjectModel.bytecodeLevel.value
-        applicationName = this@NewProjectModel.applicationName.get()
       }
     }
 
