@@ -207,19 +207,34 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return myDevicesSelectedServiceGetInstance.apply(project).getDeviceSelectedWithComboBox(devices);
   }
 
-  void setSelectedDevice(@NotNull Project project, @Nullable Device selectedDevice) {
+  void setSelectedDevice(@NotNull Project project, @NotNull Device selectedDevice) {
     myDevicesSelectedServiceGetInstance.apply(project).setDeviceSelectedWithComboBox(selectedDevice);
-    myExecutionTargetServiceGetInstance.apply(project).updateActiveTarget();
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevice));
   }
 
   @NotNull
   List<Device> getSelectedDevices(@NotNull Project project) {
-    return myDevicesSelectedServiceGetInstance.apply(project).getSelectedDevices(getDevices(project).orElse(Collections.emptyList()));
+    DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
+    List<Device> devices = getDevices(project).orElse(Collections.emptyList());
+
+    if (service.isMultipleDevicesSelectedInComboBox()) {
+      return service.getDevicesSelectedWithDialog(devices);
+    }
+
+    Device device = service.getDeviceSelectedWithComboBox(devices);
+
+    if (device == null) {
+      return Collections.emptyList();
+    }
+
+    return Collections.singletonList(device);
   }
 
   void setMultipleDevicesSelected(@NotNull Project project, @SuppressWarnings("SameParameterValue") boolean multipleDevicesSelected) {
     myDevicesSelectedServiceGetInstance.apply(project).setMultipleDevicesSelectedInComboBox(multipleDevicesSelected);
-    myExecutionTargetServiceGetInstance.apply(project).updateActiveTarget();
+
+    List<Device> devices = getSelectedDevices(project);
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(devices));
   }
 
   void modifyDeviceSet(@NotNull Project project) {
@@ -323,6 +338,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .build();
 
     updater.update();
-    myExecutionTargetServiceGetInstance.apply(project).updateActiveTarget();
+
+    List<Device> selectedDevices = getSelectedDevices(project);
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevices));
   }
 }

@@ -90,8 +90,9 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   public void modifyDeviceSet() {
     // Arrange
     Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setName("Pixel 4 API 29")
+      .setKey(new Key("Pixel_4_API_29"))
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -99,6 +100,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
     Mockito.when(service.isMultipleDevicesSelectedInComboBox()).thenReturn(true);
+    Mockito.when(service.getDevicesSelectedWithDialog(Collections.singletonList(device))).thenReturn(Collections.singletonList(device));
 
     DialogWrapper dialog = Mockito.mock(DialogWrapper.class);
     Mockito.when(dialog.showAndGet()).thenReturn(true);
@@ -115,7 +117,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     // Assert
     Mockito.verify(service).setMultipleDevicesSelectedInComboBox(true);
-    Mockito.verify(myExecutionTargetService).updateActiveTarget();
+    Mockito.verify(myExecutionTargetService).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(device));
   }
 
   @Test
