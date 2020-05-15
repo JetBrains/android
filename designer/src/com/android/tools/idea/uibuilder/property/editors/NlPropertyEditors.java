@@ -44,7 +44,7 @@ public class NlPropertyEditors extends PropertyEditors implements PTableCellEdit
 
   @NotNull
   public static NlPropertyEditors getInstance(@NotNull Project project) {
-    return project.getComponent(NlPropertyEditors.class);
+    return project.getService(NlPropertyEditors.class);
   }
 
   private NlPropertyEditors(@NotNull Project project) {

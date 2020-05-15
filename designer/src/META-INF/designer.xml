@@ -49,14 +49,12 @@
 
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" />
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors" />
     <postStartupActivity implementation="com.android.tools.idea.uibuilder.visual.VisualizationManager$VisualizationManagerPostStartupActivity" />
     <postStartupActivity implementation="com.android.tools.idea.uibuilder.editor.NlPreviewManager$NlPreviewManagerPostStartupActivity" />
   </extensions>
 
   <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors</implementation-class>
-    </component>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlXmlEditors</implementation-class>
     </component>
