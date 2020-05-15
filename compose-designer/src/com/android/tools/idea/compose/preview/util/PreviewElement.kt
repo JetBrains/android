@@ -349,6 +349,12 @@ private data class ParametrizedPreviewElementInstance(private val basePreviewEle
 }
 
 /**
+ * If the [PreviewElement] is a [ParametrizedPreviewElementInstance], returns the provider class FQN and the target value index.
+ */
+internal fun PreviewElement.previewProviderClassAndIndex() =
+  if (this is ParametrizedPreviewElementInstance) Pair(providerClassFqn, index) else null
+
+/**
  * Definition of a preview element that can spawn multiple [PreviewElement]s based on parameters.
  */
 data class ParametrizedPreviewElementTemplate(private val basePreviewElement: PreviewElement,
