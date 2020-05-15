@@ -26,12 +26,18 @@ import com.intellij.icons.AllIcons
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtilities
 import java.awt.BorderLayout
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
 private val TEXT_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(13f)
 
 class UrlData(val text: String, val url: String)
+
+sealed class Chunk
+class IconChunk(val icon: Icon) : Chunk()
+class TextChunk(val text: String) : Chunk()
+class LabelData(vararg val chunks: Chunk)
 
 /**
  * An opinionated panel that makes it easy to generate UI that conforms to
@@ -41,16 +47,24 @@ class UrlData(val text: String, val url: String)
  * users a change to click on a link that takes them to a browser page where they can read more
  * about what is causing the empty state / what they can do.
  */
-class EmptyStatePanel(reason: String, helpUrlData: UrlData? = null): JPanel(BorderLayout()) {
+class EmptyStatePanel @JvmOverloads constructor(reason: LabelData, helpUrlData: UrlData? = null): JPanel(BorderLayout()) {
   init {
     add(createInstructionsPanel(this, reason, helpUrlData))
   }
+
+  @JvmOverloads
+  constructor(reason: String, helpUrlData: UrlData? = null): this(LabelData(TextChunk(reason)), helpUrlData)
 }
 
-private fun createInstructionsPanel(parent: JComponent, reason: String, helpUrlData: UrlData?): InstructionsPanel {
+private fun createInstructionsPanel(parent: JComponent, reason: LabelData, helpUrlData: UrlData?): InstructionsPanel {
   val instructions = mutableListOf<RenderInstruction>()
   val textMetrics = UIUtilities.getFontMetrics(parent, TEXT_FONT)
-  instructions.add(TextInstruction(textMetrics, reason))
+  reason.chunks.forEach {
+    when (it) {
+      is IconChunk -> instructions.add(IconInstruction(it.icon, 5, null))
+      is TextChunk -> instructions.add(TextInstruction(textMetrics, it.text))
+    }
+  }
 
   if (helpUrlData != null) {
     instructions.add(NewRowInstruction(12))
