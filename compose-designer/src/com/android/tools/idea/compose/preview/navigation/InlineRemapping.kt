@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 /**
  * Mapping function used to correct the inline code references. Given a [SourceLocation] it returns a new one that points to the correct
  * place in the source file.
+ * The returned [Pair] maps the source [KtFile] to the 1-indexed line information.
  */
 internal fun remapInlineLocation(project: Project, ktFile: KtFile, className: String, line: Int): Pair<KtFile, Int> {
   val searchScope = GlobalSearchScope.projectScope(project)
@@ -40,14 +41,16 @@ internal fun remapInlineLocation(project: Project, ktFile: KtFile, className: St
                                       internalClassName,
                                       virtualFile) ?: return ktFile to line
   if (bytecodeInfo.smapData == null) {
-    return Pair(ktFile, line)
+    return ktFile to line
   }
 
-  return mapStacktraceLineToSource(bytecodeInfo.smapData!!,
-                                   line,
-                                   project,
-                                   SourceLineKind.CALL_LINE,
-                                   searchScope) ?: return ktFile to line
+  val inlineRemapped = mapStacktraceLineToSource(bytecodeInfo.smapData!!,
+                                                 line,
+                                                 project,
+                                                 SourceLineKind.CALL_LINE,
+                                                 searchScope) ?: return ktFile to line
+
+  return inlineRemapped.first to inlineRemapped.second + 1 // Remapped lines are 0 based so add 1 here
 }
 
 /**
@@ -91,7 +94,7 @@ internal fun SourceLocation.asSourceLocationWithVirtualFile(project: Project,
     remappedVirtualFile,
     className,
     methodName,
-    remappedLocation.second + 1 // Remapped lines are 0 based so add 1 here
+    remappedLocation.second
   )
 }
 
