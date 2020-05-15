@@ -58,6 +58,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
+import javax.swing.tree.TreeSelectionModel;
 import org.jetbrains.android.facet.AndroidFacet;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
@@ -401,5 +403,18 @@ public class MotionUtils {
       }
     }
     return isConnected;
+  }
+
+  /**
+   * Provides the appropriate tree selection model based on
+   * the model, according to motion layout behaviour.
+   * @return {@link TreeSelectionModel} appropriate for model.
+   */
+  public static int getTreeSelectionModel(NlModel model) {
+    List<NlComponent> list = model.getComponents();
+    if (!list.isEmpty() && getMotionLayoutAncestor(list.get(0)) != null) {
+      return TreeSelectionModel.SINGLE_TREE_SELECTION;
+    }
+    return TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.structure;
 
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.editor.ActionUtils;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
@@ -29,6 +30,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
@@ -294,6 +296,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
             return;
           }
           mySelectionIsUpdating.set(true);
+
+          // TODO b/157095734 resolve multi-selection in motion layout
+          getSelectionModel().setSelectionMode(MotionUtils.getTreeSelectionModel(myModel));
 
           List<TreePath> expandedPaths = TreeUtil.collectExpandedPaths(NlComponentTree.this);
           Object oldRoot = treeModel.getRoot();
