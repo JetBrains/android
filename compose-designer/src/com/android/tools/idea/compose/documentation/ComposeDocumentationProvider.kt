@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.documentation
 
 import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
@@ -27,21 +28,23 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getClassName
 import com.android.utils.reflection.qualifiedName
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.codeInsight.documentation.DocumentationComponent
 import com.intellij.codeInsight.documentation.DocumentationManager
-import com.intellij.codeInsight.lookup.impl.LookupImpl
-import com.intellij.codeInsight.lookup.impl.LookupManagerImpl
 import com.intellij.lang.documentation.CompositeDocumentationProvider
 import com.intellij.lang.documentation.DocumentationProviderEx
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.editor.EditorMouseHoverPopupManager
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.wm.ToolWindowId
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.ui.popup.AbstractPopup
 import org.jetbrains.android.compose.isComposableFunction
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.references.mainReference
@@ -64,7 +67,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
 
   @AnyThread
   @VisibleForTesting
-  fun generateDocAsync(element: PsiElement?, originalElement: PsiElement?): CompletableFuture<String> {
+  fun generateDocAsync(element: PsiElement?, originalElement: PsiElement?): CompletableFuture<String?> {
     if (!StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.get() || !StudioFlags.COMPOSE_EDITOR_SUPPORT.get()) {
       return CompletableFuture.completedFuture(null)
     }
@@ -80,29 +83,53 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
       CachedValueProvider.Result.create(renderImage(previewElement), PsiModificationTracker.MODIFICATION_COUNT)
     }
 
-    return future.whenComplete { image, _ ->
-      if (image == null) return@whenComplete
-      ApplicationManager.getApplication().executeOnPooledThread {
-        runReadAction {
-          if (StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION_SLOW.get()) {
-            Thread.sleep(3000)
-          }
-          if (element.isValid &&
-              (LookupManagerImpl.getInstance(element.project).activeLookup as? LookupImpl)?.currentItem?.psiElement == element) {
-            DocumentationManager.getInstance(element.project).showJavaDocInfo(element, originalElement)
-          }
-        }
+    return future.thenApply {
+      if (!ReadAction.compute<Boolean, Throwable> { element.isValid }) return@thenApply null
+      val originalDoc = getOriginalDoc(element, originalElement)
+      if (it == null) {
+        return@thenApply originalDoc
       }
+      val previewElementName = ReadAction.compute<String, Throwable> { previewElement.name!! }
+      originalDoc + getImageTag(previewElementName, it)
     }
-      .thenApply {
-        if (!ReadAction.compute<Boolean, Throwable> { element.isValid }) return@thenApply null
-        val originalDoc = getOriginalDoc(element, originalElement)
-        if (it == null) {
-          return@thenApply originalDoc
-        }
-        val previewElementName = ReadAction.compute<String, Throwable> { previewElement.name!! }
-        originalDoc + getImageTag(previewElementName, it)
+  }
+
+  /**
+   * Updates documentation info for [element] if there is already opened documentation for [element].
+   */
+  @UiThread
+  private fun updateDocumentation(element: PsiElement) {
+    if (!element.isValid) return
+    val manager = DocumentationManager.getInstance(element.project)
+    val component: DocumentationComponent
+
+    val hint = manager.docInfoHint as? AbstractPopup
+    when {
+      /**
+       * Case when documentation is showed in a popup that was opened intentionally or during code completion.
+       */
+      hint?.isVisible == true -> component = (hint.component as? DocumentationComponent?) ?: return
+
+      /**
+       * Case when documentation is showed in a popup that was opened by a mouse hover action.
+       */
+      EditorMouseHoverPopupManager.getInstance().documentationComponent?.isShowing == true -> {
+        component = EditorMouseHoverPopupManager.getInstance().documentationComponent ?: return
       }
+
+      /**
+       * Case when documentation is showed in a pined tool window.
+       */
+      manager.hasActiveDockedDocWindow() -> {
+        val toolWindow = ToolWindowManager.getInstance(element.project).getToolWindow(ToolWindowId.DOCUMENTATION) ?: return
+        component = toolWindow.contentManager.selectedContent?.component as? DocumentationComponent ?: return
+      }
+      else -> return
+    }
+
+    if (component.isShowing && component.element == element) {
+      manager.fetchDocInfo(element, component)
+    }
   }
 
   @WorkerThread
@@ -113,6 +140,11 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
       return future.get()
     }
 
+    /**
+     * If we can't return result immediately we try to update documentation when we get it.
+     */
+    future.whenComplete { _, _ -> invokeLater { updateDocumentation(element!!) } }
+
     return null
   }
 
@@ -120,6 +152,11 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
     val facet = AndroidFacet.getInstance(previewElement) ?: return CompletableFuture.completedFuture(null)
     val previewElementName = getFullNameForPreview(previewElement)
     return renderPreviewElement(facet, previewFromMethodName(previewElementName))
+      .whenComplete { _, _ ->
+        if (StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION_SLOW.get()) {
+          Thread.sleep(3000)
+        }
+      }
   }
 
   private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null)

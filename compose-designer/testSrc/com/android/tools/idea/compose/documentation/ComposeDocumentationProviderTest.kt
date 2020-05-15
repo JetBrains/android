@@ -64,7 +64,7 @@ class ComposeDocumentationProviderTest {
         .single { it.isTopLevel && it.name == "Greeting" }
     }
 
-    val generatedDoc = composeDocProvider.generateDocAsync(previewMethod, null).get()
+    val generatedDoc = composeDocProvider.generateDocAsync(previewMethod, null).get()!!
 
     // Check that we've correctly generated the preview tag
     assertTrue(generatedDoc.contains("<img src='file://DefaultPreview' alt='preview:DefaultPreview' width='\\d+' height='\\d+'>".toRegex()))
