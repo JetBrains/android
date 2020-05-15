@@ -18,8 +18,10 @@ package com.android.tools.idea.sqlite.sqlLanguage
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.android.tools.idea.sqlite.model.SqliteStatementType
+import com.android.tools.idea.sqlite.toSqliteValues
 import com.intellij.testFramework.LightPlatformTestCase
 import junit.framework.TestCase
+import java.util.LinkedList
 
 class UtilsTest : LightPlatformTestCase() {
   fun testReplaceParametersNothingIsReplaced() {
@@ -245,4 +247,28 @@ class UtilsTest : LightPlatformTestCase() {
     assertFalse(hasParsingError(project, "DROP TABLE t1"))
     assertFalse(hasParsingError(project, "EXPLAIN SELECT * FROM t1"))
   }
+
+  fun testInlineParameters() {
+    assertEquals(
+      "SELECT * FROM t1",
+      inlineParameterValues(getSqliteStatement("SELECT * FROM t1"), LinkedList(emptyList()))
+    )
+
+    assertEquals(
+      "SELECT * FROM t1 where id > '42'",
+      inlineParameterValues(getSqliteStatement("SELECT * FROM t1 where id > ?"), LinkedList(listOf("42").toSqliteValues()))
+    )
+
+    assertEquals(
+      "SELECT * FROM t1 where id > null",
+      inlineParameterValues(getSqliteStatement("SELECT * FROM t1 where id > ?"), LinkedList(listOf(null).toSqliteValues()))
+    )
+
+    assertEquals(
+      "SELECT * FROM t1 where id > ?",
+      inlineParameterValues(getSqliteStatement("SELECT * FROM t1 where id > ?"), LinkedList(emptyList()))
+    )
+  }
+
+  private fun getSqliteStatement(sqliteStatement: String) = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatement)
 }
