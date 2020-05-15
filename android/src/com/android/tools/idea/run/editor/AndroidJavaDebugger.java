@@ -42,6 +42,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.execution.ui.RunContentManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -165,21 +166,25 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       }
     };
 
+    ExecutionEnvironment executionEnvironment;
     try {
-      ProgramRunnerUtil.executeConfigurationAsync(
-        // Code lifted out of ProgramRunnerUtil. We do this because we need to access the callback field.
+      // Code lifted out of ProgramRunnerUtil. We do this because we need to access the callback field.
+      executionEnvironment =
         ExecutionEnvironmentBuilder.create(DefaultDebugExecutor.getDebugExecutorInstance(), runSettings)
           .contentToReuse(null)
           .dataContext(null)
           .activeTarget()
-          .build(),
-        /*showSettings=*/true,
-        /*assignNewId=*/true,
-        callback);
+          .build();
     }
     catch (ExecutionException e) {
       Logger.getInstance(AndroidJavaDebugger.class).error(e);
+      return;
     }
+
+    // Need to execute on the EDT since the associated tool window may be created internally by IJ
+    // (we may be not be on the EDT at this point in the code).
+    ApplicationManager.getApplication().invokeLater(
+      () -> ProgramRunnerUtil.executeConfigurationAsync(executionEnvironment, /*showSettings=*/true, /*assignNewId=*/true, callback));
   }
 
   public DebuggerSession getDebuggerSession(@NotNull Client client) {
