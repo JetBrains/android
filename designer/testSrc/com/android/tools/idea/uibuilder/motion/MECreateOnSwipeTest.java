@@ -35,18 +35,18 @@ public class MECreateOnSwipeTest extends BaseMotionEditorTest {
 
   public void testCreateOnSwipeLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,130,234\n" +
-      "1,JLabel,5,2,120,15\n" +
-      "1,JSeparator,5,20,120,2\n" +
-      "1,JLabel,5,25,120,15\n" +
-      "1,MEComboBox,5,43,120,24\n" +
-      "1,JLabel,5,70,120,15\n" +
-      "1,MEComboBox,5,88,120,24\n" +
-      "1,JLabel,5,115,120,15\n" +
-      "1,MEComboBox,5,133,120,24\n" +
-      "1,JLabel,5,160,120,15\n" +
-      "1,MEComboBox,5,178,120,24\n" +
-      "1,JButton,5,208,120,25\n";
+    String layout = "0,CreatorAccess,0,0,128,234\n" +
+                    "1,JLabel,5,2,118,15\n" +
+                    "1,JSeparator,5,20,118,2\n" +
+                    "1,JLabel,5,25,118,15\n" +
+                    "1,MEComboBox,5,43,118,24\n" +
+                    "1,JLabel,5,70,118,15\n" +
+                    "1,MEComboBox,5,88,118,24\n" +
+                    "1,JLabel,5,115,118,15\n" +
+                    "1,MEComboBox,5,133,118,24\n" +
+                    "1,JLabel,5,160,118,15\n" +
+                    "1,MEComboBox,5,178,118,24\n" +
+                    "1,JButton,5,208,118,25\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
