@@ -16,18 +16,14 @@
 package com.android.tools.idea.run.deployment;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.serviceContainer.NonInjectable;
-import java.util.Collections;
-import java.util.List;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class ExecutionTargetService {
   @NotNull
@@ -37,93 +33,21 @@ final class ExecutionTargetService {
   private final Function<Project, ExecutionTargetManager> myExecutionTargetManagerGetInstance;
 
   @NotNull
-  private final Function<Project, AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
-
-  @NotNull
-  private final Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
-
-  @NotNull
   private final Function<Project, RunManager> myRunManagerGetInstance;
-
-  @VisibleForTesting
-  static final class Builder {
-    @Nullable
-    private Project myProject;
-
-    @Nullable
-    private Function<Project, ExecutionTargetManager> myExecutionTargetManagerGetInstance;
-
-    @Nullable
-    private Function<Project, AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
-
-    @Nullable
-    private Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
-
-    @Nullable
-    private Function<Project, RunManager> myRunManagerGetInstance;
-
-    @NotNull
-    Builder setProject(@NotNull Project project) {
-      myProject = project;
-      return this;
-    }
-
-    @NotNull
-    Builder setExecutionTargetManagerGetInstance(@NotNull Function<Project, ExecutionTargetManager> executionTargetManagerGetInstance) {
-      myExecutionTargetManagerGetInstance = executionTargetManagerGetInstance;
-      return this;
-    }
-
-    @NotNull
-    Builder setAsyncDevicesGetterGetInstance(@NotNull Function<Project, AsyncDevicesGetter> asyncDevicesGetterGetInstance) {
-      myAsyncDevicesGetterGetInstance = asyncDevicesGetterGetInstance;
-      return this;
-    }
-
-    @NotNull
-    Builder setDevicesSelectedServiceGetInstance(@NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
-      myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
-      return this;
-    }
-
-    @NotNull
-    Builder setRunManagerGetInstance(@NotNull Function<Project, RunManager> runManagerGetInstance) {
-      myRunManagerGetInstance = runManagerGetInstance;
-      return this;
-    }
-
-    @NotNull
-    ExecutionTargetService build() {
-      return new ExecutionTargetService(this);
-    }
-  }
 
   @SuppressWarnings("unused")
   private ExecutionTargetService(@NotNull Project project) {
-    this(new Builder()
-           .setProject(project)
-           .setExecutionTargetManagerGetInstance(ExecutionTargetManager::getInstance)
-           .setAsyncDevicesGetterGetInstance(AsyncDevicesGetter::getInstance)
-           .setDevicesSelectedServiceGetInstance(DevicesSelectedService::getInstance)
-           .setRunManagerGetInstance(RunManager::getInstance));
+    this(project, ExecutionTargetManager::getInstance, RunManager::getInstance);
   }
 
+  @VisibleForTesting
   @NonInjectable
-  private ExecutionTargetService(@NotNull Builder builder) {
-    assert builder.myProject != null;
-    myProject = builder.myProject;
-
-    assert builder.myExecutionTargetManagerGetInstance != null;
-    myExecutionTargetManagerGetInstance = builder.myExecutionTargetManagerGetInstance;
-
-    assert builder.myAsyncDevicesGetterGetInstance != null;
-    myAsyncDevicesGetterGetInstance = builder.myAsyncDevicesGetterGetInstance;
-
-    assert builder.myDevicesSelectedServiceGetInstance != null;
-    myDevicesSelectedServiceGetInstance = builder.myDevicesSelectedServiceGetInstance;
-
-    assert builder.myRunManagerGetInstance != null;
-    myRunManagerGetInstance = builder.myRunManagerGetInstance;
+  ExecutionTargetService(@NotNull Project project,
+                         @NotNull Function<Project, ExecutionTargetManager> executionTargetManagerGetInstance,
+                         @NotNull Function<Project, RunManager> runManagerGetInstance) {
+    myProject = project;
+    myExecutionTargetManagerGetInstance = executionTargetManagerGetInstance;
+    myRunManagerGetInstance = runManagerGetInstance;
   }
 
   @NotNull
@@ -131,12 +55,8 @@ final class ExecutionTargetService {
     return project.getService(ExecutionTargetService.class);
   }
 
-  void updateActiveTarget() {
+  void setActiveTarget(@NotNull DeviceAndSnapshotComboBoxExecutionTarget target) {
     ExecutionTargetManager executionTargetManager = myExecutionTargetManagerGetInstance.apply(myProject);
-
-    List<Device> devices = myAsyncDevicesGetterGetInstance.apply(myProject).get().orElse(Collections.emptyList());
-    List<Device> selectedDevices = myDevicesSelectedServiceGetInstance.apply(myProject).getSelectedDevices(devices);
-    ExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevices);
 
     if (executionTargetManager.getActiveTarget().equals(target)) {
       return;
