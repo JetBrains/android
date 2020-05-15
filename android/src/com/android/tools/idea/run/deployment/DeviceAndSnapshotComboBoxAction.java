@@ -147,7 +147,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @SuppressWarnings("unused")
   private DeviceAndSnapshotComboBoxAction() {
     this(new Builder()
-           .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get())
+           .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get)
            .setDevicesGetterGetter(AsyncDevicesGetter::getInstance)
            .setDevicesSelectedServiceGetInstance(DevicesSelectedService::getInstance)
            .setExecutionTargetServiceGetInstance(ExecutionTargetService::getInstance)
@@ -178,6 +178,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NotNull
   static DeviceAndSnapshotComboBoxAction getInstance() {
+    // noinspection CastToConcreteClass
     return (DeviceAndSnapshotComboBoxAction)ActionManager.getInstance().getAction("DeviceAndSnapshotComboBox");
   }
 
