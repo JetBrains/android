@@ -48,6 +48,7 @@ public final class AndroidPlugin {
     ApplicationManager.getApplication().invokeLater(() -> {
       FileTypeManager fileTypeManager = FileTypeManager.getInstance();
       FileType imageFileType = ImageFileTypeManager.getInstance().getImageFileType();
+      fileTypeManager.getAssociations(imageFileType);
       WriteAction.run(() -> fileTypeManager.associateExtension(imageFileType, WebpMetadata.EXT_WEBP));
       WebpMetadata.ensureWebpRegistered();
     });
