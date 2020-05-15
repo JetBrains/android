@@ -166,7 +166,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private final boolean myHasLegacyAppCompat;
   private final boolean myHasAndroidXAppCompat;
   private final AaptOptions.Namespacing myNamespacing;
-  @NotNull private String myNamespace;
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
@@ -231,13 +230,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myLayoutPullParserFactory = parserFactory;
     myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
     myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
-
-    String javaPackage = AndroidManifestUtils.getPackageName(facet);
-    if (javaPackage != null && !javaPackage.isEmpty()) {
-      myNamespace = URI_PREFIX + javaPackage;
-    } else {
-      myNamespace = AUTO_URI;
-    }
 
     myNamespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();
     if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
@@ -322,18 +314,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       throws ClassNotFoundException {
     myUsed = true;
     return myClassLoader.loadClass(name, constructorSignature, constructorArgs);
-  }
-
-  /**
-   * Returns the namespace for the project. The namespace contains a standard part + the
-   * application package.
-   *
-   * @return The package namespace of the project or null in case of error.
-   */
-  @Override
-  @NotNull
-  public String getNamespace() {
-    return myNamespace;
   }
 
   @Override
