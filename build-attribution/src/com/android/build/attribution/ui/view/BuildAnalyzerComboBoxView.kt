@@ -76,7 +76,7 @@ class BuildAnalyzerComboBoxView(
    */
   val wholePanel = JBPanel<JBPanel<*>>(BorderLayout()).apply {
     val controlsPanel = JBPanel<JBPanel<*>>(HorizontalLayout(10)).apply {
-      border = JBUI.Borders.emptyLeft(20)
+      border = JBUI.Borders.emptyLeft(4)
     }
     controlsPanel.add(dataSetCombo)
     controlsPanel.add(additionalControlsPanel)
