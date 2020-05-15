@@ -28,6 +28,7 @@ private fun ComposeFileEditorProvider.accept(file: PsiFile) =
 class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
   override fun tearDown() {
     StudioFlags.NELE_SOURCE_CODE_EDITOR.clearOverride()
+    StudioFlags.COMPOSE_PREVIEW.clearOverride()
 
     super.tearDown()
   }
@@ -71,6 +72,9 @@ class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase
    * This test ensures that we fail if we disable source code editor back.
    */
   fun testDoesNotAcceptByDefault() {
+    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
+    StudioFlags.COMPOSE_PREVIEW.override(false)
+
     val provider = ComposeFileEditorProvider()
 
     @Language("kotlin")
