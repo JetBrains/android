@@ -259,4 +259,4 @@ class PluginDetailsNodeDescriptor(
     )
 }
 
-private fun TimeWithPercentage.toRightAlignedNodeDurationText() = "%4.1f%% %.1f s".format(percentage, timeS)
+private fun TimeWithPercentage.toRightAlignedNodeDurationText() = "%.1fs %4.1f%%".format(timeS, percentage)

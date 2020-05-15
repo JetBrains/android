@@ -39,7 +39,7 @@ class WarningsNodePresentationTest {
       mainText = ":app:compile",
       suffix = "",
       showWarnIcon = true,
-      rightAlignedSuffix = "2.0 s"
+      rightAlignedSuffix = "2.0s"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -52,7 +52,7 @@ class WarningsNodePresentationTest {
       mainText = "Always-run Tasks",
       suffix = "1 warning",
       showWarnIcon = false,
-      rightAlignedSuffix = "2.0 s"
+      rightAlignedSuffix = "2.0s"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -77,7 +77,7 @@ class WarningsNodePresentationTest {
       mainText = "com.google.auto.value.processor.AutoAnnotationProcessor",
       suffix = "",
       showWarnIcon = true,
-      rightAlignedSuffix = "0.1 s"
+      rightAlignedSuffix = "0.1s"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
