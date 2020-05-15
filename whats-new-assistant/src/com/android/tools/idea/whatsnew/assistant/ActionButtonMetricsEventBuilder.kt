@@ -17,6 +17,7 @@ package com.android.tools.idea.whatsnew.assistant
 
 import com.android.build.attribution.BuildAttributionStateReporter
 import com.android.build.attribution.ui.BuildAttributionUiManager
+import com.android.tools.idea.whatsnew.assistant.actions.AppInspectionShowAction
 import com.android.tools.idea.whatsnew.assistant.actions.BuildAnalyzerShowAction
 import com.google.wireless.android.sdk.stats.WhatsNewAssistantUpdateEvent.ActionButtonEvent
 import com.intellij.openapi.project.Project
@@ -49,6 +50,7 @@ class ActionButtonMetricsEventBuilder {
     createdActions.add(actionKey)
     return when (actionKey) {
       BuildAnalyzerShowAction.ACTION_KEY -> buildAnalyzerActionEventBuilder(project, actionEventType)
+      AppInspectionShowAction.ACTION_KEY -> appInspectionActionEventBuilder(project, actionEventType)
       else -> commonActionEventBuilder(ActionButtonEvent.ActionButtonType.UNKNOWN_BUTTON, actionEventType)
     }
   }
@@ -75,5 +77,9 @@ class ActionButtonMetricsEventBuilder {
         BuildAttributionStateReporter.State.FEATURE_TURNED_OFF -> ActionButtonEvent.ActionButtonState.UNKNOWN_STATE
       }
     }
+  }
+
+  private fun appInspectionActionEventBuilder(project: Project, actionEventType: ActionButtonEvent.EventType): ActionButtonEvent.Builder {
+    return commonActionEventBuilder(ActionButtonEvent.ActionButtonType.APP_INSPECTION_SHOW, actionEventType)
   }
 }
