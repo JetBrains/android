@@ -63,6 +63,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     assert myProject != null;
     ViewSettings settings = getSettings();
     AndroidProjectSystem projectSystem = ProjectSystemService.getInstance(myProject).getProjectSystem();
+    AndroidViewProjectNodeUtil.maybeWaitForAnySyncOutcomeInterruptibly(projectSystem.getSyncManager());
     List<AbstractTreeNode<?>> children =
       ModuleNodeUtils.createChildModuleNodes(myProject, projectSystem.getSubmodules(), myProjectViewPane, settings);
 
