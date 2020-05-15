@@ -28,26 +28,26 @@ import javax.swing.JPanel
 
 /**
  * Base view class for summary tab details.
+ * This class inherits `JPanel` instead of containing its instance so that its `observer` has the same lifetime
+ * as the displayed JPanel.
  *
  * Includes a common section table. Subclasses can use [#addRowToCommonSection] to add a row to the common section. Or
  * add more components to [#component].
  *
  * @param <T>analysis tab model type, e.g. [CaptureNodeAnalysisSummaryTabModel]</T>
  */
-open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(val profilersView: StudioProfilersView, val tabModel: T) {
+open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(val profilersView: StudioProfilersView, val tabModel: T) : JPanel() {
   val observer = AspectObserver()
-  val component: JPanel
   private val commonSection: JPanel
 
   init {
     commonSection = JPanel(TabularLayout("*,*", "Fit-").setVGap(COMMON_SECTION_ROW_PADDING_PX)).apply {
       isOpaque = false
     }
-    component = JPanel(TabularLayout("*", "Fit").setVGap(SECTION_PADDING_PX)).apply {
-      background = primaryContentBackground
-      border = JBUI.Borders.empty(8, 12)
-      add(commonSection, TabularLayout.Constraint(0, 0))
-    }
+    layout = TabularLayout("*", "Fit").setVGap(SECTION_PADDING_PX)
+    background = primaryContentBackground
+    border = JBUI.Borders.empty(8, 12)
+    add(commonSection, TabularLayout.Constraint(0, 0))
   }
 
   /**
@@ -69,7 +69,7 @@ open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(val profile
    * Add a section to the Summary Tab.
    */
   protected fun addSection(section: JComponent) {
-    component.add(section, TabularLayout.Constraint(component.componentCount, 0))
+    add(section, TabularLayout.Constraint(componentCount, 0))
   }
 
   /**

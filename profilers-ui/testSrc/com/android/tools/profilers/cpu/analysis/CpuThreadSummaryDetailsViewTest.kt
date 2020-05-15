@@ -115,7 +115,7 @@ class CpuThreadSummaryDetailsViewTest {
       dataSeries.add(cpuThreadTrackModel)
     }
     val view = CpuThreadSummaryDetailsView(profilersView, model)
-    assertThat(TreeWalker(view.component).descendants().filterIsInstance<JTable>()).isNotEmpty()
+    assertThat(TreeWalker(view).descendants().filterIsInstance<JTable>()).isNotEmpty()
   }
 
   @Test
@@ -136,6 +136,6 @@ class CpuThreadSummaryDetailsViewTest {
       dataSeries.add(cpuThreadTrackModel)
     }
     val view = CpuThreadSummaryDetailsView(profilersView, model)
-    assertThat(TreeWalker(view.component).descendants().filterIsInstance<JTable>()).isEmpty()
+    assertThat(TreeWalker(view).descendants().filterIsInstance<JTable>()).isEmpty()
   }
 }
