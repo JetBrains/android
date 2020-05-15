@@ -58,7 +58,7 @@ class BuildAttributionAnalyticsManagerTest {
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
   private val applicationPlugin = PluginData(createBinaryPluginIdentifierStub("com.android.application"), ":app")
-  private val pluginA = PluginData(createBinaryPluginIdentifierStub("pluginA"), ":app")
+  private val pluginA = PluginData(createBinaryPluginIdentifierStub("pluginA"), ":buildSrc").apply { markAsBuildSrcPlugin() }
   private val buildScript = PluginData(createScriptPluginIdentifierStub("build.gradle"), ":app")
 
   val pluginATask = TaskData("dummyTask1", "", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
@@ -200,8 +200,10 @@ class BuildAttributionAnalyticsManagerTest {
     return when (pluginData.pluginType) {
       PluginData.PluginType.UNKNOWN -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.UNKNOWN_TYPE &&
                                        pluginIdentifier.pluginDisplayName == ""
-      PluginData.PluginType.BINARY_PLUGIN, PluginData.PluginType.BUILDSRC_PLUGIN -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.BINARY_PLUGIN &&
-                                                                                    pluginIdentifier.pluginDisplayName == pluginData.displayName
+      PluginData.PluginType.BINARY_PLUGIN -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.OTHER_PLUGIN &&
+                                             pluginIdentifier.pluginDisplayName == pluginData.displayName
+      PluginData.PluginType.BUILDSRC_PLUGIN -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.BUILD_SRC &&
+                                               pluginIdentifier.pluginDisplayName == ""
       PluginData.PluginType.SCRIPT -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.BUILD_SCRIPT &&
                                       pluginIdentifier.pluginDisplayName == ""
     }
