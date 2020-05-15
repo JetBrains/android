@@ -152,7 +152,6 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
     } catch (Exception ex) {
 
     }
-    Debug.println("  component " + component);
     int keyFrameCount = helper.getKeyframePos(component, keyframeCandidate.keyFrameTypes, keyframeCandidate.keyFramePos);
 
     if (keyFrameCount <= 0) {
@@ -169,7 +168,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
         if (dx < SLOPE && dy < SLOPE) {
           int framePosition = (keyframeCandidate.keyFrameTypes[i])%1000;
           keyframeCandidate.keyframe = helper.getKeyframe(view, 2, framePosition);
-          keyframeCandidate.position = i;
+          keyframeCandidate.position = framePosition;
           break;
         }
       }
@@ -236,7 +235,6 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
         if (myKeyframeCandidate.myKeyInfo.getType() == MotionLayoutComponentHelper.KeyInfo.KEY_TYPE_POSITION) {
           int index = myKeyframeCandidate.myKeyInfo.getIndex();
           if (index == myKeyframeCandidate.selectedKeyFrame) {
-              Debug.println("setting for index "+index);
             myKeyframeCandidate.keyPosPercentX = myKeyframeCandidate.myKeyInfo.getKeyPosPercentX();
             myKeyframeCandidate.keyPosPercentY = myKeyframeCandidate.myKeyInfo.getKeyPosPercentY();
             float []pos = (float[]) mySelectedComponent.getClientProperty(MOTION_KEY_POS_PERCENT);
