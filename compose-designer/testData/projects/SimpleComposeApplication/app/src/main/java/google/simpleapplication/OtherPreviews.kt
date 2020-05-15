@@ -17,8 +17,23 @@ package google.simpleapplication
 
 import androidx.ui.tooling.preview.Preview
 import androidx.compose.Composable
+import androidx.ui.foundation.Text
+import androidx.ui.material.MaterialTheme
+import androidx.ui.layout.*
 
 @Preview
 @Composable
 fun EmptyPreview() {
+}
+
+@Preview
+@Composable
+fun PreviewInOtherFile() {
+  MaterialTheme {
+    Column {
+      Text("Line1")
+      Text("Line2")
+      Text("Line3")
+    }
+  }
 }
