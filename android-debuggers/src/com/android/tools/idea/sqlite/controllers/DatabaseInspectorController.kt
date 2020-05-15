@@ -117,6 +117,7 @@ class DatabaseInspectorControllerImpl(
 
       val diffOperations = performDiff(currentState, newState)
 
+      closeTabsBelongingToClosedDatabases(currentOpenDatabaseIds, openDatabaseIds)
       view.updateDatabases(diffOperations)
 
       currentOpenDatabaseIds = openDatabaseIds
@@ -125,6 +126,15 @@ class DatabaseInspectorControllerImpl(
 
     override fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
       updateExistingDatabaseSchemaView(databaseId, oldSchema, newSchema)
+    }
+
+    private fun closeTabsBelongingToClosedDatabases(currentlyOpenDbs: List<SqliteDatabaseId>, newOpenDbs: List<SqliteDatabaseId>) {
+      val closedDbs = currentlyOpenDbs.filter { !newOpenDbs.contains(it) }
+      val tabsToClose = resultSetControllers.keys
+        .filterIsInstance<TabId.TableTab>()
+        .filter { closedDbs.contains(it.databaseId) }
+
+      tabsToClose.forEach { closeTab(it) }
     }
 
     private fun performDiff(currentState: List<ViewDatabase>, newState: List<ViewDatabase>): List<DatabaseDiffOperation> {
@@ -175,9 +185,6 @@ class DatabaseInspectorControllerImpl(
   }
 
   override suspend fun closeDatabase(databaseId: SqliteDatabaseId) = withContext(uiThread) {
-    // TODO(b/143873070) when a database is closed with the close button the corresponding file is not deleted.
-    if (!model.getOpenDatabaseIds().contains(databaseId)) return@withContext
-
     val openDatabases = model.getOpenDatabaseIds()
     val tabsToClose = if (openDatabases.size == 1 && openDatabases.first() == databaseId) {
       // close all tabs

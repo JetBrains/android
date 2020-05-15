@@ -1261,4 +1261,41 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       mockViewFactory.tableView.component
     )
   }
+
+  fun testDatabaseTablesAreClosedWhenDatabaseIsClosed() {
+    // Prepare
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(MockSqliteResultSet()))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
+    }
+
+    // Act
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(databaseId1, testSqliteTable)
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(databaseId2, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockSqliteView).openTab(
+      TabId.TableTab(databaseId1, testSqliteTable.name),
+      testSqliteTable.name,
+      StudioIcons.DatabaseInspector.TABLE,
+      mockViewFactory.tableView.component
+    )
+    verify(mockSqliteView).openTab(
+      TabId.TableTab(databaseId2, testSqliteTable.name),
+      testSqliteTable.name,
+      StudioIcons.DatabaseInspector.TABLE,
+      mockViewFactory.tableView.component
+    )
+
+    // Act
+    mockDatabaseInspectorModel.removeDatabaseSchema(databaseId1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockSqliteView).closeTab(TabId.TableTab(databaseId1, testSqliteTable.name))
+    verify(mockSqliteView, times(0)).closeTab(TabId.TableTab(databaseId2, testSqliteTable.name))
+  }
 }
