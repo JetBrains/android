@@ -35,7 +35,7 @@ fun TimeWithPercentage.durationString() = durationString(timeMs)
 
 fun TimeWithPercentage.percentageString() = "%.1f%%".format(percentage)
 
-fun durationString(timeMs: Long) = "%.3f s".format(timeMs.toDouble() / 1000)
+fun durationString(timeMs: Long) = "%.1fs".format(timeMs.toDouble() / 1000)
 
 fun issuesCountString(warningsCount: Int, infoCount: Int) = when {
   warningsCount > 0 && infoCount > 0 -> "${warningsCountString(warningsCount)}, ${infoCountString(infoCount)}"

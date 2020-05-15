@@ -94,14 +94,14 @@ Task runs on every build because it declares no outputs.
 Plugin: com.android.application
 Task: compileDebugJavaWithJavac
 Task type: org.gradle.api.tasks.compile.JavaCompile
-Issues for the same task were detected in 1 module(s), total execution time was 0.400 s (5.0%), by module:
-  Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: true, on critical path: true, issues: Always-run Tasks
+Issues for the same task were detected in 1 module(s), total execution time was 0.4s (5.0%), by module:
+  Execution mode: FULL, time: 0.4s (5.0%), determines build duration: true, on critical path: true, issues: Always-run Tasks
 
 ====Build information:====
 Execution date: $buildFinishedTimeString
-Total build duration: 10.000 s
-Configuration time: 1.000 s (10.0%)
-Critical path tasks time: 8.000 s (80.0%)
+Total build duration: 10.0s
+Configuration time: 1.0s (10.0%)
+Critical path tasks time: 8.0s (80.0%)
 Critical path tasks size: 3
 AGP versions: 4.0.0-dev
 ====Platform information:====
@@ -126,14 +126,14 @@ Task declares the same output directory as task taskB from pluginB.
 Plugin: pluginA
 Task: taskA
 Task type: UNKNOWN
-Issues for the same task were detected in 1 module(s), total execution time was 0.400 s (5.0%), by module:
-  Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: false, on critical path: false, issues: Always-run Tasks, Task Setup Issues
+Issues for the same task were detected in 1 module(s), total execution time was 0.4s (5.0%), by module:
+  Execution mode: FULL, time: 0.4s (5.0%), determines build duration: false, on critical path: false, issues: Always-run Tasks, Task Setup Issues
 
 ====Build information:====
 Execution date: $buildFinishedTimeString
-Total build duration: 10.000 s
-Configuration time: 1.000 s (10.0%)
-Critical path tasks time: 8.000 s (80.0%)
+Total build duration: 10.0s
+Configuration time: 1.0s (10.0%)
+Critical path tasks time: 8.0s (80.0%)
 Critical path tasks size: 3
 AGP versions: 4.0.0-dev
 ====Platform information:====
@@ -169,15 +169,15 @@ Task runs on every build because it declares no outputs.
 Plugin: pluginB
 Task: taskB
 Task type: UNKNOWN
-Issues for the same task were detected in 2 module(s), total execution time was 0.400 s (5.0%), by module:
-  Execution mode: FULL, time: 0.300 s (3.8%), determines build duration: true, on critical path: true, issues: Always-run Tasks, Task Setup Issues
-  Execution mode: INCREMENTAL, time: 0.100 s (1.3%), determines build duration: false, on critical path: false, issues: Always-run Tasks
+Issues for the same task were detected in 2 module(s), total execution time was 0.4s (5.0%), by module:
+  Execution mode: FULL, time: 0.3s (3.8%), determines build duration: true, on critical path: true, issues: Always-run Tasks, Task Setup Issues
+  Execution mode: INCREMENTAL, time: 0.1s (1.3%), determines build duration: false, on critical path: false, issues: Always-run Tasks
 
 ====Build information:====
 Execution date: $buildFinishedTimeString
-Total build duration: 10.000 s
-Configuration time: 1.000 s (10.0%)
-Critical path tasks time: 8.000 s (80.0%)
+Total build duration: 10.0s
+Configuration time: 1.0s (10.0%)
+Critical path tasks time: 8.0s (80.0%)
 Critical path tasks size: 3
 AGP versions: 4.0.0-dev
 ====Platform information:====
