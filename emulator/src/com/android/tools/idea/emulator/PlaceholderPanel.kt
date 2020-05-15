@@ -141,9 +141,9 @@ internal class PlaceholderPanel(project: Project): BorderLayoutPanel(), Disposab
       <center>
       The Android Emulator is currently configured<br>
       to run as a standalone application. To make<br>
-      Android Emulator launch in this window<br>
+      the Android Emulator launch in this window<br>
       instead, select the <i>Launch in a tool window</i><br>
-      option in <font color = ${linkColorString}><a href=''>Emulator settings</a></font>.
+      option in the <font color = ${linkColorString}><a href=''>Emulator settings</a></font>.
       </center>
       """.trimIndent()
     }
