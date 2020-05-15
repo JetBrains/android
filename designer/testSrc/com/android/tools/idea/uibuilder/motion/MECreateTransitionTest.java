@@ -35,20 +35,20 @@ public class MECreateTransitionTest extends BaseMotionEditorTest {
 
   public void testCreateTransitionLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,155,269\n" +
-      "1,JLabel,5,2,145,15\n" +
-      "1,JSeparator,5,20,145,2\n" +
-      "1,JLabel,5,25,145,15\n" +
-      "1,PromptedTextField,5,43,145,19\n" +
-      "1,JLabel,5,65,145,15\n" +
-      "1,MEComboBox,5,83,145,24\n" +
-      "1,JLabel,5,110,145,15\n" +
-      "1,MEComboBox,5,128,145,24\n" +
-      "1,JLabel,5,155,145,15\n" +
-      "1,PromptedTextField,5,173,145,19\n" +
-      "1,JLabel,5,195,145,15\n" +
-      "1,MEComboBox,5,213,145,24\n" +
-      "1,JButton,5,243,145,25\n";
+    String layout = "0,CreatorAccess,0,0,152,269\n" +
+                    "1,JLabel,5,2,142,15\n" +
+                    "1,JSeparator,5,20,142,2\n" +
+                    "1,JLabel,5,25,142,15\n" +
+                    "1,PromptedTextField,5,43,142,19\n" +
+                    "1,JLabel,5,65,142,15\n" +
+                    "1,MEComboBox,5,83,142,24\n" +
+                    "1,JLabel,5,110,142,15\n" +
+                    "1,MEComboBox,5,128,142,24\n" +
+                    "1,JLabel,5,155,142,15\n" +
+                    "1,PromptedTextField,5,173,142,19\n" +
+                    "1,JLabel,5,195,142,15\n" +
+                    "1,MEComboBox,5,213,142,24\n" +
+                    "1,JButton,5,243,142,25\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();

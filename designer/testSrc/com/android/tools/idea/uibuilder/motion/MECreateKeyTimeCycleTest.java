@@ -41,28 +41,28 @@ public class MECreateKeyTimeCycleTest extends BaseMotionEditorTest {
 
   public void testCreateKeyTimeCycleLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,189,362\n" +
-      "1,JLabel,5,2,179,15\n" +
-      "1,JSeparator,5,20,179,2\n" +
-      "1,JRadioButton,5,25,52,23\n" +
-      "1,JRadioButton,67,25,117,23\n" +
-      "1,JPanel,5,51,179,24\n" +
-      "2,PromptedTextField,0,0,0,0\n" +
-      "2,MEComboBox,0,0,0,0\n" +
-      "1,JSeparator,5,78,179,2\n" +
-      "1,JLabel,5,83,179,15\n" +
-      "1,PromptedTextField,5,101,179,19\n" +
-      "1,JLabel,5,123,179,15\n" +
-      "1,PromptedTextField,5,141,179,19\n" +
-      "1,JLabel,5,163,179,15\n" +
-      "1,MEComboBox,5,181,179,24\n" +
-      "1,JLabel,5,208,179,15\n" +
-      "1,PromptedTextField,5,226,179,19\n" +
-      "1,JLabel,5,248,179,15\n" +
-      "1,PromptedTextField,5,266,179,19\n" +
-      "1,JLabel,5,288,179,15\n" +
-      "1,MEComboBox,5,306,179,24\n" +
-      "1,JButton,5,336,179,25\n";
+    String layout = "0,CreatorAccess,0,0,182,362\n" +
+                    "1,JLabel,5,2,172,15\n" +
+                    "1,JSeparator,5,20,172,2\n" +
+                    "1,JRadioButton,5,25,52,23\n" +
+                    "1,JRadioButton,67,25,110,23\n" +
+                    "1,JPanel,5,51,172,24\n" +
+                    "2,PromptedTextField,0,0,0,0\n" +
+                    "2,MEComboBox,0,0,0,0\n" +
+                    "1,JSeparator,5,78,172,2\n" +
+                    "1,JLabel,5,83,172,15\n" +
+                    "1,PromptedTextField,5,101,172,19\n" +
+                    "1,JLabel,5,123,172,15\n" +
+                    "1,PromptedTextField,5,141,172,19\n" +
+                    "1,JLabel,5,163,172,15\n" +
+                    "1,MEComboBox,5,181,172,24\n" +
+                    "1,JLabel,5,208,172,15\n" +
+                    "1,PromptedTextField,5,226,172,19\n" +
+                    "1,JLabel,5,248,172,15\n" +
+                    "1,PromptedTextField,5,266,172,19\n" +
+                    "1,JLabel,5,288,172,15\n" +
+                    "1,MEComboBox,5,306,172,24\n" +
+                    "1,JButton,5,336,172,25\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();

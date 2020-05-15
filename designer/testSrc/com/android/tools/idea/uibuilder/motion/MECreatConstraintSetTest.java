@@ -40,14 +40,14 @@ public class MECreatConstraintSetTest extends BaseMotionEditorTest {
 
   public void testCreateConstraintSetLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,177,139\n" +
-      "1,JLabel,5,2,167,15\n" +
-      "1,JSeparator,5,20,167,2\n" +
-      "1,JLabel,5,25,167,15\n" +
-      "1,PromptedTextField,5,43,167,19\n" +
-      "1,JLabel,5,65,167,15\n" +
-      "1,MEComboBox,5,83,167,24\n" +
-      "1,JButton,5,113,167,25\n";
+    String layout = "0,CreatorAccess,0,0,176,139\n" +
+                    "1,JLabel,5,2,166,15\n" +
+                    "1,JSeparator,5,20,166,2\n" +
+                    "1,JLabel,5,25,166,15\n" +
+                    "1,PromptedTextField,5,43,166,19\n" +
+                    "1,JLabel,5,65,166,15\n" +
+                    "1,MEComboBox,5,83,166,24\n" +
+                    "1,JButton,5,113,166,25\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
