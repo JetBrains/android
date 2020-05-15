@@ -118,7 +118,6 @@ public class NewActivityTest {
     myEditor
       .open("app/build.gradle")
       .moveBetween("apply plugin: 'kotlin-android'", "")
-      .moveBetween("apply plugin: 'kotlin-android-extensions'", "")
       .moveBetween("implementation \"org.jetbrains.kotlin:kotlin-stdlib:$kotlin_", "version")
       .enterText("my_")
       .open("build.gradle")
