@@ -34,7 +34,7 @@ class TasksNodePresentationTest {
       mainText = ":app:resources",
       suffix = "",
       showWarnIcon = false,
-      rightAlignedSuffix = "12.0% 1.2 s",
+      rightAlignedSuffix = "1.2s 12.0%",
       showChartKey = true
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
@@ -50,7 +50,7 @@ class TasksNodePresentationTest {
       mainText = ":app:resources",
       suffix = "",
       showWarnIcon = true,
-      rightAlignedSuffix = "12.0% 1.2 s",
+      rightAlignedSuffix = "1.2s 12.0%",
       showChartKey = true
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
@@ -68,7 +68,7 @@ class TasksNodePresentationTest {
       mainText = "resources.plugin",
       suffix = "",
       showWarnIcon = false,
-      rightAlignedSuffix = "85.5% 0.9 s",
+      rightAlignedSuffix = "0.9s 85.5%",
       showChartKey = true
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
@@ -87,7 +87,7 @@ class TasksNodePresentationTest {
       mainText = "resources.plugin",
       suffix = "1 warning",
       showWarnIcon = false,
-      rightAlignedSuffix = " 8.4% 0.8 s",
+      rightAlignedSuffix = "0.8s  8.4%",
       showChartKey = true
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
@@ -102,7 +102,7 @@ class TasksNodePresentationTest {
       mainText = ":app:resources",
       suffix = "",
       showWarnIcon = false,
-      rightAlignedSuffix = "12.0% 1.2 s",
+      rightAlignedSuffix = "1.2s 12.0%",
       showChartKey = false
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
@@ -118,7 +118,7 @@ class TasksNodePresentationTest {
       mainText = ":app:resources",
       suffix = "",
       showWarnIcon = true,
-      rightAlignedSuffix = "12.0% 1.2 s",
+      rightAlignedSuffix = "1.2s 12.0%",
       showChartKey = false
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)

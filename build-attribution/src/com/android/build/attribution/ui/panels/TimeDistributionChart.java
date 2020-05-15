@@ -164,7 +164,7 @@ public class TimeDistributionChart<T> extends JPanel {
       myDataItem = dataItem;
       myChartBoxHeight = JBUIScale.scale(calculateBoxHeightPx());
       myBaseColor = myDataItem.getLegendColor().baseColor;
-      myTimeLabel = createTableLabel(String.format("%.1f s", time().getTimeS()), this).withFont(myMonospacedFont);
+      myTimeLabel = createTableLabel(String.format("%.1fs", time().getTimeS()), this).withFont(myMonospacedFont);
     }
 
     private int calculateBoxHeightPx() {
