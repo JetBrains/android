@@ -228,11 +228,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return;
     }
 
-    if (!myDevicesSelectedServiceGetInstance.apply(project).isMultipleDevicesSelectedInComboBox()) {
-      return;
-    }
-
-    myExecutionTargetServiceGetInstance.apply(project).updateActiveTarget();
+    setMultipleDevicesSelected(project, true);
   }
 
   @NotNull
