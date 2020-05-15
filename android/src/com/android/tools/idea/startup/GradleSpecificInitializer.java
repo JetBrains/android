@@ -101,7 +101,6 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     Actions.hideAction(actionManager, "Groovy.CheckResources.Make");
     setUpGradleViewToolbarActions(actionManager);
     checkInstallPath();
-    removeGradleProjectOpenProcessor();
 
     // "Configure Plugins..." Not sure why it's called StartupWizard.
     AnAction pluginAction = actionManager.getAction("StartupWizard");
@@ -121,10 +120,6 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
       }
       checkAndSetAndroidSdkSources();
     }
-  }
-
-  private void removeGradleProjectOpenProcessor() {
-    ProjectOpenProcessor.EXTENSION_POINT_NAME.getPoint(null).unregisterExtension(GradleProjectOpenProcessor.class);
   }
 
   /**
