@@ -89,10 +89,14 @@ fun findComponentHits(project: Project, rootViewInfo: ViewInfo, @AndroidCoordina
 
 /**
  * Returns a [Navigatable] that references to the source code position of the Composable at the given x, y pixel coordinates.
+ * An optional [locationFilter] can be passed to select a certain type of hit, for example, filtering by filename.
  */
 fun findNavigatableComponentHit(project: Project,
-                                rootViewInfo: ViewInfo, @AndroidCoordinate x: Int, @AndroidCoordinate y: Int): Navigatable? {
+                                rootViewInfo: ViewInfo,
+                                @AndroidCoordinate x: Int, @AndroidCoordinate y: Int,
+                                locationFilter: (SourceLocation) -> Boolean = { true }): Navigatable? {
   val hits = findComponentHits(project, rootViewInfo, x, y)
+    .filter(locationFilter)
 
   if (LOG.isDebugEnabled) {
     LOG.debug("${hits.size} hits found in")
@@ -111,14 +115,15 @@ fun findNavigatableComponentHit(project: Project,
  */
 class PreviewNavigationHandler : NlDesignSurface.NavigationHandler {
   // Default location to use when components are not found
-  private val defaultNavigationMap = WeakHashMap<NlModel, Navigatable>()
+  private val defaultNavigationMap = WeakHashMap<NlModel, Pair<String, Navigatable>>()
 
   /**
    * Add default navigation location for model.
    */
   fun setDefaultLocation(model: NlModel, psiFile: PsiFile, offset: Int) {
     LOG.debug { "Default location set to ${psiFile.name}:$offset" }
-    defaultNavigationMap[model] = PsiNavigationSupport.getInstance().createNavigatable(model.project, psiFile.virtualFile!!, offset)
+    defaultNavigationMap[model] =
+      psiFile.name to PsiNavigationSupport.getInstance().createNavigatable(model.project, psiFile.virtualFile!!, offset)
   }
 
   override fun handleNavigate(sceneView: SceneView,
@@ -135,11 +140,18 @@ class PreviewNavigationHandler : NlDesignSurface.NavigationHandler {
     // Find component to navigate to
     val root = model.components[0]
     val viewInfo = root.viewInfo ?: return false
-    val navigatable = findNavigatableComponentHit(model.project, viewInfo, x, y)
-    if (navigatable != null) {
-      navigatable.navigate(requestFocus)
+    val fileName = defaultNavigationMap[model]?.first ?: ""
+    findNavigatableComponentHit(model.project, viewInfo, x, y) {
+      // We apply a filter to the hits. If requestFocus is true (the user double clicked), we allow any hit even if it's not in the current
+      // file. If requestFocus is false, we only allow single clicks
+      requestFocus || it.fileName == fileName
+    }?.let {
+      it.navigate(requestFocus)
       return true
     }
+
+    // Only allow default navigation when double clicking since it might take us to a different file
+    if (!requestFocus) return true
 
     val navigatedToDefault = navigateToDefault(sceneView, requestFocus)
     LOG.debug { "Navigated to default? $navigatedToDefault" }
@@ -147,7 +159,7 @@ class PreviewNavigationHandler : NlDesignSurface.NavigationHandler {
   }
 
   private fun navigateToDefault(sceneView: SceneView, requestFocus: Boolean): Boolean {
-    defaultNavigationMap[sceneView.sceneManager.model]?.navigate(requestFocus) ?: return false
+    defaultNavigationMap[sceneView.sceneManager.model]?.second?.navigate(requestFocus) ?: return false
     return true
   }
 
