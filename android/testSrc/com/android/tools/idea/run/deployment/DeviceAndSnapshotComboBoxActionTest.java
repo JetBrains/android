@@ -114,6 +114,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.modifyDeviceSet(myRule.getProject());
 
     // Assert
+    Mockito.verify(service).setMultipleDevicesSelectedInComboBox(true);
     Mockito.verify(myExecutionTargetService).updateActiveTarget();
   }
 
