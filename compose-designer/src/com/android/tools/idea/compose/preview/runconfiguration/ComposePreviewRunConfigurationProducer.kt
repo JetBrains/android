@@ -16,16 +16,23 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.util.PREVIEW_PARAMETER_FQN
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.runConfigurationType
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
+import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.constants.KClassValue
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 /**
  * Producer of [ComposePreviewRunConfiguration] for `@Composable` functions annotated with [PREVIEW_ANNOTATION_FQN]. The configuration
@@ -48,6 +55,14 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
       configuration.name = it.name!!
       configuration.composableMethodFqn = it.composePreviewFunctionFqn()
       configuration.setModule(context.module)
+      it.valueParameters.forEach { parameter ->
+        parameter.annotationEntries.firstOrNull { annotation -> annotation.fqNameMatches(PREVIEW_PARAMETER_FQN) }?.let { previewParameter ->
+          previewParameter.providerClassName()?.let { providerClass ->
+            configuration.providerClassFqn = providerClass
+            return@forEach
+          }
+        }
+      }
       return true
     }
     return false
@@ -62,6 +77,15 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
     }
     return false
   }
+}
+
+/**
+ * Get the provider fully qualified class name of a `@PreviewParameter` annotated parameter.
+ */
+private fun KtAnnotationEntry.providerClassName(): String? {
+  val annotationDescriptor = analyze(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this) ?: return null
+  val argument = annotationDescriptor.allValueArguments.entries.firstOrNull { it.key.asString() == "provider" }?.value ?: return null
+  return (argument.value as? KClassValue.Value.NormalClass)?.classId?.asSingleFqName()?.asString()
 }
 
 private fun KtNamedFunction.composePreviewFunctionFqn() = "${getClassName()}.${name}"

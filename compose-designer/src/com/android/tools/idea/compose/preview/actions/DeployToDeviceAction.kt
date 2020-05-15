@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRun
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.compose.preview.runconfiguration.isNonLibraryAndroidModule
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.previewProviderClassAndIndex
 import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.runConfigurationType
@@ -55,6 +56,10 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
     val composePreviewRunConfiguration = ComposePreviewRunConfiguration(project, factory).apply {
       name = previewElement.displaySettings.name
       composableMethodFqn = previewElement.composableMethodFqn
+      previewElement.previewProviderClassAndIndex()?.let {
+        providerClassFqn = it.first
+        providerIndex = it.second
+      }
       setModule(module)
     }
 

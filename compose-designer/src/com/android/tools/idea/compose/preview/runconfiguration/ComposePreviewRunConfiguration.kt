@@ -29,7 +29,19 @@ open class ComposePreviewRunConfiguration(project: Project, factory: Configurati
   var composableMethodFqn: String? = null
     set(value) {
       field = value
-      ACTIVITY_EXTRA_FLAGS = "--es composable ${value}"
+      updateActivityExtraFlags()
+    }
+
+  var providerClassFqn: String? = null
+    set(value) {
+      field = value
+      updateActivityExtraFlags()
+    }
+
+  var providerIndex: Int = -1
+    set(value) {
+      field = value
+      updateActivityExtraFlags()
     }
 
   init {
@@ -38,6 +50,13 @@ open class ComposePreviewRunConfiguration(project: Project, factory: Configurati
     //                    accepts either project or global scope.
     @Suppress("LeakingThis")
     setLaunchActivity("androidx.ui.tooling.preview.PreviewActivity", true)
+  }
+
+  private fun updateActivityExtraFlags() {
+    ACTIVITY_EXTRA_FLAGS =
+      (composableMethodFqn?.let { "--es composable $it" } ?: "") +
+      (providerClassFqn?.let { " --es parameterProviderClassName $it" } ?: "") +
+      (providerIndex.takeIf { it >= 0 }?.let { " --ei parameterProviderIndex $it" } ?: "")
   }
 
   override fun isProfilable() = false
@@ -51,7 +70,6 @@ open class ComposePreviewRunConfiguration(project: Project, factory: Configurati
       }
     }
   }
-
 
   override fun writeExternal(element: Element) {
     super.writeExternal(element)
