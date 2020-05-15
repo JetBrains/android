@@ -37,7 +37,7 @@ public final class NlXmlEditors implements PTableCellEditorProvider, LafManagerL
 
   @NotNull
   public static NlXmlEditors getInstance(@NotNull Project project) {
-    return project.getComponent(NlXmlEditors.class);
+    return project.getService(NlXmlEditors.class);
   }
 
   private NlXmlEditors(@NotNull Project project) {
