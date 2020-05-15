@@ -28,6 +28,7 @@ import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerAspect;
@@ -42,7 +43,6 @@ import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsArtifactView;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
@@ -479,10 +479,16 @@ public class SessionsView extends AspectObserver {
               deviceAction.addChildrenActions(new CommonAction.SeparatorAction());
             }
 
-            CommonAction otherProcessesFlyout = new CommonAction("Other processes", null);
-            otherProcessActions.sort(Comparator.comparing(CommonAction::getText, Ordering.natural()));
-            otherProcessesFlyout.addChildrenActions(otherProcessActions);
-            deviceAction.addChildrenActions(otherProcessesFlyout);
+            if (IdeInfo.isGameTool()) {
+              // In standalone profiler, all processes falls under "Other processes" so there is no point to have this separate flyout.
+              deviceAction.addChildrenActions(otherProcessActions);
+            }
+            else {
+              CommonAction otherProcessesFlyout = new CommonAction("Other processes", null);
+              otherProcessActions.sort(Comparator.comparing(CommonAction::getText, Ordering.natural()));
+              otherProcessesFlyout.addChildrenActions(otherProcessActions);
+              deviceAction.addChildrenActions(otherProcessesFlyout);
+            }
           }
         }
         myProcessSelectionAction.addChildrenActions(deviceAction);
