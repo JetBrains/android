@@ -51,7 +51,8 @@ private fun SourceLocation.toNavigatable(project: Project): Navigatable? {
   return PsiNavigationSupport.getInstance().createNavigatable(
     project,
     sourceLocationWithVirtualFile.virtualFile,
-    psiFile.getLineStartOffset(sourceLocationWithVirtualFile.lineNumber) ?: 0)
+    // PsiFile.getLineStartOffset is 0 based, while the source information is 1 based so subtract 1
+    psiFile.getLineStartOffset(sourceLocationWithVirtualFile.lineNumber - 1) ?: 0)
 }
 
 /**
