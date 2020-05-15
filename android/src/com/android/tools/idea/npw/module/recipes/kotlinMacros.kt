@@ -23,7 +23,6 @@ const val stdlibBaseArtifact = "org.jetbrains.kotlin:kotlin-stdlib"
 
 fun RecipeExecutor.addKotlinPlugins()  {
   applyPlugin("kotlin-android")
-  applyPlugin("kotlin-android-extensions")
 }
 
 fun RecipeExecutor.addKotlinDependencies(androidX: Boolean) {
