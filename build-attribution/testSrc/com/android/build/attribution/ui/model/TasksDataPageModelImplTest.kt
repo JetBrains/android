@@ -249,10 +249,10 @@ class TasksDataPageModelImplTest {
 
   @Test
   fun testTreeHeaderWithoutWarnings() {
-    assertThat(model.treeHeaderText).isEqualTo("Tasks determining build duration - 15.000 s")
+    assertThat(model.treeHeaderText).isEqualTo("Tasks determining build duration - 15.0s")
 
     model.selectGrouping(Grouping.BY_PLUGIN)
-    assertThat(model.treeHeaderText).isEqualTo("Plugins with tasks determining build duration - 15.000 s")
+    assertThat(model.treeHeaderText).isEqualTo("Plugins with tasks determining build duration - 15.0s")
 
   }
 
@@ -271,10 +271,10 @@ class TasksDataPageModelImplTest {
     val model = TasksDataPageModelImpl(mockData)
 
     // Assert
-    assertThat(model.treeHeaderText).isEqualTo("Tasks determining build duration - 15.000 s - 2 Warnings")
+    assertThat(model.treeHeaderText).isEqualTo("Tasks determining build duration - 15.0s - 2 Warnings")
 
     model.selectGrouping(Grouping.BY_PLUGIN)
-    assertThat(model.treeHeaderText).isEqualTo("Plugins with tasks determining build duration - 15.000 s - 2 Warnings")
+    assertThat(model.treeHeaderText).isEqualTo("Plugins with tasks determining build duration - 15.0s - 2 Warnings")
   }
 
   private fun TasksDataPageModel.print(): String {
