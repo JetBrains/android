@@ -32,5 +32,6 @@
     <orderEntry type="module" module-name="intellij.junit" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
+    <orderEntry type="module" module-name="intellij.gradle.common" />
   </component>
 </module>
