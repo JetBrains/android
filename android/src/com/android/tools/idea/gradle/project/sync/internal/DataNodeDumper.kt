@@ -117,7 +117,6 @@ fun NdkVariant.format(): String = """{
 @Suppress("DEPRECATION")
 fun AndroidModuleModel.format(): String = "\n" + """
     androidProject = ${androidProject.format()}
-    selectedMainCompileDependencies = ${selectedMainCompileDependencies.format()}
     selectedMainCompileLevel2Dependencies = ${selectedMainCompileLevel2Dependencies.format()}
     selectedAndroidTestCompileDependencies = ${selectedAndroidTestCompileDependencies?.format()}
     features = ${features.format()}
