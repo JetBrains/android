@@ -590,6 +590,6 @@ public class ViewLoader {
    * Returns true if this ViewLoaded has loaded the given class.
    */
   public boolean hasLoadedClass(@NotNull String classFqn) {
-    return myLoadedClasses.containsKey(classFqn);
+    return myModuleClassLoader != null && myModuleClassLoader.isClassLoaded(classFqn);
   }
 }
