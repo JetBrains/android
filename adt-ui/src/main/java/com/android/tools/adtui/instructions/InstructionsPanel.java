@@ -140,9 +140,7 @@ public class InstructionsPanel extends JPanel {
     @Nullable private RenderInstruction myFocusInstruction;
 
     public InstructionsComponent(@NotNull Builder builder) {
-      if (builder.myMode == Mode.FILL_PANEL) {
-        setBackground(null);
-      }
+      setBackground(builder.myMode == Mode.FLOATING ? builder.myBackgroundColor : null);
 
       myEaseOutModel = builder.myEaseOutModel;
       myHorizontalPadding = builder.myHorizontalPadding;
@@ -281,7 +279,7 @@ public class InstructionsPanel extends JPanel {
       // Draw the background round rectangle for the instruction panel.
       Color background = isBackgroundSet() ? getBackground() : null;
       if (background != null) {
-        g2d.setColor(getBackground());
+        g2d.setColor(background);
         Dimension size = getPreferredSize();
         g2d.fillRoundRect(0, 0, size.width, size.height, myArcWidth, myArcHeight);
       }
