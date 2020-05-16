@@ -72,8 +72,6 @@ class LightDirectionsClass(facet: AndroidFacet,
   }
 
   private fun computeMethods(): Array<PsiMethod> {
-    if (destination.actions.isEmpty()) return emptyArray()
-
     val navDirectionsType = parsePsiType(modulePackage, "androidx.navigation.NavDirections", null, this)
     return destination.actions
       .mapNotNull { action ->
