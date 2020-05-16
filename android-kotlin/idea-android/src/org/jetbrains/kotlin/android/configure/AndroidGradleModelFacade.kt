@@ -38,9 +38,8 @@ class AndroidGradleModelFacade : KotlinGradleModelFacade {
             return findModulesByNames(moduleNames, gradleIdeaProject, ideProject)
         }
         ExternalSystemApiUtil.find(ideModule, AndroidProjectKeys.ANDROID_MODEL)?.let { androidModel ->
-            val libraries = androidModel.data.mainArtifact.dependencies.javaLibraries
-            val projects = androidModel.data.mainArtifact.dependencies.projects
-            val projectIds = libraries.mapNotNull { it.projectSafe } + projects
+            val modules = androidModel.data.mainArtifact.level2Dependencies.moduleDependencies
+            val projectIds = modules.mapNotNull { it.projectPath }
             return projectIds.mapNotNullTo(LinkedHashSet()) { projectId ->
                 ExternalSystemApiUtil.findFirstRecursively(ideProject) {
                     (it.data as? ModuleData)?.id == projectId
@@ -51,11 +50,3 @@ class AndroidGradleModelFacade : KotlinGradleModelFacade {
         return emptyList()
     }
 }
-
-// com.android.builder.model.Library.getProject() is not present in 2.1.0
-private val Library.projectSafe: String?
-        get() = try {
-           project
-        } catch(e: UnsupportedMethodException) {
-          null
-        }
