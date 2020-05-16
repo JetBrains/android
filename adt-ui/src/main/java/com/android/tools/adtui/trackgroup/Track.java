@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.MouseEventHandler;
+import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
@@ -41,16 +41,17 @@ public class Track {
   /**
    * The first column displays the title header. The second column displays the track content.
    */
-  private static final int DEFAULT_TITLE_COL_PX = 150;
+  static final int DEFAULT_TITLE_COL_PX = 150;
   public static final String COL_SIZES = DEFAULT_TITLE_COL_PX + "px,*";
 
   /**
-   * Number of pixels of the border when the track is selected. Also used for mouse position offset.
+   * Number of pixels of the border when the track is selected.
    */
   private static final int SELECTION_BORDER_PX = 2;
 
   private static final Icon COLLAPSE_ICON = AllIcons.General.ArrowRight;
   private static final Icon EXPAND_ICON = AllIcons.General.ArrowDown;
+  static final Icon REORDER_ICON = StudioIcons.Common.REORDER;
   private static final Border TITLE_BORDER_DEFAULT = JBUI.Borders.merge(
     JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 0, 0, 1),
     JBUI.Borders.empty(SELECTION_BORDER_PX, SELECTION_BORDER_PX, SELECTION_BORDER_PX, 0),
@@ -72,9 +73,16 @@ public class Track {
 
   private Track(@NotNull TrackModel trackModel, @NotNull JComponent trackContent) {
     myTrackContent = trackContent;
+
+    // Icon for reordering tracks via drag-n-drop.
+    JLabel recorderIconLabel = new JLabel(REORDER_ICON);
+    recorderIconLabel.setVerticalAlignment(SwingConstants.TOP);
+    recorderIconLabel.setBorder(JBUI.Borders.emptyTop(4));
+
     myTitleLabel = new JLabel(trackModel.getTitle());
     myTitleLabel.setVerticalAlignment(SwingConstants.TOP);
     myTitleLabel.setToolTipText(trackModel.getTitleTooltip());
+    myTitleLabel.setIconTextGap(0);
     if (trackModel.isCollapsible()) {
       myTitleLabel.setIcon(trackModel.isCollapsed() ? COLLAPSE_ICON : EXPAND_ICON);
       myTitleLabel.addMouseListener(new MouseAdapter() {
@@ -82,7 +90,7 @@ public class Track {
         public void mousePressed(MouseEvent e) {
           // Get the icon's bounding box relative to the label.
           Rectangle iconRect = new Rectangle(myTitleLabel.getInsets().left, myTitleLabel.getInsets().top,
-                                             getTitleLabel().getIcon().getIconWidth(), myTitleLabel.getIcon().getIconHeight());
+                                             myTitleLabel.getIcon().getIconWidth(), myTitleLabel.getIcon().getIconHeight());
           // Single-clicking the icon or doubling-clicking the label should expand/collapse the track.
           if (iconRect.contains(e.getPoint()) || e.getClickCount() == 2) {
             trackModel.setCollapsed(!trackModel.isCollapsed());
@@ -91,12 +99,13 @@ public class Track {
         }
       });
     }
-    int iconOffset = myTitleLabel.getIcon() == null ? 0 : myTitleLabel.getIcon().getIconWidth() + myTitleLabel.getIconTextGap();
-    myTitleLabel.setBorder(JBUI.Borders.empty(4, 34 - iconOffset, 4, 0));
+    int leftPadding = myTitleLabel.getIcon() != null ? 2 : COLLAPSE_ICON.getIconWidth() + myTitleLabel.getIconTextGap() + 2;
+    myTitleLabel.setBorder(JBUI.Borders.empty(4, leftPadding, 4, 0));
 
     // Front panel has a dynamic background color based on selection state.
     myTitleFrontPanel = new JPanel(new BorderLayout());
-    myTitleFrontPanel.add(myTitleLabel);
+    myTitleFrontPanel.add(recorderIconLabel, BorderLayout.WEST);
+    myTitleFrontPanel.add(myTitleLabel, BorderLayout.CENTER);
 
     // Back panel has a static background color but its border color changes based on selection state.
     // Note the border has to be applied to this back panel, otherwise it will be completely covered by the front panel and Swing will
@@ -108,21 +117,10 @@ public class Track {
     myComponent = new JPanel(new TabularLayout(COL_SIZES, "Fit"));
     if (trackModel.getHideHeader()) {
       myComponent.add(trackContent, new TabularLayout.Constraint(0, 0, 2));
-      MouseAdapter adapter = new TrackMouseEventHandler(trackContent, 0, -SELECTION_BORDER_PX);
-      myComponent.addMouseListener(adapter);
-      myComponent.addMouseMotionListener(adapter);
     }
     else {
       myComponent.add(myTitleBackPanel, new TabularLayout.Constraint(0, 0));
       myComponent.add(trackContent, new TabularLayout.Constraint(0, 1));
-      // Forward mouse event to the title column.
-      MouseAdapter titleAdapter = new TrackMouseEventHandler(myTitleLabel, 0, -SELECTION_BORDER_PX);
-      myComponent.addMouseListener(titleAdapter);
-      myComponent.addMouseMotionListener(titleAdapter);
-      // Offsets mouse event using width of the title column.
-      MouseAdapter adapter = new TrackMouseEventHandler(trackContent, -DEFAULT_TITLE_COL_PX, -SELECTION_BORDER_PX);
-      myComponent.addMouseListener(adapter);
-      myComponent.addMouseMotionListener(adapter);
     }
   }
 
@@ -175,26 +173,5 @@ public class Track {
   @NotNull
   JPanel getTitleFrontPanel() {
     return myTitleFrontPanel;
-  }
-
-  /**
-   * Mouse adapter for dispatching mouse events to the track content. Translates the mouse point using provided offsets.
-   */
-  private static class TrackMouseEventHandler extends MouseEventHandler {
-    @NotNull private final JComponent myTrackContent;
-    private final int myXOffset;
-    private final int myYOffset;
-
-    TrackMouseEventHandler(@NotNull JComponent trackContent, int XOffset, int yOffset) {
-      myTrackContent = trackContent;
-      myXOffset = XOffset;
-      myYOffset = yOffset;
-    }
-
-    @Override
-    protected void handle(MouseEvent event) {
-      event.translatePoint(myXOffset, myYOffset);
-      myTrackContent.dispatchEvent(event);
-    }
   }
 }
