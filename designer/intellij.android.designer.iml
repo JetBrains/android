@@ -48,5 +48,6 @@
     <orderEntry type="module" module-name="intellij.lint" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
     <orderEntry type="library" name="jaxb-api" level="project" />
+    <orderEntry type="library" name="Trove4j" level="project" />
   </component>
 </module>
