@@ -159,7 +159,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
     val argClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
 
     argClass.methods.let { methods ->
-      assertThat(methods.size).isEqualTo(2)
+      assertThat(methods.size).isEqualTo(3)
       methods[0].checkSignaturesAndReturnType(
         name = "getArg1",
         returnType = defaultValueTypeMapping.inferredTypeStr
@@ -171,6 +171,11 @@ class LightArgsAndBuilderClassInferredTypeTest(
         parameters = listOf(
           Parameter("bundle", "Bundle")
         )
+      )
+
+      methods[2].checkSignaturesAndReturnType(
+        name = "toBundle",
+        returnType = "Bundle"
       )
     }
   }

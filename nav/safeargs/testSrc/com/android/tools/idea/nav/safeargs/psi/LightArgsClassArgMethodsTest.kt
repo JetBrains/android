@@ -87,7 +87,7 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
     val argClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
 
     argClass.methods.let { methods ->
-      assertThat(methods.size).isEqualTo(3)
+      assertThat(methods.size).isEqualTo(4)
       methods[0].checkSignaturesAndReturnType(
         name = "getArg1",
         returnType = typeMapping.after
@@ -104,6 +104,11 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
         parameters = listOf(
           Parameter("bundle", "Bundle")
         )
+      )
+
+      methods[3].checkSignaturesAndReturnType(
+        name = "toBundle",
+        returnType = "Bundle"
       )
     }
   }
