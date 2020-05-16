@@ -169,17 +169,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   /**
-   * @deprecated Use {@link #getSelectedMainCompileLevel2Dependencies()}
-   */
-  @SuppressWarnings("DeprecatedIsStillUsed")
-  @Deprecated
-  @NotNull
-  public Dependencies getSelectedMainCompileDependencies() {
-    AndroidArtifact mainArtifact = getMainArtifact();
-    return mainArtifact.getDependencies();
-  }
-
-  /**
    * @return Instance of {@link IdeDependencies} from main artifact.
    */
   @NotNull
