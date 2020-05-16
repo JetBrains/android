@@ -84,15 +84,6 @@ class ShortNamesCacheTestMultiJavaModules {
       "com.example.myapplication.SecondFragmentDirections"
     )
 
-    assertThat(cache.getContents("NavGraphDirections", fixture.project)).containsExactly(
-      "com.example.myapplication.NavGraphDirections"
-    )
-
-    assertThat(cache.getContents("LibnavGraphDirections", fixture.project)).containsExactly(
-      "com.example.mylibrary2.LibnavGraphDirections"
-    )
-
-
     // Check light builder classes
     assertThat(cache.getContents("Builder", fixture.project)).containsAllOf(
       "com.example.myapplication.FirstFragmentArgs.Builder",

@@ -11,5 +11,9 @@
         <argument
             android:name="arg1"
             app:argType="integer" />
+
+      <action
+          android:id="@+id/action_FirstFragment_to_libnav_graph"
+          app:destination="@id/libnav_graph" />
     </fragment>
 </navigation>
