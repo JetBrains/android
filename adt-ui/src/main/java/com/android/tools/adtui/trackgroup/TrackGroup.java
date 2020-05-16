@@ -65,6 +65,12 @@ public class TrackGroup extends AspectObserver {
   private static final Font TITLE_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(5f);
   private static final String TOGGLE_EXPAND_COLLAPSE_TRACK_KEY = "TOGGLE_EXPAND_COLLAPSE_KEY";
 
+  /**
+   * A column sizing that takes the reorder icon into account to allow mouse events to pass through.
+   */
+  private static final String COL_SIZES =
+    Track.REORDER_ICON.getIconWidth() + "px," + (Track.DEFAULT_TITLE_COL_PX - Track.REORDER_ICON.getIconWidth()) + "px,*";
+
   private final TrackGroupModel myModel;
 
   private final JPanel myComponent;
@@ -158,18 +164,25 @@ public class TrackGroup extends AspectObserver {
     myTrackTitleOverlay.addMouseListener(trackTitleMouseEventHandler);
     myTrackTitleOverlay.addMouseMotionListener(trackTitleMouseEventHandler);
 
-    myComponent = new JPanel(new TabularLayout(Track.COL_SIZES, "Fit,Fit"));
+    myComponent = new JPanel(new TabularLayout(COL_SIZES));
     if (groupModel.getRangeSelectionModel() != null) {
       BoxSelectionComponent boxSelection = new BoxSelectionComponent(groupModel.getRangeSelectionModel(), myTrackList);
       DelegateMouseEventHandler.delegateTo(myOverlay)
         .installListenerOn(boxSelection)
         .installMotionListenerOn(boxSelection);
-      myComponent.add(boxSelection, new TabularLayout.Constraint(1, 1));
+      myComponent.add(boxSelection, new TabularLayout.Constraint(1, 2));
     }
-    myComponent.add(myTrackTitleOverlay, new TabularLayout.Constraint(1, 0));
-    myComponent.add(myOverlay, new TabularLayout.Constraint(1, 1));
-    myComponent.add(titlePanel, new TabularLayout.Constraint(0, 0, 1, 2));
-    myComponent.add(myTrackList, new TabularLayout.Constraint(1, 0, 1, 2));
+    // +-----------------------------+
+    // |title panel                  |
+    // |-+-------------+-------------+
+    // |=|>track title |track content|
+    // |=|>track title |track content|
+    // |=+-------------+-------------+
+    //   |title overlay|overlay      |
+    myComponent.add(myTrackTitleOverlay, new TabularLayout.Constraint(1, 1));
+    myComponent.add(myOverlay, new TabularLayout.Constraint(1, 2));
+    myComponent.add(titlePanel, new TabularLayout.Constraint(0, 0, 1, 3));
+    myComponent.add(myTrackList, new TabularLayout.Constraint(1, 0, 1, 3));
 
     initKeyBindings(myTrackList);
   }
