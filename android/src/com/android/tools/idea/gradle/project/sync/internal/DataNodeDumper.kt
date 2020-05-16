@@ -146,7 +146,6 @@ fun AndroidModuleModel.format(): String = "\n" + """
     variantNames = ${variantNames.format()}
     javaLanguageLevel = $javaLanguageLevel
     overridesManifestPackage = ${overridesManifestPackage()}
-    extraGeneratedSourceFolderPaths = ${extraGeneratedSourceFolderPaths.format()}
     syncIssues = ${syncIssues?.format()}
     artifactForAndroidTest = ${artifactForAndroidTest?.format()}
     testExecutionStrategy = $testExecutionStrategy

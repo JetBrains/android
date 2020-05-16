@@ -94,7 +94,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull private final transient Map<String, BuildTypeContainer> myBuildTypesByName;
   @NotNull private final transient Map<String, ProductFlavorContainer> myProductFlavorsByName;
   @NotNull final transient Map<String, IdeVariant> myVariantsByName;
-  @NotNull private Set<File> myExtraGeneratedSourceFolders = new HashSet<>();
 
   @Nullable
   public static AndroidModuleModel get(@NotNull Module module) {
@@ -522,14 +521,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     }
 
     return myOverridesManifestPackage.booleanValue();
-  }
-
-  /**
-   * @return the paths of generated sources placed at the wrong location (not in ${build}/generated.)
-   */
-  @NotNull
-  public File[] getExtraGeneratedSourceFolderPaths() {
-    return myExtraGeneratedSourceFolders.toArray(new File[0]);
   }
 
   @Nullable
