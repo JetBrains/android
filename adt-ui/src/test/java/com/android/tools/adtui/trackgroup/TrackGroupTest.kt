@@ -192,5 +192,14 @@ class TrackGroupTest {
     boxUi.mouse.drag(0, 0, 100, 10)
     assertThat(rangeSelectionModel.selectionRange.isEmpty).isFalse()
     assertThat(trackGroup.trackList.selectedIndices.asList()).containsExactly(0)
+
+    // Verify box selection can be disabled.
+    boxUi.mouse.click(0, 0) // Clear selection
+    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(trackGroup.trackList.selectedIndices.asList()).isEmpty()
+    trackGroup.setEventHandlersEnabled(false)
+    boxUi.mouse.drag(0, 0, 100, 10)
+    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(trackGroup.trackList.selectedIndices.asList()).isEmpty()
   }
 }

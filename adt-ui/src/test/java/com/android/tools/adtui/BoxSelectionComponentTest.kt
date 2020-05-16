@@ -75,4 +75,14 @@ class BoxSelectionComponentTest {
     assertThat(ui.boxSelection.model.selectionRange.isEmpty).isTrue()
     assertThat(ui.jList.isSelectionEmpty).isTrue()
   }
+
+  @Test
+  fun noSelectionWhenDisabled() {
+    val ui = BoxSelectionUi()
+    val fakeUi = FakeUi(ui.boxSelection)
+    ui.boxSelection.setEventHandlersEnabled(false)
+    fakeUi.mouse.drag(0, 0, 10, 10)
+    assertThat(ui.boxSelection.model.selectionRange.isEmpty).isTrue()
+    assertThat(ui.jList.selectedValuesList).isEmpty()
+  }
 }
