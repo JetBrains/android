@@ -11,6 +11,7 @@
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="Trove4j" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
     <orderEntry type="module" module-name="fest-swing" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
