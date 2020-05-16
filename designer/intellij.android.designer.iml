@@ -48,5 +48,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="jaxb-api" level="project" />
+    <orderEntry type="library" name="fastutil-min" level="project" />
   </component>
 </module>
