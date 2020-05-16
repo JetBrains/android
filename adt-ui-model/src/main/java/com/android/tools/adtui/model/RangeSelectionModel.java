@@ -253,6 +253,10 @@ public class RangeSelectionModel extends AspectModel<RangeSelectionModel.Aspect>
     mySelectionEnabled = enabled;
   }
 
+  public boolean isSelectionEnabled() {
+    return mySelectionEnabled;
+  }
+
   /**
    * Container class to return the result of {@link #getConstrainedRange(Range)}
    */

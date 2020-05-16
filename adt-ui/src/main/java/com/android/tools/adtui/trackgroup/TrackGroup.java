@@ -85,6 +85,11 @@ public class TrackGroup extends AspectObserver {
   private final Map<Integer, Track> myTrackMap;
   private final AspectObserver myObserver = new AspectObserver();
 
+  @Nullable
+  private final BoxSelectionComponent myBoxSelectionComponent;
+
+  private boolean myIsEnabled = true;
+
   /**
    * @param groupModel      {@link TrackGroup} data model
    * @param rendererFactory factory for instantiating {@link TrackRenderer}s
@@ -166,11 +171,14 @@ public class TrackGroup extends AspectObserver {
 
     myComponent = new JPanel(new TabularLayout(COL_SIZES));
     if (groupModel.getRangeSelectionModel() != null) {
-      BoxSelectionComponent boxSelection = new BoxSelectionComponent(groupModel.getRangeSelectionModel(), myTrackList);
+      myBoxSelectionComponent = new BoxSelectionComponent(groupModel.getRangeSelectionModel(), myTrackList);
       DelegateMouseEventHandler.delegateTo(myOverlay)
-        .installListenerOn(boxSelection)
-        .installMotionListenerOn(boxSelection);
-      myComponent.add(boxSelection, new TabularLayout.Constraint(1, 2));
+        .installListenerOn(myBoxSelectionComponent)
+        .installMotionListenerOn(myBoxSelectionComponent);
+      myComponent.add(myBoxSelectionComponent, new TabularLayout.Constraint(1, 2));
+    }
+    else {
+      myBoxSelectionComponent = null;
     }
     // +-----------------------------+
     // |title panel                  |
@@ -258,6 +266,18 @@ public class TrackGroup extends AspectObserver {
     return myTrackMap;
   }
 
+  /**
+   * Enable/disable mouse event handlers.
+   */
+  public void setEventHandlersEnabled(boolean enabled) {
+    myIsEnabled = enabled;
+    myTrackList.setEnabled(enabled);
+    myTrackList.setDragEnabled(enabled);
+    if (myBoxSelectionComponent != null) {
+      myBoxSelectionComponent.setEventHandlersEnabled(enabled);
+    }
+  }
+
   private void initShowMoreDropdown() {
     myActionsDropdown.getAction().clear();
 
@@ -331,6 +351,12 @@ public class TrackGroup extends AspectObserver {
 
     @Override
     protected void handle(MouseEvent event) {
+      if (!myIsEnabled) {
+        // Dispatch event to the root component so that it can forward to the parent component.
+        myComponent.dispatchEvent(event);
+        return;
+      }
+
       int oldTrackIndex = myTrackIndex;
       myTrackIndex = myTrackList.locationToIndex(event.getPoint());
 
