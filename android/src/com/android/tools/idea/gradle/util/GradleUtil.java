@@ -665,35 +665,6 @@ public final class GradleUtil {
   }
 
   /**
-   * Same as {@link #dependsOn(AndroidModuleModel, String)} but searches the list of Java Libraries
-   */
-  public static boolean dependsOnJavaLibrary(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    IdeDependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
-    for (Library library : dependencies.getJavaLibraries()) {
-      if (dependsOn(library, artifact)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Returns {@code true} if the androidTest artifact of the given Android model depends on the given artifact, which consists of a group id
-   * and an artifact id, such as {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
-   *
-   * @param androidModel the Android model to check
-   * @param artifact     the artifact
-   * @return {@code true} if the project depends on the given artifact (including transitively)
-   */
-  public static boolean dependsOnAndroidTest(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    IdeDependencies dependencies = androidModel.getSelectedAndroidTestCompileDependencies();
-    if (dependencies == null) {
-      return false;
-    }
-    return dependsOnAndroidLibrary(dependencies, artifact);
-  }
-
-  /**
    * Returns {@code true} if the given dependencies include the given artifact, which consists of a group id and an artifact id, such as
    * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
@@ -784,32 +755,6 @@ public final class GradleUtil {
       return null;
     }
     return new File(homePath, join(DOT_GRADLE, FN_GRADLE_PROPERTIES));
-  }
-
-  public static void setBuildToolsVersion(@NotNull Project project, @NotNull String version) {
-    List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
-
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        GradleBuildModel buildModel = GradleBuildModel.get(module);
-        if (buildModel != null) {
-          AndroidModel android = buildModel.android();
-          if (!version.equals(android.buildToolsVersion().toString())) {
-            android.buildToolsVersion().setValue(version);
-            modelsToUpdate.add(buildModel);
-          }
-        }
-      }
-    }
-
-    if (!modelsToUpdate.isEmpty()) {
-      runWriteCommandAction(project, () -> {
-        for (GradleBuildModel buildModel : modelsToUpdate) {
-          buildModel.applyChanges();
-        }
-      });
-    }
   }
 
   /**

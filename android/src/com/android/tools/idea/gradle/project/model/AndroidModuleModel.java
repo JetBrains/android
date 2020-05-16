@@ -525,15 +525,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   /**
-   * Registers the path of a source folder that has been incorrectly generated outside of the default location (${buildDir}/generated.)
-   *
-   * @param folderPath the path of the generated source folder.
-   */
-  public void registerExtraGeneratedSourceFolder(@NotNull File folderPath) {
-    myExtraGeneratedSourceFolders.add(folderPath);
-  }
-
-  /**
    * @return the paths of generated sources placed at the wrong location (not in ${build}/generated.)
    */
   @NotNull
