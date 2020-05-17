@@ -27,6 +27,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -76,6 +77,13 @@ public class Device {
 
   @NotNull
   public List<Client> findClientWithApplicationId(@NotNull String applicationId) {
+    // TODO(b/158006623) replace this once we fix the bug
+    // Prevent querying thread from stalling due to blocking getVersion call.
+    if (!myIDevice.getSystemProperty(IDevice.PROP_BUILD_API_LEVEL).isDone() ||
+        !myIDevice.getSystemProperty(IDevice.PROP_BUILD_CODENAME).isDone()) {
+      return Collections.emptyList();
+    }
+
     if (myIDevice.supportsFeature(IDevice.Feature.REAL_PKG_NAME)) {
       // If the device supports reporting the real package name, then just use that directly.
       return Arrays.stream(myIDevice.getClients()).filter(client -> applicationId.equals(client.getClientData().getPackageName()))
