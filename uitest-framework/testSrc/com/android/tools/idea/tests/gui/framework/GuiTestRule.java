@@ -163,6 +163,7 @@ public class GuiTestRule implements TestRule {
       return new Statement() {
         @Override
         public void evaluate() throws Throwable {
+          restartIdeIfLostProgressIndicators();
           if (!TestUtils.runningFromBazel()) {
             restartIdeIfWelcomeFrameNotShowing();
           }
@@ -199,6 +200,14 @@ public class GuiTestRule implements TestRule {
       welcomeFrameNotShowing = true;
     }
     if (welcomeFrameNotShowing || GuiTests.windowsShowing().size() != 1) {
+      GuiTestThread.Companion.getClient().send(new RestartIdeMessage());
+    }
+  }
+
+  private void restartIdeIfLostProgressIndicators() {
+    String indicators = GuiTests.progressIndicators();
+    if (!indicators.isEmpty()) {
+      System.out.println("Restarting IDEA due to lost progress indicators: " + indicators);
       GuiTestThread.Companion.getClient().send(new RestartIdeMessage());
     }
   }

@@ -653,13 +653,19 @@ public final class GuiTests {
     }
   }
 
-  private static String progressIndicators() {
+  public static String progressIndicators() {
+    Collection<ProgressIndicator> progressIndicators = getIndicatorsCollection();
+    return progressIndicators.stream()
+      .map(it -> nullToEmpty(it.getText()))
+      .collect(Collectors.joining(","));
+  }
+
+  @NotNull
+  private static Collection<ProgressIndicator> getIndicatorsCollection() {
     try {
       Field field = CoreProgressManager.class.getDeclaredField("currentIndicators");
       field.setAccessible(true);
-      return ((ConcurrentLongObjectMap<ProgressIndicator>)field.get(null)).values().stream()
-        .map(it -> nullToEmpty(it.getText()))
-        .collect(Collectors.joining(","));
+      return ((ConcurrentLongObjectMap<ProgressIndicator>)field.get(null)).values();
     }
     catch (NoSuchFieldException | IllegalAccessException ex) {
       throw new RuntimeException("Failure retrieving CoreProgressManager.currentIndicators", ex);
