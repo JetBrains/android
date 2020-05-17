@@ -230,7 +230,7 @@ object GuiTestLauncher {
       @Suppress("UNCHECKED_CAST")
       val urlsListOrArray = getUrlsMethod.invoke(classLoader)
       var urls = (urlsListOrArray as? List<*> ?: (urlsListOrArray as Array<*>).toList()).filterIsInstance(URL::class.java)
-      return urls.map { Paths.get(it.toURI()).toFile() }
+      return urls.filter { !it.toString().contains("android.core.tests") }.map { Paths.get(it.toURI()).toFile() }
     } else {
       // under JDK 11, when run from the IDE, the ClassLoader in question here will be ClassLoaders$AppClassLoader.
       // Fortunately, under these circumstances, java.class.path has everything we need.
