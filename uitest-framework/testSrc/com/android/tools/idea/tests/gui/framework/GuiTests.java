@@ -690,6 +690,6 @@ public final class GuiTests {
   public static void waitForProjectIndexingToFinish(@NotNull Project project) {
     // Bazel wipes all Android Studio Caches between tests and all JDK and Android SDK libraries are re-indexed (about 50K files)
     // Usually this take 20-30 secs, but depends heavily on the machine and its load
-    waitForProjectIndexingToFinish(project, Wait.seconds(120));
+    waitForProjectIndexingToFinish(project, Wait.seconds(240));
   }
 }
