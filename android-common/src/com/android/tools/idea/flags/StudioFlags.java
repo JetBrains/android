@@ -299,19 +299,14 @@ public final class StudioFlags {
     true);
 
   public static final Flag<Boolean> NELE_VISUALIZATION = Flag.create(
-    NELE, "visualisation", "Layout Visualisation Tool",
-    "Enable Visualisation Tool to preview layout in multiple devices at the same time",
+    NELE, "visualisation", "Layout Validation Tool",
+    "Enable Layout Validation Tool to preview layout in multiple configurations at the same time",
     true);
 
-  public static final Flag<Boolean> NELE_COLOR_BLIND_MODE = Flag.create(
-    NELE, "color.blind.mode", "Color Blind Mode",
-    "Enable Visualisation Tool to preview layouts in multiple color blind modes at the same time",
-    true);
-
-  public static final Flag<Boolean> NELE_LARGE_FONT_MODE = Flag.create(
-    NELE, "large.font.mode", "Large Font Mode",
-    "Enable Visualisation Tool to preview layouts in multiple font sizes at the same time",
-    true);
+  public static final Flag<Boolean> NELE_VISUALIZATION_LOCALE_MODE = Flag.create(
+    NELE, "visualization.locale", "Locale Mode in Layout Validation Tool",
+    "Enable locale mode in Layout Validation Tool to preview layout in project's locales",
+    false);
 
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",

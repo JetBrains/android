@@ -39,26 +39,24 @@ class ConfigurationSetMenuActionTest : AndroidTestCase() {
   }
 
   fun testActions() {
-    val menuAction = ConfigurationSetMenuAction(form, ConfigurationSet.PIXEL_DEVICES)
+    val firstOption = ConfigurationSetMenuAction.MENU_GROUPS.firstOrNull()?.firstOrNull() ?: return
+    val menuAction = ConfigurationSetMenuAction(form, firstOption)
     // Call update(AnActionEvent) for updating text of menuAction.
     menuAction.update(createTestActionEvent(menuAction, dataContext = Mockito.mock<DataContext>(DataContext::class.java)))
 
     val actual = prettyPrintActions(menuAction)
     // The displayed text of dropdown action is the current selected option, which is Pixel Devices in this case.
-    val builder = StringBuilder("Pixel Devices\n") // The current selection of dropdown action
-    // The options in dropdown menu have 4 spaces as indent
-    builder.append("    ${ConfigurationSet.PIXEL_DEVICES.title}\n")
-    builder.append("    ${ConfigurationSet.PROJECT_LOCALES.title}\n")
-    builder.append("    $SEPARATOR_TEXT\n")
-    builder.append("    ${ConfigurationSet.CUSTOM.title}\n")
-    if (ConfigurationSet.COLOR_BLIND_MODE.visible || ConfigurationSet.LARGE_FONT.visible) {
-      builder.append("    $SEPARATOR_TEXT\n")
-      if (ConfigurationSet.COLOR_BLIND_MODE.visible) {
-        builder.append("    ${ConfigurationSet.COLOR_BLIND_MODE.title}\n")
+    val builder = StringBuilder("${firstOption.title}\n") // The current selection of dropdown action
+
+    // Note: The options in dropdown menu have 4 spaces as indent.
+    var isPreviousGroupEmpty = true
+    for (group in ConfigurationSetMenuAction.MENU_GROUPS) {
+      if (!isPreviousGroupEmpty) {
+        builder.append("    $SEPARATOR_TEXT\n")
       }
-      if (ConfigurationSet.LARGE_FONT.visible) {
-        builder.append("    ${ConfigurationSet.LARGE_FONT.title}\n")
-      }
+      val groupItems = group.filter { it.visible }
+      groupItems.forEach { builder.append("    ${it.title}\n") }
+      isPreviousGroupEmpty = groupItems.isEmpty()
     }
 
     val expected = builder.toString()
