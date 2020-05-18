@@ -167,6 +167,7 @@ public class StudioIcons {
     public static final Icon ROTATE_LEFT = load("/studio/icons/emulator/rotate-left.svg"); // 16x16
     public static final Icon ROTATE_RIGHT = load("/studio/icons/emulator/rotate-right.svg"); // 16x16
     public static final Icon SCREENSHOT = load("/studio/icons/emulator/screenshot.svg"); // 16x16
+    public static final Icon SNAPSHOTS = load("/studio/icons/emulator/snapshots.svg"); // 16x16
     public static final Icon VOLUME_DOWN = load("/studio/icons/emulator/volume-down.svg"); // 16x16
     public static final Icon VOLUME_UP = load("/studio/icons/emulator/volume-up.svg"); // 16x16
   }

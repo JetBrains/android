@@ -339,6 +339,7 @@ class EmulatorView(
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {
       displayImage = null
+      hideLongRunningOperationIndicator()
       disconnectedStateLabel.text = "Disconnected from the Emulator"
       add(disconnectedStateLabel)
     }
@@ -433,6 +434,17 @@ class EmulatorView(
   }
 
   override fun componentMoved(event: ComponentEvent) {
+  }
+
+  fun showLongRunningOperationIndicator(text: String) {
+    findLoadingPanel()?.apply {
+      setLoadingText(text)
+      startLoading()
+    }
+  }
+
+  fun hideLongRunningOperationIndicator() {
+    findLoadingPanel()?.stopLoading()
   }
 
   private inner class ScreenshotReceiver(val displayShape: DisplayShape) : DummyStreamObserver<ImageMessage>() {
