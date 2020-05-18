@@ -40,8 +40,6 @@ import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandle
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.PreviewElement
-import com.android.tools.idea.compose.preview.util.PreviewElementTemplateInstanceProvider
-import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.modelAffinity
@@ -197,19 +195,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                                                         ModificationTracker {
                                                                           psiFilePointer.element?.modificationStamp ?: -1
                                                                         })
-
-  /**
-   * Filter to be applied for the preview to display a single [PreviewElement]. Used in interactive mode to focus on a
-   * single element.
-   */
-  private val singleElementFilteredProvider = SinglePreviewElementInstanceFilteredPreviewProvider(memoizedElementsProvider)
-
-  /**
-   * Filter to be applied for the group filtering. This allows multiple [PreviewElement]s belonging to the same group
-   */
-  private val groupNameFilteredProvider = GroupNameFilteredPreviewProvider(singleElementFilteredProvider)
-  private val previewProviderWithFiltersApplied: PreviewElementProvider = groupNameFilteredProvider
-  private val instantiatedElementProvider = PreviewElementTemplateInstanceProvider(previewProvider)
+  private val previewElementProvider = PreviewFilters(memoizedElementsProvider)
 
   /**
    * A [UniqueTaskCoroutineLauncher] used to run the image rendering. This ensures that only one image rendering is running at time.
@@ -219,14 +205,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var groupFilter: PreviewGroup by Delegates.observable(ALL_PREVIEW_GROUP) { _, oldValue, newValue ->
     if (oldValue != newValue) {
       LOG.debug("New group preview element selection: $newValue")
-      this.groupNameFilteredProvider.groupName = newValue.name
+      previewElementProvider.groupNameFilter = newValue
       // Force refresh to ensure the new preview elements are picked up
       forceRefresh()
     }
   }
-  override val availableGroups: Set<PreviewGroup> get() = groupNameFilteredProvider.availableGroups.map {
-    PreviewGroup.namedGroup(it)
-  }.toSet()
+  override val availableGroups: Set<PreviewGroup> get() = previewElementProvider.availableGroups
 
   private enum class InteractionMode {
     DEFAULT,
@@ -245,7 +229,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       // but we want to stop the loop first and then change the composable when disabled
       isInteractive.set(newValue != null)
       if (isInteractive.get()) { // Enable interactive
-        this.singleElementFilteredProvider.instanceId = newValue
+        previewElementProvider.instanceIdFilter = newValue
         sceneComponentProvider.enabled = false
         forceRefresh().invokeOnCompletion {
           ticker.start()
@@ -263,9 +247,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         surface.disableMouseClickDisplay()
         interactionHandler?.let { it.selected = InteractionMode.DEFAULT }
         ticker.stop()
-        this.singleElementFilteredProvider.instanceId = null
         sceneComponentProvider.enabled = true
-        this.singleElementFilteredProvider.instanceId = null
+        previewElementProvider.clearInstanceIdFilter()
         forceRefresh()
       }
     }
@@ -536,7 +519,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val existingModels = surface.models.toMutableList()
 
     // Now we generate all the models (or reuse) for the PreviewElements.
-    val models = instantiatedElementProvider
+    val models = previewElementProvider
       .previewElements
       .map {
         val xmlOutput = it.toPreviewXml()

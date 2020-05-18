@@ -33,15 +33,15 @@ class GroupNameFilteredPreviewProvider(private val delegate: PreviewElementProvi
     groupName == null || groupName == it.displaySettings.group
   }
 
-  /**
-   * Returns a [Set] with all the available groups in the source [delegate]. Only groups returned can be set on [groupName].
-   */
-  val availableGroups: Set<String>
-    get() = delegate.previewElements.mapNotNull { it.displaySettings.group }.filter { it.isNotBlank() }.toSet()
-
   override val previewElements: Sequence<PreviewElement>
     get() = filteredPreviewElementProvider.previewElements.ifEmpty { delegate.previewElements }
 }
+
+/**
+ * Returns a [Set] with all the available groups in the source [delegate]. Only groups returned can be set on [groupName].
+ */
+val PreviewElementProvider.availableGroups: Set<String>
+  get() = previewElements.mapNotNull { it.displaySettings.group }.filter { it.isNotBlank() }.toSet()
 
 /**
  *  A [PreviewElementProvider] that filters [PreviewElementInstance] by the Composable instance ID.

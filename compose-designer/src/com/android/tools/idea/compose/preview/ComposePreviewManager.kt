@@ -33,7 +33,7 @@ data class PreviewGroup private constructor(
     /**
      * [PreviewGroup] to be used when no filtering is to be applied to the preview.
      */
-    internal val ALL_PREVIEW_GROUP = PreviewGroup(
+    val ALL_PREVIEW_GROUP = PreviewGroup(
       displayName = message("group.switch.all"),
       icon = null,
       name = null
