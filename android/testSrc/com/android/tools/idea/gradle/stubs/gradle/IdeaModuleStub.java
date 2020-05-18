@@ -62,7 +62,7 @@ public class IdeaModuleStub implements IdeaModule {
 
   @Override
   public String getJdkName() throws UnsupportedMethodException {
-    throw new UnsupportedMethodException("getJdkName");
+    return "Test JDK";
   }
 
   @NotNull

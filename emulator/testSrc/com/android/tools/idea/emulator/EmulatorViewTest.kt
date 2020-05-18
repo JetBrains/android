@@ -24,6 +24,7 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -81,6 +82,7 @@ class EmulatorViewTest {
       filesOpened.add(invocation.getArgument(0))
       return@thenAnswer emptyArray<FileEditor>()
     }
+    `when`(fileEditorManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     projectRule.project.registerComponentInstance(FileEditorManager::class.java, fileEditorManager, projectRule.fixture.testRootDisposable)
   }
 
@@ -306,24 +308,8 @@ class EmulatorViewTest {
     val emulatorController = emulators.first()
     val view = EmulatorView(emulatorController, projectRule.fixture.testRootDisposable, false)
     waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getStatus" call.
+    emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
     return view
-  }
-
-  @Throws(TimeoutException::class)
-  private fun waitForCondition(timeout: Long, unit: TimeUnit, condition: () -> Boolean) {
-    val timeoutMillis = unit.toMillis(timeout)
-    val deadline = System.currentTimeMillis() + timeoutMillis
-    var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
-    while (waitUnit > 0) {
-      dispatchAllInvocationEvents()
-      if (condition()) {
-        return
-      }
-      Thread.sleep(waitUnit)
-      waitUnit = waitUnit.coerceAtMost(deadline - System.currentTimeMillis())
-    }
-    throw TimeoutException()
   }
 
   @Throws(TimeoutException::class)

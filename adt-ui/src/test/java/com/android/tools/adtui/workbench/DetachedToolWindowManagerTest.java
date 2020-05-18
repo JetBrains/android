@@ -37,7 +37,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.mockito.Mock;
 
-@org.junit.Ignore("b/155928554")
 public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   // Hack to avoid: "java.lang.Error: Cannot load com.apple.laf.AquaLookAndFeel"
   @SuppressWarnings("unused")
@@ -116,6 +115,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     myListener = myManager.getFileEditorManagerListener();
 
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[0]);
+    when(myEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
     myManager.projectOpened();
     when(myFileEditor1.getComponent()).thenReturn(new JPanel());
     when(myFileEditor2.getComponent()).thenReturn(new JPanel());

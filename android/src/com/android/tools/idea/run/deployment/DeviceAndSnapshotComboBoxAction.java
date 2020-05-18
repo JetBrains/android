@@ -15,23 +15,17 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.MultimapBuilder;
-import com.google.common.collect.Multimaps;
 import com.intellij.execution.RunManager;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -39,23 +33,17 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -303,120 +291,10 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   @Override
   protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button, @NotNull DataContext context) {
-    DefaultActionGroup group = new DefaultActionGroup();
-
     Project project = context.getData(CommonDataKeys.PROJECT);
     assert project != null;
 
-    Collection<Device> devices = getDevices(project).orElseThrow(AssertionError::new);
-
-    Collection<AnAction> actions = mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()
-                                   ? newSelectDeviceActionsIncludeSnapshots(devices)
-                                   : newSelectDeviceActions(devices);
-
-    group.addAll(actions);
-
-    if (!actions.isEmpty()) {
-      group.addSeparator();
-    }
-
-    ActionManager manager = ActionManager.getInstance();
-
-    group.add(manager.getAction(MultipleDevicesAction.ID));
-    group.add(manager.getAction(ModifyDeviceSetAction.ID));
-    group.add(manager.getAction(PairDevicesUsingWiFiAction.ID));
-    group.add(manager.getAction(RunAndroidAvdManagerAction.ID));
-
-    AnAction action = manager.getAction("DeveloperServices.ConnectionAssistant");
-
-    if (action == null) {
-      return group;
-    }
-
-    group.addSeparator();
-    group.add(action);
-
-    return group;
-  }
-
-  @NotNull
-  private Collection<AnAction> newSelectDeviceActions(@NotNull Collection<Device> devices) {
-    Map<Boolean, List<Device>> connectednessToDeviceMap = devices.stream().collect(Collectors.groupingBy(Device::isConnected));
-
-    Collection<Device> connectedDevices = connectednessToDeviceMap.getOrDefault(true, Collections.emptyList());
-    Collection<Device> disconnectedDevices = connectednessToDeviceMap.getOrDefault(false, Collections.emptyList());
-
-    boolean connectedDevicesPresent = !connectedDevices.isEmpty();
-    Collection<AnAction> actions = new ArrayList<>(connectedDevices.size() + disconnectedDevices.size() + 3);
-    ActionManager manager = ActionManager.getInstance();
-
-    if (connectedDevicesPresent) {
-      actions.add(manager.getAction(Heading.RUNNING_DEVICES_ID));
-    }
-
-    connectedDevices.stream()
-      .map(device -> SelectDeviceAction.newSelectDeviceAction(device, this))
-      .forEach(actions::add);
-
-    boolean disconnectedDevicesPresent = !disconnectedDevices.isEmpty();
-
-    if (connectedDevicesPresent && disconnectedDevicesPresent) {
-      actions.add(Separator.create());
-    }
-
-    if (disconnectedDevicesPresent) {
-      actions.add(manager.getAction(Heading.AVAILABLE_DEVICES_ID));
-    }
-
-    disconnectedDevices.stream()
-      .map(device -> SelectDeviceAction.newSelectDeviceAction(device, this))
-      .forEach(actions::add);
-
-    return actions;
-  }
-
-  @NotNull
-  private Collection<AnAction> newSelectDeviceActionsIncludeSnapshots(@NotNull Collection<Device> devices) {
-    ListMultimap<String, Device> multimap = getDeviceKeyToDeviceMultimap(devices);
-    Collection<String> deviceKeys = multimap.keySet();
-    Collection<AnAction> actions = new ArrayList<>(deviceKeys.size() + 1);
-
-    if (!deviceKeys.isEmpty()) {
-      actions.add(ActionManager.getInstance().getAction(Heading.AVAILABLE_DEVICES_ID));
-    }
-
-    deviceKeys.stream()
-      .map(multimap::get)
-      .map(this::newAction)
-      .forEach(actions::add);
-
-    return actions;
-  }
-
-  @NotNull
-  private static ListMultimap<String, Device> getDeviceKeyToDeviceMultimap(@NotNull Collection<Device> devices) {
-    // noinspection UnstableApiUsage
-    Collector<Device, ?, ListMultimap<String, Device>> collector =
-      Multimaps.toMultimap(device -> device.getKey().getDeviceKey(), device -> device, () -> buildListMultimap(devices.size()));
-
-    return devices.stream().collect(collector);
-  }
-
-  @NotNull
-  private static ListMultimap<String, Device> buildListMultimap(int expectedKeyCount) {
-    return MultimapBuilder
-      .hashKeys(expectedKeyCount)
-      .arrayListValues()
-      .build();
-  }
-
-  @NotNull
-  private AnAction newAction(@NotNull List<Device> devices) {
-    if (devices.size() == 1) {
-      return SelectDeviceAction.newSelectDeviceAction(devices.get(0), this);
-    }
-
-    return new SnapshotActionGroup(devices);
+    return new PopupActionGroup(getDevices(project).orElseThrow(AssertionError::new), this);
   }
 
   @Override

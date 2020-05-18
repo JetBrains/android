@@ -50,25 +50,19 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 public class SdkSync {
   private static final String ERROR_DIALOG_TITLE = "Sync Android SDKs";
 
-  @NotNull private final IdeSdks myIdeSdks;
-
   @NotNull
   public static SdkSync getInstance() {
     return ServiceManager.getService(SdkSync.class);
   }
 
-  public SdkSync(@NotNull IdeSdks ideSdks) {
-    myIdeSdks = ideSdks;
-  }
-
   public void syncIdeAndProjectAndroidSdks(@NotNull LocalProperties localProperties) {
-    syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(myIdeSdks), null);
+    syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(), null);
     syncIdeAndProjectAndroidNdk(localProperties);
   }
 
   public void syncIdeAndProjectAndroidSdks(@NotNull Project project) throws IOException {
     LocalProperties localProperties = new LocalProperties(project);
-    syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(myIdeSdks), project);
+    syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(), project);
     syncIdeAndProjectAndroidNdk(localProperties);
   }
 
@@ -86,7 +80,7 @@ public class SdkSync {
       return;
     }
 
-    File ideAndroidSdkPath = myIdeSdks.getAndroidSdkPath();
+    File ideAndroidSdkPath = IdeSdks.getInstance().getAndroidSdkPath();
     File projectAndroidSdkPath = localProperties.getAndroidSdkPath();
 
     if (ideAndroidSdkPath != null) {
@@ -114,7 +108,7 @@ public class SdkSync {
       }
     }
     else {
-      if (projectAndroidSdkPath == null || !myIdeSdks.isValidAndroidSdkPath(projectAndroidSdkPath)) {
+      if (projectAndroidSdkPath == null || !IdeSdks.getInstance().isValidAndroidSdkPath(projectAndroidSdkPath)) {
         // We don't have any SDK (IDE or project.)
         File selectedPath = findSdkPathTask.selectValidSdkPath();
         if (selectedPath == null) {
@@ -176,7 +170,7 @@ public class SdkSync {
       return;
     }
     File projectAndroidNdkPath = localProperties.getAndroidNdkPath();
-    File ideAndroidNdkPath = myIdeSdks.getAndroidNdkPath();
+    File ideAndroidNdkPath = IdeSdks.getInstance().getAndroidNdkPath();
 
     if (projectAndroidNdkPath != null) {
       if (!validateAndroidNdk(projectAndroidNdkPath, false).success) {
@@ -218,7 +212,7 @@ public class SdkSync {
     setProjectSdk(localProperties, projectAndroidSdkPath);
 
     GuiUtils.invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> {
-      myIdeSdks.setAndroidSdkPath(projectAndroidSdkPath, null);
+      IdeSdks.getInstance().setAndroidSdkPath(projectAndroidSdkPath, null);
     }), ModalityState.defaultModalityState());
   }
 
@@ -254,12 +248,6 @@ public class SdkSync {
 
   @VisibleForTesting
   static class FindValidSdkPathTask {
-    @NotNull private final IdeSdks myIdeSdks;
-
-    FindValidSdkPathTask(@NotNull IdeSdks ideSdks) {
-      myIdeSdks = ideSdks;
-    }
-
     @Nullable
     File selectValidSdkPath() {
       Ref<File> pathRef = new Ref<>();
@@ -267,8 +255,8 @@ public class SdkSync {
       return pathRef.get();
     }
 
-    private void findValidSdkPath(@NotNull Ref<File> pathRef) {
-      Sdk jdk = myIdeSdks.getJdk();
+    private static void findValidSdkPath(@NotNull Ref<File> pathRef) {
+      Sdk jdk = IdeSdks.getInstance().getJdk();
       String jdkPath = jdk != null ? jdk.getHomePath() : null;
       SelectSdkDialog dialog = new SelectSdkDialog(jdkPath, null);
       dialog.setModal(true);
@@ -280,7 +268,7 @@ public class SdkSync {
         return;
       }
       File path = new File(dialog.getAndroidHome());
-      if (!myIdeSdks.isValidAndroidSdkPath(path)) {
+      if (!IdeSdks.getInstance().isValidAndroidSdkPath(path)) {
         String format = "The path\n'%1$s'\ndoes not refer to a valid Android SDK. Would you like to try again?";
         if (Messages.showYesNoDialog(String.format(format, path.getPath()), ERROR_DIALOG_TITLE, null) == Messages.YES) {
           findValidSdkPath(pathRef);

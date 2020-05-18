@@ -20,7 +20,6 @@ import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,8 +73,8 @@ public interface EventRenderer<E> {
   static ImageIcon createImageIconWithBackgroundBorder(Icon icon, int margin, Color borderColor, Graphics2D g2d) {
     BufferedImage originalImage = ImageUtil.toBufferedImage(IconUtil.toImage(icon, ScaleContext.create(g2d)));
     // Border image has a bigger size to fit the extra border
-    BufferedImage borderImage = UIUtil.createImage(g2d, icon.getIconWidth() + margin * 2,icon.getIconHeight() + margin * 2,
-                                                   BufferedImage.TYPE_INT_ARGB);
+    BufferedImage borderImage =
+      ImageUtil.createImage(g2d, icon.getIconWidth() + margin * 2, icon.getIconHeight() + margin * 2, BufferedImage.TYPE_INT_ARGB);
 
     int scaledMargin = (borderImage.getHeight() - originalImage.getHeight()) / 2;
     for (int y = 0; y < originalImage.getHeight(); ++y) {

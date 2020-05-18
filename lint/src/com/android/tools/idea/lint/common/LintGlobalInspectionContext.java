@@ -36,6 +36,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -349,7 +350,8 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
             .format(Locale.US, "Created baseline file %1$s<br>%2$d issues will be filtered out", myBaseline.getFile().getName(),
                     myBaseline.getTotalCount());
         }
-        new NotificationGroup("Wrote Baseline", NotificationDisplayType.BALLOON, true)
+        new NotificationGroup(
+          "Wrote Baseline", NotificationDisplayType.BALLOON, true, null, null, null, PluginId.getId("org.jetbrains.android"))
           .createNotification(message, NotificationType.INFORMATION)
           .notify(context.getProject());
       }

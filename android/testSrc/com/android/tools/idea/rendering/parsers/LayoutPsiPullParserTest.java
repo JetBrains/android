@@ -711,7 +711,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEquals("This should end up\nbeing on two lines", parser.getAttributeValue(ANDROID_URI, "text"));
   }
 
-  public void testDisableToolsNamespace() throws XmlPullParserException {
+  public void testDisableToolsVisibilityAndPosition() throws XmlPullParserException {
     @Language("XML")
     final String content = "<androidx.constraintlayout.widget.ConstraintLayout\n" +
                            "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -735,6 +735,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
                            "        android:layout_height=\"wrap_content\"\n" +
                            "        android:layout_marginTop=\"40dp\"\n" +
                            "        tools:layout_marginTop=\"0dp\"\n" +
+                           "        tools:visibility=\"invisible\"\n" +
                            "        app:srcCompat=\"@drawable/abc\"\n" +
                            "        app:layout_constraintEnd_toEndOf=\"@+id/button\"\n" +
                            "        app:layout_constraintStart_toStartOf=\"@+id/button\"\n" +
@@ -756,9 +757,10 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("ImageView", parser.getName());
     assertNull(parser.getAttributeValue(TOOLS_URI, "layout_marginTop"));
-    assertEquals("40dp", parser.getAttributeValue(ANDROID_URI, "layout_marginTop"));
+    assertEquals("0dp", parser.getAttributeValue(ANDROID_URI, "layout_marginTop"));
+    assertNull(parser.getAttributeValue(TOOLS_URI, "visibility"));
     assertNull(parser.getAttributeValue(TOOLS_URI, "srcCompat"));
-    assertEquals("@drawable/abc", parser.getAttributeValue(AUTO_URI, "srcCompat"));
+    assertEquals("@tools:sample/avatars[0]", parser.getAttributeValue(AUTO_URI, "srcCompat"));
   }
 
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }

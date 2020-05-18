@@ -21,7 +21,6 @@ import com.android.tools.mlkit.MlNames;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -45,17 +44,56 @@ import org.jetbrains.annotations.Nullable;
  * Module level service for ML Model Binding feature.
  */
 public class MlModuleService {
-  private final Module myModule;
-  private final Map<MlModelMetadata, LightModelClass> myLightModelClassMap = new ConcurrentHashMap<>();
-  private final LightModelClassListProvider myLightModelClassListProvider;
 
   public static MlModuleService getInstance(@NotNull Module module) {
-    return Objects.requireNonNull(ModuleServiceManager.getService(module, MlModuleService.class));
+    return Objects.requireNonNull(module.getService(MlModuleService.class));
   }
+
+  private final Module myModule;
+  private final Map<MlModelMetadata, LightModelClass> myLightModelClassMap = new ConcurrentHashMap<>();
 
   public MlModuleService(@NotNull Module module) {
     myModule = module;
-    myLightModelClassListProvider = new LightModelClassListProvider(module);
+  }
+
+  /**
+   * Returns light model classes auto-generated for ML model files in this module's ml folder.
+   */
+  @NotNull
+  public List<LightModelClass> getLightModelClassList() {
+    if (!MlUtils.isMlModelBindingBuildFeatureEnabled(myModule) || DumbService.isDumb(myModule.getProject())) {
+      return Collections.emptyList();
+    }
+
+    return CachedValuesManager.getManager(myModule.getProject()).getCachedValue(myModule, () -> {
+      Set<MlModelMetadata> latestModelMetadataSet = new HashSet<>();
+      GlobalSearchScope searchScope = MlModelFilesSearchScope.inModule(myModule);
+      FileBasedIndex index = FileBasedIndex.getInstance();
+      index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
+        index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
+          latestModelMetadataSet.add(value);
+          return true;
+        }, searchScope);
+
+        return true;
+      }, searchScope, null);
+
+      // Invalidates cached light classes that no longer have model file associated.
+      List<MlModelMetadata> outdatedModelMetadataList = ContainerUtil
+        .filter(myLightModelClassMap.keySet(), modelMetadata -> !latestModelMetadataSet.contains(modelMetadata));
+      for (MlModelMetadata outdatedModelMetadata : outdatedModelMetadataList) {
+        myLightModelClassMap.remove(outdatedModelMetadata);
+      }
+
+      List<LightModelClass> lightModelClassList = new ArrayList<>();
+      for (MlModelMetadata modelMetadata : latestModelMetadataSet) {
+        LightModelClass lightModelClass = getOrCreateLightModelClass(modelMetadata);
+        if (lightModelClass != null) {
+          lightModelClassList.add(lightModelClass);
+        }
+      }
+      return CachedValueProvider.Result.create(lightModelClassList, ProjectMlModelFileTracker.getInstance(myModule.getProject()));
+    });
   }
 
   @Nullable
@@ -84,58 +122,5 @@ public class MlModuleService {
         new LightModelClassConfig(modelMetadata, packageName + MlNames.PACKAGE_SUFFIX, className);
       return new LightModelClass(myModule, modelFile, classConfig);
     });
-  }
-
-  /**
-   * Returns light model classes auto-generated for ML model files in this module's ml folder.
-   */
-  @NotNull
-  public List<LightModelClass> getLightModelClassList() {
-    if (!MlUtils.isMlModelBindingBuildFeatureEnabled(myModule) || DumbService.isDumb(myModule.getProject())) {
-      return Collections.emptyList();
-    }
-
-    return CachedValuesManager.getManager(myModule.getProject()).getCachedValue(myModule, myLightModelClassListProvider);
-  }
-
-  private static class LightModelClassListProvider implements CachedValueProvider<List<LightModelClass>> {
-    private final Module myModule;
-
-    private LightModelClassListProvider(@NotNull Module module) {
-      myModule = module;
-    }
-
-    @Nullable
-    @Override
-    public Result<List<LightModelClass>> compute() {
-      MlModuleService service = getInstance(myModule);
-      Set<MlModelMetadata> latestModelMetadataSet = new HashSet<>();
-      GlobalSearchScope searchScope = MlModelFilesSearchScope.inModule(myModule);
-      FileBasedIndex index = FileBasedIndex.getInstance();
-      index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
-        index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
-          latestModelMetadataSet.add(value);
-          return true;
-        }, searchScope);
-
-        return true;
-      }, searchScope, null);
-
-      // Invalidates cached light classes that no longer have model file associated.
-      List<MlModelMetadata> outdatedModelMetadataList = ContainerUtil
-        .filter(service.myLightModelClassMap.keySet(), modelMetadata -> !latestModelMetadataSet.contains(modelMetadata));
-      for (MlModelMetadata outdatedModelMetadata : outdatedModelMetadataList) {
-        service.myLightModelClassMap.remove(outdatedModelMetadata);
-      }
-
-      List<LightModelClass> lightModelClassList = new ArrayList<>();
-      for (MlModelMetadata modelMetadata : latestModelMetadataSet) {
-        LightModelClass lightModelClass = service.getOrCreateLightModelClass(modelMetadata);
-        if (lightModelClass != null) {
-          lightModelClassList.add(lightModelClass);
-        }
-      }
-      return CachedValueProvider.Result.create(lightModelClassList, ProjectMlModelFileTracker.getInstance(myModule.getProject()));
-    }
   }
 }

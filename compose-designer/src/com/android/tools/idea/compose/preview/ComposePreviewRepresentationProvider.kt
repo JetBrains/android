@@ -150,8 +150,15 @@ internal val COMPOSE_PREVIEW_ELEMENT = DataKey.create<PreviewElement>(
  * The search is done among the open preview parts and [PreviewRepresentation]s (if any) of open file editors.
  */
 internal fun findComposePreviewManagersForContext(context: DataContext): List<ComposePreviewManager> {
+  context.getData(COMPOSE_PREVIEW_MANAGER)?.let {
+    // The context is associated to a ComposePreviewManager so return it
+    return listOf(it)
+  }
+
+  // Fallback to finding the ComposePreviewManager by looking into all the editors
   val project = context.getData(CommonDataKeys.PROJECT) ?: return emptyList()
   val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return emptyList()
+
   return FileEditorManager.getInstance(project)?.getEditors(file)?.mapNotNull { it.getComposePreviewManager() } ?: emptyList()
 }
 

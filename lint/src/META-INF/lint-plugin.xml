@@ -19,8 +19,6 @@
     can warn about general programming issues in Kotlin and Java source files, Gradle files, etc).
   </description>
 
-  <resource-bundle>messages.LintBundle</resource-bundle>
-
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.lint.common.lintIdeSupport"
                     interface="com.android.tools.idea.lint.common.LintIdeSupport"/>

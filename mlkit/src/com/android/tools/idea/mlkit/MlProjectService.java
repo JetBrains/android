@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
-// TODO(b/155121511): Unify MlProjectService and MlkitModuleService.
 @Service
 public final class MlProjectService {
 

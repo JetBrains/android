@@ -20,7 +20,8 @@ package com.android.tools.profilers.cpu.atrace
  */
 data class SurfaceflingerEvent(val start: Long,
                                val end: Long,
-                               val type: Type) {
+                               val type: Type,
+                               val name: String = "") {
   enum class Type(val displayName: String) {
     /**
      * Represents the state when there are no trace events in the Surfaceflinger process.

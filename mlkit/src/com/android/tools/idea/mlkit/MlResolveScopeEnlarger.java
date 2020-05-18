@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.mlkit;
 
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -23,6 +25,8 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.ResolveScopeEnlarger;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -51,14 +55,38 @@ public class MlResolveScopeEnlarger extends ResolveScopeEnlarger {
 
   @Nullable
   private static SearchScope getAdditionalResolveScope(@NotNull Module module) {
-    if (MlUtils.isMlModelBindingBuildFeatureEnabled(module)) {
-      Collection<VirtualFile> virtualFiles = new ArrayList<>();
-      for (PsiClass lightClass : MlModuleService.getInstance(module).getLightModelClassList()) {
-        virtualFiles.add(lightClass.getContainingFile().getViewProvider().getVirtualFile());
-      }
-      return GlobalSearchScope.filesWithoutLibrariesScope(module.getProject(), virtualFiles);
+    if (!MlUtils.isMlModelBindingBuildFeatureEnabled(module)) {
+      return null;
     }
 
-    return null;
+    Project project = module.getProject();
+    return CachedValuesManager.getManager(project).getCachedValue(module, () -> {
+      SearchScope searchScopeIncludingDeps = getLocalResolveScope(module);
+      for (Module moduleDep : ProjectSystemUtil.getModuleSystem(module).getResourceModuleDependencies()) {
+        searchScopeIncludingDeps = searchScopeIncludingDeps.union(getLocalResolveScope(moduleDep));
+      }
+      return CachedValueProvider.Result.create(
+        searchScopeIncludingDeps, ProjectMlModelFileTracker.getInstance(project), ModuleManager.getInstance(project));
+    });
+  }
+
+  @NotNull
+  private static SearchScope getLocalResolveScope(@NotNull Module module) {
+    Project project = module.getProject();
+    return CachedValuesManager.getManager(project).getCachedValue(module, () -> {
+      SearchScope localSearchScope;
+      if (MlUtils.isMlModelBindingBuildFeatureEnabled(module)) {
+        Collection<VirtualFile> virtualFiles = new ArrayList<>();
+        for (PsiClass lightClass : MlModuleService.getInstance(module).getLightModelClassList()) {
+          virtualFiles.add(lightClass.getContainingFile().getViewProvider().getVirtualFile());
+        }
+        localSearchScope = GlobalSearchScope.filesWithoutLibrariesScope(project, virtualFiles);
+      }
+      else {
+        localSearchScope = GlobalSearchScope.EMPTY_SCOPE;
+      }
+      return CachedValueProvider.Result.create(
+        localSearchScope, ProjectMlModelFileTracker.getInstance(project), ModuleManager.getInstance(project));
+    });
   }
 }

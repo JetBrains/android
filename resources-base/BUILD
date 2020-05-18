@@ -55,7 +55,7 @@ iml_module(
         "//tools/idea/java/plugin:intellij.java.plugin",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.8:jar",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/adt/idea/databinding:intellij.android.databinding",
@@ -66,6 +66,7 @@ iml_module(
         "block-network",
         "no_test_windows",
     ],
+    test_timeout = "long",  # "medium" is not sufficient on Mac b/155999536
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

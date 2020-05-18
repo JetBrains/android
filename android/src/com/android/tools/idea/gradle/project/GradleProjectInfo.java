@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
+
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -37,26 +44,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Consumer;
+import java.io.File;
 import java.util.Arrays;
+import java.util.List;
+import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.io.File;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile;
-import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-
 public class GradleProjectInfo {
   @NotNull private final Project myProject;
-  @NotNull private final AndroidProjectInfo myProjectInfo;
   @NotNull private final ProjectFileIndex myProjectFileIndex;
 
   private volatile boolean myNewProject;
@@ -69,10 +66,9 @@ public class GradleProjectInfo {
     return ServiceManager.getService(project, GradleProjectInfo.class);
   }
 
-  public GradleProjectInfo(@NotNull Project project, @NotNull AndroidProjectInfo projectInfo, @NotNull ProjectFileIndex projectFileIndex) {
+  public GradleProjectInfo(@NotNull Project project) {
     myProject = project;
-    myProjectInfo = projectInfo;
-    myProjectFileIndex = projectFileIndex;
+    myProjectFileIndex = ProjectFileIndex.getInstance(myProject);
     myFacetManager = ProjectFacetManager.getInstance(myProject);
   }
 

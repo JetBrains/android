@@ -42,6 +42,7 @@ import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
 import static com.intellij.util.ExceptionUtil.getRootCause;
@@ -101,6 +102,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
+import com.intellij.externalSystem.JavaModuleData;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.openapi.application.ApplicationManager;
@@ -119,6 +121,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.PathsList;
 import com.intellij.util.containers.ContainerUtil;
@@ -189,7 +192,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @Override
-  @NotNull
+  @Nullable
   public DataNode<ModuleData> createModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
     if (!isAndroidGradleProject()) {
       return nextResolver.createModule(gradleModule, projectDataNode);
@@ -223,12 +226,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     DataNode<ModuleData> moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode);
+    if (moduleDataNode == null) {
+      return null;
+    }
 
     createAndAttachModelsToDataNode(moduleDataNode, gradleModule, androidProject);
 
     if (androidProject != null) {
-      moduleDataNode.getData().setSourceCompatibility(androidProject.getJavaCompileOptions().getSourceCompatibility());
-      moduleDataNode.getData().setTargetCompatibility(androidProject.getJavaCompileOptions().getTargetCompatibility());
+      DataNode<JavaModuleData> javaModuleData = find(moduleDataNode, JavaModuleData.KEY);
+      if (javaModuleData != null) {
+        LanguageLevel languageLevel = LanguageLevel.parse(androidProject.getJavaCompileOptions().getSourceCompatibility());
+        javaModuleData.getData().setLanguageLevel(languageLevel);
+        javaModuleData.getData().setTargetBytecodeVersion(androidProject.getJavaCompileOptions().getTargetCompatibility());
+      }
       CompilerOutputUtilKt.setupCompilerOutputPaths(moduleDataNode);
     }
     else {
@@ -240,8 +250,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         // main should always exist, if it doesn't other things will fail before this.
         ExternalSourceSet externalSourceSet = externalProject.getSourceSets().get("main");
         if (externalSourceSet != null) {
-          moduleDataNode.getData().setSourceCompatibility(externalSourceSet.getSourceCompatibility());
-          moduleDataNode.getData().setTargetCompatibility(externalSourceSet.getTargetCompatibility());
+          DataNode<JavaModuleData> javaModuleData = find(moduleDataNode, JavaModuleData.KEY);
+          if (javaModuleData != null) {
+            LanguageLevel languageLevel = LanguageLevel.parse(externalSourceSet.getSourceCompatibility());
+            javaModuleData.getData().setLanguageLevel(languageLevel);
+            javaModuleData.getData().setTargetBytecodeVersion(externalSourceSet.getTargetCompatibility());
+          }
         }
       }
     }
@@ -754,6 +768,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void preImportCheck() {
+    // Don't run pre-import checks for the buildSrc project.
+    if (resolverCtx.getBuildSrcGroup() != null) {
+      return;
+    }
+
     simulateRegisteredSyncError();
 
     syncAndroidSdks(SdkSync.getInstance(), resolverCtx.getProjectPath());
@@ -763,12 +782,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     displayInternalWarningIfForcedUpgradesAreDisabled();
 
-    Project project = myProjectFinder.findProject(resolverCtx);
-    if (project != null) {
-      ApplicationManager.getApplication().invokeAndWait(() -> {
-        HttpProxySettingsCleanUp.cleanUp(project);
-      });
-    }
+    cleanUpHttpProxySettings();
   }
 
   @Override
@@ -917,6 +931,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       if (project != null) {
         displayForceUpdatesDisabledMessage(project);
       }
+    }
+  }
+
+  private void cleanUpHttpProxySettings() {
+    Project project = myProjectFinder.findProject(resolverCtx);
+    if (project != null) {
+      ApplicationManager.getApplication().invokeAndWait(() -> HttpProxySettingsCleanUp.cleanUp(project));
     }
   }
 

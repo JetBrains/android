@@ -34,7 +34,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.BaseRefactoringProcessor
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
@@ -272,7 +271,7 @@ private class EnableDexProcessor(project: Project, private val buildFiles: List<
   override fun getCommandName() = "Enable desugaring$commandSuffix"
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
-    return object : UsageViewDescriptorAdapter() {
+    return object : UsageViewDescriptor {
       override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String {
         return "References to be changed: ${UsageViewBundle.getReferencesString(usagesCount, filesCount)}"
       }

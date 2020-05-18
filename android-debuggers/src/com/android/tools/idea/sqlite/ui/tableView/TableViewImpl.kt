@@ -99,7 +99,7 @@ class TableViewImpl : TableView {
 
   private val table = JBTable()
   private val tableScrollPane = JBScrollPane(table)
-  private val loadingMessageEditorPane = JEditorPane("text/html", "")
+  private val loadingMessageEditorPane = JEditorPane()
 
   private val centerPanel = JPanel(BorderLayout())
 
@@ -225,12 +225,14 @@ class TableViewImpl : TableView {
     table.emptyText.text = "Table is empty"
 
     setEditable(false)
+
+    setControlButtonsEnabled(false)
+    setFetchNextRowsButtonState(false)
+    setFetchPreviousRowsButtonState(false)
   }
 
   override fun startTableLoading() {
-    liveUpdatesCheckBox.isEnabled = false
-    refreshButton.isEnabled = false
-    pageSizeComboBox.isEnabled = false
+    setControlButtonsEnabled(false)
 
     setLoadingText(loadingMessageEditorPane, stopwatch.elapsed())
 
@@ -246,9 +248,7 @@ class TableViewImpl : TableView {
   }
 
   override fun stopTableLoading() {
-    liveUpdatesCheckBox.isEnabled = true
-    refreshButton.isEnabled = true
-    pageSizeComboBox.isEnabled = true
+    setControlButtonsEnabled(true)
 
     loadingTimer.stop()
     if (stopwatch.isRunning) {
@@ -312,11 +312,18 @@ class TableViewImpl : TableView {
     listeners.remove(listener)
   }
 
+  private fun setControlButtonsEnabled(enabled: Boolean) {
+    liveUpdatesCheckBox.isEnabled = enabled
+    refreshButton.isEnabled = enabled
+    pageSizeComboBox.isEnabled = enabled
+  }
+
   private fun setUpLoadingPanel() {
     setLoadingText(loadingMessageEditorPane, stopwatch.elapsed())
+    loadingMessageEditorPane.editorKit = UIUtil.getHTMLEditorKit()
     val document = loadingMessageEditorPane.document as HTMLDocument
     document.styleSheet.addRule(
-      "body { text-align: center; font-family: ${UIUtil.getLabelFont()}; font-size: ${UIUtil.getLabelFont().size} pt; }"
+      "body { text-align: center; }"
     )
     document.styleSheet.addRule("h2, h3 { font-weight: normal; }")
     loadingMessageEditorPane.name = "loading-panel"
@@ -332,9 +339,8 @@ class TableViewImpl : TableView {
 
   private fun setLoadingText(editorPane: JEditorPane, duration: Duration) {
     editorPane.text =
-      "<h2>Running query...</h2>" +
-      "${duration.seconds} sec" +
-      "<h3><a href=\"\">Cancel query</a></h3>"
+      // language=html
+      "<h2>Running query...</h2>${duration.seconds} sec<h3><a href=''>Cancel query</a></h3>"
   }
 
   /**

@@ -270,6 +270,13 @@ public abstract class SceneView extends PositionableContent {
   @NotNull
   public abstract ColorSet getColorSet();
 
+  /**
+   * Returns true if this {@link SceneView} can be dynamically resized.
+   */
+  public boolean isResizeable() {
+    return false;
+  }
+
   @NotNull
   final public SceneContext getContext() {
     return myContext;

@@ -28,7 +28,6 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.project.DumbService
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
@@ -51,7 +50,7 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
     @JvmStatic
     fun getInstance(facet: AndroidFacet): SafeArgsCacheModuleService {
       // service registered in android plugin
-      return ModuleServiceManager.getService(facet.module, SafeArgsCacheModuleService::class.java)!!
+      return facet.module.getService(SafeArgsCacheModuleService::class.java)!!
     }
   }
 

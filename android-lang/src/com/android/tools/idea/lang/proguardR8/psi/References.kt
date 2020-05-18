@@ -35,7 +35,7 @@ import com.intellij.psi.util.parentOfType
 class ProguardR8ClassMemberNameReference(
   classMemberName: ProguardR8ClassMemberName
 ) : PsiPolyVariantReferenceBase<ProguardR8ClassMemberName>(classMemberName) {
-  private val containingMember = classMemberName.parentOfType(ProguardR8ClassMember::class)!!
+  private val containingMember = classMemberName.parentOfType<ProguardR8ClassMember>()!!
   private val type = containingMember.type
   private val parameters = containingMember.parameters
   private val accessModifiers = containingMember.modifierList.filter { it.isAccessModifier && !it.isNegated }.map(::toPsiModifier)

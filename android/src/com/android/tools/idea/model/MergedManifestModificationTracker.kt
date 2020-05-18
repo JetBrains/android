@@ -20,7 +20,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
@@ -53,7 +52,7 @@ class MergedManifestModificationTracker(val module: Module) : ModificationTracke
 
   companion object {
     @JvmStatic
-    fun getInstance(module: Module) = ModuleServiceManager.getService(module, MergedManifestModificationTracker::class.java)!!
+    fun getInstance(module: Module) = module.getService(MergedManifestModificationTracker::class.java)!!
   }
 
   /**

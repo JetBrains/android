@@ -180,7 +180,7 @@ public class LayoutPullParsers {
         IRenderLogger logger = renderTask.getLogger();
         HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
         ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
-        boolean useToolsNamespace = renderTask.getShowWithToolsAttributes();
+        boolean useToolsNamespace = renderTask.getShowWithToolsVisibilityAndPosition();
         return LayoutPsiPullParser
           .create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, useToolsNamespace);
       }

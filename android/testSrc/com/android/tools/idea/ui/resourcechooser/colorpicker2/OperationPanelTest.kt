@@ -16,11 +16,12 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.android.tools.adtui.stdui.CommonButton
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.UsefulTestCase.assertThrows
+import junit.framework.TestCase
 import org.mockito.Mockito
 import java.awt.Color
 
-class OperationPanelTest : PlatformTestCase() {
+class OperationPanelTest : TestCase() {
 
   fun testNoOperationWillThrowException() {
     assertThrows<IllegalStateException>(IllegalStateException::class.java) {

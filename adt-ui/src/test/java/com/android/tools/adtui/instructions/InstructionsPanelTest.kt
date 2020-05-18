@@ -15,17 +15,28 @@
  */
 package com.android.tools.adtui.instructions
 
+import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.model.EaseOutModel
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.updater.Updater
+import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtilities
+import org.junit.Rule
 import org.junit.Test
 import java.awt.BorderLayout
+import java.awt.Cursor
 import javax.swing.JPanel
+import kotlin.math.roundToInt
 
+@RunsInEdt
 class InstructionsPanelTest {
+  @get:Rule
+  val edtRule = EdtRule()
+
   @Test
   fun testPanelRemovedFromParentWhenFadedOut() {
     val timer = FakeTimer()
@@ -50,5 +61,53 @@ class InstructionsPanelTest {
     // 2nd update would fade out the instructions completely, at which point the panel will be auto-removed.
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(panel.components).asList().doesNotContain(instructions)
+  }
+
+  @Test
+  fun instructionsPanelCursorChangesWhenMouseOverUrl() {
+    // Create two rows, so we can assert that moving the mouse out of the instructions panel clears
+    // the cursor
+    val panel = JPanel(TabularLayout("Fit-"))
+    val metrics = UIUtilities.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT)
+
+    val instructions = InstructionsPanel.Builder(
+      TextInstruction(metrics, "Line 1"),
+      NewRowInstruction(0),
+      UrlInstruction(metrics.font, "Line 2", "www.google.com"),
+      NewRowInstruction(0),
+      TextInstruction(metrics, "Line 3"))
+      .setPaddings(0, 0)
+      .build()
+    panel.add(instructions, TabularLayout.Constraint(0, 0))
+
+    val fakeUi = FakeUi(panel)
+    panel.size = panel.minimumSize // Force size just to make the test work
+    val rowHeight = instructions.renderer.rowHeight
+    val yLine1Text = (rowHeight * 0.5f).roundToInt()
+    val yLine2Url = (rowHeight * 1.5f).roundToInt()
+    val yLine3Text = (rowHeight * 2.5f).roundToInt()
+
+    assertThat(fakeUi.mouse.focus).isNull()
+
+    fakeUi.mouse.moveTo(20, yLine1Text)
+    val instructionsComponent = fakeUi.mouse.focus!!
+    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getDefaultCursor())
+
+    fakeUi.mouse.moveTo(20, yLine2Url)
+    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+
+    fakeUi.mouse.moveTo(20, yLine3Text)
+    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getDefaultCursor())
+
+    fakeUi.mouse.moveTo(20, yLine2Url)
+    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+
+    assertThat(fakeUi.mouse.focus).isNotNull()
+    fakeUi.mouse.moveTo(Int.MAX_VALUE, Int.MAX_VALUE) // Force mouseExited event
+    assertThat(fakeUi.mouse.focus).isNull()
+    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getDefaultCursor())
+
+    fakeUi.mouse.moveTo(20, yLine2Url)
+    assertThat(instructionsComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
   }
 }

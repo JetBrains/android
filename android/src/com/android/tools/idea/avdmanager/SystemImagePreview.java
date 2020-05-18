@@ -29,6 +29,7 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.GraphicsUtil;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -197,7 +198,7 @@ public class SystemImagePreview {
       return icon;
     }
     int size = JBUI.scale(128);
-    Image image = UIUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
+    Image image = ImageUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
     Graphics g = image.getGraphics();
     GraphicsUtil.setupAntialiasing(g);
     GraphicsUtil.setupAAPainting(g);

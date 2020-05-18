@@ -295,6 +295,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     NlModel model = NlModel.builder(facet, myFile, mySurface.getConfigurationManager(facet).getConfiguration(myFile))
       .withParentDisposable(myEditor)
       .withComponentRegistrar(mySurface.getComponentRegistrar())
+      .withModelDisplayName("") // For the Layout Editor, set an empty name to enable SceneView toolbars.
       .build();
     Module modelModule = AndroidPsiUtils.getModuleSafely(myProject, myFile);
     // Dispose the surface if we remove the module from the project, and show some text warning the user.

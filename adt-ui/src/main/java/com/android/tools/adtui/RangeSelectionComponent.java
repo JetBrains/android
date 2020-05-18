@@ -26,6 +26,12 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -129,6 +135,14 @@ public class RangeSelectionComponent extends AnimatedComponent {
   }
 
   protected void initListeners() {
+    this.addHierarchyListener(new HierarchyListener() {
+      @Override
+      public void hierarchyChanged(HierarchyEvent e) {
+        if (!RangeSelectionComponent.this.isDisplayable() || !RangeSelectionComponent.this.isShowing()) {
+          resetMouse();
+        }
+      }
+    });
     this.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
@@ -175,8 +189,7 @@ public class RangeSelectionComponent extends AnimatedComponent {
 
       @Override
       public void mouseExited(MouseEvent e) {
-        setCursor(Cursor.getDefaultCursor());
-        myIsMouseOverComponent = false;
+        resetMouse();
       }
 
       @Override
@@ -262,6 +275,11 @@ public class RangeSelectionComponent extends AnimatedComponent {
         myModel.endUpdate();
       }
     });
+  }
+
+  private void resetMouse() {
+    setCursor(Cursor.getDefaultCursor());
+    myIsMouseOverComponent = false;
   }
 
   private void shiftModel(ShiftDirection direction, boolean zeroMin, boolean zeroMax) {

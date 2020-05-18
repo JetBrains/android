@@ -290,14 +290,12 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testQuickValidateAddTag() throws Exception {
-/* b/146019726
     testQuickValidate("import androidx.navigation.*;\n" +
                       "public class QuickValidateAddTag extends ActivityNavigator {}\n",
                       "import androidx.navigation.*;\n" +
                       "@Navigator.Name(\"fragment_sub\")\n" +
                       "public class QuickValidateAddTag extends ActivityNavigator {}\n",
                       false);
-b/146019726 */
   }
 
   public void testQuickValidateRemoveTag() throws Exception {

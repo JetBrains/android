@@ -41,7 +41,6 @@ import com.google.wireless.android.vending.developer.signing.tools.extern.export
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.RevealFileAction;
-import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.application.ModalityState;
@@ -528,11 +527,11 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           "android.artifact.building.cannot.find.zip.align.error"), title);
       }
 
-      if (ShowFilePathAction.isSupported()) {
+      if (RevealFileAction.isSupported()) {
         if (Messages.showOkCancelDialog(project, AndroidBundle.message("android.export.package.success.message", apkFile.getName()),
                                         title, RevealFileAction.getActionName(), IdeBundle.message("action.close"),
                                         Messages.getInformationIcon()) == Messages.OK) {
-          ShowFilePathAction.openFile(apkFile);
+          RevealFileAction.openFile(apkFile);
         }
       }
       else {

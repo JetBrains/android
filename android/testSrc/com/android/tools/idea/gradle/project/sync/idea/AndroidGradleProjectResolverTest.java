@@ -81,7 +81,6 @@ import org.mockito.Mock;
 /**
  * Tests for {@link AndroidGradleProjectResolver}.
  */
-@org.junit.Ignore("b/155929877")
 public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
   @Mock private CommandLineArgs myCommandLineArgs;
   @Mock private ProjectFinder myProjectFinder;

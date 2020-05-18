@@ -49,9 +49,8 @@ package com.android.tools.idea.common.analytics;
 
  import com.android.ide.common.rendering.api.ResourceNamespace;
  import com.android.ide.common.rendering.api.ResourceReference;
- import com.intellij.openapi.Disposable;
- import com.intellij.openapi.util.Disposer;
  import com.intellij.openapi.util.text.StringUtil;
+ import com.intellij.testFramework.ServiceContainerUtil;
  import java.util.HashMap;
  import java.util.Map;
  import java.util.Set;
@@ -64,7 +63,6 @@ package com.android.tools.idea.common.analytics;
  import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
  import org.jetbrains.annotations.NotNull;
  import org.jetbrains.annotations.Nullable;
- import org.picocontainer.MutablePicoContainer;
 
 public class UsageTrackerUtilTest extends AndroidTestCase {
   private static final String SDK_VERSION = ":" + HIGHEST_KNOWN_API + ".0.1";
@@ -189,24 +187,7 @@ public class UsageTrackerUtilTest extends AndroidTestCase {
     when(resourceManagers.getFrameworkResourceManager()).thenReturn(frameworkResourceManager);
     when(resourceManagers.getLocalResourceManager()).thenReturn(localResourceManager);
 
-    registerComponentInstance((MutablePicoContainer)myFacet.getModule().getPicoContainer(),
-                              ModuleResourceManagers.class,
-                              resourceManagers,
-                              getTestRootDisposable());
-  }
-
-  public static <T> void registerComponentInstance(MutablePicoContainer container, Class<T> key, T implementation, Disposable parentDisposable) {
-    Object old = container.getComponentInstance(key);
-    container.unregisterComponent(key.getName());
-    container.registerComponentInstance(key.getName(), implementation);
-    Disposer.register(
-      parentDisposable,
-      () -> {
-        container.unregisterComponent(key.getName());
-        if (old != null) {
-          container.registerComponentInstance(key.getName(), old);
-        }
-      });
+    ServiceContainerUtil.replaceService(myModule, ModuleResourceManagers.class, resourceManagers, getTestRootDisposable());
   }
 
   private static class Attributes implements AttributeDefinitions {

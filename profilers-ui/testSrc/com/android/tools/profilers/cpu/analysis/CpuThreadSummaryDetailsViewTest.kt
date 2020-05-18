@@ -68,7 +68,7 @@ class CpuThreadSummaryDetailsViewTest {
     }
     val view = CpuThreadSummaryDetailsView(profilersView, model)
 
-    assertThat(view.timeRangeLabel.text).isEqualTo("00.100 - 00.200")
+    assertThat(view.timeRangeLabel.text).isEqualTo("00:00.100 - 00:00.200")
     assertThat(view.durationLabel.text).isEqualTo("100 ms")
     assertThat(view.dataTypeLabel.text).isEqualTo("Thread")
     assertThat(view.threadIdLabel.text).isEqualTo("123")
@@ -89,11 +89,11 @@ class CpuThreadSummaryDetailsViewTest {
     }
     val view = CpuThreadSummaryDetailsView(profilersView, model)
 
-    assertThat(view.timeRangeLabel.text).isEqualTo("00.000 - 00.000")
+    assertThat(view.timeRangeLabel.text).isEqualTo("00:00.000 - 00:00.000")
     assertThat(view.durationLabel.text).isEqualTo("0 μs")
 
     timeline.viewRange.set(TimeUnit.SECONDS.toMicros(1).toDouble(), TimeUnit.SECONDS.toMicros(2).toDouble())
-    assertThat(view.timeRangeLabel.text).isEqualTo("01.000 - 02.000")
+    assertThat(view.timeRangeLabel.text).isEqualTo("00:01.000 - 00:02.000")
     assertThat(view.durationLabel.text).isEqualTo("1 s")
   }
 

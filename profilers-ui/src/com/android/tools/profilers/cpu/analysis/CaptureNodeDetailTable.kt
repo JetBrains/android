@@ -28,10 +28,12 @@ import com.android.tools.adtui.common.border as BorderColor
 /**
  * UI component for presenting capture node details, such as duration, CPU duration etc.
  */
-class CaptureNodeDetailTable(private val captureNodes: List<CaptureNode>,
+class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
                              private val captureRange: Range) {
   val table: JTable
   val component = JPanel(TabularLayout("*", "Fit,Fit"))
+
+  private val extendedCaptureNodes = captureNodes.map { ExtendedCaptureNode(it) }
 
   init {
     table = JBTable(CaptureNodeDetailTableModel()).apply {
@@ -40,7 +42,9 @@ class CaptureNodeDetailTable(private val captureNodes: List<CaptureNode>,
       showHorizontalLines = false
       columnModel.getColumn(Column.START_TIME.ordinal).cellRenderer = TimestampRenderer()
       columnModel.getColumn(Column.WALL_DURATION.ordinal).cellRenderer = DurationRenderer()
+      columnModel.getColumn(Column.SELF_TIME.ordinal).cellRenderer = DurationRenderer()
       columnModel.getColumn(Column.CPU_DURATION.ordinal).cellRenderer = DurationRenderer()
+      columnModel.getColumn(Column.CPU_SELF_TIME.ordinal).cellRenderer = DurationRenderer()
     }
     component.apply {
       border = JBUI.Borders.customLine(BorderColor, 1)
@@ -53,11 +57,20 @@ class CaptureNodeDetailTable(private val captureNodes: List<CaptureNode>,
   }
 
   /**
+   * Class to pre-computes and cache self time values of a capture node, since [AbstractTableModel.getValueAt] is called very frequently,
+   * e.g. whenever mouse hovers a cell.
+   */
+  private data class ExtendedCaptureNode(val node: CaptureNode) {
+    val selfGlobal = node.endGlobal - node.startGlobal - node.children.asSequence().map { it.endGlobal - it.startGlobal }.sum()
+    val selfThread = node.endThread - node.startThread - node.children.asSequence().map { it.endThread - it.startThread }.sum()
+  }
+
+  /**
    * Table model for the capture node detail table.
    */
   private inner class CaptureNodeDetailTableModel : AbstractTableModel() {
     override fun getRowCount(): Int {
-      return captureNodes.size
+      return extendedCaptureNodes.size
     }
 
     override fun getColumnCount(): Int {
@@ -65,7 +78,7 @@ class CaptureNodeDetailTable(private val captureNodes: List<CaptureNode>,
     }
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
-      return Column.values()[columnIndex].getValueFrom(captureNodes[rowIndex], captureRange)
+      return Column.values()[columnIndex].getValueFrom(extendedCaptureNodes[rowIndex], captureRange)
     }
 
     override fun getColumnClass(columnIndex: Int): Class<*> {
@@ -82,22 +95,32 @@ class CaptureNodeDetailTable(private val captureNodes: List<CaptureNode>,
    */
   private enum class Column(val displayName: String, val type: Class<*>) {
     START_TIME("Start Time", Long::class.java) {
-      override fun getValueFrom(data: CaptureNode, captureRange: Range): Any {
+      override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
         // Display start time relative to capture start time.
-        return data.startGlobal - captureRange.min.toLong()
+        return data.node.startGlobal - captureRange.min.toLong()
       }
     },
     WALL_DURATION("Wall Duration", Long::class.java) {
-      override fun getValueFrom(data: CaptureNode, captureRange: Range): Any {
-        return data.endGlobal - data.startGlobal
+      override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
+        return data.node.endGlobal - data.node.startGlobal
+      }
+    },
+    SELF_TIME("Self Time", Long::class.java) {
+      override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
+        return data.selfGlobal
       }
     },
     CPU_DURATION("CPU Duration", Long::class.java) {
-      override fun getValueFrom(data: CaptureNode, captureRange: Range): Any {
-        return data.endThread - data.startThread
+      override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
+        return data.node.endThread - data.node.startThread
+      }
+    },
+    CPU_SELF_TIME("CPU Self Time", Long::class.java) {
+      override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
+        return data.selfThread
       }
     };
 
-    abstract fun getValueFrom(data: CaptureNode, captureRange: Range): Any
+    abstract fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any
   }
 }

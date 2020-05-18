@@ -16,6 +16,7 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.mlkit.viewer.TfliteModelFileType;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviders;

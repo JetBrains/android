@@ -235,7 +235,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     buildModel.android().defaultConfig().applicationId().setValue(new ReferenceTo("VERSION"));
 
     applyChangesAndReparse(buildModel);
-    // TODO(b/147796130), TODO(b/148271448): this passes and both language syntaxes are legal, but (in some sense) only by accident: the
+    // TODO(b/148271448): this passes and both language syntaxes are legal, but (in some sense) only by accident: the
     //  KotlinScript writer writes ${extra[""]} within a dependencies { } block to pick up a buildscript property, but dependencies is
     //  itself ExtensionAware.  However: there is no `extra` extension function on DependencyHandlerScope, only `ext`, which means that
     //  the `extra` reference is resolved on the buildscript block rather than the dependencies block.

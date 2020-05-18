@@ -17,9 +17,10 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.common.DataVisualizationColors;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
-import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import java.awt.BorderLayout;
 import javax.swing.JComponent;
@@ -35,8 +36,11 @@ public class VsyncTrackRenderer implements TrackRenderer<VsyncTrackModel, Profil
   public JComponent render(@NotNull TrackModel<VsyncTrackModel, ProfilerTrackRendererType> trackModel) {
     VsyncTrackModel lineChartModel = trackModel.getDataModel();
     LineChart lineChart = new LineChart(lineChartModel);
-    lineChart.configure(lineChartModel.getVsyncCounterSeries(), new LineConfig(ProfilerColors.VSYNC_COUNTER_VALUE).setStepped(true));
+    lineChart.configure(lineChartModel.getVsyncCounterSeries(),
+                        new LineConfig(DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
+                          .setStepped(true));
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setBackground(StudioColorsKt.getPrimaryContentBackground());
     panel.add(lineChart);
     return panel;
   }

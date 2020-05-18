@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sdk;
 
-import static com.android.SdkConstants.FD_ADDONS;
 import static com.android.SdkConstants.FD_DOCS;
 import static com.android.SdkConstants.FD_DOCS_REFERENCE;
 import static com.android.SdkConstants.FD_PKG_SOURCES;
@@ -30,7 +29,6 @@ import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.create
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
@@ -52,16 +50,12 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.JdkOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -72,6 +66,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -99,6 +94,12 @@ public class AndroidSdks {
     return ServiceManager.getService(AndroidSdks.class);
   }
 
+  public AndroidSdks() {
+    this(Jdks.getInstance(), IdeInfo.getInstance());
+  }
+
+  @NonInjectable
+  @VisibleForTesting
   public AndroidSdks(@NotNull Jdks jdks, @NotNull IdeInfo ideInfo) {
     myIdeInfo = ideInfo;
     myJdks = jdks;

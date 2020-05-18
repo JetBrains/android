@@ -18,7 +18,6 @@ package com.android.tools.idea.emulator
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.EmulatorControllerGrpc
-import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
@@ -36,6 +35,7 @@ import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.Alarm
 import com.intellij.util.containers.ConcurrentList
 import com.intellij.util.containers.ContainerUtil
 import io.grpc.CallCredentials
@@ -47,9 +47,12 @@ import io.grpc.Metadata
 import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
+import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientCalls
+import io.grpc.stub.ClientResponseObserver
 import io.grpc.stub.StreamObserver
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -61,6 +64,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   @Volatile private var snapshotServiceStub: SnapshotServiceGrpc.SnapshotServiceStub? = null
   @Volatile private var emulatorConfigInternal: EmulatorConfiguration? = null
   @Volatile internal var skinDefinition: SkinDefinition? = null
+  private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
   private var stateInternal = AtomicReference(ConnectionState.NOT_INITIALIZED)
   private val connectionStateListeners: ConcurrentList<ConnectionStateListener> = ContainerUtil.createConcurrentList()
   private val connectivityStateWatcher = object : Runnable {
@@ -170,7 +174,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
 
     channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
-    fetchConfiguration()
+    sendKeepAlive()
   }
 
   /**
@@ -253,10 +257,11 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
   }
 
-  private fun fetchConfiguration() {
-    val responseObserver = object : DummyStreamObserver<EmulatorStatus>() {
-      override fun onNext(response: EmulatorStatus) {
+  private fun sendKeepAlive() {
+    val responseObserver = object : DummyStreamObserver<VmRunState>() {
+      override fun onNext(response: VmRunState) {
         connectionState = ConnectionState.CONNECTED
+        alarm.addRequest({ sendKeepAlive() }, KEEP_ALIVE_INTERVAL_MILLIS)
       }
 
       override fun onError(t: Throwable) {
@@ -265,10 +270,10 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
 
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("getStatus()")
+      LOG.info("getVmState()")
     }
-    emulatorController.getStatus(Empty.getDefaultInstance(),
-                                 DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetStatusMethod()))
+    emulatorController.getVmState(Empty.getDefaultInstance(),
+                                  DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetVmStateMethod()))
   }
 
   fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getDummyObserver()) {
@@ -277,6 +282,38 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       LOG.info("saveSnapshot(${shortDebugString(snapshot)})")
     }
     snapshotService.saveSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getSaveSnapshotMethod()))
+  }
+
+  /**
+   * Loads a snapshot in the emulator.
+   *
+   * @param snapshotId a snapshot ID in the emulator.
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   */
+  fun loadSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getDummyObserver()) {
+    val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("loadSnapshot(${shortDebugString(snapshot)})")
+    }
+    snapshotService.loadSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getLoadSnapshotMethod()))
+  }
+
+  /**
+   * Pushes snapshot packages into the emulator.
+   *
+   * Usually multiple packages need to be sent to push one snapshot file, including one header and one or more
+   * payload packages. The implementation of the stream observer must handle asynchronous events correctly,
+   * especially when pushing big files. This is usually done by overwriting [ClientResponseObserver.beforeStart]
+   * and calling [io.grpc.stub.CallStreamObserver.setOnReadyHandler] from there.
+   *
+   * @param streamObserver a client stream observer to handle events.
+   * @return a StreamObserver that can be used to trigger the push.
+   */
+  fun pushSnapshot(streamObserver: ClientResponseObserver<SnapshotPackage, SnapshotPackage>): StreamObserver<SnapshotPackage> {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("pushSnapshot()")
+    }
+    return snapshotService.pushSnapshot(DelegatingClientResponseObserver(streamObserver, SnapshotServiceGrpc.getPushSnapshotMethod()))
   }
 
   private fun throwNotYetConnected(): Nothing {
@@ -311,7 +348,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   private open inner class DelegatingStreamObserver<RequestT, ResponseT>(
-    val delegate: StreamObserver<in ResponseT>?,
+    open val delegate: StreamObserver<in ResponseT>?,
     val method: MethodDescriptor<in RequestT, in ResponseT>
   ) : StreamObserver<ResponseT> {
 
@@ -333,6 +370,16 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
     override fun onCompleted() {
       delegate?.onCompleted()
+    }
+  }
+
+  private open inner class DelegatingClientResponseObserver<RequestT, ResponseT>(
+    override val delegate: ClientResponseObserver<RequestT, ResponseT>?,
+    method: MethodDescriptor<in RequestT, in ResponseT>
+  ) : DelegatingStreamObserver<RequestT, ResponseT>(delegate, method), ClientResponseObserver<RequestT, ResponseT> {
+
+    override fun beforeStart(requestStream: ClientCallStreamObserver<RequestT>?) {
+      delegate?.beforeStart(requestStream)
     }
   }
 
@@ -366,19 +413,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     override fun thisUsesUnstableApi() {
     }
   }
+}
 
-  companion object {
-    @JvmStatic
-    private val AUTHORIZATION_METADATA_KEY = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
-    @JvmStatic
-    private val LOG = Logger.getInstance(EmulatorController::class.java)
-    @JvmStatic
-    private val DUMMY_OBSERVER = DummyStreamObserver<Any>()
+private val AUTHORIZATION_METADATA_KEY = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
+private val KEEP_ALIVE_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(2)
+private val LOG = Logger.getInstance(EmulatorController::class.java)
+private val DUMMY_OBSERVER = DummyStreamObserver<Any>()
 
-    @JvmStatic
-    @Suppress("UNCHECKED_CAST")
-    fun <T> getDummyObserver(): StreamObserver<T> {
-      return DUMMY_OBSERVER as StreamObserver<T>
-    }
-  }
+@Suppress("UNCHECKED_CAST")
+fun <T> getDummyObserver(): StreamObserver<T> {
+  return DUMMY_OBSERVER as StreamObserver<T>
 }

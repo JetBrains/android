@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.intellij.openapi.util.ModificationTracker
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 /**
  * Interface to be implemented by classes providing a list of [PreviewElement]
@@ -36,22 +41,42 @@ class FilteredPreviewElementProvider(private val delegate: PreviewElementProvide
 
 /**
  * A [PreviewElementProvider] for dealing with [PreviewElementProvider] that might be @[Slow]. This [PreviewElementProvider] contents
- * will only be updated when the [refresh] method is called and it will return the same contents until a new call happens.
+ * will only be updated when the given [modificationTracker] updates.
  */
-class MemoizedPreviewElementProvider(private val delegate: PreviewElementProvider) : PreviewElementProvider {
-  /**
-   * The [PreviewElement]s returned by this property are cached and might not represent the latest state of the [delegate].
-   * You need to call [refresh] to update this copy.
-   */
-  override var previewElements: Sequence<PreviewElement> = emptySequence()
-    @Synchronized get
-    @Synchronized private set
+class MemoizedPreviewElementProvider(private val delegate: PreviewElementProvider,
+                                     private val modificationTracker: ModificationTracker) : PreviewElementProvider {
+  private var savedModificationStamp = -1L
+  private val cachedPreviewElementLock = ReentrantReadWriteLock()
+  @GuardedBy("cachedPreviewElementLock")
+  private var cachedPreviewElements: Collection<PreviewElement> = emptyList()
 
   /**
    * Refreshes the [previewElements]. Do not call on the UI thread.
    */
+  @Synchronized
   @Slow
-  fun refresh() {
-    previewElements = delegate.previewElements
+  private fun refreshIfNeeded() {
+    val newModificationStamp = modificationTracker.modificationCount
+
+    if (newModificationStamp != savedModificationStamp) {
+      cachedPreviewElementLock.write {
+        cachedPreviewElements = delegate.previewElements.toList()
+      }
+      savedModificationStamp = newModificationStamp
+    }
   }
+
+  /**
+   * Returns the latest value of the [PreviewElement]s contained in the [delegate]. If the [modificationTracker] has not changed,
+   * this property will return a cached value.
+   *
+   * _This call might be [Slow]. Do not call on the UI thread._
+   */
+  override val previewElements: Sequence<PreviewElement>
+    @Slow get() {
+      refreshIfNeeded()
+      cachedPreviewElementLock.read {
+        return cachedPreviewElements.asSequence()
+      }
+    }
 }

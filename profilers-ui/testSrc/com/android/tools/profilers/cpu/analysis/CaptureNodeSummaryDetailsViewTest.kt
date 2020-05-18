@@ -60,12 +60,12 @@ class CaptureNodeSummaryDetailsViewTest {
     }
     val view = CaptureNodeSummaryDetailsView(profilersView, model)
     val treeWalker = TreeWalker(view.component)
-    assertThat(view.timeRangeLabel.text).isEqualTo("10.000 - 20.000")
+    assertThat(view.timeRangeLabel.text).isEqualTo("00:10.000 - 00:20.000")
     assertThat(view.dataTypeLabel.text).isEqualTo("Trace Event")
     // Selected node basic stats table and longest occurrences table.
     assertThat(treeWalker.descendants().filterIsInstance<JTable>().size).isEqualTo(2)
     // 5 stat labels: count, average, max, min, std.
-    assertThat(treeWalker.descendants().filterIsInstance<StatLabel>().map { it.getDescText() })
-      .containsExactly("Count", "Average", "Max", "Min", "Std")
+    assertThat(treeWalker.descendants().filterIsInstance<StatLabel>().map { it.descText })
+      .containsExactly("Count", "Average", "Max", "Min", "Std Dev")
   }
 }

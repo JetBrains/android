@@ -30,6 +30,7 @@ import com.intellij.notification.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.progress.impl.ProgressSuspender;
 import com.intellij.openapi.project.Project;
@@ -336,7 +337,8 @@ class InstallTask extends Task.Backgroundable {
     final String NOTIFICATION_GROUP_NAME = "SDK Install";
     NotificationGroup group = NotificationGroup.findRegisteredGroup(NOTIFICATION_GROUP_NAME);
     if (group == null) {
-      group = new NotificationGroup(NOTIFICATION_GROUP_NAME, NotificationDisplayType.STICKY_BALLOON, false);
+      group = new NotificationGroup(
+        NOTIFICATION_GROUP_NAME, NotificationDisplayType.STICKY_BALLOON, false, null, null, null, PluginId.getId("org.jetbrains.android"));
     }
     return group;
   }

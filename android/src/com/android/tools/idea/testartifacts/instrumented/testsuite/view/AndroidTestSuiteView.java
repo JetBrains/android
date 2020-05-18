@@ -70,11 +70,11 @@ import org.jetbrains.annotations.Nullable;
  * A console view to display a test execution and result of Android instrumentation tests.
  */
 public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListener, AndroidTestResultsTableListener,
-                                             AndroidTestSuiteDetailsViewListener {
+                                             AndroidTestSuiteDetailsViewListener, AndroidTestSuiteViewController {
   /**
-   * Minimum height of swing components in ThreeComponentsSplitter container in pixel.
+   * Minimum width or height of swing components in ThreeComponentsSplitter container in pixel.
    */
-  private static final int MIN_COMPONENT_HEIGHT_IN_SPLITTER = 48;
+  private static final int MIN_COMPONENT_SIZE_IN_SPLITTER = 48;
 
   /**
    * A ComboBox item to be used in API level filter ComboBox.
@@ -313,16 +313,20 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myApiLevelFilterComboBox.addItemListener(tableUpdater);
     myTableViewContainer.add(myTable.getComponent());
 
-    myComponentsSplitter = new ThreeComponentsSplitter(/*vertical=*/true,
-                                                       /*onePixelDividers=*/true);
+    myComponentsSplitter = new ThreeComponentsSplitter(/*vertical=*/false,
+                                                       /*onePixelDividers=*/true,
+                                                       parentDisposable);
     myComponentsSplitter.setOpaque(false);
-    myComponentsSplitter.setMinSize(MIN_COMPONENT_HEIGHT_IN_SPLITTER);
-    myComponentsSplitter.setHonorComponentsMinimumSize(true);
+    myComponentsSplitter.setMinSize(MIN_COMPONENT_SIZE_IN_SPLITTER);
+    myComponentsSplitter.setHonorComponentsMinimumSize(false);
     Disposer.register(this, myComponentsSplitter);
+
+    myRootPanel.setMinimumSize(new Dimension());
     myComponentsSplitter.setFirstComponent(myRootPanel);
 
-    myDetailsView = new AndroidTestSuiteDetailsView(parentDisposable, this, project);
+    myDetailsView = new AndroidTestSuiteDetailsView(parentDisposable, this, this, project);
     myDetailsView.getRootPanel().setVisible(false);
+    myDetailsView.getRootPanel().setMinimumSize(new Dimension());
     myComponentsSplitter.setLastComponent(myDetailsView.getRootPanel());
 
     updateProgress();
@@ -442,22 +446,31 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     if (selectedDevice != null) {
       myDetailsView.selectDevice(selectedDevice);
     }
-    myDetailsView.getRootPanel().setVisible(true);
 
-    // ComponentsSplitter doesn't update child components' size automatically when you change its visibility.
-    // So we have to update them manually here otherwise the size can be invalid (e.g. smaller than the min size).
-    myComponentsSplitter.setFirstSize(myComponentsSplitter.getFirstSize());
-    myComponentsSplitter.setLastSize(myComponentsSplitter.getLastSize());
+    if (!myDetailsView.getRootPanel().isVisible()) {
+      myDetailsView.getRootPanel().setVisible(true);
+
+      int componentSize = myComponentsSplitter.getOrientation() ? myComponentsSplitter.getHeight() : myComponentsSplitter.getWidth();
+      myComponentsSplitter.setFirstSize(componentSize/2);
+    }
   }
 
   @UiThread
   private void closeAndroidTestSuiteDetailsView() {
     myDetailsView.getRootPanel().setVisible(false);
+  }
 
-    // ComponentsSplitter doesn't update child components' size automatically when you change its visibility.
-    // So we have to update them manually here otherwise the size can be invalid (e.g. smaller than the min size).
-    myComponentsSplitter.setFirstSize(myComponentsSplitter.getFirstSize());
-    myComponentsSplitter.setLastSize(myComponentsSplitter.getLastSize());
+  @Override
+  @UiThread
+  public Orientation getOrientation() {
+    boolean isVertical = myComponentsSplitter.getOrientation();
+    return isVertical ? Orientation.VERTICAL : Orientation.HORIZONTAL;
+  }
+
+  @Override
+  @UiThread
+  public void setOrientation(Orientation orientation) {
+    myComponentsSplitter.setOrientation(orientation == Orientation.VERTICAL);
   }
 
   @Override

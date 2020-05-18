@@ -32,7 +32,7 @@ import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.Graphics2DDelegate
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.ImageUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -56,7 +56,7 @@ class HeapSetNodeHRendererTest {
 
   @Before
   fun setup() {
-    DataVisualizationColors.initialize(
+    DataVisualizationColors.doInitialize(
       FileInputStream(TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/data-colors.json")))
     val loader = FakeCaptureObjectLoader()
     loader.setReturnImmediateFuture(true)
@@ -144,7 +144,7 @@ class HeapSetNodeHRendererTest {
     assertThat(fakeGraphics.fonts).containsExactly(fakeGraphics.font, fakeGraphics.font.deriveFont(Font.BOLD))
   }
 
-  private class TestGraphics2D : Graphics2DDelegate(UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {
+  private class TestGraphics2D : Graphics2DDelegate(ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {
     val fillShapes = mutableListOf<Shape>()
     val colors = mutableListOf<Paint?>()
     val strings = mutableListOf<String>()

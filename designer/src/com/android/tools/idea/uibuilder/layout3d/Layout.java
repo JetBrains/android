@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.layout3d;
 
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
 
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -192,7 +192,7 @@ public class Layout extends TriData {
 
     if (img != null && img.getType() != BufferedImage.TYPE_INT_ARGB) {
       BufferedImage tmp;
-      tmp = UIUtil.createImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_ARGB);
+      tmp = ImageUtil.createImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_ARGB);
       tmp.createGraphics().drawImage(img, 0, 0, null);
       img = tmp;
     }

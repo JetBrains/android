@@ -17,6 +17,7 @@ package com.android.tools.adtui.flat;
 
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.paint.LinePainter2D;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 
@@ -60,9 +61,9 @@ public class FlatSeparator extends JComponent {
       }
     }
     else {
-      g.setColor(UIUtil.getSeparatorColor());
+      g.setColor(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground());
       if (getParent() != null) {
-        UIUtil.drawLine(g, 3, 2, 3, getParent().getSize().height - 2);
+        LinePainter2D.paint((Graphics2D)g, 3, 2, 3, getParent().getSize().height - 2);
       }
     }
   }

@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.testFramework.PlatformTestCase;
@@ -43,7 +44,8 @@ public class SdkSyncTest extends PlatformTestCase {
     myLocalProperties = new LocalProperties(myProject);
     myAndroidSdkPath = TestUtils.getSdk();
     myIdeSdks = IdeSdks.getInstance();
-    mySdkSync = new SdkSync(myIdeSdks);
+    new IdeComponents(getProject()).replaceApplicationService(IdeSdks.class, myIdeSdks);
+    mySdkSync = new SdkSync();
     assertNull(myIdeSdks.getAndroidSdkPath());
     IdeSdks.removeJdksOn(getTestRootDisposable());
   }
@@ -81,7 +83,7 @@ public class SdkSyncTest extends PlatformTestCase {
   }
 
   public void testSyncIdeAndProjectAndroidHomesWhenUserSelectsValidSdkPath() throws Exception {
-    SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask(myIdeSdks) {
+    SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
       @Nullable
       @Override
       File selectValidSdkPath() {
@@ -95,7 +97,7 @@ public class SdkSyncTest extends PlatformTestCase {
   }
 
   public void testSyncIdeAndProjectAndroidHomesWhenUserDoesNotSelectValidSdkPath() throws Exception {
-    SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask(myIdeSdks) {
+    SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
       @Nullable
       @Override
       File selectValidSdkPath() {

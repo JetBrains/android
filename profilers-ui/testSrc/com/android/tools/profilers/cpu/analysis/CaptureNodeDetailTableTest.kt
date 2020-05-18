@@ -28,13 +28,17 @@ class CaptureNodeDetailTableTest {
     val table = CaptureNodeDetailTable(dataSeries, Range(10.0, 100.0)).table
 
     assertThat(table.rowCount).isEqualTo(1)
-    assertThat(table.columnCount).isEqualTo(3)
+    assertThat(table.columnCount).isEqualTo(5)
     assertThat(table.getColumnName(0)).isEqualTo("Start Time")
     assertThat(table.getColumnName(1)).isEqualTo("Wall Duration")
-    assertThat(table.getColumnName(2)).isEqualTo("CPU Duration")
+    assertThat(table.getColumnName(2)).isEqualTo("Self Time")
+    assertThat(table.getColumnName(3)).isEqualTo("CPU Duration")
+    assertThat(table.getColumnName(4)).isEqualTo("CPU Self Time")
     assertThat(table.getValueAt(0, 0)).isEqualTo(0)
     assertThat(table.getValueAt(0, 1)).isEqualTo(10)
-    assertThat(table.getValueAt(0, 2)).isEqualTo(8)
+    assertThat(table.getValueAt(0, 2)).isEqualTo(2)
+    assertThat(table.getValueAt(0, 3)).isEqualTo(8)
+    assertThat(table.getValueAt(0, 4)).isEqualTo(3)
   }
 
   companion object {
@@ -43,6 +47,19 @@ class CaptureNodeDetailTableTest {
       endGlobal = 20
       startThread = 11
       endThread = 19
+
+      addChild(CaptureNode(SingleNameModel("Bar")).apply {
+        startGlobal = 10
+        endGlobal = 13
+        startThread = 11
+        endThread = 14
+      })
+      addChild(CaptureNode(SingleNameModel("bar")).apply {
+        startGlobal = 14
+        endGlobal = 19
+        startThread = 15
+        endThread = 17
+      })
     }
   }
 }

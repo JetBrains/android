@@ -23,6 +23,7 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
@@ -52,7 +53,8 @@ import org.jetbrains.annotations.Nullable;
  * @author nik
  */
 public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<AndroidFacet, AndroidFacetConfiguration> {
-  private static final NotificationGroup ANDROID_MODULE_IMPORTING_NOTIFICATION = NotificationGroup.balloonGroup("Android Module Importing");
+  private static final NotificationGroup ANDROID_MODULE_IMPORTING_NOTIFICATION =
+    NotificationGroup.balloonGroup("Android Module Importing", PluginId.getId("org.jetbrains.android"));
 
   public AndroidFrameworkDetector() {
     super("android");

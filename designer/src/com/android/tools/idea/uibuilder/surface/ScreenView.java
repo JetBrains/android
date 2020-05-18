@@ -336,4 +336,9 @@ public class ScreenView extends ScreenViewBase {
   public ColorSet getColorSet() {
     return myColorSet;
   }
+
+  @Override
+  public boolean isResizeable() {
+    return myIsResizeable;
+  }
 }

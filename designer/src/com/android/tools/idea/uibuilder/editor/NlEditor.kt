@@ -45,7 +45,14 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
 
   override fun createEditorPanel() =
     DesignerEditorPanel(this, myProject, myFile, WorkBench(myProject, WORKBENCH_NAME, this, this),
-                        { NlDesignSurface.builder(myProject, this).build() },
+                        {
+                          if (StudioFlags.NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW.get()) {
+                            NlDesignSurface.builder(myProject, this).showModelNames().build()
+                          }
+                          else {
+                            NlDesignSurface.builder(myProject, this).build()
+                          }
+                        },
                         { toolWindowDefinitions(it) },
                         AndroidEditorSettings.getInstance().globalState.preferredSurfaceState())
 

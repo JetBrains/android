@@ -280,7 +280,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         JBLabel label = new JBLabel((String)value);
         if (isSelected) {
           if (image.isRemote()) {
-            panel.setBackground(UIUtil.getListUnfocusedSelectionBackground());
+            panel.setBackground(UIUtil.getListSelectionBackground(false));
           } else {
             panel.setBackground(table.getSelectionBackground());
             label.setBackground(table.getSelectionBackground());

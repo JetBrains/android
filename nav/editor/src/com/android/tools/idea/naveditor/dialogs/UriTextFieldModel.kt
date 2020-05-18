@@ -19,12 +19,8 @@ import com.android.tools.adtui.model.stdui.DefaultCommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditorCompletion
 
-class UriTextFieldModel : DefaultCommonTextFieldModel("") {
+class UriTextFieldModel : DefaultCommonTextFieldModel("", "e.g. https://www.example.com/person/{id}") {
   lateinit var argumentNames: List<String>
-
-  init {
-    placeHolderValue = "Enter URI - https://www.example.com/person/{id}"
-  }
 
   override val editingSupport = object : EditingSupport {
     override val alwaysRefreshCompletions = true

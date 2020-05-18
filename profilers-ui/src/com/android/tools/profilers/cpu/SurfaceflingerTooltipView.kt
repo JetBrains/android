@@ -18,19 +18,19 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.model.formatter.TimeFormatter
+import com.android.tools.profilers.cpu.atrace.SurfaceflingerEvent
 import com.google.common.annotations.VisibleForTesting
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JPanel
 
 class SurfaceflingerTooltipView(parent: JComponent, val tooltip: SurfaceflingerTooltip) : TooltipView(tooltip.timeline) {
   private val content = JPanel(TabularLayout("*").setVGap(12))
 
   @VisibleForTesting
-  val statusLabel: JLabel = createTooltipLabel()
+  val eventNameLabel = createTooltipLabel()
 
   @VisibleForTesting
-  val durationLabel: JLabel = createTooltipLabel()
+  val durationLabel = createTooltipLabel()
 
   override fun createTooltip(): JComponent {
     return content
@@ -43,13 +43,17 @@ class SurfaceflingerTooltipView(parent: JComponent, val tooltip: SurfaceflingerT
       return
     }
     content.isVisible = true
-    statusLabel.text = activeEvent.type.displayName
+
+    eventNameLabel.text = activeEvent.name
     durationLabel.text = TimeFormatter.getSingleUnitDurationString(activeEvent.end - activeEvent.start)
+    val isProcessing = activeEvent.type == SurfaceflingerEvent.Type.PROCESSING
+    eventNameLabel.isVisible = isProcessing
+    durationLabel.isVisible = isProcessing
   }
 
   init {
     content.apply {
-      add(statusLabel, TabularLayout.Constraint(0, 0))
+      add(eventNameLabel, TabularLayout.Constraint(0, 0))
       add(durationLabel, TabularLayout.Constraint(1, 0))
     }
     tooltip.addDependency(this).onChange(SurfaceflingerTooltip.Aspect.EVENT_CHANGED, this::timeChanged)

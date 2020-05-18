@@ -31,15 +31,20 @@
               extensions="aidl"/>
     <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
     <lang.syntaxHighlighter language="AIDL"
-                                   implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighter"/>
+                            implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighter"/>
     <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlClassNameAnnotator" order="first"/>
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
     <lang.findUsagesProvider language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.findUsages.AidlFindUsageProvider"/>
     <findUsagesHandlerFactory implementation="com.android.tools.idea.lang.aidl.findUsages.AidlFindUsageHandlerFactory"/>
 
     <!-- Proguard support -->
-    <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory"/>
-    <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition"/>
+    <fileType name="Shrinker Config File"
+              implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8FileType"
+              fieldName="INSTANCE"
+              language="SHRINKER_CONFIG"
+              extensions="pro"
+              fileNames="proguard.cfg"
+              patterns="proguard-*.txt"/>
 
     <lang.parserDefinition language="SHRINKER_CONFIG"
                            implementationClass="com.android.tools.idea.lang.proguardR8.parser.ProguardR8ParserDefinition"/>
@@ -114,11 +119,6 @@
     <lang.inspectionSuppressor
         language="SHRINKER_CONFIG"
         implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InspectionSuppressor"/>
-
-    <lang.syntaxHighlighter language="PROGUARD"
-                                   implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighter"/>
-    <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter"/>
-    <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor"/>
 
     <!-- Renderscript -->
     <fileType name="Android RenderScript"

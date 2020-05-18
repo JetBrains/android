@@ -19,7 +19,6 @@ import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
 
@@ -33,7 +32,7 @@ class ModuleNavigationResourcesModificationTracker(val module: Module) : Modific
 
   companion object {
     @JvmStatic
-    fun getInstance(module: Module) = ModuleServiceManager.getService(module, ModuleNavigationResourcesModificationTracker::class.java)!!
+    fun getInstance(module: Module) = module.getService(ModuleNavigationResourcesModificationTracker::class.java)!!
   }
 
   override fun getModificationCount() = navigationModificationTracker.modificationCount

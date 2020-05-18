@@ -66,6 +66,7 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.EnvironmentUtil;
 import com.intellij.util.SystemProperties;
 import java.io.File;
@@ -110,6 +111,12 @@ public class IdeSdks {
     return ServiceManager.getService(IdeSdks.class);
   }
 
+  public IdeSdks() {
+    this(AndroidSdks.getInstance(), Jdks.getInstance(), EmbeddedDistributionPaths.getInstance(), IdeInfo.getInstance());
+  }
+
+  @NonInjectable
+  @VisibleForTesting
   public IdeSdks(@NotNull AndroidSdks androidSdks,
                  @NotNull Jdks jdks,
                  @NotNull EmbeddedDistributionPaths embeddedDistributionPaths,

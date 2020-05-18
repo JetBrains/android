@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.intellij.openapi.util.SimpleModificationTracker
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -52,22 +53,21 @@ class PreviewElementProviderTest {
       SinglePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod")
     ))
 
+    val modificationTracker = SimpleModificationTracker()
     val memoized = MemoizedPreviewElementProvider(object : PreviewElementProvider {
       override val previewElements: Sequence<PreviewElement>
         get() = staticPreviewProvider.previewElements
-    })
+    }, modificationTracker)
 
     // Before the first refresh, the list is empty
-    assertEquals(0, memoized.previewElements.count())
-    memoized.refresh()
     assertEquals(3, memoized.previewElements.count())
 
     staticPreviewProvider = StaticPreviewProvider(listOf(
       SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1")
     ))
-    // Updated the source but did not call refresh
+    // Updated the source but did not "refresh" by chaging the modification stamp
     assertEquals(3, memoized.previewElements.count())
-    memoized.refresh()
+    modificationTracker.incModificationCount()
     assertEquals(1, memoized.previewElements.count())
   }
 }

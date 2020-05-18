@@ -63,6 +63,12 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
       }
 
       @Override
+      public @NotNull String getId() {
+        // This string must be non-localized.
+        return ANDROID_JUNIT_NAME;
+      }
+
+      @Override
       public void onNewConfigurationCreated(@NotNull RunConfiguration configuration) {
         ((ModuleBasedConfiguration)configuration).onNewConfigurationCreated();
       }
@@ -70,6 +76,7 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
   }
 
   @Override
+  @NotNull
   public String getDisplayName() {
     return ANDROID_JUNIT_NAME;
   }

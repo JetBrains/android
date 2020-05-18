@@ -52,13 +52,12 @@ public class GradleSyncStateTest extends PlatformTestCase {
     super.setUp();
     initMocks(this);
 
-    MessageBus messageBus = mock(MessageBus.class);
+    new IdeComponents(myProject).replaceProjectService(ProjectStructure.class, myProjectStructure);
 
     new IdeComponents(myProject).replaceProjectService(GradleFiles.class, myGradleFiles);
-    mySyncState = new GradleSyncState(myProject, AndroidProjectInfo.getInstance(myProject), GradleProjectInfo.getInstance(myProject),
-                                      messageBus, myProjectStructure, myChangeNotification);
+    mySyncState = new GradleSyncState(myProject, myChangeNotification);
 
-    when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
+    myProject.getMessageBus().connect().subscribe(GRADLE_SYNC_TOPIC, myGradleSyncListener);
   }
 
   public void testSyncStartedUserNotification() {

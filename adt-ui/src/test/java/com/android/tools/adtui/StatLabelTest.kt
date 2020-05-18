@@ -24,15 +24,16 @@ class StatLabelTest {
   @Test
   fun `label display properly formatter number`() {
     val l = StatLabel(123456789, "description")
-    assertThat(l.getNumText()).isEqualTo("123,456,789")
-    assertThat(l.getDescText()).isEqualTo("description")
+    assertThat(l.numText).isEqualTo("123,456,789")
+    assertThat(l.descText).isEqualTo("description")
     l.numValue = 65432
-    assertThat(l.getNumText()).isEqualTo("65,432")
+    assertThat(l.numText).isEqualTo("65,432")
+    assertThat(l.descText).isEqualTo("description") // (shouldn't be affected)
   }
 
   @Test
   fun customNumberFormatter() {
     val label = StatLabel(1000L, "Duration", numFormatter = TimeFormatter::getSingleUnitDurationString)
-    assertThat(label.getNumText()).isEqualTo("1 ms")
+    assertThat(label.numText).isEqualTo("1 ms")
   }
 }

@@ -147,6 +147,12 @@ public class AndroidGradleTests {
     throws IOException {
     if (path.isDirectory()) {
       if (isRoot || new File(path, FN_SETTINGS_GRADLE).exists() || new File(path, FN_SETTINGS_GRADLE_KTS).exists()) {
+        // Don't update the project if it is a buildSrc project. There could also be a project named buildSrc however
+        // since this is used in tests we assume that this will never happen.
+        if (path.getName().equals("buildSrc")) {
+          return;
+        }
+
         // Override settings just for tests (e.g. sdk.dir)
         updateLocalProperties(path, getSdk());
         updateGradleProperties(path);

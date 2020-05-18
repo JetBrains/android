@@ -150,7 +150,7 @@ class WarningsPageView(
     layout = VerticalLayout(0, SwingConstants.LEFT)
 
     add(JBLabel("This build does not have any warnings."))
-    add(JBLabel("To continue to evaluate this build's performance consider these common views into this build:"))
+    add(JBLabel("To continue exploring this build's performance, consider these views into this build."))
     add(JPanel().apply {
       name = "links"
       border = JBUI.Borders.emptyTop(20)

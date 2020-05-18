@@ -47,7 +47,7 @@ class ColoredIconGeneratorTest {
   @Before
   fun setUp() {
     wasDarkMode = !JBColor.isBright()
-    DataVisualizationColors.initialize(FileInputStream(TestResources.getFile(javaClass, "/palette/data-colors.json")))
+    DataVisualizationColors.doInitialize(FileInputStream(TestResources.getFile(javaClass, "/palette/data-colors.json")))
     IconManager.activate()
     IconLoader.activate()
   }

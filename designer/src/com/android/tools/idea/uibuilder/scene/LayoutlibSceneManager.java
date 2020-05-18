@@ -38,6 +38,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
@@ -118,7 +119,6 @@ import org.jetbrains.ide.PooledThreadExecutor;
  * {@link SceneManager} that creates a Scene from an NlModel representing a layout using layoutlib.
  */
 public class LayoutlibSceneManager extends SceneManager {
-
   private static final SceneDecoratorFactory DECORATOR_FACTORY = new NlSceneDecoratorFactory();
 
   @Nullable private SceneView mySecondarySceneView;
@@ -248,17 +248,20 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Creates a new LayoutlibSceneManager.
    *
-   * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
-   * @param designSurface the {@link DesignSurface} user to present the result of the renders.
+   * @param model                      the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
+   * @param designSurface              the {@link DesignSurface} user to present the result of the renders.
    * @param renderTaskDisposerExecutor {@link Executor} to be used for running the slow {@link #dispose()} calls.
-   * @param renderingQueueSetup {@link Consumer} of {@link MergingUpdateQueue} to run additional setup on the queue used to handle render
-   *                                            requests.
+   * @param renderingQueueSetup        {@link Consumer} of {@link MergingUpdateQueue} to run additional setup on the queue used to handle render
+   *                                   requests.
+   * @param sceneComponentProvider     a {@link SceneManager.SceneComponentHierarchyProvider providing the mapping from {@link NlComponent} to
+   *                                   {@link SceneComponent}s.
    */
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface designSurface,
                                   @NotNull Executor renderTaskDisposerExecutor,
-                                  @NotNull Consumer<MergingUpdateQueue> renderingQueueSetup) {
-    super(model, designSurface, false);
+                                  @NotNull Consumer<MergingUpdateQueue> renderingQueueSetup,
+                                  @NotNull SceneComponentHierarchyProvider sceneComponentProvider) {
+    super(model, designSurface, false, sceneComponentProvider);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueueSetup = renderingQueueSetup;
     createSceneView();
@@ -277,7 +280,7 @@ public class LayoutlibSceneManager extends SceneManager {
       NlComponent rootComponent = components.get(0).getRoot();
       boolean previous = getScene().isAnimated();
       scene.setAnimated(false);
-      List<SceneComponent> hierarchy = createHierarchy(rootComponent);
+      List<SceneComponent> hierarchy = sceneComponentProvider.createHierarchy(this, rootComponent);
       SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);
       updateFromComponent(root, new HashSet<>());
       scene.setRoot(root);
@@ -296,12 +299,26 @@ public class LayoutlibSceneManager extends SceneManager {
    * Creates a new LayoutlibSceneManager with the default settings for running render requests.
    * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Consumer)}
    *
+   * @param model                  the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
+   * @param designSurface          the {@link DesignSurface} user to present the result of the renders.
+   * @param sceneComponentProvider a {@link SceneManager.SceneComponentHierarchyProvider providing the mapping from {@link NlComponent} to
+   *                               {@link SceneComponent}s.
+   */
+  public LayoutlibSceneManager(@NotNull NlModel model,
+                               @NotNull DesignSurface designSurface,
+                               @NotNull SceneComponentHierarchyProvider sceneComponentProvider) {
+    this(model, designSurface, PooledThreadExecutor.INSTANCE, queue -> {}, sceneComponentProvider);
+  }
+
+  /**
+   * Creates a new LayoutlibSceneManager with the default settings for running render requests.
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Consumer)}
+   *
    * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface the {@link DesignSurface} user to present the result of the renders.
    */
-  public LayoutlibSceneManager(@NotNull NlModel model,
-                               @NotNull DesignSurface designSurface) {
-    this(model, designSurface, PooledThreadExecutor.INSTANCE, queue -> {});
+  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
+    this(model, designSurface, PooledThreadExecutor.INSTANCE, queue -> {}, new LayoutlibSceneManagerHierarchyProvider());
   }
 
   @NotNull
@@ -320,7 +337,7 @@ public class LayoutlibSceneManager extends SceneManager {
     tempComponent.setTargetProvider(sceneComponent -> ImmutableList.of(new ConstraintDragDndTarget()));
     scene.setAnimated(false);
     scene.getRoot().addChild(tempComponent);
-    updateFromComponent(tempComponent);
+    syncFromNlComponent(tempComponent);
     scene.setAnimated(true);
 
     return tempComponent;
@@ -471,29 +488,6 @@ public class LayoutlibSceneManager extends SceneManager {
     return mySecondarySceneView;
   }
 
-  @Override
-  protected void updateFromComponent(SceneComponent sceneComponent) {
-    super.updateFromComponent(sceneComponent);
-    NlComponent component = sceneComponent.getNlComponent();
-    boolean animate = getScene().isAnimated() && !sceneComponent.hasNoDimension();
-    SceneManager manager = sceneComponent.getScene().getSceneManager();
-    if (animate) {
-      long time = System.currentTimeMillis();
-      sceneComponent.setPositionTarget(Coordinates.pxToDp(manager, NlComponentHelperKt.getX(component)),
-                                       Coordinates.pxToDp(manager, NlComponentHelperKt.getY(component)),
-                                       time);
-      sceneComponent.setSizeTarget(Coordinates.pxToDp(manager, NlComponentHelperKt.getW(component)),
-                                   Coordinates.pxToDp(manager, NlComponentHelperKt.getH(component)),
-                                   time);
-    }
-    else {
-      sceneComponent.setPosition(Coordinates.pxToDp(manager, NlComponentHelperKt.getX(component)),
-                                 Coordinates.pxToDp(manager, NlComponentHelperKt.getY(component)));
-      sceneComponent.setSize(Coordinates.pxToDp(manager, NlComponentHelperKt.getW(component)),
-                             Coordinates.pxToDp(manager, NlComponentHelperKt.getH(component)));
-    }
-  }
-
   public void updateTargets() {
     SceneComponent root = getScene().getRoot();
     if (root != null) {
@@ -501,7 +495,6 @@ public class LayoutlibSceneManager extends SceneManager {
       root.updateTargets();
     }
   }
-
 
   private static void updateTargetProviders(@NotNull SceneComponent component) {
     ViewHandler handler = NlComponentHelperKt.getViewHandler(component.getNlComponent());
@@ -1050,8 +1043,8 @@ public class LayoutlibSceneManager extends SceneManager {
       taskBuilder.useTransparentBackground();
     }
 
-    if (!getDesignSurface().getPreviewWithToolsAttributes()) {
-      taskBuilder.disableToolsAttributes();
+    if (!getDesignSurface().getPreviewWithToolsVisibilityAndPosition()) {
+      taskBuilder.disableToolsVisibilityAndPosition();
     }
 
     // If two compose previews share the same ClassLoader they share the same compose framework. This way they share the state. In the
@@ -1298,6 +1291,35 @@ public class LayoutlibSceneManager extends SceneManager {
     @Override
     public List<NlModel.TagSnapshotTreeNode> getChildren() {
       return ContainerUtil.map(myViewInfo.getChildren(), ViewInfoTagSnapshotNode::new);
+    }
+  }
+
+  /**
+   * Default {@link SceneManager.SceneComponentHierarchyProvider} for {@link LayoutlibSceneManager}.
+   * It provides the functionality to sync the {@link NlComponent} hierarchy and the data from Layoutlib to {@link SceneComponent}.
+   */
+  protected static class LayoutlibSceneManagerHierarchyProvider extends DefaultSceneManagerHierarchyProvider {
+    @Override
+    public void syncFromNlComponent(@NotNull SceneComponent sceneComponent) {
+      super.syncFromNlComponent(sceneComponent);
+      NlComponent component = sceneComponent.getNlComponent();
+      boolean animate = sceneComponent.getScene().isAnimated() && !sceneComponent.hasNoDimension();
+      SceneManager manager = sceneComponent.getScene().getSceneManager();
+      if (animate) {
+        long time = System.currentTimeMillis();
+        sceneComponent.setPositionTarget(Coordinates.pxToDp(manager, NlComponentHelperKt.getX(component)),
+                                         Coordinates.pxToDp(manager, NlComponentHelperKt.getY(component)),
+                                         time);
+        sceneComponent.setSizeTarget(Coordinates.pxToDp(manager, NlComponentHelperKt.getW(component)),
+                                     Coordinates.pxToDp(manager, NlComponentHelperKt.getH(component)),
+                                     time);
+      }
+      else {
+        sceneComponent.setPosition(Coordinates.pxToDp(manager, NlComponentHelperKt.getX(component)),
+                                   Coordinates.pxToDp(manager, NlComponentHelperKt.getY(component)));
+        sceneComponent.setSize(Coordinates.pxToDp(manager, NlComponentHelperKt.getW(component)),
+                               Coordinates.pxToDp(manager, NlComponentHelperKt.getH(component)));
+      }
     }
   }
 

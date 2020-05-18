@@ -53,6 +53,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.ModuleManager
@@ -64,7 +65,6 @@ import com.intellij.serviceContainer.NonInjectable
 import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ThreeState
-import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
 import org.jetbrains.annotations.TestOnly
@@ -73,7 +73,7 @@ import kotlin.concurrent.withLock
 
 private val LOG = Logger.getInstance(GradleSyncState::class.java)
 
-private val SYNC_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("Gradle Sync")
+private val SYNC_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("Gradle Sync", PluginId.getId("org.jetbrains.android"))
 
 open class StateChangeNotification(private val project: Project) {
   open fun notifyStateChanged() {
@@ -104,25 +104,17 @@ open class StateChangeNotification(private val project: Project) {
  *   * sourceGenerationFinished
  *
  * Each of these methods record information about the current state of sync (e.g time taken for each stage) and passes these events
- * to any registered [GradleSyncListener]s via the projects [messageBus] or any one-time sync listeners passed into a specific invocation
+ * to any registered [GradleSyncListener]s via the projects messageBus or any one-time sync listeners passed into a specific invocation
  * of sync.
  */
 open class GradleSyncState @NonInjectable constructor(
   private val project: Project,
-  private val androidProjectInfo: AndroidProjectInfo,
-  private val gradleProjectInfo: GradleProjectInfo,
-  private val messageBus: MessageBus,
-  private val projectStructure: ProjectStructure,
   private val changeNotification: StateChangeNotification
 ) {
 
   constructor(
-    project: Project,
-    androidProjectInfo: AndroidProjectInfo,
-    gradleProjectInfo: GradleProjectInfo,
-    messageBus: MessageBus,
-    projectStructure: ProjectStructure
-  ) : this(project, androidProjectInfo, gradleProjectInfo, messageBus, projectStructure, StateChangeNotification(project))
+    project: Project
+  ) : this(project, StateChangeNotification(project))
 
   companion object {
     @JvmField
@@ -168,8 +160,9 @@ open class GradleSyncState @NonInjectable constructor(
    *    doesn't exist in an old version of the Android plugin)
    *   *An error in the structure of the project after sync (e.g. more than one module with the same path in the file system)
    */
-  open fun lastSyncFailed() : Boolean = gradleProjectInfo.isBuildWithGradle &&
-            (androidProjectInfo.requiredAndroidModelMissing() || GradleSyncMessages.getInstance(project).errorCount > 0)
+  open fun lastSyncFailed(): Boolean = GradleProjectInfo.getInstance(project).isBuildWithGradle &&
+                                       (AndroidProjectInfo.getInstance(project).requiredAndroidModelMissing() ||
+                                        GradleSyncMessages.getInstance(project).errorCount > 0)
 
   // For Java compat, to be refactored out
   open fun areSyncNotificationsEnabled() = areSyncNotificationsEnabled
@@ -299,7 +292,7 @@ open class GradleSyncState @NonInjectable constructor(
    * TODO: This should only be called at the end of sync, not all throughout which is currently the case
    */
   open fun syncFailed(message: String?, error: Throwable?, listener: GradleSyncListener?) {
-    projectStructure.clearData()
+    ProjectStructure.getInstance(project).clearData()
 
     val syncEndTimeStamp = System.currentTimeMillis()
 
@@ -568,7 +561,7 @@ open class GradleSyncState @NonInjectable constructor(
   }
 
   private fun syncPublisher(block: GradleSyncListener.() -> Unit) {
-    val runnable = { block.invoke(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)) }
+    val runnable = { block.invoke(project.messageBus.syncPublisher(GRADLE_SYNC_TOPIC)) }
     if (ApplicationManager.getApplication().isUnitTestMode) {
       runnable()
     }

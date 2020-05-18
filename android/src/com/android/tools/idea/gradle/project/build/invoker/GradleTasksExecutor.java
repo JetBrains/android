@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.intellij.notification.NotificationGroup;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -25,8 +26,10 @@ import org.jetbrains.annotations.Nullable;
  * Invokes Gradle tasks as a IDEA task in the background.
  */
 public abstract class GradleTasksExecutor extends Task.Backgroundable {
-  @NotNull public static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("Gradle Build (Logging)");
-  @NotNull public static final NotificationGroup BALLOON_NOTIFICATION = NotificationGroup.balloonGroup("Gradle Build (Balloon)");
+  @NotNull public static final NotificationGroup LOGGING_NOTIFICATION =
+    NotificationGroup.logOnlyGroup("Gradle Build (Logging)", PluginId.getId("org.jetbrains.android"));
+  @NotNull public static final NotificationGroup BALLOON_NOTIFICATION =
+    NotificationGroup.balloonGroup("Gradle Build (Balloon)", PluginId.getId("org.jetbrains.android"));
 
   protected GradleTasksExecutor(@Nullable Project project) {
     super(project, "Gradle Build Running", true);

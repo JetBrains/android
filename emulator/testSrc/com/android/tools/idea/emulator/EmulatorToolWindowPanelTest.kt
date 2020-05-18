@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.FakeUi.setPortableUiFont
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -26,7 +27,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.UiTestRule
-import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -54,7 +54,7 @@ class EmulatorToolWindowPanelTest {
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
 
-  var emulator: FakeEmulator
+  private var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
     set(value) { nullableEmulator = value }
 
@@ -92,9 +92,11 @@ class EmulatorToolWindowPanelTest {
     panel.hideLongRunningOperationIndicator()
     ui.layoutAndDispatchEvents()
     assertAppearance(ui, "image1")
+    assertThat(call.completion.isCancelled).isFalse()
 
     panel.destroyContent()
     assertThat(panel.emulatorView).isNull()
+    waitForCondition(2, TimeUnit.SECONDS) { call.completion.isCancelled }
   }
 
   private fun getStreamScreenshotCallAndWaitForFrame(panel: EmulatorToolWindowPanel, frameNumber: Int): GrpcCallRecord {
@@ -119,22 +121,6 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Throws(TimeoutException::class)
-  private fun waitForCondition(timeout: Long, unit: TimeUnit, condition: () -> Boolean) {
-    val timeoutMillis = unit.toMillis(timeout)
-    val deadline = System.currentTimeMillis() + timeoutMillis
-    var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
-    while (waitUnit > 0) {
-      dispatchAllInvocationEvents()
-      if (condition()) {
-        return
-      }
-      Thread.sleep(waitUnit)
-      waitUnit = waitUnit.coerceAtMost(deadline - System.currentTimeMillis())
-    }
-    throw TimeoutException()
-  }
-
-  @Throws(TimeoutException::class)
   private fun EmulatorToolWindowPanel.waitForFrame(frame: Int, timeout: Long, unit: TimeUnit) {
     waitForCondition(timeout, unit) { emulatorView!!.frameNumber >= frame }
   }
@@ -145,7 +131,7 @@ class EmulatorToolWindowPanelTest {
   private fun assertAppearance(ui: FakeUi, goldenImageName: String) {
     ui.updateToolbars()
     val image = ui.render()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.02)
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.03)
   }
 
   private fun getGoldenFile(name: String): File {

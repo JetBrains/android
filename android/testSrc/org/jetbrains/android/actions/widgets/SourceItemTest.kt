@@ -24,6 +24,7 @@ import org.mockito.Mockito
 import org.picocontainer.PicoContainer
 import kotlin.test.assertEquals
 
+@org.junit.Ignore("b/156122129")
 class SourceItemTest {
 
   private lateinit var sourceProviderMock: NamedIdeaSourceProvider

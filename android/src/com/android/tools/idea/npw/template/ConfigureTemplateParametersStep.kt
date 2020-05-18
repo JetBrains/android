@@ -55,7 +55,6 @@ import com.android.tools.idea.wizard.template.Constraint.ACTIVITY
 import com.android.tools.idea.wizard.template.Constraint.APP_PACKAGE
 import com.android.tools.idea.wizard.template.Constraint.CLASS
 import com.android.tools.idea.wizard.template.Constraint.DRAWABLE
-import com.android.tools.idea.wizard.template.Constraint.ID
 import com.android.tools.idea.wizard.template.Constraint.LAYOUT
 import com.android.tools.idea.wizard.template.Constraint.MODULE
 import com.android.tools.idea.wizard.template.Constraint.PACKAGE
@@ -105,7 +104,7 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 
 val TYPE_CONSTRAINTS: EnumSet<Constraint> = EnumSet.of(
-  ACTIVITY, CLASS, PACKAGE, APP_PACKAGE, MODULE, LAYOUT, DRAWABLE, ID, SOURCE_SET_FOLDER, STRING, URI_AUTHORITY
+  ACTIVITY, CLASS, PACKAGE, APP_PACKAGE, MODULE, LAYOUT, DRAWABLE, SOURCE_SET_FOLDER, STRING, URI_AUTHORITY
 )
 
 fun Parameter<*>.isRelated(p: Parameter<*>): Boolean =

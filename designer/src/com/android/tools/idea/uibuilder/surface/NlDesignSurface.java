@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 import static com.android.tools.idea.actions.DesignerDataKeys.LAYOUT_VALIDATOR_KEY;
 import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
@@ -68,6 +67,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -95,10 +95,15 @@ import org.jetbrains.annotations.Nullable;
  */
 public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler {
 
-  private boolean myPreviewWithToolsAttributes = true;
+  private boolean myPreviewWithToolsVisibilityAndPosition = true;
 
   private static final double DEFAULT_MIN_SCALE = 0.1;
   private static final double DEFAULT_MAX_SCALE = 10;
+
+  /**
+   * See {@link Builder#setDelegateDataProvider(DataProvider)}
+   */
+  @Nullable private final DataProvider myDelegateDataProvider;
 
   private final LayoutValidatorControl myValidatorControl = new LayoutValidatorControl() {
     @Override
@@ -162,6 +167,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private double myMinScale = DEFAULT_MIN_SCALE;
     private double myMaxScale = DEFAULT_MAX_SCALE;
     @NotNull private ZoomType myOnChangeZoom = ZoomType.FIT_INTO;
+    /**
+     * An optional {@link DataProvider} that allows users of the surface to provide additional information associated
+     * with this surface.
+     */
+    @Nullable private DataProvider myDelegateDataProvider = null;
 
     /**
      * Factory to create an action manager for the NlDesignSurface
@@ -318,6 +328,16 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * Sets a delegate {@link DataProvider} that allows users of the surface to provide additional information associated
+     * with this surface.
+     */
+    @NotNull
+    public Builder setDelegateDataProvider(@NotNull DataProvider dataProvider) {
+      myDelegateDataProvider = dataProvider;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
@@ -337,7 +357,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  myMinScale,
                                  myMaxScale,
                                  myOnChangeZoom,
-                                 myActionHandlerProvider);
+                                 myActionHandlerProvider,
+                                 myDelegateDataProvider);
     }
   }
 
@@ -405,7 +426,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           double minScale,
                           double maxScale,
                           @NotNull ZoomType onChangeZoom,
-                          @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider) {
+                          @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
+                          @Nullable DataProvider delegateDataProvider) {
     super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable, onChangeZoom,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, layoutManager),
           actionHandlerProvider);
@@ -424,8 +446,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myMinScale = minScale;
     myMaxScale = maxScale;
 
-  if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get())
-    myValidator = new NlLayoutValidator(myIssueModel, this);
+    if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get()) {
+      myValidator = new NlLayoutValidator(myIssueModel, this);
+    }
+
+    myDelegateDataProvider = delegateDataProvider;
   }
 
   /**
@@ -932,28 +957,31 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  public Object getData(@NotNull String dataId) {
-    if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId) ) {
-      return this;
+  public final Object getData(@NotNull String dataId) {
+    Object data = myDelegateDataProvider != null ? myDelegateDataProvider.getData(dataId) : null;
+    if (data != null) {
+      return data;
     }
-    else if (DESIGN_SURFACE.is(dataId)) {
+
+    if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId) ) {
       return this;
     }
     else if(LAYOUT_VALIDATOR_KEY.is(dataId)) {
       return myValidatorControl;
     }
+
     return super.getData(dataId);
   }
 
   @Override
-  public boolean getPreviewWithToolsAttributes() {
-    return myPreviewWithToolsAttributes;
+  public boolean getPreviewWithToolsVisibilityAndPosition() {
+    return myPreviewWithToolsVisibilityAndPosition;
   }
 
   @Override
-  public void setPreviewWithToolsAttributes(boolean isPreviewWithToolsAttributes) {
-    if (myPreviewWithToolsAttributes != isPreviewWithToolsAttributes) {
-      myPreviewWithToolsAttributes = isPreviewWithToolsAttributes;
+  public void setPreviewWithToolsVisibilityAndPosition(boolean isPreviewWithToolsVisibilityAndPosition) {
+    if (myPreviewWithToolsVisibilityAndPosition != isPreviewWithToolsVisibilityAndPosition) {
+      myPreviewWithToolsVisibilityAndPosition = isPreviewWithToolsVisibilityAndPosition;
       forceUserRequestedRefresh();
     }
   }
