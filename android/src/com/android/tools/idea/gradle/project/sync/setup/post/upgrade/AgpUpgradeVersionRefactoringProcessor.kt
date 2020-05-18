@@ -21,6 +21,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.isUpdatablePluginVersion
@@ -34,6 +35,7 @@ import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.refactoring.BaseRefactoringProcessor
@@ -108,6 +110,38 @@ class AgpUpgradeVersionRefactoringProcessor(
           val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
           val property = propertiesFile.findPropertyByKey(GRADLE_DISTRIBUTION_URL_PROPERTY) ?: return@forEach
           usages.add(GradleVersionUsageInfo(property.psiElement, current, new))
+        }
+      }
+    }
+
+    buildModel.allIncludedBuildModels.forEach model@{ model ->
+      val pluginNames = model.plugins().map { it.name().forceString() }
+      pluginNames.firstOrNull { it.startsWith("java") }?.let { _ ->
+        model.java().sourceCompatibility().let {
+          val psiElement = it.psiElement ?: model.java().psiElement ?: model.psiElement!!
+          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "sourceCompatibility"))
+        }
+        model.java().targetCompatibility().let {
+          val psiElement = it.psiElement ?: model.java().psiElement ?: model.psiElement!!
+          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "targetCompatibility"))
+        }
+      }
+
+      pluginNames.firstOrNull { it.startsWith("com.android") }?.let { _ ->
+        model.android().compileOptions().sourceCompatibility().let {
+          val psiElement = it.psiElement ?: model.android().compileOptions().psiElement ?: model.android().psiElement ?: model.psiElement!!
+          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "sourceCompatibility"))
+        }
+        model.android().compileOptions().targetCompatibility().let {
+          val psiElement = it.psiElement ?: model.android().compileOptions().psiElement ?: model.android().psiElement ?: model.psiElement!!
+          usages.add(JavaLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "targetCompatibility"))
+        }
+      }
+
+      pluginNames.firstOrNull { it.startsWith("org.jetbrains.kotlin") || it.startsWith("kotlin") }?.let { _ ->
+        model.android().kotlinOptions().jvmTarget().let {
+          val psiElement = it.psiElement ?: model.android().kotlinOptions().psiElement ?: model.android().psiElement ?: model.psiElement!!
+          usages.add(KotlinLanguageLevelUsageInfo(psiElement, current, new, it, it.psiElement != null, "jvmOptions"))
         }
       }
     }
@@ -201,5 +235,55 @@ class GradleVersionUsageInfo(element: PsiElement, current: GradleVersion, new: G
 
   override fun performAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) {
     (element as? Property)?.setValue(GradleWrapper.getDistributionUrl(GRADLE_LATEST_VERSION, true))
+  }
+}
+
+class JavaLanguageLevelUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val model: LanguageLevelPropertyModel,
+  private val existing: Boolean,
+  private val name: String
+): AgpUpgradeUsageInfo(element, current, new) {
+  override fun getTooltipText(): String {
+    return when (existing) {
+      false -> "insert explicit $name to preserve previous behaviour"
+      true -> "preserve existing explicit $name"
+    }
+  }
+
+  override fun performAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) {
+    when (existing) {
+      false -> model.setLanguageLevel(LanguageLevel.JDK_1_7)
+    }
+  }
+
+  // don't need hashCode for correctness because this is stricter than the superclass's equals()
+  override fun equals(other: Any?): Boolean {
+    return super.equals(other) && other is JavaLanguageLevelUsageInfo && name == other.name
+  }
+}
+
+class KotlinLanguageLevelUsageInfo(
+    element: PsiElement,
+    current: GradleVersion,
+    new: GradleVersion,
+    private val model: LanguageLevelPropertyModel,
+    private val existing: Boolean,
+    private val name: String
+  ): AgpUpgradeUsageInfo(element, current, new) {
+  override fun getTooltipText(): String {
+    return when (existing) {
+      false -> "insert explicit $name to preserve previous behaviour"
+      true -> "preserve existing explicit $name"
+    }
+  }
+
+  override fun performAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) {
+    when (existing) {
+      // if we can find a path to a JDK_1_7 we could include that for jdkHome, but the Internet suggests it's not high-value
+      false -> model.setLanguageLevel(LanguageLevel.JDK_1_6)
+    }
   }
 }
