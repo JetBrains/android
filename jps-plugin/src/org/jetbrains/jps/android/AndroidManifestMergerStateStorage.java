@@ -1,27 +1,35 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import gnu.trove.TObjectLongHashMap;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.builders.storage.StorageProvider;
 import org.jetbrains.jps.incremental.FSOperations;
 import org.jetbrains.jps.incremental.storage.StorageOwner;
 
-import java.io.*;
-import java.util.Collection;
-
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidManifestMergerStateStorage implements StorageOwner {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidPackagingStateStorage");
+  private static final Logger LOG = Logger.getInstance(AndroidPackagingStateStorage.class);
 
   public static final StorageProvider<AndroidManifestMergerStateStorage> PROVIDER = new StorageProvider<AndroidManifestMergerStateStorage>() {
     @NotNull
     @Override
-    public AndroidManifestMergerStateStorage createStorage(File targetDataDir) throws IOException {
+    public AndroidManifestMergerStateStorage createStorage(File targetDataDir) {
       return new AndroidManifestMergerStateStorage(AndroidJpsUtil.getStorageFile(targetDataDir, "manifest_merger"));
     }
   };
@@ -37,12 +45,12 @@ public class AndroidManifestMergerStateStorage implements StorageOwner {
   }
 
   @Override
-  public void clean() throws IOException {
+  public void clean() {
     FileUtil.delete(myFile);
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
   }
 
   @Nullable
@@ -72,10 +80,10 @@ public class AndroidManifestMergerStateStorage implements StorageOwner {
         output.writeLong(state.myManifestFileTimestamp);
         output.writeInt(state.myLibManifestsTimestamps.size());
 
-        for (Object key : state.myLibManifestsTimestamps.keys()) {
+        for (Object key : state.myLibManifestsTimestamps.keySet()) {
           final String strKey = (String)key;
           output.writeUTF(strKey);
-          output.writeLong(state.myLibManifestsTimestamps.get(strKey));
+          output.writeLong(state.myLibManifestsTimestamps.getLong(strKey));
         }
         output.writeBoolean(state.myToMerge);
       }
@@ -90,12 +98,12 @@ public class AndroidManifestMergerStateStorage implements StorageOwner {
 
   public static class MyState {
     private final long myManifestFileTimestamp;
-    private final TObjectLongHashMap<String> myLibManifestsTimestamps;
+    private final Object2LongMap<String> myLibManifestsTimestamps;
     private final boolean myToMerge;
 
     public MyState(@NotNull File manifestFile, @NotNull Collection<File> libManifestFiles, boolean toMerge) {
       myManifestFileTimestamp = FSOperations.lastModified(manifestFile);
-      myLibManifestsTimestamps = new TObjectLongHashMap<String>(libManifestFiles.size());
+      myLibManifestsTimestamps = new Object2LongOpenHashMap<>(libManifestFiles.size());
 
       for (File libManifestFile : libManifestFiles) {
         myLibManifestsTimestamps.put(FileUtil.toCanonicalPath(libManifestFile.getPath()),
@@ -107,7 +115,7 @@ public class AndroidManifestMergerStateStorage implements StorageOwner {
     private MyState(DataInput input) throws IOException {
       myManifestFileTimestamp = input.readLong();
       final int libManifestsCount = input.readInt();
-      myLibManifestsTimestamps = new TObjectLongHashMap<String>(libManifestsCount);
+      myLibManifestsTimestamps = new Object2LongOpenHashMap<>(libManifestsCount);
 
       for (int i = 0; i < libManifestsCount; i++) {
         final String path = input.readUTF();
