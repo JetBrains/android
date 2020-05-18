@@ -15,7 +15,13 @@
  */
 package org.jetbrains.android.spellchecker;
 
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.ATTR_LOCALE;
+import static com.android.SdkConstants.TAG_ISSUES;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.client.api.DefaultConfiguration;
 import com.android.tools.lint.detector.api.Lint;
 import com.intellij.lang.injection.InjectedLanguageManager;
@@ -28,7 +34,12 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.templateLanguages.TemplateLanguage;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.*;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlToken;
+import com.intellij.psi.xml.XmlTokenType;
 import com.intellij.spellchecker.inspections.BaseSplitter;
 import com.intellij.spellchecker.inspections.PlainTextSplitter;
 import com.intellij.spellchecker.inspections.Splitter;
@@ -43,14 +54,15 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.AndroidDomElement;
-import org.jetbrains.android.dom.converters.*;
+import org.jetbrains.android.dom.converters.AndroidPackageConverter;
+import org.jetbrains.android.dom.converters.AndroidPermissionConverter;
+import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
+import org.jetbrains.android.dom.converters.ConstantFieldConverter;
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceNameConverter;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.*;
 
 public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
   private final MyResourceReferenceTokenizer myResourceReferenceTokenizer = new MyResourceReferenceTokenizer();
@@ -262,33 +274,8 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
         return;
       }
 
-      // The super implementation already filters out hex color definitions like #001122, but it's limited to RGB colors, not ARGB.
-      if (isColorString(element.getValue())) {
-        return;
-      }
-
       super.tokenize(element, consumer);
     }
-  }
-
-  private static boolean isColorString(@NotNull String s) {
-    int length = s.length();
-    // #rgb to #aarrggbb
-    if (length < 4 || length > 9) {
-      return false;
-    }
-
-    int i = 0;
-    if (s.charAt(i++) != '#') {
-      return false;
-    }
-
-    for (; i < length; i++) {
-      if (!StringUtil.isHexDigit(s.charAt(i))) {
-        return false;
-      }
-    }
-    return true;
   }
 
   private static final AaptXmlTextSplitter AAPT_SPLITTER = new AaptXmlTextSplitter();
