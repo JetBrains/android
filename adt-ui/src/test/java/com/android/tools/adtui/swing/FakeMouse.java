@@ -47,6 +47,16 @@ public final class FakeMouse {
   }
 
   /**
+   * Returns the component underneath the mouse cursor, the one which will receive any dispatched
+   * mouse events.
+   *
+   * Note: This value is potentially updated after every call to {@link #moveTo(int, int)}.
+   */
+  @Nullable public Component getFocus() {
+    return myFocus;
+  }
+
+  /**
    * Begin holding down a mouse button. Can be dragged with {@link #dragTo(int, int)} and
    * eventually should be released by {@link #release()}
    */

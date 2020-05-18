@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.navigator.nodes.GroupNodes;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.ide.projectView.PresentationData;
@@ -65,12 +66,17 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
   public boolean contains(@NotNull VirtualFile file) {
     for (PsiDirectory resFolder : getResFolders()) {
       VirtualFile folder = resFolder.getVirtualFile();
-      if (isAncestor(folder, file, true)) {
+      if (isAncestor(folder, file, false)) {
         return true;
       }
     }
 
     return false;
+  }
+
+  @Override
+  public boolean canRepresent(Object element) {
+    return GroupNodes.canRepresent(this, element);
   }
 
   @Override

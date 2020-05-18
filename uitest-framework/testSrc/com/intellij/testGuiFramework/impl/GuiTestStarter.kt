@@ -32,17 +32,17 @@ class GuiTestStarter : IdeStarter() {
 
   override fun getCommandName() = COMMAND_NAME
 
-  override fun premain(args: Array<String>) {
+  override fun premain(args: List<String>) {
     processArgs(args)
     LOG.info("Starting GuiTest activity")
     guiTestThread.start()
   }
 
-  override fun main(args: Array<String>) {
+  override fun main(args: List<String>) {
     super.main(removeGuiTestArgs(args))
   }
 
-  private fun processArgs(args: Array<String>) {
+  private fun processArgs(args: List<String>) {
     val hostArg: String? = args.find { arg -> arg.toLowerCase().startsWith("host") }?.substringAfter("host=") ?: HOST_LOCALHOST
     System.setProperty(GUI_TEST_HOST, hostArg!!.removeSurrounding("\""))
     val portArg: String? = args.find { arg -> arg.toLowerCase().startsWith("port") }?.substringAfter("port=")
@@ -53,10 +53,9 @@ class GuiTestStarter : IdeStarter() {
     LOG.info("Set GUI tests port: $portArg")
   }
 
-  private fun removeGuiTestArgs(args: Array<String>): Array<String> {
-    return args.sliceArray(1..args.lastIndex)  //remove guitest keyword
-      .filterNot { arg -> arg.startsWith("port") || arg.startsWith("host") }//lets remove host and port from args
-      .toTypedArray()
-  }
 
+  private fun removeGuiTestArgs(args: List<String>): List<String> {
+    return args.drop(1)  //remove guitest keyword
+      .filterNot { arg -> arg.startsWith("port") || arg.startsWith("host") }//lets remove host and port from args
+  }
 }

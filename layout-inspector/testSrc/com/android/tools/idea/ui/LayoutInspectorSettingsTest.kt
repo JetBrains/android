@@ -64,9 +64,7 @@ class LayoutInspectorSettingsTest {
       enableLiveLayoutInspector = true
       assertThat(enableLiveLayoutInspector).isTrue()
       assertThat(windowManager.getToolWindow("Layout Inspector")).isNotNull()
-/* b/155928555
       assertThat(windowManager.getToolWindow("Layout Inspector")!!.isAvailable).isTrue()
-b/155928555 */
 
       enableLiveLayoutInspector = false
       assertThat(enableLiveLayoutInspector).isFalse()
@@ -90,7 +88,14 @@ b/155928555 */
   }
 
   private class MyMockToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
+    var shouldBeAvailable = true
     var visible = true
+
+    override fun setAvailable(available: Boolean, runnable: Runnable?) {
+      shouldBeAvailable = available
+    }
+
+    override fun isAvailable() = shouldBeAvailable
 
     override fun show(runnable: Runnable?) {
       visible = true

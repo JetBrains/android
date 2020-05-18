@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.model.stdui
 
-open class DefaultCommonTextFieldModel(initialValue: String) : CommonTextFieldModel {
+open class DefaultCommonTextFieldModel(initialValue: String, initialPlaceHolderValue: String = "") : CommonTextFieldModel {
   private val listeners = mutableListOf<ValueChangedListener>()
 
   override var value = initialValue
@@ -25,7 +25,7 @@ open class DefaultCommonTextFieldModel(initialValue: String) : CommonTextFieldMo
       fireValueChanged()
     }
 
-  override var placeHolderValue = ""
+  override var placeHolderValue = initialPlaceHolderValue
     set(value) {
       field = value
       fireValueChanged()

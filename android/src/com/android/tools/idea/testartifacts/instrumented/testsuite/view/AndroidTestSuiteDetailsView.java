@@ -22,6 +22,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
@@ -31,6 +32,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JPanel;
@@ -68,6 +70,7 @@ public class AndroidTestSuiteDetailsView {
   private JPanel myRootPanel;
   private JPanel myHeaderPanel;
   private JBLabel myTitleText;
+  private CommonButton myChangeOrientationButton;
   private CommonButton myCloseButton;
   private JPanel myContentPanel;
 
@@ -79,6 +82,7 @@ public class AndroidTestSuiteDetailsView {
 
   @UiThread
   public AndroidTestSuiteDetailsView(@NotNull Disposable parentDisposable,
+                                     @NotNull AndroidTestSuiteViewController controller,
                                      @NotNull AndroidTestSuiteDetailsViewListener listener,
                                      @NotNull Project project) {
     myHeaderPanel.setBorder(new SideBorder(UIUtil.getBoundsColor(), SideBorder.BOTTOM));
@@ -89,11 +93,27 @@ public class AndroidTestSuiteDetailsView {
         listener.onAndroidTestSuiteDetailsViewCloseButtonClicked();
       }
     });
+    myChangeOrientationButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        switch(controller.getOrientation()) {
+          case VERTICAL:
+            myChangeOrientationButton.setIcon(AllIcons.General.ArrowDown);
+            controller.setOrientation(AndroidTestSuiteViewController.Orientation.HORIZONTAL);
+            break;
+          case HORIZONTAL:
+            myChangeOrientationButton.setIcon(AllIcons.General.ArrowRight);
+            controller.setOrientation(AndroidTestSuiteViewController.Orientation.VERTICAL);
+            break;
+        }
+      }
+    });
 
-    ThreeComponentsSplitter componentsSplitter = new ThreeComponentsSplitter(/*vertical=*/false, /*onePixelDividers=*/true);
+    ThreeComponentsSplitter componentsSplitter =
+      new ThreeComponentsSplitter(/*vertical=*/false, /*onePixelDividers=*/true, parentDisposable);
     componentsSplitter.setOpaque(false);
     componentsSplitter.setMinSize(MIN_DEVICE_LIST_WIDTH);
-    componentsSplitter.setHonorComponentsMinimumSize(true);
+    componentsSplitter.setHonorComponentsMinimumSize(false);
     Disposer.register(parentDisposable, componentsSplitter);
 
     myDeviceSelectorListView = new DetailsViewDeviceSelectorListView(
@@ -113,6 +133,7 @@ public class AndroidTestSuiteDetailsView {
     myContentPanel.add(componentsSplitter);
 
     myTitleText.setBorder(JBUI.Borders.empty(0, 10));
+    myRootPanel.setMinimumSize(new Dimension());
   }
 
   /**
@@ -121,6 +142,7 @@ public class AndroidTestSuiteDetailsView {
    */
   private void createUIComponents() {
     myCloseButton = new CommonButton(StudioIcons.Common.CLOSE);
+    myChangeOrientationButton = new CommonButton(AllIcons.General.ArrowDown);
   }
 
   /**
@@ -150,6 +172,7 @@ public class AndroidTestSuiteDetailsView {
     }
     myTitleText.setText(AndroidTestResultsKt.getFullTestCaseName(myTestResults));
     myTitleText.setIcon(AndroidTestResultsTableViewKt.getIconFor(myTestResults.getTestResultSummary()));
+    myTitleText.setMinimumSize(new Dimension());
 
     myDeviceSelectorListView.setAndroidTestResults(myTestResults);
 

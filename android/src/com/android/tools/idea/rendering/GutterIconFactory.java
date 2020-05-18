@@ -32,6 +32,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.Gray;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -243,7 +244,7 @@ public class GutterIconFactory {
 
         if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
           // Indexed images look terrible if they are scaled directly; instead, paint into an ARGB blank image
-          BufferedImage bg = UIUtil.createImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+          BufferedImage bg = ImageUtil.createImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
           Graphics g = bg.getGraphics();
           g.setColor(Gray.TRANSPARENT);
           g.fillRect(0, 0, bg.getWidth(), bg.getHeight());

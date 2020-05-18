@@ -36,7 +36,6 @@ import com.android.resources.ResourceType.STYLE
 import com.android.resources.ResourceType.STYLEABLE
 import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleServiceManager
 import gnu.trove.TIntObjectHashMap
 import gnu.trove.TObjectIntHashMap
 import org.jetbrains.android.facet.AndroidFacet
@@ -56,7 +55,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
 
   companion object {
     @JvmStatic
-    fun get(module: Module) = ModuleServiceManager.getService(module, ResourceIdManager::class.java)!!
+    fun get(module: Module) = module.getService(ResourceIdManager::class.java)!!
   }
 
   /**

@@ -38,7 +38,7 @@ class SystemTraceSurfaceflingerManagerTest {
                                                   createEvent(15000, 20000)),
                                                   listOf())
 
-    private val VSYNC_COUNTER = CounterModel("VSYNC-sf",
+    private val VSYNC_COUNTER = CounterModel("VSYNC-app",
                                              sortedMapOf(
                                                5000L to 0.0,
                                                10000L to 1.0,
@@ -48,12 +48,12 @@ class SystemTraceSurfaceflingerManagerTest {
 
     private val SF_PROCESS_MODEL = ProcessModel(SF_PID, "surfaceflinger",
                                                 mapOf(SF_PID to SF_MAIN_THREAD_MODE),
-                                                mapOf("VSYNC-sf" to VSYNC_COUNTER))
+                                                mapOf("VSYNC-app" to VSYNC_COUNTER))
 
     private val MODEL = TestModel(listOf(SF_PROCESS_MODEL))
 
     private fun createEvent(startTimeUs: Long, endTimeUs: Long): TraceEventModel {
-      return TraceEventModel("UnusedName", startTimeUs, endTimeUs, endTimeUs - startTimeUs, listOf())
+      return TraceEventModel("onMessageReceived", startTimeUs, endTimeUs, endTimeUs - startTimeUs, listOf())
     }
   }
 
@@ -70,13 +70,13 @@ class SystemTraceSurfaceflingerManagerTest {
       // The first event should be a starting IDLE event.
       SeriesData(0, SurfaceflingerEvent(0, 3000, Type.IDLE)),
       // The second event should be the first real PROCESSING event.
-      SeriesData(3000, SurfaceflingerEvent(3000, 5000, Type.PROCESSING)),
+      SeriesData(3000, SurfaceflingerEvent(3000, 5000, Type.PROCESSING, "onMessageReceived")),
       // Then a padded IDLE event.
       SeriesData(5000, SurfaceflingerEvent(5000, 7000, Type.IDLE)),
       // Then another PROCESSING EVENT.
-      SeriesData(7000, SurfaceflingerEvent(7000, 15000, Type.PROCESSING)),
+      SeriesData(7000, SurfaceflingerEvent(7000, 15000, Type.PROCESSING, "onMessageReceived")),
       // Then another PROCESSING EVENT, without a gap because start of this is equal to the previous end.
-      SeriesData(15000, SurfaceflingerEvent(15000, 20000, Type.PROCESSING)),
+      SeriesData(15000, SurfaceflingerEvent(15000, 20000, Type.PROCESSING, "onMessageReceived")),
       // The last event should be a ending IDLE event.
       SeriesData(20000, SurfaceflingerEvent(20000, Long.MAX_VALUE, Type.IDLE))
     ).inOrder()

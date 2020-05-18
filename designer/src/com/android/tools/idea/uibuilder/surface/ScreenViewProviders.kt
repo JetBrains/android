@@ -32,10 +32,11 @@ import com.google.common.collect.ImmutableList
 internal fun defaultProvider(surface: NlDesignSurface,
                              manager: LayoutlibSceneManager,
                              @Suppress("UNUSED_PARAMETER") isSecondary: Boolean): ScreenView =
-  ScreenView.newBuilder(surface, manager).build()
+  ScreenView.newBuilder(surface, manager).resizeable().build()
 
 internal fun blueprintProvider(surface: NlDesignSurface, manager: LayoutlibSceneManager, isSecondary: Boolean): ScreenView =
   ScreenView.newBuilder(surface, manager)
+    .resizeable()
     .withColorSet(BlueprintColorSet())
     .withLayersProvider {
       ImmutableList.builder<Layer>().apply {
@@ -103,4 +104,22 @@ internal fun colorBlindProvider(surface: NlDesignSurface,
       }.build()
     }
     .disableBorder()
+    .build()
+
+internal fun composeProvider(surface: NlDesignSurface,
+                             manager: LayoutlibSceneManager,
+                             @Suppress("UNUSED_PARAMETER") isSecondary: Boolean): ScreenView =
+  ScreenView.newBuilder(surface, manager)
+    .withLayersProvider {
+      ImmutableList.builder<Layer>().apply {
+        if (it.hasBorderLayer()) {
+          add(BorderLayer(it))
+        }
+        add(ScreenViewLayer(it))
+        add(SceneLayer(it.surface, it, false).apply {
+          isShowOnHover = true
+        })
+      }.build()
+    }
+    .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
     .build()

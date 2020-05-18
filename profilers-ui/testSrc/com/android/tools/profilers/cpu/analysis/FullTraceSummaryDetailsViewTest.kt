@@ -54,7 +54,7 @@ class FullTraceSummaryDetailsViewTest {
     }
     val view = FullTraceSummaryDetailsView(profilersView, model)
 
-    assertThat(view.timeRangeLabel.text).isEqualTo("01.000 - 01:00.000")
+    assertThat(view.timeRangeLabel.text).isEqualTo("00:01.000 - 00:01:00.000")
     assertThat(view.durationLabel.text).isEqualTo("59 s")
   }
 
@@ -66,11 +66,11 @@ class FullTraceSummaryDetailsViewTest {
     }
     val view = FullTraceSummaryDetailsView(profilersView, model)
 
-    assertThat(view.timeRangeLabel.text).isEqualTo("00.000 - 00.000")
+    assertThat(view.timeRangeLabel.text).isEqualTo("00:00.000 - 00:00.000")
     assertThat(view.durationLabel.text).isEqualTo("0 μs")
 
     selectionRange.set(TimeUnit.MILLISECONDS.toMicros(1).toDouble(), TimeUnit.MILLISECONDS.toMicros(2).toDouble())
-    assertThat(view.timeRangeLabel.text).isEqualTo("00.001 - 00.002")
+    assertThat(view.timeRangeLabel.text).isEqualTo("00:00.001 - 00:00.002")
     assertThat(view.durationLabel.text).isEqualTo("1 ms")
   }
 }

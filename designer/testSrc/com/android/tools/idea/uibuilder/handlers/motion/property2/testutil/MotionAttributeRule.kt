@@ -102,6 +102,7 @@ class MotionAttributeRule(
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
     Mockito.`when`(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
+    Mockito.`when`(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
   }
 
   fun checkEditor(fileName: String, lineNumber: Int, text: String) {

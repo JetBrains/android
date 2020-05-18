@@ -616,7 +616,7 @@ public class NavigationSchema implements Disposable {
       if (result != null) {
         break;
       }
-      result = getTagAnnotationValue(navClass);
+      result = getTagAnnotationValue(tempNavigator);
       if (result != null) {
         break;
       }

@@ -86,11 +86,8 @@ class StatLabel @JvmOverloads constructor(num: Long,
     }
   }
 
-  @VisibleForTesting
-  fun getNumText(): String = numLabel.text
-
-  @VisibleForTesting
-  fun getDescText(): String = descLabel.text
+  @VisibleForTesting val numText: String get() = numLabel.text
+  @VisibleForTesting val descText: String get() = descLabel.text
 }
 
 /**

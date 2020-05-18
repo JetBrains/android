@@ -611,7 +611,7 @@ public class ComponentsSplitter extends JPanel implements Disposable {
       myIsFirst = isFirst;
       setOrientation(myVerticalSplit);
 
-      new UiNotifyConnector.Once(this, new Activatable.Adapter() {
+      new UiNotifyConnector.Once(this, new Activatable() {
         @Override
         public void showNotify() {
           init();

@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface;
 
 import static com.android.tools.adtui.PannableKt.PANNABLE_KEY;
 import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
+import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.UiThread;
@@ -82,6 +83,7 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import java.awt.Adjustable;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -225,6 +227,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider) {
     super(new BorderLayout());
+
     myConfigurationListener = flags -> {
       if ((flags & (ConfigurationListener.CFG_DEVICE | ConfigurationListener.CFG_DEVICE_STATE)) != 0 && !isLayoutDisabled()) {
         zoom(onChangedZoom, -1, -1);
@@ -1605,7 +1608,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public Object getData(@NotNull @NonNls String dataId) {
-    if (ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId)) {
+    if (DESIGN_SURFACE.is(dataId) || ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId)) {
       return this;
     }
     if (PlatformDataKeys.FILE_EDITOR.is(dataId)) {
@@ -1757,5 +1760,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public void disableMouseClickDisplay() {
     myMouseClickDisplayPanel.setEnabled(false);
+  }
+
+  @Override
+  public void setBackground(Color bg) {
+    super.setBackground(bg);
+
+    // setBackground is called before the class initialization is complete so we do the null checking to prevent calling mySceneViewPanel
+    // before the constructor has completed. At that point mySceneViewPanel might still be null.
+    //noinspection ConstantConditions
+    if (mySceneViewPanel != null) {
+      mySceneViewPanel.setBackground(bg);
+    }
   }
 }

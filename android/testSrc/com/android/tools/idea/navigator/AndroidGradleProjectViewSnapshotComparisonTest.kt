@@ -108,6 +108,11 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
+  fun testBasicCmakeApp() {
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP, initialState = false, filter = this::filterOutMostIncludeFiles)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testDependentNativeModules() {
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.DEPENDENT_NATIVE_MODULES, initialState = false,
                                         filter = this::filterOutMostIncludeFiles)
@@ -128,9 +133,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     val text = project.dumpAndroidProjectView()
     ProjectUtil.closeAndDispose(project)
 
-/* b/154963231
     assertIsEqualToSnapshot(text)
-b/154963231 */
   }
 
   fun testCompatibilityWithAndroidStudio36Project() {
@@ -149,9 +152,7 @@ b/154963231 */
     project.dumpAndroidProjectView()
   }
 
-/* b/154963231
     assertIsEqualToSnapshot(text)
-b/154963231 */
   }
 
   private fun importSyncAndDumpProject(

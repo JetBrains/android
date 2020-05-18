@@ -15,22 +15,15 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 
 abstract class ProguardR8TestCase : JavaCodeInsightFixtureTestCase() {
   override fun setUp() {
-    StudioFlags.R8_SUPPORT_ENABLED.override(true)
     super.setUp()
     myFixture.enableInspections(ProguardR8ReferenceInspection::class.java)
     myFixture.enableInspections(ProguardR8InvalidFlagInspection::class.java)
     myFixture.enableInspections(ProguardR8IgnoredFlagInspection::class.java)
     myFixture.enableInspections(ProguardR8ArrayTypeInspection::class.java)
     myFixture.enableInspections(ProguardR8InnerClassSeparatorInspection::class.java)
-  }
-
-  override fun tearDown() {
-    StudioFlags.R8_SUPPORT_ENABLED.clearOverride()
-    super.tearDown()
   }
 }

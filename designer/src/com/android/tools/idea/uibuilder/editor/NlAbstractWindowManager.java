@@ -50,7 +50,7 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
   protected void initToolWindow(final @NotNull String id, @NotNull Icon icon) {
     myToolWindow = ToolWindowManager.getInstance(myProject).registerToolWindow(id, false, getAnchor(), myProject, true);
     myToolWindow.setIcon(icon);
-    myToolWindow.setAvailable(false, null);
+    myToolWindow.setAvailable(false);
     myToolWindow.setAutoHide(false);
     myPreviousWindowType = myToolWindow.getType();
     myPreviousWindowAnchor = getEditorMode();

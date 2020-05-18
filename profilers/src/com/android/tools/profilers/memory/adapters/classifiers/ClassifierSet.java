@@ -23,9 +23,11 @@ import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObject
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -69,6 +71,8 @@ public abstract class ClassifierSet implements MemoryObject {
     new CachedFunction<>(this::countInstanceFilterMatch, new IdentityHashMap<>());
 
   protected boolean myIsFiltered;
+  // FIXME: `myIsMatched` should be `true` initially, as "no filter" means "trivially matched".
+  //        But at the moment that would break one test in `HeapSetNodeHRendererTest`
   protected boolean myIsMatched;
   // We need to apply filter to ClassifierSet again after any updates (insertion, deletion etc.)
   protected boolean myNeedsRefiltering;
@@ -307,6 +311,10 @@ public abstract class ClassifierSet implements MemoryObject {
     return getStreamOf(me -> me.mySnapshotInstances.stream());
   }
 
+  public Stream<InstanceObject> getFilterMatches() {
+    return getStreamOf(me -> me.getIsMatched() ? me.getInstancesStream() : Stream.empty());
+  }
+
   private Stream<InstanceObject> getStreamOf(Function<ClassifierSet, Stream<InstanceObject>> extractor) {
     return myClassifier == null ?
            extractor.apply(this) :
@@ -356,6 +364,27 @@ public abstract class ClassifierSet implements MemoryObject {
     }
 
     return null;
+  }
+
+  /**
+   * O(N) search through all descendant ClassifierSet.
+   * Note - calling this method would cause the full ClassifierSet tree to be built if it has not been done already, and all InstanceObjects
+   * would be partitioned into their corresponding leaf ClassifierSet.
+   *
+   * @return the set that satisfies {@code pred}, or null otherwise.
+   */
+  @Nullable
+  public ClassifierSet findClassifierSet(@NotNull Predicate<ClassifierSet> pred) {
+    if (pred.test(this)) {
+      return this;
+    } else if (myClassifier != null) {
+      return getChildrenClassifierSets().stream()
+        .map(s -> s.findClassifierSet(pred))
+        .filter(Objects::nonNull)
+        .findFirst().orElse(null);
+    } else {
+      return null;
+    }
   }
 
   /**

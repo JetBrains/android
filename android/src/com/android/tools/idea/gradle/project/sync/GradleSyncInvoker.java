@@ -37,7 +37,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
@@ -60,15 +59,9 @@ import org.jetbrains.annotations.TestOnly;
 public class GradleSyncInvoker {
   private static final Logger LOG = Logger.getInstance(GradleSyncInvoker.class);
 
-  @NotNull private final FileDocumentManager myFileDocumentManager;
-
   @NotNull
   public static GradleSyncInvoker getInstance() {
     return ServiceManager.getService(GradleSyncInvoker.class);
-  }
-
-  private GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager) {
-    myFileDocumentManager = fileDocumentManager;
   }
 
   /**
@@ -124,10 +117,10 @@ public class GradleSyncInvoker {
       application.invokeAndWait(syncTask);
     }
     else if (request.runInBackground) {
-      TransactionGuard.getInstance().submitTransactionLater(project, syncTask);
+      ApplicationManager.getApplication().invokeLater(syncTask);
     }
     else {
-      TransactionGuard.getInstance().submitTransactionAndWait(syncTask);
+      ApplicationManager.getApplication().invokeAndWait(syncTask);
     }
   }
 
@@ -149,12 +142,12 @@ public class GradleSyncInvoker {
     return false;
   }
 
-  private boolean prepareProject(@NotNull Project project, @Nullable GradleSyncListener listener) {
+  private static boolean prepareProject(@NotNull Project project, @Nullable GradleSyncListener listener) {
     GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(project);
     if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() || projectInfo.hasTopLevelGradleFile()) {
       boolean isImportedProject = projectInfo.isImportedProject();
       if (!isImportedProject) {
-        myFileDocumentManager.saveAllDocuments();
+        FileDocumentManager.getInstance().saveAllDocuments();
       }
       return true; // continue with sync.
     }
@@ -261,10 +254,6 @@ public class GradleSyncInvoker {
 
   @TestOnly
   public static class FakeInvoker extends GradleSyncInvoker {
-    public FakeInvoker() {
-      super(ApplicationManager.getApplication().getService(FileDocumentManager.class));
-    }
-
     @Override
     public void requestProjectSync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
       if (listener != null) {

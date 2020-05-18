@@ -28,8 +28,8 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
+import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -51,7 +51,7 @@ class CpuCoreTrackRendererTest {
   @Throws(Exception::class)
   fun setUp() {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
-    DataVisualizationColors.initialize(
+    DataVisualizationColors.doInitialize(
       FileInputStream(TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/data-colors.json")))
   }
 

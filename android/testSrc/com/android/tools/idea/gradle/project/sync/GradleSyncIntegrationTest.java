@@ -790,6 +790,9 @@ b/154962759 */
     DataNode<ModuleData> moduleData = GradleUtil.findGradleModuleData(buildSrcModule);
     assertNotNull(moduleData);
 
+    // Ensure no local.properties was created.
+    assertFalse(new File(getProjectFolderPath(), "buildSrc/local.properties").exists());
+
     // Verify that ContentRootData DataNode is created for buildSrc module.
     Collection<DataNode<ContentRootData>> contentRootData = ExternalSystemApiUtil.findAll(moduleData, ProjectKeys.CONTENT_ROOT);
     assertThat(contentRootData).hasSize(1);
@@ -875,18 +878,17 @@ b/154962759 */
 
     ArgumentCaptor<BuildEvent> eventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
     // FinishBuildEvents are not consumed immediately by AbstractOutputMessageDispatcher.onEvent(), thus we need to allow some timeout
-    verify(viewManager, timeout(1000).atLeast(2)).onEvent(any(), eventCaptor.capture());
+    verify(viewManager, timeout(1000).atLeast(3)).onEvent(any(), eventCaptor.capture());
 
     List<BuildEvent> events = eventCaptor.getAllValues();
-    assertThat(events).hasSize(2);
+    // The first event should be a StartBuildEvent
     assertThat(events.get(0)).isInstanceOf(StartBuildEvent.class);
-/* b/155929877
-    assertThat(events.get(1)).isInstanceOf(FinishBuildEvent.class);
-    FinishBuildEvent event = (FinishBuildEvent)events.get(1);
+    // And the last event should be a FinishBuildEvent. There may be other progress events in between.
+    assertThat(events.get(events.size()-1)).isInstanceOf(FinishBuildEvent.class);
+    FinishBuildEvent event = (FinishBuildEvent)events.get(events.size()-1);
     FailureResult failureResult = (FailureResult)event.getResult();
     assertThat(failureResult.getFailures()).isNotEmpty();
     assertThat(failureResult.getFailures().get(0).getMessage()).contains("Fake sync error");
-b/155929877 */
   }
 
   public void testUnresolvedDependency() throws IOException {

@@ -19,8 +19,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
-import com.android.tools.idea.testing.IdeComponents
-import com.intellij.testFramework.PlatformTestCase
+import junit.framework.TestCase
 import org.gradle.tooling.model.GradleModuleVersion
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -28,13 +27,7 @@ import org.mockito.Mockito.mock
 /**
  * Tests for [PsArtifactDependencySpec].
  */
-class PsArtifactDependencySpecTest : PlatformTestCase() {
-
-  @Throws(Exception::class)
-  override fun setUp() {
-    super.setUp()
-    IdeComponents(myProject).mockProjectService(PsUISettings::class.java)
-  }
+class PsArtifactDependencySpecTest : TestCase() {
 
   fun testCreate_empty() {
     val spec = PsArtifactDependencySpec.create("")

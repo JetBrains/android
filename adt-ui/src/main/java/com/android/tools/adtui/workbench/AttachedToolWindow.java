@@ -32,6 +32,7 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -611,7 +612,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
 
     private void startDragging(@NotNull MouseEvent event) {
-      BufferedImage image = UIUtil.createImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+      BufferedImage image = ImageUtil.createImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
       Graphics graphics = image.getGraphics();
       paint(graphics);
       graphics.dispose();
@@ -627,9 +628,15 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       super(action, action.getTemplatePresentation().clone(), TOOL_WINDOW_TOOLBAR_PLACE, buttonSize);
     }
 
+    @Override
     public void update() {
+      // Do not call super.update() because the super method will disable the actions in dumb mode, and actions will not be
+      // updated on a timer as other toolbars and may remain disabled.
+      // If the toolbar were created by: ActionManager.getInstance().createActionToolbar we could super method instead.
       AnActionEvent event = new AnActionEvent(null, getDataContext(), myPlace, myPresentation, ActionManager.getInstance(), 0);
       myAction.update(event);
+      updateToolTipText();
+      updateIcon();
     }
 
     @Override

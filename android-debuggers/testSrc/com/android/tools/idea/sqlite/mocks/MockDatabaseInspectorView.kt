@@ -23,6 +23,7 @@ import com.android.tools.idea.sqlite.ui.mainView.SchemaDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import org.mockito.Mockito.mock
 import java.util.ArrayList
+import javax.swing.Icon
 import javax.swing.JComponent
 
 open class MockDatabaseInspectorView : DatabaseInspectorView {
@@ -47,7 +48,7 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
 
   override fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>) { }
 
-  override fun openTab(tabId: TabId, tabName: String, component: JComponent) {
+  override fun openTab(tabId: TabId, tabName: String, tabIcon: Icon, component: JComponent) {
     lastDisplayedResultSetTabId = tabId
   }
 

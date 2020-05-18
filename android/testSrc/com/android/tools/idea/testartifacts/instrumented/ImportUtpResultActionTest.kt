@@ -51,22 +51,22 @@ class ImportUtpResultActionTest {
 
   private val importUtpResultAction = ImportUtpResultAction()
 
-  @org.junit.Ignore("b/155928822")
   @Test
   fun importUtpResults() {
     importUtpResultAction.parseResultsAndDisplay("".byteInputStream(), disposableRule.disposable, projectRule.project)
-    val toolWindow = ToolWindowManager.getInstance(projectRule.project).getToolWindow(ToolWindowId.RUN)!!
+    val toolWindow = importUtpResultAction.getToolWindow(projectRule.project)
     assertThat(toolWindow.contentManager.contents).isNotEmpty()
   }
-
-  @org.junit.Ignore("b/155928822")
+  
   @Test
   fun importUtpResultPreCreateContentManager() {
     RunContentManager.getInstance(projectRule.project)
-    val toolWindow = ToolWindowManager.getInstance(projectRule.project).getToolWindow(ToolWindowId.RUN)!!
-    assertThat(toolWindow.contentManager.contents).isEmpty()
+    val toolWindow = ToolWindowManager.getInstance(projectRule.project)
+      .getToolWindow(ImportUtpResultAction.IMPORTED_TEST_WINDOW_ID)
+    assertThat(toolWindow).isNull()
     importUtpResultAction.parseResultsAndDisplay("".byteInputStream(), disposableRule.disposable, projectRule.project)
-    assertThat(toolWindow.contentManager.contents).isNotEmpty()
+    val newToolWindow = importUtpResultAction.getToolWindow(projectRule.project)
+    assertThat(newToolWindow.contentManager.contents).isNotEmpty()
   }
 
   @Test

@@ -29,7 +29,6 @@
           <component id="f6a12" class="javax.swing.JProgressBar" binding="myProgressBar">
             <constraints>
               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                <minimum-size width="250" height="-1"/>
                 <preferred-size width="250" height="-1"/>
               </grid>
             </constraints>

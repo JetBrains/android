@@ -95,13 +95,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * A wrapper class for communicating with {@link AvdManager} and exposing helper functions
- * for dealing with {@link AvdInfo} objects inside Android studio.
+ * for dealing with {@link AvdInfo} objects inside Android Studio.
  */
 public class AvdManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
@@ -468,7 +469,7 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
-    GeneralCommandLine commandLine = newEmulatorCommand(emulatorBinary, info, parameters);
+    GeneralCommandLine commandLine = newEmulatorCommand(project, emulatorBinary, info, parameters);
     EmulatorRunner runner = new EmulatorRunner(commandLine, info);
     addListeners(runner);
 
@@ -520,11 +521,14 @@ public class AvdManagerConnection {
   }
 
   @NotNull
-  private GeneralCommandLine newEmulatorCommand(@NotNull File emulator, @NotNull AvdInfo device, @NotNull List<String> parameters) {
+  private GeneralCommandLine newEmulatorCommand(@Nullable Project project,
+                                                @NotNull File emulator,
+                                                @NotNull AvdInfo device,
+                                                @NotNull List<String> parameters) {
     GeneralCommandLine command = new GeneralCommandLine();
 
     command.setExePath(emulator.getPath());
-    addParameters(device, command);
+    addParameters(project, device, command);
 
     CharSequence arguments = System.getenv("studio.emu.params");
 
@@ -541,13 +545,14 @@ public class AvdManagerConnection {
    * Allow subclasses to add listeners before starting the emulator.
    */
   protected void addListeners(EmulatorRunner runner) {
-
   }
 
   /**
    * Adds necessary parameters to {@code commandLine}.
    */
-  protected void addParameters(@NotNull AvdInfo info, @NotNull GeneralCommandLine commandLine) {
+  protected void addParameters(@Nullable Project project,
+                               @NotNull AvdInfo info,
+                               @NotNull GeneralCommandLine commandLine) {
     Map<String, String> properties = info.getProperties();
     String netDelay = properties.get(AvdWizardUtils.AVD_INI_NETWORK_LATENCY);
     String netSpeed = properties.get(AvdWizardUtils.AVD_INI_NETWORK_SPEED);
@@ -582,15 +587,16 @@ public class AvdManagerConnection {
     writeParameterFile(commandLine);
 
     commandLine.addParameters("-avd", info.getName());
-    if (shouldBeLaunchedEmbedded(info)) {
-      commandLine.addParameters("-no-window", "-gpu", "auto-no-window", "-grpc-use-token"); // Launch headless.
+    if (shouldBeLaunchedEmbedded(project, info)) {
+      commandLine.addParameters("-no-window", "-gpu", "auto-no-window", "-grpc-use-token", "-idle-grpc-timeout", "300"); // Launch headless.
     }
   }
 
-  private static boolean shouldBeLaunchedEmbedded(@NotNull AvdInfo avd) {
+  private static boolean shouldBeLaunchedEmbedded(@Nullable Project project, @NotNull AvdInfo avd) {
     // In order for an AVD to be launched in a tool window the corresponding option should be
     // enabled in Emulator settings and the AVD should not be foldable, TV, or Android Auto.
     return EmulatorSettings.getInstance().getLaunchInToolWindow() &&
+           project != null && AndroidUtils.hasAndroidFacets(project) && // Emulator tool window is available only for Android projects.
            !isFoldable(avd) &&
            !"android-tv".equals(avd.getProperty(AVD_INI_TAG_ID)) &&
            !"android-automotive".equals(avd.getProperty(AVD_INI_TAG_ID));

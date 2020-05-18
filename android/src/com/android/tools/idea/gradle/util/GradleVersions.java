@@ -40,15 +40,9 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 public class GradleVersions {
   private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-core-(\\d+(\\.\\d+)*).*\\.jar");
 
-  @NotNull private final GradleProjectSettingsFinder mySettingsFinder;
-
   @NotNull
   public static GradleVersions getInstance() {
     return ServiceManager.getService(GradleVersions.class);
-  }
-
-  public GradleVersions(@NotNull GradleProjectSettingsFinder settingsFinder) {
-    mySettingsFinder = settingsFinder;
   }
 
   @Nullable
@@ -67,7 +61,7 @@ public class GradleVersions {
       }
     }
 
-    GradleProjectSettings gradleSettings = mySettingsFinder.findGradleProjectSettings(project);
+    GradleProjectSettings gradleSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
     if (gradleSettings != null) {
       DistributionType distributionType = gradleSettings.getDistributionType();
       if (distributionType == DEFAULT_WRAPPED) {

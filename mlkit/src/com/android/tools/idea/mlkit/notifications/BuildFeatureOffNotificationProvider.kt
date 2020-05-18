@@ -16,7 +16,7 @@
 package com.android.tools.idea.mlkit.notifications
 
 import com.android.tools.idea.mlkit.MlUtils
-import com.android.tools.idea.mlkit.TfliteModelFileEditor
+import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getSyncManager

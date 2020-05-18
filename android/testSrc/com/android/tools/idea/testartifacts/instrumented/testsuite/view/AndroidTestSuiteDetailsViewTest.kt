@@ -50,6 +50,7 @@ class AndroidTestSuiteDetailsViewTest {
     .around(EdtRule())
     .around(disposableRule)
 
+  @Mock lateinit var mockController: AndroidTestSuiteViewController
   @Mock lateinit var mockListener: AndroidTestSuiteDetailsViewListener
 
   @Before
@@ -59,7 +60,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponents() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockListener, projectRule.project)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project)
 
     view.setAndroidTestResults(createTestResults("method1", "class1", AndroidTestCaseResult.PASSED))
 
@@ -68,7 +69,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun clickOnCloseButtonShouldInvokeListener() {
-    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockListener, projectRule.project)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project)
 
     view.closeButtonForTesting.doClick()
 

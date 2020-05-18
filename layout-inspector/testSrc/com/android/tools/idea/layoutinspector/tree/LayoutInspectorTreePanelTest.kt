@@ -29,6 +29,7 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
@@ -58,6 +59,7 @@ class LayoutInspectorTreePanelTest {
   fun setUp() {
     componentStack = ComponentStack(inspectorRule.project)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, Mockito.mock(FileEditorManager::class.java))
+    Mockito.`when`(FileEditorManager.getInstance(inspectorRule.project).openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
   }
 
   @After

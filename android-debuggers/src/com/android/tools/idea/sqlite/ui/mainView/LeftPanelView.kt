@@ -314,18 +314,23 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
         when (val userObject = value.userObject) {
           is ViewDatabase -> {
             append(userObject.databaseId.name)
-            icon = if (userObject.isOpen) {
-              StudioIcons.DatabaseInspector.DATABASE
+            if (userObject.isOpen) {
+              icon = StudioIcons.DatabaseInspector.DATABASE
             }
             else {
               append(" (closed)", colorTextAttributes)
-              IconLoader.getDisabledIcon(StudioIcons.DatabaseInspector.DATABASE)
+              icon = StudioIcons.DatabaseInspector.DATABASE_UNAVAILABLE
             }
             toolTipText = userObject.databaseId.path
           }
 
           is SqliteTable -> {
-            icon = StudioIcons.DatabaseInspector.TABLE
+            icon = if (userObject.isView) {
+              StudioIcons.DatabaseInspector.VIEW
+            }
+            else {
+              StudioIcons.DatabaseInspector.TABLE
+            }
             append(userObject.name)
           }
 

@@ -198,9 +198,11 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
                                           @SwingCoordinate mouseY: Int,
                                           @JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
     val sceneView = surface.getSceneView(mouseX, mouseY)
-    // Check if the mouse position is at the bottom-right corner of sceneView.
-    if (sceneView != null && sceneView.scene.isResizeAvailable && isInResizeZone(sceneView, mouseX, mouseY)) {
-      return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR)
+    if (sceneView != null) {
+      // Check if the mouse position is at the bottom-right corner of sceneView.
+      if (sceneView.isResizeable && sceneView.scene.isResizeAvailable && isInResizeZone(sceneView, mouseX, mouseY)) {
+        return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR)
+      }
     }
     return super.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx)
   }

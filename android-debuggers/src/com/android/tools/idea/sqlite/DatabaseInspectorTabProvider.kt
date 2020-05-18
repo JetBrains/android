@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvide
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
@@ -60,7 +61,9 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       private val handleError: (String) -> Unit = { databaseInspectorProjectService.handleError(it, null) }
       private val onDatabasePossiblyChanged: () -> Unit = { databaseInspectorProjectService.databasePossiblyChanged() }
-      private val onDatabaseClosed: (Int) -> Unit = { connectionId -> databaseInspectorProjectService.handleDatabaseClosed(connectionId) }
+      private val onDatabaseClosed: (SqliteDatabaseId) -> Unit = {
+        databaseId -> databaseInspectorProjectService.handleDatabaseClosed(databaseId)
+      }
 
       override val client = DatabaseInspectorClient(
         messenger,

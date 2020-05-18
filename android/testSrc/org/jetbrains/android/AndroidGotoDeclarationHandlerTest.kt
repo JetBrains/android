@@ -76,7 +76,7 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
       fun createDeclarationDescription(element: PsiElement): DeclarationDescription {
         return DeclarationDescription(
           element.containingFile.parent!!.name + "/" + element.containingFile.name,
-          element.parentOfType(XmlTag::class)?.text?.trim() ?: "")
+          element.parentOfType<XmlTag>()?.text?.trim() ?: "")
       }
     }
   }

@@ -24,6 +24,7 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
+import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -42,11 +43,13 @@ import com.intellij.ui.tabs.impl.JBEditorTabsBorder
 import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.intellij.xml.util.XmlStringUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JPanel
@@ -127,7 +130,7 @@ class DatabaseInspectorViewImpl(
     leftPanelView.updateDatabase(viewDatabase, diffOperations)
   }
 
-  override fun openTab(tabId: TabId, tabName: String, component: JComponent) {
+  override fun openTab(tabId: TabId, tabName: String, tabIcon: Icon, component: JComponent) {
     if (openTabs.isEmpty()) {
       centerPanel.removeAll()
       centerPanel.layout = BorderLayout()
@@ -136,7 +139,7 @@ class DatabaseInspectorViewImpl(
       centerPanel.repaint()
     }
 
-    val tab = createTab(tabId, tabName, component)
+    val tab = createTab(tabId, tabName, tabIcon, component)
     tabs.addTab(tab)
     tabs.select(tab, true)
     openTabs[tabId] = tab
@@ -167,18 +170,15 @@ class DatabaseInspectorViewImpl(
   }
 
   private fun addEmptyStatePanel(text: String) {
-    val escapedText = text.replace("&", "&amp").replace("<", "&lt").replace(">", "&gt")
-    val editorPane = JEditorPane(
-      "text/html",
-      "<h2>Database Inspector</h2>" +
-       escapedText +
-      "<p><a href=\"https://d.android.com/r/studio-ui/db-inspector-help\">Learn more</a></p>"
-    )
+    val escapedText = XmlStringUtil.escapeString(text)
+    val editorPane = JEditorPane()
+    editorPane.editorKit = UIUtil.getHTMLEditorKit()
+    editorPane.text =
+      // language=html
+      "<h2>Database Inspector</h2>${escapedText}<h3><a href='https://d.android.com/r/studio-ui/db-inspector-help'>Learn more</a></h3>"
     val document = editorPane.document as HTMLDocument
-    document.styleSheet.addRule(
-      "body { text-align: center; font-family: ${UIUtil.getLabelFont()}; font-size: ${UIUtil.getLabelFont().size} pt; }"
-    )
-    document.styleSheet.addRule("h2 { font-weight: normal; }")
+    document.styleSheet.addRule("body { text-align: center; }")
+    document.styleSheet.addRule("h2, h3 { font-weight: normal; }")
     editorPane.name = "right-panel-empty-state"
     editorPane.isOpaque = false
     editorPane.isEditable = false
@@ -191,7 +191,7 @@ class DatabaseInspectorViewImpl(
     centerPanel.repaint()
   }
 
-  private fun createTab(tabId: TabId, tableName: String, tabContent: JComponent): TabInfo {
+  private fun createTab(tabId: TabId, tabName: String, tabIcon: Icon, tabContent: JComponent): TabInfo {
     val tab = TabInfo(tabContent)
     tab.`object` = tabId
 
@@ -211,8 +211,8 @@ class DatabaseInspectorViewImpl(
       }
     })
     tab.setTabLabelActions(tabActionGroup, ActionPlaces.EDITOR_TAB)
-    tab.icon = StudioIcons.DatabaseInspector.TABLE
-    tab.text = tableName
+    tab.icon = tabIcon
+    tab.text = tabName
     return tab
   }
 

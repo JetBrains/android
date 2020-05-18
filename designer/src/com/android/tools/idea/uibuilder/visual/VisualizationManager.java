@@ -283,16 +283,16 @@ public class VisualizationManager implements ProjectComponent {
         }
 
         if (newEditor == null) {
-          myToolWindow.setAvailable(false, null);
+          myToolWindow.setAvailable(false);
           return;
         }
 
         if (!myToolWindowForm.setNextEditor(newEditor)) {
-          myToolWindow.setAvailable(false, null);
+          myToolWindow.setAvailable(false);
           return;
         }
 
-        myToolWindow.setAvailable(true, null);
+        myToolWindow.setAvailable(true);
         if (VisualizationToolSettings.getInstance().getGlobalState().isVisible() && !myToolWindow.isVisible()) {
           Runnable restoreFocus = null;
           if (myToolWindow.getType() == ToolWindowType.WINDOWED) {

@@ -20,6 +20,7 @@ import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
@@ -49,9 +50,12 @@ import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.event.UserEventTooltipView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ui.HoverHyperlinkLabel;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -94,6 +98,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private final TrackGroupListPanel myTrackGroupList;
   private final CpuAnalysisPanel myAnalysisPanel;
   private final JScrollPane myScrollPane;
+  private final HoverHyperlinkLabel myDeselectAllLabel;
+  private final JPanel myDeselectAllToolbar;
 
   /**
    * To avoid conflict with drag-and-drop, we need a keyboard modifier (e.g. VK_SPACE) to toggle panning mode.
@@ -107,6 +113,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     myAnalysisPanel = new CpuAnalysisPanel(view, stage);
+    myDeselectAllToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
+    myDeselectAllLabel = createDeselectAllLabel();
 
     // Tooltip used in the stage
     getTooltipBinder().bind(CpuCaptureStageCpuUsageTooltip.class, CpuCaptureStageCpuUsageTooltipView::new);
@@ -129,17 +137,13 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
   @Override
   public JComponent getToolbar() {
-    return new JPanel();
-  }
-
-  @Override
-  public boolean shouldShowDeselectAllLabel() {
-    return !getStage().getMultiSelectionModel().getSelection().isEmpty();
-  }
-
-  @Override
-  public void onDeselectAllAction() {
-    getStage().getMultiSelectionModel().clearSelection();
+    // The Deselect All toolbar is only visible when something is selected.
+    JPanel panel = new JPanel(new BorderLayout());
+    myDeselectAllToolbar.add(myDeselectAllLabel);
+    myDeselectAllToolbar.add(new FlatSeparator());
+    myDeselectAllToolbar.setVisible(false);
+    panel.add(myDeselectAllToolbar, BorderLayout.EAST);
+    return panel;
   }
 
   private void updateComponents() {
@@ -325,6 +329,14 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     return axisPanel;
   }
 
+  private HoverHyperlinkLabel createDeselectAllLabel() {
+    HoverHyperlinkLabel label = new HoverHyperlinkLabel("Deselect all");
+    label.addHyperlinkListener(event -> getStage().getMultiSelectionModel().clearSelection());
+    label.setBorder(new JBEmptyBorder(0, 0, 0, 4));
+    label.setToolTipText("Click to deselect all threads/events");
+    return label;
+  }
+
   private void updateTrackGroupList() {
     // Force track group list to validate its children.
     myTrackGroupList.getComponent().updateUI();
@@ -342,6 +354,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   private void onTrackGroupSelectionChange() {
+
     // Remove the last selection if any.
     if (getStage().getAnalysisModels().size() > 1) {
       getStage().removeCpuAnalysisModel(getStage().getAnalysisModels().size() - 1);
@@ -366,6 +379,9 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
       Range selectedNodeRange = ((CaptureNodeAnalysisModel)selection.get(0)).getNodeRange();
       getStage().getTimeline().getSelectionRange().set(selectedNodeRange);
     }
+
+    // Show/hide "Deselect All" label.
+    myDeselectAllToolbar.setVisible(!selection.isEmpty());
   }
 
   @VisibleForTesting
@@ -378,5 +394,15 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   @NotNull
   protected final CpuAnalysisPanel getAnalysisPanel() {
     return myAnalysisPanel;
+  }
+
+  @VisibleForTesting
+  HoverHyperlinkLabel getDeselectAllLabel() {
+    return myDeselectAllLabel;
+  }
+
+  @VisibleForTesting
+  JPanel getDeselectAllToolbar() {
+    return myDeselectAllToolbar;
   }
 }

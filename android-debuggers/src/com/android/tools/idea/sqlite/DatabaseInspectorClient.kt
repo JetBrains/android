@@ -40,7 +40,7 @@ class DatabaseInspectorClient constructor(
   private val onErrorEventListener: (errorMessage: String) -> Unit,
   private val onDatabaseAddedListener: (SqliteDatabase) -> Unit,
   private val onDatabasePossiblyChanged: () -> Unit,
-  private val onDatabaseClosed: (databaseConnectionId: Int) -> Unit,
+  private val onDatabaseClosed: (databaseId: SqliteDatabaseId) -> Unit,
   private val taskExecutor: Executor,
   errorsSideChannel: ErrorsSideChannel = {}
 ) : AppInspectorClient(messenger) {
@@ -56,7 +56,7 @@ class DatabaseInspectorClient constructor(
           invokeLater {
             val connection = LiveDatabaseConnection(dbMessenger, openedDatabase.databaseId, taskExecutor)
             onDatabaseAddedListener(
-              LiveSqliteDatabase(SqliteDatabaseId.fromLiveDatabase(openedDatabase.name, openedDatabase.databaseId), connection)
+              LiveSqliteDatabase(SqliteDatabaseId.fromLiveDatabase(openedDatabase.path, openedDatabase.databaseId), connection)
             )
           }
         }
@@ -65,8 +65,7 @@ class DatabaseInspectorClient constructor(
         }
         event.hasDatabaseClosed() -> {
           invokeLater {
-            val databaseConnectionId = event.databaseClosed.databaseId
-            onDatabaseClosed(databaseConnectionId)
+            onDatabaseClosed(SqliteDatabaseId.fromLiveDatabase(event.databaseClosed.path, event.databaseClosed.databaseId))
           }
         }
         event.hasErrorOccurred() -> {

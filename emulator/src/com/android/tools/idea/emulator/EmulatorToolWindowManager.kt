@@ -23,6 +23,7 @@ import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.run.AppDeploymentListener
 import com.google.common.cache.CacheBuilder
 import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -39,10 +40,11 @@ import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.content.ContentManager
-import com.intellij.ui.content.ContentManagerAdapter
 import com.intellij.ui.content.ContentManagerEvent
+import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.Alarm
 import com.intellij.util.concurrency.EdtExecutorService
+import icons.StudioIcons
 import java.text.Collator
 import java.time.Duration
 
@@ -64,7 +66,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
   private val recentLaunches = CacheBuilder.newBuilder().expireAfterWrite(LAUNCH_INFO_EXPIRATION).build<String, String>()
   private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, project)
 
-  private var contentManagerListener = object : ContentManagerAdapter() {
+  private var contentManagerListener = object : ContentManagerListener {
     @UiThread
     override fun selectionChanged(event: ContentManagerEvent) {
       if (event.operation == ContentManagerEvent.ContentOperation.add) {
@@ -100,21 +102,19 @@ internal class EmulatorToolWindowManager private constructor(private val project
     val messageBusConnection = project.messageBus.connect(project)
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
       @UiThread
-      override fun stateChanged() {
-        if (!project.isDisposed) {
-          ToolWindowManager.getInstance(project).invokeLater(Runnable {
-            if (!project.isDisposed) {
-              val toolWindow = getToolWindow()
+      override fun stateChanged(toolWindowManager: ToolWindowManager) {
+        val toolWindow = toolWindowManager.getToolWindow(EMULATOR_TOOL_WINDOW_ID) ?: return
 
-              if (toolWindow.isVisible) {
-                createContent(toolWindow)
-              }
-              else {
-                destroyContent(toolWindow)
-              }
+        toolWindowManager.invokeLater(Runnable {
+          if (!project.isDisposed) {
+            if (toolWindow.isVisible) {
+              createContent(toolWindow)
             }
-          })
-        }
+            else {
+              destroyContent(toolWindow)
+            }
+          }
+        })
       }
     })
 
@@ -234,8 +234,11 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   private fun addEmulatorPanel(panel: EmulatorToolWindowPanel) {
+    val toolWindow = getToolWindow()
+    val contentManager = toolWindow.contentManager
     if (panels.isEmpty()) {
-      getContentManager().removeAllContents(true) // Remove the placeholder panel.
+      contentManager.removeAllContents(true) // Remove the placeholder panel.
+      showLiveIndicator(toolWindow)
     }
 
     panel.zoomToolbarIsVisible = zoomToolbarIsVisible
@@ -252,7 +255,6 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
     if (index >= 0) {
       panels.add(index, panel)
-      val contentManager = getContentManager()
       contentManager.addContent(content, index)
 
       if (selectedPanel != panel) {
@@ -270,11 +272,13 @@ internal class EmulatorToolWindowManager private constructor(private val project
     val panel = findPanelByGrpcPort(emulator.emulatorId.grpcPort)
     if (panel != null) {
       panels.remove(panel)
-      val contentManager = getContentManager()
+      val toolWindow = getToolWindow()
+      val contentManager = toolWindow.contentManager
       val content = contentManager.getContent(panel.component)
       contentManager.removeContent(content, true)
       if (panels.isEmpty()) {
         createPlaceholderPanel()
+        hideLiveIndicator(toolWindow)
       }
     }
   }
@@ -316,7 +320,16 @@ internal class EmulatorToolWindowManager private constructor(private val project
   }
 
   private fun getToolWindow(): ToolWindow {
-    return ToolWindowManager.getInstance(project).getToolWindow(ID) ?: throw IllegalStateException("Could not find Emulator tool window")
+    return ToolWindowManager.getInstance(project).getToolWindow(EMULATOR_TOOL_WINDOW_ID) ?:
+           throw IllegalStateException("Could not find Emulator tool window")
+  }
+
+  private fun showLiveIndicator(toolWindow: ToolWindow) {
+    toolWindow.setIcon(ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.EMULATOR))
+  }
+
+  private fun hideLiveIndicator(toolWindow: ToolWindow) {
+    toolWindow.setIcon(StudioIcons.Shell.ToolWindows.EMULATOR)
   }
 
   @AnyThread
@@ -369,8 +382,6 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
 
   companion object {
-    const val ID = "Emulator"
-
     private const val FRAME_CROPPED_PROPERTY = "com.android.tools.idea.emulator.frame.cropped"
     private const val FRAME_CROPPED_DEFAULT = false
     private const val ZOOM_TOOLBAR_VISIBLE_PROPERTY = "com.android.tools.idea.emulator.zoom.toolbar.visible"

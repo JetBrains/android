@@ -21,9 +21,9 @@ import com.android.builder.model.SyncIssue;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serviceContainer.NonInjectable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,13 +45,14 @@ public class SyncIssuesReporter {
   }
 
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public SyncIssuesReporter(@NotNull UnresolvedDependenciesReporter unresolvedDependenciesReporter) {
-    this(unresolvedDependenciesReporter, new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
+  public SyncIssuesReporter() {
+    this(new UnresolvedDependenciesReporter(), new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
          new BuildToolsTooLowReporter(), new MissingSdkPackageSyncIssuesReporter(), new MinSdkInManifestIssuesReporter(),
          new TargetSdkInManifestIssuesReporter(), new DeprecatedConfigurationReporter(), new MissingSdkIssueReporter(),
          new OutOfDateThirdPartyPluginIssueReporter(), new CxxConfigurationIssuesReporter());
   }
 
+  @NonInjectable
   @VisibleForTesting
   SyncIssuesReporter(@NotNull BaseSyncIssuesReporter... strategies) {
     for (BaseSyncIssuesReporter strategy : strategies) {

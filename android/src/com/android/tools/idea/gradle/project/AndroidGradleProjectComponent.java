@@ -41,7 +41,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.serviceContainer.NonInjectable;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidGradleProjectComponent implements ProjectComponent {
@@ -49,8 +48,6 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
   private static final String GRADLE_NOTIFICATION_GROUP_NAME = "Gradle Notification Group";
   @NotNull private final Project myProject;
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
-  @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
-  @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final LegacyAndroidProjects myLegacyAndroidProjects;
 
   @NotNull
@@ -60,30 +57,10 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
     return component;
   }
 
-  @SuppressWarnings("unused") // Invoked by IDEA
-  public AndroidGradleProjectComponent(@NotNull Project project,
-                                       @NotNull GradleProjectInfo gradleProjectInfo,
-                                       @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull GradleBuildInvoker gradleBuildInvoker,
-                                       @NotNull CompilerManager compilerManager,
-                                       @NotNull IdeInfo ideInfo) {
-    this(project, gradleProjectInfo, androidProjectInfo, gradleBuildInvoker, compilerManager, ideInfo, new LegacyAndroidProjects(project));
-  }
-
-  @NonInjectable
-  @VisibleForTesting
-  public AndroidGradleProjectComponent(@NotNull Project project,
-                                       @NotNull GradleProjectInfo gradleProjectInfo,
-                                       @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull GradleBuildInvoker gradleBuildInvoker,
-                                       @NotNull CompilerManager compilerManager,
-                                       @NotNull IdeInfo ideInfo,
-                                       @NotNull LegacyAndroidProjects legacyAndroidProjects) {
+  public AndroidGradleProjectComponent(@NotNull Project project) {
     myProject = project;
-    myGradleProjectInfo = gradleProjectInfo;
-    myAndroidProjectInfo = androidProjectInfo;
-    myIdeInfo = ideInfo;
-    myLegacyAndroidProjects = legacyAndroidProjects;
+    myGradleProjectInfo = GradleProjectInfo.getInstance(project);
+    myLegacyAndroidProjects = new LegacyAndroidProjects(project);
 
     // Disable Gradle plugin notifications in Android Studio.
     if (IdeInfo.getInstance().isAndroidStudio()) {
@@ -94,7 +71,7 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
 
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via JPS.
-    compilerManager.addAfterTask(context -> {
+    CompilerManager.getInstance(project).addAfterTask(context -> {
       if (myGradleProjectInfo.isBuildWithGradle()) {
         PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(context);
 
@@ -105,7 +82,7 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
     });
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via direct Gradle invocation.
-    gradleBuildInvoker.add(result -> {
+    GradleBuildInvoker.getInstance(project).add(result -> {
       if (myProject.isDisposed()) return;
       PostProjectBuildTasksExecutor.getInstance(myProject).onBuildCompletion(result);
       GradleBuildContext newContext = new GradleBuildContext(result);
@@ -141,7 +118,9 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
    */
   @Override
   public void projectOpened() {
-    if (myIdeInfo.isAndroidStudio() && myAndroidProjectInfo.isLegacyIdeaAndroidProject() && !myAndroidProjectInfo.isApkProject()) {
+    AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(myProject);
+    IdeInfo ideInfo = IdeInfo.getInstance();
+    if (ideInfo.isAndroidStudio() && androidProjectInfo.isLegacyIdeaAndroidProject() && !androidProjectInfo.isApkProject()) {
       myLegacyAndroidProjects.trackProject();
       if (!myGradleProjectInfo.isBuildWithGradle()) {
         // Suggest that Android Studio users use Gradle instead of IDEA project builder.
@@ -149,7 +128,7 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
       }
     }
     // Check if the Gradle JDK environment variable is valid
-    if (myIdeInfo.isAndroidStudio()) {
+    if (ideInfo.isAndroidStudio()) {
       IdeSdks ideSdks = IdeSdks.getInstance();
       if (ideSdks.isJdkEnvVariableDefined() && !ideSdks.isJdkEnvVariableValid()) {
         String msg = JDK_LOCATION_ENV_VARIABLE_NAME + " is being ignored since it is set to an invalid JDK Location:\n"

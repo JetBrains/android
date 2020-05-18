@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
@@ -158,11 +158,28 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     )
 
     // Act
-    databaseInspectorProjectService.handleDatabaseClosed(1)
+    databaseInspectorProjectService.handleDatabaseClosed(databaseId1)
 
     // Assert
     assertSize(1, model.getOpenDatabaseIds())
     TestCase.assertEquals(databaseId2, model.getOpenDatabaseIds().first())
+    assertSize(1, model.getCloseDatabaseIds())
+    assertEquals(databaseId1, model.getCloseDatabaseIds().first())
+  }
+
+  fun testClosedDatabaseWithoutOpenDatabaseAddsClosedDatabase() {
+    // Prepare
+    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
+    val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
+
+    val connection = mock(DatabaseConnection::class.java)
+    `when`(connection.close()).thenReturn(Futures.immediateFuture(Unit))
+
+    // Act
+    databaseInspectorProjectService.handleDatabaseClosed(databaseId1)
+
+    // Assert
+    assertSize(0, model.getOpenDatabaseIds())
     assertSize(1, model.getCloseDatabaseIds())
     assertEquals(databaseId1, model.getCloseDatabaseIds().first())
   }

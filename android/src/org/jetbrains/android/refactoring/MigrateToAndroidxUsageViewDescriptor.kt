@@ -25,9 +25,5 @@ class MigrateToAndroidxUsageViewDescriptor(private val myElements: Array<PsiElem
   override fun getElements() = myElements
 
   override fun getProcessedElementsHeader() = "Items to be migrated"
-
-//  override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String =
-//      RefactoringBundle.message("occurences.to.be.migrated", UsageViewBundle.getReferencesString(usagesCount, filesCount))
-
 }
 

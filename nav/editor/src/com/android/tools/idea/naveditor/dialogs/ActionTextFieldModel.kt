@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.sdk.AndroidPlatform
 
-class ActionTextFieldModel : DefaultCommonTextFieldModel("") {
+class ActionTextFieldModel : DefaultCommonTextFieldModel("", "e.g. ACTION_SEND") {
   private lateinit var actions: List<String>
 
   fun populateCompletions(module: Module) {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.explorer
 
-import com.android.tools.idea.concurrency.AsyncTestUtils
+import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
@@ -78,8 +78,7 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
     val downloadProgress = mock(DownloadProgress::class.java)
 
     // Act
-    val downloadedFileData =
-      AsyncTestUtils.pumpEventsAndWaitForFuture(deviceFileDownloaderService.downloadFile(deviceFileId, downloadProgress))
+    val downloadedFileData = pumpEventsAndWaitForFuture(deviceFileDownloaderService.downloadFile(deviceFileId, downloadProgress))
 
     // Assert
     verify(mockAdbDeviceFileSystemService).start(ArgumentMatchers.any())

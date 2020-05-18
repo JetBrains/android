@@ -272,7 +272,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
 
     // Act
     view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(emptyList()), 0)))
-    view.openTab(TabId.AdHocQueryTab(), "new tab", JPanel())
+    view.openTab(TabId.AdHocQueryTab(1), "new tab", StudioIcons.DatabaseInspector.TABLE, JPanel())
 
     // Assert
     val emptyStateRightPanelAfterAddingTab = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
@@ -285,11 +285,11 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testRightPanelEmptyStateIsShownAfterAllTabsAreClosed() {
     // Prepare
     val databaseId = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("name"))
-    val tabId = TabId.AdHocQueryTab()
+    val tabId = TabId.AdHocQueryTab(1)
 
     // Act
     view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId, true), SqliteSchema(emptyList()), 0)))
-    view.openTab(tabId, "new tab", JPanel())
+    view.openTab(tabId, "new tab", StudioIcons.DatabaseInspector.TABLE, JPanel())
 
     // Assert
     val emptyStateRightPanelAfterAddingTab = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
@@ -341,7 +341,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId1, true), SqliteSchema(emptyList()), 0)))
 
     // Act
-    view.openTab(TabId.AdHocQueryTab(), "tab", JPanel())
+    view.openTab(TabId.AdHocQueryTab(1), "tab", StudioIcons.DatabaseInspector.TABLE, JPanel())
     view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId2, true), SqliteSchema(emptyList()), 0)))
 
     // Assert

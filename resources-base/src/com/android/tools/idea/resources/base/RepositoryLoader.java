@@ -42,6 +42,7 @@ import static com.android.SdkConstants.TAG_PUBLIC_GROUP;
 import static com.android.SdkConstants.TAG_RESOURCES;
 import static com.android.SdkConstants.TAG_SKIP;
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.ide.common.resources.AndroidAaptIgnoreKt.ANDROID_AAPT_IGNORE;
 import static com.android.ide.common.resources.ResourceItem.ATTR_EXAMPLE;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_G_TAG;
 import static com.android.ide.common.resources.ResourceItem.XLIFF_NAMESPACE_PREFIX;
@@ -54,6 +55,7 @@ import com.android.ide.common.rendering.api.DensityBasedResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
+import com.android.ide.common.resources.AndroidAaptIgnore;
 import com.android.ide.common.resources.PatternBasedFileFilter;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -127,7 +129,8 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
       AttributeFormat.INTEGER,
       AttributeFormat.REFERENCE,
       AttributeFormat.STRING);
-  private final PatternBasedFileFilter myFileFilter = new PatternBasedFileFilter();
+  private final PatternBasedFileFilter myFileFilter
+    = new PatternBasedFileFilter(new AndroidAaptIgnore(System.getenv(ANDROID_AAPT_IGNORE)));
 
   @NotNull private final Map<ResourceType, Set<String>> myPublicResources = new EnumMap<>(ResourceType.class);
   @NotNull private final ListMultimap<String, BasicAttrResourceItem> myAttrs = ArrayListMultimap.create();

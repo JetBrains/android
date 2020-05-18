@@ -49,10 +49,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
@@ -138,6 +140,7 @@ public class BuildVariantView {
   }
 
   @VisibleForTesting
+  @NonInjectable
   public BuildVariantView(@NotNull Project project, @NotNull BuildVariantUpdater updater) {
     myProject = project;
     myUpdater = updater;
@@ -283,10 +286,7 @@ public class BuildVariantView {
     NdkModuleModel ndkModuleModel = getNdkModuleModelIfNotJustDummy(module);
     if (ndkModuleModel != null) {
       buildVariantNames.addAll(
-        ndkModuleModel.getNdkVariantNames()
-          .stream()
-          .map(ndkVariantName -> ndkModuleModel.getVariantName(ndkVariantName))
-          .collect(Collectors.toList()));
+        ContainerUtil.map(ndkModuleModel.getNdkVariantNames(), ndkVariantName -> ndkModuleModel.getVariantName(ndkVariantName)));
     }
 
     return buildVariantNames;

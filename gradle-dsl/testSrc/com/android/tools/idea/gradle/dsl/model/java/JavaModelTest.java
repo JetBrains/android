@@ -45,7 +45,7 @@ import org.junit.Test;
 public class JavaModelTest extends GradleFileModelTestCase {
   @Test
   public void testReadJavaVersionsAsNumbers() throws IOException {
-    if(!isGroovy()) return; // TODO(b/138277630): no support for assigning numbers in KotlinScript
+    isIrrelevantForKotlinScript("can't assign numbers to language level properties in KotlinScript");
     writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSIONS_AS_NUMBERS);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
@@ -54,7 +54,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionsAsSingleQuoteStrings() throws IOException {
-    if(!isGroovy()) return; // TODO(b/138277630): single-quoted strings don't exist in KotlinScript
+    isIrrelevantForKotlinScript("single-quoted strings don't exist in KotlinScript");
     writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSIONS_AS_SINGLE_QUOTE_STRINGS);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
@@ -63,7 +63,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionsAsDoubleQuoteStrings() throws IOException {
-    if(!isGroovy()) return; // TODO(b/138277630): no support for assigning strings in KotlinScript
+    isIrrelevantForKotlinScript("can't assign strings to language level properties in KotlinScript");
     writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSIONS_AS_DOUBLE_QUOTE_STRINGS);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
@@ -72,7 +72,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionsAsReferenceString() throws IOException {
-    if(!isGroovy()) return; // TODO(b/138277630): no support for assigning unqualified references in KotlinScript
+    isIrrelevantForKotlinScript("can't assign unqualified reference to language level properties in KotlinScript");
     writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSIONS_AS_REFERENCE_STRING);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
@@ -89,7 +89,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionLiteralFromExtProperty() throws IOException {
-    if(!isGroovy()) return; // TODO(b/138277630): no support for assigning numbers in KotlinScript
+    isIrrelevantForKotlinScript("can't assign numbers to language level properties in KotlinScript");
     writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSION_LITERAL_FROM_EXT_PROPERTY);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());

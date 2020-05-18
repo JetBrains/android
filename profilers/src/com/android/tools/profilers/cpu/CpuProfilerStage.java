@@ -1146,6 +1146,8 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
       myOthersLegend = new SeriesLegend(cpuUsage.getOtherCpuSeries(), CPU_USAGE_FORMATTER, dataRange);
       myThreadsLegend = new SeriesLegend(cpuUsage.getThreadsCountSeries(), NUM_THREADS_AXIS, dataRange,
                                          Interpolatable.SteppedLineInterpolator);
+      myCpuLegend.setCachingLastValue(true);
+      myOthersLegend.setCachingLastValue(true);
       add(myCpuLegend);
       add(myOthersLegend);
       add(myThreadsLegend);

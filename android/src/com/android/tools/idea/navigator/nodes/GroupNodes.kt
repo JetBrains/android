@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:JvmName("GroupNodes")
 package com.android.tools.idea.navigator.nodes
 
 import com.intellij.psi.PsiDirectory
@@ -26,6 +27,7 @@ interface FileGroupNode {
    * A list of files represented by the node.
    */
   val files: List<PsiFile>
+
 }
 
 /**
@@ -36,5 +38,13 @@ interface FolderGroupNode {
    * A list of folders from which its children are/can be selected.
    */
   val folders: List<PsiDirectory>
+
 }
 
+fun FolderGroupNode.canRepresent(element: Any?): Boolean {
+  return folders.any { it == element || it.virtualFile == element }
+}
+
+fun FileGroupNode.canRepresent(element: Any?): Boolean {
+  return files.any { it == element || it.virtualFile == element }
+}

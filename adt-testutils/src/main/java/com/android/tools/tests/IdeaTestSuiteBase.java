@@ -54,6 +54,7 @@ public class IdeaTestSuiteBase {
     System.setProperty("idea.home.path", TestUtils.getWorkspaceFile("tools/idea").getPath());
     System.setProperty("idea.system.path", createTmpDir("idea/system").toString());
     System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
+    System.setProperty("idea.log.path", TestUtils.getTestOutputDir().getPath());
     System.setProperty("gradle.user.home", createTmpDir("home").toString());
 
     // Set roots for java.util.prefs API.

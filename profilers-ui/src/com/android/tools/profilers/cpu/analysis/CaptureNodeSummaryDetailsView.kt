@@ -85,7 +85,7 @@ class CaptureNodeSummaryDetailsView(profilersView: StudioProfilersView,
       add(buildDurationLabel(nodeStats.average.toLong(), "Average"))
       add(buildDurationLabel(nodeStats.max, "Max"))
       add(buildDurationLabel(nodeStats.min, "Min"))
-      add(buildDurationLabel(nodeStats.standardDeviation.toLong(), "Std"))
+      add(buildDurationLabel(nodeStats.standardDeviation.toLong(), "Std Dev"))
     }
 
     // Table to display longest running occurrences.

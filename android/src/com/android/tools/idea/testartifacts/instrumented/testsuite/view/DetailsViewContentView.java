@@ -35,6 +35,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Locale;
@@ -111,6 +112,7 @@ public class DetailsViewContentView {
     GuiUtils.setStandardLineBorderToPanel(tabsWrapper, 1, 0, 0, 0);
 
     myContentPanel.add(tabsWrapper);
+    myRootPanel.setMinimumSize(new Dimension());
   }
 
   /**

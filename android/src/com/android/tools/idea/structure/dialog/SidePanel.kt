@@ -131,7 +131,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
         }
 
         override fun paintComponent(g: Graphics) {
-          g.color = if (isSelected) UIUtil.getListSelectionBackground() else UIUtil.SIDE_PANEL_BACKGROUND
+          g.color = if (isSelected) UIUtil.getListSelectionBackground(true) else UIUtil.SIDE_PANEL_BACKGROUND
           g.fillRect(0, 0, width, height)
           if (StringUtil.isEmpty(text)) return
           val deepBlue = JBColor(Color(0x97A4B2), Color(92, 98, 113))
@@ -146,7 +146,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
           foreground = when {
             isSelected && containsErrors -> JBColor.RED.darker()
             isSelected -> deepBlue.darker()
-            else -> UIUtil.getListForeground(true)
+            else -> UIUtil.getListForeground(true, true)
           }
           super.paintComponent(g)
         }

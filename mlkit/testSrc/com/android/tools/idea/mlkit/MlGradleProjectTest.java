@@ -47,7 +47,7 @@ public class MlGradleProjectTest {
   public void setUp() {
     StudioFlags.ML_MODEL_BINDING.override(true);
     myProjectRule.getFixture().setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
-    myProjectRule.load(TestDataPaths.PROJECT_WITH_TWO_MODULES_BUT_ONLY_ONE_ENABLED);
+    myProjectRule.load(TestDataPaths.PROJECT_WITH_TWO_LIB_MODULES_BUT_ONLY_ONE_ENABLED);
   }
 
   @After
@@ -57,20 +57,45 @@ public class MlGradleProjectTest {
 
   @Test
   @RunsInEdt
-  public void testModelClassGeneration() {
+  public void testBuildFeatureFlag() {
     Project project = myProjectRule.getProject();
     Module appModule = TestModuleUtil.findModule(project, "app");
     assertTrue(MlUtils.isMlModelBindingBuildFeatureEnabled(appModule));
-    Module module2 = TestModuleUtil.findModule(project, "module2");
-    assertFalse(MlUtils.isMlModelBindingBuildFeatureEnabled(module2));
+    Module libOnModule = TestModuleUtil.findModule(project, "lib_on");
+    assertTrue(MlUtils.isMlModelBindingBuildFeatureEnabled(libOnModule));
+    Module libOffModule = TestModuleUtil.findModule(project, "lib_off");
+    assertFalse(MlUtils.isMlModelBindingBuildFeatureEnabled(libOffModule));
+  }
+
+  @Test
+  @RunsInEdt
+  public void testLightClassSearchScope() {
+    Project project = myProjectRule.getProject();
+    // App depends on lib_on and lib_off.
+    assertTrue(TestModuleUtil.hasModule(project, "app"));
+    assertTrue(TestModuleUtil.hasModule(project, "lib_on"));
+    assertTrue(TestModuleUtil.hasModule(project, "lib_off"));
 
     JavaCodeInsightTestFixture fixture = ((JavaCodeInsightTestFixture)myProjectRule.getFixture());
+    GlobalSearchScope appScope = fixture.findClass("com.mlmodelbinding.MyActivity").getResolveScope();
+    GlobalSearchScope libOnScope = fixture.findClass("lib.withbinding.Dummy").getResolveScope();
+    GlobalSearchScope libOffScope = fixture.findClass("lib.nobinding.Dummy").getResolveScope();
+
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
 
-    GlobalSearchScope appScope = fixture.findClass("google.withmlmodelbinding.MyActivity").getResolveScope();
-    assertNotNull(javaPsiFacade.findClass("google.withmlmodelbinding.ml.MobilenetV1025160Quantized", appScope));
+    // Verify app can access light class from itself and the binding enabled lib.
+    assertNotNull(javaPsiFacade.findClass("com.mlmodelbinding.ml.AppModel", appScope));
+    assertNotNull(javaPsiFacade.findClass("lib.withbinding.ml.LibModel", appScope));
+    assertNull(javaPsiFacade.findClass("lib.nobinding.ml.LibModel", appScope));
 
-    GlobalSearchScope module2Scope = fixture.findClass("google.nomlmodelbinding.MyActivity").getResolveScope();
-    assertNull(javaPsiFacade.findClass("google.nomlmodelbinding.ml.MobilenetV1025160Quantized", module2Scope));
+    // Verify the binding enabled lib can only access light class from itself.
+    assertNotNull(javaPsiFacade.findClass("lib.withbinding.ml.LibModel", libOnScope));
+    assertNull(javaPsiFacade.findClass("com.mlmodelbinding.ml.AppModel", libOnScope));
+    assertNull(javaPsiFacade.findClass("lib.nobinding.ml.LibModel", libOnScope));
+
+    // Verify the binding disabled lib has no light class and can not access light class from anywhere.
+    assertNull(javaPsiFacade.findClass("lib.nobinding.ml.LibModel", libOffScope));
+    assertNull(javaPsiFacade.findClass("lib.withbinding.ml.LibModel", libOffScope));
+    assertNull(javaPsiFacade.findClass("com.mlmodelbinding.ml.AppModel", libOffScope));
   }
 }

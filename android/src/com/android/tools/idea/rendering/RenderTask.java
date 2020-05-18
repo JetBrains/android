@@ -161,7 +161,7 @@ public class RenderTask {
   private boolean myShadowEnabled = true;
   private boolean myHighQualityShadow = true;
   private boolean myEnableLayoutValidator = false;
-  private boolean myShowWithToolsAttributes = true;
+  private boolean myShowWithToolsVisibilityAndPosition = true;
   private AssetRepositoryImpl myAssetRepository;
   private long myTimeout;
   @NotNull private final Locale myLocale;
@@ -290,8 +290,8 @@ public class RenderTask {
     return myShowDecorations;
   }
 
-  public boolean getShowWithToolsAttributes() {
-    return myShowWithToolsAttributes;
+  public boolean getShowWithToolsVisibilityAndPosition() {
+    return myShowWithToolsVisibilityAndPosition;
   }
 
   public boolean isDisposed() {
@@ -530,15 +530,13 @@ public class RenderTask {
   }
 
   /**
-   * Sets whether the rendering should use 'tools' namespaced attributes. Including substituting 'android' and 'app' attributes with their
-   * 'tools' variants.
+   * Sets whether the rendering should use 'tools' namespaced 'visibility' and 'layout_editor_absoluteX/Y' attributes.
    * <p>
    * Default is {@code true}.
    */
-  @SuppressWarnings("UnusedReturnValue")
   @NotNull
-  public RenderTask setShowWithToolsAttributes(boolean showWithToolsAttributes) {
-    myShowWithToolsAttributes = showWithToolsAttributes;
+  public RenderTask setShowWithToolsVisibilityAndPosition(boolean showWithToolsVisibilityAndPosition) {
+    myShowWithToolsVisibilityAndPosition = showWithToolsVisibilityAndPosition;
     return this;
   }
 
@@ -729,7 +727,7 @@ public class RenderTask {
       throw new IllegalStateException("getIncludingLayoutParser shouldn't be called on RenderTask without PsiFile");
     }
 
-    if (!myShowWithToolsAttributes) {
+    if (!myShowWithToolsVisibilityAndPosition) {
       // Don't support 'showIn' when 'tools' attributes are ignored for rendering.
       return null;
     }

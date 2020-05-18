@@ -48,7 +48,6 @@ import org.jetbrains.kotlin.idea.caches.project.toInfo
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.idea.project.TargetPlatformDetector
 import java.io.File
-import java.util.EnumSet
 
 /**
  * Validate the given value for this parameter and list any reasons why the given value is invalid.
@@ -69,7 +68,6 @@ private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, 
   PACKAGE -> "$name is not set to a valid package name"
   MODULE -> "$name is not set to a valid module name"
   KOTLIN_FUNCTION -> "$name is not set to a valid function name"
-  ID -> "$name is not set to a valid id."
   DRAWABLE, NAVIGATION, STRING, LAYOUT -> {
     val rft = c.toResourceFolderType()
     val resourceNameError = IdeResourceNameValidator.forFilename(rft).getErrorText(value)
@@ -114,8 +112,6 @@ fun StringParameter.validateStringType(
     }
     SOURCE_SET_FOLDER, MODULE -> false // may only violate uniqueness
     UNIQUE, EXISTS -> false // not applicable
-    //noinspection StopShip
-    ID -> TODO()
   }
 
   fun checkExistence(c: Constraint): Boolean {
@@ -167,7 +163,7 @@ fun StringParameter.validateStringType(
         val vFile = VfsUtil.findFileByIoFile(file, true)
         facet.sourceProviders.getForFile(vFile) != null
       }
-      NONEMPTY, ID, STRING, URI_AUTHORITY -> false
+      NONEMPTY, STRING, URI_AUTHORITY -> false
       UNIQUE, EXISTS -> false // not applicable
     }
   }

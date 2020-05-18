@@ -28,7 +28,6 @@ import com.android.tools.idea.projectsystem.getScopeType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiArrayInitializerMemberValue
@@ -58,7 +57,7 @@ private val LOG = Logger.getInstance(RoomSchemaManager::class.java)
 /** Utility for constructing a [RoomSchema] using IDE indices. */
 class RoomSchemaManager(val module: Module, private val cachedValuesManager: CachedValuesManager) {
   companion object {
-    fun getInstance(module: Module): RoomSchemaManager = ModuleServiceManager.getService(module, RoomSchemaManager::class.java)!!
+    fun getInstance(module: Module): RoomSchemaManager = module.getService(RoomSchemaManager::class.java)!!
   }
 
   private val schemas = ScopeType.values().associate { it to createCachedValue(it) }

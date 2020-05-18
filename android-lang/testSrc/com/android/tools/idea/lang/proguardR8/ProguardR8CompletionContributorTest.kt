@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -551,15 +550,6 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 }
 
 class ProguardR8FlagsCodeCompletion : AndroidTestCase() {
-  override fun setUp() {
-    StudioFlags.R8_SUPPORT_ENABLED.override(true)
-    super.setUp()
-  }
-
-  override fun tearDown() {
-    StudioFlags.R8_SUPPORT_ENABLED.clearOverride()
-    super.tearDown()
-  }
 
   fun testFlagSuggestionRegardinShrinkerType() {
     (myModule.getModuleSystem() as DefaultModuleSystem).codeShrinker = CodeShrinker.R8

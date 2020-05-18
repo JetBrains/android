@@ -47,6 +47,7 @@ import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.openapi.util.text.StringUtil;
@@ -66,7 +67,8 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AbstractDeployTask implements LaunchTask {
 
   public static final int MIN_API_VERSION = 26;
-  private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("UnifiedDeployTask", ToolWindowId.RUN);
+  private static final NotificationGroup NOTIFICATION_GROUP =
+    NotificationGroup.toolWindowGroup("UnifiedDeployTask", ToolWindowId.RUN, true, PluginId.getId("org.jetbrains.android"));
 
   @NotNull private final Project myProject;
   @NotNull private final Map<String, List<File>> myPackages;

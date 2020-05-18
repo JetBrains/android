@@ -30,19 +30,13 @@ open class MockSqliteEvaluatorView : SqliteEvaluatorView {
 
   val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
-  override var activeDatabase: SqliteDatabaseId?
-    get() = SqliteDatabaseId.fromLiveDatabase("path", 1)
-    set(_) { }
-
   override fun addListener(listener: SqliteEvaluatorView.Listener) { listeners.add(listener) }
 
   override fun removeListener(listener: SqliteEvaluatorView.Listener) { listeners.remove(listener) }
 
   override fun showSqliteStatement(sqliteStatement: String) {  }
 
-  override fun setDatabases(databaseIds: List<SqliteDatabaseId>) { }
-
-  override fun getSqliteStatement(): String { TODO("not implemented") }
+  override fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?) { }
 
   override fun schemaChanged(databaseId: SqliteDatabaseId) { }
 

@@ -23,6 +23,6 @@ import com.intellij.openapi.project.Project
  * Return true if Gradle plugin version supports side-by-side NDK
  */
 fun supportsSideBySideNdk(gradleModelNumber : GradleVersion) : Boolean {
-  return gradleModelNumber.major >= 4 ||
-         (gradleModelNumber.major == 3 && gradleModelNumber.minor > 4)
+  return gradleModelNumber.major >= 5 ||
+         (gradleModelNumber.major == 4 && gradleModelNumber.minor > 0)
 }

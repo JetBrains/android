@@ -26,6 +26,8 @@ import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.Rotation
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.emulator.control.SnapshotPackage
+import com.android.emulator.control.SnapshotServiceGrpc
 import com.android.emulator.control.VmRunState
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.createDipImage
@@ -63,6 +65,7 @@ import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption.CREATE_NEW
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -74,10 +77,10 @@ import kotlin.math.roundToInt
  */
 class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory: Path) {
 
-  private val avdId = StringUtil.trimExtensions(avdFolder.fileName.toString())
+  val avdId = StringUtil.trimExtensions(avdFolder.fileName.toString())
   private val registration = """
-      port.serial=${grpcPort - 3000}
-      port.adb=${grpcPort - 3000 + 1}
+      port.serial=${serialPort}
+      port.adb=${serialPort + 1}
       avd.name=${avdId}
       avd.dir=${avdFolder}
       avd.id=${avdId}
@@ -93,6 +96,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)!!
 
   @Volatile var displayRotation: SkinRotation = SkinRotation.PORTRAIT
+
+  val serialPort
+    get() = grpcPort - 3000 // Just like a real emulator.
 
   val grpcCallLog = LinkedBlockingDeque<GrpcCallRecord>()
 
@@ -148,8 +154,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   private fun createGrpcServer(): Server {
+    val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeEmulatorControllerService", 1)
+
     return InProcessServerBuilder.forName(grpcServerName(grpcPort))
-        .addService(ServerInterceptors.intercept(EmulatorControllerService(), LoggingInterceptor()))
+        .addService(ServerInterceptors.intercept(EmulatorControllerService(executor), LoggingInterceptor()))
+        .addService(ServerInterceptors.intercept(EmulatorSnapshotService(executor), LoggingInterceptor()))
         .build()
   }
 
@@ -193,9 +202,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     return image
   }
 
-  private inner class EmulatorControllerService : EmulatorControllerGrpc.EmulatorControllerImplBase() {
+  private fun <T> sendResponse(responseObserver: StreamObserver<T>, response: T) {
+    responseObserver.onNext(response)
+    responseObserver.onCompleted()
+  }
 
-    private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeEmulatorControllerService", 1)
+  private inner class EmulatorControllerService(private val executor: ExecutorService) : EmulatorControllerGrpc.EmulatorControllerImplBase() {
 
     override fun setPhysicalModel(request: PhysicalModelValue, responseObserver: StreamObserver<Empty>) {
       executor.execute {
@@ -226,6 +238,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     override fun sendMouse(request: MouseEvent, responseObserver: StreamObserver<Empty>) {
       executor.execute {
         sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun getVmState(request: Empty, responseObserver: StreamObserver<VmRunState>) {
+      executor.execute {
+        val response = VmRunState.newBuilder()
+          .setState(VmRunState.RunState.RUNNING)
+          .build()
+        sendResponse(responseObserver, response)
       }
     }
 
@@ -297,13 +318,28 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
 
-    private fun <T> sendResponse(responseObserver: StreamObserver<T>, response: T) {
-      responseObserver.onNext(response)
-      responseObserver.onCompleted()
-    }
-
     private fun sendEmptyResponse(responseObserver: StreamObserver<Empty>) {
       sendResponse(responseObserver, Empty.getDefaultInstance())
+    }
+  }
+
+  private inner class EmulatorSnapshotService(private val executor: ExecutorService) : SnapshotServiceGrpc.SnapshotServiceImplBase() {
+    override fun loadSnapshot(request: SnapshotPackage, responseObserver: StreamObserver<SnapshotPackage>) {
+      executor.execute {
+        sendDefaultSnapshotPackage(responseObserver)
+      }
+    }
+
+    override fun pushSnapshot(responseObserver: StreamObserver<SnapshotPackage>): StreamObserver<SnapshotPackage> {
+      return object : DummyStreamObserver<SnapshotPackage>() {
+        override fun onCompleted() {
+          sendDefaultSnapshotPackage(responseObserver)
+        }
+      }
+    }
+
+    private fun sendDefaultSnapshotPackage(responseObserver: StreamObserver<SnapshotPackage>) {
+      sendResponse(responseObserver, SnapshotPackage.getDefaultInstance())
     }
   }
 

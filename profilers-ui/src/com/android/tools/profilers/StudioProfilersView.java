@@ -62,7 +62,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.openapi.wm.IdeGlassPaneUtil;
 import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.HoverHyperlinkLabel;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
@@ -99,7 +98,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   @NotNull public static final String DETACH_LIVE = "Detach live";
   @NotNull public static final String ZOOM_IN = "Zoom in";
   @NotNull public static final String ZOOM_OUT = "Zoom out";
-  private static final String DESELECT_ALL = "Deselect all";
 
   private final StudioProfilers myProfiler;
   private final ViewBinder<StudioProfilersView, Stage, StageView> myBinder;
@@ -121,14 +119,12 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private JPanel myStageToolbar;
   private JPanel myCommonToolbar;
   private JPanel myGoLiveToolbar;
-  private JPanel myDeselectAllToolbar;
   private JToggleButton myGoLive;
   private CommonButton myZoomOut;
   private CommonButton myZoomIn;
   private CommonButton myResetZoom;
   private CommonButton myZoomToSelection;
   private ProfilerAction myZoomToSelectionAction;
-  private HoverHyperlinkLabel myDeselectAllLabel;
 
   @NotNull
   private final IdeProfilerComponents myIdeProfilerComponents;
@@ -213,16 +209,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   }
 
   @VisibleForTesting
-  public HoverHyperlinkLabel getDeselectAllLabel() {
-    return myDeselectAllLabel;
-  }
-
-  @VisibleForTesting
-  public JPanel getDeselectAllToolbar() {
-    return myDeselectAllToolbar;
-  }
-
-  @VisibleForTesting
   @NotNull
   JToggleButton getGoLiveButton() {
     return myGoLive;
@@ -265,7 +251,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     // splitter itself. Instead, we mirror the logic that the divider uses to capture mouse event and check whether the width of the
     // sessions UI has changed between mouse press and release. Using Once here to mimic ThreeComponentsSplitter's implementation, as
     // we only need to add the MousePreprocessor to the glassPane once when the UI shows up.
-    new UiNotifyConnector.Once(mySplitter, new Activatable.Adapter() {
+    new UiNotifyConnector.Once(mySplitter, new Activatable() {
       @Override
       public void showNotify() {
         IdeGlassPane glassPane = IdeGlassPaneUtil.find(mySplitter);
@@ -326,16 +312,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     JPanel rightToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myToolbar.add(rightToolbar, BorderLayout.EAST);
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
-
-    // Add Deselect All label for stages that support it.
-    myDeselectAllLabel = new HoverHyperlinkLabel(DESELECT_ALL);
-    myDeselectAllLabel.addHyperlinkListener(event -> myStageView.onDeselectAllAction());
-    myDeselectAllLabel.setBorder(new JBEmptyBorder(0, 0, 0, 4));
-    myDeselectAllLabel.setToolTipText("Click to deselect all threads");
-    myDeselectAllToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    myDeselectAllToolbar.add(myDeselectAllLabel);
-    myDeselectAllToolbar.add(new FlatSeparator());
-    rightToolbar.add(myDeselectAllToolbar);
 
     myZoomOut = new CommonButton(AllIcons.General.ZoomOut);
     myZoomOut.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomOut));
@@ -485,7 +461,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myGoLive.setEnabled(false);
       myGoLive.setSelected(false);
     }
-    myDeselectAllToolbar.setVisible(false);
   }
 
   private void toggleSessionsPanel(boolean isCollapsed) {
@@ -522,7 +497,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myStageView = myBinder.build(this, stage);
     myStageView.getStage().getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
       myZoomToSelection.setEnabled(myZoomToSelectionAction.isEnabled());
-      myDeselectAllToolbar.setVisible(myStageView.shouldShowDeselectAllLabel());
     });
     SwingUtilities.invokeLater(() -> {
       Component focussed = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
@@ -540,7 +514,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myStageToolbar.revalidate();
     myToolbar.setVisible(myStageView.isToolbarVisible());
     myGoLiveToolbar.setVisible(myStageView.supportsStreaming());
-    myDeselectAllToolbar.setVisible(myStageView.shouldShowDeselectAllLabel());
 
     boolean topLevel = myStageView == null || myStageView.needsProcessSelection();
     myCommonToolbar.setVisible(!topLevel && myStageView.supportsStageNavigation());

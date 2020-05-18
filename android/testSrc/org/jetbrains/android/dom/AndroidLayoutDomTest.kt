@@ -457,6 +457,11 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
       "android:layout_alignBottom", "android:layout_alignEnd", "android:layout_alignLeft")
   }
 
+  fun testAttributeNameInheritedAttributesForViewTag() {
+    // TextClock inherits "bufferType" attr from TextView.
+    toTestCompletion("inheritedAttributesForViewTag.xml", "inheritedAttributesForViewTag_after.xml")
+  }
+
   fun testLiveTemplateAttributeCompletion() {
     LiveTemplateCompletionContributor.setShowTemplatesInTests(true, myFixture.testRootDisposable)
     val virtualFile = myFixture.addFileToProject(

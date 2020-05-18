@@ -60,6 +60,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -67,6 +68,7 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.RootProvider;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.projectImport.ProjectOpenProcessor;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -81,6 +83,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.project.open.GradleProjectOpenProcessor;
 
 /**
  * Performs Gradle-specific IDE initialization
@@ -98,6 +101,7 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     Actions.hideAction(actionManager, "Groovy.CheckResources.Make");
     setUpGradleViewToolbarActions(actionManager);
     checkInstallPath();
+    removeGradleProjectOpenProcessor();
 
     // "Configure Plugins..." Not sure why it's called StartupWizard.
     AnAction pluginAction = actionManager.getAction("StartupWizard");
@@ -117,6 +121,10 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
       }
       checkAndSetAndroidSdkSources();
     }
+  }
+
+  private void removeGradleProjectOpenProcessor() {
+    ProjectOpenProcessor.EXTENSION_POINT_NAME.getPoint(null).unregisterExtension(GradleProjectOpenProcessor.class);
   }
 
   /**
@@ -242,7 +250,8 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     NotificationGroup group = NotificationGroup.findRegisteredGroup("System Health");
     if (group == null) {
       // This shouldn't happen
-      group = new NotificationGroup("Gradle Initializer", NotificationDisplayType.STICKY_BALLOON, true);
+      group = new NotificationGroup(
+        "Gradle Initializer", NotificationDisplayType.STICKY_BALLOON, true, null, null, null, PluginId.getId("org.jetbrains.android"));
     }
     return group;
   }
@@ -341,14 +350,16 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     for (List<String> classes : androidSdksByClasses.keySet()) {
       Collection<Sdk> duplicateSdks = androidSdksByClasses.get(classes);
       if (duplicateSdks.size() > 1) {
-        ApplicationManager.getApplication().runWriteAction(() -> {
-          boolean firstSkipped = false;
-          for (Sdk sdk : duplicateSdks) {
-            if (firstSkipped) {
-              jdkTable.removeJdk(sdk);
+        ApplicationManager.getApplication().invokeLater(() -> {
+          ApplicationManager.getApplication().runWriteAction(() -> {
+            boolean firstSkipped = false;
+            for (Sdk sdk : duplicateSdks) {
+              if (firstSkipped) {
+                jdkTable.removeJdk(sdk);
+              }
+              firstSkipped = true;
             }
-            firstSkipped = true;
-          }
+          });
         });
       }
     }

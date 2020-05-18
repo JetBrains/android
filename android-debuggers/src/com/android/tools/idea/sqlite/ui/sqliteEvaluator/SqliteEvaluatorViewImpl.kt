@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
 import com.android.tools.idea.sqlite.ui.tableView.TableView
@@ -66,16 +67,6 @@ class SqliteEvaluatorViewImpl(
   private val runButton = JButton("Run")
   private var evaluateSqliteStatementEnabled = false
 
-  override var activeDatabase: SqliteDatabaseId?
-    get() = databaseComboBox.selectedItem as SqliteDatabaseId?
-    set(value) {
-      // Avoid setting the item if it's already selected, so we don't trigger the action listener for no reason.
-      val currentlySelectedItem = databaseComboBox.selectedItem as SqliteDatabaseId
-      if (value != currentlySelectedItem) {
-        databaseComboBox.selectedItem = value
-      }
-    }
-
   init {
     val controlsPanel = JPanel(BorderLayout())
 
@@ -100,18 +91,31 @@ class SqliteEvaluatorViewImpl(
     runStatementAction.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), expandableEditor.collapsedEditor)
     runStatementAction.registerCustomShortcutSet(CustomShortcutSet(keyStrokeMultiline), expandableEditor.expandedEditor)
 
-    databaseComboBox.addActionListener { setSchemaFromSelectedItem() }
+    databaseComboBox.addActionListener {
+      setSchemaFromSelectedItem()
+      val sqliteDatabaseId = databaseComboBox.selectedItem as? SqliteDatabaseId ?: return@addActionListener
+
+      listeners.forEach {
+        it.onDatabaseSelected(sqliteDatabaseId)
+      }
+    }
+
     databaseComboBox.setMinimumAndPreferredWidth(JBUI.scale(300))
-    databaseComboBox.renderer = object : ColoredListCellRenderer<SqliteDatabaseId>() {
+    databaseComboBox.renderer = object : ColoredListCellRenderer<SqliteDatabaseId?>() {
       override fun customizeCellRenderer(
-        list: JList<out SqliteDatabaseId>,
-        sqliteDatabase: SqliteDatabaseId,
+        list: JList<out SqliteDatabaseId?>,
+        sqliteDatabase: SqliteDatabaseId?,
         index: Int,
         selected: Boolean,
         hasFocus: Boolean
       ) {
-        icon = StudioIcons.DatabaseInspector.DATABASE
-        append(sqliteDatabase.name)
+        if (sqliteDatabase != null) {
+          icon = StudioIcons.DatabaseInspector.DATABASE
+          append(sqliteDatabase.name)
+        } else {
+          icon = null
+          append(DatabaseInspectorBundle.message("no.databases.available"))
+        }
       }
     }
 
@@ -153,10 +157,7 @@ class SqliteEvaluatorViewImpl(
     if (!evaluateSqliteStatementEnabled) return
 
     listeners.forEach {
-      it.evaluateSqliteStatementActionInvoked(
-        (databaseComboBox.selectedItem as SqliteDatabaseId),
-        expandableEditor.activeEditor.text
-      )
+      it.evaluateCurrentStatement()
     }
   }
 
@@ -175,18 +176,17 @@ class SqliteEvaluatorViewImpl(
     })
   }
 
-  override fun setDatabases(databaseIds: List<SqliteDatabaseId>) {
+  override fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?) {
     databaseComboBox.removeAllItems()
-
+    databaseComboBox.isEnabled = databaseIds.isNotEmpty()
     for (database in databaseIds) {
       databaseComboBox.addItem(database)
     }
 
-    if (databaseIds.isNotEmpty() && databaseComboBox.selectedIndex == -1) databaseComboBox.selectedIndex = 0
-  }
-
-  override fun getSqliteStatement(): String {
-    return expandableEditor.activeEditor.text
+    // Avoid setting the item if it's already selected, so we don't trigger the action listener for no reason.
+    if (databaseComboBox.selectedItem != selected) {
+      databaseComboBox.selectedItem = selected
+    }
   }
 
   override fun addListener(listener: SqliteEvaluatorView.Listener) {
