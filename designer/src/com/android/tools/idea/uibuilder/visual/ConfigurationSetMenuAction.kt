@@ -30,10 +30,10 @@ enum class ConfigurationSet(val title: String,
                             val modelsProviderCreator: (ConfigurationSetListener) -> VisualizationModelsProvider,
                             val visible: Boolean = true) {
   PIXEL_DEVICES("Pixel Devices", { PixelDeviceModelsProvider }),
-  PROJECT_LOCALES("Project Locales", { LocaleModelsProvider }),
+  PROJECT_LOCALES("Project Locales", { LocaleModelsProvider }, StudioFlags.NELE_VISUALIZATION_LOCALE_MODE.get()),
   CUSTOM("Custom", { CustomModelsProvider(it) }),
-  COLOR_BLIND_MODE("Color Blind", { ColorBlindModeModelsProvider }, StudioFlags.NELE_COLOR_BLIND_MODE.get()),
-  LARGE_FONT("Font Sizes", { LargeFontModelsProvider }, StudioFlags.NELE_LARGE_FONT_MODE.get())
+  COLOR_BLIND_MODE("Color Blind", { ColorBlindModeModelsProvider }),
+  LARGE_FONT("Font Sizes", { LargeFontModelsProvider })
 }
 
 interface ConfigurationSetListener {
@@ -58,21 +58,25 @@ class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
                                  defaultSet: ConfigurationSet)
   : DropDownAction(null, "Configuration Set", null) {
 
+  companion object {
+    val MENU_GROUPS = listOf(
+      listOf(ConfigurationSet.PIXEL_DEVICES, ConfigurationSet.PROJECT_LOCALES),
+      listOf(ConfigurationSet.CUSTOM),
+      listOf(ConfigurationSet.COLOR_BLIND_MODE, ConfigurationSet.LARGE_FONT)
+    )
+  }
+
   private var currentConfigurationSet = defaultSet
 
   init {
-    add(SetConfigurationSetAction(ConfigurationSet.PIXEL_DEVICES))
-    add(SetConfigurationSetAction(ConfigurationSet.PROJECT_LOCALES))
-    addSeparator()
-    add(SetConfigurationSetAction(ConfigurationSet.CUSTOM))
-    if (ConfigurationSet.COLOR_BLIND_MODE.visible || ConfigurationSet.LARGE_FONT.visible) {
-      addSeparator()
-      if (ConfigurationSet.COLOR_BLIND_MODE.visible) {
-        add(SetConfigurationSetAction(ConfigurationSet.COLOR_BLIND_MODE))
+    var isPreviousGroupEmpty = true
+    for (group in MENU_GROUPS) {
+      if (!isPreviousGroupEmpty) {
+        addSeparator()
       }
-      if (ConfigurationSet.LARGE_FONT.visible) {
-        add(SetConfigurationSetAction(ConfigurationSet.LARGE_FONT))
-      }
+      val groupItems = group.filter { it.visible }
+      groupItems.forEach { add(SetConfigurationSetAction(it)) }
+      isPreviousGroupEmpty = groupItems.isEmpty()
     }
   }
 
