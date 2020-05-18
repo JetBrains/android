@@ -38,6 +38,7 @@ fun CodeInsightTestFixture.stubPreviewAnnotation() {
 
     import kotlin.reflect.KClass
 
+    @Repeatable
     annotation class Preview(
       val name: String = "",
       val group: String = "",
@@ -47,7 +48,9 @@ fun CodeInsightTestFixture.stubPreviewAnnotation() {
       val heightDp: Int = -1,
       val fontScale: Float = 1f,
       val showDecoration: Boolean = false,
-      val showBackground: Boolean = false
+      val showBackground: Boolean = false,
+      val backgroundColor: Long = 0,
+      val uiMode: Int = 0
     )
 
     interface PreviewParameterProvider<T> {

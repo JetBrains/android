@@ -122,7 +122,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
     return renderPreviewElement(facet, previewFromMethodName(previewElementName))
   }
 
-  private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null)
+  private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null)
 
   private fun previewFromMethodName(fqName: String) =
     SinglePreviewElementInstance(

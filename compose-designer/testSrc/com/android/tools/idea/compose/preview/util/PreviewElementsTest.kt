@@ -27,16 +27,16 @@ class PreviewElementsTest {
   @Test
   fun testPreviewConfigurationCleaner() {
     assertEquals(
-      PreviewConfiguration.cleanAndGet(-120, null, 1, 1, 2f),
-      PreviewConfiguration.cleanAndGet(-120, null, -2, -10, 2f))
+      PreviewConfiguration.cleanAndGet(-120, null, 1, 1, 2f, null),
+      PreviewConfiguration.cleanAndGet(-120, null, -2, -10, 2f, 0))
 
     assertEquals(
-      PreviewConfiguration.cleanAndGet(9000, null, MAX_WIDTH, MAX_HEIGHT, null),
-      PreviewConfiguration.cleanAndGet(9000, null, 500000, 500000, 1f))
+      PreviewConfiguration.cleanAndGet(9000, null, MAX_WIDTH, MAX_HEIGHT, null, null),
+      PreviewConfiguration.cleanAndGet(9000, null, 500000, 500000, 1f, 0))
 
     assertEquals(
-      PreviewConfiguration.cleanAndGet(12, null, 120, MAX_HEIGHT, null),
-      PreviewConfiguration.cleanAndGet(12, null, 120, 500000, 1f))
+      PreviewConfiguration.cleanAndGet(12, null, 120, MAX_HEIGHT, null, 123),
+      PreviewConfiguration.cleanAndGet(12, null, 120, 500000, 1f, 123))
   }
 
   @Test
@@ -44,18 +44,18 @@ class PreviewElementsTest {
     val previewsToCheck = listOf(
       SinglePreviewElementInstance("composableMethodName",
                                    PreviewDisplaySettings("A name", null, false, false, null), null, null,
-                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
+                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null, null)),
       SinglePreviewElementInstance("composableMethodName",
                                    PreviewDisplaySettings("A name", "group1", true, true, null), null, null,
-                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
+                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null, null)),
       SinglePreviewElementInstance("composableMethodName",
                                    PreviewDisplaySettings("A name", "group1", true, true, "#000"),
                                    null, null,
-                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
+                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null, null)),
       SinglePreviewElementInstance("composableMethodName",
                                    PreviewDisplaySettings("A name", "group1", true, false, "#000"),
                                    null, null,
-                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null)))
+                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null, null)))
 
     val factory = DocumentBuilderFactory.newInstance()
     val documentBuilder = factory.newDocumentBuilder()
@@ -88,22 +88,22 @@ $t
   fun testAffinity() {
     val composable0 = SinglePreviewElementInstance("composableMethodName",
       PreviewDisplaySettings("A name", null, false, false, null), null, null,
-      PreviewConfiguration.cleanAndGet(null, null, null, null, null))
+      PreviewConfiguration.cleanAndGet(null, null, null, null, null, null))
 
     // The same as composable0, just a different instance
     val composable0b = SinglePreviewElementInstance("composableMethodName",
                                                    PreviewDisplaySettings("A name", null, false, false, null), null, null,
-                                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null))
+                                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null, null))
 
     // Same as composable0 but with different display settings
     val composable1 = SinglePreviewElementInstance("composableMethodName",
                                                   PreviewDisplaySettings("Different name", null, false, false, null), null, null,
-                                                  PreviewConfiguration.cleanAndGet(null, null, null, null, null))
+                                                  PreviewConfiguration.cleanAndGet(null, null, null, null, null, null))
 
     // Same as composable0 but with different display settings
     val composable2 = SinglePreviewElementInstance("composableMethodName",
                                                    PreviewDisplaySettings("Different name", null, false, false, null), null, null,
-                                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null))
+                                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null, null))
 
     val result = listOf(composable2, composable1, composable0b)
       .shuffled()

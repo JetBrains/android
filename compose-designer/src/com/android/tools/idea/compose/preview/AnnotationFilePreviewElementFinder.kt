@@ -70,8 +70,9 @@ private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
   val width = node.findAttributeIntValue("width") ?: node.findAttributeIntValue(WIDTH_PARAMETER)
   val height = node.findAttributeIntValue("height") ?: node.findAttributeIntValue(HEIGHT_PARAMETER)
   val fontScale = node.findAttributeFloatValue("fontScale")
+  val uiMode = node.findAttributeIntValue("uiMode")
 
-  return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height, fontScale)
+  return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height, fontScale, uiMode)
 }
 
 /**
@@ -96,8 +97,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
       return@compute sequenceOf()
     }
 
-    val previewMethodsFqName = mutableSetOf<String>()
-    val previewElements = mutableListOf<PreviewElement>()
+    val previewElements = mutableSetOf<PreviewElement>()
     uFile.accept(object : UastVisitor {
       // Return false so we explore all the elements in the file (in case there are multiple @Preview elements)
       override fun visitElement(node: UElement): Boolean = false
@@ -124,30 +124,29 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
         val groupName = previewAnnotation.findDeclaredAttributeValue("group")?.evaluateString()
         val showDecorations = previewAnnotation.findDeclaredAttributeValue("showDecoration")?.evaluate() as? Boolean ?: false
         val showBackground = previewAnnotation.findDeclaredAttributeValue("showBackground")?.evaluate() as? Boolean ?: false
+        val backgroundColor = previewAnnotation.findDeclaredAttributeValue("backgroundColor")?.evaluate() as? Int
 
         // If the same composable functions is found multiple times, only keep the first one. This usually will happen during
         // copy & paste and both the compiler and Studio will flag it as an error.
-        if (previewMethodsFqName.add(composableMethod)) {
-          val displaySettings = PreviewDisplaySettings(previewName,
-                                                       groupName,
-                                                       showDecorations,
-                                                       showBackground,
-                                                       null)
+        val displaySettings = PreviewDisplaySettings(previewName,
+                                                     groupName,
+                                                     showDecorations,
+                                                     showBackground,
+                                                     backgroundColor?.toString(16)?.let { "#$it" })
 
-          val parameters = getPreviewParameters(annotatedMethod.uastParameters)
-          val basePreviewElement = SinglePreviewElementInstance(composableMethod,
-                                                                displaySettings,
-                                                                previewAnnotation.toSmartPsiPointer(),
-                                                                annotatedMethod.uastBody.toSmartPsiPointer(),
-                                                                attributesToConfiguration(previewAnnotation))
-          if (!parameters.isEmpty()) {
-            if (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get()) {
-              previewElements.add(ParametrizedPreviewElementTemplate(basePreviewElement, parameters))
-            }
+        val parameters = getPreviewParameters(annotatedMethod.uastParameters)
+        val basePreviewElement = SinglePreviewElementInstance(composableMethod,
+                                                              displaySettings,
+                                                              previewAnnotation.toSmartPsiPointer(),
+                                                              annotatedMethod.uastBody.toSmartPsiPointer(),
+                                                              attributesToConfiguration(previewAnnotation))
+        if (!parameters.isEmpty()) {
+          if (StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.get()) {
+            previewElements.add(ParametrizedPreviewElementTemplate(basePreviewElement, parameters))
           }
-          else {
-            previewElements.add(basePreviewElement)
-          }
+        }
+        else {
+          previewElements.add(basePreviewElement)
         }
       }
 

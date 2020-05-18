@@ -77,7 +77,7 @@ class FilteringTest {
   }
 
   private class TestPreviewElementTemplateInstance(private val basePreviewElement: PreviewElement,
-                                                   private val index: Int) : PreviewElementInstance, PreviewElement by basePreviewElement {
+                                                   index: Int) : PreviewElementInstance(), PreviewElement by basePreviewElement {
     override val instanceId: String = "${basePreviewElement.composableMethodFqn}#$index"
   }
 

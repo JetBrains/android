@@ -98,6 +98,11 @@ class AnnotationFilePreviewElementFinderTest {
         fun Preview3() {
         }
 
+        @Composable
+        @Preview(name = "preview4", uiMode = 3, backgroundColor = 0xBAAABA)
+        fun Preview4() {
+        }
+
         // This preview element will be found but the ComposeViewAdapter won't be able to render it
         @Composable
         @Preview(name = "Preview with parameters")
@@ -125,7 +130,21 @@ class AnnotationFilePreviewElementFinderTest {
     assertTrue(computeOnBackground { AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.sourcePsi.virtualFile) })
 
     val elements = computeOnBackground { AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest).toList() }
-    assertEquals(5, elements.size)
+    assertEquals(6, elements.size)
+    elements[0].let {
+      assertEquals("Preview1", it.displaySettings.name)
+      assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+      assertFalse(it.displaySettings.showBackground)
+      assertFalse(it.displaySettings.showDecoration)
+
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
+      }
+    }
+
     elements[1].let {
       assertEquals("preview2", it.displaySettings.name)
       assertEquals("groupA", it.displaySettings.group)
@@ -136,6 +155,7 @@ class AnnotationFilePreviewElementFinderTest {
       assertEquals(1f, it.configuration.fontScale)
       assertTrue(it.displaySettings.showBackground)
       assertFalse(it.displaySettings.showDecoration)
+      assertEquals(0, it.configuration.uiMode)
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(composeTest, "Preview2", it.previewBodyPsi?.psiRange?.range!!)
@@ -152,6 +172,7 @@ class AnnotationFilePreviewElementFinderTest {
       assertEquals(0.2f, it.configuration.fontScale)
       assertFalse(it.displaySettings.showBackground)
       assertTrue(it.displaySettings.showDecoration)
+      assertEquals(0, it.configuration.uiMode)
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange?.range!!)
@@ -160,25 +181,23 @@ class AnnotationFilePreviewElementFinderTest {
       }
     }
 
-    elements[0].let {
-      assertEquals("Preview1", it.displaySettings.name)
-      assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
-      assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
-      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
-      assertFalse(it.displaySettings.showBackground)
-      assertFalse(it.displaySettings.showDecoration)
+    elements[3].let {
+      assertEquals("preview4", it.displaySettings.name)
+      assertEquals(3, it.configuration.uiMode)
+      assertEquals("#baaaba", it.displaySettings.backgroundColor)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
-        assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
+        assertMethodTextRange(composeTest, "Preview4", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@Preview(name = \"preview4\", uiMode = 3, backgroundColor = 0xBAAABA)",
+                     it.previewElementDefinitionPsi?.element?.text)
       }
     }
 
-    elements[3].let {
+    elements[4].let {
       assertEquals("Preview with parameters", it.displaySettings.name)
     }
 
-    elements[4].let {
+    elements[5].let {
       assertEquals("FQN", it.displaySettings.name)
     }
   }
@@ -213,21 +232,17 @@ class AnnotationFilePreviewElementFinderTest {
       """
         import androidx.ui.tooling.preview.Preview
         import androidx.compose.Composable
-
+        
         @Composable
-        @Preview
-        fun Preview1() {
-        }
-
-        @Composable
-        @Preview(name = "preview2", apiLevel = 12)
+        @Preview(name = "preview", apiLevel = 12)
+        @Preview(name = "preview", apiLevel = 12)
         fun Preview1() {
         }
       """.trimIndent()).toUElement() as UFile
 
     val element = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest).single()
     // Check that we keep the first element
-    assertEquals("Preview1", element.displaySettings.name)
+    assertEquals("preview", element.displaySettings.name)
   }
 
   @Test
@@ -429,5 +444,52 @@ class AnnotationFilePreviewElementFinderTest {
       .let {
         assertArrayEquals(arrayOf("TestKt.A", "TestKt.B", "TestKt.C"), it)
       }
+  }
+
+  @Test
+  fun testRepeatedPreviewAnnotations() {
+    val composeTest = fixture.addFileToProject(
+      "src/Test.kt",
+      // language=kotlin
+      """
+        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Composable
+        @Preview(name = "preview1", widthDp = 2)
+        @Preview(name = "preview2", group = "groupA")
+        fun Preview1() {
+        }
+      """.trimIndent()).toUElement() as UFile
+
+    assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.sourcePsi.virtualFile))
+    assertTrue(computeOnBackground { AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.sourcePsi.virtualFile) })
+
+    val elements = computeOnBackground { AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest).toList() }
+    assertEquals(2, elements.size)
+    elements[0].let {
+      assertEquals("preview1", it.displaySettings.name)
+      assertEquals(2, it.configuration.width)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@Preview(name = \"preview1\", widthDp = 2)",
+                     it.previewElementDefinitionPsi?.element?.text)
+      }
+    }
+
+    elements[1].let {
+      assertEquals("preview2", it.displaySettings.name)
+      assertEquals("groupA", it.displaySettings.group)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
+      assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+
+      ReadAction.run<Throwable> {
+        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertEquals("@Preview(name = \"preview2\", group = \"groupA\")",
+                     it.previewElementDefinitionPsi?.element?.text)
+      }
+    }
   }
 }
