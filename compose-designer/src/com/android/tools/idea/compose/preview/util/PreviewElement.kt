@@ -477,7 +477,7 @@ class PreviewElementTemplateInstanceProvider(private val delegate: PreviewElemen
   override val previewElements: Sequence<PreviewElementInstance>
     get() = delegate.previewElements.flatMap {
       when (it) {
-        is ParametrizedPreviewElementTemplate -> it.instances()
+        is PreviewElementTemplate -> it.instances()
         is PreviewElementInstance -> sequenceOf(it)
         else -> {
           Logger.getInstance(PreviewElementTemplateInstanceProvider::class.java).warn(
