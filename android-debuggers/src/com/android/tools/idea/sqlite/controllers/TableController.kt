@@ -326,7 +326,7 @@ class TableController(
 
     override fun toggleLiveUpdatesInvoked() {
       liveUpdatesEnabled = !liveUpdatesEnabled
-      view.setEditable(!liveUpdatesEnabled)
+      view.setEditable(isEditable())
 
       if (liveUpdatesEnabled) {
         notifyDataMightBeStale()
