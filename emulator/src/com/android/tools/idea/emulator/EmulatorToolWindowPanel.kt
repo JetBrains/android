@@ -195,20 +195,8 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
     return when (dataId) {
       EMULATOR_CONTROLLER_KEY.name -> emulator
       EMULATOR_VIEW_KEY.name, ZOOMABLE_KEY.name -> emulatorView
-      EMULATOR_TOOL_WINDOW_PANEL_KEY.name -> this
       else -> null
     }
-  }
-
-  fun showLongRunningOperationIndicator(text: String) {
-    loadingPanel?.apply {
-      setLoadingText(text)
-      startLoading()
-    }
-  }
-
-  fun hideLongRunningOperationIndicator() {
-    loadingPanel?.stopLoading()
   }
 
   private fun createToolbar(toolbarId: String, @Suppress("SameParameterValue") horizontal: Boolean): ActionToolbar {

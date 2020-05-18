@@ -29,7 +29,7 @@ class EmulatorShutdownAction : AbstractEmulatorAction() {
     val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
     // Emulator shutdown takes few seconds due to snapshot creation.
     // The "Shutting down..." indicator will go away together with the Emulator tab.
-    getEmulatorToolWindowPanel(event)?.showLongRunningOperationIndicator("Shutting down...")
+    getEmulatorView(event)?.showLongRunningOperationIndicator("Shutting down...")
     emulatorController.setVmState(vmRunState)
   }
 }
