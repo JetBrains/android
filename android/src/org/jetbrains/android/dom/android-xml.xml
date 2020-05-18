@@ -75,9 +75,7 @@
     <xml.xmlExtension implementation="org.jetbrains.android.dom.AndroidXmlExtension" order="first"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.resources.ResourceStructureViewBuilderProvider"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilderProvider"/>
-    <psi.referenceProvider language="XML" providerClass="org.jetbrains.android.dom.AndroidXmlReferenceProvider">
-      <pattern type="xml">xmlTag()</pattern>
-    </psi.referenceProvider>
+    <psi.referenceContributor language="XML" implementation="org.jetbrains.android.dom.AndroidXmlReferenceContributor" />
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <completion.contributor language="XML" implementationClass="org.jetbrains.android.AndroidXmlCompletionContributor"
                             id="compositieAttributeValues" order="first"/>
