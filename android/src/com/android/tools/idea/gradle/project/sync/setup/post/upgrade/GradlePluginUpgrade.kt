@@ -156,7 +156,7 @@ fun performRecommendedPluginUpgrade(
     val processor = AgpUpgradeVersionRefactoringProcessor(project, currentVersion, recommendedVersion)
     processor.setPreviewUsages(true)
     processor.run()
-    return true
+    return false
   }
 
   val userAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
