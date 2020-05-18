@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.util.List;
 import java.util.function.Function;
@@ -85,7 +86,9 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
     JComponent panel = new JPanel();
     GroupLayout layout = new GroupLayout(panel);
     Component label = new JLabel("Available devices");
+
     Component scrollPane = new JBScrollPane(myTable);
+    scrollPane.setPreferredSize(JBUI.size(556, 270));
 
     Group horizontalGroup = layout.createParallelGroup()
       .addComponent(label)
