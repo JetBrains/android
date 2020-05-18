@@ -109,6 +109,11 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
     myOKAction.setEnabled(false);
   }
 
+  @Override
+  protected @NotNull String getDimensionServiceKey() {
+    return "com.android.tools.idea.run.deployment.ModifyDeviceSetDialog";
+  }
+
   @NotNull
   @Override
   public JComponent getPreferredFocusedComponent() {
