@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.ide
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
+import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessModel
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
@@ -33,7 +34,7 @@ import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.util.concurrency.EdtExecutorService
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -91,38 +92,48 @@ class AppInspectionViewTest {
   }
 
   @Test
-  fun selectProcessInAppInspectionView_addsTwoTabs() {
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+  fun selectProcessInAppInspectionView_twoTabProvidersAddTwoTabs() {
+    val backgroundExecutor = Executors.newSingleThreadExecutor()
+    val uiExecutor = EdtExecutorService.getInstance()
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(backgroundExecutor, TransportClient(grpcServerRule.name))
 
-    val inspectionView = AppInspectionView(projectRule.project, discoveryHost, ideServices) {
-      listOf(FakeTransportService.FAKE_PROCESS_NAME)
+    val tabsAddedLatch = CountDownLatch(2)
+    uiExecutor.submit {
+      val inspectionView = AppInspectionView(projectRule.project, discoveryHost, ideServices) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+
+      inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
+        override fun componentAdded(e: ContainerEvent) = tabsAddedLatch.countDown()
+      })
     }
 
-    val tabAddedLatch = CountDownLatch(2)
-    inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
-      override fun componentAdded(e: ContainerEvent) = tabAddedLatch.countDown()
-    })
     // Attach to a fake process.
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
-    tabAddedLatch.await()
+    tabsAddedLatch.await()
   }
 
   @Test
   fun disposeInspectorWhenSelectionChanges() {
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+    val backgroundExecutor = Executors.newSingleThreadExecutor()
+    val uiExecutor = EdtExecutorService.getInstance()
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(backgroundExecutor, TransportClient(grpcServerRule.name))
 
-    val inspectionView = AppInspectionView(projectRule.project, discoveryHost, ideServices) {
-      listOf(FakeTransportService.FAKE_PROCESS_NAME)
-    }
-    val tabAddedLatch = CountDownLatch(2)
-    inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
-      override fun componentAdded(e: ContainerEvent) {
-        tabAddedLatch.countDown()
+    val tabsAddedLatch = CountDownLatch(2)
+    lateinit var processModel: AppInspectionProcessModel
+    uiExecutor.submit {
+      val inspectionView = AppInspectionView(projectRule.project, discoveryHost, ideServices) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
-    })
+      processModel = inspectionView.processModel
+
+      inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
+        override fun componentAdded(e: ContainerEvent) {
+          tabsAddedLatch.countDown()
+        }
+      })
+    }
 
     // Launch two processes and wait for them to show up in combobox
     val fakeDevice =
@@ -132,7 +143,7 @@ class AppInspectionViewTest {
     transportService.addDevice(fakeDevice)
     transportService.addProcess(fakeDevice, fakeProcess1)
     transportService.addProcess(fakeDevice, fakeProcess2)
-    tabAddedLatch.await()
+    tabsAddedLatch.await()
 
     // Change process selection and check to see if a dispose command was sent out.
     val inspectorDisposedLatch = CountDownLatch(1)
@@ -143,16 +154,16 @@ class AppInspectionViewTest {
         }
       }
     })
-    val model = inspectionView.processModel
-    model.selectedProcess = model.processes.first { it != model.selectedProcess }
 
+    processModel.selectedProcess = processModel.processes.first { it != processModel.selectedProcess }
     inspectorDisposedLatch.await()
   }
 
   @Test
   fun inspectorCrashNotification() {
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+    val backgroundExecutor = Executors.newSingleThreadExecutor()
+    val uiExecutor = EdtExecutorService.getInstance()
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(backgroundExecutor, TransportClient(grpcServerRule.name))
 
     val notificationLatch = CountDownLatch(1)
     lateinit var notificationData: TestIdeServices.NotificationData
@@ -162,16 +173,18 @@ class AppInspectionViewTest {
     }
 
     // Set up the tool window.
-    val inspectionView = AppInspectionView(projectRule.project, discoveryHost, ideServices) {
-      listOf(FakeTransportService.FAKE_PROCESS_NAME)
-    }
-
     val tabAddedLatch = CountDownLatch(1)
-    inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
-      override fun componentAdded(e: ContainerEvent) {
-        tabAddedLatch.countDown()
+    uiExecutor.submit {
+      val inspectionView = AppInspectionView(projectRule.project, discoveryHost, ideServices) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
-    })
+
+      inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
+        override fun componentAdded(e: ContainerEvent) {
+          tabAddedLatch.countDown()
+        }
+      })
+    }
 
     // Launch a processes and wait for its tab to be created
     val fakeDevice = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial(
