@@ -32,7 +32,7 @@ fun RecipeExecutor.generateAndroidModule(
   useKts: Boolean,
   includeCppSupport: Boolean = false,
   cppFlags: String,
-  bytecodeLevel: BytecodeLevel = BytecodeLevel.L7
+  bytecodeLevel: BytecodeLevel
 ) {
   val useAndroidX = data.projectTemplateData.androidXSupport
   generateCommonModule(

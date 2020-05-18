@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.device.FormFactor
-import com.android.tools.idea.npw.model.NewProjectModel.Companion.getInitialBytecodeLevel
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
@@ -61,7 +60,6 @@ class ExistingProjectModelData(
   override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
   override val isNewProject = false
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
-  override val bytecodeLevel: OptionalProperty<BytecodeLevel> = OptionalValueProperty(getInitialBytecodeLevel())
   override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer { renderer ->
     object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
       override fun run(indicator: ProgressIndicator) {
@@ -107,6 +105,8 @@ class NewAndroidModuleModel(
 ) {
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder, true)
   override val renderer = ModuleTemplateRenderer()
+
+  val bytecodeLevel: OptionalProperty<BytecodeLevel> = OptionalValueProperty(getInitialBytecodeLevel())
 
   init {
     val msgId: String = when {
@@ -174,6 +174,25 @@ class NewAndroidModuleModel(
       }
       val tff = formFactor.get().toTemplateFormFactor()
       projectTemplateDataBuilder.includedFormFactorNames.putIfAbsent(tff, mutableListOf(moduleName.get()))?.add(moduleName.get())
+    }
+  }
+
+  override fun handleFinished() {
+    super.handleFinished()
+    saveWizardState()
+  }
+
+  private fun getInitialBytecodeLevel(): BytecodeLevel {
+    if (isLibrary) {
+      val savedValue = properties.getValue(PROPERTIES_BYTECODE_LEVEL_KEY)
+      return BytecodeLevel.values().firstOrNull { it.toString() == savedValue } ?: BytecodeLevel.default
+    }
+    return BytecodeLevel.default
+  }
+
+  private fun saveWizardState() = with(properties) {
+    if (isLibrary) {
+      setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
     }
   }
 }
