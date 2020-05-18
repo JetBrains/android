@@ -1,7 +1,8 @@
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.util.Pair;
-import gnu.trove.TObjectLongHashMap;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.android.util.ResourceFileData;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +19,7 @@ public class AndroidAptValidityState implements ValidityState {
   private static final byte VERSION = 1;
 
   private final Map<String, ResourceFileData> myResources;
-  private final TObjectLongHashMap<String> myValueResourceFilesTimestamps;
+  private final Object2LongMap<String> myValueResourceFilesTimestamps;
   private final List<ResourceEntry> myManifestElements;
   private final String myPackageName;
   private final Set<Pair<String, String>> myLibRTxtFilesAndPackages;
@@ -27,7 +28,7 @@ public class AndroidAptValidityState implements ValidityState {
   private final boolean myLibrary;
 
   public AndroidAptValidityState(@NotNull Map<String, ResourceFileData> resources,
-                                 @NotNull TObjectLongHashMap<String> valueResourceFilesTimestamps,
+                                 @NotNull Object2LongMap<String> valueResourceFilesTimestamps,
                                  @NotNull List<ResourceEntry> manifestElements,
                                  @NotNull Collection<Pair<String, String>> libRTxtFilesAndPackages,
                                  @NotNull String packageName,
@@ -100,7 +101,7 @@ public class AndroidAptValidityState implements ValidityState {
     myLibrary = in.readBoolean();
 
     final int valueResourceFilesCount = in.readInt();
-    myValueResourceFilesTimestamps = new TObjectLongHashMap<String>(valueResourceFilesCount);
+    myValueResourceFilesTimestamps = new Object2LongOpenHashMap<>(valueResourceFilesCount);
 
     for (int i = 0; i < valueResourceFilesCount; i++) {
       final String filePath = in.readUTF();
@@ -166,10 +167,9 @@ public class AndroidAptValidityState implements ValidityState {
 
     out.writeInt(myValueResourceFilesTimestamps.size());
 
-    for (Object key : myValueResourceFilesTimestamps.keys()) {
-      final String strKey = (String)key;
-      out.writeUTF(strKey);
-      out.writeLong(myValueResourceFilesTimestamps.get(strKey));
+    for (String key : myValueResourceFilesTimestamps.keySet()) {
+      out.writeUTF(key);
+      out.writeLong(myValueResourceFilesTimestamps.getLong(key));
     }
   }
 
@@ -177,7 +177,7 @@ public class AndroidAptValidityState implements ValidityState {
     return myResources;
   }
 
-  public TObjectLongHashMap<String> getValueResourceFilesTimestamps() {
+  public Object2LongMap<String> getValueResourceFilesTimestamps() {
     return myValueResourceFilesTimestamps;
   }
 }

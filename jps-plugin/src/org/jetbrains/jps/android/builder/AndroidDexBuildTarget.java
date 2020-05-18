@@ -1,8 +1,6 @@
 package org.jetbrains.jps.android.builder;
 
-import com.intellij.openapi.util.io.FileUtil;
-import gnu.trove.THashMap;
-import gnu.trove.THashSet;
+import com.intellij.util.containers.CollectionFactory;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.*;
@@ -61,10 +59,10 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
     if (extension.isLibrary()) {
       return Collections.emptyList();
     }
-    final Map<String, String> libPackage2ModuleName = new THashMap<String, String>(FileUtil.PATH_HASHING_STRATEGY);
-    final Set<String> appClassesDirs = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
-    final Set<String> javaClassesDirs = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
-    final Set<String> libClassesDirs = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
+    final Map<String, String> libPackage2ModuleName = CollectionFactory.createFilePathMap();
+    final Set<String> appClassesDirs = CollectionFactory.createFilePathSet();
+    final Set<String> javaClassesDirs = CollectionFactory.createFilePathSet();
+    final Set<String> libClassesDirs = CollectionFactory.createFilePathSet();
 
     final File moduleClassesDir = new ModuleBuildTarget(
       myModule, JavaModuleBuildTargetType.PRODUCTION).getOutputDir();

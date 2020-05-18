@@ -55,5 +55,6 @@
     </orderEntry>
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="module" module-name="intellij.java.indexing" />
+    <orderEntry type="library" name="fastutil-min" level="project" />
   </component>
 </module>

@@ -37,14 +37,14 @@ import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.intellij.openapi.diagnostic.Logger;
-import gnu.trove.TIntObjectHashMap;
-import gnu.trove.TLongObjectHashMap;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -69,11 +69,11 @@ public class MemoryServiceProxy extends ServiceProxy {
   private boolean myUseLegacyTracking;
   private final Object myUpdatingDataLock;
   // Per-process cache of legacy allocation tracker, AllocationsInfo and GetAllocationsResponse
-  @Nullable private TLongObjectHashMap<LegacyAllocationTracker> myLegacyTrackers;
-  @Nullable private TLongObjectHashMap<TLongObjectHashMap<AllocationsInfo>> myTrackingInfos;
-  @Nullable private TLongObjectHashMap<AllocationsInfo> myInProgressTrackingInfo;
-  @Nullable private TLongObjectHashMap<TLongObjectHashMap<AllocatedClass>> myAllocatedClasses;
-  @Nullable private TLongObjectHashMap<TIntObjectHashMap<AllocationStack>> myAllocationStacks;
+  @Nullable private Long2ObjectMap<LegacyAllocationTracker> myLegacyTrackers;
+  @Nullable private Long2ObjectMap<Long2ObjectMap<AllocationsInfo>> myTrackingInfos;
+  @Nullable private Long2ObjectMap<AllocationsInfo> myInProgressTrackingInfo;
+  @Nullable private Long2ObjectMap<Long2ObjectMap<AllocatedClass>> myAllocatedClasses;
+  @Nullable private Long2ObjectMap<Long2ObjectMap<AllocationStack>> myAllocationStacks;
 
   public MemoryServiceProxy(@NotNull IDevice device,
                             @NotNull ManagedChannel channel,
@@ -91,21 +91,21 @@ public class MemoryServiceProxy extends ServiceProxy {
 
     if (!StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get() || myDevice.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O) {
       myUseLegacyTracking = true;
-      myLegacyTrackers = new TLongObjectHashMap<>();
-      myTrackingInfos = new TLongObjectHashMap<>();
-      myInProgressTrackingInfo = new TLongObjectHashMap<>();
-      myAllocatedClasses = new TLongObjectHashMap<>();
-      myAllocationStacks = new TLongObjectHashMap<>();
+      myLegacyTrackers = new Long2ObjectOpenHashMap<>();
+      myTrackingInfos = new Long2ObjectOpenHashMap<>();
+      myInProgressTrackingInfo = new Long2ObjectOpenHashMap<>();
+      myAllocatedClasses = new Long2ObjectOpenHashMap<>();
+      myAllocationStacks = new Long2ObjectOpenHashMap<>();
     }
   }
 
   public void startMonitoringApp(MemoryProfiler.MemoryStartRequest request,
                                  StreamObserver<MemoryProfiler.MemoryStartResponse> responseObserver) {
-    if (myUseLegacyTracking && !myLegacyTrackers.contains(request.getSession().getSessionId())) {
+    if (myUseLegacyTracking && !myLegacyTrackers.containsKey(request.getSession().getSessionId())) {
       myLegacyTrackers.put(request.getSession().getSessionId(), myTrackerSupplier.apply(myDevice, request.getSession().getPid()));
-      myTrackingInfos.put(request.getSession().getSessionId(), new TLongObjectHashMap<>());
-      myAllocatedClasses.put(request.getSession().getSessionId(), new TLongObjectHashMap<>());
-      myAllocationStacks.put(request.getSession().getSessionId(), new TIntObjectHashMap<>());
+      myTrackingInfos.put(request.getSession().getSessionId(), new Long2ObjectOpenHashMap<>());
+      myAllocatedClasses.put(request.getSession().getSessionId(), new Long2ObjectOpenHashMap<>());
+      myAllocationStacks.put(request.getSession().getSessionId(), new Long2ObjectOpenHashMap<>());
     }
 
     responseObserver.onNext(myServiceStub.startMonitoringApp(request));
@@ -133,7 +133,7 @@ public class MemoryServiceProxy extends ServiceProxy {
 
       if (myUseLegacyTracking) {
         synchronized (myUpdatingDataLock) {
-          TLongObjectHashMap<AllocationsInfo> infos = myTrackingInfos.get(request.getSession().getSessionId());
+          Long2ObjectMap<AllocationsInfo> infos = myTrackingInfos.get(request.getSession().getSessionId());
           MemoryProfiler.MemoryData.Builder rebuilder = data.toBuilder();
           long requestStartTime = request.getStartTime();
           long requestEndTime = request.getEndTime();
@@ -141,13 +141,11 @@ public class MemoryServiceProxy extends ServiceProxy {
           // Note - the following is going to continuously return any unfinished whose start times are before the request's end time.
           // Dedeup is handled in MemoryDataPoller.
           List<AllocationsInfo> infosToReturn = new ArrayList<>();
-          infos.forEachValue(info -> {
+          for (AllocationsInfo info : infos.values()) {
             if (info.getStartTime() <= requestEndTime && info.getEndTime() > requestStartTime) {
               infosToReturn.add(info);
             }
-
-            return true;
-          });
+          }
 
           infosToReturn.sort(Comparator.comparingLong(AllocationsInfo::getStartTime));
           for (int i = 0; i < infosToReturn.size(); i++) {
@@ -194,7 +192,7 @@ public class MemoryServiceProxy extends ServiceProxy {
           TrackStatus.newBuilder().setStatus(TrackStatus.Status.IN_PROGRESS)).build();
       }
 
-      TLongObjectHashMap<AllocationsInfo> infos = myTrackingInfos.get(sessionId);
+      Long2ObjectMap<AllocationsInfo> infos = myTrackingInfos.get(sessionId);
       TrackAllocationsResponse.Builder responseBuilder = TrackAllocationsResponse.newBuilder();
       LegacyAllocationTracker tracker = myLegacyTrackers.get(sessionId);
       boolean success = tracker.trackAllocations(true, null, null);
@@ -227,7 +225,7 @@ public class MemoryServiceProxy extends ServiceProxy {
       }
 
       LegacyAllocationTracker tracker = myLegacyTrackers.get(sessionId);
-      TLongObjectHashMap<AllocationsInfo> infos = myTrackingInfos.get(sessionId);
+      Long2ObjectMap<AllocationsInfo> infos = myTrackingInfos.get(sessionId);
       TrackAllocationsResponse.Builder responseBuilder = TrackAllocationsResponse.newBuilder();
       boolean success = tracker.trackAllocations(false, myFetchExecutor,
                                                  bytes -> saveAllocationData(sessionId, lastInfo.getStartTime(), bytes));
