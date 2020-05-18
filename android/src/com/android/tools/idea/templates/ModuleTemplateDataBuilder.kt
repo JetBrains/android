@@ -36,7 +36,6 @@ import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.BaseFeature
-import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -233,7 +232,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     unitTestDir ?: srcDir!!.resolve(FD_UNIT_TEST),
     aidlDir!!,
     rootDir!!,
-    isNew!!,
+    isNew,
     hasApplicationTheme,
     name!!,
     isLibrary!!,
@@ -259,7 +258,6 @@ fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuild
     androidXSupport = true
     setProjectDefaults(project)
     language = Language.Java
-    bytecodeLevel = BytecodeLevel.L7
     topOut = project.guessProjectDir()!!.toIoFile()
     debugKeyStoreSha1 = KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore())
     applicationPackage = ""

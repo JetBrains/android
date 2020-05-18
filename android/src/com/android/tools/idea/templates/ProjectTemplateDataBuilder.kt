@@ -56,7 +56,6 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var javaVersion: JavaVersion? = null
   var sdkDir: File? = null
   var language: Language? = null
-  var bytecodeLevel: BytecodeLevel? = null
   var kotlinVersion: String? = null
   var buildToolsVersion: Revision? = null
   var explicitBuildToolsVersion: Boolean? = null
@@ -154,8 +153,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
     includedFormFactorNames,
     debugKeyStoreSha1,
     overridePathCheck,
-    isNewProject,
-    bytecodeLevel!!
+    isNewProject
   )
 }
 

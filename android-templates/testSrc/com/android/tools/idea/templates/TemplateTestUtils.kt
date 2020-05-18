@@ -218,7 +218,6 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     androidXSupport = true
     setProjectDefaults(project)
     language = Language.Java
-    bytecodeLevel = BytecodeLevel.L7
     topOut = project.guessProjectDir()!!.toIoFile()
     debugKeyStoreSha1 = sha1(getOrCreateDefaultDebugKeystore())
     applicationPackage = defaultPackage
