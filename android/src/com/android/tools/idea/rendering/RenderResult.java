@@ -84,19 +84,6 @@ public class RenderResult {
   }
 
   /**
-   * Workaround for b/155261880 to avoid getValidationData throwing an NPE.
-   */
-  @Nullable
-  private static Object getValidationData(@NotNull RenderSession session) {
-    try {
-      return session.getValidationData();
-    } catch (Throwable t) {
-      LOG.warn(t);
-    }
-    return null;
-  }
-
-  /**
    * Creates a new {@link RenderResult} from a given RenderTask and RenderSession
    */
   @NotNull
@@ -120,7 +107,7 @@ public class RenderResult {
       image, // image might be ImagePool.NULL_POOL_IMAGE if there is no rendered image (as in layout())
       defaultProperties != null ? ImmutableMap.copyOf(defaultProperties) : ImmutableMap.of(),
       defaultStyles != null ? ImmutableMap.copyOf(defaultStyles) : ImmutableMap.of(),
-      getValidationData(session));
+      session.getValidationData());
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(result.toString());
