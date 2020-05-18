@@ -22,7 +22,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.actionSystem.CustomShortcutSet
-import com.intellij.openapi.application.TransactionGuard
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -170,10 +170,9 @@ class SqliteEvaluatorViewImpl(
     fileDocumentManager.getFile(expandableEditor.collapsedEditor.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
     fileDocumentManager.getFile(expandableEditor.expandedEditor.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
-    TransactionGuard.submitTransaction(project, Runnable {
-      // since the schema has changed we need to drop psi caches to re-run reference resolution and highlighting in the editor text field.
-      PsiManager.getInstance(project).dropPsiCaches()
-    })
+    ApplicationManager.getApplication().assertIsDispatchThread()
+    // since the schema has changed we need to drop psi caches to re-run reference resolution and highlighting in the editor text field.
+    PsiManager.getInstance(project).dropPsiCaches()
   }
 
   override fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?) {
