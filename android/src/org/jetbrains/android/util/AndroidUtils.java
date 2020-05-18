@@ -127,9 +127,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author yole, coyote
- */
 public class AndroidUtils extends CommonAndroidUtil {
   private static final Logger LOG = Logger.getInstance(AndroidUtils.class);
 

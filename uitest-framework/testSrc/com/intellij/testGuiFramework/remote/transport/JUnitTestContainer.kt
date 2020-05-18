@@ -21,7 +21,5 @@ import java.io.Serializable
  * [JUnitTestContainer] holds a description of a test to run for transmission between the server and client. The [segmentIndex] field is
  * only used in the case of a RESUME_TEST message, in which case it holds the number of times the IDE has been restarted in this test method.
  * While the test could handle inspecting and interpreting this value, restartIdeBetween() in RestartUtils.kt provides a more convenient interface.
- *
- * @author Sergey Karashevich
  */
 data class JUnitTestContainer(val testClass: Class<*>, val methodName: String, val segmentIndex: Int = 0) : Serializable

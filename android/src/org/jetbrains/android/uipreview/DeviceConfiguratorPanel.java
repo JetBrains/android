@@ -37,9 +37,6 @@ import java.util.Map;
 
 import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class DeviceConfiguratorPanel extends JPanel {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.DeviceConfiguratorPanel");
 

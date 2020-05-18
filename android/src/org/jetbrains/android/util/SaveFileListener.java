@@ -32,9 +32,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class SaveFileListener implements ActionListener {
   private final JPanel myContentPanel;
   private final TextFieldWithBrowseButton myTextField;

@@ -84,9 +84,6 @@ import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidBuilderTest extends JpsBuildTestCase {
 
   private static final String TEST_DATA_PATH = "/jps-plugin/testData/";

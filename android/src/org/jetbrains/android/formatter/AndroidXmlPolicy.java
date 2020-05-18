@@ -15,9 +15,6 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 public class AndroidXmlPolicy extends XmlPolicy {
   private final AndroidXmlCodeStyleSettings.MySettings myCustomSettings;
 

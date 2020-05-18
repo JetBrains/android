@@ -89,9 +89,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 
-/**
- * @author yole
- */
 public class AndroidCompileUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidCompileUtil");
 

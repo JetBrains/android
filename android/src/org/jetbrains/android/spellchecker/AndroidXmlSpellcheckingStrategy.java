@@ -52,9 +52,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
   private final MyResourceReferenceTokenizer myResourceReferenceTokenizer = new MyResourceReferenceTokenizer();
 

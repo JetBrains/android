@@ -27,9 +27,6 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidDexBuildTarget extends AndroidBuildTarget {
   public AndroidDexBuildTarget(@NotNull JpsModule module) {
     super(MyTargetType.INSTANCE, module);

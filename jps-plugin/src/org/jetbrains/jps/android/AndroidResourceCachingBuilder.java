@@ -28,9 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidResourceCachingBuilder extends AndroidTargetBuilder<BuildRootDescriptor, AndroidResourceCachingBuildTarget> {
   @NonNls private static final String BUILDER_NAME = "Android Resource Caching";
 

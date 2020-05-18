@@ -10,9 +10,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class SafeSignedJarBuilder extends SignedJarBuilder {
   private final String myOutFilePath;
 

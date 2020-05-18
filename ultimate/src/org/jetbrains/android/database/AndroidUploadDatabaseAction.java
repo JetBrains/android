@@ -28,9 +28,6 @@ import java.util.Set;
 
 import static com.intellij.database.view.DatabaseView.getSelectedElements;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidUploadDatabaseAction extends AnAction {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidUploadDatabaseAction");
 

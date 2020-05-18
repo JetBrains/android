@@ -17,9 +17,6 @@ package com.intellij.testGuiFramework.remote.client
 
 import com.intellij.testGuiFramework.remote.transport.MessageFromServer
 
-/**
- * @author Sergey Karashevich
- */
 interface ClientHandler {
 
   fun accept(message: MessageFromServer): Boolean

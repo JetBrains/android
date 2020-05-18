@@ -11,8 +11,6 @@ import com.intellij.openapi.diagnostic.Logger
  *
  * This implementation starts a [GuiTestThread], strips the "guitest" and port arguments, and then delegates to the default
  * [IdeaApplication.IdeStarter] implementation.
- *
- * @author Sergey Karashevich
  */
 class GuiTestStarter : IdeStarter() {
   companion object {

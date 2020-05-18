@@ -41,9 +41,6 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurable<AndroidDataSourceManager, AndroidDataSource> implements Disposable {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSourcePropertiesDialog");
   private static final String[] DEFAULT_EXTERNAL_DB_PATTERNS = new String[]{"files/"};

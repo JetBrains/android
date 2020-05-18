@@ -22,9 +22,6 @@ import org.jetbrains.jps.model.module.JpsModuleDependency;
 import java.io.File;
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarget.MyRootDescriptor> {
   private static final String ID = "only";
 

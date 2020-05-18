@@ -33,9 +33,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @SuppressWarnings({"UseOfSystemOutOrSystemErr", "CallToPrintStackTrace", "SSBasedInspection"})
 public class AndroidDxRunner {
   @NonNls private final static String DEX_MAIN = "com.android.dx.command.dexer.Main";

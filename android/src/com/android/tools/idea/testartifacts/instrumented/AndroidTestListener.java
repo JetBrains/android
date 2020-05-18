@@ -25,9 +25,6 @@ import com.intellij.openapi.util.Comparing;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidTestListener implements ITestRunListener {
 
   private static final String DISPLAY_PREFIX = "android.studio.display.";

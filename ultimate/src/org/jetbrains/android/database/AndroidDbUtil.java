@@ -18,9 +18,6 @@ import java.net.URL;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidDbUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDbUtil");
 

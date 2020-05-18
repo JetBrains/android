@@ -12,9 +12,6 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 
-/**
- * @author Dmitry Avdeev
- */
 public class AndroidGradleProjectImportingTest extends GradleImportingTestCase {
   @Ignore("Fails with Unknown host 'repo.labs.intellij.net: unknown error'")
   @Test

@@ -40,9 +40,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @SuppressWarnings("deprecation")
 public class AndroidAutogenerator {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidAutogenerator");

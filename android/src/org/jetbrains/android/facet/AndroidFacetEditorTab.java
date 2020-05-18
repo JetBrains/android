@@ -80,9 +80,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
 
-/**
- * @author yole
- */
 @SuppressWarnings("deprecation")
 public class AndroidFacetEditorTab extends FacetEditorTab {
   private final AndroidFacetConfiguration myConfiguration;

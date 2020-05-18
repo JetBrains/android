@@ -11,9 +11,6 @@ import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidApkBuilderConfigStateStorage extends AbstractStateStorage<String, AndroidApkBuilderConfigState> {
   private AndroidApkBuilderConfigStateStorage(@NotNull File dataStorageRoot, @NotNull String storageName) throws IOException {
     super(AndroidJpsUtil.getStorageFile(dataStorageRoot, storageName), EnumeratorStringDescriptor.INSTANCE, new MyDataExternalizer());

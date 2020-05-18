@@ -26,8 +26,6 @@ import java.util.ResourceBundle;
 
 /**
  * Messages bundle.
- *
- * @author Alexey Efimov
  */
 public final class AndroidBundle {
   @NonNls

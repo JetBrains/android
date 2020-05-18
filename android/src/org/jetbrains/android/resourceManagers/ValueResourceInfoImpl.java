@@ -20,9 +20,6 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public final class ValueResourceInfoImpl implements ValueResourceInfo {
   private final ResourceItem myResource;
   private final VirtualFile myFile;

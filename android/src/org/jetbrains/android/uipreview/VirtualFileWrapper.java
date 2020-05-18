@@ -17,9 +17,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class VirtualFileWrapper implements IAbstractFile {
   private final Project myProject;
   private final VirtualFile myFile;

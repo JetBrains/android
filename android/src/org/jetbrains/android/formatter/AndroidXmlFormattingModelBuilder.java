@@ -20,9 +20,6 @@ import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings.MySettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBuilder {
   private final XmlFormattingModelBuilder myXmlFormattingModelBuilder = new XmlFormattingModelBuilder();
 

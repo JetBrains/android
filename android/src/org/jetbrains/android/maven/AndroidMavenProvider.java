@@ -24,9 +24,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public interface AndroidMavenProvider {
   ExtensionPointName<AndroidMavenProvider> EP_NAME = ExtensionPointName.create("org.jetbrains.android.mavenProvider");
 

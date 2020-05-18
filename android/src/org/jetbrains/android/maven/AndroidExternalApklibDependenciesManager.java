@@ -27,9 +27,6 @@ import org.jetbrains.idea.maven.model.MavenId;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @State(
   name = "AndroidExternalApklibDependenciesManager",
   storages = {

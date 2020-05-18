@@ -2,9 +2,6 @@ package org.jetbrains.android.util;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class StringBuildingOutputProcessor implements OutputProcessor {
   private final StringBuffer myBuffer = new StringBuffer();
 

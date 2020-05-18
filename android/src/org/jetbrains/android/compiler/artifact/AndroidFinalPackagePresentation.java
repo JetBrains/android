@@ -9,9 +9,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidFinalPackagePresentation extends SourceItemPresentation {
   private final FacetPointer<AndroidFacet> myFacetPointer;
 

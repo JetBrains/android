@@ -12,9 +12,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class ParentStyleUsageData implements StyleUsageData {
   private final AndroidResourceReferenceBase myReference;
   private final Style myStyle;

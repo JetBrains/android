@@ -17,10 +17,6 @@ package com.intellij.testGuiFramework.remote.transport
 
 import java.io.Serializable
 
-/**
- * @author Sergey Karashevich
- */
-
 sealed class TransportMessage: Serializable
 sealed class MessageFromClient: TransportMessage()
 sealed class MessageFromServer: TransportMessage()

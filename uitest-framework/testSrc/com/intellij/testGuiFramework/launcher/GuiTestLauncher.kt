@@ -47,8 +47,6 @@ import java.util.jar.Manifest
  * executable/script.
  *
  * See [GuiTestStarter] and [GuiTestThread] for details on what happens after the new process is forked.
- *
- * @author Sergey Karashevich
  */
 object GuiTestLauncher {
 

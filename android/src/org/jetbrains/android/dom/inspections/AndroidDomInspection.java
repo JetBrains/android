@@ -40,9 +40,6 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author yole
- */
 public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomElement> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.inspections.AndroidDomInspection");
 

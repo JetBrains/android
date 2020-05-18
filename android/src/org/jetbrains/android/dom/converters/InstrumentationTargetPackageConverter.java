@@ -20,9 +20,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class InstrumentationTargetPackageConverter extends Converter<String> implements CustomReferenceConverter<String> {
   @Nullable
   @Override

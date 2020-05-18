@@ -17,9 +17,6 @@ import org.jetbrains.jps.model.ex.JpsElementChildRoleBase;
 import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class JpsAndroidApplicationArtifactPropertiesImpl extends JpsElementBase<JpsAndroidApplicationArtifactPropertiesImpl>
   implements JpsAndroidApplicationArtifactProperties {
 

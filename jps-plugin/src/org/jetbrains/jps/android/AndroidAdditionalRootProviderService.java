@@ -14,9 +14,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidAdditionalRootProviderService extends AdditionalRootsProviderService<JavaSourceRootDescriptor> {
   public AndroidAdditionalRootProviderService() {
     super(Collections.singletonList(JavaModuleBuildTargetType.PRODUCTION));

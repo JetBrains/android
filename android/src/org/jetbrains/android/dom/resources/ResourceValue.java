@@ -31,9 +31,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author yole
- */
 public class ResourceValue {
   private static final String PLUS_ID = "+id";
   /** The resource type portion in a resource URL ({@code @+id/}) but without the leading @. */

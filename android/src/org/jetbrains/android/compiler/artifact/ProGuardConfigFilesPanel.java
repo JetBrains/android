@@ -30,9 +30,6 @@ import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class ProGuardConfigFilesPanel extends JPanel {
 
   private final JBList myList;

@@ -6,9 +6,6 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 class AndroidDbErrorReporterImpl extends AndroidDbErrorReporter {
   private final Project myProject;
   private final AndroidDataSource myDataSource;

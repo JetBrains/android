@@ -13,9 +13,6 @@ import org.jetbrains.android.AndroidTestBase;
 import java.io.File;
 import java.io.IOException;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidConversionTest extends PlatformTestCase {
   public void testConvert() throws IOException {
     final String testDataPath = AndroidTestBase.getTestDataPath() + "/conversion/proguardOptions";

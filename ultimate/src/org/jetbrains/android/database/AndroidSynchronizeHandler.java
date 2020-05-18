@@ -18,9 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidSynchronizeHandler extends SynchronizeHandler {
 
   @Override

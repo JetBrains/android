@@ -115,9 +115,6 @@ import org.jetbrains.idea.maven.utils.MavenProgressIndicator;
 import org.jetbrains.jps.util.JpsPathUtil;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFacet, AndroidFacetConfiguration, AndroidFacetType> {
   private static final String DEX_CORE_LIBRARY_PROPERTY = "dexCoreLibrary";
 

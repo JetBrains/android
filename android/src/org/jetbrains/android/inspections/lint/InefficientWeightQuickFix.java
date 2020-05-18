@@ -9,9 +9,6 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class InefficientWeightQuickFix implements LintIdeQuickFix {
 
   @Override
