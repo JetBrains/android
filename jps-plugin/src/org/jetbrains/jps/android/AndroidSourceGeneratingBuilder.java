@@ -15,8 +15,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
-import gnu.trove.THashSet;
-import gnu.trove.TObjectLongHashMap;
+import com.intellij.util.containers.CollectionFactory;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
 import org.jetbrains.android.compiler.tools.AndroidApt;
 import org.jetbrains.android.compiler.tools.AndroidIdl;
@@ -237,7 +238,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
   @NotNull
   private static List<String> filterExcludedByOtherProviders(@NotNull JpsModule module, @NotNull Collection<String> genRoots) {
-    final Set<String> genRootPaths = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
+    final Set<String> genRootPaths = CollectionFactory.createFilePathSet();
 
     for (String genRoot : genRoots) {
       genRootPaths.add(FileUtil.toSystemIndependentName(genRoot));
@@ -911,7 +912,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
           oldState = null;
         }
         final Map<String, ResourceFileData> resources = new HashMap<String, ResourceFileData>();
-        final TObjectLongHashMap<String> valueResFilesTimestamps = new TObjectLongHashMap<String>();
+        Object2LongMap<String> valueResFilesTimestamps = new Object2LongOpenHashMap<>();
         collectResources(resPaths, resources, valueResFilesTimestamps, oldState);
 
         final List<ResourceEntry> manifestElements = collectManifestElements(manifestFile);
@@ -1121,7 +1122,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   @NotNull
   private static Map<String, ResourceFileData> collectResources(@NotNull String[] resPaths,
                                                                 @NotNull Map<String, ResourceFileData> resDataMap,
-                                                                @NotNull TObjectLongHashMap<String> valueResFilesTimestamps,
+                                                                @NotNull Object2LongMap<String> valueResFilesTimestamps,
                                                                 @Nullable AndroidAptValidityState oldState)
     throws IOException {
 
@@ -1150,7 +1151,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   private static void collectResources(@NotNull File resFile,
                                        @NotNull ResourceFolderType resourceFolderType,
                                        @NotNull Map<String, ResourceFileData> resDataMap,
-                                       @NotNull TObjectLongHashMap<String> valueResFilesTimestamps,
+                                       @NotNull Object2LongMap<String> valueResFilesTimestamps,
                                        @Nullable AndroidAptValidityState oldState)
     throws IOException {
     final String resFilePath = FileUtil.toSystemIndependentName(resFile.getPath());
@@ -1160,7 +1161,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       ResourceFileData dataToReuse = null;
 
       if (oldState != null) {
-        final long oldTimestamp = oldState.getValueResourceFilesTimestamps().get(resFilePath);
+        final long oldTimestamp = oldState.getValueResourceFilesTimestamps().getLong(resFilePath);
 
         if (resFileTimestamp == oldTimestamp) {
           dataToReuse = oldState.getResources().get(resFilePath);
