@@ -26,7 +26,7 @@ import com.android.tools.idea.resources.base.Base128InputStream.StreamFormatExce
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.ObjectIntHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -117,16 +117,16 @@ public final class BasicStyleResourceItem extends BasicValueResourceItemBase imp
 
   @Override
   public void serialize(@NotNull Base128OutputStream stream,
-                        @NotNull ObjectIntHashMap<String> configIndexes,
-                        @NotNull ObjectIntHashMap<ResourceSourceFile> sourceFileIndexes,
-                        @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+                        @NotNull Object2IntMap<String> configIndexes,
+                        @NotNull Object2IntMap<ResourceSourceFile> sourceFileIndexes,
+                        @NotNull Object2IntMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
     super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
     stream.writeString(myParentStyle);
     stream.writeInt(myStyleItemTable.size());
     for (StyleItemResourceValue styleItem : myStyleItemTable.values()) {
       stream.writeString(styleItem.getAttrName());
       stream.writeString(styleItem.getValue());
-      int index = namespaceResolverIndexes.get(styleItem.getNamespaceResolver());
+      int index = namespaceResolverIndexes.getInt(styleItem.getNamespaceResolver());
       assert index >= 0;
       stream.writeInt(index);
     }

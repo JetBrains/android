@@ -26,7 +26,7 @@ import com.google.common.collect.ArrayListMultimap
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import com.intellij.util.containers.ObjectIntHashMap
+import it.unimi.dsi.fastutil.objects.Object2IntMap
 import java.io.IOException
 
 /**
@@ -119,9 +119,9 @@ internal class VfsResourceFile(
    * Serializes the object to the given stream without the contained resource items.
    */
   @Throws(IOException::class)
-  override fun serialize(stream: Base128OutputStream, configIndexes: ObjectIntHashMap<String>) {
+  override fun serialize(stream: Base128OutputStream, configIndexes: Object2IntMap<String>) {
     stream.writeString(relativePath)
-    stream.writeInt(configIndexes[configuration.folderConfiguration.qualifierString])
+    stream.writeInt(configIndexes.getInt(configuration.folderConfiguration.qualifierString))
     stream.write(FileTimeStampLengthHasher.hash(virtualFile))
   }
 }

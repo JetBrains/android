@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.intellij.util.containers.ObjectIntHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -87,9 +87,9 @@ public final class BasicArrayResourceItem extends BasicValueResourceItemBase imp
 
   @Override
   public void serialize(@NotNull Base128OutputStream stream,
-                        @NotNull ObjectIntHashMap<String> configIndexes,
-                        @NotNull ObjectIntHashMap<ResourceSourceFile> sourceFileIndexes,
-                        @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+                        @NotNull Object2IntMap<String> configIndexes,
+                        @NotNull Object2IntMap<ResourceSourceFile> sourceFileIndexes,
+                        @NotNull Object2IntMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
     super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
     stream.writeInt(myElements.size());
     for (String element : myElements) {
