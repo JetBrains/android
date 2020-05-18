@@ -49,13 +49,15 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
+
 /**
  * An {@link ExternalComponentSource} that retrieves information from the {@link RepoManager} provided
  * by the Android SDK.
  */
 public class SdkComponentSource implements ExternalComponentSource {
 
-  public static String NAME = "Android SDK";
+  public static final String NAME = "Android SDK";
 
   public static final String PREVIEW_CHANNEL = "Preview Channel";
   public static final String STABLE_CHANNEL = "Stable Channel";
@@ -143,7 +145,7 @@ public class SdkComponentSource implements ExternalComponentSource {
     List<UpdatableExternalComponent> result = new ArrayList<>();
     initIfNecessary(indicator);
 
-    Set<String> ignored = settings != null ? Sets.newHashSet(settings.getIgnoredBuildNumbers()) : ImmutableSet.<String>of();
+    Set<String> ignored = settings != null ? Sets.newHashSet(settings.getIgnoredBuildNumbers()) : ImmutableSet.of();
 
     for (com.android.repository.api.UpdatablePackage p : myPackages.getConsolidatedPkgs().values()) {
       if (remote) {
@@ -215,5 +217,10 @@ public class SdkComponentSource implements ExternalComponentSource {
   @Override
   public List<String> getAllChannels() {
     return ImmutableList.of(STABLE_CHANNEL, PREVIEW_CHANNEL);
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return isAndroidSdkManagerEnabled();
   }
 }

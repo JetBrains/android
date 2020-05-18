@@ -39,7 +39,6 @@ public final class AndroidSdkUpdaterPlugin {
   public AndroidSdkUpdaterPlugin() {
     if (isAndroidSdkManagerEnabled()) {
       setUpAuthenticator();
-      ExternalComponentManager.getInstance().registerComponentSource(new SdkComponentSource());
     }
   }
 
