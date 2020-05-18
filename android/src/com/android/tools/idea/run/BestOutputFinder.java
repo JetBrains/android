@@ -57,24 +57,22 @@ class BestOutputFinder {
                                        @Nullable GenericBuiltArtifacts builtArtifact)
     throws ApkProvisionException {
     Set<String> variantAbiFilters = variant.getMainArtifact().getAbiFilters();
-    int density = device.getDensity();
     List<String> abis = device.getAbis();
     List<File> apkFiles = new ArrayList<>();
     int outputCount = 0;
     if (outputs != null) {
       apkFiles =
-        ContainerUtil.map(SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis), OutputFile::getOutputFile);
+        ContainerUtil.map(SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, abis), OutputFile::getOutputFile);
       outputCount = outputs.size();
     }
     if (builtArtifact != null) {
-      apkFiles = GenericBuiltArtifactsSplitOutputMatcher.INSTANCE.computeBestOutput(builtArtifact, variantAbiFilters, density, abis);
+      apkFiles = GenericBuiltArtifactsSplitOutputMatcher.INSTANCE.computeBestOutput(builtArtifact, variantAbiFilters, abis);
       outputCount = builtArtifact.getElements().size();
     }
     if (apkFiles.isEmpty()) {
       String message = AndroidBundle.message("deployment.failed.splitapk.nomatch",
                                              variant.getDisplayName(),
                                              outputCount,
-                                             density,
                                              Joiner.on(", ").join(abis));
       throw new ApkProvisionException(message);
     }
