@@ -458,6 +458,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @UiThread
   private void closeAndroidTestSuiteDetailsView() {
     myDetailsView.getRootPanel().setVisible(false);
+    myTable.clearSelection();
   }
 
   @Override

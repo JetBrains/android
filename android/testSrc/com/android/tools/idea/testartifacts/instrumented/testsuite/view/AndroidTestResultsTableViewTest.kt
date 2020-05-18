@@ -171,8 +171,8 @@ class AndroidTestResultsTableViewTest {
     table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.SKIPPED))
 
     // Select the test case 1. Click on the test name column.
-    table.getTableViewForTesting().addColumnSelectionInterval(0, 0)
-    table.getTableViewForTesting().selectionModel.addSelectionInterval(0, 0)
+    table.getTableViewForTesting().setColumnSelectionInterval(0, 0)
+    table.getTableViewForTesting().selectionModel.setSelectionInterval(0, 0)
 
     verify(mockListener).onAndroidTestResultsRowSelected(argThat { results ->
       results.getTestCaseName() == "class1.method1" &&
@@ -182,8 +182,8 @@ class AndroidTestResultsTableViewTest {
     }, isNull())
 
     // Select the test case 2. Click on the device2 column.
-    table.getTableViewForTesting().addColumnSelectionInterval(3, 3)
-    table.getTableViewForTesting().selectionModel.addSelectionInterval(1, 1)
+    table.getTableViewForTesting().setColumnSelectionInterval(3, 3)
+    table.getTableViewForTesting().selectionModel.setSelectionInterval(1, 1)
 
     verify(mockListener).onAndroidTestResultsRowSelected(argThat { results ->
       results.getTestCaseName() == "class2.method2" &&
@@ -191,10 +191,11 @@ class AndroidTestResultsTableViewTest {
       results.getTestCaseResult(device2) == AndroidTestCaseResult.SKIPPED
     }, eq(device2))
 
-    // Select the test case 2 again should trigger the callback.
+    // Selecting the test case 2 again after clearing the selection should trigger the callback.
     // (Because a user may click the same row again after he/she closes the second page.)
-    table.getTableViewForTesting().addColumnSelectionInterval(3, 3)
-    table.getTableViewForTesting().selectionModel.addSelectionInterval(1, 1)
+    table.clearSelection()
+    table.getTableViewForTesting().setColumnSelectionInterval(3, 3)
+    table.getTableViewForTesting().selectionModel.setSelectionInterval(1, 1)
 
     verify(mockListener, times(2)).onAndroidTestResultsRowSelected(argThat { results ->
       results.getTestCaseName() == "class2.method2" &&
@@ -294,6 +295,34 @@ class AndroidTestResultsTableViewTest {
     sorter.sortKeys = listOf(RowSorter.SortKey(3, SortOrder.ASCENDING))
     assertThat(view.convertRowIndexToView(0)).isEqualTo(0)
     assertThat(view.convertRowIndexToView(1)).isEqualTo(1)
+  }
+
+  @Test
+  fun tableShouldRetainSelectionAfterDataIsUpdated() {
+    val table = AndroidTestResultsTableView(mockListener)
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
+
+    table.addDevice(device1)
+    table.addTestCase(device1, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.PASSED, "test logcat message"))
+
+    // Select the test case 1.
+    table.getTableViewForTesting().setColumnSelectionInterval(0, 0)
+    table.getTableViewForTesting().selectionModel.setSelectionInterval(0, 0)
+
+    // Then, the test case 2 is added to the table.
+    table.addTestCase(device1, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.FAILED))
+
+    // Make sure the test method1 is still being selected.
+    assertThat(table.getTableViewForTesting().selectedObject?.methodName).isEqualTo("method1")
+
+    // Next, we add a new device.
+    table.addDevice(device2)
+    table.addTestCase(device2, AndroidTestCase("testid1", "method1", "class1", "package1", AndroidTestCaseResult.SKIPPED))
+    table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class2", "package2", AndroidTestCaseResult.SKIPPED))
+
+    // Again, make sure the test method1 is still being selected.
+    assertThat(table.getTableViewForTesting().selectedObject?.methodName).isEqualTo("method1")
   }
 
   // Workaround for Kotlin nullability check.
