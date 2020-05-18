@@ -21,6 +21,8 @@ import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.annotations.concurrency.Slow
+import com.android.resources.NightMode
+import com.android.resources.UiMode
 import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.kotlin.fqNameMatches
@@ -49,6 +51,7 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
+import java.util.Objects
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.full.createInstance
@@ -163,6 +166,21 @@ private fun Int?.truncate(min: Int, max: Int): Int? {
   return minOf(maxOf(this, min), max)
 }
 
+
+private const val UI_MODE_TYPE_MASK = 0x0000000f
+private const val UI_MODE_TYPE_APPLIANCE = 0x00000005
+private const val UI_MODE_TYPE_CAR = 0x00000003
+private const val UI_MODE_TYPE_DESK = 0x00000002
+private const val UI_MODE_TYPE_NORMAL = 0x00000001
+private const val UI_MODE_TYPE_TELEVISION = 0x00000004
+private const val UI_MODE_TYPE_VR_HEADSET = 0x00000007
+private const val UI_MODE_TYPE_WATCH = 0x00000006
+
+private const val UI_MODE_NIGHT_MASK = 0x00000030
+private const val UI_MODE_NIGHT_YES = 0x00000020
+private const val UI_MODE_NIGHT_NO = 0x00000010
+
+
 /**
  * Contain settings for rendering
  */
@@ -170,7 +188,8 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                                                      val theme: String?,
                                                      val width: Int,
                                                      val height: Int,
-                                                     val fontScale: Float) {
+                                                     val fontScale: Float,
+                                                     val uiMode: Int) {
   fun applyTo(renderConfiguration: Configuration) {
     if (apiLevel != UNDEFINED_API_LEVEL) {
       val highestTarget = renderConfiguration.configurationManager.highestApiTarget!!
@@ -180,6 +199,25 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
 
     if (theme != null) {
       renderConfiguration.setTheme(theme)
+    }
+
+    if (uiMode xor UI_MODE_NIGHT_MASK != 0) {
+      renderConfiguration.nightMode = when (uiMode and UI_MODE_NIGHT_MASK) {
+        UI_MODE_NIGHT_YES -> NightMode.NIGHT
+        else -> NightMode.NOTNIGHT
+      }
+    }
+
+    if (uiMode xor UI_MODE_TYPE_MASK != 0) {
+      renderConfiguration.uiMode = when (uiMode and UI_MODE_TYPE_MASK) {
+        UI_MODE_TYPE_APPLIANCE -> UiMode.APPLIANCE
+        UI_MODE_TYPE_CAR -> UiMode.CAR
+        UI_MODE_TYPE_TELEVISION -> UiMode.TELEVISION
+        UI_MODE_TYPE_WATCH -> UiMode.WATCH
+        UI_MODE_TYPE_DESK -> UiMode.DESK
+        UI_MODE_TYPE_VR_HEADSET -> UiMode.VR_HEADSET
+        else -> UiMode.NORMAL
+      }
     }
 
     renderConfiguration.fontScale = max(0f, fontScale)
@@ -195,19 +233,21 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                     theme: String?,
                     width: Int?,
                     height: Int?,
-                    fontScale: Float?): PreviewConfiguration =
+                    fontScale: Float?,
+                    uiMode: Int?): PreviewConfiguration =
     // We only limit the sizes. We do not limit the API because using an incorrect API level will throw an exception that
       // we will handle and any other error.
       PreviewConfiguration(apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
                            theme = theme,
                            width = width.truncate(1, MAX_WIDTH) ?: UNDEFINED_DIMENSION,
                            height = height.truncate(1, MAX_HEIGHT) ?: UNDEFINED_DIMENSION,
-                           fontScale = fontScale ?: 1f)
+                           fontScale = fontScale ?: 1f,
+                           uiMode = uiMode ?: 0)
   }
 }
 
 /** Configuration equivalent to defining a `@Preview` annotation with no parameters */
-private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null)
+private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null)
 
 /**
  * Settings that modify how a [PreviewElement] is rendered
@@ -268,11 +308,11 @@ interface PreviewElementTemplate : PreviewElement {
 /**
  * Definition of a preview element
  */
-interface PreviewElementInstance : PreviewElement, XmlSerializable {
+abstract class PreviewElementInstance : PreviewElement, XmlSerializable {
   /**
    * Unique identifier that can be used for filtering.
    */
-  val instanceId: String
+  abstract val instanceId: String
 
   override fun toPreviewXml(xmlBuilder: PreviewXmlBuilder): PreviewXmlBuilder {
     val matchParent = displaySettings.showDecoration
@@ -290,16 +330,34 @@ interface PreviewElementInstance : PreviewElement, XmlSerializable {
 
     return xmlBuilder
   }
+
+
+  override fun equals(other: Any?): Boolean {
+    // PreviewElement objects can be repeated in the same element. They are considered equals only if they annotate exactly the same
+    // element with the same configuration.
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as SinglePreviewElementInstance
+
+    return composableMethodFqn == other.composableMethodFqn &&
+           instanceId == other.instanceId &&
+           displaySettings == other.displaySettings &&
+           configuration == other.configuration
+  }
+
+  override fun hashCode(): Int =
+    Objects.hash(composableMethodFqn, displaySettings, configuration, instanceId)
 }
 
 /**
  * Definition of a single preview element instance. This represents a `Preview` with no parameters.
  */
-data class SinglePreviewElementInstance(override val composableMethodFqn: String,
-                                        override val displaySettings: PreviewDisplaySettings,
-                                        override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
-                                        override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-                                        override val configuration: PreviewConfiguration) : PreviewElementInstance {
+class SinglePreviewElementInstance(override val composableMethodFqn: String,
+                                   override val displaySettings: PreviewDisplaySettings,
+                                   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
+                                   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
+                                   override val configuration: PreviewConfiguration) : PreviewElementInstance() {
   override val instanceId: String = composableMethodFqn
 
   companion object {
@@ -323,10 +381,10 @@ data class SinglePreviewElementInstance(override val composableMethodFqn: String
   }
 }
 
-private data class ParametrizedPreviewElementInstance(private val basePreviewElement: PreviewElement,
-                                                      private val parameterName: String,
-                                                      val providerClassFqn: String,
-                                                      val index: Int) : PreviewElementInstance, PreviewElement by basePreviewElement {
+private class ParametrizedPreviewElementInstance(private val basePreviewElement: PreviewElement,
+                                                 parameterName: String,
+                                                 val providerClassFqn: String,
+                                                 val index: Int) : PreviewElementInstance(), PreviewElement by basePreviewElement {
   override val instanceId: String = "$composableMethodFqn#$parameterName$index"
 
   override val displaySettings: PreviewDisplaySettings = PreviewDisplaySettings(
@@ -357,8 +415,8 @@ internal fun PreviewElement.previewProviderClassAndIndex() =
 /**
  * Definition of a preview element that can spawn multiple [PreviewElement]s based on parameters.
  */
-data class ParametrizedPreviewElementTemplate(private val basePreviewElement: PreviewElement,
-                                              val parameterProviders: Collection<PreviewParameter>) : PreviewElementTemplate, PreviewElement by basePreviewElement {
+class ParametrizedPreviewElementTemplate(private val basePreviewElement: PreviewElement,
+                                         val parameterProviders: Collection<PreviewParameter>) : PreviewElementTemplate, PreviewElement by basePreviewElement {
   /**
    * Returns a [Sequence] of "instantiated" [PreviewElement]s. The will be [PreviewElement] populated with data from the parameter
    * providers.
@@ -396,6 +454,19 @@ data class ParametrizedPreviewElementTemplate(private val basePreviewElement: Pr
       return sequenceOf()
     }.first()
   }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as ParametrizedPreviewElementTemplate
+
+    return basePreviewElement == other.basePreviewElement &&
+           parameterProviders == other.parameterProviders
+  }
+
+  override fun hashCode(): Int =
+    Objects.hash(basePreviewElement, parameterProviders)
 }
 
 /**
