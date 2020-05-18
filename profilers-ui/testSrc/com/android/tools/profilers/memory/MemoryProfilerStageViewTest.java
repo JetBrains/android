@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_ID;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS;
 import static com.android.tools.profiler.proto.Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
@@ -719,6 +720,32 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(items[10]).isEqualTo(ContextMenuItem.SEPARATOR);
     assertThat(items[11].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
     assertThat(items[12].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
+  }
+
+  @Test
+  public void testNativeAllocationTooltipForX86() {
+    assumeTrue(myUnifiedPipeline);
+    myIdeProfilerServices.enableNativeMemorySampling(true);
+    // Test toolbar configuration for O+;
+    // Adding AllocationSamplingRateEvent to make getStage().useLiveAllocationTracking() return true;
+    if (myUnifiedPipeline) {
+      myTransportService.addEventToStream(
+        FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 0).build());
+    }
+    else {
+      myService.setMemoryData(MemoryData.newBuilder().addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()).build());
+    }
+
+    myProfilers.getSessionsManager().endCurrentSession();
+    myTransportService.updateDevice(FAKE_DEVICE, FAKE_DEVICE.toBuilder().setCpuAbi("x86").build());
+    Common.Process process = FAKE_PROCESS.toBuilder().setPid(4321).setAbiCpuArch("x86").build();
+    myTransportService.addProcess(FAKE_DEVICE, process);
+    myProfilers.getSessionsManager().beginSession(FAKE_DEVICE.getDeviceId(), FAKE_DEVICE, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+    assertThat(myProfilers.getSessionsManager().getSelectedSessionMetaData().getProcessAbi()).isEqualTo("x86");
+    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
+    assertThat(view.getNativeAllocationButton().getToolTipText()).isEqualTo(view.X86_RECORD_NATIVE_TOOLTIP);
+    assertThat(view.getNativeAllocationButton().isEnabled()).isFalse();
   }
 
   @Test
