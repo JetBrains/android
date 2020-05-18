@@ -709,18 +709,10 @@
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
-            file="src/com/android/tools/idea/gradle/project/model/NdkModuleModel.java"
-            line="347"/>
-    </issue>
-
-    <issue
-        id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
-        <location
             file="src/com/android/tools/idea/navigator/nodes/apk/ndk/NdkSourceNode.java"
             line="99"/>
     </issue>
-
+ 
     <issue
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
