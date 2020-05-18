@@ -183,6 +183,8 @@ class TrackGroupTest {
     trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar"))
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
     trackGroup.component.setBounds(0, 0, 500, 100)
+    // Make sure test doesn't trip in a headless environment.
+    trackGroup.trackList.ui = HeadlessListUI()
     val treeWalker = TreeWalker(trackGroup.component)
     treeWalker.descendantStream().forEach(Component::doLayout)
     val boxComponent = treeWalker.descendants().filterIsInstance(BoxSelectionComponent::class.java).first()
@@ -191,6 +193,12 @@ class TrackGroupTest {
     assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
     boxUi.mouse.drag(0, 0, 100, 10)
     assertThat(rangeSelectionModel.selectionRange.isEmpty).isFalse()
+    assertThat(trackGroup.trackList.selectedIndices.asList()).containsExactly(0)
+
+    // Box selection is cleared when manually selecting a track.
+    val trackTitleUi = FakeUi(trackGroup.trackTitleOverlay)
+    trackTitleUi.mouse.click(0, 0)
+    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
     assertThat(trackGroup.trackList.selectedIndices.asList()).containsExactly(0)
 
     // Verify box selection can be disabled.

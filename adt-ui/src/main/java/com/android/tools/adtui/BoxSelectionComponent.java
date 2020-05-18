@@ -54,6 +54,11 @@ public class BoxSelectionComponent extends RangeSelectionComponent implements Mo
     myList = list;
   }
 
+  public void clearSelection() {
+    getModel().clear();
+    myList.clearSelection();
+  }
+
   @Override
   protected void draw(Graphics2D g, Dimension size) {
     if (getModel().getSelectionRange().isEmpty() || myList.isSelectionEmpty()) {
@@ -145,8 +150,7 @@ public class BoxSelectionComponent extends RangeSelectionComponent implements Mo
   @Override
   public void mousePressed(MouseEvent e) {
     getModel().beginUpdate();
-    getModel().clear();
-    myList.clearSelection();
+    clearSelection();
     myLastX = e.getX();
     myLastRowIndex = myList.locationToIndex(e.getPoint());
   }

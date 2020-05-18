@@ -397,6 +397,17 @@ public class TrackGroup extends AspectObserver {
       // Fall through for the track list itself.
       myTrackList.dispatchEvent(event);
     }
+
+    @Override
+    public void mousePressed(MouseEvent event) {
+      // Clear box selection if users manually clicks on the track title to select a track.
+      // This ensures that box selection doesn't carry over when user switches tracks. For this to work, it should be done before the normal
+      // selection logic kicks in.
+      if (myBoxSelectionComponent != null && myBoxSelectionComponent.getModel().isSelectionEnabled()) {
+        myBoxSelectionComponent.clearSelection();
+      }
+      super.mousePressed(event);
+    }
   }
 
   private MouseEvent convertTrackListEvent(MouseEvent oldEvent, int trackIndex) {
