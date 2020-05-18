@@ -110,7 +110,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JBLabel myTemplateIconDetail;
   private JPanel myFormFactorSdkControlsPanel;
   private JBCheckBox myGradleKtsCheck;
-  private JComboBox<BytecodeLevel> myBytecodeLevel;
   private FormFactorSdkControls myFormFactorSdkControls;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
@@ -168,7 +167,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.getLanguage());
-    myBindings.bindTwoWay(new SelectedItemProperty<>(myBytecodeLevel), myProjectModel.getBytecodeLevel());
     myBindings.bindTwoWay(myProjectModel.getUseAppCompat(), new SelectedProperty(myAppCompatCheck));
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
       myBindings.bindTwoWay(myProjectModel.getUseGradleKts(), new SelectedProperty(myGradleKtsCheck));
@@ -314,7 +312,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   private void createUIComponents() {
     myProjectLanguage = new LanguageComboProvider().createComponent();
-    myBytecodeLevel = new BytecodeLevelComboProvider().createComponent();
     myFormFactorSdkControls = new FormFactorSdkControls();
     myFormFactorSdkControlsPanel = myFormFactorSdkControls.getRoot();
   }

@@ -87,7 +87,6 @@ interface ProjectModelData {
   var project: Project
   val isNewProject: Boolean
   val language: OptionalProperty<Language>
-  val bytecodeLevel: OptionalProperty<BytecodeLevel>
   val multiTemplateRenderer: MultiTemplateRenderer
   val projectTemplateDataBuilder: ProjectTemplateDataBuilder
 }
@@ -104,7 +103,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override lateinit var project: Project
   override val isNewProject = true
   override val language = OptionalValueProperty<Language>()
-  override val bytecodeLevel = OptionalValueProperty<BytecodeLevel>(getInitialBytecodeLevel())
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
     assert(!::project.isInitialized)
     val projectName = applicationName.get()
@@ -137,7 +135,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   private fun saveWizardState() = with(properties){
     setValue(PROPERTIES_NPW_LANGUAGE_KEY, language.value.toString())
     setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true)
-    setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
 
     val androidPackage = packageName.get().substringBeforeLast('.')
     if (AndroidUtils.isValidAndroidPackageName(androidPackage)) {
@@ -309,11 +306,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         is String -> DomainToPackageExpression(StringValueProperty(androidPackage), StringValueProperty("")).get()
         else -> EXAMPLE_DOMAIN
       }
-
-    fun getInitialBytecodeLevel(): BytecodeLevel {
-      val savedValue = properties.getValue(PROPERTIES_BYTECODE_LEVEL_KEY)
-      return BytecodeLevel.values().firstOrNull { it.toString() == savedValue } ?: BytecodeLevel.default
-    }
 
     /**
      * Tries to get a valid package suggestion for the specifies Project using the saved user domain.

@@ -63,7 +63,6 @@ abstract class ModuleModel(
   abstract val renderer: MultiTemplateRenderer.TemplateRenderer
 
   public override fun handleFinished() {
-    saveWizardState()
     multiTemplateRenderer.requestRender(renderer)
   }
 
@@ -130,10 +129,6 @@ abstract class ModuleModel(
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
       return recipe.render(context, executor, loggingEvent)
     }
-  }
-
-  private fun saveWizardState() = with(properties) {
-    setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
   }
 }
 /**
