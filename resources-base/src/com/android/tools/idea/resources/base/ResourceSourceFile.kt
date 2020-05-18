@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.resources.base
 
-import com.intellij.util.containers.ObjectIntHashMap
+import it.unimi.dsi.fastutil.objects.Object2IntMap
 import java.io.IOException
 
 /**
@@ -41,5 +41,5 @@ interface ResourceSourceFile {
    * Serializes the ResourceSourceFile to the given stream.
    */
   @Throws(IOException::class)
-  fun serialize(stream: Base128OutputStream, configIndexes: ObjectIntHashMap<String>)
+  fun serialize(stream: Base128OutputStream, configIndexes: Object2IntMap<String>)
 }

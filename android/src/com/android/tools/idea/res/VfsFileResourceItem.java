@@ -23,7 +23,7 @@ import com.android.tools.idea.resources.base.BasicFileResourceItem;
 import com.android.tools.idea.resources.base.RepositoryConfiguration;
 import com.android.tools.idea.resources.base.ResourceSourceFile;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.ObjectIntHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,9 +73,9 @@ public class VfsFileResourceItem extends BasicFileResourceItem {
 
   @Override
   public void serialize(@NotNull Base128OutputStream stream,
-                        @NotNull ObjectIntHashMap<String> configIndexes,
-                        @NotNull ObjectIntHashMap<ResourceSourceFile> sourceFileIndexes,
-                        @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+                        @NotNull Object2IntMap<String> configIndexes,
+                        @NotNull Object2IntMap<ResourceSourceFile> sourceFileIndexes,
+                        @NotNull Object2IntMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
     super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
     stream.write(FileTimeStampLengthHasher.hash(myVirtualFile));
   }

@@ -23,7 +23,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.resources.base.Base128InputStream.StreamFormatException;
 import com.android.utils.HashCodes;
-import com.intellij.util.containers.ObjectIntHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -119,13 +119,13 @@ public class BasicFileResourceItem extends BasicResourceItemBase {
 
   @Override
   public void serialize(@NotNull Base128OutputStream stream,
-                        @NotNull ObjectIntHashMap<String> configIndexes,
-                        @NotNull ObjectIntHashMap<ResourceSourceFile> sourceFileIndexes,
-                        @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
+                        @NotNull Object2IntMap<String> configIndexes,
+                        @NotNull Object2IntMap<ResourceSourceFile> sourceFileIndexes,
+                        @NotNull Object2IntMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
     super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
     stream.writeString(myRelativePath);
     String qualifierString = getConfiguration().getQualifierString();
-    int index = configIndexes.get(qualifierString);
+    int index = configIndexes.getInt(qualifierString);
     assert index >= 0;
     stream.writeInt(index);
     stream.writeInt(getEncodedDensityForSerialization());

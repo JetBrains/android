@@ -25,7 +25,9 @@ import com.android.resources.ResourceType;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.util.containers.ObjectIntHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -114,9 +116,12 @@ public class ResourceSerializationUtil {
   public static void writeResourcesToStream(@NotNull Map<ResourceType, ListMultimap<String, ResourceItem>> resources,
                                             @NotNull Base128OutputStream stream,
                                             @NotNull Predicate<FolderConfiguration> configFilter) throws IOException {
-    ObjectIntHashMap<String> qualifierStringIndexes = new ObjectIntHashMap<>();
-    ObjectIntHashMap<ResourceSourceFile> sourceFileIndexes = new ObjectIntHashMap<>();
-    ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes = new ObjectIntHashMap<>();
+    Object2IntOpenHashMap<String> qualifierStringIndexes = new Object2IntOpenHashMap<>();
+    qualifierStringIndexes.defaultReturnValue(-1);
+    Object2IntOpenHashMap<ResourceSourceFile> sourceFileIndexes = new Object2IntOpenHashMap<>();
+    sourceFileIndexes.defaultReturnValue(-1);
+    Object2IntOpenHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes = new Object2IntOpenHashMap<>();
+    namespaceResolverIndexes.defaultReturnValue(-1);
     int itemCount = 0;
     Collection<ListMultimap<String, ResourceItem>> resourceMaps = resources.values();
 
@@ -169,7 +174,7 @@ public class ResourceSerializationUtil {
   }
 
   private static void addToNamespaceResolverIndexes(@NotNull ResourceNamespace.Resolver resolver,
-                                                    @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) {
+                                                    @NotNull Object2IntMap<ResourceNamespace.Resolver> namespaceResolverIndexes) {
     if (!namespaceResolverIndexes.containsKey(resolver)) {
       namespaceResolverIndexes.put(resolver, namespaceResolverIndexes.size());
     }
@@ -251,31 +256,37 @@ public class ResourceSerializationUtil {
     }
   }
 
-  private static void writeStrings(@NotNull ObjectIntHashMap<String> qualifierStringIndexes, @NotNull Base128OutputStream stream)
+  private static <K> void writeStrings(@NotNull Object2IntMap<String> qualifierStringIndexes, @NotNull Base128OutputStream stream)
       throws IOException {
     String[] strings = new String[qualifierStringIndexes.size()];
-    qualifierStringIndexes.forEachEntry((str, index2) -> { strings[index2] = str; return true; });
+    for (Object2IntMap.Entry<String> entry : Object2IntMaps.fastIterable(qualifierStringIndexes)) {
+      strings[entry.getIntValue()] = entry.getKey();
+    }
     stream.writeInt(strings.length);
     for (String str : strings) {
       stream.writeString(str);
     }
   }
 
-  private static void writeSourceFiles(@NotNull ObjectIntHashMap<ResourceSourceFile> sourceFileIndexes,
+  private static void writeSourceFiles(@NotNull Object2IntMap<ResourceSourceFile> sourceFileIndexes,
                                        @NotNull Base128OutputStream stream,
-                                       @NotNull ObjectIntHashMap<String> qualifierStringIndexes) throws IOException {
+                                       @NotNull Object2IntMap<String> qualifierStringIndexes) throws IOException {
     ResourceSourceFile[] sourceFiles = new ResourceSourceFile[sourceFileIndexes.size()];
-    sourceFileIndexes.forEachEntry((sourceFile, index1) -> { sourceFiles[index1] = sourceFile; return true; });
+    for (Object2IntMap.Entry<ResourceSourceFile> entry : Object2IntMaps.fastIterable(sourceFileIndexes)) {
+      sourceFiles[entry.getIntValue()] = entry.getKey();
+    }
     stream.writeInt(sourceFiles.length);
     for (ResourceSourceFile sourceFile : sourceFiles) {
       sourceFile.serialize(stream, qualifierStringIndexes);
     }
   }
 
-  private static void writeNamespaceResolvers(@NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes,
+  private static void writeNamespaceResolvers(@NotNull Object2IntMap<ResourceNamespace.Resolver> namespaceResolverIndexes,
                                               @NotNull Base128OutputStream stream) throws IOException {
     ResourceNamespace.Resolver[] resolvers = new ResourceNamespace.Resolver[namespaceResolverIndexes.size()];
-    namespaceResolverIndexes.forEachEntry((resolver, index) -> { resolvers[index] = resolver; return true; });
+    for (Object2IntMap.Entry<ResourceNamespace.Resolver> entry : Object2IntMaps.fastIterable(namespaceResolverIndexes)) {
+      resolvers[entry.getIntValue()] = entry.getKey();
+    }
     stream.writeInt(resolvers.length);
     for (ResourceNamespace.Resolver resolver : resolvers) {
       NamespaceResolver serializableResolver =
