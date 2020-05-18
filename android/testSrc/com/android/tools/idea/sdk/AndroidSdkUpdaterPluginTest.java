@@ -13,25 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.updater;
+package com.android.tools.idea.sdk;
 
 import com.intellij.credentialStore.CredentialAttributes;
 import com.intellij.credentialStore.Credentials;
 import com.intellij.ide.passwordSafe.PasswordSafe;
-import org.jetbrains.android.AndroidTestCase;
-
+import com.intellij.openapi.util.Disposer;
 import java.net.Authenticator;
 import java.net.InetAddress;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import org.jetbrains.android.AndroidTestCase;
 
 /**
- * Tests for {@link AndroidSdkUpdaterPlugin}
+ * Tests for {@link AndroidAuthenticator}
  */
 public class AndroidSdkUpdaterPluginTest extends AndroidTestCase {
   public void testAuthenticator() throws Exception {
+    StudioSettingsController controller =
+      (StudioSettingsController)StudioSettingsController.getInstance(); // make sure authenticator initialized
+    Disposer.register(getTestRootDisposable(), controller);
     String url = "http://example.com/foo/bar.xml" + System.currentTimeMillis();
-    String serviceName = AndroidSdkUpdaterPlugin.getCredentialServiceName(url);
+    String serviceName = AndroidAuthenticator.getCredentialServiceName(url);
     String user = "testUser";
     String password = "testPassword" + System.currentTimeMillis();
     PasswordSafe.getInstance().set(new CredentialAttributes(serviceName), new Credentials(user, password), true);
