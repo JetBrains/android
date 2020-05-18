@@ -40,17 +40,22 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.externalComponents.ExternalComponentManager;
-import com.intellij.ide.externalComponents.ExternalComponentManagerImpl;
+import com.intellij.ide.externalComponents.ExternalComponentSource;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.mock.MockApplication;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.updateSettings.impl.ExternalUpdate;
+import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.testFramework.DisposableRule;
+import com.intellij.testFramework.ExtensionTestUtil;
 import java.io.File;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -79,8 +84,11 @@ public class SdkComponentSourceTest {
   @Before
   public void setUp() throws Exception {
     MockApplication instance = new MockApplication(myDisposableRule.getDisposable());
-    instance.registerService(ExternalComponentManager.class, ExternalComponentManagerImpl.class);
+    instance.registerService(ExternalComponentManager.class);
     instance.registerService(UpdateSettings.class, UpdateSettings.class);
+    instance.getExtensionArea().registerExtensionPoint(ExternalComponentSource.EP_NAME, ExternalComponentSource.class.getName(),
+                                                       ExtensionPoint.Kind.INTERFACE, myDisposableRule.getDisposable());
+
     ApplicationManager.setApplication(instance, myDisposableRule.getDisposable());
 
     myFileOp = new MockFileOp();
@@ -336,8 +344,14 @@ public class SdkComponentSourceTest {
     }
     assertNotNull(id.get());
 
-    ExternalComponentManager.getInstance().registerComponentSource(myTestComponentSource);
+    ExtensionTestUtil
+      .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposableRule.getDisposable());
     UpdateSettings settings = new UpdateSettings() {
+      @Override
+      public List<String> getKnownExternalUpdateSources() {
+        return getEnabledExternalUpdateSources();
+      }
+
       @Override
       public List<String> getEnabledExternalUpdateSources() {
         return ImmutableList.of(myTestComponentSource.getName());
@@ -350,8 +364,7 @@ public class SdkComponentSourceTest {
       }
     };
 
-    /* TODO(jbakermalone): fails to compile after IDEA 181.4203.550 merge
-    Collection<ExternalUpdate> updates = UpdateChecker.updateExternal(true, settings, progress);
+    Collection<ExternalUpdate> updates = UpdateChecker.INSTANCE.checkExternalUpdates(true, settings, progress);
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();
     Iterator<UpdatableExternalComponent> iter = update.getComponents().iterator();
@@ -360,21 +373,27 @@ public class SdkComponentSourceTest {
     assertEquals(new Revision(1, 0, 0, 2), ((RepoPackage)component.getKey()).getVersion());
 
     assertFalse(iter.hasNext());
-    */
   }
 
   @Test
   public void testUpdates() {
-    ExternalComponentManager.getInstance().registerComponentSource(myTestComponentSource);
+    ExtensionTestUtil
+      .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposableRule.getDisposable());
+
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
     UpdateSettings settings = new UpdateSettings() {
+      @Override
+      public List<String> getKnownExternalUpdateSources() {
+        return getEnabledExternalUpdateSources();
+      }
+
       @Override
       public List<String> getEnabledExternalUpdateSources() {
         return ImmutableList.of(myTestComponentSource.getName());
       }
     };
-    /* TODO(jbakermalone): fails to compile after IDEA 181.4203.550 merge
-    Collection<ExternalUpdate> updates = UpdateChecker.updateExternal(true, settings, progress);
+
+    Collection<ExternalUpdate> updates = UpdateChecker.INSTANCE.checkExternalUpdates(true, settings, progress);
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();
     Iterator<UpdatableExternalComponent> iter = update.getComponents().iterator();
@@ -387,22 +406,28 @@ public class SdkComponentSourceTest {
     assertEquals(new Revision(1, 1, 0), ((RepoPackage)component.getKey()).getVersion());
 
     assertFalse(iter.hasNext());
-    */
   }
 
   @Test
   public void testBetaUpdates() {
     myChannelId = 1;
-    ExternalComponentManager.getInstance().registerComponentSource(myTestComponentSource);
+    ExtensionTestUtil
+      .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposableRule.getDisposable());
+
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
     UpdateSettings settings = new UpdateSettings() {
+      @Override
+      public List<String> getKnownExternalUpdateSources() {
+        return getEnabledExternalUpdateSources();
+      }
+
       @Override
       public List<String> getEnabledExternalUpdateSources() {
         return ImmutableList.of(myTestComponentSource.getName());
       }
     };
-    /* TODO(jbakermalone): fails to compile after IDEA 181.4203.550 merge
-    Collection<ExternalUpdate> updates = UpdateChecker.updateExternal(true, settings, progress);
+
+    Collection<ExternalUpdate> updates = UpdateChecker.INSTANCE.checkExternalUpdates(true, settings, progress);
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();
     Iterator<UpdatableExternalComponent> iter = update.getComponents().iterator();
@@ -419,7 +444,6 @@ public class SdkComponentSourceTest {
     assertEquals(new Revision(2, 0, 0), ((RepoPackage)component.getKey()).getVersion());
 
     assertFalse(iter.hasNext());
-    */
   }
 
   private static String getLocalRepoXml(String path, Revision revision) {
