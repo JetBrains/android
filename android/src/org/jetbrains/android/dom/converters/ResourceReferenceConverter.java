@@ -91,9 +91,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author yole
- */
 public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue>
   implements CustomReferenceConverter<ResourceValue>, AttributeValueDocumentationProvider {
 

@@ -4,9 +4,6 @@ import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspectionBase;
 import com.intellij.openapi.vfs.VirtualFile;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidJavaHighlightingTest extends AndroidTestCase {
   private static final String BASE_PATH = "/javaHighlighting/";
 

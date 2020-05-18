@@ -20,9 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidEclipseNatureImporter extends EclipseNatureImporter {
 
   private static final Set<String> ADT_INTERNAL_LIBS = new HashSet<String>(Arrays.asList(

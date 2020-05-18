@@ -17,9 +17,6 @@ import java.util.List;
 
 import static org.jetbrains.android.util.AndroidUtils.getApplicationFacets;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class GenerateSignedApkAction extends AnAction {
   public GenerateSignedApkAction() {
     super(AndroidBundle.message(StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get() ? "android.generate.signed.apk.action.bundle.text" : "android.generate.signed.apk.action.text"));

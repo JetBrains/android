@@ -9,9 +9,6 @@ import org.jetbrains.jps.android.model.JpsAndroidExtensionService;
 import org.jetbrains.jps.model.JpsProject;
 import org.jetbrains.jps.model.serialization.JpsProjectExtensionSerializer;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class JpsAndroidDexSettingsSerializer extends JpsProjectExtensionSerializer {
 
   private static final SkipDefaultValuesSerializationFilters FILTERS = new SkipDefaultValuesSerializationFilters();

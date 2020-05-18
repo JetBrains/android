@@ -43,9 +43,6 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
-/**
- * @author Sergey Karashevich
- */
 
 class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
 

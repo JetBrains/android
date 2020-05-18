@@ -74,9 +74,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   private static final Key<SoftReference<Map<XmlName, CachedValue<String>>>> ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY =
       Key.create("ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE");

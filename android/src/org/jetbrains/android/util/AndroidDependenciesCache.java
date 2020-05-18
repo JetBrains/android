@@ -30,9 +30,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidDependenciesCache implements Disposable {
   private static final Key<AndroidDependenciesCache> KEY = Key.create(AndroidDependenciesCache.class.getName());
 

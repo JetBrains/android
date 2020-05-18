@@ -1,8 +1,5 @@
 package org.jetbrains.android.formatter;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class ContextSpecificSettingsProviders {
   public static final Provider<AndroidXmlCodeStyleSettings.LayoutSettings> LAYOUT =
     new Provider<AndroidXmlCodeStyleSettings.LayoutSettings>() {

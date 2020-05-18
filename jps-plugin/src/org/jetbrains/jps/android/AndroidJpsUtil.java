@@ -52,9 +52,6 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidJpsUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidJpsUtil");
 

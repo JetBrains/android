@@ -24,9 +24,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidToolsActionGroup extends DefaultActionGroup implements DumbAware {
   @Override
   public void update(@NotNull AnActionEvent e) {

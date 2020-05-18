@@ -13,9 +13,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class ImportSourceRootsDialog extends DialogWrapper {
   private final ElementsChooser<JavaModuleSourceRoot> mySourcePathsChooser;
 

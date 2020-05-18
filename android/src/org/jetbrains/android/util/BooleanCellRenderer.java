@@ -20,9 +20,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.*;
 import java.awt.*;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 public class BooleanCellRenderer extends DefaultTableCellRenderer {
   @Override
   public Component getTableCellRendererComponent(JTable table,

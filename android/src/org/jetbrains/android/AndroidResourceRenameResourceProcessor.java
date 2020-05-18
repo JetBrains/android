@@ -115,9 +115,6 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProcessor {
   private static final Ordering<String> ORDER_BY_LENGTH = new Ordering<String>() {
     @Override

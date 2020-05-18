@@ -3,9 +3,6 @@ package org.jetbrains.android.database;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 class AndroidDbErrorReporter {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDbErrorReporter");
 

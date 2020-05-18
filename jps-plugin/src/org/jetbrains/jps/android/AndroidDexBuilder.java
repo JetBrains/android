@@ -67,9 +67,6 @@ import org.jetbrains.jps.model.library.JpsLibrary;
 import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor, AndroidDexBuildTarget> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidDexBuilder");
   @NonNls private static final String DEX_BUILDER_NAME = "Android Dex";

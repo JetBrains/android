@@ -11,9 +11,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidExtractStyleTest extends AndroidTestCase {
   private static final String BASE_PATH = "refactoring/extractStyle/";
 

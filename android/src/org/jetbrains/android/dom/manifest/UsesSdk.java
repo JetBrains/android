@@ -20,9 +20,6 @@ import com.intellij.util.xml.Convert;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.converters.ApiVersionConverter;
 
-/**
- * @author yole
- */
 public interface UsesSdk extends ManifestElementWithName {
   @Attribute("minSdkVersion")
   @Convert(ApiVersionConverter.class)

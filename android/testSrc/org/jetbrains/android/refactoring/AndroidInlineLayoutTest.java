@@ -12,9 +12,6 @@ import com.intellij.util.containers.MultiMap;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidInlineLayoutTest extends AndroidTestCase {
   private static final String BASE_PATH = "refactoring/inlineLayout/";
 

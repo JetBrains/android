@@ -21,9 +21,6 @@ import com.intellij.util.xml.GenericAttributeValue;
 
 import java.util.List;
 
-/**
- * @author coyote
- */
 public interface DeclareStyleable extends ResourceElement {
   @Override
   @Convert(DeclareStyleableNameConverter.class)

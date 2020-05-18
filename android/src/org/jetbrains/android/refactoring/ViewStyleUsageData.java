@@ -12,9 +12,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 class ViewStyleUsageData implements StyleUsageData {
   private final XmlTag myTag;
   private final GenericAttributeValue<ResourceValue> myStyleAttribute;

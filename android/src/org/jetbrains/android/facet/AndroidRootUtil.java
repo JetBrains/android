@@ -62,9 +62,6 @@ import static org.jetbrains.android.maven.AndroidMavenUtil.isMavenizedModule;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.CLASSES_JAR_FILE_NAME;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidRootUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.facet.AndroidRootUtil");
   @NonNls public static final String DEFAULT_PROPERTIES_FILE_NAME = "default.properties";

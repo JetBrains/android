@@ -3,9 +3,6 @@ package org.jetbrains.android.converter;
 import com.intellij.conversion.*;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidModuleToJavaModuleConverterProvider extends ConverterProvider {
   public AndroidModuleToJavaModuleConverterProvider() {
     super("android-module-to-java-module");

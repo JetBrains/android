@@ -32,9 +32,6 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType {
   @NonNls public static final String SDK_NAME = "Android SDK";
   @NonNls public static final String DEFAULT_EXTERNAL_DOCUMENTATION_PATH = "developer.android.com/reference/";

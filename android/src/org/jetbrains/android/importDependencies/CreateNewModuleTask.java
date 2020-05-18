@@ -31,9 +31,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 class CreateNewModuleTask extends ModuleProvidingTask {
   private final Project myProject;
   private final VirtualFile myContentRoot;

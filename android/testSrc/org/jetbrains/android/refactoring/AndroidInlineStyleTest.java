@@ -18,9 +18,6 @@ import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidInlineStyleTest extends AndroidTestCase {
   private static final String BASE_PATH = "refactoring/inlineStyle/";
 

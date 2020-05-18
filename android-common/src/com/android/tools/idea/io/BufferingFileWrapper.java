@@ -25,9 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class BufferingFileWrapper implements IAbstractFile {
   private final File myFile;
 

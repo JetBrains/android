@@ -21,9 +21,6 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor implements ApkSigningSettingsForm {
   private final AndroidApplicationArtifactProperties myProperties;
 

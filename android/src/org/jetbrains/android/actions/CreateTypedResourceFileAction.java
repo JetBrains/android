@@ -63,9 +63,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
   protected final ResourceFolderType myResourceFolderType;

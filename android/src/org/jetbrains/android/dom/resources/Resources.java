@@ -20,9 +20,6 @@ import org.jetbrains.android.dom.AndroidDomElement;
 
 import java.util.List;
 
-/**
- * @author yole
- */
 @DefinesXml
 public interface Resources extends AndroidDomElement {
   List<StringElement> getStrings();

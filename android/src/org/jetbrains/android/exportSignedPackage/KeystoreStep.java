@@ -58,9 +58,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSettingsForm {
   public static final String MODULE_PROPERTY = "ExportedModule";
   @VisibleForTesting static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";

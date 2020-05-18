@@ -23,9 +23,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Provider<AndroidCodeStyleNotificationProvider.MyPanel> {
   private static final Key<MyPanel> KEY = Key.create("android.xml.code.style.notification");
 

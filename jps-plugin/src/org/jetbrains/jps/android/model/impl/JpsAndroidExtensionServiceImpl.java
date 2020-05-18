@@ -6,9 +6,6 @@ import org.jetbrains.jps.android.model.JpsAndroidDexCompilerConfiguration;
 import org.jetbrains.jps.android.model.JpsAndroidExtensionService;
 import org.jetbrains.jps.model.JpsProject;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class JpsAndroidExtensionServiceImpl extends JpsAndroidExtensionService {
   @Nullable
   @Override

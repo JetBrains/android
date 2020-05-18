@@ -53,9 +53,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 // This class supports JPS projects and relies on APIs which should not be used in AS otherwise. We suppress related warnings to
 // avoid cluttering of the build output.
 @SuppressWarnings("deprecation")

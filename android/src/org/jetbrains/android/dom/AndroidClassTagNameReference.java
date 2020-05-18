@@ -27,9 +27,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidClassTagNameReference extends TagNameReference {
   public AndroidClassTagNameReference(ASTNode nameElement, boolean startTagFlag) {
     super(nameElement, startTagFlag);

@@ -6,9 +6,6 @@ import com.intellij.xml.XmlAttributeDescriptor;
 import com.intellij.xml.impl.schema.AnyXmlAttributeDescriptor;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidAnyAttributeDescriptor implements XmlAttributeDescriptor {
   private final XmlAttributeDescriptor myParentDescriptor;
 

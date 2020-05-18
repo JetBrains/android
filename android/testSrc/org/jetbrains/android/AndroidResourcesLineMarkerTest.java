@@ -10,9 +10,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class  AndroidResourcesLineMarkerTest extends AndroidTestCase {
   private static final String BASE_PATH = "/resNavigation/";
 

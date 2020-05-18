@@ -22,9 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidRegenerateSourcesAction extends AnAction {
 
   private static final String TITLE = "Generate Sources";

@@ -17,9 +17,6 @@ package com.intellij.testGuiFramework.remote.client
 
 import com.intellij.testGuiFramework.remote.transport.MessageFromClient
 
-/**
- * @author Sergey Karashevich
- */
 interface JUnitClient {
 
   fun send(message: MessageFromClient)

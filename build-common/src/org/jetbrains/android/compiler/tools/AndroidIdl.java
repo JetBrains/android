@@ -32,8 +32,6 @@ import java.util.Map;
 
 /**
  * IDL compiler.
- *
- * @author Alexey Efimov
  */
 public final class AndroidIdl {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.tools.AndroidIdl");

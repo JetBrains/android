@@ -20,9 +20,6 @@ import org.jetbrains.android.util.ProjectBasedErrorReporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidInlineStyleReferenceAction extends AndroidBaseXmlRefactoringAction {
   public static final String ACTION_ID = "AndroidInlineStyleReferenceAction";
 

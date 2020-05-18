@@ -28,9 +28,6 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class RunAndroidAvdManagerAction extends DumbAwareAction {
   public static final String ID = "Android.RunAndroidAvdManager";
 

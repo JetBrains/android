@@ -25,9 +25,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidApplicationArtifactType extends ArtifactType {
   public AndroidApplicationArtifactType() {
     super("apk", "Android Application");

@@ -24,9 +24,6 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author yole
- */
 public class ResourcesDomFileDescription extends DomFileDescription<Resources> {
   public ResourcesDomFileDescription() {
     super(Resources.class, "resources");

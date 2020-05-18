@@ -47,9 +47,6 @@ import java.util.zip.ZipInputStream;
 
 import static org.jetbrains.android.util.AndroidCompilerMessageKind.*;
 
-/**
- * @author yole
- */
 public class AndroidApkBuilder {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.tools.AndroidApkBuilder");
 

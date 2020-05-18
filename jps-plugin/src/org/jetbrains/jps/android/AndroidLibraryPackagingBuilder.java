@@ -25,9 +25,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidLibraryPackagingBuilder extends AndroidTargetBuilder<BuildRootDescriptor, AndroidLibraryPackagingTarget> {
   @NonNls private static final String BUILDER_NAME = "Android Library Packaging";
 

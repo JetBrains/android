@@ -21,9 +21,6 @@ import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidDomElement;
 
-/**
- * @author yole
- */
 public interface ResourceElement extends GenericDomValue<String>, AndroidDomElement {
   @Required
   @Convert(ResourceNameConverter.class)

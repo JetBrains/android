@@ -15,9 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class ImportDependenciesDialog extends DialogWrapper {
   private final CheckBoxList myCheckBoxList = new CheckBoxList();
   private final List<ImportDependenciesTask> myTasks;

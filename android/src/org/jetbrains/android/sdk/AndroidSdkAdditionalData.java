@@ -28,9 +28,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidSdkAdditionalData implements ValidatableSdkAdditionalData {
 
   @NonNls private static final String JDK = "jdk";

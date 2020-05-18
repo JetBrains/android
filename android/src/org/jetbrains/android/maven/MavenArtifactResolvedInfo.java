@@ -7,9 +7,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 @Tag("resolved-info")
 public class MavenArtifactResolvedInfo {
   private String myApiLevel;

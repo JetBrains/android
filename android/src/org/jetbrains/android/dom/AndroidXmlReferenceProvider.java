@@ -35,9 +35,6 @@ import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
   @NotNull
   @Override

@@ -58,9 +58,6 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProcessor {
   private final Module myModule;
   private final Map<AndroidAttributeInfo, String> myAttrMap;

@@ -16,9 +16,6 @@ import java.util.Collections;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AddMissingPrefixQuickFix implements LintIdeQuickFix {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.lint.AddMissingPrefixQuickFix");
 

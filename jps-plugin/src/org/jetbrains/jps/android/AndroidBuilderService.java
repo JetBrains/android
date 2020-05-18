@@ -11,9 +11,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidBuilderService extends BuilderService {
   @NotNull
   @Override

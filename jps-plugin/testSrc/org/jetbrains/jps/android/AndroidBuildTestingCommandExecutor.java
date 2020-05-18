@@ -19,9 +19,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Eugene.Kudelevsky
- */
 abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTestingManager.MyCommandExecutor {
   public static final String ENTRY_HEADER = "______ENTRY_";
 

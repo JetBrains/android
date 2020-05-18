@@ -27,9 +27,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionAction, HighPriorityAction {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.CreateFileResourceQuickFix");
 
