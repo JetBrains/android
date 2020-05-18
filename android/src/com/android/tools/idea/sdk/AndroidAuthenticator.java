@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2015-2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,57 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.updater;
+package com.android.tools.idea.sdk;
 
 import com.intellij.credentialStore.CredentialAttributes;
 import com.intellij.credentialStore.Credentials;
 import com.intellij.credentialStore.OneTimeString;
-import com.intellij.ide.externalComponents.ExternalComponentManager;
-import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.util.proxy.CommonProxy;
 import com.intellij.util.proxy.NonStaticAuthenticator;
+import java.net.PasswordAuthentication;
+import java.net.URL;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.PasswordAuthentication;
-import java.net.URL;
-
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
-
-/**
- * Plugin to set up the android sdk {@link UpdatableExternalComponent} and
- * {@link com.android.tools.idea.updater.configure.SdkUpdaterConfigurable}.
- */
-public final class AndroidSdkUpdaterPlugin {
-  public AndroidSdkUpdaterPlugin() {
-    if (isAndroidSdkManagerEnabled()) {
-      setUpAuthenticator();
+public class AndroidAuthenticator extends NonStaticAuthenticator {
+  @Override
+  @Nullable
+  public PasswordAuthentication getPasswordAuthentication() {
+    URL url = getRequestingURL();
+    if (url != null) {
+      String host = url.toString();
+      PasswordAuthentication result = getAuthentication(host);
+      if (result != null) {
+        return result;
+      }
     }
-  }
-
-  private void setUpAuthenticator() {
-    CommonProxy.getInstance().setCustomAuth(getClass().getName(), new AndroidAuthenticator());
+    return getAuthentication(CommonProxy.getHostNameReliably(getRequestingHost(), getRequestingSite(), getRequestingURL()));
   }
 
   public static String getCredentialServiceName(@NotNull String host) {
     return "AndroidSdk:" + host;
-  }
-
-  private static class AndroidAuthenticator extends NonStaticAuthenticator {
-    @Override
-    @Nullable
-    public PasswordAuthentication getPasswordAuthentication() {
-      URL url = getRequestingURL();
-      if (url != null) {
-        String host = url.toString();
-        PasswordAuthentication result = getAuthentication(host);
-        if (result != null) {
-          return result;
-        }
-      }
-      return getAuthentication(CommonProxy.getHostNameReliably(getRequestingHost(), getRequestingSite(), getRequestingURL()));
-    }
   }
 
   @Nullable

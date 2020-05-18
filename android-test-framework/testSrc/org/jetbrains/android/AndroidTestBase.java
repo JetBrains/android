@@ -27,6 +27,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.application.ex.PathManagerEx;
+import com.intellij.openapi.application.impl.ApplicationImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.impl.ProjectImpl;
@@ -88,6 +89,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
           disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbOptionsService") ||
           (disposable instanceof ProjectImpl && (((ProjectImpl)disposable).isDefault() || ((ProjectImpl)disposable).isLight())) ||
           disposable.toString().startsWith("services of " + ProjectImpl.class.getName()) ||
+          disposable.toString().startsWith("services of " + ApplicationImpl.class.getName()) ||
           disposable instanceof Application ||
           (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME))) {
         // Ignore application services and light projects and modules that are not disposed by tearDown.
