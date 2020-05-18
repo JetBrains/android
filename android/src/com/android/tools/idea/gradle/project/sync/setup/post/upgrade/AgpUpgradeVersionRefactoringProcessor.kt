@@ -24,10 +24,12 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.isUpdatablePluginVersion
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.util.BuildFileProcessor
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.utils.FileUtils
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
 import com.intellij.openapi.project.Project
@@ -135,6 +137,15 @@ class AgpUpgradeVersionRefactoringProcessor(
       if (it is AgpUpgradeUsageInfo)
         it.performPsiSpoilingAgpUpgrade(this)
     }
+
+    super.performPsiSpoilingRefactoring()
+
+    // in AndroidRefactoringUtil this happens between performRefactoring() and performPsiSpoilingRefactoring().  Not
+    // sure why.
+    //
+    // FIXME(xof): having this here works (in that a sync is triggered at the end of the refactor) but no sync is triggered
+    //  if the refactoring action is undone.
+    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED))
   }
 
   override fun getCommandName() = "Upgrade AGP version from ${current} to ${new}"
