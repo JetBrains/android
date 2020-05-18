@@ -54,5 +54,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" scope="TEST" name="Trove4j" level="project" />
   </component>
 </module>
