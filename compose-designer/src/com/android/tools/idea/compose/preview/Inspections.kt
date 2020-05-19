@@ -128,6 +128,25 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
 }
 
 /**
+ * Inspection that checks that any `@Preview` function only has at most one `@PreviewParameter`.
+ */
+class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspection() {
+  override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
+                                             function: KtNamedFunction,
+                                             previewAnnotation: KtAnnotationEntry) {
+    // Find the second PreviewParameter annotation if any
+    val secondPreviewParameter = function.valueParameters.mapNotNull {
+      it.annotationEntries.firstOrNull { annotation -> annotation.fqNameMatches(PREVIEW_PARAMETER_FQN) }
+    }.drop(1).firstOrNull() ?: return
+
+    // Flag the second annotation as the error
+    holder.registerProblem(secondPreviewParameter as PsiElement,
+                           message("inspection.no.multiple.preview.provider.description"),
+                           ProblemHighlightType.ERROR)
+  }
+}
+
+/**
  * Inspection that checks that any function annotated with `@Preview` is also annotated with `@Composable`.
  */
 class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspection() {

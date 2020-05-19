@@ -64,6 +64,13 @@
                      displayName="inspection.dimension.limit.name"
                      level="WARNING"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMultipleParameterProvidersInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     displayName="inspection.no.multiple.preview.provider.description"
+                     level="ERROR"/>
+
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
 
     <postStartupActivity implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationStartupActivity" />
