@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory
 import com.android.tools.adtui.FilterComponent
 import com.android.tools.adtui.StatLabel
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.flat.FlatSeparator
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.Range
@@ -236,7 +237,7 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
 
   private fun buildSummaryPanel() = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
     fun mkLabel(desc: String, action: Runnable? = null) =
-      StatLabel(0L, desc, numFont = ProfilerFonts.H2_FONT, descFont = ProfilerFonts.H4_FONT, action = action)
+      StatLabel(0L, desc, numFont = ProfilerFonts.H2_FONT, descFont = AdtUiUtils.DEFAULT_FONT.biggerOn(1f), action = action)
     val totalClassLabel = mkLabel("Classes")
     val totalLeakLabel = mkLabel("Leaks", action = Runnable(::showLeaks))
     val totalCountLabel = mkLabel("Count")
