@@ -40,15 +40,20 @@ import com.intellij.util.Consumer;
 import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import java.awt.MouseInfo;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Objects;
 import javax.swing.Icon;
 import javax.swing.SwingConstants;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * {@link com.intellij.openapi.editor.markup.GutterIconRenderer} for Drawable resource references in XML files.
+ */
 public class GutterIconRenderer extends com.intellij.openapi.editor.markup.GutterIconRenderer implements DumbAware {
   private final static int PREVIEW_MAX_WIDTH = JBUI.scale(128);
   private final static int PREVIEW_MAX_HEIGHT = JBUI.scale(128);
@@ -56,11 +61,21 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
 
   @NotNull private final ResourceResolver myResourceResolver;
   @NotNull private final AndroidFacet myFacet;
-  @NotNull private final VirtualFile myFile;
+  @Nullable private final VirtualFile myFile;
   @NotNull private final Configuration myConfiguration;
   @NotNull private final Consumer<String> mySetAttributeTask;
 
-  public GutterIconRenderer(@NotNull PsiElement element, @NotNull ResourceResolver resourceResolver, @NotNull AndroidFacet facet, @NotNull VirtualFile file,
+  /**
+   * @param element {@link PsiElement} being annotated, usually an XML attribute or tag.
+   * @param resourceResolver {@link ResourceResolver} instance used to resolve resources from the active theme.
+   * @param facet the {@link AndroidFacet} for the active module.
+   * @param file the bitmap file to render in the gutter, when null, a fallback icon will be rendered instead. See {@link #getIcon()}.
+   * @param configuration Android {@link Configuration} associated with the containing file of the annotated element.
+   */
+  public GutterIconRenderer(@NotNull PsiElement element,
+                            @NotNull ResourceResolver resourceResolver,
+                            @NotNull AndroidFacet facet,
+                            @Nullable VirtualFile file,
                             @NotNull Configuration configuration) {
     myResourceResolver = resourceResolver;
     myFacet = facet;
@@ -72,7 +87,9 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   @Override
   @NotNull
   public Icon getIcon() {
-    Icon icon = GutterIconCache.getInstance().getIcon(myFile, myResourceResolver, myFacet);
+    Icon icon = myFile != null
+                ? GutterIconCache.getInstance().getIcon(myFile, myResourceResolver, myFacet)
+                : StudioIcons.LayoutEditor.Properties.IMAGE_PICKER;
     return icon == null ? EmptyIcon.ICON_0 : icon;
   }
 
@@ -90,14 +107,14 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     GutterIconRenderer that = (GutterIconRenderer)o;
 
     if (!myFacet.equals(that.myFacet)) return false;
-    if (!myFile.equals(that.myFile)) return false;
+    if (!Objects.equals(myFile, that.myFile)) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    return HashCodes.mix(myFacet.hashCode(), myFile.hashCode());
+    return HashCodes.mix(myFacet.hashCode(), Objects.hashCode(myFile));
   }
 
   private final static String SET_RESOURCE_COMMAND_NAME = "Resource picked";
@@ -116,14 +133,14 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
 
   private class GutterIconClickAction extends AnAction implements NavigationTargetProvider {
 
-    @NotNull private final VirtualFile myFile;
+    @Nullable private final VirtualFile myFile;
     @NotNull private final ResourceResolver myResourceResolver;
     @NotNull private final AndroidFacet myFacet;
     @NotNull private final Configuration myConfiguration;
     @Nullable private VirtualFile myNavigationTarget;
     private boolean myNavigationTargetComputed;
 
-    private GutterIconClickAction(@NotNull VirtualFile file, @NotNull ResourceResolver resourceResolver, @NotNull AndroidFacet facet,
+    private GutterIconClickAction(@Nullable VirtualFile file, @NotNull ResourceResolver resourceResolver, @NotNull AndroidFacet facet,
                                   @NotNull Configuration configuration) {
       myFile = file;
       myResourceResolver = resourceResolver;
@@ -170,6 +187,10 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
 
     @Nullable
     private JBPopup createPreview(@Nullable Runnable onClick) {
+      if (myFile == null) {
+        return null;
+      }
+
       Icon icon = GutterIconFactory.createIcon(myFile, myResourceResolver, PREVIEW_MAX_WIDTH, PREVIEW_MAX_HEIGHT, myFacet);
 
       if (icon == null) {
@@ -202,7 +223,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     @Override
     @Nullable
     public VirtualFile getNavigationTarget() {
-      if (!myNavigationTargetComputed) {
+      if (!myNavigationTargetComputed && myFile != null) {
         IAndroidTarget target = myConfiguration.getTarget();
 
         // If myFile points to an embedded framework resource intended for rendering only,

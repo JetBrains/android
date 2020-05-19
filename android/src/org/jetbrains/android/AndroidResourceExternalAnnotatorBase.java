@@ -120,7 +120,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
       return getColorGutterIconRenderer(resolver, reference, facet, element, configuration);
     }
     else {
-      assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
+      assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP || type == ResourceType.ATTR;
       return getDrawableGutterIconRenderer(element, resolver, reference, facet, configuration);
     }
   }
@@ -131,17 +131,30 @@ public abstract class AndroidResourceExternalAnnotatorBase
                                                                   @NotNull ResourceReference reference,
                                                                   @NotNull AndroidFacet facet,
                                                                   @NotNull Configuration configuration) {
-    ResourceValue drawable = resourceResolver.getResolvedResource(reference);
+    ResourceValue drawable = null;
+    if (reference.getResourceType() == ResourceType.ATTR) {
+      // Resolve the theme attribute
+      ResourceValue resolvedAttribute = resourceResolver.findItemInTheme(reference);
+      if (resolvedAttribute == null) {
+        return null;
+      }
+      ResourceType resolvedAttributeType = resolvedAttribute.getResourceType();
+      if (resolvedAttributeType == ResourceType.DRAWABLE || resolvedAttributeType == ResourceType.MIPMAP) {
+        drawable = resolvedAttribute;
+      }
+    }
+    if (drawable == null) {
+      drawable = resourceResolver.getResolvedResource(reference);
+    }
     if (drawable == null) {
       return null;
     }
     VirtualFile bitmap = AndroidAnnotatorUtil.resolveDrawableFile(drawable, resourceResolver, facet);
     bitmap = AndroidAnnotatorUtil.pickBestBitmap(bitmap);
-    if (bitmap == null) {
-      return null;
+    if (bitmap != null) {
+      // Updating the GutterIconCache in the background thread to include the icon.
+      GutterIconCache.getInstance().getIcon(bitmap, resourceResolver, facet);
     }
-    // Updating the GutterIconCache in the background thread to include the icon.
-    GutterIconCache.getInstance().getIcon(bitmap, resourceResolver, facet);
     return new com.android.tools.idea.rendering.GutterIconRenderer(element, resourceResolver, facet, bitmap, configuration);
   }
 

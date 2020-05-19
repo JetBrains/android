@@ -85,7 +85,8 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
       return null;
     }
 
-    if (value.charAt(0) != '@' && value.charAt(0) != '#') {
+    char startChar = value.charAt(0);
+    if (startChar != '@' && startChar != '#' && startChar != '?') {
       return null;
     }
     ResourceUrl resourceUrl = ResourceUrl.parse(value);
@@ -105,7 +106,7 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
         return null;
       }
       ResourceType type = reference.getResourceType();
-      if (type != ResourceType.COLOR && type != ResourceType.DRAWABLE && type != ResourceType.MIPMAP) {
+      if (type != ResourceType.COLOR && type != ResourceType.DRAWABLE && type != ResourceType.MIPMAP && type != ResourceType.ATTR) {
         return null;
       }
       return new FileAnnotationInfo.AnnotatableElement(reference, element);
