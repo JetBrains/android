@@ -27,7 +27,12 @@ import com.intellij.util.xml.EvaluatedXmlNameImpl
 import com.intellij.util.xml.reflect.CustomDomChildrenDescription
 import com.intellij.util.xml.reflect.DomExtender
 import com.intellij.util.xml.reflect.DomExtensionsRegistrar
+import org.jetbrains.android.dom.layout.Fragment
+import org.jetbrains.android.dom.layout.Layout
+import org.jetbrains.android.dom.layout.LayoutElement
 import org.jetbrains.android.dom.layout.LayoutViewElement
+import org.jetbrains.android.dom.layout.Merge
+import org.jetbrains.android.dom.layout.View
 import org.jetbrains.android.facet.LayoutViewClassUtils
 
 /**
@@ -37,20 +42,32 @@ import org.jetbrains.android.facet.LayoutViewClassUtils
  * Note that [CustomDomChildrenDescription.TagNameDescriptor.getCompletionVariants] runs on a background thread, as opposed to
  * [DomExtender.registerExtensions], so this way we avoid blocking the UI for completion.
  */
-class AndroidLayoutDomExtender : DomExtender<LayoutViewElement>() {
+class AndroidLayoutDomExtender : DomExtender<LayoutElement>() {
 
-  override fun registerExtensions(domElement: LayoutViewElement, registrar: DomExtensionsRegistrar) {
+  override fun registerExtensions(domElement: LayoutElement, registrar: DomExtensionsRegistrar) {
     if (StudioFlags.LAYOUT_XML_MODE.get() == StudioFlags.LayoutXmlMode.CUSTOM_CHILDREN) {
       registerCustomChildren(domElement, registrar)
     }
   }
 
-  private fun registerCustomChildren(domElement: LayoutViewElement, registrar: DomExtensionsRegistrar) {
-    val xmlTag = domElement.xmlElement as? XmlTag ?: return
+  private fun registerCustomChildren(layoutElement: LayoutElement, registrar: DomExtensionsRegistrar) {
+    val xmlTag = layoutElement.xmlElement as? XmlTag ?: return
     val androidFacet = xmlTag.androidFacet ?: return
-    val tagClass = LayoutViewClassUtils.findClassByTagName(androidFacet, xmlTag.localName, SdkConstants.CLASS_VIEW) ?: return
-    if (InheritanceUtil.isInheritor(tagClass, SdkConstants.CLASS_VIEWGROUP)) {
-      registrar.registerCustomChildrenExtension(LayoutViewElement::class.java, ChildViewNameDescriptor)
+    when (layoutElement) {
+      is View -> {
+        val tagClass = layoutElement.viewClass.value ?: return
+        if (layoutElement.viewClass.value != null && InheritanceUtil.isInheritor(tagClass, SdkConstants.CLASS_VIEWGROUP)) {
+          registrar.registerCustomChildrenExtension(LayoutViewElement::class.java, ChildViewNameDescriptor)
+        }
+      }
+      is LayoutViewElement -> {
+        val tagClass = LayoutViewClassUtils.findClassByTagName(androidFacet, xmlTag.localName, SdkConstants.CLASS_VIEW) ?: return
+        if (InheritanceUtil.isInheritor(tagClass, SdkConstants.CLASS_VIEWGROUP)) {
+          registrar.registerCustomChildrenExtension(LayoutViewElement::class.java, ChildViewNameDescriptor)
+        }
+      }
+      is Fragment, is Merge, is Layout -> registrar.registerCustomChildrenExtension(LayoutViewElement::class.java, ChildViewNameDescriptor)
+      else -> return
     }
   }
 
