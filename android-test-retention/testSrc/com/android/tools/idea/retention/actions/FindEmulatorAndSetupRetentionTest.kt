@@ -32,6 +32,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -39,6 +40,7 @@ import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
+@Ignore("b/156983404")
 @RunsInEdt
 class FindEmulatorAndSetupRetentionTest {
   private val projectRule = ProjectRule()
