@@ -28,7 +28,7 @@ import java.util.stream.Collectors
  */
 class ActivityFragmentLeakInstanceFilter(classDatabase: ClassDb)
   : CaptureObjectInstanceFilter(
-  "Activity/Fragment Leaks",
+  "activity/fragment Leaks",
   "Show Activities and Fragments that are potentially causing memory leaks.",
   "Activity/Fragment leaks may include false positives.",
   "https://developer.android.com/r/studio-ui/profiler-memory-leak-detection",
