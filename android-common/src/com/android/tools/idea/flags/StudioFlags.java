@@ -340,6 +340,12 @@ public final class StudioFlags {
     NELE, "toggle.layout.editor.validator.a11y", "Toggle layout validator for layout editor.",
     "When the model changes, layout editor will run the series of layout validations and update lint output",
     false);
+
+  public static final Flag<Boolean> NELE_TRANSFORM_PANEL = Flag.create(
+    NELE, "toggle.layout.editor.transform.panel", "Toggle transform panel in layout editor and motion editor.",
+    "Enable the new transform panel in the layout editor and motion editor",
+    true);
+
   //endregion
 
   //region Navigation Editor

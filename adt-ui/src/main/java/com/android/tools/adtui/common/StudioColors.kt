@@ -45,6 +45,11 @@ val secondaryPanelBackground = JBColor.namedColor("UIDesigner.Panel.background",
 val border = JBColor.namedColor("UIDesigner.Panel.borderColor", JBColor(0xc9c9c9, 0x282828))
 
 /**
+ * Color of the 3d lines in the transform panel of the layout editor
+ */
+val lines3d = JBColor.namedColor("UIDesigner.Panel.lines3d", JBColor(0x2D2D2D, 0x26A04A))
+
+/**
  * Border color to use when separating element inside the same panel.
  *
  * Example: border between the category list and widget list in the
