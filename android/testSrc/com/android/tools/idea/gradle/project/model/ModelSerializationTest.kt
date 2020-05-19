@@ -31,6 +31,7 @@ import com.android.ide.common.gradle.model.IdeFilterData
 import com.android.ide.common.gradle.model.IdeGraphItem
 import com.android.ide.common.gradle.model.IdeInstantRun
 import com.android.ide.common.gradle.model.IdeJavaArtifact
+import com.android.ide.common.gradle.model.IdeJavaArtifactImpl
 import com.android.ide.common.gradle.model.IdeJavaCompileOptions
 import com.android.ide.common.gradle.model.IdeJavaLibrary
 import com.android.ide.common.gradle.model.IdeLintOptions
@@ -304,7 +305,7 @@ class ModelSerializationTest {
 
   @Test
   fun javaArtifact() =
-    assertSerializable { IdeJavaArtifact(JavaArtifactStub(), modelCache, dependenciesFactory, gradleVersion) }
+    assertSerializable { IdeJavaArtifactImpl(JavaArtifactStub(), modelCache, dependenciesFactory, gradleVersion) }
 
   @Test
   fun javaCompileOptions() =
