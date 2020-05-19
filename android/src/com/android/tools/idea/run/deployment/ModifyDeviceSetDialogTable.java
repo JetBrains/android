@@ -26,13 +26,18 @@ import java.util.OptionalInt;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 
 final class ModifyDeviceSetDialogTable extends JBTable {
   ModifyDeviceSetDialogTable() {
-    getTableHeader().setResizingAllowed(false);
+    JTableHeader header = getTableHeader();
+
+    header.setReorderingAllowed(false);
+    header.setResizingAllowed(false);
+
     setDefaultEditor(Boolean.class, new BooleanTableCellEditor());
     setRowHeight(JBUI.scale(30));
     setRowSelectionAllowed(false);
