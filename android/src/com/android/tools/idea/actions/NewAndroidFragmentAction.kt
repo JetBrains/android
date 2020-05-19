@@ -50,19 +50,19 @@ class NewAndroidFragmentAction
     val dataContext = e.dataContext
     val module = LangDataKeys.MODULE.getData(dataContext) ?: return
     val facet = AndroidFacet.getInstance(module)
-    if (facet == null || AndroidModel.get(facet) == null) {
+    var targetDirectory = CommonDataKeys.VIRTUAL_FILE.getData(dataContext)
+    if (facet == null || AndroidModel.get(facet) == null || targetDirectory == null) {
       return
     }
 
-    var targetDirectory = CommonDataKeys.VIRTUAL_FILE.getData(dataContext)
     // If the user selected a simulated folder entry (eg "Manifests"), there will be no target directory
-    if (targetDirectory != null && !targetDirectory.isDirectory) {
+    if (!targetDirectory.isDirectory) {
       targetDirectory = targetDirectory.parent
     }
     val directory = targetDirectory!!
 
     val moduleTemplates = facet.getModuleTemplates(targetDirectory)
-    assert(!moduleTemplates.isEmpty())
+    assert(moduleTemplates.isNotEmpty())
 
     val initialPackageSuggestion = facet.getPackageForPath(moduleTemplates, targetDirectory)
     val project = module.project
