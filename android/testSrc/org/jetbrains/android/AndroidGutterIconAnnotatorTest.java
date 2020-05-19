@@ -33,6 +33,7 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -62,6 +63,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    IconLoader.activate();
     myFixture.copyFileToProject("annotator/color_test.xml", "res/layout/color_test.xml");
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors1.xml");
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors2.xml");
@@ -73,6 +75,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/layer_list.xml", "res/drawable/layer_list.xml");
     myFixture.copyFileToProject("annotator/selector.xml", "res/color/selector.xml");
     myFixture.copyFileToProject("annotator/shape.xml", "res/drawable/shape.xml");
+    myFixture.copyFileToProject("annotator/animated_selector.xml", "res/drawable/animated_selector.xml");
     myFixture.copyFileToProject("annotator/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("render/imageutils/actual.png", "res/drawable-mdpi/drawable1.png");
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
@@ -215,6 +218,19 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     VirtualFile expectedFile = FileExtensions.toVirtualFile(expectedPath);
     assertThat(getNavigationTarget(highlightInfo)).isEqualTo(expectedFile);
     checkHighlightInfoImage(highlightInfo, expectedFile);
+  }
+
+  public void testThemeAttributeDrawableFallbackIcon() throws Exception {
+    // Reference to a theme attribute drawable from a layout file.
+    HighlightInfo highlightInfo =
+      findHighlightInfo("res/layout/color_test.xml", "?android:attr/actionModeCutDrawable", XmlAttributeValue.class);
+    checkHighlightInfoImage(highlightInfo, "annotator/ic_fallback_thumbnail.png");
+  }
+
+  public void testAnimatedSelectorFallbackIcon() throws Exception {
+    // Reference to an animated selector drawable from a layout file.
+    HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@drawable/animated_selector", XmlAttributeValue.class);
+    checkHighlightInfoImage(highlightInfo, "annotator/ic_fallback_thumbnail.png");
   }
 
   @NotNull
