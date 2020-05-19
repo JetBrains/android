@@ -156,7 +156,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   protected LaunchOptions.Builder getLaunchOptions() {
     return super.getLaunchOptions()
       .setDeploy(DEPLOY)
-      .setPmInstallOptions(PM_INSTALL_OPTIONS)
+      .setPmInstallOptions(device -> PM_INSTALL_OPTIONS)
       .setAllUsers(ALL_USERS)
       .setDisabledDynamicFeatures(getDisabledDynamicFeatures())
       .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY)
