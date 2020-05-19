@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.ui.SelectProcessAction
-import com.android.tools.idea.layoutinspector.util.ProcessManagerSync
+import com.android.tools.idea.layoutinspector.util.ProcessManagerAsserts
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
@@ -114,8 +114,8 @@ class MetricsTest2 {
     // Now start the process
     val client = inspectorRule.inspectorClient as DefaultInspectorClient
     inspectorRule.addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
-    val waiter = ProcessManagerSync(client.processManager)
-    waiter.waitUntilReady(DEFAULT_DEVICE.serial, DEFAULT_PROCESS.pid)
+    val waiter = ProcessManagerAsserts(client.processManager)
+    waiter.assertDeviceWithProcesses(DEFAULT_DEVICE.serial, DEFAULT_PROCESS.pid)
     inspectorRule.advanceTime(1100, TimeUnit.MILLISECONDS)
 
     usages = usageTrackerRule.testTracker.usages
