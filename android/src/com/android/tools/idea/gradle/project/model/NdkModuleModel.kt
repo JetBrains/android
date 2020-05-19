@@ -24,43 +24,40 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.google.common.base.Joiner
 import com.google.common.collect.Iterables
 import com.intellij.openapi.module.Module
-import com.intellij.serialization.PropertyMapping
 import java.io.File
 import java.util.ArrayList
 import java.util.Collections
 import java.util.HashMap
 import java.util.Objects
 
-class NdkModuleModel
-@PropertyMapping("myModuleName", "myRootDirPath", "myAndroidProject", "myVariantAbi")
-constructor(moduleName: String,
-            rootDirPath: File,
-            androidProject: IdeNativeAndroidProject,
-            variantAbi: List<IdeNativeVariantAbi>) : ModuleModel {
 
-  @Transient
-  val features: NdkModelFeatures
+class NdkModuleModel(
+  moduleName: String,
+  rootDirPath: File,
+  androidProject: IdeNativeAndroidProject,
+  variantAbi: List<IdeNativeVariantAbi>) : ModuleModel {
 
-  @Transient
-  private var myModelVersion: GradleVersion? = null
-  private val myModuleName: String = moduleName
-  private val myRootDirPath: File = rootDirPath
-  private val myAndroidProject: IdeNativeAndroidProject = androidProject
-  private val myVariantAbi: MutableList<IdeNativeVariantAbi> = ArrayList()
+  // State of this model
+  private val moduleName = moduleName
+  val rootDirPath = rootDirPath
+  val androidProject = androidProject
+  val variantAbi = variantAbi
 
-  val rootDirPath get() = myRootDirPath
-  val androidProject get() = myAndroidProject
+  // Computed or mutable data below here
+  @Transient val features: NdkModelFeatures
+  @Transient private var modelVersion: GradleVersion? = null
 
   // Map of all variants, key: debug-x86, value: NdkVariantName(debug, x86).
-  private val myVariantNamesByVariantAndAbiName: MutableMap<String?, NdkVariantName> = HashMap()
+  @Transient private val variantNamesByVariantAndAbiName: MutableMap<String, NdkVariantName> = HashMap()
 
   // Map of synced variants. For full-variants sync, contains all variants form myVariantNames.
-  private val myVariantsByName: MutableMap<String, NdkVariant> = HashMap()
-  private val myToolchainsByName: MutableMap<String, NativeToolchain> = HashMap()
-  private val mySettingsByName: MutableMap<String, NativeSettings> = HashMap()
-  private var mySelectedVariantName: String? = null
+  @Transient private val variantsByName: MutableMap<String, NdkVariant> = HashMap()
+  @Transient private val toolchainsByName: MutableMap<String, NativeToolchain> = HashMap()
+  @Transient private val settingsByName: MutableMap<String, NativeSettings> = HashMap()
+  @Transient private var selectedVariantName: String? = null
+
   private fun populateModuleFields() {
-    if (myVariantAbi.isEmpty()) {
+    if (variantAbi.isEmpty()) {
       // Full-variants sync.
       populateForFullVariantsSync()
     }
@@ -68,45 +65,45 @@ constructor(moduleName: String,
       // Single-variant sync.
       populateForSingleVariantSync()
     }
-    if (myVariantsByName.isEmpty()) {
+    if (variantsByName.isEmpty()) {
       // There will mostly be at least one variant, but create a dummy variant when there are none.
-      myVariantsByName[DummyNdkVariant.variantNameWithAbi] = NdkVariant(DummyNdkVariant.variantNameWithAbi,
-                                                                        features.isExportedHeadersSupported)
-      myVariantNamesByVariantAndAbiName[DummyNdkVariant.variantNameWithAbi] = NdkVariantName(DummyNdkVariant.variantNameWithoutAbi,
-                                                                                             DummyNdkVariant.abiName)
+      variantsByName[DummyNdkVariant.variantNameWithAbi] = NdkVariant(DummyNdkVariant.variantNameWithAbi,
+                                                                      features.isExportedHeadersSupported)
+      variantNamesByVariantAndAbiName[DummyNdkVariant.variantNameWithAbi] = NdkVariantName(DummyNdkVariant.variantNameWithoutAbi,
+                                                                                           DummyNdkVariant.abiName)
     }
   }
 
   // Call this method for full variants sync.
   private fun populateForFullVariantsSync() {
-    for (artifact in myAndroidProject.artifacts) {
+    for (artifact in androidProject.artifacts) {
       val variantName = if (features.isGroupNameSupported) artifact.groupName else artifact.name
       val ndkVariantName = NdkVariantName(variantName, artifact.abi)
-      var variant = myVariantsByName[ndkVariantName.displayName]
+      var variant = variantsByName[ndkVariantName.displayName]
       if (variant == null) {
         variant = NdkVariant(ndkVariantName.displayName, features.isExportedHeadersSupported)
-        myVariantsByName[ndkVariantName.displayName] = variant
-        myVariantNamesByVariantAndAbiName[ndkVariantName.displayName] = ndkVariantName
+        variantsByName[ndkVariantName.displayName] = variant
+        variantNamesByVariantAndAbiName[ndkVariantName.displayName] = ndkVariantName
       }
       variant.addArtifact(artifact)
     }
 
     // populate toolchains
-    populateToolchains(myAndroidProject.toolChains)
+    populateToolchains(androidProject.toolChains)
 
     // populate settings
-    populateSettings(myAndroidProject.settings)
+    populateSettings(androidProject.settings)
   }
 
   // Call this method for single variant sync.
   private fun populateForSingleVariantSync() {
-    for ((key, value) in myAndroidProject.variantInfos) {
+    for ((key, value) in androidProject.variantInfos) {
       for (abi in value.abiNames) {
         val ndkVariantName = NdkVariantName(key, abi)
-        myVariantNamesByVariantAndAbiName[ndkVariantName.displayName] = ndkVariantName
+        variantNamesByVariantAndAbiName[ndkVariantName.displayName] = ndkVariantName
       }
     }
-    for (variantAbi in myVariantAbi) {
+    for (variantAbi in variantAbi) {
       populateForNativeVariantAbi(variantAbi)
     }
   }
@@ -117,7 +114,7 @@ constructor(moduleName: String,
     for (artifact in variantAbi.artifacts) {
       variant.addArtifact(artifact)
     }
-    myVariantsByName[variantName] = variant
+    variantsByName[variantName] = variant
 
     // populate toolchains
     populateToolchains(variantAbi.toolChains)
@@ -128,62 +125,41 @@ constructor(moduleName: String,
 
   private fun populateToolchains(nativeToolchains: Collection<NativeToolchain>) {
     for (toolchain in nativeToolchains) {
-      myToolchainsByName[toolchain.name] = toolchain
+      toolchainsByName[toolchain.name] = toolchain
     }
   }
 
   private fun populateSettings(nativeSettings: Collection<NativeSettings>) {
     for (settings in nativeSettings) {
-      mySettingsByName[settings.name] = settings
+      settingsByName[settings.name] = settings
     }
   }
 
   private fun initializeSelectedVariant() {
-    val variantNames: Set<String> = myVariantsByName.keys
-    assert(!variantNames.isEmpty())
+    val variantNames: Set<String> = variantsByName.keys
+    assert(variantNames.isNotEmpty())
     if (variantNames.size == 1) {
-      mySelectedVariantName = Iterables.getOnlyElement(variantNames)
+      selectedVariantName = Iterables.getOnlyElement(variantNames)
       return
     }
     for (variantName in variantNames) {
       if (variantName == "debug" || variantName == getNdkVariantName("debug", "x86")) {
-        mySelectedVariantName = variantName
+        selectedVariantName = variantName
         return
       }
     }
     val sortedVariantNames = ArrayList(variantNames)
     Collections.sort(sortedVariantNames)
     assert(!sortedVariantNames.isEmpty())
-    mySelectedVariantName = sortedVariantNames[0]
+    selectedVariantName = sortedVariantNames[0]
   }
 
-  /**
-   * Inject the Variant-Only Sync model to existing NdkModuleModel.
-   * Since the build files were not changed from last sync, only add the new VariantAbi to existing list.
-   *
-   * @param variantAbi The NativeVariantAbi model obtained from Variant-Only sync.
-   */
-  fun addVariantOnlyModuleModel(variantAbi: IdeNativeVariantAbi) {
-    myVariantAbi.add(variantAbi)
-    populateForNativeVariantAbi(variantAbi)
-  }
-
-  private fun parseAndSetModelVersion() {
-    myModelVersion = GradleVersion.tryParse(myAndroidProject.modelVersion)
-  }
-
-  override fun getModuleName(): String {
-    return myModuleName
-  }
-
-  val variantAbi: List<IdeNativeVariantAbi>
-    get() = myVariantAbi
+  override fun getModuleName() = moduleName
 
   /**
    * Returns a list of all NdkVariant names. For single-variant sync, some variant names may not synced.
    */
-  val ndkVariantNames: Collection<String?>
-    get() = myVariantNamesByVariantAndAbiName.keys
+  val ndkVariantNames : Set<String> get() = variantNamesByVariantAndAbiName.keys
 
   /**
    * Returns the artifact name of a given ndkVariantName, which will be used as variant name for non-native models.
@@ -191,12 +167,12 @@ constructor(moduleName: String,
    * @param ndkVariantName the display name of ndk variant. For example: debug-x86.
    */
   fun getVariantName(ndkVariantName: String): String {
-    val result = myVariantNamesByVariantAndAbiName[ndkVariantName]
+    val result = variantNamesByVariantAndAbiName[ndkVariantName]
                  ?: throw RuntimeException(String.format(
                    "Variant named '%s' but only variants named '%s' were found.",
                    ndkVariantName,
-                   Joiner.on(",").join(myVariantNamesByVariantAndAbiName.keys)))
-    return myVariantNamesByVariantAndAbiName[ndkVariantName]!!.variant
+                   Joiner.on(",").join(variantNamesByVariantAndAbiName.keys)))
+    return result.variant
   }
 
   /**
@@ -204,83 +180,52 @@ constructor(moduleName: String,
    *
    * @param ndkVariantName the display name of ndk variant. For example: debug-x86.
    */
-  fun getAbiName(ndkVariantName: String): String {
-    return myVariantNamesByVariantAndAbiName[ndkVariantName]!!.abi
-  }
+  fun getAbiName(ndkVariantName: String) = variantNamesByVariantAndAbiName[ndkVariantName]!!.abi
 
-  val variants: Collection<NdkVariant>
-    get() = myVariantsByName.values
 
-  val selectedVariant: NdkVariant
-    get() {
-      val selected = myVariantsByName[mySelectedVariantName]!!
-      return selected
-    }
+  val variants: Collection<NdkVariant> get() = variantsByName.values
+
+  val selectedVariant get() = variantsByName[selectedVariantName]!!
+
 
   /**
    * @return true if the variant model with given name has been requested before.
    */
-  fun variantExists(variantName: String): Boolean {
-    return myVariantsByName.containsKey(variantName)
-  }
+  fun variantExists(variantName: String) = variantsByName.containsKey(variantName)
 
   fun setSelectedVariantName(name: String) {
     // Select from synced variants.
-    val variantNames: Collection<String> = myVariantsByName.keys
+    val variantNames: Collection<String> = variantsByName.keys
     if (variantNames.contains(name)) {
-      mySelectedVariantName = name
+      selectedVariantName = name
     }
     else {
       initializeSelectedVariant()
     }
   }
 
-  fun findToolchain(toolchainName: String): NativeToolchain? {
-    return myToolchainsByName[toolchainName]
-  }
+  fun findToolchain(toolchainName: String) = toolchainsByName[toolchainName]
 
-  fun findSettings(settingsName: String): NativeSettings? {
-    return mySettingsByName[settingsName]
-  }
+  fun findSettings(settingsName: String) = settingsByName[settingsName]
 
   override fun hashCode(): Int {
-    // Hashcode should consist of what's written in writeObject. Everything else is derived from these so those don't matter wrt to
-    // identity.
+    // Hashcode should consist of what's written in writeObject.
+    // Everything else is derived from these so those don't matter wrt to identity.
     return Objects.hash(
-      myModuleName,
-      myRootDirPath,
-      myAndroidProject,
-      mySelectedVariantName,
-      myVariantAbi)
+      moduleName,
+      rootDirPath,
+      androidProject,
+      variantAbi)
   }
 
-  override fun equals(obj: Any?): Boolean {
-    if (this === obj) {
-      return true
-    }
-    if (obj == null) {
-      return false
-    }
-    if (obj !is NdkModuleModel) {
-      return false
-    }
-    val that = obj
-    if (myModuleName != that.myModuleName) {
-      return false
-    }
-    if (myRootDirPath.path != that.myRootDirPath.path) {
-      return false
-    }
-    if (myAndroidProject != that.myAndroidProject) {
-      return false
-    }
-    if (mySelectedVariantName != that.mySelectedVariantName) {
-      return false
-    }
-    return if (myVariantAbi != that.myVariantAbi) {
-      false
-    }
-    else true
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other == null) return false
+    if (other !is NdkModuleModel) return false
+    if (moduleName != other.moduleName) return false
+    if (rootDirPath.path != other.rootDirPath.path) return false
+    if (androidProject != other.androidProject) return false
+    return variantAbi == other.variantAbi
   }
 
   // If there are no real NDK variants (e.g., there are no artifacts to deduce variants from), a dummy variant will
@@ -310,9 +255,8 @@ constructor(moduleName: String,
   }
 
   init {
-    myVariantAbi.addAll(variantAbi)
-    parseAndSetModelVersion()
-    features = NdkModelFeatures(myModelVersion)
+    modelVersion = GradleVersion.tryParse(this.androidProject.modelVersion)
+    features = NdkModelFeatures(modelVersion)
     populateModuleFields()
     initializeSelectedVariant()
   }
