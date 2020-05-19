@@ -47,7 +47,7 @@ public class ApkInstallerTest {
   @Test
   public void getPmInstallOptionsOnEmbeddedHardwareWithNonNullPmOptions() throws Exception {
     Project project = mock(Project.class);
-    LaunchOptions options = LaunchOptions.builder().setPmInstallOptions("-v").build();
+    LaunchOptions options = LaunchOptions.builder().setPmInstallOptions(device -> "-v").build();
     InstalledApkCache installedApkCache = mock(InstalledApkCache.class);
     ConsolePrinter printer = mock(ConsolePrinter.class);
     FullApkInstaller installer = new FullApkInstaller(project, options, installedApkCache, printer);
@@ -74,7 +74,7 @@ public class ApkInstallerTest {
   @Test
   public void getPmInstallOptionsOnApi28DeviceWithNonNullPmOptions() throws Exception {
     Project project = mock(Project.class);
-    LaunchOptions options = LaunchOptions.builder().setPmInstallOptions("-v").build();
+    LaunchOptions options = LaunchOptions.builder().setPmInstallOptions(device -> "-v").build();
     InstalledApkCache installedApkCache = mock(InstalledApkCache.class);
     ConsolePrinter printer = mock(ConsolePrinter.class);
     FullApkInstaller installer = new FullApkInstaller(project, options, installedApkCache, printer);
@@ -100,7 +100,7 @@ public class ApkInstallerTest {
   @Test
   public void getPmInstallOptionsOnLessThanApi28DeviceWithNonNullPmOptions() throws Exception {
     Project project = mock(Project.class);
-    LaunchOptions options = LaunchOptions.builder().setPmInstallOptions("-v").build();
+    LaunchOptions options = LaunchOptions.builder().setPmInstallOptions(device -> "-v").build();
     InstalledApkCache installedApkCache = mock(InstalledApkCache.class);
     ConsolePrinter printer = mock(ConsolePrinter.class);
     FullApkInstaller installer = new FullApkInstaller(project, options, installedApkCache, printer);
