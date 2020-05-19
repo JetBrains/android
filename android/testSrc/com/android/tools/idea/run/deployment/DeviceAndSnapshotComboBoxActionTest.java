@@ -121,6 +121,35 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
+  public void modifyDeviceSetDialogSelectionEmpty() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 29")
+      .setKey(new Key("Pixel_4_API_29"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
+
+    DialogWrapper dialog = Mockito.mock(DialogWrapper.class);
+    Mockito.when(dialog.showAndGet()).thenReturn(true);
+
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setDevicesSelectedServiceGetInstance(project -> myDevicesSelectedService)
+      .setExecutionTargetServiceGetInstance(project -> myExecutionTargetService)
+      .setNewModifyDeviceSetDialog((project, devices) -> dialog)
+      .build();
+
+    // Act
+    action.modifyDeviceSet(myRule.getProject());
+
+    // Assert
+    assertFalse(myDevicesSelectedService.isMultipleDevicesSelectedInComboBox());
+    Mockito.verify(myExecutionTargetService).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(device));
+  }
+
+  @Test
   public void createCustomComponent() {
     // Arrange
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()

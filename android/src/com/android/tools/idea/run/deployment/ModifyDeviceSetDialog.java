@@ -23,13 +23,11 @@ import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,13 +65,6 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   }
 
   private void initTable() {
-    myTableModel.addTableModelListener(event -> {
-      if (event.getType() == TableModelEvent.UPDATE && event.getColumn() == ModifyDeviceSetDialogTableModel.SELECTED_MODEL_COLUMN_INDEX) {
-        assert myTable != null;
-        getOKAction().setEnabled(IntStream.range(0, myTable.getRowCount()).anyMatch(myTable::isSelected));
-      }
-    });
-
     myTable = new ModifyDeviceSetDialogTable();
 
     myTable.setModel(myTableModel);
@@ -104,12 +95,6 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
 
     panel.setLayout(layout);
     return panel;
-  }
-
-  @Override
-  protected void createDefaultActions() {
-    super.createDefaultActions();
-    myOKAction.setEnabled(false);
   }
 
   @Override
