@@ -64,7 +64,7 @@ class SelectProcessActionTest {
       val stream = Common.Stream.newBuilder().apply {
         setDevice(Common.Device.newBuilder().apply {
           serial = "serial$i"
-          model = "myModel$i"
+          model = "myModel_$i"
           manufacturer = "myManufacturer$i"
         })
       }.build()
@@ -105,8 +105,8 @@ class SelectProcessActionTest {
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectProcessAction.getChildren(null)
     assertThat(children.size).isEqualTo(3)
-    assertThat(children[0].templateText).isEqualTo("myManufacturer0 myModel0")
-    assertThat(children[1].templateText).isEqualTo("myManufacturer1 myModel1")
+    assertThat(children[0].templateText).isEqualTo("myModel 0")
+    assertThat(children[1].templateText).isEqualTo("myModel 1")
     assertThat(children[2].templateText).isEqualTo("Stop inspector")
 
     val event = mock<AnActionEvent>()

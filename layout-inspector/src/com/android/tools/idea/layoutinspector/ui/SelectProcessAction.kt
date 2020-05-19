@@ -30,7 +30,6 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
@@ -73,7 +72,7 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
         if (!serials.add(serial)) {
           continue
         }
-        val deviceName = buildDeviceName(serial, stream.device.model, stream.device.manufacturer)
+        val deviceName = buildDeviceName(serial, stream.device.model)
         add(DeviceAction(deviceName, stream, client, layoutInspector.layoutInspectorModel.project))
       }
     }
@@ -152,18 +151,14 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
   }
 }
 
-fun buildDeviceName(serial: String?, model: String, manufacturer: String?): String {
+fun buildDeviceName(serial: String?, model: String): String {
   var displayModel = model
   val deviceNameBuilder = StringBuilder()
   val suffix = String.format("-%s", serial)
   if (displayModel.endsWith(suffix)) {
     displayModel = displayModel.substring(0, displayModel.length - suffix.length)
   }
-  if (!StringUtil.isEmpty(manufacturer)) {
-    deviceNameBuilder.append(manufacturer)
-    deviceNameBuilder.append(" ")
-  }
-  deviceNameBuilder.append(displayModel)
+  deviceNameBuilder.append(displayModel.replace('_', ' '))
 
   return deviceNameBuilder.toString()
 }
