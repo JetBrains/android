@@ -254,7 +254,6 @@ public class DrawMotionPath implements DrawCommand {
     g2.setStroke(ourMajorLines);
     g2.draw(mGridMajor);
     int diamond = (int)(1 + 5 / scale);
-    g2.setStroke(ourBasicStroke);
     g2.setColor(Color.LIGHT_GRAY);
     g2.setStroke(ourAxis);
     g2.draw(mGridAxis);
@@ -263,6 +262,7 @@ public class DrawMotionPath implements DrawCommand {
     g2.setStroke(ourMinorLines);
     g2.draw(mGridMinor);
 
+    g2.setStroke(ourBasicStroke);
     g2.setColor(Color.white);
     g2.draw(ourPath);
 
