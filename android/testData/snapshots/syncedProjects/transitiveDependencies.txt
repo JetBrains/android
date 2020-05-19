@@ -1515,7 +1515,7 @@ PROJECT             : testTransitiveDependencies
             Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
         ORDER_ENTRY         : testTransitiveDependencies.library1
-    RUN_CONFIGURATION   : testTransitiveDependencies.app
+    RUN_CONFIGURATION   : app
         *class*             : AndroidRunConfiguration
         ModuleName          : testTransitiveDependencies.app
         Module              : testTransitiveDependencies.app

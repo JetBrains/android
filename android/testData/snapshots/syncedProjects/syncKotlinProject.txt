@@ -1366,7 +1366,7 @@ PROJECT             : testSyncKotlinProject
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
-    RUN_CONFIGURATION   : testSyncKotlinProject.app
+    RUN_CONFIGURATION   : app
         *class*             : AndroidRunConfiguration
         ModuleName          : testSyncKotlinProject.app
         Module              : testSyncKotlinProject.app

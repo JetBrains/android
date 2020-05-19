@@ -1289,7 +1289,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
-    RUN_CONFIGURATION   : testSwitchingVariants_variantSpecificDependencies.app
+    RUN_CONFIGURATION   : app
         *class*             : AndroidRunConfiguration
         ModuleName          : testSwitchingVariants_variantSpecificDependencies.app
         Module              : testSwitchingVariants_variantSpecificDependencies.app

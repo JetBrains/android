@@ -1424,7 +1424,7 @@ PROJECT             : AS36
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-    RUN_CONFIGURATION   : AS36.app
+    RUN_CONFIGURATION   : app
         *class*             : AndroidRunConfiguration
         ModuleName          : AS36.app
         Module              : AS36.app
