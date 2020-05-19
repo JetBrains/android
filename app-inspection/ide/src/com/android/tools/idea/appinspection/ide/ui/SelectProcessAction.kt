@@ -25,7 +25,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import icons.StudioIcons
 
@@ -33,15 +32,19 @@ val NO_PROCESS_ACTION = object : AnAction(AppInspectionBundle.message("action.no
   override fun actionPerformed(event: AnActionEvent) {}
 }.apply { templatePresentation.isEnabled = false }
 
-private val ICON = ColoredIconGenerator.generateColoredIcon(StudioIcons.Avd.DEVICE_PHONE, JBColor(0x6E6E6E, 0xAFB1B3))
+private val ICON_COLOR = JBColor(0x6E6E6E, 0xAFB1B3)
+private val ICON_PHONE = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE, ICON_COLOR)
+private val ICON_EMULATOR = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, ICON_COLOR)
 
 class SelectProcessAction(private val model: AppInspectionProcessModel) :
-  DropDownAction(AppInspectionBundle.message("action.select.process"), AppInspectionBundle.message("action.select.process.desc"), ICON) {
+  DropDownAction(AppInspectionBundle.message("action.select.process"), AppInspectionBundle.message("action.select.process.desc"), ICON_PHONE) {
 
-  private var currentProcess: ProcessDescriptor? = null
-
+  private var lastProcess: ProcessDescriptor? = null
+  private var lastProcessCount = 0
   override fun update(event: AnActionEvent) {
-    currentProcess = model.selectedProcess
+    if (model.selectedProcess == lastProcess && model.processes.size == lastProcessCount) return
+
+    val currentProcess = model.selectedProcess
     val content = currentProcess?.let {
       "${it.buildDeviceName()} > ${it.processName}"
     } ?: if (model.processes.isEmpty()) {
@@ -50,9 +53,11 @@ class SelectProcessAction(private val model: AppInspectionProcessModel) :
       AppInspectionBundle.message("no.process.selected")
     }
 
-    if (content != event.presentation.text) {
-      event.presentation.text = content
-    }
+    event.presentation.icon = currentProcess.toIcon()
+    event.presentation.text = content
+
+    lastProcess = currentProcess
+    lastProcessCount = model.processes.size
   }
 
   public override fun updateActions(context: DataContext): Boolean {
@@ -67,7 +72,7 @@ class SelectProcessAction(private val model: AppInspectionProcessModel) :
         continue
       }
       val deviceName = processDescriptor.buildDeviceName()
-      add(DeviceAction(serial, deviceName, model))
+      add(DeviceAction(processDescriptor, model))
     }
     if (childrenCount == 0) {
       val noDeviceAction = object : AnAction(AppInspectionBundle.message("action.no.devices")) {
@@ -92,22 +97,23 @@ class SelectProcessAction(private val model: AppInspectionProcessModel) :
     }
   }
 
-  class DeviceAction(serial: String,
-                     deviceName: String,
-                     model: AppInspectionProcessModel) : DropDownAction(deviceName, null, null) {
+  private class DeviceAction(processDescriptor: ProcessDescriptor, private val model: AppInspectionProcessModel)
+    : DropDownAction(processDescriptor.buildDeviceName(), null, processDescriptor.toIcon()) {
     override fun displayTextInToolbar() = true
 
     init {
-      val (projectProcesses, otherProcesses) = model.processes.filter { it.serial == serial }.partition { model.isProcessPreferred(it) }
+      val (preferredProcesses, otherProcesses) = model.processes
+        .filter { it.serial == processDescriptor.serial }
+        .partition { model.isProcessPreferred(it) }
 
-      for (process in projectProcesses) {
+      for (process in preferredProcesses) {
         add(ConnectAction(process, model))
       }
-      if (projectProcesses.isNotEmpty() && otherProcesses.isNotEmpty()) {
+      if (preferredProcesses.isNotEmpty() && otherProcesses.isNotEmpty()) {
         add(Separator.getInstance())
-      }
-      for (process in otherProcesses) {
-        add(ConnectAction(process, model))
+        for (process in otherProcesses) {
+          add(ConnectAction(process, model))
+        }
       }
 
       if (childrenCount == 0) {
@@ -130,3 +136,5 @@ private fun ProcessDescriptor.buildDeviceName(): String {
 
   return deviceNameBuilder.toString()
 }
+
+private fun ProcessDescriptor?.toIcon() = if (this?.isEmulator == true) ICON_EMULATOR else ICON_PHONE

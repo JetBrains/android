@@ -37,7 +37,10 @@ class ProcessDescriptor(
   /** The name of the process running on the device. */
   val processName: String = process.name
 
+  /** Whether this process is running on a virtual device or a physical one. */
+  val isEmulator: Boolean = stream.device.isEmulator
+
   override fun toString(): String {
-    return "ProcessDescriptor(manufacturer='$manufacturer', model='$model', serial='$serial', processName='$processName')"
+    return "ProcessDescriptor(manufacturer='$manufacturer', model='$model', serial='$serial', processName='$processName', isEmulator='$isEmulator')"
   }
 }

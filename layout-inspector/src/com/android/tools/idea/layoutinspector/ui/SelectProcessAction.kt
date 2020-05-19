@@ -42,10 +42,12 @@ val NO_PROCESS_ACTION = object : AnAction("No debuggable processes detected") {
   }
 }
 
-private val ICON = ColoredIconGenerator.generateColoredIcon(StudioIcons.Avd.DEVICE_PHONE, JBColor(0x6E6E6E, 0xAFB1B3))
+private val ICON_COLOR = JBColor(0x6E6E6E, 0xAFB1B3)
+private val ICON_PHONE = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE, ICON_COLOR)
+private val ICON_EMULATOR = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, ICON_COLOR)
 
 class SelectProcessAction(val layoutInspector: LayoutInspector) :
-  DropDownAction("Select Process", "Select a process to connect to.", ICON) {
+  DropDownAction("Select Process", "Select a process to connect to.", ICON_PHONE) {
 
   private var currentProcess = Common.Process.getDefaultInstance()
   private var project: Project? = null
@@ -59,6 +61,7 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
         if (layoutInspector.currentClient.selectedProcess == Common.Process.getDefaultInstance()) "Select Process" else processName
       currentProcess = layoutInspector.currentClient.selectedProcess
       event.presentation.text = actionName
+      event.presentation.icon = layoutInspector.currentClient.selectedStream.device.toIcon()
     }
   }
 
@@ -137,7 +140,7 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
   class DeviceAction(deviceName: String,
                      stream: Common.Stream,
                      client: InspectorClient,
-                     project: Project) : DropDownAction(deviceName, null, null) {
+                     project: Project) : DropDownAction(deviceName, null, stream.device.toIcon()) {
     override fun displayTextInToolbar() = true
 
     init {
@@ -166,7 +169,7 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
   }
 }
 
-fun buildDeviceName(serial: String?, model: String): String {
+private fun buildDeviceName(serial: String?, model: String): String {
   var displayModel = model
   val deviceNameBuilder = StringBuilder()
   val suffix = String.format("-%s", serial)
@@ -177,3 +180,5 @@ fun buildDeviceName(serial: String?, model: String): String {
 
   return deviceNameBuilder.toString()
 }
+
+private fun Common.Device.toIcon() = if (isEmulator) ICON_EMULATOR else ICON_PHONE
