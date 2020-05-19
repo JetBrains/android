@@ -154,6 +154,7 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
       edtExecutor.execute {
         assertThreadMatch(ThreadType.EDT)
         deviceNamePropertiesMap.remove(device)
+        tasksMap.remove(device);
       }
     }
 
