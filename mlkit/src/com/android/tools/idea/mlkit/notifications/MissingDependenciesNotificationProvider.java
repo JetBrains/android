@@ -63,11 +63,11 @@ public class MissingDependenciesNotificationProvider extends EditorNotifications
     }
 
     if (MlUtils.isModelFileInMlModelsFolder(module, file)
-        && !MlUtils.getMissingDependencies(module).isEmpty()) {
+        && !MlUtils.getMissingRequiredDependencies(module).isEmpty()) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
       panel.setText("TensorFlow Lite model binding dependencies not found.");
       panel.createActionLabel("Add Now", () -> {
-        List<GradleCoordinate> depsToAdd = MlUtils.getMissingDependencies(module);
+        List<GradleCoordinate> depsToAdd = MlUtils.getMissingRequiredDependencies(module);
         // TODO(b/149224613): switch to use DependencyManagementUtil#addDependencies.
         AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
         if (DependencyManagementUtil.userWantsToAdd(module.getProject(), depsToAdd, "")) {
