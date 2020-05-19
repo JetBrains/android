@@ -15,9 +15,9 @@
     <orderEntry type="library" name="jaxb-runtime" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-repository" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:repository:26.6.0.2" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:repository:26.6.0.3" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/repository/26.6.0.2/repository-26.6.0.2.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/repository/26.6.0.3/repository-26.6.0.3.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

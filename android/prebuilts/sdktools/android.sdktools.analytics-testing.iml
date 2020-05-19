@@ -18,9 +18,9 @@
     <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-analytics-testing" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-testing:26.6.0.2" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-testing:26.6.0.3" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-testing/26.6.0.2/analytics-testing-26.6.0.2.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-testing/26.6.0.3/analytics-testing-26.6.0.3.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -28,9 +28,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="android.sdktools.analytics-testing_test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-testing_test:26.6.0.2" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-testing_test:26.6.0.3" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-testing_test/26.6.0.2/analytics-testing_test-26.6.0.2.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-testing_test/26.6.0.3/analytics-testing_test-26.6.0.3.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
