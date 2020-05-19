@@ -21,12 +21,14 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.RunManagerEx
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -71,6 +73,14 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
     }
   }
 
+  fun testOpen36Project() {
+    val projectRoot = prepareGradleProject(TestProjectPaths.RUN_APP_36, "project")
+    openPreparedProject("project") { project ->
+      val androidTestRunConfiguration =
+        RunManagerEx.getInstanceEx(project).allConfigurationsList.filterIsInstance<AndroidTestRunConfiguration>().singleOrNull()
+      assertThat(androidTestRunConfiguration?.name).isEqualTo("All Tests Sub 36")
+    }
+  }
 }
 
 inline fun <reified F, reified M> Module.verifyModel(getFacet: Module.() -> F?, getModel: F.() -> M) {
