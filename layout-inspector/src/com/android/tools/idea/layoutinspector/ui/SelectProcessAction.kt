@@ -37,7 +37,10 @@ import java.util.concurrent.Future
 
 val NO_PROCESS_ACTION = object : AnAction("No debuggable processes detected") {
   override fun actionPerformed(event: AnActionEvent) {}
-}.apply { templatePresentation.isEnabled = false }
+  override fun update(event: AnActionEvent) {
+    event.presentation.isEnabled = false
+  }
+}
 
 private val ICON = ColoredIconGenerator.generateColoredIcon(StudioIcons.Avd.DEVICE_PHONE, JBColor(0x6E6E6E, 0xAFB1B3))
 
@@ -73,14 +76,26 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
           continue
         }
         val deviceName = buildDeviceName(serial, stream.device.model)
-        add(DeviceAction(deviceName, stream, client, layoutInspector.layoutInspectorModel.project))
+        if (stream.device.featureLevel < 23) {
+          add(object : AnAction("$deviceName (Unsupported for API < 23)") {
+            override fun update(event: AnActionEvent) {
+              event.presentation.isEnabled = false
+            }
+            override fun actionPerformed(e: AnActionEvent) {}
+          })
+        }
+        else {
+          add(DeviceAction(deviceName, stream, client, layoutInspector.layoutInspectorModel.project))
+        }
       }
     }
     if (childrenCount == 0) {
       val noDeviceAction = object : AnAction("No devices detected") {
+        override fun update(event: AnActionEvent) {
+          event.presentation.isEnabled = false
+        }
         override fun actionPerformed(event: AnActionEvent) {}
       }
-      noDeviceAction.templatePresentation.isEnabled = false
       add(noDeviceAction)
     }
     else {
