@@ -155,6 +155,8 @@ class CpuThreadStateTable(val profilers: StudioProfilers,
 
   /**
    * Column definition for the thread state table.
+   *
+   * @param type use Java number classes (e.g. [java.lang.Long]) to ensure proper sorting in JTable
    */
   private enum class Column(val displayName: String, val type: Class<*>) {
     THREAD_STATE("Thread State", String::class.java) {
@@ -162,17 +164,17 @@ class CpuThreadStateTable(val profilers: StudioProfilers,
         return data.threadState.displayName
       }
     },
-    TIME("Duration", Long::class.java) {
+    TIME("Duration", java.lang.Long::class.java) {
       override fun getValueFrom(data: ThreadStateRow): Any {
         return data.duration
       }
     },
-    PERCENT("%", Double::class.java) {
+    PERCENT("%", java.lang.Double::class.java) {
       override fun getValueFrom(data: ThreadStateRow): Any {
         return data.percentage
       }
     },
-    OCCURRENCES("Occurrences", Long::class.java) {
+    OCCURRENCES("Occurrences", java.lang.Long::class.java) {
       override fun getValueFrom(data: ThreadStateRow): Any {
         return data.occurrences
       }
