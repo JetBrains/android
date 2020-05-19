@@ -3136,3 +3136,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/jars/classes.jar!/
         ORDER_ENTRY         : testPsdDependencyUpgradeLibraryModule.jModuleK
+    RUN_CONFIGURATION   : testPsdDependencyUpgradeLibraryModule.app
+        *class*             : AndroidRunConfiguration
+        ModuleName          : testPsdDependencyUpgradeLibraryModule.app
+        Module              : testPsdDependencyUpgradeLibraryModule.app

@@ -191,3 +191,7 @@ PROJECT             : My Application
             IsExported          : false
             Name                : Gradle: liba_1 [=]
             *CLASSES            : jar://<PROJECT>/lib2/liba.jar!/
+    RUN_CONFIGURATION   : My_Application
+        *class*             : AndroidRunConfiguration
+        ModuleName          : My_Application
+        Module              : My_Application

@@ -931,3 +931,7 @@ PROJECT             : MainActivity
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
+    RUN_CONFIGURATION   : MainActivity.app
+        *class*             : AndroidRunConfiguration
+        ModuleName          : MainActivity.app
+        Module              : MainActivity.app

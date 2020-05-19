@@ -660,3 +660,7 @@ PROJECT             : testSyncWithKotlinDsl
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
+    RUN_CONFIGURATION   : testSyncWithKotlinDsl.app
+        *class*             : AndroidRunConfiguration
+        ModuleName          : testSyncWithKotlinDsl.app
+        Module              : testSyncWithKotlinDsl.app
