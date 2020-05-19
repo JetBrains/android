@@ -18,7 +18,9 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.constraint.MotionConstraintPanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
@@ -30,9 +32,11 @@ import com.android.tools.idea.uibuilder.handlers.motion.property2.action.DeleteC
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.DeleteMotionFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.SubSectionControlAction;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property2.inspector.InspectorSection;
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider;
 import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanControlTypeProvider;
 import com.android.tools.idea.uibuilder.property2.ui.EmptyTablePanel;
+import com.android.tools.idea.uibuilder.property2.ui.TransformsPanel;
 import com.android.tools.property.panel.api.EditorProvider;
 import com.android.tools.property.panel.api.FilteredPTableModel;
 import com.android.tools.property.panel.api.InspectorBuilder;
@@ -50,6 +54,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import com.intellij.xml.XmlElementDescriptor;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -109,6 +114,9 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
         case CONSTRAINT:
           boolean showConstraintPanel = !shouldDisplaySection(MotionSceneAttrs.Tags.LAYOUT, selection);
           addPropertyTable(inspector, selection, MotionSceneAttrs.Tags.CONSTRAINT, myModel, true, false, showConstraintPanel);
+          if (StudioFlags.NELE_TRANSFORM_PANEL.get()) {
+            addTransforms(inspector, selection, myModel, properties);
+          }
           addSubTagSections(inspector, selection, myModel);
           break;
 
@@ -123,6 +131,36 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       }
       boolean showDefaultValues = selection.getType() == MotionEditorSelector.Type.CONSTRAINT;
       addCustomAttributes(inspector, selection, myModel, showDefaultValues);
+    }
+
+    private void addTransforms(@NotNull InspectorPanel inspector,
+                               @NotNull MotionSelection selection,
+                               @NotNull MotionLayoutAttributesModel model,
+                               @NotNull PropertiesTable<NelePropertyItem> properties) {
+      InspectorLineModel titleModel = inspector.addExpandableTitle(InspectorSection.TRANSFORMS.getTitle(), false, new ArrayList());
+      inspector.addComponent(new TransformsPanel(properties), titleModel);
+
+      ArrayList<String> attributes = new ArrayList<>();
+      attributes.add("rotationX");
+      attributes.add("rotationY");
+      attributes.add("rotation");
+      attributes.add("scaleX");
+      attributes.add("scaleY");
+      attributes.add("translationX");
+      attributes.add("translationY");
+      attributes.add("alpha");
+      attributes.add("visibility");
+
+      NeleEnumSupportProvider enumSupportProvider = new NeleEnumSupportProvider(model);
+      NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(enumSupportProvider);
+      EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
+
+      for (String attributeName : attributes) {
+        NelePropertyItem property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName);
+        if (property != null) {
+          inspector.addEditor(editorProvider.createEditor(property, false), titleModel);
+        }
+      }
     }
 
     private void addSubTagSections(@NotNull InspectorPanel inspector,
