@@ -234,7 +234,10 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     myNativeAllocationButton = new JButton(RECORD_NATIVE_TEXT);
     myNativeAllocationButton.setPreferredSize(myNativeAllocationButton.getPreferredSize());
     myNativeAllocationButton
-      .addActionListener(e -> getStage().toggleNativeAllocationTracking());
+      .addActionListener(e -> {
+        getStage().toggleNativeAllocationTracking();
+        myNativeAllocationButton.setEnabled(false);
+      });
     myNativeAllocationButton.setVisible(getStage().isNativeAllocationSamplingEnabled());
     myNativeAllocationAction =
       new ProfilerAction.Builder(RECORD_NATIVE_TEXT)
@@ -484,6 +487,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
       myNativeAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
       myNativeAllocationButton.setToolTipText(isX86OrX64Device ? X86_RECORD_NATIVE_TOOLTIP : RECORD_NATIVE_TEXT);
     }
+    myNativeAllocationButton.setEnabled(true);
   }
 
   private void updateCaptureElapsedTime() {

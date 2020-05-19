@@ -34,6 +34,7 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
@@ -745,6 +746,15 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(myProfilers.getSessionsManager().getSelectedSessionMetaData().getProcessAbi()).isEqualTo("x86");
     MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
     assertThat(view.getNativeAllocationButton().getToolTipText()).isEqualTo(view.X86_RECORD_NATIVE_TOOLTIP);
+    assertThat(view.getNativeAllocationButton().isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testButtonMashForNativeAllocations() {
+    assumeTrue(myUnifiedPipeline);
+    myIdeProfilerServices.enableNativeMemorySampling(true);
+    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
+    view.getNativeAllocationButton().doClick();
     assertThat(view.getNativeAllocationButton().isEnabled()).isFalse();
   }
 
