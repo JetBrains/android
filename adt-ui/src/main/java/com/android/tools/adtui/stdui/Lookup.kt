@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.SelectiveFilteringListModel
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.codeStyle.MinusculeMatcher
-import com.intellij.psi.codeStyle.NameUtil
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
@@ -27,24 +26,14 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN
 import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.SpeedSearchUtil
+import com.intellij.util.ui.FixingLayoutMatcherUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
-import java.awt.Component
-import java.awt.Dimension
-import java.awt.Point
-import java.awt.Rectangle
-import java.awt.Toolkit
+import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.DefaultListModel
-import javax.swing.JComponent
-import javax.swing.JList
-import javax.swing.JPopupMenu
-import javax.swing.ListCellRenderer
-import javax.swing.ListModel
-import javax.swing.ListSelectionModel
+import javax.swing.*
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
-import javax.swing.SwingUtilities
 import kotlin.math.max
 import kotlin.math.min
 
@@ -257,7 +246,7 @@ class Matcher {
   var pattern: String = ""
     set(value) {
       field = value
-      internalMatcher = NameUtil.buildMatcher("*$value").build()
+      internalMatcher = FixingLayoutMatcherUtil.buildLayoutFixingMatcher("*$value").build()
 
     }
 
