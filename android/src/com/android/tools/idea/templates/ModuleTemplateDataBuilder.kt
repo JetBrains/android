@@ -214,11 +214,11 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     ApplicationManager.getApplication().runReadAction {
       val hasActionBar = ThemeHelper.hasActionBar(configuration, themeName)
       themesData = ThemesData(
-        capitalizeAppName(module.project.name),
-        ThemeData(themeName, true),
-        getDerivedTheme(themeName, noActionBar, hasActionBar == false),
-        getDerivedTheme(themeName, appBarOverlay, false),
-        getDerivedTheme(themeName, popupOverlay, false)
+        appName = capitalizeAppName(module.project.name),
+        main = ThemeData(themeName, true),
+        noActionBar = getDerivedTheme(themeName, noActionBar, hasActionBar == false),
+        appBarOverlay = getDerivedTheme(themeName, appBarOverlay, false),
+        popupOverlay = getDerivedTheme(themeName, popupOverlay, false)
       )
     }
   }
