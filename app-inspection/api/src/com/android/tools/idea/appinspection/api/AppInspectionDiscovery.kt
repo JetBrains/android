@@ -39,6 +39,7 @@ import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import java.lang.Long.max
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
@@ -87,6 +88,10 @@ class AppInspectionDiscoveryHost(
      */
     val projectName: String
   )
+
+  // Keep track of the last_active_event_timestamp per stream. This ensures that in the event the stream is disconnected and connected
+  // again, AppInspection will be able to filter out and ignore the events that happened in the past.
+  private val streamLastActiveTime = ConcurrentHashMap<Long, Long>()
 
   private val discovery = AppInspectionDiscovery(executor, client)
 
@@ -164,23 +169,28 @@ class AppInspectionDiscoveryHost(
     manager.addStreamListener(object : TransportStreamListener {
       override fun onStreamConnected(streamChannel: TransportStreamChannel) {
         streamIdMap[streamChannel.stream.streamId] = streamChannel
+        val streamLastEventTimestamp = streamLastActiveTime[streamChannel.stream.streamId]?.let { { it + 1} } ?: { Long.MIN_VALUE }
         streamChannel.registerStreamEventListener(
           TransportStreamEventListener(
             eventKind = Common.Event.Kind.PROCESS,
             executor = executor,
-            filter = { it.process.hasProcessStarted() }
+            filter = { it.process.hasProcessStarted() },
+            startTime = streamLastEventTimestamp
           ) {
             val process = it.process.processStarted.process
             addProcess(streamChannel, process)
+            setStreamLastActiveTime(streamChannel.stream.streamId, it.timestamp)
           }
         )
         streamChannel.registerStreamEventListener(
           TransportStreamEventListener(
             eventKind = Common.Event.Kind.PROCESS,
             executor = executor,
-            filter = { !it.process.hasProcessStarted() }
+            filter = { !it.process.hasProcessStarted() },
+            startTime = streamLastEventTimestamp
           ) {
             removeProcess(streamChannel.stream.streamId, it.groupId.toInt())
+            setStreamLastActiveTime(streamChannel.stream.streamId, it.timestamp)
           }
         )
       }
@@ -189,6 +199,10 @@ class AppInspectionDiscoveryHost(
         streamIdMap.remove(streamChannel.stream.streamId)
       }
     }, executor)
+  }
+
+  private fun setStreamLastActiveTime(streamId: Long, timestamp: Long) {
+    streamLastActiveTime[streamId] = max(timestamp, streamLastActiveTime[streamId]  ?: Long.MIN_VALUE)
   }
 
   /**
