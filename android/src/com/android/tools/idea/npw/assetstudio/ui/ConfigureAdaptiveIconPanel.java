@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.getNewAndroidModuleTemplateImage;
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.getBundledImage;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
 import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.DEFAULT_FOREGROUND_COLOR;
 
@@ -99,8 +99,8 @@ import org.jetbrains.annotations.Nullable;
 public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, ConfigureIconView, PersistentStateComponent<PersistentState> {
   private static final boolean HIDE_INAPPLICABLE_CONTROLS = false; // TODO Decide on hiding or disabling.
 
-  private static final File DEFAULT_FOREGROUND_IMAGE = getNewAndroidModuleTemplateImage("drawable-v24", "ic_launcher_foreground.xml");
-  private static final File DEFAULT_BACKGROUND_IMAGE = getNewAndroidModuleTemplateImage("drawable", "ic_launcher_background.xml");
+  private static final File DEFAULT_FOREGROUND_IMAGE = getBundledImage("asset_studio", "ic_launcher_foreground.xml");
+  private static final File DEFAULT_BACKGROUND_IMAGE = getBundledImage("asset_studio", "ic_launcher_background.xml");
   private static final ForegroundAssetType DEFAULT_FOREGROUND_ASSET_TYPE = ForegroundAssetType.IMAGE;
   private static final BackgroundAssetType DEFAULT_BACKGROUND_ASSET_TYPE = BackgroundAssetType.IMAGE;
   private static final Density DEFAULT_PREVIEW_DENSITY = Density.XHIGH;
