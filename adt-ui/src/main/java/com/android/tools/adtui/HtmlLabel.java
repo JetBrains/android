@@ -68,6 +68,8 @@ public class HtmlLabel extends JEditorPane {
     editorPane.setContentType("text/html");
     editorPane.setEditable(false);
     editorPane.setOpaque(false);
+    editorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+
     String bodyRule = "body { font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt; " + color + " } " +
                       "ol { padding-left: 0px; margin-left: 35px; margin-top: 0px; } " +
                       "ol li { margin-left: 0px; padding-left: 0px; list-style-type: decimal; }";
