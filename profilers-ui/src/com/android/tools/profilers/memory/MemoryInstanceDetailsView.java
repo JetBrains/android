@@ -30,6 +30,7 @@ import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.stdui.StandardColors;
+import com.android.tools.profilers.CloseButton;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
@@ -130,10 +131,11 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     myAllocationStackTraceView = ideProfilerComponents.createStackView(selection.getAllocationStackTraceModel());
     myDeallocationStackTraceView = ideProfilerComponents.createStackView(selection.getDeallocationStackTraceModel());
 
-    JPanel titleWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    JPanel titleWrapper = new JPanel(new BorderLayout());
     titleWrapper.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, DEFAULT_BORDER_COLOR));
     myTitle.setBorder(new JBEmptyBorder(4, 0, 4, 0));
-    titleWrapper.add(myTitle);
+    titleWrapper.add(myTitle, BorderLayout.CENTER);
+    titleWrapper.add(new CloseButton(e -> mySelection.selectInstanceObject(null)), BorderLayout.EAST);
     myPanel.add(myTabsPanel, BorderLayout.CENTER);
     if (selection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
       myPanel.add(titleWrapper, BorderLayout.NORTH);
