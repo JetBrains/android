@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.intellij.util.ObjectUtils.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.FakeTimer;
