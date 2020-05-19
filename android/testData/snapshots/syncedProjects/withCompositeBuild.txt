@@ -3003,3 +3003,15 @@ PROJECT             : testWithCompositeBuild
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
+    RUN_CONFIGURATION   : TestCompositeLib1.app
+        *class*             : AndroidRunConfiguration
+        ModuleName          : TestCompositeLib1.app
+        Module              : TestCompositeLib1.app
+    RUN_CONFIGURATION   : TestCompositeLib3.app
+        *class*             : AndroidRunConfiguration
+        ModuleName          : TestCompositeLib3.app
+        Module              : TestCompositeLib3.app
+    RUN_CONFIGURATION   : testWithCompositeBuild.app
+        *class*             : AndroidRunConfiguration
+        ModuleName          : testWithCompositeBuild.app
+        Module              : testWithCompositeBuild.app

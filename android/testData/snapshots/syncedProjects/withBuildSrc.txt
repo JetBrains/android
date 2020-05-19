@@ -719,3 +719,7 @@ PROJECT             : testWithBuildSrc
             IsExported          : true
             Name                : Gradle: testWithBuildSrc.buildSrc.lib2.lib2 [=]
             *CLASSES            : jar://<PROJECT>/buildSrc/lib2/build/libs/lib2.jar!/
+    RUN_CONFIGURATION   : testWithBuildSrc.app
+        *class*             : AndroidRunConfiguration
+        ModuleName          : testWithBuildSrc.app
+        Module              : testWithBuildSrc.app
