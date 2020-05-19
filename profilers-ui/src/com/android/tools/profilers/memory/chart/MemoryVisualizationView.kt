@@ -85,11 +85,17 @@ class MemoryVisualizationView(private val selection: MemoryCaptureSelection,
     if (selected) {
       selection.aspect.addDependency(this).onChange(CaptureSelectionAspect.CURRENT_FILTER) { rebuildUI() }
       initialClassGrouping = selection.selectedHeapSet?.classGrouping ?: return
+      // Rebuilding the UI also sets the selected heap to a callstack view.
       rebuildUI()
+      // After the heap is setup properly and our UI elements are created select the current heap to apply
+      // any filters previously set from other tabs.
+      selection.filterHandler.refreshFilterContent()
     }
     else {
       selection.aspect.removeDependencies(this)
       selection.selectedHeapSet?.classGrouping = initialClassGrouping ?: return
+      // After the heap is setup properly back to its initial state select the heap to apply filters previously set from this tab.
+      selection.filterHandler.refreshFilterContent()
     }
   }
 
