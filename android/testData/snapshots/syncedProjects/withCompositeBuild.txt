@@ -3011,7 +3011,7 @@ PROJECT             : testWithCompositeBuild
         *class*             : AndroidRunConfiguration
         ModuleName          : TestCompositeLib3.app
         Module              : TestCompositeLib3.app
-    RUN_CONFIGURATION   : testWithCompositeBuild.app
+    RUN_CONFIGURATION   : app
         *class*             : AndroidRunConfiguration
         ModuleName          : testWithCompositeBuild.app
         Module              : testWithCompositeBuild.app
