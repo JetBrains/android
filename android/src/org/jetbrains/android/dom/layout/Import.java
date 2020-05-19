@@ -17,11 +17,15 @@ package org.jetbrains.android.dom.layout;
 
 import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.util.xml.*;
+import com.intellij.util.xml.Attribute;
+import com.intellij.util.xml.Convert;
+import com.intellij.util.xml.DefinesXml;
+import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.converters.DataBindingConverter;
 
 @DefinesXml
-public interface Import extends LayoutElement, DataBindingElement {
+public interface Import extends DataBindingElement {
   @Attribute("type")
   @Required
   @Convert(value = DataBindingConverter.class, soft = false)

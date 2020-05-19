@@ -24,7 +24,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 
 /**
  * Base interface for tags that can own all view classes as sub-tags (e.g. {@code Button},
- * {@code TextView}, etc.)
+ * {@code TextView}, etc.) or support android:layout_XXX attributes.
  * <p>
  * See also {@link SubtagsProcessingUtil#processSubtags(AndroidFacet, AndroidDomElement, SubtagsProcessingUtil.SubtagProcessor)}
  * which is responsible for dynamically registering the sub-tags for all view classes, which will

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom.layout;
+package org.jetbrains.android.dom.layout
 
-import org.jetbrains.android.dom.AndroidDomElement;
+import com.android.SdkConstants.VIEW_MERGE
+import com.intellij.openapi.module.Module
+import com.intellij.psi.xml.XmlFile
 
 /**
- * Marker interface with no methods, used to distinguish plain LayoutElements from those that are
- * related to data binding, for now used in {@link org.jetbrains.android.dom.AndroidDomExtender} to
- * avoid adding completion of tools namespace attributes that should be available on views but
- * not on data binding tags.
+ * Merge root tag: `<merge>`
  */
-public interface DataBindingElement extends AndroidDomElement {
+class MergeDomFileDescription : LayoutDomFileDescription<Merge>(Merge::class.java, VIEW_MERGE) {
+  override fun checkFile(file: XmlFile, module: Module?) = hasMergeRootTag(file)
+
+  companion object {
+    fun hasMergeRootTag(file: XmlFile) = VIEW_MERGE == file.rootTag?.name
+  }
 }
