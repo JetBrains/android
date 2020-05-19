@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
@@ -28,14 +29,17 @@ import org.mockito.Mockito;
 import java.io.File;
 
 import static com.android.tools.idea.testing.TestProjectPaths.APPLICATION_ID_SUFFIX;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 
 /**
  * Tests for {@link AndroidPackageUtils}.
  */
 public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
   public void testGetPackageForPath() throws Exception {
-    loadProject(PROJECT_WITH_APPAND_LIB);
+    loadProject(SIMPLE_APPLICATION);
+    // Run assemble task to generate output listing file.
+    String taskName = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();
+    invokeGradleTasks(getProject(), taskName);
 
     File javaSrcDir = new File(AndroidRootUtil.findModuleRootFolderPath(myAndroidFacet.getModule()), "src/main/java");
     AndroidModulePaths androidModuleTemplate = Mockito.mock(AndroidModulePaths.class);
@@ -45,10 +49,8 @@ public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
     String defaultPackage = getModel().getApplicationId();
 
     // Anything inside the Java src directory should return the "local package"
-    assertEquals(defaultPackage, getPackageForPath(moduleTemplate, "app/src/main/java/com/example/projectwithappandlib/app"));
-    assertEquals("com.example.projectwithappandlib", getPackageForPath(moduleTemplate, "app/src/main/java/com/example/projectwithappandlib"));
-    assertEquals("com.example", getPackageForPath(moduleTemplate, "app/src/main/java/com/example"));
-    assertEquals("com", getPackageForPath(moduleTemplate, "app/src/main/java/com"));
+    assertEquals("google.simpleapplication", getPackageForPath(moduleTemplate, "app/src/main/java/google/simpleapplication"));
+    assertEquals("google", getPackageForPath(moduleTemplate, "app/src/main/java/google"));
 
     // Anything outside the Java src directory should return the default package
     assertEquals(defaultPackage, getPackageForPath(moduleTemplate, "app/src/main/java"));
@@ -69,7 +71,9 @@ public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
 
   public void testGetPackageForPathWithApplicationIfSuffix() throws Exception {
     loadProject(APPLICATION_ID_SUFFIX);
-
+    // Run assemble task to generate output listing file.
+    String taskName = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();
+    invokeGradleTasks(getProject(), taskName);
     // Bug b/146366612
     assertEquals("one.name.debug", getModel().getApplicationId());
   }

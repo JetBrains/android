@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils.useSelectApksFromBundl
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
@@ -166,4 +165,26 @@ private fun getOutputListingFileFromAndroidArtifact(testArtifact: IdeAndroidArti
       testArtifact.bundleTaskOutputListingFile
     }
   }
+}
+
+/**
+ * Retrieve application from build output listing file.
+ */
+fun getApplicationIdFromListingFile(androidModel: AndroidModuleModel, variantName: String): String? {
+  val listingFile = getOutputListingFileFromVariantBuildInformation(androidModel, variantName, OutputType.Apk)
+  if (listingFile == null) {
+    LOG.warn("Failed to find output listing file for variant ${variantName}. Build may have failed.")
+    return null
+  }
+  return getApplicationIdFromListingFile(listingFile)
+}
+
+@VisibleForTesting
+fun getApplicationIdFromListingFile(listingFile: String): String? {
+  val builtArtifacts = loadFromFile(File(listingFile), LogWrapper(LOG))
+  if (builtArtifacts != null) {
+    return builtArtifacts.applicationId
+  }
+  LOG.warn("Failed to read Json output file from ${listingFile}. Build may have failed.")
+  return null
 }
