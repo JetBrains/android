@@ -41,6 +41,18 @@ class CaptureNodeDetailTableTest {
     assertThat(table.getValueAt(0, 4)).isEqualTo(3)
   }
 
+  @Test
+  fun tableShouldBeSortedByValueNotByToString() {
+    val table = CaptureNodeDetailTable(NODES_TO_SORT, Range(0.0, 100.0)).table
+    assertThat(table.getValueAt(0, 0)).isEqualTo(10)
+    assertThat(table.getValueAt(1, 0)).isEqualTo(2)
+    assertThat(table.getValueAt(2, 0)).isEqualTo(300)
+    table.rowSorter.toggleSortOrder(0)
+    assertThat(table.getValueAt(0, 0)).isEqualTo(2)
+    assertThat(table.getValueAt(1, 0)).isEqualTo(10)
+    assertThat(table.getValueAt(2, 0)).isEqualTo(300)
+  }
+
   companion object {
     val NODE = CaptureNode(SingleNameModel("Foo")).apply {
       startGlobal = 10
@@ -61,5 +73,16 @@ class CaptureNodeDetailTableTest {
         endThread = 17
       })
     }
+    val NODES_TO_SORT = listOf(
+      CaptureNode(SingleNameModel("Foo")).apply {
+        startGlobal = 10
+      },
+      CaptureNode(SingleNameModel("Foo")).apply {
+        startGlobal = 2
+      },
+      CaptureNode(SingleNameModel("Foo")).apply {
+        startGlobal = 300
+      }
+    )
   }
 }
