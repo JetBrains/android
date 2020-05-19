@@ -45,11 +45,13 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.VfsTestUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.indexing.FileBasedIndex;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
@@ -133,16 +135,22 @@ public class MlLightClassTest extends AndroidTestCase {
       "        try {\n" +
       "            Model.Options options = new Model.Options();\n" +
       "            MobilenetModel mobilenetModel = MobilenetModel.newInstance(this);\n" +
-      "            TensorImage image = null;\n" +
+      "            TensorImage image = new TensorImage();\n" +
+      "            TensorBuffer buffer = new TensorBuffer();\n" +
       "            MobilenetModel.Outputs mobilenetOutputs = mobilenetModel.process(image);\n" +
+      "            mobilenetOutputs = mobilenetModel.process(buffer);\n" +
       "            List<Category> categoryList = mobilenetOutputs.getProbabilityAsCategoryList();\n" +
+      "            TensorBuffer categoryBuffer = mobilenetOutputs.getProbabilityAsTensorBuffer();\n" +
       "\n" +
       "            MobilenetModel219 mobilenetModel219 = MobilenetModel219.newInstance(this, options);\n" +
       "            MobilenetModel219.Outputs mobilenetOutputs2 = mobilenetModel219.process(image);\n" +
+      "            mobilenetOutputs2 = mobilenetModel219.process(buffer);\n" +
       "            List<Category> categoryList2 = mobilenetOutputs2.getProbabilityAsCategoryList();\n" +
+      "            TensorBuffer categoryBuffer2 = mobilenetOutputs2.getProbabilityAsTensorBuffer();\n" +
       "\n" +
       "            SsdModel ssdModel = SsdModel.newInstance(this);\n" +
       "            SsdModel.Outputs ssdOutputs = ssdModel.process(image);\n" +
+      "            ssdOutputs = ssdModel.process(buffer);\n" +
       "            TensorBuffer locations = ssdOutputs.getLocationsAsTensorBuffer();\n" +
       "            TensorBuffer classes = ssdOutputs.getClassesAsTensorBuffer();\n" +
       "            TensorBuffer scores = ssdOutputs.getScoresAsTensorBuffer();\n" +
@@ -151,7 +159,9 @@ public class MlLightClassTest extends AndroidTestCase {
       "            TensorBuffer stylearray = null;\n" +
       "            StyleTransferModel styleTransferModel = StyleTransferModel.newInstance(this, options);\n" +
       "            StyleTransferModel.Outputs outputs = styleTransferModel.process(image, stylearray);\n" +
+      "            outputs = styleTransferModel.process(buffer, stylearray);\n" +
       "            TensorImage styledimage = outputs.getStyledImageAsTensorImage();" +
+      "            TensorBuffer styledimageBuffer = outputs.getStyledImageAsTensorBuffer();" +
       "        } catch (IOException e) {};\n" +
       "    }\n" +
       "}"
@@ -291,29 +301,35 @@ public class MlLightClassTest extends AndroidTestCase {
       "import p1.p2.ml.StyleTransferModel\n" +
       "\n" +
       "class MainActivity : Activity() {\n" +
+      "    @Suppress(\"DEPRECATION\")" +
       "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
       "        super.onCreate(savedInstanceState)\n" +
       "        val options = Model.Options()\n" +
       "        val tensorImage = TensorImage()\n" +
       "        val tensorBuffer = TensorBuffer()\n" +
       "\n" +
-      "        val mobilenetModel = MobilenetModel.newInstance(this)\n" +
-      "        val mobilenetOutputs = mobilenetModel.process(tensorImage)\n" +
-      "        val probability = mobilenetOutputs.probabilityAsCategoryList\n" +
-      "        Log.d(\"TAG\", \"Result\" + probability)\n" +
+      "        val mobilenetModel : MobilenetModel = MobilenetModel.newInstance(this)\n" +
+      "        val mobilenetOutputs : MobilenetModel.Outputs = mobilenetModel.process(tensorImage)\n" +
+      "        val mobilenetOutputs2 : MobilenetModel.Outputs = mobilenetModel.process(tensorBuffer)\n" +
+      "        val probability : List<Category> = mobilenetOutputs.probabilityAsCategoryList\n" +
+      "        val probabilityBuffer : TensorBuffer = mobilenetOutputs.probabilityAsTensorBuffer\n" +
+      "        Log.d(\"TAG\", \"Result\" + probability + probabilityBuffer + mobilenetOutputs2)\n" +
       "\n" +
-      "        val ssdModel = SsdModel.newInstance(this, options)\n" +
-      "        val ssdOutputs = ssdModel.process(tensorImage)\n" +
-      "        val locations = ssdOutputs.locationsAsTensorBuffer\n" +
-      "        val classes = ssdOutputs.classesAsTensorBuffer\n" +
-      "        val scores = ssdOutputs.scoresAsTensorBuffer\n" +
-      "        val numberofdetections = ssdOutputs.numberOfDetectionsAsTensorBuffer\n" +
-      "        Log.d(\"TAG\", \"Result\" + locations + classes + scores + numberofdetections)\n" +
+      "        val ssdModel : SsdModel = SsdModel.newInstance(this, options)\n" +
+      "        val ssdOutputs : SsdModel.Outputs = ssdModel.process(tensorImage)\n" +
+      "        val ssdOutputs2 : SsdModel.Outputs = ssdModel.process(tensorBuffer)\n" +
+      "        val locations : TensorBuffer = ssdOutputs.locationsAsTensorBuffer\n" +
+      "        val classes : TensorBuffer = ssdOutputs.classesAsTensorBuffer\n" +
+      "        val scores : TensorBuffer = ssdOutputs.scoresAsTensorBuffer\n" +
+      "        val numberofdetections : TensorBuffer = ssdOutputs.numberOfDetectionsAsTensorBuffer\n" +
+      "        Log.d(\"TAG\", \"Result\" + locations + classes + scores + numberofdetections + ssdOutputs2)\n" +
       "\n" +
-      "        val styleTransferModel = StyleTransferModel.newInstance(this, options)\n" +
-      "        val styleTransferOutputs = styleTransferModel.process(tensorImage, tensorBuffer)\n" +
-      "        val styledImage = styleTransferOutputs.styledImageAsTensorImage\n" +
-      "        Log.d(\"TAG\", \"Result\" + styledImage)\n" +
+      "        val styleTransferModel : StyleTransferModel = StyleTransferModel.newInstance(this, options)\n" +
+      "        val styleTransferOutputs : StyleTransferModel.Outputs = styleTransferModel.process(tensorImage, tensorBuffer)\n" +
+      "        val styleTransferOutputs2 : StyleTransferModel.Outputs = styleTransferModel.process(tensorBuffer, tensorBuffer)\n" +
+      "        val styledImage : TensorImage = styleTransferOutputs.styledImageAsTensorImage\n" +
+      "        val styledImageBuffer : TensorBuffer = styleTransferOutputs.styledImageAsTensorBuffer\n" +
+      "        Log.d(\"TAG\", \"Result\" + styledImage + styledImageBuffer + styleTransferOutputs2)\n" +
       "    }\n" +
       "}"
     );
@@ -489,7 +505,7 @@ public class MlLightClassTest extends AndroidTestCase {
     );
 
     myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
-    myFixture.complete(CompletionType.BASIC);
+    myFixture.complete(CompletionType.SMART);
     myFixture.checkResult(
       "package p1.p2;\n" +
       "\n" +
@@ -700,6 +716,25 @@ public class MlLightClassTest extends AndroidTestCase {
     List<String> classNameList = ContainerUtil.map(lightClasses, psiClass -> psiClass.getName());
     assertThat(classNameList).containsExactly("MyModel", "MyPlainModel");
     assertThat(ModuleUtilCore.findModuleForPsiElement(lightClasses.get(0))).isEqualTo(myModule);
+  }
+
+  public void testFallbackApisAreDeprecated() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+
+    MlModuleService mlkitService = MlModuleService.getInstance(myModule);
+    List<LightModelClass> lightClasses = mlkitService.getLightModelClassList();
+    assertThat(lightClasses).hasSize(1);
+
+    LightModelClass lightModelClass = lightClasses.get(0);
+    List<PsiMethod> deprecatedProcessMethods =
+      ContainerUtil.filter(Arrays.asList(lightModelClass.getMethods()), method -> method.isDeprecated());
+    assertThat(deprecatedProcessMethods).hasSize(1);
+    assertThat(deprecatedProcessMethods.get(0).getName()).isEqualTo("process");
+    List<PsiMethod> deprecatedGetMethods =
+      ContainerUtil.filter(Arrays.asList(lightModelClass.getInnerClasses()[0].getMethods()), method -> method.isDeprecated());
+    assertThat(deprecatedGetMethods).hasSize(1);
+    assertThat(deprecatedGetMethods.get(0).getName()).isEqualTo("getProbabilityAsTensorBuffer");
   }
 
   public void testBrokenFiles() {

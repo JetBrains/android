@@ -471,7 +471,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     String modelClassName = modelClass.getName();
     codeBuilder.append(INDENT).append(String.format("%s model = %s.newInstance(context);\n\n", modelClassName, modelClassName));
 
-    PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
+    PsiMethod processMethod = findUndeprecatedMethodByName(modelClass, "process");
     if (processMethod.getReturnType() != null) {
       codeBuilder.append(buildTensorInputSampleCodeInJava(processMethod, modelInfo));
 
@@ -494,6 +494,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     if (outputsClass != null) {
       Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
+        if (psiMethod.isDeprecated()) {
+          continue;
+        }
         String tensorName = outputTensorNameIterator.next();
         codeBuilder
           .append(INDENT)
@@ -531,7 +534,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       .append(INDENT)
       .append(String.format("val model = %s.newInstance(context)\n\n", modelClass.getName()));
 
-    PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
+    PsiMethod processMethod = findUndeprecatedMethodByName(modelClass, "process");
     if (processMethod.getReturnType() != null) {
       codeBuilder.append(buildTensorInputSampleCodeInKotlin(processMethod, modelInfo));
 
@@ -548,6 +551,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     if (outputsClass != null) {
       Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
+        if (psiMethod.isDeprecated()) {
+          continue;
+        }
         String tensorName = outputTensorNameIterator.next();
         codeBuilder
           .append(INDENT)
@@ -570,6 +576,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       .append("}");
 
     return codeBuilder.toString();
+  }
+
+  @NotNull
+  private static PsiMethod findUndeprecatedMethodByName(@NotNull PsiClass psiClass, @NotNull String name) {
+    PsiMethod[] methods = psiClass.findMethodsByName(name, false);
+    return ContainerUtil.filter(Arrays.asList(methods), method -> !method.isDeprecated()).get(0);
   }
 
   /**
