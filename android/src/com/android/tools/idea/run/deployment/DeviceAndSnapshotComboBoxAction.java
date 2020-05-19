@@ -230,7 +230,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return Collections.singletonList(device);
   }
 
-  void setMultipleDevicesSelected(@NotNull Project project, @SuppressWarnings("SameParameterValue") boolean multipleDevicesSelected) {
+  void setMultipleDevicesSelected(@NotNull Project project, boolean multipleDevicesSelected) {
     myDevicesSelectedServiceGetInstance.apply(project).setMultipleDevicesSelectedInComboBox(multipleDevicesSelected);
 
     List<Device> devices = getSelectedDevices(project);
@@ -244,7 +244,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return;
     }
 
-    setMultipleDevicesSelected(project, true);
+    setMultipleDevicesSelected(project, !myDevicesSelectedServiceGetInstance.apply(project).isDialogSelectionEmpty());
   }
 
   @NotNull
