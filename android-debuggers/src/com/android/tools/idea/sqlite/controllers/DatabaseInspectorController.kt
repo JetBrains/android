@@ -272,10 +272,6 @@ class DatabaseInspectorControllerImpl(
       schema
     }
     catch (e: LiveInspectorException) {
-      ensureActive()
-      withContext(uiThread) {
-        view.reportError("Error reading Sqlite database", e)
-      }
       null
     }
     catch (e: Exception) {

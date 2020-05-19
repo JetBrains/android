@@ -24,6 +24,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
@@ -1297,5 +1298,18 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Assert
     verify(mockSqliteView).closeTab(TabId.TableTab(databaseId1, testSqliteTable.name))
     verify(mockSqliteView, times(0)).closeTab(TabId.TableTab(databaseId2, testSqliteTable.name))
+  }
+
+  fun testGetSchemaErrorsFromLiveInspectorAreNotReported() {
+    // Prepare
+    `when`(mockDatabaseConnection.readSchema()).thenThrow(LiveInspectorException::class.java)
+
+    // Act
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+
+    // Assert
+    orderVerifier.verify(mockSqliteView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
   }
 }
