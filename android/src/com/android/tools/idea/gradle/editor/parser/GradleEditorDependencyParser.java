@@ -141,10 +141,9 @@ public class GradleEditorDependencyParser {
         dependencies.add(entry.getKey());
       }
     }
-    String dimensionValue = dependencyDeclarationString.substring(dimensionRange.getStartOffset(), dimensionRange.getEndOffset());
+    String dimensionValue = dimensionRange.substring(dependencyDeclarationString);
     List<GradleEditorSourceBinding> sourceBindings = new ArrayList<>();
-    if (dependencies.isEmpty()
-        || dependencies.size() > 1
+    if (dependencies.size() != 1
         // There is a possible definition like 'my-group:my-artifact:$version' - we don't want to count referenced version as
         // an actual value definition here.
         || !GradleEditorModelUtil.isVariable(dimensionValue, dependencies.get(0).name)) {
