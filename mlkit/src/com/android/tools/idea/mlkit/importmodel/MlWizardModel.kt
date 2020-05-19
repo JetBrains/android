@@ -45,11 +45,17 @@ import java.io.IOException
  */
 class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor {
 
-  private val mlkitRecipe: Recipe = {
-    for (dependency in MlUtils.getMissingDependencies(module)) {
+  private val basicRecipe: Recipe = {
+    for (dependency in MlUtils.getMissingRequiredDependencies(module)) {
       addDependency(dependency.toString())
     }
     setBuildFeature("mlModelBinding", true)
+  }
+
+  private val gpuRecipe: Recipe = {
+    for (dependency in MlUtils.getMissingTfliteGpuDependencies(module)) {
+      addDependency(dependency.toString())
+    }
   }
 
   @JvmField
@@ -59,7 +65,10 @@ class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor
   val mlDirectory: StringProperty = StringValueProperty()
 
   @JvmField
-  val autoUpdateBuildFile: BoolValueProperty = BoolValueProperty(true)
+  val autoAddBasicSetup: BoolValueProperty = BoolValueProperty(true)
+
+  @JvmField
+  val autoAddGpuSetup: BoolValueProperty = BoolValueProperty(false)
 
   override fun handleFinished() {
     val fromFile: VirtualFile? = VfsUtil.findFileByIoFile(File(sourceLocation.get()), false)
@@ -77,7 +86,7 @@ class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor
           val virtualFile = fromFile.copy(this, toDir, fromFile.name)
           val fileEditorManager: FileEditorManager = FileEditorManager.getInstance(module.project)
           fileEditorManager.openFile(virtualFile, true)
-          if (autoUpdateBuildFile.get()) {
+          if (autoAddBasicSetup.get() || autoAddGpuSetup.get()) {
             val context = RenderingContext(
               module.project,
               module,
@@ -87,7 +96,12 @@ class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor
               dryRun = false,
               moduleRoot = null
             )
-            mlkitRecipe.render(context, DefaultRecipeExecutor(context), TemplateRenderer.ML_MODEL_BINDING_IMPORT_WIZARD)
+            if (autoAddBasicSetup.get()) {
+              basicRecipe.render(context, DefaultRecipeExecutor(context), TemplateRenderer.ML_MODEL_BINDING_IMPORT_WIZARD)
+            }
+            if (autoAddGpuSetup.get()) {
+              gpuRecipe.render(context, DefaultRecipeExecutor(context), TemplateRenderer.ML_MODEL_BINDING_IMPORT_WIZARD)
+            }
             module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
           }
 
