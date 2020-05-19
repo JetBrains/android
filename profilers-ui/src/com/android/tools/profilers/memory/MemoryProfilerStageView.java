@@ -36,7 +36,6 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.DataVisualizationColors;
-import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.instructions.IconInstruction;
 import com.android.tools.adtui.instructions.InstructionsPanel;
@@ -59,7 +58,6 @@ import com.android.tools.profilers.ProfilerComboboxCellRenderer;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerScrollbar;
-import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.event.EventMonitorView;
@@ -91,7 +89,6 @@ import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.FontMetrics;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -494,12 +491,15 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     StudioProfilers profilers = getStage().getStudioProfilers();
     StreamingTimeline timeline = getStage().getTimeline();
     Range viewRange = timeline.getViewRange();
+    HeapDumpRenderer heapDumpRenderer = new HeapDumpRenderer(getStage().getHeapDumpSampleDurations(), viewRange);
     myRangeSelectionComponent = new RangeSelectionComponent(getStage().getRangeSelectionModel());
     myRangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    myRangeSelectionComponent.setRangeOcclusionTest(heapDumpRenderer::isMouseOverHeapDump);
     RangeTooltipComponent tooltip = new RangeTooltipComponent(getStage().getTimeline(),
                                                               getTooltipPanel(),
                                                               getProfilersView().getComponent(),
-                                                              () -> myRangeSelectionComponent.shouldShowSeekComponent());
+                                                              () -> myRangeSelectionComponent.shouldShowSeekComponent() &&
+                                                                    !heapDumpRenderer.isMouseOverHeapDump());
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
     panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
@@ -642,28 +642,15 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
       overlay.addDurationDataRenderer(allocationRenderer);
     }
 
-    DurationDataRenderer<CaptureDurationData<CaptureObject>> heapDumpRenderer =
-      new DurationDataRenderer.Builder<>(getStage().getHeapDumpSampleDurations(), JBColor.DARK_GRAY)
-        .setDurationBg(ProfilerColors.MEMORY_HEAP_DUMP_BG)
-        .setLabelColors(JBColor.DARK_GRAY, JBColor.GRAY, JBColor.lightGray, JBColor.WHITE)
-        .setLabelProvider(
-          data -> String.format("Dump (%s)", data.getDurationUs() == Long.MAX_VALUE ? "in progress" :
-                                             TimeAxisFormatter.DEFAULT
-                                               .getFormattedString(viewRange.getLength(), data.getDurationUs(), true)))
-        .setCustomDecorator((graphics, clipRect, isMouseOver) -> {
-          Color boxColor = isMouseOver
-                           ? ProfilerColors.CPU_CALLCHART_VENDOR_HOVER
-                           : StudioColorsKt.getPrimaryContentBackground();
-          HeapDumpDataRangeRenderingKt.draw(graphics, clipRect, boxColor);
-        })
-        .build();
-
     lineChart.addCustomRenderer(heapDumpRenderer);
     overlay.addDurationDataRenderer(heapDumpRenderer);
-
-    overlay.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new MemoryUsageTooltip(getStage())));
-    overlayPanel.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new MemoryUsageTooltip(getStage())));
-
+    heapDumpRenderer.addHeapDumpHoverListener(hovered -> {
+      if (hovered) {
+        getStage().setTooltip(null);
+      } else if (getStage().getTooltip() == null) {
+        getStage().setTooltip(new MemoryUsageTooltip(getStage()));
+      }
+    });
 
     eventsView.registerTooltip(tooltip, getStage());
     // TODO: Probably this needs to be refactored.

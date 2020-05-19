@@ -262,41 +262,6 @@ class DurationDataRendererTest {
     assertThat(clicked).isTrue()
   }
 
-  @Test
-  fun `custom decorator gets called`() {
-    val xRange = Range(0.0, 10.0)
-    val yRange = Range(0.0, 10.0)
-    val series1 = DefaultDataSeries<Long>()
-    val series2 = DefaultDataSeries<Long>()
-    val rangeSeries1 = RangedContinuousSeries("test1", xRange, yRange, series1)
-    val rangeSeries2 = RangedContinuousSeries("test2", xRange, yRange, series2)
-    val lineChart = LineChart(Arrays.asList(rangeSeries1, rangeSeries2))
-    lineChart.configure(rangeSeries1, LineConfig(Color.ORANGE).setStroke(LineConfig.DEFAULT_DASH_STROKE))
-    lineChart.configure(rangeSeries2, LineConfig(Color.PINK).setStroke(LineConfig.DEFAULT_DASH_STROKE))
-
-    val dataSeries = DefaultDataSeries<DurationData>()
-    val durationData = DurationDataModel(RangedSeries(xRange, dataSeries))
-    var customDecoratorCalled = false;
-    val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK)
-      .setCustomDecorator { _, _, _ -> customDecoratorCalled = true }
-      .build()
-    durationDataRenderer.addCustomLineConfig(rangeSeries1, LineConfig(Color.BLUE).setStroke(LineConfig.DEFAULT_DASH_STROKE))
-    durationDataRenderer.addCustomLineConfig(rangeSeries2, LineConfig(Color.YELLOW))
-
-    // Fake a dash phase update on the default LineConfig
-    lineChart.getLineConfig(rangeSeries1).adjustedDashPhase = 0.25
-    lineChart.getLineConfig(rangeSeries2).adjustedDashPhase = 0.75
-
-    // Fake a renderLines call then check that the dash phase on the custom LineConfig has been updated.
-    assertThat(customDecoratorCalled).isFalse()
-    durationDataRenderer.renderLines(lineChart,
-                                     mock(Graphics2D::class.java),
-                                     Collections.singletonList(Path2D.Float()) as List<Path2D>,
-                                     listOf(rangeSeries1, rangeSeries2))
-
-    assertThat(customDecoratorCalled).isTrue()
-  }
-
   private fun validateRegion(rect: Rectangle2D.Float, xStart: Float, yStart: Float, width: Float, height: Float) {
     assertThat(rect.x).isWithin(EPSILON).of(xStart)
     assertThat(rect.y).isWithin(EPSILON).of(yStart)
