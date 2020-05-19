@@ -132,7 +132,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
     @NotNull
     private MultiMap<Module, AndroidAutogeneratorMode> computeCompilersToRunAndInvalidateLocalAttributesMap() {
       if (myProject.isDisposed()) {
-        return MultiMap.emptyInstance();
+        return MultiMap.empty();
       }
       MultiMap<Module, AndroidAutogeneratorMode> result = MultiMap.create();
 
