@@ -19,6 +19,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.gradle.project.model.AndroidModelSourceProviderUtils.convertVersion;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getApplicationIdFromListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -77,6 +78,8 @@ import org.jetbrains.annotations.Nullable;
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class AndroidModuleModel implements AndroidModel, ModuleModel {
+  // Placeholder application id if the project is never built before, there is no way to get application id.
+  public static final String UNINITIALIZED_APPLICATION_ID = "uninitialized.application.id";
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
 
   @NotNull private ProjectSystemId myProjectSystemId;
@@ -269,6 +272,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Override
   @NotNull
   public String getApplicationId() {
+    if (myFeatures.isBuildOutputFileSupported()) {
+      String applicationId = getApplicationIdFromListingFile(this, mySelectedVariantName);
+      return applicationId == null ? UNINITIALIZED_APPLICATION_ID : applicationId;
+    }
     return getSelectedVariant().getMainArtifact().getApplicationId();
   }
 
@@ -277,7 +284,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public Set<String> getAllApplicationIds() {
     Set<String> ids = new HashSet<>();
     for (Variant variant : myAndroidProject.getVariants()) {
-      String applicationId = variant.getMergedFlavor().getApplicationId();
+      String applicationId = getApplicationIdFromListingFile(this, variant.getName());
       if (applicationId != null) {
         ids.add(applicationId);
       }
@@ -424,7 +431,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return selected;
   }
 
-  /** Returns the selected variant name */
+  /**
+   * Returns the selected variant name
+   */
   public String getSelectedVariantName() {
     return mySelectedVariantName;
   }

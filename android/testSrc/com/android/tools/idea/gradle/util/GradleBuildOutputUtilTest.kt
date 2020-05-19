@@ -26,7 +26,7 @@ import java.io.File
 /**
  * Tests for GradleBuildOutputUtil.kt
  */
-class GradleBuildOutputFileUtilTest {
+class GradleBuildOutputUtilTest {
   @get:Rule
   val tempDir = TempDirectory()
 
@@ -109,5 +109,12 @@ class GradleBuildOutputFileUtilTest {
     val outputFile = tempDir.newFile("output.json")
     writeToFile(outputFile, multiAPKsOutputFileText)
     assertEquals(tempDir.root, getOutputFileOrFolderFromListingFile(outputFile.path))
+  }
+
+  @Test
+  fun getApplicationIdFromOutputListingFile() {
+    val outputFile = tempDir.newFile("output.json")
+    writeToFile(outputFile, multiAPKsOutputFileText)
+    assertEquals("com.example.myapplication", getApplicationIdFromListingFile(outputFile.path))
   }
 }

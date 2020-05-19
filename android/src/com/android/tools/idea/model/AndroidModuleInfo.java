@@ -16,6 +16,7 @@
 package com.android.tools.idea.model;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.UNINITIALIZED_APPLICATION_ID;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryApplicationDebuggableFromManifestIndex;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryMinSdkAndTargetSdkFromManifestIndex;
@@ -99,7 +100,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   }
 
   /**
-   * Obtains the applicationId name for the current variant, or if not specified, from the primary manifest.
+   * Obtains the applicationId name for the current variant, or if not initialized, from the primary manifest.
    * This method will return the applicationId from gradle, even if the manifest merger fails.
    */
   @Nullable
@@ -107,7 +108,10 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     AndroidFacet facet = getFacet();
     AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
-      return androidModel.getApplicationId();
+      String applicationId = androidModel.getApplicationId();
+      if (!UNINITIALIZED_APPLICATION_ID.equals(applicationId)) {
+        return applicationId;
+      }
     }
 
     // Read from the manifest: Not overridden in the configuration

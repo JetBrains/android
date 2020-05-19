@@ -20,6 +20,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVIT
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_MULTIPROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 /**
@@ -28,6 +29,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
   public void testGetPackageName() throws Exception {
     loadProject(RUN_CONFIG_ACTIVITY);
+    invokeAssembleTask();
     ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
     // See testData/Projects/runConfig/activity/build.gradle
     assertEquals("from.gradle.debug", provider.getPackageName());
@@ -35,23 +37,39 @@ public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
     assertEquals("from.gradle.debug.test", provider.getTestPackageName());
   }
 
-  public void testGetPackageNameForTest() throws Exception {
+  public void testGetPackageNameWithoutBuild() throws Exception {
     loadProject(RUN_CONFIG_ACTIVITY);
     ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
-    // See testData/Projects/runConfig/activity/build.gradle
-    assertEquals("from.gradle.debug", provider.getPackageName());
+    // Use package name when application id is not generated.
+    assertEquals("com.example.unittest", provider.getPackageName());
     // Without a specific test package name from the Gradle file, we just get a test prefix.
-    assertEquals("from.gradle.debug.test", provider.getTestPackageName());
+    assertEquals("com.example.unittest.test", provider.getTestPackageName());
   }
 
   public void testGetPackageNameForTestOnlyModule() throws Exception {
     loadProject(TEST_ONLY_MODULE, "test");
+    invokeAssembleTask();
     ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
     assertEquals("com.example.android.app", provider.getPackageName());
     assertEquals("com.example.android.app.testmodule", provider.getTestPackageName());
   }
 
+  public void testGetPackageNameForTestOnlyModuleWithoutBuild() throws Exception {
+    loadProject(TEST_ONLY_MODULE, "test");
+    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    assertEquals("com.example.android.app", provider.getPackageName());
+    assertEquals("com.example.android.app", provider.getTestPackageName());
+  }
+
   public void testGetPackageNameForDynamicFeatureModule() throws Exception {
+    loadProject(DYNAMIC_APP, "feature1");
+    invokeAssembleTask();
+    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    assertEquals("google.simpleapplication", provider.getPackageName());
+    assertEquals("google.simpleapplication.test", provider.getTestPackageName());
+  }
+
+  public void testGetPackageNameForDynamicFeatureModuleWithoutBuild() throws Exception {
     loadProject(DYNAMIC_APP, "feature1");
     ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
     assertEquals("google.simpleapplication", provider.getPackageName());
@@ -60,10 +78,28 @@ public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
 
   public void testGetPackageNameForLibraryModule() throws Exception {
     loadProject(TEST_ARTIFACTS_MULTIPROJECT, "module2");
+    invokeAssembleTask();
     ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
     // Note that Android library module uses self-instrumenting APK meaning there is only an instrumentation APK.
     // So both getPackageName() and getTestPackageName() should return library's package name suffixed with ".test".
+    // Also Note that build does not make impact on application id of library modules.
     assertEquals("com.example.test.multiproject.module2.test", provider.getPackageName());
     assertEquals("com.example.test.multiproject.module2.test", provider.getTestPackageName());
+  }
+
+  public void testGetPackageNameForLibraryModuleWithoutBuild() throws Exception {
+    loadProject(TEST_ARTIFACTS_MULTIPROJECT, "module2");
+    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    // Note that Android library module uses self-instrumenting APK meaning there is only an instrumentation APK.
+    // So both getPackageName() and getTestPackageName() should return library's package name suffixed with ".test".
+    // Also Note that build does not make impact on application id of library modules.
+    assertEquals("com.example.test.multiproject.module2.test", provider.getPackageName());
+    assertEquals("com.example.test.multiproject.module2.test", provider.getTestPackageName());
+  }
+
+  private void invokeAssembleTask() throws Exception {
+    // Run assemble task to generate output listing file.
+    String taskName = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();
+    invokeGradleTasks(getProject(), taskName);
   }
 }
