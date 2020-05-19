@@ -247,7 +247,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
       return;
     }
 
-    myTitle.setText("Instance details - " + (instance.getName().isEmpty() ? instance.getValueText() : instance.getName()));
+    myTitle.setText("Instance Details - " + (instance.getName().isEmpty() ? instance.getValueText() : instance.getName()));
     myTabsPanel.removeAll();
     boolean hasContent = false;
 
