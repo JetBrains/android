@@ -126,10 +126,6 @@ private fun ProcessDescriptor.buildDeviceName(): String {
   if (displayModel.endsWith(suffix)) {
     displayModel = displayModel.substring(0, displayModel.length - suffix.length)
   }
-  if (!StringUtil.isEmpty(manufacturer)) {
-    deviceNameBuilder.append(manufacturer)
-    deviceNameBuilder.append(" ")
-  }
   deviceNameBuilder.append(displayModel.replace('_', ' '))
 
   return deviceNameBuilder.toString()
