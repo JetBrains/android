@@ -58,6 +58,8 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.awt.event.ItemEvent
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
@@ -92,6 +94,8 @@ class CompactResourcePicker(
   resourcePickerDialogOpenedCallback: () -> Unit,
   parentDisposable: Disposable
 ): JPanel(BorderLayout()) {
+  private val componentPadding = JBEmptyBorder(8, 12 , 8, 12)
+
   private val scaledCellHeight = resourceType.getScaledCellHeight()
 
   private var resourcesModel: Map<ResourceSource, List<ResourceAssetSet>> by Delegates.observable(emptyMap()) { _, _, _ ->
@@ -140,7 +144,7 @@ class CompactResourcePicker(
     add(resourceSourceComboBox)
     border = BorderFactory.createCompoundBorder(
       BorderFactory.createMatteBorder(0, 0, JBUIScale.scale(1), 0, JBUI.CurrentTheme.Popup.separatorColor()),
-      JBEmptyBorder(5, 2, 5, 2)
+      componentPadding
     )
   }
 
@@ -154,6 +158,7 @@ class CompactResourcePicker(
    * @see CompactResourceListCellRenderer
    */
   private val resourcesList = JBList<ResourceAssetSet>().apply {
+    border = componentPadding
     emptyText.text = "" // No need to show any text right away (before loading is even started)
     background = PICKER_BACKGROUND_COLOR
     cellRenderer = CompactResourceListCellRenderer(
@@ -167,6 +172,14 @@ class CompactResourcePicker(
         }
       }
     }
+    addFocusListener(object : FocusAdapter() {
+      override fun focusGained(e: FocusEvent?) {
+        // Auto-select the first element if the list gains focus and there's no selection.
+        if (selectionModel.isSelectionEmpty && !selectionModel.valueIsAdjusting && model.size > 0) {
+          selectionModel.setSelectionInterval(0,0)
+        }
+      }
+    })
   }
 
   private val resourcesView = JBScrollPane(resourcesList).apply {
@@ -179,7 +192,7 @@ class CompactResourcePicker(
     isOpaque = false
     border = BorderFactory.createCompoundBorder(
       BorderFactory.createMatteBorder(JBUIScale.scale(1), 0, 0, 0, JBUI.CurrentTheme.Popup.separatorColor()),
-      JBEmptyBorder(5, 0, 4, 5))
+      componentPadding)
     val action = BrowseAction(facet, resourceType, configuration, selectedResourceCallback, resourcePickerDialogOpenedCallback)
     add(ActionButtonWithText(action,
                              action.templatePresentation,
@@ -264,7 +277,7 @@ class CompactResourcePicker(
    */
   private fun updateResourcesList(source: ResourceSource) {
     resourcesList.setPaintBusy(false)
-    resourcesList.emptyText.text = StatusText.DEFAULT_EMPTY_TEXT
+    resourcesList.emptyText.text = StatusText.getDefaultEmptyText()
     resourcesListModel = NameFilteringListModel<ResourceAssetSet>(
       // Re-apply the filter from the SearchField to the new list
       CollectionListModel<ResourceAssetSet>(resourcesModel.getValue(source)),
