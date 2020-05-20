@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -105,17 +104,7 @@ public class DependenciesExtractor {
     for (Library library : artifactDependencies.getModuleDependencies()) {
       String gradlePath = library.getProjectPath();
       if (isNotEmpty(gradlePath)) {
-        Module module = null;
-        String moduleId;
-        String projectFolderPath = library.getBuildId();
-        if (isNotEmpty(projectFolderPath)) {
-          moduleId = createUniqueModuleId(projectFolderPath, gradlePath);
-          module = moduleFinder.findModuleByModuleId(moduleId);
-        }
-        if (module == null) {
-          moduleId = gradlePath;
-          module = moduleFinder.findModuleByGradlePath(moduleId);
-        }
+        Module module = moduleFinder.findModuleFromLibrary(library);
         ModuleDependency dependency = new ModuleDependency(scope, module);
         dependencies.add(dependency);
       }
