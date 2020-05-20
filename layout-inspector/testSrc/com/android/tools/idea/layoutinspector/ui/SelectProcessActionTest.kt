@@ -68,6 +68,8 @@ class SelectProcessActionTest {
       setDevice(Common.Device.newBuilder().apply {
         serial = "serial123"
         model = "myModel123"
+        manufacturer = "myManufacturer"
+        isEmulator = true
         featureLevel = 29
       })
     }.build()
@@ -77,6 +79,8 @@ class SelectProcessActionTest {
       setDevice(Common.Device.newBuilder().apply {
         serial = "serial321"
         model = "myOldModel"
+        manufacturer = "myManufacturer"
+        isEmulator = false
         featureLevel = 19
       })
     }.build()
@@ -97,7 +101,7 @@ class SelectProcessActionTest {
     val children = selectProcessAction.getChildren(null)
     assertThat(children.size).isEqualTo(3)
     assertThat(children[0].templateText).isEqualTo("myModel123")
-    assertThat(children[1].templateText).isEqualTo("myOldModel (Unsupported for API < 23)")
+    assertThat(children[1].templateText).isEqualTo("myManufacturer myOldModel (Unsupported for API < 23)")
     assertThat(children[2].templateText).isEqualTo("Stop inspector")
 
     val event = mock<AnActionEvent>()

@@ -15,6 +15,9 @@ import com.intellij.openapi.actionSystem.Separator
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.UUID
+
+private const val FAKE_MANUFACTURER_NAME = "FakeManufacturer"
 
 class SelectProcessActionTest {
   @get:Rule
@@ -25,9 +28,15 @@ class SelectProcessActionTest {
     projectRule.mockService(ActionManager::class.java)
   }
 
-  private fun createFakeStream(): Common.Stream {
+  private fun createFakeStream(serial: String = UUID.randomUUID().toString(), isEmulator: Boolean = true): Common.Stream {
+    val device = FakeTransportService.FAKE_DEVICE.toBuilder()
+      .setSerial(serial)
+      .setManufacturer(FAKE_MANUFACTURER_NAME)
+      .setIsEmulator(isEmulator)
+      .build()
+
     return Common.Stream.newBuilder()
-      .setDevice(FakeTransportService.FAKE_DEVICE)
+      .setDevice(device)
       .build()
   }
   private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0): ProcessDescriptor {
@@ -48,6 +57,30 @@ class SelectProcessActionTest {
     val children = selectProcessAction.getChildren(null)
     assertThat(children.size).isEqualTo(1)
     assertThat(children[0].templateText).isEqualTo("No devices detected")
+  }
+
+  @Test
+  fun displayTextForDevicesSetAsExpected() {
+    val testNotifier = TestProcessNotifier()
+    val model = AppInspectionProcessModel(testNotifier) { listOf() }
+    val selectProcessAction = SelectProcessAction(model)
+
+    val physicalStream = createFakeStream(isEmulator = false)
+    val emulatorStream = createFakeStream(isEmulator = true)
+
+    val physicalProcess = physicalStream.createFakeProcess("A", 100)
+    val emulatorProcess = emulatorStream.createFakeProcess("A", 100)
+
+    testNotifier.fireConnected(physicalProcess)
+    testNotifier.fireConnected(emulatorProcess)
+
+    selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
+    val devices = selectProcessAction.getChildren(null)
+    assertThat(devices.size).isEqualTo(2)
+    // Physical devices prepend the manufacturer
+    assertThat(devices[0].templateText).isEqualTo("$FAKE_MANUFACTURER_NAME ${FakeTransportService.FAKE_DEVICE_NAME}")
+    // Virtual devices hide the manufacturer
+    assertThat(devices[1].templateText).isEqualTo(FakeTransportService.FAKE_DEVICE_NAME)
   }
 
   @Test
