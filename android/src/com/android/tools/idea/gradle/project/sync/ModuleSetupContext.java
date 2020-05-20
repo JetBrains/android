@@ -15,72 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.builder.model.NativeAndroidProject;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.sync.setup.Facets;
-import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.concurrency.JobLauncher;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class ModuleSetupContext {
-  public static final Key<ModuleFinder> MODULES_BY_GRADLE_PATH_KEY = Key.create("gradle.sync.modules.by.gradle.path");
   public static final Key<Boolean> FORCE_CREATE_DIRS_KEY = new Key<>("FORCE_CREATE_DIRS");
 
   @NotNull private final Module myModule;
   @NotNull private final IdeModifiableModelsProvider myIdeModelsProvider;
 
-  @Nullable private final GradleModuleModels myGradleModels;
-
   @VisibleForTesting
-  ModuleSetupContext(@NotNull Module module,
-                     @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                     @Nullable GradleModuleModels gradleModels) {
+  ModuleSetupContext(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
     myModule = module;
     myIdeModelsProvider = ideModelsProvider;
-    myGradleModels = gradleModels;
-  }
-
-  @Nullable
-  public ModuleFinder getModuleFinder() {
-    ModuleFinder moduleFinder = myModule.getProject().getUserData(MODULES_BY_GRADLE_PATH_KEY);
-
-    if (moduleFinder == null) {
-      ModuleFinder temp = new ModuleFinder(myModule.getProject());
-
-      for (Module module : myIdeModelsProvider.getModules()) {
-        GradleFacet gradleFacet = GradleFacet.getInstance(module, myIdeModelsProvider);
-        if (gradleFacet != null) {
-          temp.addModule(module, gradleFacet.getConfiguration().GRADLE_PROJECT_PATH);
-        }
-      }
-      moduleFinder = temp;
-      store(moduleFinder);
-    }
-
-    return moduleFinder;
-  }
-
-  private void store(ModuleFinder moduleFinder) {
-    myModule.getProject().putUserData(MODULES_BY_GRADLE_PATH_KEY, moduleFinder);
-  }
-
-  public boolean hasNativeModel() {
-    if (myGradleModels != null) {
-      return myGradleModels.findModel(NativeAndroidProject.class) != null;
-    }
-    NdkFacet facet = Facets.findFacet(myModule, myIdeModelsProvider, NdkFacet.getFacetType().getId());
-    return facet != null && facet.getNdkModuleModel() != null;
   }
 
   @NotNull
@@ -98,29 +49,10 @@ public class ModuleSetupContext {
     return myIdeModelsProvider.getModifiableRootModel(myModule);
   }
 
-  @Nullable
-  public GradleModuleModels getGradleModels() {
-    return myGradleModels;
-  }
-
   public static class Factory {
     @NotNull
     public ModuleSetupContext create(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
-      return new ModuleSetupContext(module, ideModelsProvider, null);
+      return new ModuleSetupContext(module, ideModelsProvider);
     }
-
-    @NotNull
-    public ModuleSetupContext create(@NotNull Module module,
-                                     @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                                     @NotNull ModuleFinder moduleFinder,
-                                     @NotNull GradleModuleModels gradleModels) {
-      ModuleSetupContext context = new ModuleSetupContext(module, ideModelsProvider, gradleModels);
-      context.store(moduleFinder);
-      return context;
-    }
-  }
-
-  public static void removeSyncContextDataFrom(@NotNull Project project) {
-    project.putUserData(MODULES_BY_GRADLE_PATH_KEY, null);
   }
 }
