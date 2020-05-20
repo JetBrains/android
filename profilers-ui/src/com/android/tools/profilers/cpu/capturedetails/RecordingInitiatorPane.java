@@ -102,11 +102,19 @@ class RecordingInitiatorPane extends CapturePane {
     learnMore.setHyperlinkText(LEARN_MORE_MESSAGE);
     learnMore.setHyperlinkTarget(CONFIGURATIONS_URL);
 
+    // IntelliJ will put an arrow icon after the link, and in TabularLayout it's at the right edge of the
+    // column. Due to other rows, column 1 is visibly wider than "Learn more". As a result, there would
+    // be an undesired space between learnMore and the arrow.
+    // The trick here is to make the cell of "Learn more" a single-row-two-column nested table, so the
+    // "Learn more" is aligned with |technologyDescription| and the arrow icon is properly placed.
+    JPanel learnMoreCell = new JPanel(new TabularLayout("Fit,*", "Fit").setVGap(JBUI.scale(10)));
+    learnMoreCell.add(learnMore, new TabularLayout.Constraint(0, 0));
+
     content.add(label, new TabularLayout.Constraint(1, 1));
     content.add(myConfigsView.getComponent(), new TabularLayout.Constraint(2, 1));
     content.add(myRecordButton, new TabularLayout.Constraint(2, 2));
     content.add(technologyDescription, new TabularLayout.Constraint(3, 1, 3));
-    content.add(learnMore, new TabularLayout.Constraint(4, 1));
+    content.add(learnMoreCell, new TabularLayout.Constraint(4, 1));
 
     panel.add(content, BorderLayout.CENTER);
   }
