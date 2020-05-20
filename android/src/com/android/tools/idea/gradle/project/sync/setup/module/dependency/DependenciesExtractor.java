@@ -15,15 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 
 import com.android.builder.model.level2.Library;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
@@ -46,26 +41,25 @@ public class DependenciesExtractor {
   }
 
   /**
-   * @param artifact the artifact to extract dependencies from.
-   * @param scope    Scope of the dependencies, e.g. "compile" or "test".
+   * @param artifactDependencies to extract dependencies from.
+   * @param scope                Scope of the dependencies, e.g. "compile" or "test".
    * @return Instance of {@link DependencySet} retrieved from given artifact.
    */
   @NotNull
   public DependencySet extractFrom(@NotNull File basePath,
-                                   @NotNull IdeBaseArtifact artifact,
+                                   @NotNull IdeDependencies artifactDependencies,
                                    @NotNull DependencyScope scope,
                                    @NotNull ModuleFinder moduleFinder) {
     DependencySet dependencies = new DependencySet();
-    populate(basePath, dependencies, artifact, moduleFinder, scope);
+    populate(basePath, dependencies, artifactDependencies, moduleFinder, scope);
     return dependencies;
   }
 
   private static void populate(@NotNull File basePath,
                                @NotNull DependencySet dependencies,
-                               @NotNull IdeBaseArtifact artifact,
+                               @NotNull IdeDependencies artifactDependencies,
                                @NotNull ModuleFinder moduleFinder,
                                @NotNull DependencyScope scope) {
-    IdeDependencies artifactDependencies = artifact.getLevel2Dependencies();
 
     for (Library library : artifactDependencies.getJavaLibraries()) {
       LibraryDependency libraryDependency =
