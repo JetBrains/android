@@ -39,7 +39,7 @@ final class ModifyDeviceSetDialogTable extends JBTable {
     header.setResizingAllowed(false);
 
     setDefaultEditor(Boolean.class, new BooleanTableCellEditor());
-    setRowHeight(JBUI.scale(30));
+    setRowHeight(JBUI.scale(40));
     setRowSelectionAllowed(false);
   }
 
