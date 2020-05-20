@@ -20,7 +20,7 @@ import static com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRendere
 
 import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
@@ -28,13 +28,13 @@ import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Defines the colors (fill and border) of the rectangles used to represent {@link AtraceNodeModel} nodes in a
+ * Defines the colors (fill and border) of the rectangles used to represent {@link SystemTraceNodeModel} nodes in a
  * {@link com.android.tools.adtui.chart.hchart.HTreeChart}.
  */
-class AtraceNodeModelHChartColors {
+class SystemTraceNodeModelHChartColors {
   private static void validateModel(@NotNull CaptureNodeModel model) {
-    if (!(model instanceof AtraceNodeModel)) {
-      throw new IllegalStateException("Model must be an instance of AtraceNodeModel.");
+    if (!(model instanceof SystemTraceNodeModel)) {
+      throw new IllegalStateException("Model must be an instance of SystemTraceNodeModel.");
     }
   }
 
@@ -60,7 +60,7 @@ class AtraceNodeModelHChartColors {
       }
     }
     else {
-      // Atrace captures do not know where calls come from so we always use APP.
+      // SystemTrace captures do not know where calls come from so we always use APP.
       color = isFocused ? ProfilerColors.CPU_FLAMECHART_APP_HOVER_IDLE : ProfilerColors.CPU_FLAMECHART_APP_IDLE;
     }
     return isUnmatched ? toUnmatchColor(color) : color;
@@ -85,7 +85,7 @@ class AtraceNodeModelHChartColors {
       }
     }
     else {
-      // Atrace captures do not know where calls come from so we always use APP.
+      // SystemTrace captures do not know where calls come from so we always use APP.
       color = isFocused ? ProfilerColors.CPU_FLAMECHART_APP_HOVER : ProfilerColors.CPU_FLAMECHART_APP;
     }
     return isUnmatched ? toUnmatchColor(color) : color;
