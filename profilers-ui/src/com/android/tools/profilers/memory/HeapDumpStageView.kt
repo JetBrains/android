@@ -101,8 +101,13 @@ class HeapDumpStageView(profilersView: StudioProfilersView, stage: HeapDumpStage
         else -> {
           val startMicros = stage.timeline.dataRange.min.toLong()
           val elapsedMicros = TimeUnit.NANOSECONDS.toMicros(capture.startTimeNs) - startMicros
-          val timeString = TimeFormatter.getSimplifiedClockString(elapsedMicros)
-          "${capture.name}: $timeString"
+          // b/156547059
+          // It's plausible, but highly unlikely that `elapsedMicros` is 0 for a recorded heap dump.
+          // Often this happens when it's loaded from a file. Because it's difficult to get the filename
+          // from here, we simply omit the misleading information
+          if (elapsedMicros > 0)
+            "${capture.name}: ${TimeFormatter.getSimplifiedClockString(elapsedMicros)}"
+          else "${capture.name} (loaded from file)"
         }
       }
     }, BorderLayout.WEST)
