@@ -31,16 +31,22 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 
 public class DrawMotionPath implements DrawCommand {
+  private static final boolean WHITE_PATH = true;
   private final float[] mKeyFramesPos;
   private final int[] mKeyFramesType;
   private float[] mPath;
   private GeneralPath ourPath = new GeneralPath();
   private AffineTransform at = new AffineTransform();
+  private static final Color myGridColor = JBColor.namedColor("UIDesigner.motion.Grid.lineSeparatorColor", 0xffCACACA, 0xffCACACA);
+  private static final Color myAxisColor = JBColor.namedColor("UIDesigner.motion.Axis.lineSeparatorColor", 0xff979797, 0xff979797);
+  private static final Color myPointLabelBackground = JBColor.namedColor("UIDesigner.motion.label.background", 0xfff7f7f7, 0xff4b4d4d);
+  private static final Color myPointLabelShadow = JBColor.namedColor("UIDesigner.motion.label.shadowColor", 0x33000000, 0x33000000);
+  private static final Color myPointLabelText = JBColor.namedColor("UIDesigner.motion.label.textColor", 0xFF000000, 0xffbdbdbd);
+
   private static BasicStroke ourBasicStroke = new BasicStroke(1f);
   private static BasicStroke ourShadowStroke = new BasicStroke(1f);
   private static BasicStroke ourAxis = new BasicStroke(2f);
   private static BasicStroke ourMajorLines = new BasicStroke(1f);
-  private static BasicStroke ourMinorLines = new BasicStroke(1f, BasicStroke.CAP_BUTT,BasicStroke.JOIN_ROUND,BasicStroke.JOIN_MITER,new float[]{4,2},0);
   private float mViewX;
   private float mViewY;
   private float mViewWidth;
@@ -51,13 +57,17 @@ public class DrawMotionPath implements DrawCommand {
   int mSelectedKey;
   private GeneralPath mGridAxis = new GeneralPath();
   private GeneralPath mGridMajor = new GeneralPath();
-  private GeneralPath mGridMinor = new GeneralPath();
   public static final int TYPE_SCREEN = 2;
   public static final int TYPE_PATH = 1;
   public static final int TYPE_CARTESIAN = 0;
+  private float drawXaxisX;
+  private float drawXaxisY;
+  private float drawYaxisX;
+  private float drawYaxisY;
   String mPercent;
   DecimalFormat myPercentFormat = new DecimalFormat("#.000");
-  JBColor myPointBackground = new JBColor(new Color(0x884322ff, true), new Color(0x884322ff,true));
+  JBColor myPointBackground = new JBColor(new Color(0x884322ff, true), new Color(0x884322ff, true));
+  private Color myLineColor = new JBColor(0xFFFF00FF, 0xFFFF00FF);
 
   DrawMotionPath(boolean selected,
                  int selected_key,
@@ -87,25 +97,26 @@ public class DrawMotionPath implements DrawCommand {
     mSelected = selected;
     mGridAxis.reset();
     mGridMajor.reset();
-    mGridMinor.reset();
+
     if (!Float.isNaN(percentX)) {
       mPercent = "(" + myPercentFormat.format(percentX) + "," + myPercentFormat.format(percentY) + ")";
-    } else {
+    }
+    else {
       mPercent = "";
     }
-
+    drawXaxisX = Float.NaN;
     if (pathSize >= 4 && selected_key >= 0) {
-       switch (key_pos_type) {
-         case TYPE_CARTESIAN:
-         default:
-         graphDeltaXY();
+      switch (key_pos_type) {
+        case TYPE_CARTESIAN:
+        default:
+          graphDeltaXY();
           break;
-         case TYPE_PATH:
-           graphPathRelative();
-           break;
-         case TYPE_SCREEN:
-           graphDeltaParent(cbx, cby, cbw, cbh);
-           break;
+        case TYPE_PATH:
+          graphPathRelative();
+          break;
+        case TYPE_SCREEN:
+          graphDeltaParent(cbx, cby, cbw, cbh);
+          break;
       }
     }
 
@@ -130,6 +141,22 @@ public class DrawMotionPath implements DrawCommand {
     }
   }
 
+  private void drawArrow(float tipx, float tipy, float dirX, float dirY) {
+    float px, py;
+    float hyp = (float)(1 / Math.hypot(dirX, dirY));
+    dirX *= hyp;
+    dirY *= hyp;
+    float arrowSize = 10;
+    mGridAxis.moveTo(tipx, tipy);
+    px = tipx + arrowSize * (dirY - dirX);
+    py = tipy + arrowSize * (-dirX - dirY);
+    mGridAxis.lineTo(px, py);
+    mGridAxis.moveTo(tipx, tipy);
+    px = tipx + arrowSize * (-dirY - dirX);
+    py = tipy + arrowSize * (dirX - dirY);
+    mGridAxis.lineTo(px, py);
+  }
+
   private void graphDeltaXY() {
     float mStartX, mStartY;
     float mEndX, mEndY;
@@ -145,13 +172,25 @@ public class DrawMotionPath implements DrawCommand {
         mGridAxis.lineTo(x, mEndY);
         mGridAxis.moveTo(mStartX, y);
         mGridAxis.lineTo(mEndX, y);
-      } else {
+      }
+      else {
         mGridMajor.moveTo(x, mStartY);
         mGridMajor.lineTo(x, mEndY);
         mGridMajor.moveTo(mStartX, y);
         mGridMajor.lineTo(mEndX, y);
       }
     }
+
+    drawArrow(mStartX, mEndY, 0, mEndY - mStartY);
+    drawArrow(mEndX, mStartY, mEndX - mStartX, 0);
+    float xoffsetY = (mStartY > mEndY) ? 30 : -30;
+    float yoffsetX = (mStartX > mEndX) ? 30 : -30;
+    float char_width = 10;
+    float char_assent = 10;
+    drawXaxisX = mEndX - char_width;
+    drawXaxisY = mStartY + xoffsetY;
+    drawYaxisX = mStartX + yoffsetX;
+    drawYaxisY = mEndY + char_assent;
   }
 
   private void graphPathRelative() {
@@ -172,31 +211,56 @@ public class DrawMotionPath implements DrawCommand {
       y = -100;
       float xp3 = xp1 + (mEndY - mStartY) * y / 100f;
       float yp3 = yp1 - (mEndX - mStartX) * y / 100f;
-      if ( x == 0 || x == 100) {
+      if (x == 0 || x == 100) {
         mGridAxis.moveTo(xp2, yp2);
         mGridAxis.lineTo(xp3, yp3);
-      } else {
+      }
+      else {
         mGridMajor.moveTo(xp2, yp2);
         mGridMajor.lineTo(xp3, yp3);
       }
-
     }
     for (int y = -100; y <= 100; y += 10) {
 
-      float xp1 = mStartX +  (mEndY - mStartY) * y / 100f;
+      float xp1 = mStartX + (mEndY - mStartY) * y / 100f;
       float yp1 = mStartY - (mEndX - mStartX) * y / 100f;
-      float x =  100;
+      float x = 100;
 
-      float xp2 = xp1+    (mEndX - mStartX) * x / 100f;
-      float yp2 = yp1+  (mEndY - mStartY) * x / 100f;
+      float xp2 = xp1 + (mEndX - mStartX) * x / 100f;
+      float yp2 = yp1 + (mEndY - mStartY) * x / 100f;
       if (y == -100 || y == 0 || y == 100) {
         mGridAxis.moveTo(xp1, yp1);
         mGridAxis.lineTo(xp2, yp2);
-      } else {
+      }
+      else {
         mGridMajor.moveTo(xp1, yp1);
         mGridMajor.lineTo(xp2, yp2);
       }
     }
+
+    float xdir_dx = (mEndX - mStartX);
+    float xdir_dy = (mEndY - mStartY);
+    float hypot = (float)(1 / Math.hypot(xdir_dx, xdir_dy));
+    xdir_dx *= hypot;
+    xdir_dy *= hypot;
+    float ydir_dx = (mEndY - mStartY);
+    float ydir_dy = -(mEndX - mStartX);
+    hypot = (float)(1 / Math.hypot(ydir_dx, ydir_dy));
+    ydir_dx *= hypot;
+    ydir_dy *= hypot;
+    float distanceToCenter = 22;
+    float x_centerToDrawX = -10;
+    float y_centerToDrawX = -8;
+    float centerToDrawY = +2;
+    drawXaxisX = mEndX + xdir_dx * distanceToCenter + x_centerToDrawX;
+    drawXaxisY = mEndY + xdir_dy * distanceToCenter + centerToDrawY;
+    drawArrow(mEndX, mEndY, mEndX - mStartX, mEndY - mStartY);
+    float xp1 = mStartX - (mEndY - mStartY) * 100 / 100f;
+    float yp1 = mStartY + (mEndX - mStartX) * 100 / 100f;
+
+    drawYaxisX = xp1 - xdir_dx * distanceToCenter + y_centerToDrawX;
+    drawYaxisY = yp1 - xdir_dy * distanceToCenter + centerToDrawY;
+    drawArrow(xp1, yp1, -(mEndY - mStartY), +(mEndX - mStartX));
   }
 
   private void graphDeltaParent(float vx,
@@ -212,13 +276,25 @@ public class DrawMotionPath implements DrawCommand {
         mGridAxis.lineTo(x, vy + vh);
         mGridAxis.moveTo(vx, y);
         mGridAxis.lineTo(vx + vw, y);
-      } else {
+      }
+      else {
         mGridMajor.moveTo(x, vy);
         mGridMajor.lineTo(x, vy + vh);
         mGridMajor.moveTo(vx, y);
         mGridMajor.lineTo(vx + vw, y);
       }
     }
+    drawArrow(vx + vw, vy, 1, 0);
+    drawArrow(vx, vy + vh, 0, 1);
+
+    float xoffsetY = -10;
+    float yoffsetX = -30;
+    float char_width = 10;
+    float char_assent = 10;
+    drawXaxisX = vx + vw - char_width;
+    drawXaxisY = vy + xoffsetY;
+    drawYaxisX = vx + yoffsetX;
+    drawYaxisY = vy + vh;
   }
 
 
@@ -236,7 +312,7 @@ public class DrawMotionPath implements DrawCommand {
     at.setToIdentity();
     at.translate(vx, vy);
     at.scale(scale, scale);
-    g2.setFont(g2.getFont().deriveFont(12/(float)scale));
+    g2.setFont(g2.getFont().deriveFont(12 / (float)scale));
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     float lineWidth = (2f / (float)scale);
     g2.transform(at);
@@ -245,28 +321,33 @@ public class DrawMotionPath implements DrawCommand {
       ourShadowStroke = new BasicStroke(lineWidth);
       ourBasicStroke = new BasicStroke(lineWidth / 2);
     }
-    g2.setStroke(ourShadowStroke);
-    g2.setColor(Color.BLACK);
-    g2.draw(ourPath);
-    g2.setColor(Color.GRAY);
-    g2.setStroke(ourAxis);
-    g2.draw(mGridAxis);
-    g2.setStroke(ourMajorLines);
-    g2.draw(mGridMajor);
-    int diamond = (int)(1 + 5 / scale);
-    g2.setColor(Color.LIGHT_GRAY);
-    g2.setStroke(ourAxis);
-    g2.draw(mGridAxis);
-    g2.setStroke(ourMajorLines);
-    g2.draw(mGridMajor);
-    g2.setStroke(ourMinorLines);
-    g2.draw(mGridMinor);
+    // shadow
+    if (WHITE_PATH) {
+      g2.setStroke(ourShadowStroke);
+      g2.setColor(Color.BLACK);
+      g2.draw(ourPath);
+    }
 
+    // grid lines
+    g2.setColor(myGridColor);
+    g2.setStroke(ourMajorLines);
+    g2.draw(mGridMajor);
+
+    // draw axis
+    g2.setColor(myAxisColor);
+    g2.setStroke(ourAxis);
+    g2.draw(mGridAxis);
+    if (!Float.isNaN(drawXaxisX)) {
+      g2.drawString("x", drawXaxisX, drawXaxisY);
+      g2.drawString("y", drawYaxisX, drawYaxisY);
+    }
+
+    // main path
     g2.setStroke(ourBasicStroke);
-    g2.setColor(Color.white);
+    g2.setColor((WHITE_PATH) ? myLineColor : Color.WHITE);
     g2.draw(ourPath);
 
-
+    int diamond = (int)(1 + 5 / scale);
     // Only draw keyframes if the component is selected
     if (mKeyFramesPos != null && mSelected) {
       for (int i = 0; i < mKeyFramesPos.length; i += 2) {
@@ -290,22 +371,29 @@ public class DrawMotionPath implements DrawCommand {
         g2.setColor(Color.BLACK);
         g2.fillPolygon(xpath, ypath, 4);
 
-        if (mSelectedKey == i/2 && mPercent.length() > 0) {
+        if (mSelectedKey == i / 2 && mPercent.length() > 0) {
           FontMetrics fm = g2.getFontMetrics();
-          Rectangle2D bounds =fm.getStringBounds(mPercent, g2);
-          g2.setColor(myPointBackground);
-          g2.fillRect( stringOffset + posx, posy - fm.getAscent(),(int) bounds.getWidth(), (int) bounds.getHeight());
+          Rectangle2D bounds = fm.getStringBounds(mPercent, g2);
+          g2.setColor(myPointLabelShadow);
+          int border = 4;
+          g2.fillRect(stringOffset + posx - border / 2, posy - fm.getAscent() - border / 2, (int)bounds.getWidth() + border * 2,
+                      (int)bounds.getHeight() + border * 2);
+          g2.setColor(myPointLabelBackground);
+          border = 6;
+          g2.fillRect(stringOffset + posx - border, posy - fm.getAscent() - border, (int)bounds.getWidth() + border * 2,
+                      (int)bounds.getHeight() + border * 2);
         }
         xpath[1]--;
         ypath[2]--;
         xpath[3]++;
         ypath[0]++;
 
-        if (mSelectedKey == i/2) {
-          g2.setColor(Color.BLACK);
-          g2.drawString(mPercent, 10+ posx,  posy);
+        if (mSelectedKey == i / 2) {
+          g2.setColor(myPointLabelText);
+          g2.drawString(mPercent, 10 + posx, posy);
           g2.setColor(Color.BLUE);
-        } else {
+        }
+        else {
           g2.setColor(Color.WHITE);
         }
         g2.fillPolygon(xpath, ypath, 4);
@@ -337,6 +425,8 @@ public class DrawMotionPath implements DrawCommand {
                                       float percentX,
                                       float percentY) {
 
-    list.add(new DrawMotionPath(selected, selected_key, key_pos_type, path, pathSize, keyFrameType, keyFramePos, keyFrameSize, x, y, w, h,cbx, cby, cbw, cbh,percentX, percentY));
+    list.add(
+      new DrawMotionPath(selected, selected_key, key_pos_type, path, pathSize, keyFrameType, keyFramePos, keyFrameSize, x, y, w, h, cbx,
+                         cby, cbw, cbh, percentX, percentY));
   }
 }
