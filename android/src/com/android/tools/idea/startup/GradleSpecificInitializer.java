@@ -147,6 +147,9 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
   private static void setUpGradleViewToolbarActions(ActionManager actionManager) {
     Actions.hideAction(actionManager, "ExternalSystem.RefreshAllProjects");
     Actions.hideAction(actionManager, "ExternalSystem.SelectProjectDataToImport");
+    Actions.hideAction(actionManager, "ExternalSystem.ToggleAutoReload");
+    Actions.hideAction(actionManager, "ExternalSystem.DetachProject");
+    Actions.hideAction(actionManager, "ExternalSystem.AttachProject");
   }
 
   private static void setUpNewProjectActions(ActionManager actionManager) {
