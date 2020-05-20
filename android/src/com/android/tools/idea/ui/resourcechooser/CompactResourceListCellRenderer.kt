@@ -61,7 +61,8 @@ class CompactResourceListCellRenderer(private val assetPreviewManager: AssetPrev
     widget.updateWidget(
       icon,
       value.name,
-      isSelected
+      isSelected,
+      cellHasFocus
     )
     return widget
   }
@@ -107,7 +108,7 @@ private class AssetSetWidget(private val cellHeight: Int) : JPanel(BorderLayout(
     return iconWrapper.preferredSize
   }
 
-  fun updateWidget(icon: Icon?, title: String, isSelected: Boolean) {
+  fun updateWidget(icon: Icon?, title: String, isSelected: Boolean, isFocused: Boolean) {
     if (icon != null) {
       iconWrapper.isVisible = true
       iconWrapper.preferredSize = JBDimension(cellHeight - 8, cellHeight - 8)
@@ -118,13 +119,7 @@ private class AssetSetWidget(private val cellHeight: Int) : JPanel(BorderLayout(
     }
     iconLabel.icon = icon
     mainLabel.text = title
-    if (isSelected) {
-      background = UIUtil.getTreeSelectionBackground(true)
-      mainLabel.foreground = UIUtil.getTreeSelectionForeground(true)
-    }
-    else {
-      background = PICKER_BACKGROUND_COLOR
-      mainLabel.foreground = UIUtil.getTreeForeground(false, true)
-    }
+    mainLabel.foreground = UIUtil.getTreeForeground(isSelected, isFocused)
+    background = if (isSelected) UIUtil.getTreeSelectionBackground(isFocused) else PICKER_BACKGROUND_COLOR
   }
 }
