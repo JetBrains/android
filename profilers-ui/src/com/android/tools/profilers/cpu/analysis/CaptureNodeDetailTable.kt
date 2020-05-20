@@ -22,14 +22,18 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import javax.swing.JPanel
 import javax.swing.JTable
+import javax.swing.ListSelectionModel
 import javax.swing.table.AbstractTableModel
 import com.android.tools.adtui.common.border as BorderColor
 
 /**
  * UI component for presenting capture node details, such as duration, CPU duration etc.
+ *
+ * @param viewRange if not null, selection will update this range to the selected node; otherwise, row selection is disabled.
  */
 class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
-                             private val captureRange: Range) {
+                             private val captureRange: Range,
+                             private val viewRange: Range? = null) {
   val table: JTable
   val component = JPanel(TabularLayout("*", "Fit,Fit"))
 
@@ -45,6 +49,22 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
       columnModel.getColumn(Column.SELF_TIME.ordinal).cellRenderer = DurationRenderer()
       columnModel.getColumn(Column.CPU_DURATION.ordinal).cellRenderer = DurationRenderer()
       columnModel.getColumn(Column.CPU_SELF_TIME.ordinal).cellRenderer = DurationRenderer()
+
+      if (viewRange != null) {
+        setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+        selectionModel.addListSelectionListener {
+          if (selectedRow >= 0) {
+            extendedCaptureNodes[convertRowIndexToModel(selectedRow)].node.let {
+              viewRange.set(it.startGlobal.toDouble(), it.endGlobal.toDouble())
+            }
+          }
+        }
+      }
+      else {
+        rowSelectionAllowed = false
+        columnSelectionAllowed = false
+        cellSelectionEnabled = false
+      }
     }
     component.apply {
       border = JBUI.Borders.customLine(BorderColor, 1)
