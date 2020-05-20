@@ -53,6 +53,15 @@ class CaptureNodeDetailTableTest {
     assertThat(table.getValueAt(2, 0)).isEqualTo(300)
   }
 
+  @Test
+  fun rowSelectionUpdatesViewRange() {
+    val viewRange = Range(0.0, 100.0)
+    val table = CaptureNodeDetailTable(NODE.children, Range(0.0, 100.0), viewRange).table
+    assertThat(viewRange.isSameAs(Range(0.0, 100.0))).isTrue()
+    table.selectionModel.setSelectionInterval(1, 1)
+    assertThat(viewRange.isSameAs(Range(14.0, 19.0))).isTrue()
+  }
+
   companion object {
     val NODE = CaptureNode(SingleNameModel("Foo")).apply {
       startGlobal = 10
