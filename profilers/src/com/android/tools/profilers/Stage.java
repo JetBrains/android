@@ -118,4 +118,12 @@ public abstract class Stage<T extends Timeline> extends AspectObserver {
   public Class<? extends Stage> getHomeStageClass() {
     return this.getClass();
   }
+
+  /**
+   * @return whether this stage provides any interaction with the timeline,
+   *         which hints the user interface to show or hide timeline-related functionalities
+   */
+  public boolean isInteractingWithTimeline() {
+    return true;
+  }
 }

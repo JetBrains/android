@@ -119,6 +119,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private JPanel myStageToolbar;
   private JPanel myCommonToolbar;
   private JPanel myGoLiveToolbar;
+  private JPanel myRightToolbar;
   private JToggleButton myGoLive;
   private CommonButton myZoomOut;
   private CommonButton myZoomIn;
@@ -225,6 +226,12 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     return mySessionsView;
   }
 
+  @VisibleForTesting
+  @NotNull
+  JPanel getRightToolbar() {
+    return myRightToolbar;
+  }
+
   @NotNull
   public StudioProfilers getStudioProfilers() {
     return myProfiler;
@@ -309,9 +316,9 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     leftToolbar.add(myCommonToolbar);
     myToolbar.add(leftToolbar, BorderLayout.WEST);
 
-    JPanel rightToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    myToolbar.add(rightToolbar, BorderLayout.EAST);
-    rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
+    myRightToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
+    myToolbar.add(myRightToolbar, BorderLayout.EAST);
+    myRightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
     myZoomOut = new CommonButton(AllIcons.General.ZoomOut);
     myZoomOut.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomOut));
@@ -326,7 +333,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
         .build();
 
     myZoomOut.setToolTipText(zoomOutAction.getDefaultToolTipText());
-    rightToolbar.add(myZoomOut);
+    myRightToolbar.add(myZoomOut);
 
     myZoomIn = new CommonButton(AllIcons.General.ZoomIn);
     myZoomIn.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomIn));
@@ -341,7 +348,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
                        KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
                        KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)).build();
     myZoomIn.setToolTipText(zoomInAction.getDefaultToolTipText());
-    rightToolbar.add(myZoomIn);
+    myRightToolbar.add(myZoomIn);
 
     myResetZoom = new CommonButton(StudioIcons.Common.RESET_ZOOM);
     myResetZoom.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.RESET_ZOOM));
@@ -355,7 +362,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
                        KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build();
     myResetZoom.setToolTipText(resetZoomAction.getDefaultToolTipText());
-    rightToolbar.add(myResetZoom);
+    myRightToolbar.add(myResetZoom);
 
     myZoomToSelection = new CommonButton(StudioIcons.Common.ZOOM_SELECT);
     myZoomToSelection.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT));
@@ -369,7 +376,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0))
       .build();
     myZoomToSelection.setToolTipText(myZoomToSelectionAction.getDefaultToolTipText());
-    rightToolbar.add(myZoomToSelection);
+    myRightToolbar.add(myZoomToSelection);
 
     myGoLiveToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myGoLiveToolbar.add(new FlatSeparator());
@@ -413,7 +420,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     });
     myProfiler.getTimeline().addDependency(this).onChange(StreamingTimeline.Aspect.STREAMING, this::updateStreaming);
     myGoLiveToolbar.add(myGoLive);
-    rightToolbar.add(myGoLiveToolbar);
+    myRightToolbar.add(myGoLiveToolbar);
 
     ProfilerContextMenu.createIfAbsent(myStageComponent)
       .add(attachAction, detachAction, ContextMenuItem.SEPARATOR, zoomInAction, zoomOutAction);
@@ -517,6 +524,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
     boolean topLevel = myStageView == null || myStageView.needsProcessSelection();
     myCommonToolbar.setVisible(!topLevel && myStageView.supportsStageNavigation());
+
+    myRightToolbar.setVisible(stage.isInteractingWithTimeline());
   }
 
   private void toggleStageLayout() {
