@@ -175,7 +175,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
    */
   fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project) {
     projectTemplateDataBuilder.setBuildVersion(buildVersion, project)
-    themesData = ThemesData(appName = capitalizeAppName(project.name)) // New modules always have a theme (unless its a library, but it will have no activity)
+    themesData = ThemesData(appName = getAppNameForTheme(project.name)) // New modules always have a theme (unless its a library, but it will have no activity)
 
     apis = ApiTemplateData(
       buildApi = ApiVersion(buildVersion.buildApiLevel, buildVersion.buildApiLevelStr),
@@ -214,7 +214,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     ApplicationManager.getApplication().runReadAction {
       val hasActionBar = ThemeHelper.hasActionBar(configuration, themeName)
       themesData = ThemesData(
-        appName = capitalizeAppName(module.project.name),
+        appName = getAppNameForTheme(module.project.name),
         main = ThemeData(themeName, true),
         noActionBar = getDerivedTheme(themeName, noActionBar, hasActionBar == false),
         appBarOverlay = getDerivedTheme(themeName, appBarOverlay, false),
@@ -238,7 +238,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     isLibrary!!,
     packageName!!,
     formFactor!!,
-    themesData ?: ThemesData(appName = capitalizeAppName(projectTemplateDataBuilder.applicationName!!)),
+    themesData ?: ThemesData(appName = getAppNameForTheme(projectTemplateDataBuilder.applicationName!!)),
     baseFeature,
     apis!!
   )
@@ -271,7 +271,7 @@ fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuild
     setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
     isLibrary = false
     formFactor = FormFactor.Mobile
-    themesData = ThemesData(appName = capitalizeAppName(project.name))
+    themesData = ThemesData(appName = getAppNameForTheme(project.name))
     apis = ApiTemplateData(
       buildApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),
       targetApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),
