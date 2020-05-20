@@ -56,6 +56,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   private SystemImageDescription myWear29ImageDescription;
   private SystemImageDescription myWearCnImageDescription;
   private SystemImageDescription myAutomotiveImageDescription;
+  private SystemImageDescription myAutomotivePsImageDescription;
   private Device myBigPhone;
   private Device myFoldable;
   private Device myGapiPhoneDevice;
@@ -175,7 +176,20 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     pkgAutomotive.setInstalledPath(new File(SDK_LOCATION, "28-automotive-x86"));
     fileOp.recordExistingFile(new File(pkgAutomotive.getLocation(), SystemImageManager.SYS_IMG_NAME));
 
-    packages.setLocalPkgInfos(ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgPs, pkgWear, pkgWear29, pkgCnWear, pkgAutomotive));
+    // Android Automotive with Play Store image
+    String automotivePsPath = "system-images;android-28;android-automotive-playstore;x86";
+    FakePackage.FakeLocalPackage pkgAutomotivePs = new FakePackage.FakeLocalPackage(automotivePsPath);
+    DetailsTypes.SysImgDetailsType detailsAutomotivePs =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    detailsAutomotivePs.setTag(IdDisplay.create("android-automotive-playstore", "Android Automotive with Google Play"));
+    detailsAutomotivePs.setAbi("x86");
+    detailsAutomotivePs.setVendor(IdDisplay.create("google", "Google"));
+    detailsAutomotivePs.setApiLevel(28);
+    pkgAutomotivePs.setTypeDetails((TypeDetails)detailsAutomotivePs);
+    pkgAutomotivePs.setInstalledPath(new File(SDK_LOCATION, "28-automotive-playstore-x86"));
+    fileOp.recordExistingFile(new File(pkgAutomotivePs.getLocation(), SystemImageManager.SYS_IMG_NAME));
+
+    packages.setLocalPkgInfos(ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgPs, pkgWear, pkgWear29, pkgCnWear, pkgAutomotive, pkgAutomotivePs));
 
     RepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
 
@@ -201,6 +215,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       sdkHandler.getLocalPackage(wearCnPath, progress).getLocation());
     ISystemImage automotiveImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(automotivePath, progress).getLocation());
+    ISystemImage automotivePsImage = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(automotivePsPath, progress).getLocation());
 
     myGapiImageDescription = new SystemImageDescription(gapiImage);
     myGapi29ImageDescription = new SystemImageDescription(gapi29Image);
@@ -210,6 +226,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     myWear29ImageDescription = new SystemImageDescription(wear29Image);
     myWearCnImageDescription = new SystemImageDescription(wearCnImage);
     myAutomotiveImageDescription = new SystemImageDescription(automotiveImage);
+    myAutomotivePsImageDescription = new SystemImageDescription(automotivePsImage);
 
     // Make a phone device that does not support Google Play
     DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
@@ -253,6 +270,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertEquals(OTHER, getClassificationFromParts(Abi.ARM64_V8A, 25, DEFAULT_TAG));
     assertEquals(RECOMMENDED, getClassificationFromParts(Abi.X86, 25, CHROMEOS_TAG));
     assertEquals(RECOMMENDED, getClassificationFromParts(Abi.X86, 28, AUTOMOTIVE_TAG));
+    assertEquals(RECOMMENDED, getClassificationFromParts(Abi.X86, 28, AUTOMOTIVE_PLAY_STORE_TAG));
   }
 
   public void testClassificationForDevice() {
@@ -263,7 +281,10 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
     assertEquals(RECOMMENDED, getClassificationForDevice(myWearImageDescription, myWearDevice));
     assertEquals(RECOMMENDED, getClassificationForDevice(myWearCnImageDescription, myWearDevice));
-    assertEquals(RECOMMENDED, getClassificationForDevice(myAutomotiveImageDescription, myAutomotiveDevice));
+
+    // Note: myAutomotiveDevice is Play-Store device
+    assertEquals(X86, getClassificationForDevice(myAutomotiveImageDescription, myAutomotiveDevice));
+    assertEquals(RECOMMENDED, getClassificationForDevice(myAutomotivePsImageDescription, myAutomotiveDevice));
   }
 
   public void testPhoneVsTablet() {

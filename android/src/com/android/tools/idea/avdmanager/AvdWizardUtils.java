@@ -24,6 +24,7 @@ import static com.android.SdkConstants.FN_SKIN_LAYOUT;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_AVD_ID;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
@@ -145,7 +146,7 @@ public class AvdWizardUtils {
   public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, TV_TAG, CHROMEOS_TAG, AUTOMOTIVE_TAG);
   public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG,
                                                                               PLAY_STORE_TAG, TV_TAG, WEAR_TAG, CHROMEOS_TAG,
-                                                                              AUTOMOTIVE_TAG);
+                                                                              AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG);
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
