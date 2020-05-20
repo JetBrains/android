@@ -19,13 +19,13 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.cpu.CaptureNode
-import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel
 import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.android.tools.profilers.cpu.nodemodel.SyscallModel
+import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeFactory
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.Graphics2DDelegate
@@ -52,7 +52,7 @@ class CaptureNodeHRendererTest {
 
   @Test
   fun renderIdleCpuTime() {
-    val simpleNode = CaptureNode(SystemTraceNodeModel("SomeName"))
+    val simpleNode = CaptureNode(SystemTraceNodeFactory().getNode("SomeName"))
     simpleNode.startGlobal = 10
     simpleNode.endGlobal = 20
     simpleNode.startThread = 10
@@ -70,7 +70,7 @@ class CaptureNodeHRendererTest {
 
   @Test
   fun renderUseClampedRenderWindowForSizing() {
-    val simpleNode = CaptureNode(SystemTraceNodeModel("SomeName")).apply {
+    val simpleNode = CaptureNode(SystemTraceNodeFactory().getNode("SomeName")).apply {
       startGlobal = 10
       endGlobal = 20
       startThread = 10
@@ -119,7 +119,7 @@ class CaptureNodeHRendererTest {
 
   @Test
   fun renderIdleTimeWithNegativeStartFillsIdleTime() {
-    val simpleNode = CaptureNode(SystemTraceNodeModel("SomeName"))
+    val simpleNode = CaptureNode(SystemTraceNodeFactory().getNode("SomeName"))
     simpleNode.startGlobal = 10
     simpleNode.endGlobal = 110
     simpleNode.startThread = 10
@@ -207,10 +207,11 @@ class CaptureNodeHRendererTest {
       assertThat(e.message).isEqualTo("Model must be an instance of SystemTraceNodeModel.")
     }
 
-    val model = SystemTraceNodeModel("SomeName")
-    val model2 = SystemTraceNodeModel("Different Color")
-    val model3 = SystemTraceNodeModel("Color 1234")
-    val model4 = SystemTraceNodeModel("Color 4321")
+    val factory = SystemTraceNodeFactory()
+    val model = factory.getNode("SomeName")
+    val model2 = factory.getNode("Different Color")
+    val model3 = factory.getNode("Color 1234")
+    val model4 = factory.getNode("Color 4321")
 
     val notFocused = SystemTraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, false, false)
     val focused = SystemTraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, true, false)
@@ -252,8 +253,8 @@ class CaptureNodeHRendererTest {
     assertThat(color).isEqualTo(DataVisualizationColors.toGrayscale(color))
 
     // Validate text colors using nodes that map to dark and light text colors respectively.
-    val darkTextNode = SystemTraceNodeModel(" ")
-    val lightTextNode = SystemTraceNodeModel("!")
+    val darkTextNode = factory.getNode(" ")
+    val lightTextNode = factory.getNode("!")
     val darkText = SystemTraceNodeModelHChartColors.getTextColor(darkTextNode, CaptureDetails.Type.CALL_CHART, false)
     val lightText = SystemTraceNodeModelHChartColors.getTextColor(lightTextNode, CaptureDetails.Type.CALL_CHART, false)
     assertThat(darkText).isEqualTo(DataVisualizationColors.DEFAULT_DARK_TEXT_COLOR)
