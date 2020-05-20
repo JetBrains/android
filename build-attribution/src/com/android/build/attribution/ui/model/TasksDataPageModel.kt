@@ -22,6 +22,8 @@ import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
+import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState.EMPTY_PLACEHOLDER
+import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState.WARNING_ICON
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import javax.swing.tree.DefaultMutableTreeNode
@@ -239,7 +241,7 @@ class TaskDetailsNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskData.taskPath,
       rightAlignedSuffix = taskData.executionTime.toRightAlignedNodeDurationText(),
-      showWarnIcon = taskData.hasWarning,
+      nodeIconState = if (taskData.hasWarning) WARNING_ICON else EMPTY_PLACEHOLDER,
       showChartKey = pageId.grouping == TasksDataPageModel.Grouping.UNGROUPED
     )
 }

@@ -15,11 +15,13 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.ui.emptyIcon
 import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TasksTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.panels.CriticalPathChartLegend
+import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
 import com.android.build.attribution.ui.warningIcon
 import com.intellij.ide.ui.UISettings.Companion.setupAntialiasing
 import com.intellij.ide.util.treeView.NodeRenderer
@@ -76,8 +78,10 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
   }
 
   private fun customize(nodePresentation: BuildAnalyzerTreeNodePresentation, selected: Boolean, hasFocus: Boolean, chartKeyColor: Color?) {
-    if (nodePresentation.showWarnIcon) {
-      icon = warningIcon()
+    icon = when (nodePresentation.nodeIconState) {
+      NodeIconState.NO_ICON -> null
+      NodeIconState.EMPTY_PLACEHOLDER -> emptyIcon()
+      NodeIconState.WARNING_ICON -> warningIcon()
     }
     append(nodePresentation.mainText, SimpleTextAttributes.REGULAR_ATTRIBUTES, true)
     append(" ${nodePresentation.suffix}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
@@ -156,8 +160,17 @@ data class BuildAnalyzerTreeNodePresentation(
   val suffix: String = "",
   /** Text that is rendered on the right side. Used to show the execution time. */
   val rightAlignedSuffix: String = "",
-  /** If warn icon should be rendered next to the node. */
-  val showWarnIcon: Boolean = false,
+  /** What kind of icon should be rendered on the left of the node. */
+  val nodeIconState: NodeIconState = NodeIconState.NO_ICON,
   /** If color icon matching chart should be rendered on the right. */
   val showChartKey: Boolean = false
-)
+) {
+  enum class NodeIconState {
+    /** No Icon should be rendered for this node. */
+    NO_ICON,
+    /** Render empty placeholder icon for this nod. This is required to align node text when other nodes on same level have an icon. */
+    EMPTY_PLACEHOLDER,
+    /** Render warning icon for this node. */
+    WARNING_ICON
+  }
+}
