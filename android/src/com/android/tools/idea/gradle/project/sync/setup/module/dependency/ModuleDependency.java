@@ -18,40 +18,31 @@ package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 
 /**
  * An IDEA module's dependency on another IDEA module.
  */
 public class ModuleDependency extends Dependency {
-  @NotNull private final String myGradlePath;
   @Nullable private final Module myModule;
 
   /**
    * Creates a new {@link ModuleDependency}.
    *
-   * @param gradlePath the Gradle path of the project that maps to the IDEA module to depend on.
    * @param scope      the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
    * @throws IllegalArgumentException if the given scope is not supported.
    */
   @VisibleForTesting
-  public ModuleDependency(@NotNull String gradlePath, @NotNull DependencyScope scope, @Nullable Module module) {
+  public ModuleDependency(@NotNull DependencyScope scope, @Nullable Module module) {
     super(scope);
-    myGradlePath = gradlePath;
     myModule = module;
   }
 
   @Nullable
   public Module getModule() {
     return myModule;
-  }
-
-  @NotNull
-  public String getGradlePath() {
-    return myGradlePath;
   }
 
   @Override
@@ -63,18 +54,18 @@ public class ModuleDependency extends Dependency {
       return false;
     }
     ModuleDependency that = (ModuleDependency)o;
-    return Objects.equals(myGradlePath, that.myGradlePath);
+    return Objects.equals(myModule, that.myModule);
   }
 
   @Override
   public int hashCode() {
-    return myGradlePath.hashCode();
+    return myModule.hashCode();
   }
 
   @Override
   public String toString() {
     return getClass().getSimpleName() + "[" +
-           "gradlePath=" + myGradlePath +
+           "module=" + myModule +
            ", scope=" + getScope() +
            "]";
   }
