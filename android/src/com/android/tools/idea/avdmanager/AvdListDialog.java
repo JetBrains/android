@@ -57,8 +57,8 @@ public final class AvdListDialog extends FrameWrapper implements AvdUiAction.Avd
     JPanel root = new JPanel(new BorderLayout());
     setComponent(root);
     JPanel northPanel = WizardStepHeaderPanel
-      .create(this, WizardConstants.ANDROID_NPW_HEADER_COLOR, AndroidIcons.Wizards.StudioProductIcon, null, "Your Virtual Devices",
-              "Android Studio");
+      .create(this, WizardConstants.ANDROID_NPW_HEADER_COLOR, AndroidIcons.Wizards.StudioProductIcon,
+              null, "Your Virtual Devices", "Android Studio");
     root.add(northPanel, BorderLayout.NORTH);
     root.add(myAvdDisplayList, BorderLayout.CENTER);
     getFrame().setSize(1000, 600);
@@ -88,7 +88,7 @@ public final class AvdListDialog extends FrameWrapper implements AvdUiAction.Avd
 
   @Override
   @NotNull
-  public JComponent getComponent() {
+  public JComponent getAvdProviderComponent() {
     return myAvdDisplayList;
   }
 

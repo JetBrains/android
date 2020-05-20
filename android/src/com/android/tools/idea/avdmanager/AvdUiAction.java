@@ -47,7 +47,7 @@ public abstract class AvdUiAction implements Action, HyperlinkListener {
     Project getProject();
 
     @NotNull
-    JComponent getComponent();
+    JComponent getAvdProviderComponent();
   }
 
   public AvdUiAction(@NotNull AvdInfoProvider avdInfoProvider, @NotNull String text, @NotNull String description, @NotNull Icon icon) {

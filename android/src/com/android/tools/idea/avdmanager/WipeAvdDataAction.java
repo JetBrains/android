@@ -34,12 +34,12 @@ public class WipeAvdDataAction extends AvdUiAction {
       return;
     }
     if (connection.isAvdRunning(avdInfo)) {
-      Messages.showErrorDialog(myAvdInfoProvider.getComponent(),
+      Messages.showErrorDialog(myAvdInfoProvider.getAvdProviderComponent(),
                                "The selected AVD is currently running in the Emulator. " +
                                "Please exit the emulator instance and try wiping again.", "Cannot Wipe A Running AVD");
       return;
     }
-    int result = Messages.showYesNoDialog(myAvdInfoProvider.getComponent(),
+    int result = Messages.showYesNoDialog(myAvdInfoProvider.getAvdProviderComponent(),
                                           "Do you really want to wipe user files from AVD " + avdInfo.getName() + "?",
                                           "Confirm Data Wipe", AllIcons.General.QuestionDialog);
     if (result == Messages.YES) {
