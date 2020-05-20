@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
+import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeFactory
 import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel
 import com.android.tools.profilers.systemtrace.ProcessModel
 import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
@@ -56,16 +57,16 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
    */
   private fun buildCaptureTreeNodes(mainProcessModel: ProcessModel): Map<CpuThreadInfo, CaptureNode> {
     val threadToCaptureNodeMap = mutableMapOf<CpuThreadInfo, CaptureNode>()
+    val nodeFactory = SystemTraceNodeFactory()
+
     for (thread in mainProcessModel.getThreads()) {
-      val threadInfo = CpuThreadSliceInfo(
-        thread.id, thread.name, mainProcessModel.id, mainProcessModel.name)
-      // TODO(): Re-use instances of AtraceNodeModel for a same name.
-      val root = CaptureNode(SystemTraceNodeModel(thread.name))
+      val threadInfo = CpuThreadSliceInfo(thread.id, thread.name, mainProcessModel.id, mainProcessModel.name)
+      val root = CaptureNode(nodeFactory.getNode(thread.name))
       root.startGlobal = model.getCaptureStartTimestampUs()
       root.endGlobal = model.getCaptureEndTimestampUs()
       threadToCaptureNodeMap[threadInfo] = root
       for (event in thread.traceEvents) {
-        root.addChild(populateCaptureNode(event, 1))
+        root.addChild(populateCaptureNode(event, 1, nodeFactory))
       }
     }
     return threadToCaptureNodeMap
@@ -79,9 +80,8 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
    *
    * @return The [CaptureNode] that mirrors the [TraceEventModel] passed in.
    */
-  private fun populateCaptureNode(traceEventModel: TraceEventModel, depth: Int): CaptureNode? {
-    val node = CaptureNode(
-      SystemTraceNodeModel(traceEventModel.name))
+  private fun populateCaptureNode(traceEventModel: TraceEventModel, depth: Int, nodeFactory: SystemTraceNodeFactory): CaptureNode? {
+    val node = CaptureNode(nodeFactory.getNode(traceEventModel.name))
     node.startGlobal = traceEventModel.startTimestampUs
     node.endGlobal = traceEventModel.endTimestampUs
     // Should we drop these thread times, as SystemTrace does not support dual clock?
@@ -89,7 +89,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     node.endThread = traceEventModel.startTimestampUs + traceEventModel.cpuTimeUs
     node.depth = depth
     for (event in traceEventModel.childrenEvents) {
-      node.addChild(populateCaptureNode(event, depth + 1))
+      node.addChild(populateCaptureNode(event, depth + 1, nodeFactory))
     }
     return node
   }
