@@ -220,7 +220,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
           indicator.setFraction((double)(elapsed / totalDuration + deviceIndex) / devices.size());
         }
 
-        notificationGroup.createNotification("Success", "Operation succeeded", NotificationType.INFORMATION, null).setImportant(false).notify(myProject);
+        String launchType = myLaunchTasksProvider.getLaunchTypeDisplayName();
+        notificationGroup.createNotification("", launchType + " succeeded", NotificationType.INFORMATION, null).setImportant(false).notify(myProject);
 
         // A debug session task should be performed at last.
         if (debugSessionTask != null) {

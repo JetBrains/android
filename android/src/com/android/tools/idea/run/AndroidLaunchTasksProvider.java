@@ -166,34 +166,37 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       tasks.add(new UninstallIotLauncherAppsTask(myProject, packageName));
     }
     List<String> disabledFeatures = myLaunchOptions.getDisabledDynamicFeatures();
-    if (shouldDeployAsInstant()) {
-      AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
-      DeepLinkLaunch.State state = (DeepLinkLaunch.State)runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
-      assert state != null;
-      tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
+    // Add packages to the deployment, filtering out any dynamic features that are disabled.
+    ImmutableMap.Builder<String, List<File>> packages = ImmutableMap.builder();
+    for (ApkInfo apkInfo : myApkProvider.getApks(device)) {
+      packages.put(apkInfo.getApplicationId(), getFilteredFeatures(apkInfo, disabledFeatures));
     }
-    else {
-      // Add packages to the deployment, filtering out any dynamic features that are disabled.
-      ImmutableMap.Builder<String, List<File>> packages = ImmutableMap.builder();
-      for (ApkInfo apkInfo : myApkProvider.getApks(device)) {
-        packages.put(apkInfo.getApplicationId(), getFilteredFeatures(apkInfo, disabledFeatures));
-      }
-
-      // Set the appropriate action based on which deployment we're doing.
-      if (shouldApplyChanges()) {
-
+    switch (getDeployType()) {
+      case RUN_INSTANT_APP:
+        AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
+        DeepLinkLaunch.State state = (DeepLinkLaunch.State)runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
+        assert state != null;
+        tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
+        break;
+      case APPLY_CHANGES:
         tasks.add(new ApplyChangesTask(myProject, packages.build(), isApplyChangesFallbackToRun()));
-      }
-      else if (shouldApplyCodeChanges()) {
+        break;
+      case APPLY_CODE_CHANGES:
         tasks.add(new ApplyCodeChangesTask(myProject, packages.build(), isApplyCodeChangesFallbackToRun()));
-      }
-      else {
-        tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions(device),
-                                 myLaunchOptions.getInstallOnAllUsers()));
-      }
+        break;
+      case DEPLOY:
+        tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions(device), myLaunchOptions.getInstallOnAllUsers()));
+        break;
+      default: throw new IllegalStateException("Unhandled Deploy Type");
     }
     return ImmutableList.copyOf(tasks);
   }
+
+  @Override
+  public String getLaunchTypeDisplayName() {
+    return getDeployType().asDisplayName();
+  }
+
 
   private boolean isApplyCodeChangesFallbackToRun() {
     return DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN;
@@ -287,5 +290,42 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private boolean shouldApplyCodeChanges() {
     SwapInfo swapInfo = myEnv.getUserData(SwapInfo.SWAP_INFO_KEY);
     return swapInfo != null && swapInfo.getType() == SwapInfo.SwapType.APPLY_CODE_CHANGES;
+  }
+
+  private enum DeployType {
+    RUN_INSTANT_APP{
+      @Override
+      public String asDisplayName() {
+        return "Instant App Launch";
+      }},
+    APPLY_CHANGES{
+      @Override
+      public String asDisplayName() {
+        return "Apply Changes";
+      }},
+    APPLY_CODE_CHANGES {
+      @Override
+      public String asDisplayName() {
+        return "Apply Code Changes";
+      }},
+    DEPLOY {
+      @Override
+      public String asDisplayName() {
+        return "Launch";
+      }},
+    ;
+    public abstract String asDisplayName();
+  }
+
+  private DeployType getDeployType() {
+    if (shouldDeployAsInstant()) {
+      return DeployType.RUN_INSTANT_APP;
+    } else if (shouldApplyChanges()) {
+      return DeployType.APPLY_CHANGES;
+    } else if (shouldApplyCodeChanges()) {
+      return DeployType.APPLY_CODE_CHANGES;
+    } else {
+      return DeployType.DEPLOY;
+    }
   }
 }
