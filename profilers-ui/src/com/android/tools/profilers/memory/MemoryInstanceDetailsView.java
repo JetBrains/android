@@ -140,6 +140,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     if (selection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
       myPanel.add(titleWrapper, BorderLayout.NORTH);
     }
+    myPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, DEFAULT_BORDER_COLOR));
 
     myInstanceViewers.add(new BitmapViewer());
 
