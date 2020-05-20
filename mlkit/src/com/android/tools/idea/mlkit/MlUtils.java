@@ -99,8 +99,7 @@ public class MlUtils {
     // TODO(148887002): calculate required deps based on the given model file and figure out how to handle versions.
     return ImmutableList.of(
       "org.apache.commons:commons-compress:1.20",
-      "org.tensorflow:tensorflow-lite:2.1.0",
-      "org.tensorflow:tensorflow-lite-support:0.0.0-nightly"
+      "org.tensorflow:tensorflow-lite-support:0.1.0-rc0"
     );
   }
 }
