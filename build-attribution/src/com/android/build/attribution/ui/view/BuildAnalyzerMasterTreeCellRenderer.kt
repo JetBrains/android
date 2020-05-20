@@ -60,10 +60,11 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
     val node = value as DefaultMutableTreeNode
     val userObj = node.userObject
     if (userObj is TasksTreePresentableNodeDescriptor) {
-      customize(userObj, selected, hasFocus)
+      val chartKeyColor = tasksTreeNodesChartKeyColor(userObj)
+      customize(userObj.presentation, selected, hasFocus, chartKeyColor)
     }
     else if (userObj is WarningsTreePresentableNodeDescriptor) {
-      customize(userObj.presentation, selected, hasFocus)
+      customize(userObj.presentation, selected, hasFocus, null)
     }
     else {
       super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
@@ -74,42 +75,12 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
     durationTextPresentation = null
   }
 
-  private fun customize(nodePresentation: BuildAnalyzerTreeNodePresentation, selected: Boolean, hasFocus: Boolean) {
+  private fun customize(nodePresentation: BuildAnalyzerTreeNodePresentation, selected: Boolean, hasFocus: Boolean, chartKeyColor: Color?) {
     if (nodePresentation.showWarnIcon) {
       icon = warningIcon()
     }
     append(nodePresentation.mainText, SimpleTextAttributes.REGULAR_ATTRIBUTES, true)
     append(" ${nodePresentation.suffix}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-
-    durationTextPresentation = nodePresentation.rightAlignedSuffix.let { text ->
-      val metrics = getFontMetrics(rightAlignedFont)
-      RightAlignedDurationTextPresentation(
-        durationText = text,
-        durationWidth = metrics.stringWidth(text),
-        durationOffset = metrics.height / 2,
-        durationColor = if (selected) UIUtil.getTreeSelectionForeground(hasFocus)
-        else SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor
-      )
-    }
-  }
-
-  private fun customize(tasksNodeDescriptor: TasksTreePresentableNodeDescriptor, selected: Boolean, hasFocus: Boolean) {
-    val nodePresentation = tasksNodeDescriptor.presentation
-    if (nodePresentation.showWarnIcon) {
-      icon = warningIcon()
-    }
-    append(nodePresentation.mainText, SimpleTextAttributes.REGULAR_ATTRIBUTES, true)
-    append(" ${nodePresentation.suffix}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-
-    val chartKeyColor = if (nodePresentation.showChartKey) {
-      when (tasksNodeDescriptor) {
-        is PluginDetailsNodeDescriptor ->
-          CriticalPathChartLegend.pluginColorPalette.getColor(tasksNodeDescriptor.pluginData.name).baseColor
-        is TaskDetailsNodeDescriptor ->
-          CriticalPathChartLegend.resolveTaskColor(tasksNodeDescriptor.taskData).baseColor
-      }
-    }
-    else null
 
     durationTextPresentation = nodePresentation.rightAlignedSuffix.let { text ->
       val metrics = getFontMetrics(rightAlignedFont)
@@ -122,6 +93,19 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
         chartIconColor = chartKeyColor
       )
     }
+  }
+
+  private fun tasksTreeNodesChartKeyColor(tasksNodeDescriptor: TasksTreePresentableNodeDescriptor): Color? {
+    val nodePresentation = tasksNodeDescriptor.presentation
+    return if (nodePresentation.showChartKey) {
+      when (tasksNodeDescriptor) {
+        is PluginDetailsNodeDescriptor ->
+          CriticalPathChartLegend.pluginColorPalette.getColor(tasksNodeDescriptor.pluginData.name).baseColor
+        is TaskDetailsNodeDescriptor ->
+          CriticalPathChartLegend.resolveTaskColor(tasksNodeDescriptor.taskData).baseColor
+      }
+    }
+    else null
   }
 
   override fun paintComponent(g: Graphics) {
