@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
@@ -56,6 +57,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.IOException;
 import java.util.List;
+import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AndroidRenameTest extends AndroidTestCase {
@@ -250,10 +252,10 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "strings3.xml", "res/values/strings.xml");
       myFixture.configureFromExistingVirtualFile(file);
       assertThat(ContainerUtil
-                   .filter(RenameHandler.EP_NAME.getExtensionList(), it -> it.isRenaming(createDataContext(file)))).hasSize(1);
+                   .filter(RenameHandler.EP_NAME.getExtensionList(), it -> it.isRenaming(createDataContext()))).hasSize(1);
     }
 
-    private MapDataContext createDataContext(VirtualFile f) {
+    private MapDataContext createDataContext() {
       MapDataContext context = new MapDataContext();
       context.put(CommonDataKeys.EDITOR, myFixture.getEditor());
       context.put(CommonDataKeys.PSI_FILE, myFixture.getFile());
@@ -316,6 +318,14 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       assertEquals("icon_with_new_name.xml", iconXml.getName());
       assertEquals("icon_with_new_name.png", iconPng.getName());
       assertEquals("icon.xml", iconInValue.getName());
+    }
+
+    public void testRenameFileWithInvalidResourceName() {
+      VirtualFile drawableFile = myFixture.copyFileToProject(BASE_PATH + "icon.xml", "res/drawable/icon space.xml");
+      myFixture.configureFromExistingVirtualFile(drawableFile);
+      myFixture.renameElement(myFixture.getFile(), "icon_with_new_name.xml");
+      assertEquals("icon_with_new_name.xml", drawableFile.getName());
+      assertThat(ResourceReferencePsiElement.create(myFixture.getFile())).isNotNull();
     }
 
     public void testXmlReferenceToFileResource() throws Throwable {
