@@ -29,10 +29,12 @@ import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
 import com.android.emulator.control.VmRunState
+import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.protobuf.CodedOutputStream
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.protobuf.MessageOrBuilder
 import com.google.common.util.concurrent.SettableFuture
@@ -64,6 +66,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
+import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.CREATE_NEW
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingDeque
@@ -71,6 +74,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.imageio.ImageIO
 import kotlin.math.roundToInt
+import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 
 /**
  * Fake emulator for use in tests. Provides in-process gRPC services.
@@ -165,8 +169,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private fun drawDisplayImage(width: Int, height: Int): BufferedImage {
     val image = createDipImage(width, height, TYPE_INT_ARGB)
     val g = image.createGraphics()
-    val hints = RenderingHints(mapOf(KEY_ANTIALIASING to VALUE_ANTIALIAS_ON,
-                                     KEY_RENDERING to VALUE_RENDER_QUALITY))
+    val hints = RenderingHints(mapOf(KEY_ANTIALIASING to VALUE_ANTIALIAS_ON, KEY_RENDERING to VALUE_RENDER_QUALITY))
     g.setRenderingHints(hints)
     val n = 10
     val m = 10
@@ -200,6 +203,27 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
     g.dispose()
     return image
+  }
+
+  private fun createSnapshot(snapshotId: String) {
+    val snapshotFolder = avdFolder.resolve("snapshots").resolve(snapshotId)
+    Files.createDirectories(snapshotFolder)
+
+    val image = drawDisplayImage(config.displayWidth, config.displayHeight)
+    val screenshotFile = snapshotFolder.resolve("screenshot.png")
+    Files.newOutputStream(screenshotFile, CREATE).use { stream ->
+      ImageIO.write(image, "PNG", stream)
+    }
+
+    val snapshotMessage = Snapshot.newBuilder()
+      .addImages(SnapshotImage.getDefaultInstance()) // Need an image for the snapshot to be considered valid.
+      .build()
+    val snapshotFile = snapshotFolder.resolve("snapshot.pb")
+    Files.newOutputStream(snapshotFile, CREATE).use { stream ->
+      val codedStream = CodedOutputStream.newInstance(stream)
+      snapshotMessage.writeTo(codedStream)
+      codedStream.flush()
+    }
   }
 
   private fun <T> sendResponse(responseObserver: StreamObserver<T>, response: T) {
@@ -335,6 +359,14 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         override fun onCompleted() {
           sendDefaultSnapshotPackage(responseObserver)
         }
+      }
+    }
+
+    override fun saveSnapshot(request: SnapshotPackage, responseObserver: StreamObserver<SnapshotPackage>) {
+      executor.execute {
+        createSnapshot(request.snapshotId)
+        val response = SnapshotPackage.newBuilder().setSuccess(true).build()
+        sendResponse(responseObserver, response)
       }
     }
 

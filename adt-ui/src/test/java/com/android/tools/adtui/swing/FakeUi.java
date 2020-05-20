@@ -30,7 +30,10 @@ import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Enumeration;
+import java.util.function.Predicate;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 import org.jetbrains.annotations.NotNull;
@@ -92,7 +95,7 @@ public final class FakeUi {
    */
   public void layoutAndDispatchEvents() throws InterruptedException {
     layout();
-    // Allow resizing events to propagate,
+    // Allow resizing events to propagate.
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
   }
 
@@ -148,9 +151,48 @@ public final class FakeUi {
   }
 
   @NotNull
-  public Point toRelative(Component component, int x, int y) {
+  public Point toRelative(@NotNull Component component, int x, int y) {
     Point position = getPosition(component);
     return new Point(x - position.x, y - position.y);
+  }
+
+  /**
+   * Simulates pressing and releasing the left mouse button over the given component.
+   */
+  public void clickOn(@NotNull Component component) throws InterruptedException {
+    Point location = getPosition(component);
+    mouse.press(location.x, location.y);
+    mouse.release();
+    mouse.click(location.x, location.y);
+    // Allow events to propagate.
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+  }
+
+  /**
+   * Returns the first component satisfying the given predicate by doing breadth-first search
+   * starting from the root component, or null if no components satisfy the predicate.
+   */
+  @Nullable
+  public Component findComponent(@NotNull Predicate<Component> predicate) {
+    Deque<Container> queue = new ArrayDeque<>();
+    if (predicate.test(root)) {
+      return root;
+    }
+    if (root instanceof Container) {
+      queue.add((Container)root);
+      Container container;
+      while ((container = queue.poll()) != null) {
+        for (Component child : container.getComponents()) {
+          if (predicate.test(child)) {
+            return child;
+          }
+          if (child instanceof Container) {
+            queue.add((Container)child);
+          }
+        }
+      }
+    }
+    return null;
   }
 
   @Nullable
