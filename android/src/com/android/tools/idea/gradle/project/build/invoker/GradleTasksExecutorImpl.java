@@ -48,6 +48,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionUtil;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
+import com.android.tools.idea.gradle.project.common.AndroidSupportVersionUtilKt;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -244,6 +245,8 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         }
 
         commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
+
+        AndroidSupportVersionUtilKt.addAndroidSupportVersionArg(commandLineArguments);
 
         if (enableBuildAttribution) {
           attributionFileDir = Files.createTempDir();
