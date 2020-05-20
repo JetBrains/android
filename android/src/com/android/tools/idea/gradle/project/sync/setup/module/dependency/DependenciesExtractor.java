@@ -46,29 +46,6 @@ public class DependenciesExtractor {
   }
 
   /**
-   * Get a {@link DependencySet} contains merged dependencies from main artifact and test artifacts.
-   *
-   * @param variant      the variant to extract dependencies from.
-   * @param moduleFinder
-   * @return Instance of {@link DependencySet} retrieved from given variant.
-   */
-  @NotNull
-  public DependencySet extractFrom(@NotNull File basePath,
-                                   @NotNull IdeVariant variant,
-                                   @NotNull ModuleFinder moduleFinder) {
-    DependencySet dependencies = new DependencySet();
-
-    for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
-      populate(basePath, dependencies, testArtifact, moduleFinder, TEST);
-    }
-
-    IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
-    populate(basePath, dependencies, mainArtifact, moduleFinder, COMPILE);
-
-    return dependencies;
-  }
-
-  /**
    * @param artifact the artifact to extract dependencies from.
    * @param scope    Scope of the dependencies, e.g. "compile" or "test".
    * @return Instance of {@link DependencySet} retrieved from given artifact.
