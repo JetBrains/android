@@ -241,11 +241,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
     if (baseFeature != null && toBase && resolvedConfiguration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
         resolvedConfiguration = GRADLE_API_CONFIGURATION
-    } else if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) != null) {
-      return
     }
 
-    buildModel.dependencies().addArtifact(resolvedConfiguration, resolvedMavenCoordinate)
+    if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null) {
+      buildModel.dependencies().addArtifact(resolvedConfiguration, resolvedMavenCoordinate)
+    }
   }
 
   override fun addModuleDependency(configuration: String, moduleName: String, toModule: File) {
