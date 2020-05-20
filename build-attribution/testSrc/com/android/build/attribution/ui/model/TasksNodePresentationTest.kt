@@ -19,6 +19,7 @@ import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
+import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -33,7 +34,7 @@ class TasksNodePresentationTest {
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",
       suffix = "",
-      showWarnIcon = false,
+      nodeIconState = NodeIconState.EMPTY_PLACEHOLDER,
       rightAlignedSuffix = "1.2s 12.0%",
       showChartKey = true
     )
@@ -49,7 +50,7 @@ class TasksNodePresentationTest {
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",
       suffix = "",
-      showWarnIcon = true,
+      nodeIconState = NodeIconState.WARNING_ICON,
       rightAlignedSuffix = "1.2s 12.0%",
       showChartKey = true
     )
@@ -67,7 +68,7 @@ class TasksNodePresentationTest {
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = "resources.plugin",
       suffix = "",
-      showWarnIcon = false,
+      nodeIconState = NodeIconState.NO_ICON,
       rightAlignedSuffix = "0.9s 85.5%",
       showChartKey = true
     )
@@ -86,7 +87,7 @@ class TasksNodePresentationTest {
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = "resources.plugin",
       suffix = "1 warning",
-      showWarnIcon = false,
+      nodeIconState = NodeIconState.NO_ICON,
       rightAlignedSuffix = "0.8s  8.4%",
       showChartKey = true
     )
@@ -101,7 +102,7 @@ class TasksNodePresentationTest {
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",
       suffix = "",
-      showWarnIcon = false,
+      nodeIconState = NodeIconState.EMPTY_PLACEHOLDER,
       rightAlignedSuffix = "1.2s 12.0%",
       showChartKey = false
     )
@@ -117,7 +118,7 @@ class TasksNodePresentationTest {
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",
       suffix = "",
-      showWarnIcon = true,
+      nodeIconState = NodeIconState.WARNING_ICON,
       rightAlignedSuffix = "1.2s 12.0%",
       showChartKey = false
     )

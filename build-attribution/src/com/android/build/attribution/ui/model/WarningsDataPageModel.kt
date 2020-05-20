@@ -24,6 +24,7 @@ import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
+import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import com.intellij.openapi.util.text.StringUtil
@@ -203,7 +204,7 @@ class TaskWarningDetailsNodeDescriptor(
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = issueData.task.taskPath,
-      showWarnIcon = true,
+      nodeIconState = NodeIconState.WARNING_ICON,
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(issueData.task.executionTime.timeMs)
     )
 }
@@ -230,7 +231,7 @@ class AnnotationProcessorDetailsNodeDescriptor(
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = annotationProcessorData.className,
-      showWarnIcon = true,
+      nodeIconState = NodeIconState.WARNING_ICON,
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(annotationProcessorData.compilationTimeMs)
     )
 }
