@@ -69,7 +69,7 @@ abstract class ModuleModel(
 
   abstract inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
     /**
-     * A new system recipe which will should be run from [render] if the new system is used.
+     * A [Recipe] which should be run from [render].
      */
     protected abstract val recipe: Recipe
     /**
