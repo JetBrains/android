@@ -117,6 +117,8 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
   @VisibleForTesting
   static final String RECORD_NATIVE_TEXT = "Record native allocations";
   @VisibleForTesting
+  static final String X86_RECORD_NATIVE_TOOLTIP = "Native memory recording is unavailable on x86 or x86_64 devices";
+  @VisibleForTesting
   static final String STOP_NATIVE_TEXT = "Stop recording";
 
   private final MemoryProfilerStageLayout myLayout;
@@ -380,7 +382,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
       myForceGarbageCollectionButton.setEnabled(isAlive);
       myHeapDumpButton.setEnabled(isAlive);
       myAllocationButton.setEnabled(isAlive);
-      myNativeAllocationButton.setEnabled(isAlive);
+      myNativeAllocationButton.setEnabled(isAlive && !isSelectedSessionDeviceX86OrX64());
       myAllocationSamplingRateDropDown.setEnabled(isAlive);
     };
     profilers.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, toggleButtons);
@@ -460,7 +462,13 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     return myLayout.getCapturePanel().getCaptureInfoMessage();
   }
 
+  private boolean isSelectedSessionDeviceX86OrX64() {
+    String abi = getStage().getStudioProfilers().getSessionsManager().getSelectedSessionMetaData().getProcessAbi();
+    return abi.equalsIgnoreCase("x86") || abi.equalsIgnoreCase("x86_64");
+  }
+
   private void allocationTrackingChanged() {
+    boolean isX86OrX64Device = isSelectedSessionDeviceX86OrX64();
     if (getStage().isTrackingAllocations()) {
       myAllocationButton.setText(STOP_TEXT);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
@@ -477,9 +485,9 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
       myAllocationButton.setToolTipText("Record memory allocations");
       myNativeAllocationButton.setText(RECORD_NATIVE_TEXT);
       myNativeAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
-      myNativeAllocationButton.setToolTipText(RECORD_NATIVE_TEXT);
+      myNativeAllocationButton.setToolTipText(isX86OrX64Device ? X86_RECORD_NATIVE_TOOLTIP : RECORD_NATIVE_TEXT);
     }
-    myNativeAllocationButton.setEnabled(true);
+    myNativeAllocationButton.setEnabled(!isX86OrX64Device);
   }
 
   private void updateCaptureElapsedTime() {
@@ -823,8 +831,9 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     myCaptureObject = getStage().getCaptureSelection().getSelectedCapture();
     if (myCaptureObject == null) {
       boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
+      boolean isX86OrX64Device = isSelectedSessionDeviceX86OrX64();
       myAllocationButton.setEnabled(isAlive);
-      myNativeAllocationButton.setEnabled(isAlive);
+      myNativeAllocationButton.setEnabled(isAlive && !isX86OrX64Device);
       myHeapDumpButton.setEnabled(isAlive);
       myLayout.setShowingCaptureUi(false);
       return;
@@ -844,8 +853,9 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
 
   private void captureObjectFinishedLoading() {
     boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
+    boolean isX86OrX64Device = isSelectedSessionDeviceX86OrX64();
     myAllocationButton.setEnabled(isAlive);
-    myNativeAllocationButton.setEnabled(isAlive);
+    myNativeAllocationButton.setEnabled(isAlive && !isX86OrX64Device);
     // If the capture is an imported file, myRangeSelectionComponent is null.
     // If it is part of a profiler session, myRangeSelectionComponent is not null and should obtain the focus.
     if (myRangeSelectionComponent != null) {
