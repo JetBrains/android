@@ -162,7 +162,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
     ModuleDependency dependency = getFirstItem(dependencies);
     assertNotNull(dependency);
-    assertEquals(gradlePath, dependency.getGradlePath());
+    assertEquals(libModule, dependency.getModule());
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(COMPILE, dependency.getScope());
     assertSame(libModule, dependency.getModule());

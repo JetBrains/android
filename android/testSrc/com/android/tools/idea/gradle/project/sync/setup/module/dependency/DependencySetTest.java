@@ -20,7 +20,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,10 +48,10 @@ public class DependencySetTest {
 
   @Test
   public void addModuleWithExistingDependencyWithNarrowerScope() {
-    ModuleDependency compileDependency = new ModuleDependency(":lib", DependencyScope.COMPILE, myModule);
+    ModuleDependency compileDependency = new ModuleDependency(DependencyScope.COMPILE, myModule);
     myDependencies.add(compileDependency);
 
-    ModuleDependency testDependency = new ModuleDependency(":lib", DependencyScope.TEST, myModule);
+    ModuleDependency testDependency = new ModuleDependency(DependencyScope.TEST, myModule);
     myDependencies.add(testDependency);
 
     Collection<ModuleDependency> all = myDependencies.onModules();
@@ -62,10 +61,10 @@ public class DependencySetTest {
 
   @Test
   public void addModuleWithExistingDependencyWithWiderScope() {
-    ModuleDependency testDependency = new ModuleDependency(":lib", DependencyScope.TEST, myModule);
+    ModuleDependency testDependency = new ModuleDependency(DependencyScope.TEST, myModule);
     myDependencies.add(testDependency);
 
-    ModuleDependency compileDependency = new ModuleDependency(":lib", DependencyScope.COMPILE, myModule);
+    ModuleDependency compileDependency = new ModuleDependency(DependencyScope.COMPILE, myModule);
     myDependencies.add(compileDependency);
 
     Collection<ModuleDependency> moduleDependencies = myDependencies.onModules();

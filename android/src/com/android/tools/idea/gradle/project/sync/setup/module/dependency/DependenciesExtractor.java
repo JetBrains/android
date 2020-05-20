@@ -106,7 +106,7 @@ public class DependenciesExtractor {
       String gradlePath = library.getProjectPath();
       if (isNotEmpty(gradlePath)) {
         Module module = null;
-        String moduleId = gradlePath;
+        String moduleId;
         String projectFolderPath = library.getBuildId();
         if (isNotEmpty(projectFolderPath)) {
           moduleId = createUniqueModuleId(projectFolderPath, gradlePath);
@@ -116,7 +116,7 @@ public class DependenciesExtractor {
           moduleId = gradlePath;
           module = moduleFinder.findModuleByGradlePath(moduleId);
         }
-        ModuleDependency dependency = new ModuleDependency(moduleId, scope, module);
+        ModuleDependency dependency = new ModuleDependency(scope, module);
         dependencies.add(dependency);
       }
     }
