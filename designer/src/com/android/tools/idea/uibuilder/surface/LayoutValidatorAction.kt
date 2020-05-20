@@ -21,7 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
-import icons.StudioIcons
+import icons.StudioIcons.LayoutEditor.Toolbar.ACCESSIBILITY
 
 /**
  * Action to toggle layout validation in [NlDesignSurface].
@@ -29,7 +29,7 @@ import icons.StudioIcons
  */
 class LayoutValidatorAction: DumbAwareAction(
   "Run Layout Validation", "Run the layout validation",
-  StudioIcons.Shell.Toolbar.RUN) {
+  ACCESSIBILITY) {
 
   companion object {
     @JvmStatic

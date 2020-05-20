@@ -175,7 +175,7 @@
 
     <action id="Android.Designer.LayoutValidatorAction"
             text="Run Layout Validator"
-            icon="StudioIcons.Shell.Toolbar.RUN"
+            icon="StudioIcons.LayoutEditor.Toolbar.ACCESSIBILITY"
             class="com.android.tools.idea.uibuilder.surface.LayoutValidatorAction">
     </action>
   </actions>
