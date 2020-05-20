@@ -37,16 +37,17 @@ class ViewInfoParserTest {
    */
   @Test
   fun testDefaultPreviewRendering() {
-    val project = projectRule.project
+    val facet = projectRule.androidFacet(":app")
+    val module = facet.module
 
-    renderPreviewElementForResult(projectRule.androidFacet(":app"),
+    renderPreviewElementForResult(facet,
                                   SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview"))
       .thenAccept { renderResult ->
         ImageIO.write(renderResult?.renderedImage?.copy ?: return@thenAccept, "png", File("/tmp/out.png"))
 
         val viewInfos = ReadAction.compute<List<ComposeViewInfo>, Throwable> {
           parseViewInfo(renderResult.rootViews.single(),
-                        lineNumberMapper = remapInline(project))
+                        lineNumberMapper = remapInline(module))
         }.flatMap { it.allChildren() }
 
         assertNotNull(viewInfos.find {

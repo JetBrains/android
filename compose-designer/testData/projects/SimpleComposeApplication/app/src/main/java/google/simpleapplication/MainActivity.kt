@@ -1,14 +1,14 @@
 package google.simpleapplication
 
 import android.os.Bundle
-import androidx.ui.material.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.Composable
-import androidx.ui.foundation.Text
 import androidx.ui.core.setContent
+import androidx.ui.foundation.Text
+import androidx.ui.layout.*
+import androidx.ui.material.Button
 import androidx.ui.material.MaterialTheme
 import androidx.ui.tooling.preview.Preview
-import androidx.ui.layout.*
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,4 +56,10 @@ fun TwoElementsPreview() {
 @Composable
 fun NavigatablePreview() {
   PreviewInOtherFile()
+}
+
+@Preview
+@Composable
+fun OnlyATextNavigation() {
+  Text("Only a text")
 }

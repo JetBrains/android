@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.navigation
 
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
@@ -33,11 +34,15 @@ import org.jetbrains.kotlin.resolve.jvm.JvmClassName
  * place in the source file.
  * The returned [Pair] maps the source [KtFile] to the 1-indexed line information.
  */
-internal fun remapInlineLocation(project: Project, ktFile: KtFile, className: String, line: Int): Pair<KtFile, Int> {
-  val searchScope = GlobalSearchScope.projectScope(project)
+internal fun remapInlineLocation(
+  module: Module,
+  ktFile: KtFile,
+  className: String,
+  line: Int,
+  searchScope: GlobalSearchScope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)): Pair<KtFile, Int> {
   val virtualFile = PsiUtil.getVirtualFile(ktFile) ?: return Pair(ktFile, line)
   val internalClassName = JvmClassName.byInternalName(className.replace(".", "/"))
-  val bytecodeInfo = readBytecodeInfo(project,
+  val bytecodeInfo = readBytecodeInfo(module.project,
                                       internalClassName,
                                       virtualFile) ?: return ktFile to line
   if (bytecodeInfo.smapData == null) {
@@ -46,7 +51,7 @@ internal fun remapInlineLocation(project: Project, ktFile: KtFile, className: St
 
   val inlineRemapped = mapStacktraceLineToSource(bytecodeInfo.smapData!!,
                                                  line,
-                                                 project,
+                                                 module.project,
                                                  SourceLineKind.CALL_LINE,
                                                  searchScope) ?: return ktFile to line
 
@@ -60,7 +65,7 @@ internal fun remapInlineLocation(project: Project, ktFile: KtFile, className: St
 internal class SourceLocationWithVirtualFile(internal val virtualFile: VirtualFile,
                                              override val className: String,
                                              override val methodName: String,
-                                             override val lineNumber: Int): SourceLocation {
+                                             override val lineNumber: Int) : SourceLocation {
   override val fileName: String
     get() = virtualFile.name
 
@@ -72,17 +77,27 @@ internal class SourceLocationWithVirtualFile(internal val virtualFile: VirtualFi
  * Returns a [SourceLocationWithVirtualFile] from a given [SourceLocation] if the mapping can be done. If there is no mapping, for example
  * the reference file does not exist in the project, then the method returns null.
  *
- * @param project the project to use for the file resolution
+ * @param module the module to use for the file resolution
  * @param scope the resolution [GlobalSearchScope]. By default, files will be found in the whole project but you can limit the search scope
  * by passing a different scope.
  */
-internal fun SourceLocation.asSourceLocationWithVirtualFile(project: Project,
-                                                            scope: GlobalSearchScope = GlobalSearchScope.projectScope(project)): SourceLocationWithVirtualFile? {
-  val files = FilenameIndex.getFilesByName(project, fileName, scope)
-  val originalPsiFile = if (files.size == 1) files[0] else return null
-  val remappedLocation = if (isInlineFunctionLineNumber(originalPsiFile.virtualFile, lineNumber, project)) {
+internal fun SourceLocation.asSourceLocationWithVirtualFile(module: Module,
+                                                            scope: GlobalSearchScope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(
+                                                              module, false)): SourceLocationWithVirtualFile? {
+  if (isEmpty()) return null
+
+  val rootClassName = className.substringBefore("$")
+  // Lookup in the filename index for matches of the filename. Multiple matches are possible. If that's the case, we use the className t
+  // find which one we need.
+  val originalPsiFile = FilenameIndex.getFilesByName(module.project, fileName, scope)
+                          .filterIsInstance<PsiClassOwner>()
+                          .find { file ->
+                            file.classes?.any { it.qualifiedName == rootClassName } ?: false
+                          } ?: return null
+
+  val remappedLocation = if (isInlineFunctionLineNumber(originalPsiFile.virtualFile, lineNumber, module.project)) {
     // re-map inline
-    remapInlineLocation(project, originalPsiFile as KtFile, className, lineNumber)
+    remapInlineLocation(module, originalPsiFile as KtFile, className, lineNumber, scope)
   }
   else {
     Pair(originalPsiFile as KtFile, lineNumber)
@@ -102,6 +117,6 @@ internal fun SourceLocation.asSourceLocationWithVirtualFile(project: Project,
  * Returns a [SourceLocation] that maps any inlined references. If the [SourceLocation] does not belong to an inline call, the same
  * [SourceLocation] is returned.
  */
-fun remapInline(project: Project): (SourceLocation) -> SourceLocation = { sourceLocation ->
-  sourceLocation.asSourceLocationWithVirtualFile(project) ?: sourceLocation
+fun remapInline(module: Module): (SourceLocation) -> SourceLocation = { sourceLocation ->
+  sourceLocation.asSourceLocationWithVirtualFile(module) ?: sourceLocation
 }
