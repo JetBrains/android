@@ -337,7 +337,10 @@ public class DragDropInteraction extends Interaction {
               SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER.isEquals(component.getTagName()) ||
               SdkConstants.CLASS_CONSTRAINT_LAYOUT_FLOW.isEquals(component.getTagName()) ||
               SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP.isEquals(component.getTagName()) ||
-              SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER.isEquals(component.getTagName());
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_IMAGE_FILTER_VIEW.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_IMAGE_FILTER_BUTTON.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_MOCK_VIEW.isEquals(component.getTagName());
           boolean acceptableHandler =
               (myCurrentHandler instanceof ConstraintLayoutHandler) ||
               (myCurrentHandler instanceof MotionLayoutHandler);
