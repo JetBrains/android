@@ -222,7 +222,7 @@ class ModelSerializationTest {
     // We use a local one to avoid changing the global one that is used for other tests.
     val localDependenciesFactory = IdeDependenciesFactory()
     localDependenciesFactory.create(
-      IdeAndroidArtifactImpl(AndroidArtifactStub(), modelCache, dependenciesFactory, gradleVersion), gradleVersion)
+      IdeAndroidArtifactImpl(AndroidArtifactStub(), modelCache, dependenciesFactory, gradleVersion))
       as com.android.ide.common.gradle.model.level2.IdeDependenciesImpl
   }
 
