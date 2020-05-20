@@ -380,6 +380,7 @@ public class StudioIcons {
     }
 
     public static class Toolbar {
+      public static final Icon ACCESSIBILITY = load("/studio/icons/layout-editor/toolbar/accessibility.svg"); // 16x16
       public static final Icon ADD_COMPONENT = load("/studio/icons/layout-editor/toolbar/add-component.svg"); // 16x16
       public static final Icon ADD_LOCALE = load("/studio/icons/layout-editor/toolbar/add-locale.svg"); // 16x16
       public static final Icon ANDROID_API = load("/studio/icons/layout-editor/toolbar/android-api.svg"); // 16x16
@@ -480,6 +481,8 @@ public class StudioIcons {
       public static final Icon SEARCH = load("/studio/icons/layout-editor/toolbar/search.svg"); // 16x16
       public static final Icon SHOW_CONSTRAINTS = load("/studio/icons/layout-editor/toolbar/show-constraints.svg"); // 16x16
       public static final Icon THEME_BUTTON = load("/studio/icons/layout-editor/toolbar/theme-button.svg"); // 16x16
+      public static final Icon TOOLS_ATTRIBUTE_OFF = load("/studio/icons/layout-editor/toolbar/tools-attribute-off.svg"); // 16x16
+      public static final Icon TOOLS_ATTRIBUTE_ON = load("/studio/icons/layout-editor/toolbar/tools-attribute-on.svg"); // 16x16
       public static final Icon TOP_ALIGNED_CONSTRAINT = load("/studio/icons/layout-editor/toolbar/top-aligned-constraint.svg"); // 16x16
       public static final Icon TOP_ALIGNED = load("/studio/icons/layout-editor/toolbar/top-aligned.svg"); // 16x16
       public static final Icon UNLOCK = load("/studio/icons/layout-editor/toolbar/unlock.svg"); // 16x16
