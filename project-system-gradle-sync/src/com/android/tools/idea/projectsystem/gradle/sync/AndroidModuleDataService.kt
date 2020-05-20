@@ -121,8 +121,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
                                projectData: ProjectData?,
                                project: Project,
                                modelsProvider: IdeModelsProvider) {
-    ModuleSetupContext.removeSyncContextDataFrom(project)
-
     GradleProjectInfo.getInstance(project).isNewProject = false
     GradleProjectInfo.getInstance(project).isImportedProject = false
 
