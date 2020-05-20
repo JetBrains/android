@@ -105,7 +105,7 @@ class UserCounterDataSeriesTest {
     val series = UserCounterDataSeries(profilers.client.transportClient, profilers)
     val dataSeries = series.getDataForRange(Range())
     // No data within given range.
-    assertThat(dataSeries.isEmpty()).isTrue()
+    assertThat(dataSeries).isEmpty()
   }
 
 
