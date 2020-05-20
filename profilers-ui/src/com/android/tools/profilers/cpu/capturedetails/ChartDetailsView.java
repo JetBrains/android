@@ -37,14 +37,10 @@ import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
-import com.intellij.ui.DoubleClickListener;
 import java.awt.CardLayout;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -289,55 +285,6 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
       switchCardLayout(myPanel, myFlameChart.getNode() == null);
       myChart.setHTree(myFlameChart.getNode());
       myMasterRange.set(myFlameChart.getRange());
-    }
-  }
-
-  private static class CodeNavigationHandler extends MouseAdapter {
-    @NotNull private final HTreeChart<CaptureNode> myChart;
-    private Point myLastPopupPoint;
-
-    CodeNavigationHandler(@NotNull HTreeChart<CaptureNode> chart, @NotNull CodeNavigator navigator) {
-      myChart = chart;
-      new DoubleClickListener() {
-        @Override
-        protected boolean onDoubleClick(MouseEvent event) {
-          setLastPopupPoint(event);
-          CodeLocation codeLocation = getCodeLocation();
-          if (codeLocation != null) {
-            navigator.navigate(codeLocation);
-          }
-          return false;
-        }
-      }.installOn(chart);
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-      handlePopup(e);
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-      handlePopup(e);
-    }
-
-    private void handlePopup(MouseEvent e) {
-      if (e.isPopupTrigger()) {
-        setLastPopupPoint(e);
-      }
-    }
-
-    private void setLastPopupPoint(MouseEvent e) {
-      myLastPopupPoint = e.getPoint();
-    }
-
-    @Nullable
-    private CodeLocation getCodeLocation() {
-      CaptureNode n = myChart.getNodeAt(myLastPopupPoint);
-      if (n == null) {
-        return null;
-      }
-      return modelToCodeLocation(n.getData());
     }
   }
 }
