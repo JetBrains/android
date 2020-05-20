@@ -56,7 +56,7 @@ class CaptureNodeSummaryDetailsView(profilersView: StudioProfilersView,
 
   private fun buildSelectedNodeTable() = JPanel(TabularLayout("*").setVGap(8)).apply {
     val selectedNodes = tabModel.dataSeries.map { it.node }
-    add(JLabel("Selected event(s)".apply {
+    add(JLabel("Selected event".apply {
       font = ProfilerFonts.H3_FONT
       isOpaque = false
     }), TabularLayout.Constraint(0, 0))
