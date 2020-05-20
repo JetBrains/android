@@ -124,11 +124,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.tooling.util.BiFunction;
 import org.kxml2.io.KXmlParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -171,7 +169,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
   @Nullable private final ActionBarHandler myActionBarHandler;
-  @Nullable private final RenderTask myRenderTask;
+  @NotNull private final RenderTask myRenderTask;
   @NotNull private final DownloadableFontCacheService myFontCacheService;
   private boolean myUsed;
   private Set<PathString> myParserFiles;
@@ -207,7 +205,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * @param privateClassLoader if true ViewLoader should create a new privately owned ModuleClassLoader and should not share it, if false
    *                           use a shared one from the ModuleClassLoaderManager
    */
-  public LayoutlibCallbackImpl(@Nullable RenderTask renderTask,
+  public LayoutlibCallbackImpl(@NotNull RenderTask renderTask,
                                @NotNull LayoutLibrary layoutLib,
                                @NotNull LocalResourceRepository projectRes,
                                @NotNull Module module,
@@ -216,7 +214,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @Nullable Object credential,
                                @Nullable ActionBarHandler actionBarHandler,
                                @Nullable ILayoutPullParserFactory parserFactory,
-                               boolean privateClassLoader) {
+                               @NotNull ModuleClassLoader moduleClassLoader) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myIdManager = ResourceIdManager.get(module);
@@ -224,8 +222,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myModule = module;
     myLogger = logger;
     myCredential = credential;
-    ModuleClassLoaderManager manager = ModuleClassLoaderManager.get();
-    myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential, privateClassLoader ? manager::getPrivate : manager::getShared);
+    myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential, moduleClassLoader);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
     myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
@@ -534,8 +531,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         if (file != null) {
           PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), file);
           if (psiFile instanceof XmlFile) {
-            ResourceResolver resourceResolver = myRenderTask != null ? myRenderTask.getContext().getConfiguration().getResourceResolver()
-                                                                     : null;
+            ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
             // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
             // layout so we already have a parent.
             LayoutPsiPullParser parser =
@@ -543,7 +539,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
             if (parentName.startsWith(FD_RES_LAYOUT)) {
               // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag.
-              parser.setProvideViewCookies(myRenderTask != null && myRenderTask.getProvideCookiesForIncludedViews());
+              parser.setProvideViewCookies(myRenderTask.getProvideCookiesForIncludedViews());
             }
             return parser;
           }
