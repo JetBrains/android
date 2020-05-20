@@ -28,7 +28,9 @@ import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
@@ -40,21 +42,28 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -101,11 +110,13 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
-    final boolean destroyProcessOnCancellation = !isSwap();
-    indicator.setText(getTitle());
-    indicator.setIndeterminate(false);
     myStats.beginLaunchTasks();
+
     try {
+      final boolean destroyProcessOnCancellation = !isSwap();
+      indicator.setText(getTitle());
+      indicator.setIndeterminate(false);
+
       ProcessHandlerLaunchStatus launchStatus = new ProcessHandlerLaunchStatus(myProcessHandler);
       ProcessHandlerConsolePrinter consolePrinter = new ProcessHandlerConsolePrinter(myProcessHandler);
       List<ListenableFuture<IDevice>> listenableDeviceFutures = myDeviceFutures.get();
@@ -159,13 +170,14 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         }
       }
 
-      // Perform launch tasks for each device.
-      for (int deviceIndex = 0; deviceIndex < devices.size(); deviceIndex++) {
-        IDevice device = devices.get(deviceIndex);
-        List<LaunchTask> launchTasks = null;
+      myLaunchTasksProvider.fillStats(myStats);
+
+      // Perform launch tasks for each device in parallel.
+      Map<IDevice, List<LaunchTask>> launchTaskMap = new HashMap<>(devices.size());
+      for (IDevice device : devices) {
         try {
-          myLaunchTasksProvider.fillStats(myStats);
-          launchTasks = myLaunchTasksProvider.getTasks(device, launchStatus, consolePrinter);
+          List<LaunchTask> launchTasks = myLaunchTasksProvider.getTasks(device, launchStatus, consolePrinter);
+          launchTaskMap.put(device, launchTasks);
         }
         catch (com.intellij.execution.ExecutionException e) {
           launchStatus.terminateLaunch(e.getMessage(), !isSwap());
@@ -176,62 +188,95 @@ public class LaunchTaskRunner extends Task.Backgroundable {
           Logger.getInstance(LaunchTaskRunner.class).error(e);
           return;
         }
-
-        // This totalDuration and elapsed step count is used only for showing a progress bar.
-        int totalDuration = getTotalDuration(launchTasks, debugSessionTask);
-        int elapsed = 0;
-        NotificationGroup notificationGroup = NotificationGroup.toolWindowGroup("LaunchTaskRunner", ToolWindowId.RUN);
-        for (LaunchTask task : launchTasks) {
-          if (!checkIfLaunchIsAliveAndTerminateIfCancelIsRequested(indicator, launchStatus, destroyProcessOnCancellation)) {
-            return;
-          }
-
-          LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
-          indicator.setText(task.getDescription());
-          LaunchResult result = task.run(myLaunchInfo.executor, device, launchStatus, consolePrinter);
-          myOnFinished.addAll(result.onFinishedCallbacks());
-          boolean success = result.getSuccess();
-          myStats.endLaunchTask(task, details, success);
-          if (!success) {
-            myErrorNotificationListener = result.getNotificationListener();
-            myError = result.getError();
-            launchStatus.terminateLaunch(result.getConsoleError(), !isSwap());
-
-            // Append a footer hyperlink, if one was provided.
-            if (result.getConsoleHyperlinkInfo() != null) {
-              myConsoleConsumer.accept(result.getConsoleHyperlinkText() + "\n",
-                                       result.getConsoleHyperlinkInfo());
-            }
-
-            notificationGroup.createNotification("Error", result.getError(), NotificationType.ERROR, null).setImportant(true).notify(myProject);
-
-            // Show the tool window when we have an error.
-            RunContentManager.getInstance(myProject).toFrontRunContent(myLaunchInfo.executor, myProcessHandler);
-
-            myStats.setErrorId(result.getErrorId());
-            return;
-          }
-
-          // Notify listeners of the deployment.
-          myProject.getMessageBus().syncPublisher(AppDeploymentListener.TOPIC).appDeployedToDevice(device, myProject);
-
-          // Update progress.
-          elapsed += task.getDuration();
-          indicator.setFraction((double)(elapsed / totalDuration + deviceIndex) / devices.size());
-        }
-
-        String launchType = myLaunchTasksProvider.getLaunchTypeDisplayName();
-        notificationGroup.createNotification("", launchType + " succeeded", NotificationType.INFORMATION, null).setImportant(false).notify(myProject);
-
-        // A debug session task should be performed at last.
-        if (debugSessionTask != null) {
-          debugSessionTask.perform(myLaunchInfo, device, launchStatus, consolePrinter);
-        }
       }
-    }
-    finally {
+
+      AtomicInteger completedStepsCount = new AtomicInteger(0);
+      final int totalScheduledStepsCount = launchTaskMap.values().stream()
+        .mapToInt(launchTasks -> getTotalDuration(launchTasks, debugSessionTask)).sum();
+      List<ListenableFuture<?>> asyncTasks = ContainerUtil.map(launchTaskMap.entrySet(), entry -> runLaunchTaskAsync(
+        entry.getKey(),
+        entry.getValue(),
+        indicator,
+        launchStatus,
+        consolePrinter,
+        destroyProcessOnCancellation,
+        completedStepsCount,
+        totalScheduledStepsCount));
+
+      ListenableFuture<?> debugSessionTasks = Futures.whenAllSucceed(asyncTasks).run(() -> {
+        // A debug session task should be performed sequentially at last.
+        for (IDevice device : devices) {
+          if (debugSessionTask != null) {
+            debugSessionTask.perform(myLaunchInfo, device, launchStatus, consolePrinter);
+            // Update the indicator progress bar.
+            completedStepsCount.addAndGet(debugSessionTask.getDuration());
+            indicator.setFraction(completedStepsCount.floatValue() / totalScheduledStepsCount);
+          }
+        }
+      }, AppExecutorUtil.getAppExecutorService());
+
+      ProgressIndicatorUtils.awaitWithCheckCanceled(debugSessionTasks, indicator);
+    } finally {
       myStats.endLaunchTasks();
     }
+  }
+
+  private ListenableFuture<?> runLaunchTaskAsync(@NotNull IDevice device,
+                                                 @NotNull List<LaunchTask> launchTasks,
+                                                 @NotNull ProgressIndicator indicator,
+                                                 @NotNull LaunchStatus launchStatus,
+                                                 @NotNull ConsolePrinter consolePrinter,
+                                                 boolean destroyProcessOnCancellation,
+                                                 @NotNull AtomicInteger completedStepsCount,
+                                                 int totalScheduledStepsCount) {
+    return MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit(() -> {
+      // Update the indicator progress.
+      indicator.setFraction(completedStepsCount.floatValue() / totalScheduledStepsCount);
+
+      NotificationGroup notificationGroup = NotificationGroup.toolWindowGroup("LaunchTaskRunner", ToolWindowId.RUN);
+      for (LaunchTask task : launchTasks) {
+        if (!checkIfLaunchIsAliveAndTerminateIfCancelIsRequested(indicator, launchStatus, destroyProcessOnCancellation)) {
+          throw new CancellationException();
+        }
+
+        LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
+        indicator.setText(task.getDescription());
+        LaunchResult result = task.run(myLaunchInfo.executor, device, launchStatus, consolePrinter);
+        myOnFinished.addAll(result.onFinishedCallbacks());
+        boolean success = result.getSuccess();
+        myStats.endLaunchTask(task, details, success);
+        if (!success) {
+          myErrorNotificationListener = result.getNotificationListener();
+          myError = result.getError();
+          launchStatus.terminateLaunch(result.getConsoleError(), !isSwap());
+
+          // Append a footer hyperlink, if one was provided.
+          if (result.getConsoleHyperlinkInfo() != null) {
+            myConsoleConsumer.accept(result.getConsoleHyperlinkText() + "\n",
+                                     result.getConsoleHyperlinkInfo());
+          }
+
+          notificationGroup.createNotification("Error", result.getError(), NotificationType.ERROR, null)
+            .setImportant(true).notify(myProject);
+
+          // Show the tool window when we have an error.
+          RunContentManager.getInstance(myProject).toFrontRunContent(myLaunchInfo.executor, myProcessHandler);
+
+          myStats.setErrorId(result.getErrorId());
+          throw new CancellationException();
+        }
+
+        // Notify listeners of the deployment.
+        myProject.getMessageBus().syncPublisher(AppDeploymentListener.TOPIC).appDeployedToDevice(device, myProject);
+
+        // Update the indicator progress.
+        indicator.setFraction(completedStepsCount.floatValue() / totalScheduledStepsCount);
+      }
+
+      String launchType = myLaunchTasksProvider.getLaunchTypeDisplayName();
+      notificationGroup.createNotification("", launchType + " succeeded", NotificationType.INFORMATION, null)
+        .setImportant(false).notify(myProject);
+    });
   }
 
   private void printLaunchTaskStartedMessage(ConsolePrinter consolePrinter) {
