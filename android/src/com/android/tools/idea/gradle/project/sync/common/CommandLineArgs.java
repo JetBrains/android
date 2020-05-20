@@ -89,9 +89,7 @@ public class CommandLineArgs {
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_ADVANCED, true));
     args.add(createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true));
     // Sent to plugin starting with Studio 3.0
-    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, GradleSyncState.isLevel4Model()
-                                                                        ? MODEL_LEVEL_4_NEW_DEP_MODEL
-                                                                        : MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD));
+    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD));
 
     AndroidSupportVersionUtilKt.addAndroidSupportVersionArg(args);
     // Skip download of source and javadoc jars during Gradle sync, this flag only has effect on AGP 3.5.

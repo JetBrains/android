@@ -144,9 +144,6 @@ open class GradleSyncState @NonInjectable constructor(
     fun isSingleVariantSync(): Boolean {
       return StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get() || GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC
     }
-
-    @JvmStatic
-    fun isLevel4Model(): Boolean = StudioFlags.L4_DEPENDENCY_MODEL.get()
   }
 
   open var lastSyncedGradleVersion : GradleVersion? = null
