@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.gradle.model.*;
 import com.android.tools.idea.gradle.stubs.FileStructure;
@@ -22,13 +23,12 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class VariantStub implements IdeVariant {
+public class VariantStub implements Variant {
   @NotNull private final List<String> myProductFlavors = Lists.newArrayList();
 
   @NotNull private final String myName;
@@ -83,12 +83,6 @@ public class VariantStub implements IdeVariant {
 
   @Override
   @NotNull
-  public Collection<AndroidArtifact> getExtraAndroidArtifacts() {
-    return myExtraAndroidArtifacts;
-  }
-
-  @Override
-  @NotNull
   public Collection<JavaArtifact> getExtraJavaArtifacts() {
     return myExtraJavaArtifacts;
   }
@@ -121,30 +115,10 @@ public class VariantStub implements IdeVariant {
     myProductFlavors.addAll(Arrays.asList(flavorNames));
   }
 
-  @Nullable
+  @NonNull
   @Override
-  public IdeAndroidArtifact getAndroidTestArtifact() {
-    for (AndroidArtifact artifact : myExtraAndroidArtifacts) {
-      if (artifact instanceof IdeAndroidArtifact) {
-        IdeAndroidArtifact ideArtifact = (IdeAndroidArtifact)artifact;
-        if (ideArtifact.isTestArtifact()) {
-          return ideArtifact;
-        }
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public IdeJavaArtifact getUnitTestArtifact() {
-    return null;
-  }
-
-  @NotNull
-  @Override
-  public Collection<IdeBaseArtifact> getTestArtifacts() {
-    return Collections.emptyList();
+  public Collection<AndroidArtifact> getExtraAndroidArtifacts() {
+    return myExtraAndroidArtifacts;
   }
 
   @Override
