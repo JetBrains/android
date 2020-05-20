@@ -48,7 +48,7 @@ class EmulatorCreateSnapshotAction : AbstractEmulatorAction() {
     val snapshotName = dialog.snapshotName.trim()
     val bootSnapshotUpdater = {
       if (dialog.useToBoot) {
-        SnapshotManager(emulatorId.avdFolder).saveBootMode(BootMode(BootType.SNAPSHOT, snapshotName))
+        SnapshotManager(emulatorId.avdFolder, emulatorId.avdId).saveBootMode(BootMode(BootType.SNAPSHOT, snapshotName))
       }
     }
     emulatorController.saveSnapshot(snapshotName, CompletionTracker(emulatorId, emulatorView, bootSnapshotUpdater))
