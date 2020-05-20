@@ -36,6 +36,7 @@ import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.concurrency.EdtExecutorService
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -159,6 +160,7 @@ class AppInspectionViewTest {
     inspectorDisposedLatch.await()
   }
 
+  @Ignore // TODO(b/157174381): Fix timeout on Windows
   @Test
   fun inspectorCrashNotification() {
     val backgroundExecutor = Executors.newSingleThreadExecutor()
