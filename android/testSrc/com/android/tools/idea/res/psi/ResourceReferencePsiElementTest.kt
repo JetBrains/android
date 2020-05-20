@@ -319,6 +319,19 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "test"))
   }
 
+  fun testDrawableFileInvalidName() {
+    // A file with an invalid resource name is not a resource, even though it might be in the res/drawable folder. It is also not picked up
+    // by the Resource Repository.
+    val file = myFixture.addFileToProject(
+      "res/drawable/test file.xml",
+      //language=XML
+      """<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"/>""")
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    assertThat(file).isInstanceOf(PsiFile::class.java)
+    val invalidFileElement = ResourceReferencePsiElement.create(file)
+    assertThat(invalidFileElement).isNull()
+  }
+
   fun testStyleItemAndroid() {
     val psiFile = myFixture.addFileToProject(
       "res/values/styles.xml",
