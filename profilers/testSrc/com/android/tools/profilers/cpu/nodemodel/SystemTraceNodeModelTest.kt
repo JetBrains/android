@@ -18,24 +18,24 @@ package com.android.tools.profilers.cpu.nodemodel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-class AtraceNodeModelTest {
+class SystemTraceNodeModelTest {
 
   @Test
   fun nameWithoutNumbers() {
     val name = "MyNoNumber Name"
-    assertThat(name).isEqualTo(AtraceNodeModel(name).fullName)
+    assertThat(name).isEqualTo(SystemTraceNodeModel(name).fullName)
   }
 
   @Test
   fun nameEndsWithNumbers() {
     val name = "Name Ends Number 1234"
     val expected = "Name Ends Number ###"
-    assertThat(expected).isEqualTo(AtraceNodeModel(name).fullName)
+    assertThat(expected).isEqualTo(SystemTraceNodeModel(name).fullName)
   }
 
   @Test
   fun nameRandomNumber() {
     val name = "Name 1 number"
-    assertThat(name).isEqualTo(AtraceNodeModel(name).fullName)
+    assertThat(name).isEqualTo(SystemTraceNodeModel(name).fullName)
   }
 }

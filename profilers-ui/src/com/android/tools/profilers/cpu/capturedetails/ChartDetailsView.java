@@ -31,7 +31,7 @@ import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
@@ -103,7 +103,7 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
       if (node.getData().getId().isEmpty()) {
         node = node.getFirstChild();
       }
-      if (node.getData() instanceof AtraceNodeModel) {
+      if (node.getData() instanceof SystemTraceNodeModel) {
         if (type == CaptureDetails.Type.CALL_CHART) {
           chart.addMouseMotionListener(
             new CpuTraceEventTooltipView(chart, myProfilersView.getComponent(), ProfilerColors.CPU_USAGE_CAPTURED,

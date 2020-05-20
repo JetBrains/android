@@ -20,17 +20,17 @@ import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This model represents an Atrace node, used for determining the color to draw for the
+ * This model represents a SystemTrace node, used for determining the color to draw for the
  * FlameChart, and CallChart.
  */
-public class AtraceNodeModel implements CaptureNodeModel {
+public class SystemTraceNodeModel implements CaptureNodeModel {
 
   // Pattern to match names with the format Letters Number. Eg: Frame 1234
   private static final Pattern ID_GROUP = Pattern.compile("^([A-Za-z\\s]*)(\\d+)");
   private final String myId;
   @NotNull private final String myName;
 
-  public AtraceNodeModel(@NotNull String name) {
+  public SystemTraceNodeModel(@NotNull String name) {
     // We match the numbers at the end of a tag so the UI can group elements that have an incrementing number at the end as the same thing.
     // This means that "Frame 1", and "Frame 2" will appear as a single element "Frame ###". This allows us to collect the stats, and
     // colorize these elements as if they represent the same thing.
