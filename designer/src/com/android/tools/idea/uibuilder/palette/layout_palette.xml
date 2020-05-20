@@ -578,6 +578,81 @@
           ]]>
       </xml>
     </item>
+
+    <item tag="android.support.constraint.utils.ImageFilterView"
+          title="ImageFilterView"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Palette.IMAGE_VIEW">
+      <xml>
+        <![CDATA[
+            <android.support.constraint.utils.ImageFilterView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="androidx.constraintlayout.utils.widget.ImageFilterView"
+          title="ImageFilterView"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Palette.IMAGE_VIEW">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.utils.widget.ImageFilterView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+
+    <item tag="android.support.constraint.utils.ImageFilterButton"
+          title="ImageFilterButton"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Palette.IMAGE_BUTTON">
+      <xml>
+        <![CDATA[
+            <android.support.constraint.utils.ImageFilterButton
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="androidx.constraintlayout.utils.widget.ImageFilterButton"
+          title="ImageFilterButton"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Palette.IMAGE_BUTTON">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.utils.widget.ImageFilterButton
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+
+    <item tag="android.support.constraint.utils.MockView"
+          title="MockView"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Palette.PLACEHOLDER">
+      <xml>
+        <![CDATA[
+            <android.support.constraint.utils.MockView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="androidx.constraintlayout.utils.widget.MockView"
+          title="MockView"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Palette.PLACEHOLDER">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.utils.widget.MockView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
   </group>
   <group name="Google">
     <item tag="com.google.android.gms.ads.AdView" suggested="true"/>
