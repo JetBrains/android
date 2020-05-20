@@ -94,8 +94,8 @@ class SnapshotActionsTest {
   fun testSnapshotActions() {
     val view = createEmulatorView()
 
-    val defaultBootMode = SnapshotManager(emulator.avdFolder).readBootMode()
-    assertThat(SnapshotManager(emulator.avdFolder).readBootMode()).isEqualTo(defaultBootMode)
+    val defaultBootMode = SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()
+    assertThat(SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()).isEqualTo(defaultBootMode)
 
     // Check snapshot creation.
     performActionAndInteractWithDialog("android.emulator.create.snapshot", view) { dialog ->
@@ -113,7 +113,7 @@ class SnapshotActionsTest {
 
     var bootMode: BootMode? = null
     waitForCondition(5, TimeUnit.SECONDS) {
-      bootMode = SnapshotManager(emulator.avdFolder).readBootMode()
+      bootMode = SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()
       return@waitForCondition bootMode != defaultBootMode
     }
     assertThat(bootMode).isEqualTo(BootMode(BootType.SNAPSHOT, "first snapshot"))
@@ -138,7 +138,7 @@ class SnapshotActionsTest {
     }
 
     waitForCondition(3, TimeUnit.SECONDS) {
-      SnapshotManager(emulator.avdFolder).readBootMode()?.bootType == BootType.QUICK
+      SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()?.bootType == BootType.QUICK
     }
   }
 

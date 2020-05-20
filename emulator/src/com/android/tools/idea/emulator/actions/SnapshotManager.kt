@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator.actions
 
 import com.android.annotations.concurrency.Slow
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.emulator.logger
 import com.android.tools.idea.emulator.readKeyValueFile
 import com.android.tools.idea.emulator.updateKeyValueFile
@@ -31,7 +32,7 @@ import kotlin.streams.asSequence
 /**
  * Manages emulator snapshots and boot mode.
  */
-class SnapshotManager(val avdFolder: Path) {
+class SnapshotManager(val avdFolder: Path, val avdId: String) {
   /**
    * Fetches and returns a list of snapshots by reading the "snapshots" subfolder of the AVD folder.
    */
@@ -95,6 +96,10 @@ class SnapshotManager(val avdFolder: Path) {
       "fastboot.chosenSnapshotFile" to bootMode.bootSnapshot
     )
     updateKeyValueFile(avdFolder.resolve("config.ini"), updates)
+
+    // Update the cached AVD information in the AVD manager.
+    val avdManagerConnection = AvdManagerConnection.getDefaultAvdManagerConnection()
+    avdManagerConnection.reloadAvd(avdId)
   }
 
   private fun toYesNo(value: Boolean) =
