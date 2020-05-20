@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static org.junit.Assert.assertSame;
+
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
+import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static org.junit.Assert.assertSame;
 
 public class GradleSyncMessagesStub extends GradleSyncMessages {
   @NotNull private final List<SyncMessage> myMessages = new ArrayList<>();
@@ -75,7 +76,7 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
   }
 
   @Override
-  public void report(@NotNull NotificationData notification) {
+  public void report(@NotNull NotificationData notification, @NotNull List<? extends BuildIssueQuickFix> quickFixes) {
     myNotifications.add(notification);
   }
 

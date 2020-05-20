@@ -22,6 +22,7 @@ import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueQuickFix;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -40,6 +41,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -122,12 +124,17 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     String message = notification.getMessage().trim();
 
     // Add links to each of the affected modules
+    ArrayList<AndroidSyncIssueQuickFix> buildIssueLinks = new ArrayList<>();
+    buildIssueLinks.addAll(ContainerUtil.map(customLinks, it -> new AndroidSyncIssueQuickFix(it)));
     if (shouldIncludeModuleLinks() && !affectedModules.isEmpty()) {
       builder.append("\nAffected Modules: ");
       for (Iterator<Module> it = affectedModules.iterator(); it.hasNext(); ) {
         Module m = it.next();
         if (m != null) {
-          doCreateModuleLink(project, notification, builder, m, syncIssues, buildFileMap.get(m));
+          NotificationHyperlink link = doCreateModuleLink(project, notification, builder, m, syncIssues, buildFileMap.get(m));
+          if (link != null) {
+            buildIssueLinks.add(new AndroidSyncIssueQuickFix(link));
+          }
           if (it.hasNext()) {
             builder.append(", ");
           }
@@ -137,10 +144,10 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     message += builder.toString();
 
     notification.setMessage(message);
-    messages.report(notification);
+    messages.report(notification, buildIssueLinks);
   }
 
-  private void doCreateModuleLink(@NotNull Project project,
+  private NotificationHyperlink doCreateModuleLink(@NotNull Project project,
                                   @NotNull NotificationData notification,
                                   @NotNull StringBuilder builder,
                                   @NotNull Module module,
@@ -149,11 +156,13 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     if (buildFile == null) {
       // No build file found, just include the name of the module.
       builder.append(getDisplayNameForModule(module));
+      return null;
     }
     else {
       OpenFileHyperlink link = createModuleLink(project, module, syncIssues, buildFile);
       builder.append(link.toHtml());
       notification.setListener(link.getUrl(), new QuickFixNotificationListener(project, link));
+      return link;
     }
   }
 
