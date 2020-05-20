@@ -47,7 +47,7 @@ open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(val profile
     layout = TabularLayout("*", "Fit").setVGap(SECTION_PADDING_PX)
     background = primaryContentBackground
     border = JBUI.Borders.empty(8, 12)
-    add(commonSection, TabularLayout.Constraint(0, 0))
+    addSection(commonSection)
   }
 
   /**
