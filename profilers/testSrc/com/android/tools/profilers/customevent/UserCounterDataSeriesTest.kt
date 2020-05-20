@@ -101,25 +101,18 @@ class UserCounterDataSeriesTest {
 
   @Test
   fun testEmptyRange() {
-    // Create a series with empty range.
     val series = UserCounterDataSeries(profilers.client.transportClient, profilers)
     val dataSeries = series.getDataForRange(Range())
-    // No data within given range.
     assertThat(dataSeries).isEmpty()
   }
 
 
   @Test
   fun testNonEmptyRange() {
-    // Create a series with a non-empty range.
-    // Check that 1 event is found within this timeframe
     val dataSeriesForRange1 = userCounterDataSeries.getDataForRange(Range(0.0, 100000.0))
-
     assertThat(dataSeriesForRange1).containsExactly(SeriesData(0L, 1L))
 
-    // Check that 2 events are found within this timeframe
     val dataSeriesForRange2 = userCounterDataSeries.getDataForRange(Range(700000.0, 1100000.0))
-
     assertThat(dataSeriesForRange2).containsExactly(SeriesData(700000L, 2L), SeriesData(1000000L, 0L))
   }
 
@@ -135,7 +128,6 @@ class UserCounterDataSeriesTest {
 
   @Test
   fun testBucketDistribution() {
-    // Check that all event counts are correctly distributed into their respective buckets
     val dataSeriesForRange = userCounterDataSeries.getDataForRange(Range(0.0, 2800000.0))
 
     assertThat(dataSeriesForRange).containsExactly(SeriesData(0L, 1L), SeriesData(500000L, 2L), SeriesData(1000000L, 0L),
