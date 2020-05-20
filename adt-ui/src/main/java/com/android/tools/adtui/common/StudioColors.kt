@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.common
 
+import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.Color
@@ -128,3 +129,10 @@ val tabbedPaneFocus = JBUI.CurrentTheme.TabbedPane.ENABLED_SELECTED_COLOR
  * Example: Analysis tab of a cpu profiling capture.
  */
 val tabbedPaneHoverHighlight = JBUI.CurrentTheme.TabbedPane.HOVER_COLOR
+
+/**
+ * Color of the text used to display help information.
+ *
+ * Example: Keyboard/mouse shortcut descriptions in Summary tab of a cpu profiling capture.
+ */
+val helpText = JBColor.namedColor("Editor.foreground", JBColor(Gray._80, Gray._160))
