@@ -71,7 +71,6 @@ class SelectProcessAction(private val model: AppInspectionProcessModel) :
       if (!serials.add(serial)) {
         continue
       }
-      val deviceName = processDescriptor.buildDeviceName()
       add(DeviceAction(processDescriptor, model))
     }
     if (childrenCount == 0) {
@@ -132,6 +131,11 @@ private fun ProcessDescriptor.buildDeviceName(): String {
   if (displayModel.endsWith(suffix)) {
     displayModel = displayModel.substring(0, displayModel.length - suffix.length)
   }
+  if (!isEmulator && manufacturer.isNotBlank()) {
+    deviceNameBuilder.append(manufacturer)
+    deviceNameBuilder.append(" ")
+  }
+
   deviceNameBuilder.append(displayModel.replace('_', ' '))
 
   return deviceNameBuilder.toString()

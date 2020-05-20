@@ -78,7 +78,7 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
         if (!serials.add(serial)) {
           continue
         }
-        val deviceName = buildDeviceName(serial, stream.device.model)
+        val deviceName = stream.device.toDisplayName()
         if (stream.device.featureLevel < 23) {
           add(object : AnAction("$deviceName (Unsupported for API < 23)") {
             override fun update(event: AnActionEvent) {
@@ -169,12 +169,16 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
   }
 }
 
-private fun buildDeviceName(serial: String?, model: String): String {
+private fun Common.Device.toDisplayName(): String {
   var displayModel = model
   val deviceNameBuilder = StringBuilder()
   val suffix = String.format("-%s", serial)
   if (displayModel.endsWith(suffix)) {
     displayModel = displayModel.substring(0, displayModel.length - suffix.length)
+  }
+  if (!isEmulator && manufacturer.isNotBlank()) {
+    deviceNameBuilder.append(manufacturer)
+    deviceNameBuilder.append(" ")
   }
   deviceNameBuilder.append(displayModel.replace('_', ' '))
 
