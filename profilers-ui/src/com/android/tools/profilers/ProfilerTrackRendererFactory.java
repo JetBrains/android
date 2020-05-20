@@ -32,6 +32,12 @@ import org.jetbrains.annotations.NotNull;
  * Implementation of {@link TrackRendererFactory} for creating track renderers used in profilers.
  */
 public class ProfilerTrackRendererFactory implements TrackRendererFactory<ProfilerTrackRendererType> {
+  @NotNull private final StudioProfilersView myProfilersView;
+
+  public ProfilerTrackRendererFactory(@NotNull StudioProfilersView profilersView) {
+    myProfilersView = profilersView;
+  }
+
   @NotNull
   @Override
   public TrackRenderer<?, ProfilerTrackRendererType> createRenderer(@NotNull ProfilerTrackRendererType rendererType) {
@@ -47,7 +53,7 @@ public class ProfilerTrackRendererFactory implements TrackRendererFactory<Profil
       case VSYNC:
         return new VsyncTrackRenderer();
       case CPU_THREAD:
-        return new CpuThreadTrackRenderer();
+        return new CpuThreadTrackRenderer(myProfilersView);
       case CPU_CORE:
         return new CpuCoreTrackRenderer();
       case CUSTOM_EVENTS:

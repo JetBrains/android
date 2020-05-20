@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.hchart.HTreeChart
 import com.android.tools.adtui.chart.statechart.StateChart
 import com.android.tools.adtui.model.DefaultTimeline
@@ -25,11 +26,13 @@ import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture
@@ -46,16 +49,19 @@ class CpuThreadTrackRendererTest {
   private val timer = FakeTimer()
   private val services = FakeIdeProfilerServices()
   private val transportService = FakeTransportService(timer, true)
+  private val ideProfilerComponents = FakeIdeProfilerComponents()
 
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuThreadTrackRendererTest", FakeCpuService(), FakeProfilerService(timer), transportService,
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
   private lateinit var profilers: StudioProfilers
+  private lateinit var profilersView: StudioProfilersView
 
   @Before
   fun setUp() {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
+    profilersView = StudioProfilersView(profilers, ideProfilerComponents)
   }
 
   @Test
@@ -78,7 +84,7 @@ class CpuThreadTrackRendererTest {
         multiSelectionModel
       ),
       ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
-    val renderer = CpuThreadTrackRenderer()
+    val renderer = CpuThreadTrackRenderer(profilersView)
     val component = renderer.render(threadTrackModel)
     assertThat(component.componentCount).isEqualTo(2)
     assertThat(component.components[0]).isInstanceOf(StateChart::class.java)
@@ -108,8 +114,29 @@ class CpuThreadTrackRendererTest {
         MultiSelectionModel()
       ),
       ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
-    val component = CpuThreadTrackRenderer().render(threadTrackModel)
+    val component = CpuThreadTrackRenderer(profilersView).render(threadTrackModel)
     assertThat(component.componentCount).isEqualTo(1)
     assertThat(component.components[0]).isInstanceOf(HTreeChart::class.java)
+  }
+
+  @Test
+  fun supportsCodeNavigationForArt() {
+    // Mock a recorded ART trace.
+    val mockCapture = Mockito.mock(CpuCapture::class.java).apply {
+      Mockito.`when`(range).thenReturn(Range())
+      Mockito.`when`(type).thenReturn(Cpu.CpuTraceType.ART)
+    }
+    val threadTrackModel = TrackModel.newBuilder(
+      CpuThreadTrackModel(
+        mockCapture,
+        CpuThreadInfo(1, "Thread-1"),
+        DefaultTimeline(),
+        MultiSelectionModel()
+      ),
+      ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
+    val renderer = CpuThreadTrackRenderer(profilersView)
+    val component = renderer.render(threadTrackModel)
+    val callChart = TreeWalker(component).descendants().filterIsInstance<HTreeChart<*>>().first()
+    assertThat(ideProfilerComponents.getCodeLocationSupplier(callChart)).isNotNull()
   }
 }
