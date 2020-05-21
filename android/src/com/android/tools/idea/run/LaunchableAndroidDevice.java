@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -176,7 +177,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
                                     @NotNull IAndroidTarget projectTarget,
                                     @NotNull AndroidFacet facet,
                                     Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
-                                    @Nullable Set<String> supportedAbis) {
+                                    @NonNull Set<String> supportedAbis) {
     LaunchCompatibility compatibility = LaunchCompatibility.YES;
 
     if (myAvdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
