@@ -32,6 +32,7 @@ import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
+import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.energy.EnergyDuration;
@@ -92,6 +93,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
       .put(NullMonitorStage.class, AndroidProfilerEvent.Stage.NULL_STAGE)
       .put(StudioMonitorStage.class, AndroidProfilerEvent.Stage.OVERVIEW_STAGE)
       .put(CpuProfilerStage.class, AndroidProfilerEvent.Stage.CPU_STAGE)
+      .put(CpuCaptureStage.class, AndroidProfilerEvent.Stage.CPU_CAPTURE_STAGE)
       .put(MemoryProfilerStage.class, AndroidProfilerEvent.Stage.MEMORY_STAGE)
       .put(NetworkProfilerStage.class, AndroidProfilerEvent.Stage.NETWORK_STAGE)
       .put(EnergyProfilerStage.class, AndroidProfilerEvent.Stage.ENERGY_STAGE)
