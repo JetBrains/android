@@ -17,15 +17,11 @@ package com.android.tools.idea.npw.module
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
-import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
-import com.android.tools.idea.npw.model.PROPERTIES_BYTECODE_LEVEL_KEY
 import com.android.tools.idea.npw.model.ProjectModelData
-import com.android.tools.idea.npw.model.properties
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.toTemplateFormFactor
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
@@ -36,6 +32,7 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Recipe
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
@@ -56,7 +53,7 @@ abstract class ModuleModel(
   val moduleParent: String? = null
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
   final override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(_template)
-  override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
+  override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.Mobile)
   final override val moduleName = StringValueProperty(name).apply { addConstraint(String::trim) }
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder, true)
@@ -87,7 +84,7 @@ abstract class ModuleModel(
           setProjectDefaults(project)
           language = this@ModuleModel.language.value
         }
-        formFactor = this@ModuleModel.formFactor.get().toTemplateFormFactor()
+        formFactor = this@ModuleModel.formFactor.get()
         setBuildVersion(androidSdkInfo.value, project)
         setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@ModuleModel.packageName.get())
         isLibrary = this@ModuleModel.isLibrary

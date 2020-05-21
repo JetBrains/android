@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.project.getPackageForApplication
@@ -37,6 +36,7 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardParameterData
@@ -217,7 +217,7 @@ class RenderTemplateModel private constructor(
 
     @JvmStatic
     fun fromModuleModel(
-      moduleModel: NewAndroidModuleModel, commandName: String = moduleModel.formFactor.get().id
+      moduleModel: NewAndroidModuleModel, commandName: String = "Render new ${moduleModel.formFactor.get().name} template"
     ) = RenderTemplateModel(
       moduleModelData = moduleModel,
       androidFacet = null,

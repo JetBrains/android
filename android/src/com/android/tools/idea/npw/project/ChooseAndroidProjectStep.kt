@@ -18,14 +18,13 @@ package com.android.tools.idea.npw.project
 import com.android.tools.adtui.ASGallery
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.util.FormScalingUtil
-import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
+import com.android.tools.idea.npw.project.ChooseAndroidProjectStep.Companion.getProjectTemplates
 import com.android.tools.idea.npw.template.ChooseGalleryItemStep
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.npw.template.getDefaultSelectedTemplateIndex
-import com.android.tools.idea.npw.toTemplateFormFactor
 import com.android.tools.idea.npw.ui.WizardGallery
 import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.npw.ui.getTemplateTitle
@@ -33,6 +32,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.ModelWizard.Facade
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.base.Suppliers
@@ -199,16 +199,17 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   }
 
   companion object {
-    private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> =
-        FormFactor.values().map { NewFormFactorInfo(it, ChooseAndroidProjectPanel(createGallery(wizardTitle, it))) }
+    private fun FormFactor.getProjectTemplates() = TemplateResolver.getAllTemplates()
+        .filter { WizardUiContext.NewProject in it.uiContexts && it.formFactor == this }
+
+    private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> = FormFactor.values()
+        .filterNot { it.getProjectTemplates().isEmpty() }
+        .map { NewFormFactorInfo(it, ChooseAndroidProjectPanel(createGallery(wizardTitle, it))) }
 
     private fun createGallery(title: String, formFactor: FormFactor): ASGallery<TemplateRendererWithDescription> {
       val listItems = sequence {
         yield(NewTemplateRendererWithDescription(Template.NoActivity))
-
-        TemplateResolver.getAllTemplates()
-            .filter { WizardUiContext.NewProject in it.uiContexts && it.formFactor == formFactor.toTemplateFormFactor()}
-            .forEach { yield(NewTemplateRendererWithDescription(it)) }
+        formFactor.getProjectTemplates().forEach { yield(NewTemplateRendererWithDescription(it)) }
       }.toList()
 
       return WizardGallery<TemplateRendererWithDescription>(title, { it!!.icon }, { it!!.label }).apply {

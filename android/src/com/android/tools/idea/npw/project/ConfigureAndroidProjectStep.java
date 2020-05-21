@@ -19,6 +19,7 @@ import static com.android.sdklib.AndroidVersion.VersionCodes.Q;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.adtui.validation.Validator.Severity.WARNING;
+import static com.android.tools.idea.npw.FormFactorUtilKt.toWizardFormFactor;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
@@ -31,12 +32,10 @@ import com.android.repository.api.UpdatablePackage;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.device.FormFactor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem;
-import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.ui.TemplateIcon;
@@ -59,7 +58,7 @@ import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.android.tools.idea.wizard.template.BytecodeLevel;
+import com.android.tools.idea.wizard.template.FormFactor;
 import com.android.tools.idea.wizard.template.Language;
 import com.android.tools.idea.wizard.template.Template;
 import com.android.tools.idea.wizard.template.TemplateConstraint;
@@ -196,9 +195,9 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myListeners.listenAndFire(getModel().formFactor, () -> {
       FormFactor formFactor = getModel().formFactor.get();
 
-      myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.MOBILE);
-      myWearCheck.setVisible(formFactor == FormFactor.WEAR);
-      myTvCheck.setVisible(formFactor == FormFactor.TV);
+      myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.Mobile);
+      myWearCheck.setVisible(formFactor == FormFactor.Wear);
+      myTvCheck.setVisible(formFactor == FormFactor.Tv);
     });
 
     myListeners.listen(androidSdkInfo, () -> updateAppCompatCheckBox());
@@ -211,7 +210,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     int minSdk = newTemplate.getMinSdk();
 
-    myFormFactorSdkControls.startDataLoading(formFactor, minSdk);
+    myFormFactorSdkControls.startDataLoading(toWizardFormFactor(formFactor), minSdk);
     boolean isKotlinOnly;
     setTemplateThumbnail(newTemplate);
     isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
@@ -228,7 +227,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     getModel().hasCompanionApp.set(
       (myWearCheck.isVisible() && myWearCheck.isSelected()) ||
       (myTvCheck.isVisible() && myTvCheck.isSelected()) ||
-      getModel().formFactor.get() == FormFactor.AUTOMOTIVE // Automotive projects include a mobile module for Android Auto by default
+      getModel().formFactor.get() == FormFactor.Automotive // Automotive projects include a mobile module for Android Auto by default
     );
 
     myInstallRequests.clear();
