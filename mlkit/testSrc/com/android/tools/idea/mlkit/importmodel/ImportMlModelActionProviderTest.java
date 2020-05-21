@@ -22,7 +22,6 @@ import com.android.tools.idea.wizard.template.Category;
 import com.intellij.openapi.actionSystem.AnAction;
 import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
-import org.junit.Test;
 
 /**
  * Unit tests for {@link ImportMlModelActionsProvider}.

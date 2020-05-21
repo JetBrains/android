@@ -471,7 +471,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     String modelClassName = modelClass.getName();
     codeBuilder.append(INDENT).append(String.format("%s model = %s.newInstance(context);\n\n", modelClassName, modelClassName));
 
-    PsiMethod processMethod = findUndeprecatedMethodByName(modelClass, "process");
+    PsiMethod processMethod = findUndeprecatedProcessMethod(modelClass);
     if (processMethod.getReturnType() != null) {
       codeBuilder.append(buildTensorInputSampleCodeInJava(processMethod, modelInfo));
 
@@ -534,7 +534,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       .append(INDENT)
       .append(String.format("val model = %s.newInstance(context)\n\n", modelClass.getName()));
 
-    PsiMethod processMethod = findUndeprecatedMethodByName(modelClass, "process");
+    PsiMethod processMethod = findUndeprecatedProcessMethod(modelClass);
     if (processMethod.getReturnType() != null) {
       codeBuilder.append(buildTensorInputSampleCodeInKotlin(processMethod, modelInfo));
 
@@ -579,8 +579,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private static PsiMethod findUndeprecatedMethodByName(@NotNull PsiClass psiClass, @NotNull String name) {
-    PsiMethod[] methods = psiClass.findMethodsByName(name, false);
+  private static PsiMethod findUndeprecatedProcessMethod(@NotNull PsiClass psiClass) {
+    PsiMethod[] methods = psiClass.findMethodsByName("process", false);
     return ContainerUtil.filter(Arrays.asList(methods), method -> !method.isDeprecated()).get(0);
   }
 

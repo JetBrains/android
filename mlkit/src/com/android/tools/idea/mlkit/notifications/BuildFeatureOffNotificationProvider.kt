@@ -57,10 +57,10 @@ class BuildFeatureOffNotificationProvider : EditorNotifications.Provider<EditorN
     }
 
     val panel = EditorNotificationPanel()
-    panel.setText(BANNER_MESSAGE)
+    panel.text = BANNER_MESSAGE
     panel.createActionLabel("Enable Now") {
       if (Messages.OK == Messages.showOkCancelDialog(project, DIALOG_MESSAGE, DIALOG_TITLE,
-                                                     Messages.OK_BUTTON, Messages.CANCEL_BUTTON, Messages.getInformationIcon())) {
+                                                     Messages.getOkButton(), Messages.getCancelButton(), Messages.getInformationIcon())) {
         addBuildFeature(module)
         project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
       }
