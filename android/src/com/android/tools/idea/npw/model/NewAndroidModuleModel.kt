@@ -16,16 +16,15 @@
 package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
 import com.android.tools.idea.npw.module.recipes.automotiveModule.generateAutomotiveModule
+import com.android.tools.idea.npw.module.recipes.genericModule.generateGenericModule
 import com.android.tools.idea.npw.module.recipes.thingsModule.generateThingsModule
 import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
 import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.toTemplateFormFactor
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
@@ -36,6 +35,7 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
 import com.android.tools.idea.wizard.template.BytecodeLevel
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
@@ -127,13 +127,13 @@ class NewAndroidModuleModel(
     projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
     template = template,
     moduleParent = moduleParent,
-    formFactor = ObjectValueProperty(FormFactor.MOBILE),
+    formFactor = ObjectValueProperty(FormFactor.Mobile),
     isLibrary = isLibrary
   )
 
   constructor(
     projectModel: NewProjectModel, template: NamedModuleTemplate,
-    formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
+    formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.Mobile)
   ) : this(
     projectModelData = projectModel,
     template = template,
@@ -145,20 +145,23 @@ class NewAndroidModuleModel(
 
   inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
     override val recipe: Recipe get() = when(formFactor.get()) {
-      FormFactor.MOBILE -> { data: TemplateData ->
+      FormFactor.Mobile -> { data: TemplateData ->
         generateAndroidModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get(), enableCppSupport.get(), cppFlags.get(), bytecodeLevel.value)
       }
-      FormFactor.WEAR -> { data: TemplateData ->
+      FormFactor.Wear -> { data: TemplateData ->
         generateWearModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
       }
-      FormFactor.AUTOMOTIVE -> { data: TemplateData ->
+      FormFactor.Automotive -> { data: TemplateData ->
         generateAutomotiveModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
       }
-      FormFactor.TV -> { data: TemplateData ->
+      FormFactor.Tv -> { data: TemplateData ->
         generateTvModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
       }
-      FormFactor.THINGS -> { data: TemplateData ->
+      FormFactor.Things -> { data: TemplateData ->
         generateThingsModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
+      }
+      FormFactor.Generic -> { data: TemplateData ->
+        generateGenericModule(data as ModuleTemplateData)
       }
     }
 
@@ -172,7 +175,7 @@ class NewAndroidModuleModel(
       moduleTemplateDataBuilder.apply {
         setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@NewAndroidModuleModel.packageName.get())
       }
-      val tff = formFactor.get().toTemplateFormFactor()
+      val tff = formFactor.get()
       projectTemplateDataBuilder.includedFormFactorNames.putIfAbsent(tff, mutableListOf(moduleName.get()))?.add(moduleName.get())
     }
   }
@@ -198,11 +201,12 @@ class NewAndroidModuleModel(
 }
 
 private fun FormFactor.toModuleRenderingLoggingEvent() = when(this) {
-  FormFactor.MOBILE -> RenderLoggingEvent.ANDROID_MODULE
-  FormFactor.TV -> RenderLoggingEvent.ANDROID_TV_MODULE
-  FormFactor.AUTOMOTIVE -> RenderLoggingEvent.AUTOMOTIVE_MODULE
-  FormFactor.THINGS -> RenderLoggingEvent.THINGS_MODULE
-  FormFactor.WEAR -> RenderLoggingEvent.ANDROID_WEAR_MODULE
+  FormFactor.Mobile -> RenderLoggingEvent.ANDROID_MODULE
+  FormFactor.Tv -> RenderLoggingEvent.ANDROID_TV_MODULE
+  FormFactor.Automotive -> RenderLoggingEvent.AUTOMOTIVE_MODULE
+  FormFactor.Things -> RenderLoggingEvent.THINGS_MODULE
+  FormFactor.Wear -> RenderLoggingEvent.ANDROID_WEAR_MODULE
+  FormFactor.Generic -> RenderLoggingEvent.ANDROID_MODULE // TODO(b/145975555)
 }
 
 private fun Project.hasKtsUsage() : Boolean {

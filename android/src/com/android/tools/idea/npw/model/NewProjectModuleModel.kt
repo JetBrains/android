@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.model
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
-import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -26,6 +25,7 @@ import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import org.jetbrains.android.util.AndroidBundle.message
@@ -36,7 +36,7 @@ import java.util.Locale
  */
 class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardModel() {
   @JvmField
-  val formFactor = ObjectValueProperty(FormFactor.MOBILE)
+  val formFactor = ObjectValueProperty(FormFactor.Mobile)
   private val newModuleModel = NewAndroidModuleModel(
     projectModel,
     createDummyTemplate(),
@@ -116,7 +116,7 @@ internal const val EMPTY_ACTIVITY = "Empty Activity"
 
 private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroidModuleModel {
   // Note: The companion Module is always a Mobile app
-  val moduleName = getModuleName(FormFactor.MOBILE)
+  val moduleName = getModuleName(FormFactor.Mobile)
   val namedModuleTemplate = createDefaultTemplateAt(projectModel.projectLocation.get(), moduleName)
   val companionModuleModel = NewAndroidModuleModel(projectModel, namedModuleTemplate)
   companionModuleModel.moduleName.set(moduleName)
@@ -141,5 +141,7 @@ private fun addRenderDefaultTemplateValues(renderTemplateModel: RenderTemplateMo
     packageNameParameter?.value = packageName
   }
 
-private fun getModuleName(formFactor: FormFactor): String = formFactor.id.replace("\\s".toRegex(), "_").toLowerCase(Locale.US)
+private fun getModuleName(formFactor: FormFactor): String =
+  // Form factors like Android Auto build upon another form factor
+  formFactor.name.replace("\\s".toRegex(), "_").toLowerCase(Locale.US)
 
