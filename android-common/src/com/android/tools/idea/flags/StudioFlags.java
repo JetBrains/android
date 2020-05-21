@@ -341,6 +341,11 @@ public final class StudioFlags {
     "Enable the new transform panel in the layout editor and motion editor",
     true);
 
+  public static final Flag<Boolean> NELE_TRANSITION_PANEL = Flag.create(
+    NELE, "toggle.layout.editor.transition.panel", "Toggle transition panel in motion editor.",
+    "Enable the new transition panel in the motion editor",
+    true);
+
   //endregion
 
   //region Navigation Editor
