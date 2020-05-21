@@ -27,6 +27,7 @@ enum class InspectorSection(val title: String) {
   FAVORITES("Favorite Attributes"),
   COMMON("Common Attributes"),
   TRANSFORMS("Transforms"),
+  REFERENCES("Referenced Views"),
   ALL("All Attributes");
 
   private val propertyName = "ANDROID.INSPECTOR-SECTION.$name"
