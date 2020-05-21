@@ -39,20 +39,12 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 public class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.generated.file.ro");
 
-  @NotNull private final Project myProject;
   @NotNull private final GeneratedSourceFileChangeTracker myGeneratedSourceFileChangeTracker;
   @NotNull private final GradleProjectInfo myProjectInfo;
 
   public GeneratedFileNotificationProvider(@NotNull Project project) {
-    this(project, GeneratedSourceFileChangeTracker.getInstance(project), GradleProjectInfo.getInstance(project));
-  }
-
-  public GeneratedFileNotificationProvider(@NotNull Project project,
-                                           @NotNull GeneratedSourceFileChangeTracker changeTracker,
-                                           @NotNull GradleProjectInfo projectInfo) {
-    myProject = project;
-    myGeneratedSourceFileChangeTracker = changeTracker;
-    myProjectInfo = projectInfo;
+    myGeneratedSourceFileChangeTracker = GeneratedSourceFileChangeTracker.getInstance(project);
+    myProjectInfo = GradleProjectInfo.getInstance(project);
   }
 
   @NotNull

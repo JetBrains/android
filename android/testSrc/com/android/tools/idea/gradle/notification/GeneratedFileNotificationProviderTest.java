@@ -15,18 +15,6 @@
  */
 package com.android.tools.idea.gradle.notification;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.notification.GeneratedFileNotificationProvider.MyEditorNotificationPanel;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.intellij.ide.GeneratedSourceFileChangeTracker;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
-import org.mockito.Mock;
-
-import java.io.IOException;
-
 import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
 import static com.android.tools.idea.testing.ProjectFiles.createFile;
 import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
@@ -35,11 +23,24 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.notification.GeneratedFileNotificationProvider.MyEditorNotificationPanel;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.ide.GeneratedSourceFileChangeTracker;
+import com.intellij.ide.GeneratedSourceFileChangeTrackerImpl;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestCase;
+import java.io.IOException;
+import org.mockito.Mock;
+
 /**
  * Tests for {@link GeneratedFileNotificationProvider}.
  */
 public class GeneratedFileNotificationProviderTest extends PlatformTestCase {
-  @Mock private GeneratedSourceFileChangeTracker myGeneratedSourceFileChangeTracker;
+  @Mock private GeneratedSourceFileChangeTrackerImpl myGeneratedSourceFileChangeTracker;
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private AndroidModuleModel myAndroidModuleModel;
   @Mock private IdeAndroidProject myAndroidProject;
@@ -52,9 +53,12 @@ public class GeneratedFileNotificationProviderTest extends PlatformTestCase {
     super.setUp();
     initMocks(this);
 
+    new IdeComponents(getProject()).replaceProjectService(GeneratedSourceFileChangeTracker.class, myGeneratedSourceFileChangeTracker);
+    new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
+
     when(myAndroidModuleModel.getAndroidProject()).thenReturn(myAndroidProject);
 
-    myNotificationProvider = new GeneratedFileNotificationProvider(getProject(), myGeneratedSourceFileChangeTracker, myProjectInfo);
+    myNotificationProvider = new GeneratedFileNotificationProvider(getProject());
   }
 
   public void testCreateNotificationPanelWithFileInBuildFolder() throws IOException {
