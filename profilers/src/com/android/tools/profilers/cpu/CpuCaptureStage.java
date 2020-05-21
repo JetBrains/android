@@ -344,11 +344,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
       myTrackGroupModels.add(createInteractionTrackGroup(getStudioProfilers(), getTimeline()));
     }
 
-    if (capture.getType() == Cpu.CpuTraceType.ATRACE || capture.getType() == Cpu.CpuTraceType.PERFETTO) {
+    if (capture.getSystemTraceData() != null) {
       // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
-      myTrackGroupModels.add(createDisplayTrackGroup(capture, getTimeline()));
+      myTrackGroupModels.add(createDisplayTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData(), getTimeline()));
       // CPU per-core usage and event etc. Systrace only.
-      myTrackGroupModels.add(createCpuCoresTrackGroup(capture, getTimeline()));
+      myTrackGroupModels.add(createCpuCoresTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData(), getTimeline()));
     }
 
     // Thread states and trace events.
@@ -372,25 +372,28 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return interaction;
   }
 
-  private static TrackGroupModel createDisplayTrackGroup(@NotNull CpuCapture cpuCapture, @NotNull Timeline timeline) {
+  private static TrackGroupModel createDisplayTrackGroup(
+    int mainThreadId, @NotNull CpuSystemTraceData systemTraceData, @NotNull Timeline timeline) {
+
     TrackGroupModel display = TrackGroupModel.newBuilder().setTitle("Display").build();
 
     // Frame
     CpuFramesModel.FrameState mainFrames = new CpuFramesModel.FrameState(
-      "Main", cpuCapture.getMainThreadId(), SystemTraceFrame.FrameThread.MAIN, cpuCapture, timeline.getViewRange());
+      "Main", mainThreadId, SystemTraceFrame.FrameThread.MAIN,
+      systemTraceData, timeline.getViewRange());
     CpuFrameTooltip mainFrameTooltip = new CpuFrameTooltip(timeline);
     mainFrameTooltip.setFrameSeries(mainFrames.getSeries());
     display.addTrackModel(
       TrackModel.newBuilder(mainFrames, ProfilerTrackRendererType.FRAMES, "Frames").setDefaultTooltipModel(mainFrameTooltip));
 
     // Surfaceflinger
-    SurfaceflingerTrackModel sfModel = new SurfaceflingerTrackModel(cpuCapture, timeline.getViewRange());
+    SurfaceflingerTrackModel sfModel = new SurfaceflingerTrackModel(systemTraceData, timeline.getViewRange());
     SurfaceflingerTooltip sfTooltip = new SurfaceflingerTooltip(timeline, sfModel.getSurfaceflingerEvents());
     display.addTrackModel(
       TrackModel.newBuilder(sfModel, ProfilerTrackRendererType.SURFACEFLINGER, "Surfaceflinger").setDefaultTooltipModel(sfTooltip));
 
     // VSYNC
-    VsyncTrackModel vsyncModel = new VsyncTrackModel(cpuCapture, timeline.getViewRange());
+    VsyncTrackModel vsyncModel = new VsyncTrackModel(systemTraceData, timeline.getViewRange());
     VsyncTooltip vsyncTooltip = new VsyncTooltip(timeline, vsyncModel.getVsyncCounterSeries());
     display.addTrackModel(TrackModel.newBuilder(vsyncModel, ProfilerTrackRendererType.VSYNC, "VSYNC").setDefaultTooltipModel(vsyncTooltip));
     return display;
@@ -424,19 +427,19 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return threads;
   }
 
-  private static TrackGroupModel createCpuCoresTrackGroup(@NotNull CpuCapture cpuCapture, @NotNull Timeline timeline) {
-    int cpuCount = cpuCapture.getCpuCount();
+  private static TrackGroupModel createCpuCoresTrackGroup(int mainThreadId, @NotNull CpuSystemTraceData systemTraceData, @NotNull Timeline timeline) {
+    int cpuCount = systemTraceData.getCpuCount();
     String coresTitle = String.format(Locale.getDefault(), "CPU cores (%d)", cpuCount);
     TrackGroupModel cores = TrackGroupModel.newBuilder().setTitle(coresTitle).setCollapsedInitially(true).build();
     for (int cpuId = 0; cpuId < cpuCount; ++cpuId) {
-      CpuKernelTooltip kernelTooltip = new CpuKernelTooltip(timeline, cpuCapture.getMainThreadId());
+      CpuKernelTooltip kernelTooltip = new CpuKernelTooltip(timeline, mainThreadId);
       final int coreId = cpuId;
       LazyDataSeries<CpuThreadSliceInfo> dataSeries =
-        new LazyDataSeries<>(() -> cpuCapture.getCpuThreadSliceInfoStates(coreId));
+        new LazyDataSeries<>(() -> systemTraceData.getCpuThreadSliceInfoStates(coreId));
       kernelTooltip.setCpuSeries(cpuId, dataSeries);
       cores.addTrackModel(
         TrackModel.newBuilder(
-          new CpuCoreTrackModel(dataSeries, timeline.getViewRange(), cpuCapture), ProfilerTrackRendererType.CPU_CORE, "CPU " + cpuId)
+          new CpuCoreTrackModel(dataSeries, timeline.getViewRange(), mainThreadId), ProfilerTrackRendererType.CPU_CORE, "CPU " + cpuId)
           .setDefaultTooltipModel(kernelTooltip));
     }
     return cores;

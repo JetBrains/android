@@ -121,7 +121,7 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
       }
     }
 
-    if (chartDetails.getCapture().getType() != Cpu.CpuTraceType.ATRACE) {
+    if (chartDetails.getCapture().getSystemTraceData() == null) {
       CodeNavigator navigator = myProfilersView.getStudioProfilers().getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
       CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator);
       chart.addMouseListener(handler);

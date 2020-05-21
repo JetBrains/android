@@ -20,6 +20,7 @@ import com.android.tools.adtui.chart.statechart.StateChart
 import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.SeriesData
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -57,11 +58,8 @@ class CpuCoreTrackRendererTest {
 
   @Test
   fun render() {
-    val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
-    Mockito.`when`(mockCapture.range).thenReturn(Range())
-    Mockito.`when`(mockCapture.mainThreadId).thenReturn(123)
     val coreTrackModel = TrackModel.newBuilder(
-      CpuCoreTrackModel(LazyDataSeries { mockCapture.getCpuThreadSliceInfoStates(0) }, Range(), mockCapture),
+      CpuCoreTrackModel(LazyDataSeries { emptyList<SeriesData<CpuThreadSliceInfo>>() }, Range(), 123),
       ProfilerTrackRendererType.CPU_CORE,
       "Foo")
       .build()

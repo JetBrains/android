@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,10 +53,14 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
   private void captureStateChanged() {
     removeAllElements();
     CpuCapture capture = myStage.getCapture();
-    if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
+    if (capture != null && capture.getSystemTraceData() != null) {
       // For now we hard code the main thread, and the render thread frame information.
-      addElement(new FrameState("Main", capture.getMainThreadId(), SystemTraceFrame.FrameThread.MAIN, capture, myRange));
-      addElement(new FrameState("Render", capture.getRenderThreadId(), SystemTraceFrame.FrameThread.RENDER, capture, myRange));
+      addElement(new FrameState(
+        "Main", capture.getMainThreadId(), SystemTraceFrame.FrameThread.MAIN,
+        capture.getSystemTraceData(), myRange));
+      addElement(new FrameState(
+        "Render", capture.getSystemTraceData().getRenderThreadId(), SystemTraceFrame.FrameThread.RENDER,
+        capture.getSystemTraceData(), myRange));
     }
     contentsChanged();
   }
@@ -77,12 +80,12 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
     public FrameState(String threadName,
                       int threadId,
                       @NotNull SystemTraceFrame.FrameThread threadType,
-                      @NotNull CpuCapture capture,
+                      @NotNull CpuSystemTraceData systemTraceData,
                       @NotNull Range range) {
       myModel = new StateChartModel<>();
       myThreadName = threadName;
       myThreadId = threadId;
-      myFrameDataSeries = new LazyDataSeries<>(() -> capture.getFrames(threadType));
+      myFrameDataSeries = new LazyDataSeries<>(() -> systemTraceData.getFrames(threadType));
       // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
       myModel.addSeries(new RangedSeries<>(range, myFrameDataSeries));
     }
