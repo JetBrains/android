@@ -22,6 +22,7 @@ import static com.android.tools.idea.transport.faketransport.FakeTransportServic
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.testutils.TestUtils;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
@@ -30,11 +31,13 @@ import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils;
+import com.android.tools.profilers.cpu.CpuProfilerUITestUtils;
 import com.android.tools.profilers.energy.EnergyMonitorTooltip;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
-import com.android.tools.profilers.memory.CaptureDurationData;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.HeapDumpStage;
 import com.android.tools.profilers.memory.MemoryMonitorTooltip;
@@ -516,6 +519,17 @@ public class StudioProfilersViewTest {
 
     myProfilers.setStage(new MemoryProfilerStage(myProfilers));
     assertThat(myView.getRightToolbar().isVisible()).isTrue();
+  }
+
+  @Test
+  public void captureCpuStageGoesBackToCpuStagethenBackToMonitorStage() throws Exception {
+    myProfilers.setStage(CpuCaptureStage.create(myProfilers,
+                                                ProfilersTestData.DEFAULT_CONFIG,
+                                                TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH)));
+    myView.getBackButton().doClick();
+    assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
+    myView.getBackButton().doClick();
+    assertThat(myProfilers.getStage()).isInstanceOf(StudioMonitorStage.class);
   }
 
   public void transitionStage(Stage stage) throws Exception {
