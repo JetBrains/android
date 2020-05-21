@@ -41,7 +41,7 @@ open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(val profile
   private val commonSection: JPanel
 
   init {
-    commonSection = JPanel(TabularLayout("*,*", "Fit-").setVGap(COMMON_SECTION_ROW_PADDING_PX)).apply {
+    commonSection = JPanel(TabularLayout("30*,70*", "Fit-").setVGap(COMMON_SECTION_ROW_PADDING_PX)).apply {
       isOpaque = false
     }
     layout = TabularLayout("*", "Fit").setVGap(SECTION_PADDING_PX)
