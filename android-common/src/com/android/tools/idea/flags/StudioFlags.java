@@ -316,7 +316,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW = Flag.create(
     NELE, "toggle.tools.attributes.preview", "New Toggle for Tools namespaces attributes",
     "Enable the new toggle in the Layout Editor. Allows toggling tools attributes in the Layout preview.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_SHOW_RECYCLER_VIEW_SETUP_WIZARD = Flag.create(
     NELE, "recyclerview.setup.wizard", "Show setup wizard for recycler view",
