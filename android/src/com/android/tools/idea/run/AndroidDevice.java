@@ -103,7 +103,7 @@ public interface AndroidDevice {
                              @NotNull IAndroidTarget projectTarget,
                              @NotNull AndroidFacet facet,
                              Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
-                             @Nullable Set<String> supportedAbis);
+                             @NotNull Set<String> supportedAbis);
 
   /** Returns whether this device is debuggable or not. */
   boolean isDebuggable();
