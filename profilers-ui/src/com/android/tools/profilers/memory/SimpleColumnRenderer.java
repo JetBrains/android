@@ -96,9 +96,13 @@ class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRender
    * Make simple right-aligned column that displays a node's integer-property
    * if the node's data belongs to the subclass and its property satisfies the predicate.
    * The column displays "" otherwise.
+   *
+   * @param suggestedWidth the column width, which should be {@link DEFAULT_COLUMN_WIDTH}
+   *                       at a minimum
    */
   public static <T extends MemoryObject> AttributeColumn<MemoryObject>
       makeIntColumn(String name,
+                    int suggestedWidth,
                     Class<T> subclass,
                     ToLongFunction<T> prop,
                     LongPredicate pred,
@@ -106,14 +110,19 @@ class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRender
                     SortOrder order) {
     Function<MemoryObjectTreeNode<MemoryObject>, String> textGetter =
       makeConditionalTextGetter(subclass, prop, pred, formatter);
+    int preferredWidth = Math.max(DEFAULT_COLUMN_WIDTH, suggestedWidth);
+    int maxWidth = preferredWidth * 4;
     return new AttributeColumn<>(name,
                                  () -> new SimpleColumnRenderer<>(textGetter, v -> null, SwingConstants.RIGHT),
-                                 SwingConstants.RIGHT, DEFAULT_COLUMN_WIDTH,
+                                 SwingConstants.RIGHT, preferredWidth, maxWidth,
                                  order, compareOn(subclass, prop));
   }
 
-  public static AttributeColumn<MemoryObject> makeSizeColumn(String name, ToLongFunction<ValueObject> prop) {
+  public static AttributeColumn<MemoryObject> makeSizeColumn(String name,
+                                                             int suggestedWidth,
+                                                             ToLongFunction<ValueObject> prop) {
     return makeIntColumn(name,
+                         suggestedWidth,
                          ValueObject.class, prop, s -> s != INVALID_VALUE,
                          NumberFormatter::formatInteger,
                          SortOrder.DESCENDING);

@@ -644,6 +644,7 @@ public class ColumnTreeBuilder {
     private int myWidth;
     private int myHeaderAlignment;
     private int myMinimumWidth;
+    private int myMaximumWidth = Integer.MAX_VALUE;
     private Border myHeaderBorder;
     private Comparator<?> myComparator;
     private ColoredTreeCellRenderer myRenderer;
@@ -665,6 +666,12 @@ public class ColumnTreeBuilder {
     @NotNull
     public ColumnBuilder setMinWidth(int width) {
       myMinimumWidth = width;
+      return this;
+    }
+
+    @NotNull
+    public ColumnBuilder setMaxWidth(int width) {
+      myMaximumWidth = width;
       return this;
     }
 
@@ -702,6 +709,7 @@ public class ColumnTreeBuilder {
       TableColumn column = table.getColumnModel().getColumn(index);
       column.setPreferredWidth(myWidth);
       column.setMinWidth(myMinimumWidth);
+      column.setMaxWidth(myMaximumWidth);
 
       final TableCellRenderer tableCellRenderer = table.getTableHeader().getDefaultRenderer();
       column.setHeaderRenderer(new DefaultTableCellRenderer() {
