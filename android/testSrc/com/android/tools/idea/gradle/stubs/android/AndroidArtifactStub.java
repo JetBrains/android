@@ -106,9 +106,9 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
   }
 
   @Override
-  @Nullable
+  @NonNull
   public Set<String> getAbiFilters() {
-    return null;
+    return Collections.emptySet();
   }
 
   @Override

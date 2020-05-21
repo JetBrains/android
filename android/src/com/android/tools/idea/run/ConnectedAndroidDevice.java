@@ -283,7 +283,7 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
                                     @NotNull IAndroidTarget projectTarget,
                                     @NotNull AndroidFacet facet,
                                     Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
-                                    @Nullable Set<String> supportedAbis) {
+                                    @NotNull Set<String> supportedAbis) {
     return LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, facet, getRequiredHardwareFeatures, supportedAbis, this);
   }
 

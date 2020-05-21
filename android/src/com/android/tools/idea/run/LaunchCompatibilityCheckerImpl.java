@@ -29,6 +29,7 @@ import com.android.tools.idea.run.util.SwapInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -43,14 +44,14 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   @NotNull private final AndroidFacet myFacet;
   @Nullable private final ExecutionEnvironment myEnvironment;
   @Nullable private final AndroidRunConfigurationBase myAndroidRunConfigurationBase;
-  @Nullable private final Set<String> mySupportedAbis;
+  @NotNull private final Set<String> mySupportedAbis;
 
   public LaunchCompatibilityCheckerImpl(@NotNull AndroidVersion minSdkVersion,
                                         @NotNull IAndroidTarget target,
                                         @NotNull AndroidFacet facet,
                                         @Nullable ExecutionEnvironment environment,
                                         @Nullable AndroidRunConfigurationBase androidRunConfigurationBase,
-                                        @Nullable Set<String> supportedAbis) {
+                                        @NotNull Set<String> supportedAbis) {
     assert (environment == null && androidRunConfigurationBase == null) || (environment != null && androidRunConfigurationBase != null);
     myMinSdkVersion = minSdkVersion;
     myProjectTarget = target;
@@ -126,7 +127,7 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     Set<String> supportedAbis = androidModuleModel != null ?
                                 androidModuleModel.getSelectedVariant().getMainArtifact().getAbiFilters() :
-                                null;
+                                Collections.emptySet();
     return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), facet, env, androidRunConfigurationBase, supportedAbis);
   }
 
