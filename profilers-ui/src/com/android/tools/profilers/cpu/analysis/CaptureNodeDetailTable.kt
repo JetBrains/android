@@ -44,6 +44,7 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
       autoCreateRowSorter = true
       showVerticalLines = true
       showHorizontalLines = false
+      columnModel.columnMargin = 10  // align headers and contents
       columnModel.getColumn(Column.START_TIME.ordinal).cellRenderer = TimestampRenderer()
       columnModel.getColumn(Column.WALL_DURATION.ordinal).cellRenderer = DurationRenderer()
       columnModel.getColumn(Column.SELF_TIME.ordinal).cellRenderer = DurationRenderer()
