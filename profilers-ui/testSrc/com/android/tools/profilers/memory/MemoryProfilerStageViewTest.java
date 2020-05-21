@@ -759,6 +759,22 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   }
 
   @Test
+  public void testWhenSessionDiesNativeAllocationButtonIsDisabled() {
+    assumeTrue(myUnifiedPipeline);
+    myIdeProfilerServices.enableNativeMemorySampling(true);
+    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
+    myStage.toggleNativeAllocationTracking();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(view.getNativeAllocationButton().isEnabled()).isTrue();
+    myProfilers.getSessionsManager().endCurrentSession();
+    // First tick sends the END_SESSION command and triggers the stop recording
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // Second tick sends the STOP_NATIVE_HEAP_SAMPLE command and updates state
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(view.getNativeAllocationButton().isEnabled()).isFalse();
+  }
+
+  @Test
   public void testToolbarForNativeAllocations() {
     assumeTrue(myUnifiedPipeline);
     myIdeProfilerServices.enableNativeMemorySampling(true);

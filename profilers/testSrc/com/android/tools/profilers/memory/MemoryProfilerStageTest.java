@@ -865,4 +865,23 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     stage.enter();
     assertThat(stage.isTrackingAllocations()).isTrue();
   }
+
+  @Test
+  public void testNativeRecordingStopsWhenSessionDies() {
+    assumeTrue(myUnifiedPipeline);
+    assertThat(myStage.isTrackingAllocations()).isFalse();
+    assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isFalse();
+    // Validate we enable tracking allocations
+    myStage.toggleNativeAllocationTracking();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.isTrackingAllocations()).isTrue();
+    assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isTrue();
+    // Stopping the active session should stop allocation tracking
+    myProfilers.getSessionsManager().endCurrentSession();
+    // First tick sends the END_SESSION command and triggers the stop recording
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // Second tick sends the STOP_NATIVE_HEAP_SAMPLE command and updates state
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.isTrackingAllocations()).isFalse();
+  }
 }
