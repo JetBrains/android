@@ -46,28 +46,129 @@ import com.intellij.util.ThreeState.NO
 import com.intellij.util.ThreeState.YES
 import java.io.File
 
-class AgpUpgradeVersionRefactoringProcessor(
-  val project: Project,
-  val current: GradleVersion,
-  val new: GradleVersion
-) : BaseRefactoringProcessor(project) {
-  lateinit var buildModel: ProjectBuildModel
+abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
+  constructor(project: Project) : super(project) {
+    this.project = project
+    this.buildModel = ProjectBuildModel.get(project)
+  }
+  constructor(processor: GradleBuildModelRefactoringProcessor): super(processor.project) {
+    this.project = processor.project
+    this.buildModel = processor.buildModel
+  }
+
+  val project: Project
+  val buildModel: ProjectBuildModel
+
   val psiSpoilingUsageInfos = mutableListOf<UsageInfo>()
 
+  override fun performRefactoring(usages: Array<out UsageInfo>?) {
+    usages?.forEach {
+      // TODO(xof): the protocol here is clearly not quite right, because although most of the usage infos
+      //  will use the buildModel, it's not clear that all of them will.
+      //  This isn't just a naming problem: we want a GradleBuildModel refactoring processor to be able to
+      //  execute a refactoring based on just the usage infos, but those usage infos need therefore to know
+      //  how to perform their own refactoring -- and the collaboration needs to be such that the usage infos
+      //  update the build model and don't invalidate anything in that model before the applyChanges happens.
+      if (it is AgpUpgradeUsageInfo) {
+        it.performAgpUpgrade(this)
+      }
+    }
+  }
+
+  override fun performPsiSpoilingRefactoring() {
+    // this is (sort of) an abstraction violation, in that it "knows" that the buildModel is being modified in
+    // performRefactoring().
+    buildModel.applyChanges()
+
+    // this is (at present) somewhat speculative generality: it was originally motivated by the refactoring
+    // doing non-undoable things to the Psi, and so preventing Undo for the entire refactoring operation.  However,
+    // the GradleWrapper.foo() manipulations of the properties file was so low-level that even running it in the
+    // context of performPsiSpoilingRefactoring() destroyed Undo, so I rewrote the properties file manipulation,
+    // at which point the manipulation could be done in performRefactoring().
+    psiSpoilingUsageInfos.forEach {
+      if (it is AgpUpgradeUsageInfo)
+        it.performPsiSpoilingAgpUpgrade(this)
+    }
+
+    super.performPsiSpoilingRefactoring()
+  }
+}
+
+// TODO(xof): rename to AgpUpgradeRefactoringProcessor
+class AgpUpgradeVersionRefactoringProcessor(
+  project: Project,
+  val current: GradleVersion,
+  val new: GradleVersion
+) : GradleBuildModelRefactoringProcessor(project) {
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>?): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
       override fun getElements(): Array<PsiElement> {
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = "Upgrade AGP version from $current to $new"
+      override fun getProcessedElementsHeader() = "Upgrade AGP from $current to $new"
     }
   }
 
   override fun findUsages(): Array<UsageInfo> {
-    buildModel = ProjectBuildModel.get(project)
+    // TODO(xof): *something* needs to ensure that the buildModel has a fresh view of the Dsl files before
+    //  looking for things (particularly since findUsages can be re-run by user action) but it's not clear that
+    //  this is the right thing: it is a bit expensive, and sub-processors will have to also reparse() in case
+    //  they are run in isolation.
+    buildModel.reparse()
     val usages = ArrayList<UsageInfo>()
 
+    usages.addAll(AgpClasspathDependencyRefactoringProcessor(this).findUsages())
+    // FIXME(xof): add the PsiElement of the first of usages to the UsageViewDescriptor
+    usages.addAll(AgpGradleVersionRefactoringProcessor(this).findUsages())
+    usages.addAll(AgpJava8DefaultRefactoringProcessor(this).findUsages())
+
+    return usages.toTypedArray()
+  }
+
+  override fun performPsiSpoilingRefactoring() {
+    super.performPsiSpoilingRefactoring()
+    // in AndroidRefactoringUtil this happens between performRefactoring() and performPsiSpoilingRefactoring().  Not
+    // sure why.
+    //
+    // FIXME(xof): having this here works (in that a sync is triggered at the end of the refactor) but no sync is triggered
+    //  if the refactoring action is undone.
+    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED))
+  }
+
+  override fun getCommandName() = "Upgrade AGP version from ${current} to ${new}"
+
+  override fun getRefactoringId(): String = "com.android.tools.agp.upgrade"
+}
+
+// Each individual refactoring involved in an AGP Upgrade is implemented as its own refactoring processor.  For a "batch" upgrade, most
+// of the functionality of a refactoring processor is handled by an outer (master) RefactoringProcessor, which delegates to sub-processors
+// for findUsages (and implicitly for performing the refactoring, implemented as methods on the UsageInfos).  However, there may be
+// a need for chained upgrades in the future, where each individual refactoring processor would run independently.
+abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactoringProcessor {
+  val current: GradleVersion
+  val new: GradleVersion
+
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project) {
+    this.current = current
+    this.new = new
+  }
+
+  constructor(processor: AgpUpgradeVersionRefactoringProcessor): super(processor) {
+    this.current = processor.current
+    this.new = processor.new
+  }
+
+  public abstract override fun findUsages(): Array<out UsageInfo>
+}
+
+class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(processor: AgpUpgradeVersionRefactoringProcessor): super(processor)
+
+  override fun findUsages(): Array<UsageInfo> {
+    val usages = ArrayList<UsageInfo>()
     // using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage, and additionally
     // check the buildscript/repositories block for a google() gaven entry, recording an additional usage if we don't find one
     buildModel.allIncludedBuildModels.forEach model@{ model ->
@@ -81,6 +182,7 @@ class AgpUpgradeVersionRefactoringProcessor(
               is FakeArtifactElement -> element.realExpression.psiElement
               else -> element.psiElement
             }
+            // TODO(xof): arguably adding google() should be in its own processor rather than bundled with the version upgrade
             psiElement?.let {
               usages.add(AgpVersionUsageInfo(it, current, new, resultModel))
               val repositories = model.buildscript().repositories()
@@ -96,7 +198,72 @@ class AgpUpgradeVersionRefactoringProcessor(
         }
       }
     }
+    return usages.toTypedArray()
+  }
 
+  override fun getCommandName(): String = "Upgrade AGP dependency from $current to $new"
+
+  override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.classpathDependency"
+
+  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>?): UsageViewDescriptor {
+    return object : UsageViewDescriptorAdapter() {
+      override fun getElements(): Array<PsiElement> {
+        return PsiElement.EMPTY_ARRAY
+      }
+
+      override fun getProcessedElementsHeader() = "Upgrade AGP classpath dependency version from $current to $new"
+    }
+  }
+}
+
+abstract class AgpUpgradeUsageInfo(element: PsiElement, val current: GradleVersion, val new: GradleVersion): UsageInfo(element) {
+  open fun performAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) { processor.psiSpoilingUsageInfos.add(this) }
+  open fun performPsiSpoilingAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) = Unit
+}
+
+class AgpVersionUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val resultModel: GradlePropertyModel
+) : AgpUpgradeUsageInfo(element, current, new) {
+  override fun getTooltipText(): String {
+    return "Upgrade AGP version from ${current} to ${new}"
+  }
+
+  override fun performAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) {
+    resultModel.setValue(new.toString())
+  }
+}
+
+class RepositoriesNoGMavenUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val repositoriesModel: RepositoriesModel
+) : AgpUpgradeUsageInfo(element, current, new) {
+  override fun getTooltipText(): String {
+    return "Add google() to repositories"
+  }
+
+  override fun performAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) {
+    // FIXME(xof): this is wrong; the version in question is the version of Gradle, not the new version of AGP.
+    //  This means this is intertwingled with the refactoring which upgrades Gradle version, though in practice
+    //  it is unlikely to be a problem (the behaviour changed in Gradle 4.0.
+    //  Further: we have the opportunity to make this correct if we can rely on the order of processing UsageInfos
+    //  because if we assure ourselves that the Gradle upgrade happens before this one, we can (in principle)
+    //  inspect the buildModel or the project to determine the appropriate version of Gradle.
+    repositoriesModel.addGoogleMavenRepository(new)
+  }
+}
+
+class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(processor: AgpUpgradeVersionRefactoringProcessor) : super(processor)
+
+  override fun findUsages(): Array<out UsageInfo> {
+    val usages = mutableListOf<UsageInfo>()
     // check the project's wrapper(s) for references to no-longer-supported Gradle versions
     project.basePath?.let {
       val projectRootFolders = listOf(File(FileUtils.toSystemDependentPath(it))) + BuildFileProcessor.getCompositeBuildFolderPaths(project)
@@ -113,7 +280,41 @@ class AgpUpgradeVersionRefactoringProcessor(
         }
       }
     }
+    return usages.toTypedArray()
+  }
 
+  override fun getCommandName(): String = "Upgrade Gradle version to $GRADLE_LATEST_VERSION"
+
+  override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.gradleVersion"
+
+  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>?): UsageViewDescriptor {
+    return object : UsageViewDescriptorAdapter() {
+      override fun getElements(): Array<PsiElement> {
+        return PsiElement.EMPTY_ARRAY
+      }
+
+      override fun getProcessedElementsHeader() = "Upgrade Gradle version to $GRADLE_LATEST_VERSION"
+    }
+  }
+}
+
+class GradleVersionUsageInfo(element: PsiElement, current: GradleVersion, new: GradleVersion): AgpUpgradeUsageInfo(element, current, new) {
+  override fun getTooltipText(): String {
+    return "Upgrade Gradle version to $GRADLE_LATEST_VERSION"
+  }
+
+  override fun performAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) {
+    (element as? Property)?.setValue(GradleWrapper.getDistributionUrl(GRADLE_LATEST_VERSION, true))
+  }
+}
+
+class AgpJava8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(processor: AgpUpgradeVersionRefactoringProcessor): super(processor)
+
+  override fun findUsages(): Array<out UsageInfo> {
+    val usages = mutableListOf<UsageInfo>()
     buildModel.allIncludedBuildModels.forEach model@{ model ->
       val pluginNames = model.plugins().map { it.name().forceString() }
       pluginNames.firstOrNull { it.startsWith("java") }?.let { _ ->
@@ -145,96 +346,21 @@ class AgpUpgradeVersionRefactoringProcessor(
         }
       }
     }
-
     return usages.toTypedArray()
   }
 
-  override fun performRefactoring(usages: Array<out UsageInfo>?) {
-    usages?.forEach {
-      if (it is AgpUpgradeUsageInfo) {
-        it.performAgpUpgrade(this)
+  override fun getCommandName(): String = "Add explicit LanguageLevel properties"
+
+  override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.Java8Default"
+
+  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>?): UsageViewDescriptor {
+    return object : UsageViewDescriptorAdapter() {
+      override fun getElements(): Array<PsiElement> {
+        return PsiElement.EMPTY_ARRAY
       }
+
+      override fun getProcessedElementsHeader() = "Add explicit LanguageLevel properties"
     }
-  }
-
-  override fun performPsiSpoilingRefactoring() {
-    // this is (sort of) an abstraction violation, in that it "knows" that the buildModel is being modified in
-    // performRefactoring().
-    buildModel.applyChanges()
-
-    // this is (at present) somewhat speculative generality: it was originally motivated by the refactoring
-    // doing non-undoable things to the Psi, and so preventing Undo for the entire refactoring operation.  However,
-    // the GradleWrapper.foo() manipulations of the properties file was so low-level that even running it in the
-    // context of performPsiSpoilingRefactoring() destroyed Undo, so I rewrote the properties file manipulation,
-    // at which point the manipulation could be done in performRefactoring().
-    psiSpoilingUsageInfos.forEach {
-      if (it is AgpUpgradeUsageInfo)
-        it.performPsiSpoilingAgpUpgrade(this)
-    }
-
-    super.performPsiSpoilingRefactoring()
-
-    // in AndroidRefactoringUtil this happens between performRefactoring() and performPsiSpoilingRefactoring().  Not
-    // sure why.
-    //
-    // FIXME(xof): having this here works (in that a sync is triggered at the end of the refactor) but no sync is triggered
-    //  if the refactoring action is undone.
-    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED))
-  }
-
-  override fun getCommandName() = "Upgrade AGP version from ${current} to ${new}"
-
-  override fun getRefactoringId(): String = "com.android.tools.agp.upgrade"
-}
-
-abstract class AgpUpgradeUsageInfo(element: PsiElement, val current: GradleVersion, val new: GradleVersion): UsageInfo(element) {
-  open fun performAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) { processor.psiSpoilingUsageInfos.add(this) }
-  open fun performPsiSpoilingAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) = Unit
-}
-
-class AgpVersionUsageInfo(
-  element: PsiElement,
-  current: GradleVersion,
-  new: GradleVersion,
-  private val resultModel: GradlePropertyModel
-) : AgpUpgradeUsageInfo(element, current, new) {
-  override fun getTooltipText(): String {
-    return "Upgrade AGP version from ${current} to ${new}"
-  }
-
-  override fun performAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) {
-    resultModel.setValue(new.toString())
-  }
-}
-
-class RepositoriesNoGMavenUsageInfo(
-  element: PsiElement,
-  current: GradleVersion,
-  new: GradleVersion,
-  private val repositoriesModel: RepositoriesModel
-) : AgpUpgradeUsageInfo(element, current, new) {
-  override fun getTooltipText(): String {
-    return "Add google() to repositories"
-  }
-
-  override fun performAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) {
-    // FIXME(xof): this is wrong; the version in question is the version of Gradle, not the new version of AGP.
-    //  This means this is intertwingled with the refactoring which upgrades Gradle version, though in practice
-    //  it is unlikely to be a problem (the behaviour changed in Gradle 4.0.
-    //  Further: we have the opportunity to make this correct if we can rely on the order of processing UsageInfos
-    //  because if we assure ourselves that the Gradle upgrade happens before this one, we can (in principle)
-    //  inspect the buildModel or the project to determine the appropriate version of Gradle.
-    repositoriesModel.addGoogleMavenRepository(new)
-  }
-}
-
-class GradleVersionUsageInfo(element: PsiElement, current: GradleVersion, new: GradleVersion): AgpUpgradeUsageInfo(element, current, new) {
-  override fun getTooltipText(): String {
-    return "Upgrade Gradle version to $GRADLE_LATEST_VERSION"
-  }
-
-  override fun performAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) {
-    (element as? Property)?.setValue(GradleWrapper.getDistributionUrl(GRADLE_LATEST_VERSION, true))
   }
 }
 
@@ -253,7 +379,7 @@ class JavaLanguageLevelUsageInfo(
     }
   }
 
-  override fun performAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) {
+  override fun performAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) {
     when (existing) {
       false -> model.setLanguageLevel(LanguageLevel.JDK_1_7)
     }
@@ -280,7 +406,7 @@ class KotlinLanguageLevelUsageInfo(
     }
   }
 
-  override fun performAgpUpgrade(processor: AgpUpgradeVersionRefactoringProcessor) {
+  override fun performAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) {
     when (existing) {
       // if we can find a path to a JDK_1_7 we could include that for jdkHome, but the Internet suggests it's not high-value
       false -> model.setLanguageLevel(LanguageLevel.JDK_1_6)
