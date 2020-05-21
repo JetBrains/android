@@ -75,7 +75,7 @@ class UnsupportedPictureVersionException(val version: Int) : Exception()
 
 interface SkiaParserService {
   @Throws(InvalidPictureException::class)
-  fun getViewTree(data: ByteArray, isInterrupted: () -> Boolean = { false }): SkiaViewNode?
+  fun getViewTree(data: ByteArray, knownIds: Iterable<Long>, isInterrupted: () -> Boolean = { false }): SkiaViewNode?
 
   fun shutdownAll()
 }
@@ -97,9 +97,10 @@ object SkiaParser : SkiaParserService {
 
   @Slow
   @Throws(InvalidPictureException::class)
-  override fun getViewTree(data: ByteArray, isInterrupted: () -> Boolean): SkiaViewNode? {
+  override fun getViewTree(data: ByteArray, knownIds: Iterable<Long>, isInterrupted: () -> Boolean): SkiaViewNode? {
+    val sortedIds = knownIds.sorted()
     val server = runServer(data) ?: throw UnsupportedPictureVersionException(getSkpVersion(data))
-    val response = server.getViewTree(data)
+    val response = server.getViewTree(data, sortedIds)
     return response?.root?.let {
       try {
         buildTree(it, isInterrupted)
@@ -405,19 +406,23 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   }
 
   @Slow
-  fun getViewTree(data: ByteArray): SkiaParser.GetViewTreeResponse? {
+  fun getViewTree(data: ByteArray, knownIds: Iterable<Long>): SkiaParser.GetViewTreeResponse? {
     ping()
-    return getViewTreeImpl(data)
+    return getViewTreeImpl(data, knownIds)
   }
 
   // TODO: add ping functionality to the server?
   @Slow
   fun ping() {
-    getViewTreeImpl(ByteArray(1))
+    getViewTreeImpl(ByteArray(1), emptyList())
   }
 
-  private fun getViewTreeImpl(data: ByteArray): SkiaParser.GetViewTreeResponse? {
-    val request = SkiaParser.GetViewTreeRequest.newBuilder().setSkp(ByteString.copyFrom(data)).build()
+  private fun getViewTreeImpl(data: ByteArray, knownIds: Iterable<Long>): SkiaParser.GetViewTreeResponse? {
+    val request = SkiaParser.GetViewTreeRequest.newBuilder()
+      .setVersion(1)
+      .setSkp(ByteString.copyFrom(data))
+      .addAllKnownIds(knownIds)
+      .build()
     return getViewTreeWithRetry(request)
   }
 

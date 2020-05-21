@@ -33,6 +33,7 @@ import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anySet
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.internal.verification.Times
@@ -131,7 +132,7 @@ class ComponentTreeLoaderTest {
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
     val skiaParser = mock(SkiaParserService::class.java)!!
-    `when`(skiaParser.getViewTree(eq(payload), any())).thenReturn(skiaResponse)
+    `when`(skiaParser.getViewTree(eq(payload), eq(setOf(1L, 2L, 3L, 4L)), any ())).thenReturn(skiaResponse)
 
     val tree = ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)!!
     assertThat(tree.drawId).isEqualTo(1)
@@ -203,7 +204,7 @@ class ComponentTreeLoaderTest {
     `when`(client.getPayload(111)).thenReturn(payload)
 
     val skiaParser = mock(SkiaParserService::class.java)!!
-    `when`(skiaParser.getViewTree(eq(payload), any())).thenAnswer { throw UnsupportedPictureVersionException(123) }
+    `when`(skiaParser.getViewTree(eq(payload), anySet(), any())).thenAnswer { throw UnsupportedPictureVersionException(123) }
 
     ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)
     verify(client).requestScreenshotMode()
@@ -220,7 +221,7 @@ class ComponentTreeLoaderTest {
     `when`(client.getPayload(111)).thenReturn(payload)
 
     val skiaParser = mock(SkiaParserService::class.java)!!
-    `when`(skiaParser.getViewTree(eq(payload), any())).thenReturn(null)
+    `when`(skiaParser.getViewTree(eq(payload), anySet(), any())).thenReturn(null)
 
     ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client, skiaParser, projectRule.project)
     verify(client).requestScreenshotMode()

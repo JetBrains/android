@@ -34,9 +34,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.LowMemoryWatcher
-import com.intellij.util.ui.UIUtil
-import java.awt.Image
-import java.awt.Rectangle
 import java.io.ByteArrayInputStream
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
@@ -119,7 +116,8 @@ private class ComponentTreeLoaderImpl(
                          project: Project,
                          client: DefaultInspectorClient,
                          rootView: ViewNode) {
-    val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, skiaParser)
+    val nodeMap = rootView.flatten().asSequence().filter { it.drawId != 0L }.associateBy { it.drawId }
+    val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, nodeMap.keys, skiaParser)
 
     if (errorMessage != null) {
       InspectorBannerService.getInstance(project).setNotification(errorMessage)
@@ -131,7 +129,7 @@ private class ComponentTreeLoaderImpl(
     }
     else {
       client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
-      ComponentImageLoader(rootView, rootViewFromSkiaImage).loadImages()
+      ComponentImageLoader(nodeMap, rootView, rootViewFromSkiaImage).loadImages()
     }
   }
 
@@ -144,10 +142,10 @@ private class ComponentTreeLoaderImpl(
     client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }
 
-  private fun getViewTree(bytes: ByteArray, skiaParser: SkiaParserService): Pair<SkiaViewNode?, String?> {
+  private fun getViewTree(bytes: ByteArray, knownIds: Iterable<Long>, skiaParser: SkiaParserService): Pair<SkiaViewNode?, String?> {
     var errorMessage: String? = null
     val inspectorView = try {
-      val root = skiaParser.getViewTree(bytes) { isInterrupted }
+      val root = skiaParser.getViewTree(bytes, knownIds) { isInterrupted }
       if (root == null) {
         // We were unable to parse the skia image. Allow the user to interact with the component tree.
         errorMessage = "Invalid picture data received from device. Rotation disabled."
@@ -202,55 +200,23 @@ private class ComponentTreeLoaderImpl(
     return if (packageName.isEmpty()) "" else "$packageName."
   }
 
-  private class ComponentImageLoader(root: ViewNode, viewRoot: SkiaViewNode) {
-    private val nodeMap = root.flatten().associateBy { it.drawId }
-    private val viewMap = viewRoot.flatten().associateBy { it.id.toLong() }
+  private class ComponentImageLoader(private val nodeMap: Map<Long, ViewNode>, root: ViewNode, viewRoot: SkiaViewNode) {
     private val offset = root.bounds.location
+    private val viewMap = createViewMap(viewRoot)
 
     init {
       val rootView = viewMap[root.drawId]
       offset.translate(-1 * (rootView?.x ?: 0), -1 * (rootView?.y ?: 0))
     }
 
+    private fun createViewMap(viewRoot: SkiaViewNode): Map<Long, SkiaViewNode> =
+      viewRoot.flatten().asSequence().filter { it.image != null }.associateBy { it.id.toLong() }
+
     fun loadImages() {
       for ((drawId, node) in nodeMap) {
         val view = viewMap[drawId] ?: continue
         node.imageBottom = view.image
-        addChildNodeImages(node, view)
       }
-    }
-
-    private fun addChildNodeImages(node: ViewNode, view: SkiaViewNode) {
-      var beforeChildren = true
-      for (child in view.children) {
-        val isChildNode = view.id != child.id && nodeMap.containsKey(child.id.toLong())
-        when {
-          isChildNode -> beforeChildren = false
-          beforeChildren -> node.imageBottom = combine(node.imageBottom, child, node.bounds)
-          else -> node.imageTop = combine(node.imageTop, child, node.bounds)
-        }
-        if (!isChildNode) {
-          // Some Skia views are several levels deep:
-          addChildNodeImages(node, child)
-        }
-      }
-    }
-
-    private fun combine(image: Image?,
-                        view: SkiaViewNode,
-                        bounds: Rectangle): Image? {
-      if (view.image == null) {
-        return image
-      }
-      if (image == null) {
-        return view.image
-      }
-      @Suppress("UndesirableClassUsage")
-      // Combine the images...
-      val g = image.graphics
-      UIUtil.drawImage(g, view.image!!, offset.x + view.x - bounds.x, offset.y + view.y - bounds.y, null)
-      g.dispose()
-      return image
     }
   }
 }
