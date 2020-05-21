@@ -30,7 +30,6 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.CommonClassNames;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -96,18 +95,16 @@ public class LightModelClass extends AndroidLightClassBase {
       () -> {
         ModelInfo modelInfo = getModelInfo();
 
-        //Build methods
+        // Builds methods.
         List<PsiMethod> methods = new ArrayList<>();
-        boolean hasAdvancedInput = modelInfo.getInputs().stream().anyMatch(tensorInfo -> tensorInfo.isRGBImage());
-        if (hasAdvancedInput) {
-          methods.add(buildProcessMethod(modelInfo.getInputs(), false));
+        methods.add(buildProcessMethod(modelInfo.getInputs(), false));
+        if (modelInfo.getInputs().stream().anyMatch(tensorInfo -> tensorInfo.isRGBImage())) {
+          // Adds #process fallback method.
           methods.add(buildProcessMethod(modelInfo.getInputs(), true));
-        } else {
-          methods.add(buildProcessMethod(modelInfo.getInputs(), false));
         }
         methods.addAll(buildNewInstanceStaticMethods());
 
-        //Build inner class
+        // Builds inner Outputs class.
         Map<String, PsiClass> innerClassMap = new HashMap<>();
         LightModelOutputsClass mlkitOutputClass = new LightModelOutputsClass(module, modelInfo.getOutputs(), this);
         innerClassMap.putIfAbsent(mlkitOutputClass.getName(), mlkitOutputClass);

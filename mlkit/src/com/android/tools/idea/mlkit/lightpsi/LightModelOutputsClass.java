@@ -60,14 +60,10 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
       () -> {
         List<PsiMethod> methods = new ArrayList<>();
         for (TensorInfo tensorInfo : tensorInfos) {
-          boolean isAdvancedOutput =
-            !CodeUtils.getPsiClassType(tensorInfo, getProject(), getResolveScope()).getClassName().equals("TensorBuffer");
-          if (isAdvancedOutput) {
-            methods.add(buildGetterMethod(tensorInfo, false));
+          methods.add(buildGetterMethod(tensorInfo, false));
+          if (!CodeUtils.getPsiClassType(tensorInfo, getProject(), getResolveScope()).getClassName().equals("TensorBuffer")) {
+            // Adds fallback getter method.
             methods.add(buildGetterMethod(tensorInfo, true));
-          }
-          else {
-            methods.add(buildGetterMethod(tensorInfo, false));
           }
         }
 
