@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.device
 
+import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.AndroidVersion.VersionCodes.KITKAT_WATCH
+import com.android.sdklib.AndroidVersion.VersionCodes.LOLLIPOP
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_TV
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_WEAR
@@ -37,24 +39,25 @@ import kotlin.math.min
 /**
  * Representations of all Android hardware devices we can target when building an app.
  */
-enum class FormFactor(@JvmField val id: String,
-                      val displayName: String,
-                      @JvmField val defaultApi: Int,
-                      val minOfflineApiLevel: Int,
-                      maxOfflineApiLevel: Int,
-                      val icon: Icon,
-                      @JvmField val largeIcon: Icon,
-                      private val apiTags: List<IdDisplay> = listOf(),
-                      @JvmField val baseFormFactor: FormFactor? = null) {
-  MOBILE("Mobile", "Phone and Tablet", 16, LOWEST_ACTIVE_API, HIGHEST_KNOWN_API, FormFactors.MOBILE,
+enum class FormFactor(
+  val id: String,
+  val displayName: String,
+  val defaultApi: Int,
+  val minOfflineApiLevel: Int,
+  maxOfflineApiLevel: Int,
+  val icon: Icon,
+  val largeIcon: Icon,
+  private val apiTags: List<IdDisplay> = listOf()
+) {
+  MOBILE("Mobile", "Phone and Tablet", LOWEST_ACTIVE_API, LOWEST_ACTIVE_API, HIGHEST_KNOWN_API, FormFactors.MOBILE,
          FormFactors.MOBILE_LARGE, listOf(DEFAULT_TAG, GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG)),
-  WEAR("Wear", "Wear OS", 21, LOWEST_ACTIVE_API_WEAR, HIGHEST_KNOWN_API_WEAR, FormFactors.WEAR,
+  WEAR("Wear", "Wear OS", LOLLIPOP, LOWEST_ACTIVE_API_WEAR, HIGHEST_KNOWN_API_WEAR, FormFactors.WEAR,
        FormFactors.WEAR_LARGE, listOf(WEAR_TAG)),
-  TV("TV", "Android TV", 21, LOWEST_ACTIVE_API_TV, HIGHEST_KNOWN_API_TV, FormFactors.TV,
+  TV("TV", "Android TV", LOLLIPOP, LOWEST_ACTIVE_API_TV, HIGHEST_KNOWN_API_TV, FormFactors.TV,
      FormFactors.TV_LARGE, listOf(TV_TAG)),
-  AUTOMOTIVE("Automotive", "Automotive", 28, 28, HIGHEST_KNOWN_API, FormFactors.CAR,
+  AUTOMOTIVE("Automotive", "Automotive", VersionCodes.P, VersionCodes.P, HIGHEST_KNOWN_API, FormFactors.CAR,
              FormFactors.CAR_LARGE, listOf(AUTOMOTIVE_TAG)),
-  THINGS("Things", "Android Things", 24, 24, HIGHEST_KNOWN_API, FormFactors.THINGS,
+  THINGS("Things", "Android Things", VersionCodes.N, VersionCodes.N, HIGHEST_KNOWN_API, FormFactors.THINGS,
          FormFactors.THINGS_LARGE);
 
   val maxOfflineApiLevel: Int = min(maxOfflineApiLevel, HIGHEST_KNOWN_STABLE_API)
