@@ -17,25 +17,21 @@
 package com.android.tools.idea;
 
 import com.intellij.application.options.editor.WebEditorOptions;
-import com.intellij.ide.ui.UISettings;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.editor.ex.EditorSettingsExternalizable;
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.keymap.ex.KeymapManagerEx;
 import com.intellij.openapi.keymap.impl.KeymapManagerImpl;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.util.messages.MessageBus;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
 /** Customize Android IDE specific experience. */
-@SuppressWarnings("UtilityClassWithPublicConstructor") // Application component registered in AndroidStudioPlugin.xml
 public class AndroidInitialConfigurator {
   @NonNls
   private static final ExtensionPointName<Runnable> EP_NAME =
@@ -57,13 +53,10 @@ public class AndroidInitialConfigurator {
     !"false".equals(System.getProperty("enable.experimental.profiling"));
 
 
-  @SuppressWarnings("UnusedParameters")
-  public AndroidInitialConfigurator(MessageBus bus,
-                                    final PropertiesComponent propertiesComponent,
-                                    final FileTypeManager fileTypeManager) {
+  public AndroidInitialConfigurator() {
     validateConfiguration();
     setupSystemProperties();
-    customizeSettings(propertiesComponent);
+    customizeSettings(PropertiesComponent.getInstance());
 
     // change default key maps to add a activate Android ToolWindow shortcut
     setActivateAndroidToolWindowShortcut();
