@@ -15,21 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static java.lang.System.currentTimeMillis;
 
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.intellij.build.DefaultBuildDescriptor;
-import com.intellij.build.SyncViewManager;
-import com.intellij.build.events.impl.StartBuildEventImpl;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.project.Project;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -64,25 +55,6 @@ public class PostSyncProjectSetup {
       }
       ProjectBuildFileChecksums.saveToDisk(myProject);
     }
-  }
-
-  /**
-   * Create a new {@link ExternalSystemTaskId} to be used while doing project setup from cache and adds a StartBuildEvent to build view.
-   *
-   * @param project
-   * @return
-   */
-  @NotNull
-  public static ExternalSystemTaskId createProjectSetupFromCacheTaskWithStartMessage(Project project) {
-    // Create taskId
-    ExternalSystemTaskId taskId = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
-
-    // Create StartBuildEvent
-    String workingDir = toCanonicalPath(getBaseDirPath(project).getPath());
-    DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(taskId, "Project setup", workingDir, currentTimeMillis());
-    SyncViewManager syncManager = ServiceManager.getService(project, SyncViewManager.class);
-    syncManager.onEvent(taskId, new StartBuildEventImpl(buildDescriptor, "reading from cache..."));
-    return taskId;
   }
 
   public static class Request {
