@@ -88,14 +88,14 @@ class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest()
     val expectedText = """
 At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin com.android.application
 
-Always-run Tasks
+Always-Run Tasks
 Task runs on every build because it declares no outputs.
 
 Plugin: com.android.application
 Task: compileDebugJavaWithJavac
 Task type: org.gradle.api.tasks.compile.JavaCompile
 Issues for the same task were detected in 1 module(s), total execution time was 0.4s (5.0%), by module:
-  Execution mode: FULL, time: 0.4s (5.0%), determines build duration: true, on critical path: true, issues: Always-run Tasks
+  Execution mode: FULL, time: 0.4s (5.0%), determines build duration: true, on critical path: true, issues: Always-Run Tasks
 
 ====Build information:====
 Execution date: $buildFinishedTimeString
@@ -117,7 +117,7 @@ ${PLATFORM_INFORMATION_DATA_MOCK}
     val expectedText = """
 At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin pluginA
 
-Always-run Tasks
+Always-Run Tasks
 This task might be setting its up-to-date check to always return false.
 
 Task Setup Issues
@@ -127,7 +127,7 @@ Plugin: pluginA
 Task: taskA
 Task type: UNKNOWN
 Issues for the same task were detected in 1 module(s), total execution time was 0.4s (5.0%), by module:
-  Execution mode: FULL, time: 0.4s (5.0%), determines build duration: false, on critical path: false, issues: Always-run Tasks, Task Setup Issues
+  Execution mode: FULL, time: 0.4s (5.0%), determines build duration: false, on critical path: false, issues: Always-Run Tasks, Task Setup Issues
 
 ====Build information:====
 Execution date: $buildFinishedTimeString
@@ -163,15 +163,15 @@ ${PLATFORM_INFORMATION_DATA_MOCK}
     val expectedText = """
 At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin pluginB
 
-Always-run Tasks
+Always-Run Tasks
 Task runs on every build because it declares no outputs.
 
 Plugin: pluginB
 Task: taskB
 Task type: UNKNOWN
 Issues for the same task were detected in 2 module(s), total execution time was 0.4s (5.0%), by module:
-  Execution mode: FULL, time: 0.3s (3.8%), determines build duration: true, on critical path: true, issues: Always-run Tasks, Task Setup Issues
-  Execution mode: INCREMENTAL, time: 0.1s (1.3%), determines build duration: false, on critical path: false, issues: Always-run Tasks
+  Execution mode: FULL, time: 0.3s (3.8%), determines build duration: true, on critical path: true, issues: Always-Run Tasks, Task Setup Issues
+  Execution mode: INCREMENTAL, time: 0.1s (1.3%), determines build duration: false, on critical path: false, issues: Always-Run Tasks
 
 ====Build information:====
 Execution date: $buildFinishedTimeString
