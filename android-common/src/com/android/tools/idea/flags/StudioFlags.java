@@ -422,6 +422,13 @@ public final class StudioFlags {
     "Requires applychanges.optimisticswap to be true.",
     true);
 
+  public static final Flag<Boolean> APPLY_CHANGES_VARIABLE_REINITIALIZATION = Flag.create(
+    RUNDEBUG,
+    "applychanges.variablereinitialization",
+    "Use ART's new variable reinitializaiton extension for Apply Changes.",
+    "Requires applychanges.structuralredefinition to be true.",
+    false);
+
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
     RUNDEBUG,
     "select.device.snapshot.combo.box.snapshots.enabled",
