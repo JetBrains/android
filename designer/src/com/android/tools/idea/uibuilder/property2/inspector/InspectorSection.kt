@@ -27,6 +27,7 @@ enum class InspectorSection(val title: String) {
   FAVORITES("Favorite Attributes"),
   COMMON("Common Attributes"),
   TRANSFORMS("Transforms"),
+  TRANSITION("View Transition"),
   REFERENCES("Referenced Views"),
   ALL("All Attributes");
 
