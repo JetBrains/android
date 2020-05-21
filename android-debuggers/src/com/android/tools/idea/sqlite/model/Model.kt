@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.model
 
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.intellij.openapi.vfs.VirtualFile
 import java.sql.JDBCType
 
@@ -39,29 +38,6 @@ sealed class SqliteDatabaseId {
   data class LiveSqliteDatabaseId(override val path: String, override val name: String, val connectionId: Int) : SqliteDatabaseId()
   data class FileSqliteDatabaseId(override val path: String, override val name: String) : SqliteDatabaseId()
 }
-
-/**
- * Representation of a database instance.
- */
-sealed class SqliteDatabase {
-  abstract val id: SqliteDatabaseId
-
-  /**
-   * A connection to the database.
-   */
-  abstract val databaseConnection: DatabaseConnection
-}
-
-/**
- * [SqliteDatabase] accessed through live connection.
- */
-data class LiveSqliteDatabase(override val id: SqliteDatabaseId, override val databaseConnection: DatabaseConnection) : SqliteDatabase()
-
-/**
- * File based-[SqliteDatabase]. This database is accessed through a [VirtualFile].
- * The [DatabaseConnection] gets closed when the file is deleted.
- */
-data class FileSqliteDatabase(override val id: SqliteDatabaseId, override val databaseConnection: DatabaseConnection) : SqliteDatabase()
 
 /** Representation of the Sqlite database schema */
 data class SqliteSchema(val tables: List<SqliteTable>)
