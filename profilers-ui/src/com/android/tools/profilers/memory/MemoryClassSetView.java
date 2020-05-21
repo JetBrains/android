@@ -147,6 +147,7 @@ public final class MemoryClassSetView extends AspectObserver {
     myAttributeColumns.put(
       InstanceAttribute.DEPTH,
       makeIntColumn("Depth",
+                    50,
                     ValueObject.class,
                     ValueObject::getDepth,
                     d -> 0 <= d && d < Integer.MAX_VALUE,
@@ -174,6 +175,7 @@ public final class MemoryClassSetView extends AspectObserver {
     myAttributeColumns.put(
       InstanceAttribute.DEALLOCATION_TIME,
       makeIntColumn("Dealloc Time",
+                    120,
                     InstanceObject.class,
                     InstanceObject::getDeallocTime,
                     t -> t < Long.MAX_VALUE,
@@ -181,13 +183,13 @@ public final class MemoryClassSetView extends AspectObserver {
                     SortOrder.DESCENDING));
     myAttributeColumns.put(
       InstanceAttribute.NATIVE_SIZE,
-      makeSizeColumn("Native Size", ValueObject::getNativeSize));
+      makeSizeColumn("Native Size", 110, ValueObject::getNativeSize));
     myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
-      makeSizeColumn("Shallow Size", ValueObject::getShallowSize));
+      makeSizeColumn("Shallow Size", 120, ValueObject::getShallowSize));
     myAttributeColumns.put(
       InstanceAttribute.RETAINED_SIZE,
-      makeSizeColumn("Retained Size", ValueObject::getRetainedSize));
+      makeSizeColumn("Retained Size", 130, ValueObject::getRetainedSize));
 
 
     if (!isFullScreenHeapDumpUi) {
