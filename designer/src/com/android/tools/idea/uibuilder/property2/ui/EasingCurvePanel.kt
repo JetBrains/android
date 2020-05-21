@@ -31,12 +31,12 @@ import javax.swing.JPanel
 /**
  * Custom panel to support direct editing of transition easing curves
  */
-class ViewTransitionPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(BorderLayout()) {
+class EasingCurvePanel(easingAttributeName : String, properties: PropertiesTable<NelePropertyItem>) : JPanel(BorderLayout()) {
 
   private val PANEL_WIDTH = 200
   private val PANEL_HEIGHT = PANEL_WIDTH
 
-  private val transitionEasing = properties.getOrNull(SdkConstants.AUTO_URI, "transitionEasing")
+  private val transitionEasing = properties.getOrNull(SdkConstants.AUTO_URI, easingAttributeName)
 
   private val easingCurvePanel = EasingCurve()
   private var processingChange: Boolean = false
@@ -69,11 +69,20 @@ class ViewTransitionPanel(properties: PropertiesTable<NelePropertyItem>) : JPane
             NlWriteCommandActionUtil.run(transitionEasing.components,
                                          "Set $component.${transitionEasing.name} to ${it.actionCommand}") {
               var cubic = it.actionCommand
-              when (cubic) {
-                "cubic(0.2,0.2,0.8,0.8)" -> cubic = "linear"
-                "cubic(0.4,0,0.2,1)" -> cubic = "standard"
-                "cubic(0.4,0,1,1)" -> cubic = "accelerate"
-                "cubic(0,0,0.2,1)" -> cubic = "decelerate"
+              if (transitionEasing.name == "transitionEasing") {
+                when (cubic) {
+                  "cubic(0.2,0.2,0.8,0.8)" -> cubic = "linear"
+                  "cubic(0.4,0,0.2,1)" -> cubic = "standard"
+                  "cubic(0.4,0,1,1)" -> cubic = "accelerate"
+                  "cubic(0,0,0.2,1)" -> cubic = "decelerate"
+                }
+              } else {
+                when (cubic) {
+                  "cubic(0.2,0.2,0.8,0.8)" -> cubic = "linear"
+                  "cubic(0.4,0,0.2,1)" -> cubic = "easeInOut"
+                  "cubic(0.4,0,1,1)" -> cubic = "easeIn"
+                  "cubic(0,0,0.2,1)" -> cubic = "easeOut"
+                }
               }
               transitionEasing.value = cubic
             }
@@ -104,10 +113,16 @@ class ViewTransitionPanel(properties: PropertiesTable<NelePropertyItem>) : JPane
     transitionEasing?.value?.let {
       var cubic : String? = it
       when (cubic) {
+        // constraint ones
         "standard" -> cubic = "cubic(0.4,0,0.2,1)"
         "accelerate" -> cubic = "cubic(0.4,0,1,1)"
         "decelerate" -> cubic = "cubic(0,0,0.2,1)"
         "linear" -> cubic = "cubic(0.2,0.2,0.8,0.8)"
+        // transitions ones
+        "easeInOut" -> cubic = "cubic(0.4,0,0.2,1)"
+        "easeIn" -> cubic = "cubic(0.4,0,1,1)"
+        "easeOut" -> cubic = "cubic(0,0,0.2,1)"
+        "bounce" -> cubic = "cubic(0.2,0.2,0.8,0.8)"
       }
       processingModelUpdate = true
       easingCurvePanel.controlPoints = cubic
