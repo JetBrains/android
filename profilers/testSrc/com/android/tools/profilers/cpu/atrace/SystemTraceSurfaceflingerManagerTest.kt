@@ -46,7 +46,7 @@ class SystemTraceSurfaceflingerManagerTest {
                                                20000L to 1.0,
                                                25000L to 0.0))
 
-    private val SF_PROCESS_MODEL = ProcessModel(SF_PID, "surfaceflinger",
+    private val SF_PROCESS_MODEL = ProcessModel(SF_PID, "/system/bin/surfaceflinger",
                                                 mapOf(SF_PID to SF_MAIN_THREAD_MODE),
                                                 mapOf("VSYNC-app" to VSYNC_COUNTER))
 
