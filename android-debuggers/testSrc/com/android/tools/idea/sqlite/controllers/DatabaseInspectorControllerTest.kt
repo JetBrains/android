@@ -35,11 +35,9 @@ import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockDatabaseRepository
 import com.android.tools.idea.sqlite.mocks.MockSchemaProvider
 import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
-import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -103,10 +101,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   private lateinit var databaseId1: SqliteDatabaseId
   private lateinit var databaseId2: SqliteDatabaseId
   private lateinit var databaseId3: SqliteDatabaseId
-
-  private lateinit var sqliteDatabase1: SqliteDatabase
-  private lateinit var sqliteDatabase2: SqliteDatabase
-  private lateinit var sqliteDatabase3: SqliteDatabase
 
   private lateinit var testSqliteSchema1: SqliteSchema
   private lateinit var testSqliteSchema2: SqliteSchema
@@ -175,10 +169,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseRepository.addDatabaseConnection(databaseId2, mockDatabaseConnection)
       databaseRepository.addDatabaseConnection(databaseId3, mockDatabaseConnection)
     }
-
-    sqliteDatabase1 = LiveSqliteDatabase(databaseId1, mockDatabaseConnection)
-    sqliteDatabase2 = LiveSqliteDatabase(databaseId2, mockDatabaseConnection)
-    sqliteDatabase3 = LiveSqliteDatabase(databaseId3, mockDatabaseConnection)
 
     orderVerifier = inOrder(mockSqliteView, databaseRepository, mockDatabaseConnection)
 
