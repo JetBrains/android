@@ -469,6 +469,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
 
   private void allocationTrackingChanged() {
     boolean isX86OrX64Device = isSelectedSessionDeviceX86OrX64();
+    boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
     if (getStage().isTrackingAllocations()) {
       myAllocationButton.setText(STOP_TEXT);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
@@ -487,7 +488,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
       myNativeAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
       myNativeAllocationButton.setToolTipText(isX86OrX64Device ? X86_RECORD_NATIVE_TOOLTIP : RECORD_NATIVE_TEXT);
     }
-    myNativeAllocationButton.setEnabled(!isX86OrX64Device);
+    myNativeAllocationButton.setEnabled(!isX86OrX64Device && isAlive);
   }
 
   private void updateCaptureElapsedTime() {

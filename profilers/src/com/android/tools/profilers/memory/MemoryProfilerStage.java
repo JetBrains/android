@@ -63,6 +63,7 @@ import com.android.tools.profilers.UnifiedEventDataSeries;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.annotations.VisibleForTesting;
@@ -243,6 +244,15 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
         .getInt(LIVE_ALLOCATION_SAMPLING_PREF, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue())
     );
     myAllocationSamplingRateUpdatable.update(0);
+    getStudioProfilers().getSessionsManager().addDependency(this)
+      .onChange(SessionAspect.SELECTED_SESSION, this::stopRecordingOnSessionStop);
+  }
+
+  void stopRecordingOnSessionStop() {
+    boolean isAlive = getStudioProfilers().getSessionsManager().isSessionAlive();
+    if (!isAlive && myNativeAllocationTracking) {
+      toggleNativeAllocationTracking();
+    }
   }
 
   public boolean hasUserUsedMemoryCapture() {
@@ -644,7 +654,8 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
         durationData.isHeapDumpData() &&
         getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
       profilers.setStage(new HeapDumpStage(profilers, getLoader(), durationData, joiner));
-    } else {
+    }
+    else {
       doSelectCaptureDuration(durationData, joiner);
     }
   }
