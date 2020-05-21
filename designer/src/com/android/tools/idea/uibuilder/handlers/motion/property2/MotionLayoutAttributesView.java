@@ -35,10 +35,9 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.property2.inspector.InspectorSection;
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider;
 import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanControlTypeProvider;
-import com.android.tools.idea.uibuilder.property2.ui.EasingCurve;
 import com.android.tools.idea.uibuilder.property2.ui.EmptyTablePanel;
 import com.android.tools.idea.uibuilder.property2.ui.TransformsPanel;
-import com.android.tools.idea.uibuilder.property2.ui.ViewTransitionPanel;
+import com.android.tools.idea.uibuilder.property2.ui.EasingCurvePanel;
 import com.android.tools.property.panel.api.EditorProvider;
 import com.android.tools.property.panel.api.FilteredPTableModel;
 import com.android.tools.property.panel.api.InspectorBuilder;
@@ -120,13 +119,26 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
             addTransforms(inspector, selection, myModel, properties);
           }
           if (StudioFlags.NELE_TRANSITION_PANEL.get()) {
-            addTransition(inspector, selection, myModel, properties);
+            ArrayList<String> attributes = new ArrayList<>();
+            attributes.add("transitionEasing");
+            attributes.add("pathMotionArc");
+            attributes.add("transitionPathRotate");
+            addTransition(inspector, InspectorSection.TRANSITION, selection, myModel, "transitionEasing", properties, attributes);
           }
           addSubTagSections(inspector, selection, myModel);
           break;
 
         case TRANSITION:
           addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, false);
+          if (StudioFlags.NELE_TRANSITION_PANEL.get()) {
+            ArrayList<String> attributes = new ArrayList<>();
+            attributes.add("motionInterpolator");
+            attributes.add("staggered");
+            attributes.add("autoTransition");
+            attributes.add("pathMotionArc");
+            attributes.add("layoutDuringTransition");
+            addTransition(inspector, InspectorSection.TRANSITION_MODIFIERS, selection, myModel, "motionInterpolator", properties, attributes);
+          }
           addSubTagSections(inspector, selection, myModel);
           break;
 
@@ -169,16 +181,14 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     }
 
     private void addTransition(@NotNull InspectorPanel inspector,
+                               @NotNull InspectorSection title,
                                @NotNull MotionSelection selection,
                                @NotNull MotionLayoutAttributesModel model,
-                               @NotNull PropertiesTable<NelePropertyItem> properties) {
-      InspectorLineModel titleModel = inspector.addExpandableTitle(InspectorSection.TRANSITION.getTitle(), false, new ArrayList());
-      inspector.addComponent(new ViewTransitionPanel(properties), titleModel);
-
-      ArrayList<String> attributes = new ArrayList<>();
-      attributes.add("transitionEasing");
-      attributes.add("pathMotionArc");
-      attributes.add("transitionPathRotate");
+                               @NotNull String easingAttributeName,
+                               @NotNull PropertiesTable<NelePropertyItem> properties,
+                               @NotNull ArrayList<String> attributes) {
+      InspectorLineModel titleModel = inspector.addExpandableTitle(title.getTitle(), false, new ArrayList());
+      inspector.addComponent(new EasingCurvePanel(easingAttributeName, properties), titleModel);
 
       NeleEnumSupportProvider enumSupportProvider = new NeleEnumSupportProvider(model);
       NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(enumSupportProvider);
