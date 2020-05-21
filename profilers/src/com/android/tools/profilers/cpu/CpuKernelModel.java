@@ -52,10 +52,11 @@ public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {
   private void captureStateChanged() {
     removeAllElements();
     CpuCapture capture = myStage.getCapture();
-    if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
-      int count = capture.getCpuCount();
+    if (capture != null && capture.getSystemTraceData() != null) {
+      CpuSystemTraceData systemTraceData = capture.getSystemTraceData();
+      int count = systemTraceData.getCpuCount();
       for (int i = 0; i < count; i++) {
-        addElement(new CpuState(i, capture));
+        addElement(new CpuState(i, systemTraceData));
       }
     }
     contentsChanged();
@@ -72,10 +73,10 @@ public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {
     @NotNull
     private final StateChartModel<CpuThreadSliceInfo> myModel;
 
-    public CpuState(int cpuId, @NotNull CpuCapture cpuCapture) {
+    public CpuState(int cpuId, @NotNull CpuSystemTraceData systemTraceData) {
       myCpuId = cpuId;
       myModel = new StateChartModel<>();
-      myCpuStateDataSeries = new LazyDataSeries<>(() -> cpuCapture.getCpuThreadSliceInfoStates(myCpuId));
+      myCpuStateDataSeries = new LazyDataSeries<>(() -> systemTraceData.getCpuThreadSliceInfoStates(myCpuId));
       // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
       myModel.addSeries(new RangedSeries<>(myRange, myCpuStateDataSeries));
     }

@@ -87,7 +87,7 @@ abstract class CapturePane extends JPanel {
     }
     else {
       CpuCapture capture = myStageView.getStage().getCapture();
-      if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
+      if (capture != null && capture.getSystemTraceData() != null) {
         myTabs.putAll(ATRACE_TAB_NAMES);
       }
 

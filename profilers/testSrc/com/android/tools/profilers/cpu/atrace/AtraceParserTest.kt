@@ -94,7 +94,7 @@ class AtraceParserTest {
 
   @Test
   fun testGetThreadStateDataSeries() {
-    val dataSeries = myCapture.getThreadStatesForThread(THREAD_ID)
+    val dataSeries = myCapture.systemTraceData!!.getThreadStatesForThread(THREAD_ID)
     assertThat(dataSeries.size).isEqualTo(THREAD_STATE_SIZE)
     assertThat(dataSeries[0].x).isGreaterThan(EXPECTED_MIN_RANGE.toLong())
     // Waking / Runnable = RUNNABLE.
@@ -105,7 +105,7 @@ class AtraceParserTest {
 
   @Test
   fun testGetCpuUtilizationDataSeries() {
-    val dataSeries = myCapture.cpuUtilizationSeries
+    val dataSeries = myCapture.systemTraceData!!.getCpuUtilizationSeries()
     var avg = 0.0
     // No values should exceed the bounds
     for (data in dataSeries) {
@@ -119,12 +119,12 @@ class AtraceParserTest {
   @Test
   fun testGetCpuProcessData() {
     for (i in 0..3) {
-      val dataSeries = myCapture.getCpuThreadSliceInfoStates(i)
+      val dataSeries = myCapture.systemTraceData!!.getCpuThreadSliceInfoStates(i)
       assertThat(dataSeries).isNotEmpty()
     }
     // Verify that we have a perfd process, null process, then rcu process.
     // Verifying the null process is important as it ensures we render the data properly.
-    val threadNames = myCapture.getCpuThreadSliceInfoStates(0).map { it.value.name }
+    val threadNames = myCapture.systemTraceData!!.getCpuThreadSliceInfoStates(0).map { it.value.name }
     assertThat(threadNames).containsAllOf("perfd", CpuThreadSliceInfo.NULL_THREAD.name, "rcu_preempt")
   }
 
@@ -133,14 +133,14 @@ class AtraceParserTest {
     val parser = AtraceParser()
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0)
 
-    assertThat(capture.isMissingData).isTrue()
+    assertThat(capture.systemTraceData!!.isMissingData()).isTrue()
   }
 
   @Test
   fun atraceCpuUtilizationBucketed() {
     // Cpu utilization is computed at the same time cpu slices are generated, this makes it challenging to test in isolation.
     // Here we take an already parsed capture and test it has utilization series, as well as the max value in the series.
-    val series = myCapture.cpuUtilizationSeries
+    val series = myCapture.systemTraceData!!.getCpuUtilizationSeries()
     assertThat(series).hasSize(268)
     // To test the bucketing we verify the delta of each point in the series is the bucket time.
     for (i in 1 until series.size) {
