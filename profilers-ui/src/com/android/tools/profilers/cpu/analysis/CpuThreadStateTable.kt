@@ -64,9 +64,13 @@ class CpuThreadStateTable(val profilers: StudioProfilers,
       autoCreateRowSorter = true
       showVerticalLines = true
       showHorizontalLines = false
+      columnModel.columnMargin = 10  // align headers and contents
       columnModel.getColumn(Column.TIME.ordinal).cellRenderer = DurationRenderer()
       columnModel.getColumn(Column.PERCENT.ordinal).cellRenderer = PercentRenderer()
+      // Integers are right aligned by defaut. Cast them to String for left alignment.
+      columnModel.getColumn(Column.OCCURRENCES.ordinal).cellRenderer = IntegerAsStringTableCellRender()
     }
+
     val tableContainer = JPanel(TabularLayout("*", "Fit,Fit")).apply {
       border = JBUI.Borders.customLine(BorderColor, 2)
       isOpaque = false
