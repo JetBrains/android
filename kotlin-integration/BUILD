@@ -26,7 +26,6 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
-        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
         "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/java/manifest:intellij.java.manifest",
@@ -34,8 +33,6 @@ iml_module(
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
         "//tools/idea/java/plugin:intellij.java.plugin",
-        "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
     ],
     test_shard_count = 2,
     test_srcs = ["testSrc"],
@@ -48,6 +45,7 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
+        "//tools/adt/idea/android:intellij.android.core.tests",
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
         "//tools/idea/.idea/libraries:rhino",
         "//tools/idea/.idea/libraries:netty-handler-proxy",
@@ -65,6 +63,10 @@ iml_module(
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/adt/idea/databinding:intellij.android.databinding",
+        "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
     ],
     # do not sort: must match IML order
     deps = [
