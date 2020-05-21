@@ -278,6 +278,18 @@ public class CpuCaptureStage extends Stage<Timeline> {
     myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
   }
 
+  @NotNull
+  @Override
+  public Stage<?> getParentStage() {
+    return new CpuProfilerStage(getStudioProfilers());
+  }
+
+  @NotNull
+  @Override
+  public Class<? extends Stage<?>> getHomeStageClass() {
+    return CpuProfilerStage.class;
+  }
+
   public void removeCpuAnalysisModel(int index) {
     myAnalysisModels.remove(index);
     myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
