@@ -67,7 +67,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
   }
 
   @Override
-  public String fetchExternalDocumentation(final Project project, final PsiElement element, final List<String> docUrls) {
+  public String fetchExternalDocumentation(final Project project, final PsiElement element, final List<String> docUrls, boolean onHover) {
     // Workaround: When you invoke completion on an android.R.type.name field in a Java class, we
     // never get a chance to provide documentation for it via generateDoc, presumably because the
     // field is recognized by an earlier documentation provider (the generic Java javadoc one?) as
