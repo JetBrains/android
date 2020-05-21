@@ -23,7 +23,7 @@ import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.fail
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -44,7 +44,7 @@ class SkiaParserTest {
   @Test
   fun testInvalidSkp() {
     try {
-      SkiaParser.getViewTree("foobarbaz".toByteArray())
+      SkiaParser.getViewTree("foobarbaz".toByteArray(), emptyList())
       fail()
     }
     catch (expected: InvalidPictureException) {}
@@ -135,11 +135,11 @@ class SkiaParserTest {
 // TODO: test with downloading (currently no way to mock out installation)
 class SkiaParserTest2 {
   val projectRule = AndroidProjectRule.inMemory()
-  val fakeSdkRule = FakeSdkRule(projectRule)
+  private val fakeSdkRule = FakeSdkRule(projectRule)
     .withLocalPackage("skiaparser;1")
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(fakeSdkRule)
+  val ruleChain = RuleChain.outerRule(projectRule).around(fakeSdkRule)!!
 
   @Test
   fun testFindServerInfoForSkpVersion() {
