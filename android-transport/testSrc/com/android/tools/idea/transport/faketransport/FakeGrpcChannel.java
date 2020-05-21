@@ -20,6 +20,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
+import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.ExternalResource;
 
@@ -34,8 +35,19 @@ public class FakeGrpcChannel extends ExternalResource {
   private Server myServer;
   private ManagedChannel myChannel;
 
-  public FakeGrpcChannel(String name, BindableService... services) {
-    myName = name;
+  /**
+   * @param namePrefix A readable name which you can use to identify the server created by this
+   *                   class if something goes wrong. Often, this will be the name of your test
+   *                   class. To ensure the name will be unique across all tests, it will
+   *                   additionally be suffixed with a unique ID. Use {@link #getName()} to get
+   *                   the full, unique name.
+   */
+  public FakeGrpcChannel(String namePrefix, BindableService... services) {
+    // It can be problematic if GRPC channels with the same name are started at the same time
+    // across tests boundaries. This can happen, for example, if multiple tests are run in parallel
+    // with a copy/pasted name. By appending a UUID, we guarantee that the in-memory GRPC channel
+    // being spun up for this test is guaranteed not to be shared with other tests by accident.
+    myName = namePrefix + "_" + UUID.randomUUID();
     myServices = services;
   }
 
@@ -55,6 +67,11 @@ public class FakeGrpcChannel extends ExternalResource {
   protected void after() {
     myServer.shutdownNow();
     myChannel.shutdownNow();
+
+    try {
+      myServer.awaitTermination();
+    }
+    catch (InterruptedException ignore) {}
   }
 
   public String getName() {
