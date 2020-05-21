@@ -290,7 +290,7 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
       findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
     DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
     List<String> urls = provider.getUrlFor(docTargetElement, originalElement);
-    String doc = ((ExternalDocumentationProvider)provider).fetchExternalDocumentation(myFixture.getProject(), docTargetElement, urls);
+    String doc = ((ExternalDocumentationProvider)provider).fetchExternalDocumentation(myFixture.getProject(), docTargetElement, urls, false);
     assertNotNull(doc);
     assertTrue("Can't find " + expectedPart + " in " + doc, doc.contains(expectedPart));
   }
