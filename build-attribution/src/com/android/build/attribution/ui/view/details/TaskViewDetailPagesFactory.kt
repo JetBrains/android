@@ -88,7 +88,7 @@ class TaskViewDetailPagesFactory(
       layout = BoxLayout(this, BoxLayout.Y_AXIS)
       alignmentX = Component.LEFT_ALIGNMENT
       add(JBLabel(descriptor.pluginData.name).withFont(JBUI.Fonts.label().asBold()))
-      add(JBLabel("Total duration ${descriptor.pluginData.criticalPathDuration.durationString()}"))
+      add(JBLabel("Total duration: ${descriptor.pluginData.criticalPathDuration.durationString()}"))
       val tasksNumber = descriptor.pluginData.criticalPathTasks.size
       add(JBLabel("Number of tasks: $tasksNumber ${StringUtil.pluralize("task", tasksNumber)}"))
       add(JBLabel("Warnings").withFont(JBUI.Fonts.label().asBold()).withBorder(JBUI.Borders.emptyTop(20)))

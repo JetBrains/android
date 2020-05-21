@@ -138,7 +138,7 @@ enum class TaskIssueType(
   val level: IssueLevel
 ) {
   // Order is important and reflects sorting order on the UI.
-  ALWAYS_RUN_TASKS("Always-run Tasks", IssueLevel.WARNING),
+  ALWAYS_RUN_TASKS("Always-Run Tasks", IssueLevel.WARNING),
   TASK_SETUP_ISSUE("Task Setup Issues", IssueLevel.WARNING),
 
 }

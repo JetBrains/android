@@ -92,7 +92,7 @@ class TreeStructureTest {
             :app:compile|null|2.0s|PLUGIN_CRITICAL_PATH_TASK_PAGE
             :lib:compile|null|1.0s|PLUGIN_CRITICAL_PATH_TASK_PAGE
           Warnings (1)|null|null|PLUGIN_WARNINGS_ROOT
-            Always-run Tasks|1 warning|2.0s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
+            Always-Run Tasks|1 warning|2.0s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
               :app:compile|null|2.0s|PLUGIN_ALWAYS_RUN_NO_OUTPUTS_PAGE
         resources.plugin||1.0s|PLUGIN_PAGE
           Tasks determining this build's duration||1.0s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
@@ -117,7 +117,7 @@ class TreeStructureTest {
       ))
     val issuesRootNode = TaskIssuesRoot(data, mockRoot)
     val expectedStructure = """
-      Always-run Tasks|3 warnings|null|ALWAYS_RUN_ISSUE_ROOT
+      Always-Run Tasks|3 warnings|null|ALWAYS_RUN_ISSUE_ROOT
         :app:compile|null|2.0s|ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
         :app:resources|null|1.0s|ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
         :lib:compile|null|1.0s|ALWAYS_RUN_NO_OUTPUTS_PAGE
@@ -168,7 +168,7 @@ class TreeStructureTest {
     val warningsRoot = WarningsRootNode(data, mockRoot)
     val expectedStructure = """
       Warnings (7)|null|null|WARNINGS_ROOT
-        Always-run Tasks|2 warnings|null|ALWAYS_RUN_ISSUE_ROOT
+        Always-Run Tasks|2 warnings|null|ALWAYS_RUN_ISSUE_ROOT
           :app:compile|null|2.0s|ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
           :lib:compile|null|1.0s|ALWAYS_RUN_NO_OUTPUTS_PAGE
         Task Setup Issues|2 warnings|null|TASK_SETUP_ISSUE_ROOT
@@ -204,20 +204,20 @@ class TreeStructureTest {
             :app:compile|null|2.0s|PLUGIN_CRITICAL_PATH_TASK_PAGE
             :lib:compile|null|1.0s|PLUGIN_CRITICAL_PATH_TASK_PAGE
           Warnings (1)|null|null|PLUGIN_WARNINGS_ROOT
-            Always-run Tasks|1 warning|2.0s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
+            Always-Run Tasks|1 warning|2.0s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
               :app:compile|null|2.0s|PLUGIN_ALWAYS_RUN_NO_OUTPUTS_PAGE
         resources.plugin|1 warning|1.0s|PLUGIN_PAGE
           Tasks determining this build's duration|1 warning|1.0s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
             :app:resources|null|1.0s|PLUGIN_CRITICAL_PATH_TASK_PAGE
           Warnings (1)|null|null|PLUGIN_WARNINGS_ROOT
-            Always-run Tasks|1 warning|1.0s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
+            Always-Run Tasks|1 warning|1.0s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
               :app:resources|null|1.0s|PLUGIN_ALWAYS_RUN_NO_OUTPUTS_PAGE
       Tasks determining this build's duration|2 warnings|15.0s|CRITICAL_PATH_TASKS_ROOT
         :app:compile|null|2.0s|CRITICAL_PATH_TASK_PAGE
         :app:resources|null|1.0s|CRITICAL_PATH_TASK_PAGE
         :lib:compile|null|1.0s|CRITICAL_PATH_TASK_PAGE
       Warnings (5)|null|null|WARNINGS_ROOT
-        Always-run Tasks|2 warnings|null|ALWAYS_RUN_ISSUE_ROOT
+        Always-Run Tasks|2 warnings|null|ALWAYS_RUN_ISSUE_ROOT
           :app:compile|null|2.0s|ALWAYS_RUN_NO_OUTPUTS_PAGE
           :app:resources|null|1.0s|ALWAYS_RUN_NO_OUTPUTS_PAGE
         Non-incremental Annotation Processors|3 warnings|null|ANNOTATION_PROCESSORS_ROOT

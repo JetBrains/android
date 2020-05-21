@@ -173,7 +173,7 @@ private fun taskWarningDescriptionPanel(
   add(JBLabel(warningIcon()).withBorder(JBUI.Borders.emptyRight(5)), TabularLayout.Constraint(1, 0))
   add(JBLabel(issue.type.uiName).withFont(JBUI.Fonts.label().asBold()), TabularLayout.Constraint(1, 1))
   add(DescriptionWithHelpLinkLabel(issue.explanation, issue.helpLink, helpLinkClickCallback), TabularLayout.Constraint(2, 1))
-  add(htmlTextLabel("<b>Recommendation</b> ${issue.buildSrcRecommendation}"), TabularLayout.Constraint(3, 1))
+  add(htmlTextLabel("<b>Recommendation:</b> ${issue.buildSrcRecommendation}"), TabularLayout.Constraint(3, 1))
 }
 
 @Deprecated("Left to support previous version.")
@@ -195,7 +195,7 @@ fun generateReportLinkLabel(
   }
 }.apply {
   addHyperlinkListener { generateReportClicked(taskData) }
-  setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "")
+  setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report", "")
 }
 
 fun reasonsToRunList(taskData: TaskUiData) = htmlTextLabel(createReasonsText(taskData.reasonsToRun))
