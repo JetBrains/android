@@ -32,6 +32,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.components.JBLoadingPanel
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -43,6 +44,22 @@ import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_DELETE
+import java.awt.event.KeyEvent.VK_DOWN
+import java.awt.event.KeyEvent.VK_END
+import java.awt.event.KeyEvent.VK_ESCAPE
+import java.awt.event.KeyEvent.VK_HOME
+import java.awt.event.KeyEvent.VK_KP_DOWN
+import java.awt.event.KeyEvent.VK_KP_LEFT
+import java.awt.event.KeyEvent.VK_KP_RIGHT
+import java.awt.event.KeyEvent.VK_KP_UP
+import java.awt.event.KeyEvent.VK_LEFT
+import java.awt.event.KeyEvent.VK_PAGE_DOWN
+import java.awt.event.KeyEvent.VK_PAGE_UP
+import java.awt.event.KeyEvent.VK_RIGHT
+import java.awt.event.KeyEvent.VK_TAB
+import java.awt.event.KeyEvent.VK_UNDEFINED
+import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
@@ -95,6 +112,7 @@ class EmulatorView(
     disconnectedStateLabel.font = disconnectedStateLabel.font.deriveFont(disconnectedStateLabel.font.size * 1.2F)
 
     isFocusable = true // Must be focusable to receive keyboard events.
+    focusTraversalKeysEnabled = false // Receive focus traversal keys to send them to the emulator.
 
     emulator.addConnectionStateListener(this)
     addComponentListener(this)
@@ -124,8 +142,28 @@ class EmulatorView(
       override fun keyTyped(event: KeyEvent) {
         val keyboardEvent =
           when (val c = event.keyChar) {
+            VK_UNDEFINED.toChar() -> return
             '\b' -> createHardwareKeyEvent("Backspace")
+            VK_DELETE.toChar() -> createHardwareKeyEvent(if (SystemInfo.isMac) "Backspace" else "Delete")
+            VK_ESCAPE.toChar() -> createHardwareKeyEvent("Escape")
+            VK_TAB.toChar() -> createHardwareKeyEvent("Tab")
             else -> KeyboardEvent.newBuilder().setText(c.toString()).build()
+          }
+        emulator.sendKey(keyboardEvent)
+      }
+
+      override fun keyReleased(event: KeyEvent) {
+        val keyboardEvent =
+          when (val c = event.keyCode) {
+            VK_LEFT, VK_KP_LEFT -> createHardwareKeyEvent("ArrowLeft")
+            VK_RIGHT, VK_KP_RIGHT -> createHardwareKeyEvent("ArrowRight")
+            VK_UP, VK_KP_UP -> createHardwareKeyEvent("ArrowUp")
+            VK_DOWN, VK_KP_DOWN -> createHardwareKeyEvent("ArrowDown")
+            VK_HOME -> createHardwareKeyEvent("Home")
+            VK_END -> createHardwareKeyEvent("End")
+            VK_PAGE_UP -> createHardwareKeyEvent("PageUp")
+            VK_PAGE_DOWN -> createHardwareKeyEvent("PageDown")
+            else -> return
           }
         emulator.sendKey(keyboardEvent)
       }
