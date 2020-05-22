@@ -63,11 +63,17 @@ import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets.UTF_8
+import java.nio.file.CopyOption
+import java.nio.file.FileVisitResult
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.CREATE_NEW
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
@@ -423,8 +429,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   companion object {
+    /**
+     * Creates a fake AVD folder for Pixel 3 XL API 29. The skin path in config.ini is absolute.
+     */
     @JvmStatic
-    fun createPhoneAvd(parentFolder: Path): Path {
+    fun createPhoneAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk")): Path {
       val avdId = "Pixel_3_XL_API_29"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -490,17 +499,23 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.audioInput = true
           hw.audioOutput = true
           hw.sdCard = false
+          android.sdk.root = ${sdkFolder}
           """.trimIndent()
 
       return createAvd(avdFolder, configIni, hardwareIni)
     }
 
+    /**
+     * Creates a fake AVD folder for Nexus 10 API 29. The skin path in config.ini is relative.
+     */
     @JvmStatic
-    fun createTabletAvd(parentFolder: Path): Path {
+    fun createTabletAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk")): Path {
       val avdId = "Nexus_10_API_29"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
-      val skinFolder = getSkinFolder("nexus_10")
+      val skinName = "nexus_10"
+      val skinFolder = getSkinFolder(skinName)
+      copyDir(skinFolder, Files.createDirectories(sdkFolder.resolve("skins")).resolve(skinName))
 
       val configIni = """
           AvdId=${avdId}
@@ -540,8 +555,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           sdcard.size=512M
           showDeviceFrame=yes
           skin.dynamic=yes
-          skin.name=${skinFolder.fileName}
-          skin.path=${skinFolder}
+          skin.name=${skinName}
+          skin.path=skins/${skinName}
           tag.display=Google APIs
           tag.id=google_apis
           """.trimIndent()
@@ -562,13 +577,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.audioInput = true
           hw.audioOutput = true
           hw.sdCard = false
+          android.sdk.root = ${sdkFolder}
           """.trimIndent()
 
       return createAvd(avdFolder, configIni, hardwareIni)
     }
 
+    /**
+     * Creates a fake AVD folder for Android Wear Round API28. The skin path in config.ini is absolute.
+     */
     @JvmStatic
-    fun createWatchAvd(parentFolder: Path): Path {
+    fun createWatchAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk")): Path {
       val avdId = "Android_Wear_Round_API_28"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -635,6 +654,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.audioOutput = true
           hw.sdCard = true
           hw.sdCard.path = ${avdFolder}/sdcard.img
+          android.sdk.root = ${sdkFolder}
           """.trimIndent()
 
       return createAvd(avdFolder, configIni, hardwareIni)
@@ -646,6 +666,26 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       Files.write(avdFolder.resolve("config.ini"), configIni.toByteArray(UTF_8))
       Files.write(avdFolder.resolve("hardware-qemu.ini"), hardwareIni.toByteArray(UTF_8))
       return avdFolder
+    }
+
+    @JvmStatic
+    private fun copyDir(from: Path, to: Path) {
+      val options = arrayOf<CopyOption>(StandardCopyOption.COPY_ATTRIBUTES)
+      Files.walkFileTree(from, object : SimpleFileVisitor<Path>() {
+        override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
+          if (dir !== from || !Files.exists(to)) {
+            val copy = to.resolve(from.relativize(dir).toString())
+            Files.createDirectory(copy)
+          }
+          return FileVisitResult.CONTINUE
+        }
+
+        override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+          val copy = to.resolve(from.relativize(file).toString())
+          Files.copy(file, copy, *options)
+          return FileVisitResult.CONTINUE
+        }
+      })
     }
 
     @JvmStatic
