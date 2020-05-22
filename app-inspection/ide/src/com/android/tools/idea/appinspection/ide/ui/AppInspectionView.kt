@@ -139,9 +139,18 @@ class AppInspectionView(
           }.client
         }.transform { client ->
           client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+            var crashed = false
             override fun onCrashEvent(message: String) {
               AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
-              showCrashNotification(provider.displayName)
+              crashed = true
+            }
+
+            override fun onDispose() {
+              // Wait until AFTER we're disposed before showing the notification. This ensures if
+              // the user hits restart, which requests launching a new inspector, it won't reuse
+              // the existing client. (Users probably would never hit restart fast enough but it's
+              // possible to trigger in tests.)
+              if (crashed) showCrashNotification(provider.displayName)
             }
           }, MoreExecutors.directExecutor())
         }.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Unit> {
