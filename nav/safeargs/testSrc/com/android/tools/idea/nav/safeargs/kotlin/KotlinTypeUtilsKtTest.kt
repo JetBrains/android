@@ -227,7 +227,7 @@ class KotlinTypeUtilsKtTest {
       defaultValue = "1l",
       moduleDescriptor = moduleDescriptor
     )
-    // todo: revisit guessing from inferred long type, String.parseLong is not available
+    // TODO(b/157920941): Guessing from inferred long type doesn't work
     assertThat(type).isEqualTo(builtIn.stringType)
   }
 

@@ -19,11 +19,16 @@ import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.descriptors.SourceElement
+import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.ClassConstructorDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.ClassDescriptorImpl
+import org.jetbrains.kotlin.descriptors.impl.PropertyDescriptorImpl
+import org.jetbrains.kotlin.descriptors.impl.PropertyGetterDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.KotlinType
@@ -58,4 +63,46 @@ internal fun ClassDescriptorImpl.createConstructor(
     this.initialize(valueParameterProvider(this), Visibilities.PUBLIC)
     this.returnType = this@createConstructor.defaultType
   }
+}
+
+internal fun ClassDescriptorImpl.createProperty(
+  name: String,
+  type: KotlinType,
+  sourceElement: SourceElement = SourceElement.NO_SOURCE
+): PropertyDescriptor {
+  val property = object : PropertyDescriptorImpl(
+    this,
+    null,
+    Annotations.EMPTY,
+    Modality.FINAL,
+    Visibilities.PUBLIC,
+    false,
+    Name.identifier(name),
+    CallableMemberDescriptor.Kind.SYNTHESIZED,
+    sourceElement, // todo: refined navigation element
+    false,
+    false,
+    false,
+    false,
+    false,
+    false) {}
+
+  property.setType(type, emptyList<TypeParameterDescriptor>(), this.thisAsReceiverParameter, null)
+
+  val getter = PropertyGetterDescriptorImpl(
+    property,
+    Annotations.EMPTY,
+    Modality.FINAL,
+    Visibilities.PUBLIC,
+    false,
+    false,
+    false,
+    CallableMemberDescriptor.Kind.SYNTHESIZED,
+    null,
+    sourceElement
+  )
+  getter.initialize(type)
+
+  property.initialize(getter, null)
+  return property
 }
