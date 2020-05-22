@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.SdkConstants.ANDROID_SDK_ROOT_ENV
 import com.android.emulator.control.Rotation.SkinRotation
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import java.nio.file.Path
@@ -40,6 +41,12 @@ class EmulatorConfiguration private constructor(
      * Returns null if any of the essential data is missing.
      */
     fun readAvdDefinition(avdId: String, avdFolder: Path): EmulatorConfiguration? {
+      val file = avdFolder.resolve("hardware-qemu.ini")
+      val hardwareIni = readKeyValueFile(file, setOf("android.sdk.root", "hw.audioOutput"))
+      val sdkPath = hardwareIni?.get("android.sdk.root") ?: System.getenv(ANDROID_SDK_ROOT_ENV) ?: ""
+      val androidSdkRoot = avdFolder.fileSystem.getPath(sdkPath)
+      val hasAudioOutput = hardwareIni?.get("hw.audioOutput")?.toBoolean() ?: true
+
       val keysToExtract = setOf("avd.ini.displayname", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density",
                                 "hw.sensors.orientation", "hw.initialOrientation", "showDeviceFrame", "skin.path")
       val configIni = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract) ?: return null
@@ -59,14 +66,11 @@ class EmulatorConfiguration private constructor(
         displayHeight = parseInt(configIni["hw.lcd.height"], 0)
       }
       val density = parseInt(configIni["hw.lcd.density"], 0)
-      val skinPath = getSkinPath(configIni, avdFolder)
+      val skinPath = getSkinPath(configIni, androidSdkRoot)
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
       if (displayWidth <= 0 || displayHeight <= 0) {
         return null
       }
-
-      val hardwareIni = readKeyValueFile(avdFolder.resolve("hardware-qemu.ini"), setOf("hw.audioOutput"))
-      val hasAudioOutput = hardwareIni?.get("hw.audioOutput")?.toBoolean() ?: true
 
       return EmulatorConfiguration(avdName = avdName,
                                    avdFolder = avdFolder,
@@ -79,12 +83,12 @@ class EmulatorConfiguration private constructor(
                                    initialOrientation = initialOrientation)
     }
 
-    private fun getSkinPath(configIni: Map<String, String>, avdFolder: Path): Path? {
+    private fun getSkinPath(configIni: Map<String, String>, androidSdkRoot: Path): Path? {
       if (configIni["showDeviceFrame"]?.equals("no", ignoreCase = true) == true) {
         return null
       }
       val skinPath = configIni["skin.path"]
-      return if (skinPath == null || skinPath == "_no_skin") null else avdFolder.resolve(skinPath)
+      return if (skinPath == null || skinPath == "_no_skin") null else androidSdkRoot.resolve(skinPath)
     }
   }
 }
