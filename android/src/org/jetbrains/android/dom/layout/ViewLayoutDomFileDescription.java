@@ -14,7 +14,8 @@ public class ViewLayoutDomFileDescription extends LayoutDomFileDescription<Layou
   public boolean checkFile(@NotNull XmlFile file, @Nullable Module module) {
     return !FragmentLayoutDomFileDescription.hasFragmentRootTag(file) &&
            !DataBindingDomFileDescription.hasDataBindingRootTag(file) &&
-           !MergeDomFileDescription.Companion.hasMergeRootTag(file);
+           !MergeDomFileDescription.Companion.hasMergeRootTag(file) &&
+           !ViewTagDomFileDescription.Companion.hasViewRootTag(file);
   }
 }
 
