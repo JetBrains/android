@@ -76,9 +76,16 @@ fun AndroidTestResults.getTestCaseName(): String = "$className.$methodName"
  * Returns the fully qualified name of the test case.
  */
 fun AndroidTestResults.getFullTestCaseName(): String {
+  return "${getFullTestClassName()}.$methodName"
+}
+
+/**
+ * Returns the fully qualified name of the test class.
+ */
+fun AndroidTestResults.getFullTestClassName(): String {
   return if (packageName.isBlank()) {
-    "$className.$methodName"
+    className
   } else {
-    "$packageName.$className.$methodName"
+    "$packageName.$className"
   }
 }

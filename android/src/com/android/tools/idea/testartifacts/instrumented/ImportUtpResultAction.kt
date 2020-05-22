@@ -68,7 +68,7 @@ class ImportUtpResultAction : AnAction() {
   fun parseResultsAndDisplay(inputStream: InputStream, disposable: Disposable, project: Project) {
     RunContentManager.getInstance(project)
     val toolWindow = getToolWindow(project)
-    val testSuiteView = AndroidTestSuiteView(disposable, project)
+    val testSuiteView = AndroidTestSuiteView(disposable, project, null)
     val contentManager = toolWindow.contentManager
     val content = contentManager.factory.createContent(testSuiteView.component, "Imported Android Test Results", true)
     contentManager.addContent(content)
