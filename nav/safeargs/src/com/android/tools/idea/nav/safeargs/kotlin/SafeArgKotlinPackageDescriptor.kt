@@ -27,6 +27,8 @@ import org.jetbrains.kotlin.descriptors.impl.PackageFragmentDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.MemberScopeImpl
@@ -72,7 +74,8 @@ class SafeArgKotlinPackageDescriptor(
         XmlSourceElement(backingXmlSource as PsiElement)
       } ?: SourceElement.NO_SOURCE
 
-      return createLightDirectionsClasses(navEntry, sourceElement, packageDescriptor, storageManager)
+      return createLightArgsClasses(navEntry, sourceElement, packageDescriptor, storageManager) +
+             createLightDirectionsClasses(navEntry, sourceElement, packageDescriptor, storageManager)
     }
 
     private fun createLightDirectionsClasses(
@@ -89,6 +92,25 @@ class SafeArgKotlinPackageDescriptor(
             Name.identifier(it + "Directions")
           }
           LightDirectionsKtClass(className, destination, entry.data, sourceElement, packageDescriptor, storageManager)
+        }
+        .toList()
+    }
+
+    private fun createLightArgsClasses(
+      entry: SafeArgsResourceForKtDescriptors.NavEntryKt,
+      sourceElement: SourceElement,
+      packageDescriptor: SafeArgKotlinPackageDescriptor,
+      storageManager: StorageManager
+    ): Collection<ClassDescriptor> {
+      return entry.data.root.allFragments
+        .asSequence()
+        .filter { fragment -> fragment.arguments.isNotEmpty() }
+        .map { fragment ->
+          val className = fragment.name.substringAfterLast('.').let {
+            Name.identifier(it + "Args")
+          }
+          val navArgType = packageDescriptor.builtIns.getKotlinType("androidx.navigation.NavArgs", null, packageDescriptor.module)
+          LightArgsKtClass(className, fragment, listOf(navArgType), sourceElement, packageDescriptor, storageManager)
         }
         .toList()
     }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.kotlin
 
-import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.project.SafeArgSyntheticPackageProvider
@@ -36,15 +36,12 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class SafeArgKotlinPackageDescriptorTest {
+class ArgsClassKtDescriptorsTest {
   @get:Rule
   val safeArgsRule = SafeArgsRule(SafeArgsMode.KOTLIN)
 
-  /**
-   * Check contributed args and directions class descriptors for single module case
-   */
   @Test
-  fun checkContributorsOfPackage() {
+  fun checkContributorsOfArgsClass() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -61,24 +58,10 @@ class SafeArgKotlinPackageDescriptorTest {
             <argument
                 android:name="arg1"
                 app:argType="string" />
-            <action
-                android:id="@+id/action_Fragment1_to_Fragment2"
-                app:destination="@id/fragment2" />
-          </fragment>
-          <fragment
-              android:id="@+id/fragment2"
-              android:name="test.safeargs.Fragment2"
-              android:label="Fragment2" >
             <argument
                 android:name="arg2"
                 app:argType="integer[]" />
-            <action
-              android:id="@+id/action_Fragment2_to_main"
-              app:destination="@id/main" />
-          </fragment>  
-          <action
-              android:id="@+id/action_main_to_fragment1"
-              app:destination="@id/fragment1" />                      
+          </fragment>
         </navigation>
       """.trimIndent())
 
@@ -89,7 +72,7 @@ class SafeArgKotlinPackageDescriptorTest {
       it is SafeArgsKtPackageProviderExtension
     }
 
-    val traceMock: BindingTrace = mock()
+    val traceMock: BindingTrace = MockitoKt.mock()
     val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
@@ -104,20 +87,46 @@ class SafeArgKotlinPackageDescriptorTest {
 
     val renderer = DescriptorRenderer.COMPACT_WITH_MODIFIERS
 
-    val classDescriptors = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
+    val argsClassDescriptor = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
       .first()
       .getMemberScope()
+      .getContributedDescriptors()
+      .filter { it is LightArgsKtClass }
+      .first() as LightArgsKtClass
+
+    // Check primary constructor
+    argsClassDescriptor.unsubstitutedPrimaryConstructor.let {
+      val rendered = renderer.render(it)
+      assertThat(rendered).isEqualTo("public constructor Fragment1Args(arg1: kotlin.String, arg2: kotlin.IntArray)")
+    }
+
+    // Check companion objects
+    val companionObject = argsClassDescriptor.companionObjectDescriptor
+      .unsubstitutedMemberScope
       .getContributedDescriptors()
       .sortedWith(MemberComparator.INSTANCE)
       .map { renderer.render(it) }
 
-    assertThat(classDescriptors).containsExactly(
-      // unresolved type is due to the missing library module dependency in test setup
-      "public final class Fragment1Args : [ERROR : androidx.navigation.NavArgs]",
-      "public final class Fragment1Directions",
-      "public final class Fragment2Args : [ERROR : androidx.navigation.NavArgs]",
-      "public final class Fragment2Directions",
-      "public final class MainDirections"
+    assertThat(companionObject).containsExactly(
+      // unresolved type is due to the mock sdk in test setup
+      "public final fun fromBundle(bundle: [ERROR : android.os.Bundle]): test.safeargs.Fragment1Args")
+
+    // Check methods
+    val contributors = argsClassDescriptor.unsubstitutedMemberScope
+      .getContributedDescriptors()
+      .sortedWith(MemberComparator.INSTANCE)
+      .map { renderer.render(it) }
+
+    assertThat(contributors).containsExactly(
+      /*properties*/
+      "public final val arg1: kotlin.String",
+      "public final val arg2: kotlin.IntArray",
+      /*generated functions of data class*/
+      "public final fun component1(): kotlin.String",
+      "public final fun component2(): kotlin.IntArray",
+      "public final fun copy(arg1: kotlin.String, arg2: kotlin.IntArray): test.safeargs.Fragment1Args",
+      /*functions*/
+      "public final fun toBundle(): [ERROR : android.os.Bundle]" // unresolved type is due to the mock sdk in test setup
     )
   }
 }
