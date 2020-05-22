@@ -22,6 +22,7 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.notification.impl.NotificationsManagerImpl;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,7 +47,9 @@ public class AndroidNotification {
     NotificationGroup.balloonGroup("Android Notification Group", PluginId.getId("org.jetbrains.android"));
   public static final NotificationGroup LOG_ONLY_GROUP =
     NotificationGroup.logOnlyGroup("Android Notification Log-Only Group", PluginId.getId("org.jetbrains.android"));
-  /** Fallback destination to show a notification balloon if the project is not opened (hence no IDE frame). */
+  /**
+   * Fallback destination to show a notification balloon if the project is not opened (hence no IDE frame).
+   */
   private static final Key<JFrame> NOTIFICATION_DESTINATION_FALLBACK_KEY = Key.create("NOTIFICATION_DESTINATION_FALLBACK");
 
   @Nullable private Notification myNotification;
@@ -150,18 +153,7 @@ public class AndroidNotification {
         if (jFrame == null) {
           return;
         }
-        Balloon balloon =
-          NotificationsManagerImpl
-            .createBalloon(jFrame.getRootPane(), notification, false, true, BalloonLayoutData.fullContent(), myProject);
-
-        Dimension jFrameSize = jFrame.getSize();
-        Dimension balloonSize = balloon.getPreferredSize();
-
-        // bottom-right corner
-        RelativePoint
-          point =
-          new RelativePoint(jFrame, new Point(jFrameSize.width - balloonSize.width / 2, jFrameSize.height - balloonSize.height / 2));
-        balloon.show(point, Balloon.Position.above);
+        showNotification(myProject, notification, jFrame);
       }
     };
     Application application = ApplicationManager.getApplication();
@@ -175,7 +167,7 @@ public class AndroidNotification {
 
   /**
    * Sets the fallback destination for notifications in a given project if the project is not opened.
-   *
+   * <p>
    * With the IntelliJ platform, a notification is typically only displayed when the project is opened. In such case, the notification is
    * rendered in the {@link com.intellij.openapi.wm.IdeFrame} with that project opened. But for some use cases, for example
    * (go/project-aplos), such IDE frame never exists. In such situation, caller can set the destination JFrame of notifications with this
@@ -183,6 +175,29 @@ public class AndroidNotification {
    */
   public static void setFallbackNotificationDestination(Project project, JFrame jFrame) {
     project.putUserData(NOTIFICATION_DESTINATION_FALLBACK_KEY, jFrame);
+    Notifications subscriber = new Notifications() {
+      @Override
+      public void notify(@NotNull Notification notification) {
+        showNotification(project, notification, jFrame);
+      }
+    };
+    ApplicationManager.getApplication().getMessageBus().connect().subscribe(Notifications.TOPIC, subscriber);
+    project.getMessageBus().connect().subscribe(Notifications.TOPIC, subscriber);
+  }
+
+  private static void showNotification(Project project, Notification notification, JFrame jFrame) {
+    Balloon balloon =
+      NotificationsManagerImpl
+        .createBalloon(jFrame.getRootPane(), notification, false, true, BalloonLayoutData.fullContent(), project);
+
+    Dimension jFrameSize = jFrame.getSize();
+    Dimension balloonSize = balloon.getPreferredSize();
+
+    // bottom-right corner
+    RelativePoint
+      point =
+      new RelativePoint(jFrame, new Point(jFrameSize.width - balloonSize.width / 2, jFrameSize.height - balloonSize.height / 2));
+    balloon.show(point, Balloon.Position.above);
   }
 
   @Nullable
