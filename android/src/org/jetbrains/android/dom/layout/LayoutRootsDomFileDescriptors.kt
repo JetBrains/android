@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom.layout
 
 import com.android.SdkConstants.VIEW_MERGE
+import com.android.SdkConstants.VIEW_TAG
 import com.intellij.openapi.module.Module
 import com.intellij.psi.xml.XmlFile
 
@@ -27,5 +28,16 @@ class MergeDomFileDescription : LayoutDomFileDescription<Merge>(Merge::class.jav
 
   companion object {
     fun hasMergeRootTag(file: XmlFile) = VIEW_MERGE == file.rootTag?.name
+  }
+}
+
+/**
+ * View tag root tag: `<view>`
+ */
+class ViewTagDomFileDescription : LayoutDomFileDescription<View>(View::class.java, VIEW_TAG) {
+  override fun checkFile(file: XmlFile, module: Module?) = hasViewRootTag(file)
+
+  companion object {
+    fun hasViewRootTag(file: XmlFile) = VIEW_TAG == file.rootTag?.name
   }
 }
