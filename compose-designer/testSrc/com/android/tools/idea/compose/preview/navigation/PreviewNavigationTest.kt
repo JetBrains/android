@@ -20,9 +20,12 @@ import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -52,9 +55,13 @@ class PreviewNavigationTest {
           assertTrue(findComponentHits(project, rootView, bounds.right * 2, 10).isEmpty())
           assertTrue(findComponentHits(project, rootView, 10, bounds.bottom * 2).isEmpty())
 
+          // Check filtering
+          assertNotNull(findNavigatableComponentHit(project, rootView, 0, 0))
+          assertNull(findNavigatableComponentHit(project, rootView, 0, 0) { false })
+
           // Click the Text("Hello 2") by clicking (0, 0)
           // The hits will be, in that other: Text > Column > MaterialTheme
-          // TODO(b/151091941): The Text hit is currently broken
+          // TODO(b/156744111): The Text hit is currently broken
           assertEquals("""
             MainActivity.kt:46
             MainActivity.kt:45
@@ -71,6 +78,30 @@ class PreviewNavigationTest {
           """.trimIndent(), findComponentHits(project, rootView, 0, bounds.bottom)
             .filter { it.fileName == "MainActivity.kt" }
             .joinToString("\n") { "${it.fileName}:${it.lineNumber}" })
+        }
+      }.join()
+  }
+
+  /**
+   * Checks the rendering of the default `@Preview` in the Compose template.
+   */
+  @Ignore("b/156744111") // Disabled until dev 12 merged
+  @Test
+  fun testInProjectNavigation() {
+    val project = projectRule.project
+
+    renderPreviewElementForResult(projectRule.androidFacet(":app"),
+                                  SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.NavigatablePreview"))
+      .thenAccept { renderResult ->
+        val rootView = renderResult!!.rootViews.single()!!
+        ReadAction.run<Throwable> {
+          val descriptor = findNavigatableComponentHit(project, rootView, 0, 0) { it.fileName == "MainActivity.kt" } as OpenFileDescriptor
+          assertEquals("MainActivity.kt", descriptor.file.name)
+          assertEquals(46, descriptor.line)
+
+          val descriptorInOtherFile = findNavigatableComponentHit(project, rootView, 0, 0) as OpenFileDescriptor
+          assertEquals("OtherPreviews.kt", descriptorInOtherFile.file.name)
+          assertEquals(31, descriptor.line)
         }
       }.join()
   }

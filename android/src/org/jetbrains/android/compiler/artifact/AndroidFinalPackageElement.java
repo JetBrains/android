@@ -21,9 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidFinalPackageElement extends PackagingElement<AndroidFinalPackageElement.AndroidFinalPackageElementState>
   implements FacetBasedPackagingElement, ModuleOutputPackagingElement {
 

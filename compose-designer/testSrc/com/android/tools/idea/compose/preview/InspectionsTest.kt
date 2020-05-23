@@ -137,6 +137,41 @@ class InspectionsTest  {
   }
 
   @Test
+  fun testNoMultipleParameterProvider() {
+    fixture.enableInspections(PreviewMultipleParameterProvidersInspection() as InspectionProfileEntry)
+
+    @Suppress("TestFunctionName", "ClassName")
+    @Language("kotlin")
+    val fileContent = """
+      import androidx.ui.tooling.preview.Preview
+      import androidx.ui.tooling.preview.PreviewParameter
+      import androidx.ui.tooling.preview.PreviewParameterProvider
+      import androidx.compose.Composable
+
+      class IntProvider: PreviewParameterProvider<Int> {
+          override val values: Sequence<String> = sequenceOf(1, 2)
+      }
+
+      @Preview
+      @Composable
+      fun PreviewWithMultipleProviders(@PreviewParameter(IntProvider::class) a: Int,
+                                       @PreviewParameter(IntProvider::class) b: Int) { // ERROR, only one PreviewParameter is supported
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    val inspections = fixture.doHighlighting(HighlightSeverity.ERROR)
+      // Filter out UNRESOLVED_REFERENCE caused by the standard library not being available.
+      // sequence and sequenceOf are not available. We can safely ignore them.
+      .filter { !it.description.contains("[UNRESOLVED_REFERENCE]") }
+      .sortedByDescending { -it.startOffset }
+      .joinToString("\n") { it.descriptionWithLineNumber() }
+
+
+    assertEquals("12: Multiple @PreviewParameter are not allowed.", inspections)
+  }
+
+  @Test
   fun testPreviewMustBeTopLevel() {
     fixture.enableInspections(PreviewMustBeTopLevelFunction() as InspectionProfileEntry)
 

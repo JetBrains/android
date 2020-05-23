@@ -19,9 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 class ImportModuleTask extends ModuleProvidingTask {
   private final Project myProject;
   private final String myModuleFilePath;

@@ -9,9 +9,6 @@ import org.jetbrains.jps.incremental.storage.StorageOwner;
 
 import java.io.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidGenSourcesCopyingStorage implements StorageOwner {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidGenSourcesCopyingStorage");
 

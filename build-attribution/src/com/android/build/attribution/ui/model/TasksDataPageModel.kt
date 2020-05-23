@@ -15,13 +15,15 @@
  */
 package com.android.build.attribution.ui.model
 
-import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.TaskUiData
+import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
+import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState.EMPTY_PLACEHOLDER
+import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState.WARNING_ICON
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import javax.swing.tree.DefaultMutableTreeNode
@@ -238,8 +240,8 @@ class TaskDetailsNodeDescriptor(
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskData.taskPath,
-      rightAlignedSuffix = taskData.executionTime.durationString(),
-      showWarnIcon = taskData.hasWarning,
+      rightAlignedSuffix = taskData.executionTime.toRightAlignedNodeDurationText(),
+      nodeIconState = if (taskData.hasWarning) WARNING_ICON else EMPTY_PLACEHOLDER,
       showChartKey = pageId.grouping == TasksDataPageModel.Grouping.UNGROUPED
     )
 }
@@ -254,7 +256,9 @@ class PluginDetailsNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = pluginData.name,
       suffix = if (pluginData.warningCount > 0) issuesCountString(pluginData.warningCount, pluginData.infoCount) else "",
-      rightAlignedSuffix = pluginData.criticalPathDuration.durationString(),
+      rightAlignedSuffix = pluginData.criticalPathDuration.toRightAlignedNodeDurationText(),
       showChartKey = true
     )
 }
+
+private fun TimeWithPercentage.toRightAlignedNodeDurationText() = "%.1fs %4.1f%%".format(timeS, percentage)

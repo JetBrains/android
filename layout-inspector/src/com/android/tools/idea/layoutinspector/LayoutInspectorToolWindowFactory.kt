@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
@@ -24,6 +25,7 @@ import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.transport.TransportService
+import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.ide.DataManager
@@ -56,6 +58,8 @@ fun lookupLayoutInspector(toolWindow: ToolWindow): LayoutInspector? =
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
  */
 class LayoutInspectorToolWindowFactory : ToolWindowFactory {
+
+  override fun isApplicable(project: Project): Boolean = enableLiveLayoutInspector
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     // Ensure the transport service is started

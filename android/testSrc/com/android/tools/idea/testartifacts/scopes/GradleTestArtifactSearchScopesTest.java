@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.CIRCULAR_MODULE_DEPS;
 import static com.android.tools.idea.testing.TestProjectPaths.SHARED_TEST_FOLDER;
@@ -257,16 +256,14 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     GradleTestArtifactSearchScopes scopes = GradleTestArtifactSearchScopes.getInstance(testUtilModule);
     scopes.resolveDependencies();
 
-    String projectFolder = getProject().getBasePath();
-    String moduleId = createUniqueModuleId(projectFolder, ":lib");
     ImmutableCollection<ModuleDependency> moduleDependencies = scopes.getMainDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, COMPILE, libModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(COMPILE, libModule));
 
     moduleDependencies = scopes.getUnitTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, COMPILE, libModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(COMPILE, libModule));
 
     moduleDependencies = scopes.getAndroidTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, TEST, libModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(TEST, libModule));
 
     // verify scope of lib
     // testImplementation project(':test-util')
@@ -277,10 +274,10 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertThat(moduleDependencies).isEmpty();
 
     moduleDependencies = scopes.getUnitTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(createUniqueModuleId(projectFolder, ":test-util"), TEST, testUtilModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(TEST, testUtilModule));
 
     moduleDependencies = scopes.getAndroidTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, COMPILE, libModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(COMPILE, libModule));
   }
 
   public void testGeneratedTestSourcesIncluded() throws Exception {

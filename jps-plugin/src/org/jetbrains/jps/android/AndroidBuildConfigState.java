@@ -10,9 +10,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidBuildConfigState implements ValidityState {
   private final String myPackage;
   private final Set<String> myLibPackages;

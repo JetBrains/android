@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.property2.inspector.FavoritesInspectorBu
 import com.android.tools.idea.uibuilder.property2.inspector.IdInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.LayoutInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.SelectedComponentBuilder
+import com.android.tools.idea.uibuilder.property2.inspector.TransformsAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 
@@ -50,6 +51,9 @@ class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePrope
     tab.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
     tab.builders.add(LayoutInspectorBuilder(model.facet.module.project, editorProvider))
     tab.builders.add(FavoritesInspectorBuilder(model, enumSupportProvider))
+    if (StudioFlags.NELE_TRANSFORM_PANEL.get()) {
+      tab.builders.add(TransformsAttributesInspectorBuilder(model, enumSupportProvider))
+    }
     tab.builders.add(CommonAttributesInspectorBuilder(model.project, editorProvider))
     tab.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
   }

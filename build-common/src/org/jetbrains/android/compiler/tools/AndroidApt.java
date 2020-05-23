@@ -41,8 +41,6 @@ import java.util.*;
 
 /**
  * AndroidApt decorator.
- *
- * @author Alexey Efimov
  */
 public final class AndroidApt {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.tools.AndroidApt");

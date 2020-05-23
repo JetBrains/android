@@ -21,9 +21,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import com.android.tools.idea.res.IdeResourcesUtil;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidProblemFileHighlightingFilter implements Condition<VirtualFile> {
   private final Project myProject;
 

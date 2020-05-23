@@ -34,6 +34,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.TfliteModelException;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
@@ -75,8 +76,10 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   private JPanel myPanel;
   private TextFieldWithBrowseButton myModelLocation;
   private ComboBox<NamedModuleTemplate> myFlavorBox;
-  private JCheckBox myAutoCheckBox;
-  private JTextArea myInfoTextArea;
+  private JCheckBox myBasicCheckBox;
+  private JTextArea myBasicTextArea;
+  private JCheckBox myGpuCheckBox;
+  private JTextArea myGpuTextArea;
   private HyperlinkLabel myLearnMoreLabel;
 
   public ChooseMlModelStep(@NotNull MlWizardModel model,
@@ -97,16 +100,28 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     myLearnMoreLabel.setHyperlinkTarget("https://developer.android.com/studio/write/mlmodelbinding");
 
     myBindings.bindTwoWay(new TextProperty(myModelLocation.getTextField()), model.sourceLocation);
-    myBindings.bindTwoWay(new SelectedProperty(myAutoCheckBox), model.autoUpdateBuildFile);
+    myBindings.bindTwoWay(new SelectedProperty(myBasicCheckBox), model.autoAddBasicSetup);
+    myBindings.bindTwoWay(new SelectedProperty(myGpuCheckBox), model.autoAddGpuSetup);
 
-    myInfoTextArea.setBackground(null);
-    myInfoTextArea.setForeground(JBColor.DARK_GRAY);
+    myBasicTextArea.setBackground(null);
+    myBasicTextArea.setForeground(JBColor.DARK_GRAY);
+    myGpuTextArea.setBackground(null);
+    myGpuTextArea.setForeground(JBColor.DARK_GRAY);
 
-    String text = getInformationText();
-    myInfoTextArea.setText(text);
-    if (text.isEmpty()) {
-      myAutoCheckBox.setVisible(false);
-      model.autoUpdateBuildFile.set(false);
+    String basicText = getBasicInformationText();
+    myBasicTextArea.setText(basicText);
+    if (basicText.isEmpty()) {
+      myBasicCheckBox.setVisible(false);
+      myBasicTextArea.setVisible(false);
+      model.autoAddBasicSetup.set(false);
+    }
+    String gpuText = getGpuInformationText();
+    myGpuTextArea.setText(gpuText);
+    if (gpuText.isEmpty()) {
+      myGpuCheckBox.setVisible(false);
+      myGpuTextArea.setVisible(false);
+    }
+    if (basicText.isEmpty() && gpuText.isEmpty()) {
       myLearnMoreLabel.setVisible(false);
     }
 
@@ -127,7 +142,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   }
 
   @NotNull
-  public String getInformationText() {
+  public String getBasicInformationText() {
     StringBuilder stringBuilder = new StringBuilder();
     Module module = getModel().getModule();
 
@@ -137,7 +152,17 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
                            "}\n\n");
     }
 
-    for (GradleCoordinate dep : MlUtils.getMissingDependencies(module)) {
+    for (GradleCoordinate dep : MlUtils.getMissingRequiredDependencies(module)) {
+      stringBuilder.append(dep).append("\n");
+    }
+
+    return stringBuilder.toString();
+  }
+
+  @NotNull
+  public String getGpuInformationText() {
+    StringBuilder stringBuilder = new StringBuilder();
+    for (GradleCoordinate dep : MlUtils.getMissingTfliteGpuDependencies(getModel().getModule())) {
       stringBuilder.append(dep).append("\n");
     }
 
@@ -158,7 +183,8 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   }
 
   @NotNull
-  private Validator.Result checkPath(@NotNull File file) {
+  @VisibleForTesting
+  Validator.Result checkPath(@NotNull File file) {
     if (!file.isFile()) {
       return new Validator.Result(Validator.Severity.ERROR, "Please select a TensorFlow Lite model file to import.");
     }
@@ -230,7 +256,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   }
 
   @NotNull
-  Validator.Result checkFlavor(@NotNull NamedModuleTemplate flavor) {
+  private static Validator.Result checkFlavor(@NotNull NamedModuleTemplate flavor) {
     if (flavor.getPaths().getMlModelsDirectories().isEmpty()) {
       new Validator.Result(Validator.Severity.ERROR, "No valid ml directory in checkFlavor.");
     }

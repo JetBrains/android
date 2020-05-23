@@ -10,9 +10,6 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
 
 import java.io.IOException;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidExcludedJavaSourceRootProvider extends ExcludedJavaSourceRootProvider {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidExcludedJavaSourceRootProvider");
 

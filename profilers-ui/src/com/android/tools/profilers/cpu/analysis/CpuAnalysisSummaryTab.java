@@ -40,7 +40,7 @@ public class CpuAnalysisSummaryTab extends CpuAnalysisTab<CpuAnalysisSummaryTabM
 
   private void initComponents() {
     setLayout(new BorderLayout());
-    JScrollPane scrollPane = new JBScrollPane(myViewBinder.build(getProfilersView(), getModel()).getComponent(),
+    JScrollPane scrollPane = new JBScrollPane(myViewBinder.build(getProfilersView(), getModel()),
                                               ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                               ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     add(scrollPane);

@@ -15,47 +15,43 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.idea.actions.DesignerActions
 import com.android.tools.idea.actions.LAYOUT_VALIDATOR_KEY
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.project.DumbAwareAction
-import icons.StudioIcons
+import icons.StudioIcons.LayoutEditor.Toolbar.ACCESSIBILITY
 
 /**
  * Action to toggle layout validation in [NlDesignSurface].
  * For now, all icons are temporary.
  */
 class LayoutValidatorAction: DumbAwareAction(
-  "Layout Validation On/Off", "Run the layout validation",
-  StudioIcons.Shell.Toolbar.STOP) {
+  "Run Layout Validation", "Run the layout validation",
+  ACCESSIBILITY) {
 
-  private var enableLayoutValidation = false
+  companion object {
+    @JvmStatic
+    fun getInstance(): LayoutValidatorAction {
+      return ActionManager.getInstance().getAction(
+        DesignerActions.ACTION_RUN_LAYOUT_VALIDATOR) as LayoutValidatorAction
+    }
+  }
 
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR.get()
-    updateIcon(e)
-  }
-
-  private fun updateIcon(e: AnActionEvent) {
-    e.presentation.icon =
-      if (enableLayoutValidation) StudioIcons.Shell.Toolbar.RUN
-      else StudioIcons.Shell.Toolbar.STOP
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val editor = e.getData(CommonDataKeys.EDITOR)
-    enableLayoutValidation = !enableLayoutValidation
-    updateIcon(e)
-
-    e.getData(LAYOUT_VALIDATOR_KEY)?.setLayoutValidationEnabled(enableLayoutValidation)
+    val controller = e.getData(LAYOUT_VALIDATOR_KEY) ?: return
+    controller.runLayoutValidation()
   }
 }
 
 /**
- * Controller for Layout Validator. It can enable or disable layout validation.
+ * Controller for Layout Validator. It can run layout validation.
  */
 interface LayoutValidatorControl {
-  fun setLayoutValidationEnabled(enableLayoutValidation: Boolean)
+  fun runLayoutValidation()
 }

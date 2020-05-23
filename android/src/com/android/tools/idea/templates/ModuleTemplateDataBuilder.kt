@@ -36,7 +36,6 @@ import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.BaseFeature
-import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -176,7 +175,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
    */
   fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project) {
     projectTemplateDataBuilder.setBuildVersion(buildVersion, project)
-    themesData = ThemesData(appName = capitalizeAppName(projectTemplateDataBuilder.applicationName)) // New modules always have a theme (unless its a library, but it will have no activity)
+    themesData = ThemesData(appName = getAppNameForTheme(project.name)) // New modules always have a theme (unless its a library, but it will have no activity)
 
     apis = ApiTemplateData(
       buildApi = ApiVersion(buildVersion.buildApiLevel, buildVersion.buildApiLevelStr),
@@ -215,11 +214,11 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     ApplicationManager.getApplication().runReadAction {
       val hasActionBar = ThemeHelper.hasActionBar(configuration, themeName)
       themesData = ThemesData(
-        capitalizeAppName(projectTemplateDataBuilder.applicationName),
-        ThemeData(themeName, true),
-        getDerivedTheme(themeName, noActionBar, hasActionBar == false),
-        getDerivedTheme(themeName, appBarOverlay, false),
-        getDerivedTheme(themeName, popupOverlay, false)
+        appName = getAppNameForTheme(module.project.name),
+        main = ThemeData(themeName, true),
+        noActionBar = getDerivedTheme(themeName, noActionBar, hasActionBar == false),
+        appBarOverlay = getDerivedTheme(themeName, appBarOverlay, false),
+        popupOverlay = getDerivedTheme(themeName, popupOverlay, false)
       )
     }
   }
@@ -233,13 +232,13 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     unitTestDir ?: srcDir!!.resolve(FD_UNIT_TEST),
     aidlDir!!,
     rootDir!!,
-    isNew!!,
+    isNew,
     hasApplicationTheme,
     name!!,
     isLibrary!!,
     packageName!!,
     formFactor!!,
-    themesData ?: ThemesData(appName = capitalizeAppName(projectTemplateDataBuilder.applicationName)),
+    themesData ?: ThemesData(appName = getAppNameForTheme(projectTemplateDataBuilder.applicationName!!)),
     baseFeature,
     apis!!
   )
@@ -259,7 +258,6 @@ fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuild
     androidXSupport = true
     setProjectDefaults(project)
     language = Language.Java
-    bytecodeLevel = BytecodeLevel.L7
     topOut = project.guessProjectDir()!!.toIoFile()
     debugKeyStoreSha1 = KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore())
     applicationPackage = ""
@@ -273,7 +271,7 @@ fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuild
     setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
     isLibrary = false
     formFactor = FormFactor.Mobile
-    themesData = ThemesData(appName = capitalizeAppName(projectTemplateDataBuilder.applicationName))
+    themesData = ThemesData(appName = getAppNameForTheme(project.name))
     apis = ApiTemplateData(
       buildApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),
       targetApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),

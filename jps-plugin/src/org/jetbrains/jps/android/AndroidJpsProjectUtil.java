@@ -18,8 +18,6 @@ import java.util.Collection;
 /**
  * This class contains methods moved from {@link AndroidJpsUtil} to ensure that they can be compiled and run under Java 6. This is a
  * temporary solution to support building non-Android projects using Java 6.
- *
- * @author nik
  */
 public class AndroidJpsProjectUtil {
   @NonNls public static final String ANDROID_STORAGE_DIR = "android";

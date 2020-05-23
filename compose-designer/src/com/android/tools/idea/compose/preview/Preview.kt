@@ -38,13 +38,15 @@ import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManage
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
-import com.android.tools.idea.compose.preview.util.COMPOSE_VIEW_ADAPTER
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
-import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.PreviewElementTemplateInstanceProvider
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.isComposeErrorResult
+import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.modelAffinity
 import com.android.tools.idea.compose.preview.util.previewElementComparatorBySourcePosition
+import com.android.tools.idea.compose.preview.util.requestComposeRender
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -88,6 +90,7 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -199,13 +202,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Filter to be applied for the preview to display a single [PreviewElement]. Used in interactive mode to focus on a
    * single element.
    */
-  private val singleElementFilteredProvider = SinglePreviewElementFilteredPreviewProvider(memoizedElementsProvider)
+  private val singleElementFilteredProvider = SinglePreviewElementInstanceFilteredPreviewProvider(memoizedElementsProvider)
 
   /**
    * Filter to be applied for the group filtering. This allows multiple [PreviewElement]s belonging to the same group
    */
   private val groupNameFilteredProvider = GroupNameFilteredPreviewProvider(singleElementFilteredProvider)
-  private val previewProvider = groupNameFilteredProvider as PreviewElementProvider
+  private val previewProviderWithFiltersApplied: PreviewElementProvider = groupNameFilteredProvider
+  private val instantiatedElementProvider = PreviewElementTemplateInstanceProvider(previewProvider)
 
   /**
    * A [UniqueTaskCoroutineLauncher] used to run the image rendering. This ensures that only one image rendering is running at time.
@@ -216,7 +220,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (oldValue != newValue) {
       LOG.debug("New group preview element selection: $newValue")
       this.groupNameFilteredProvider.groupName = newValue.name
-      refresh()
+      // Force refresh to ensure the new preview elements are picked up
+      forceRefresh()
     }
   }
   override val availableGroups: Set<PreviewGroup> get() = groupNameFilteredProvider.availableGroups.map {
@@ -233,16 +238,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val isInteractive = AtomicBoolean(false)
 
-  override var interactivePreviewElementFqn: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
+  override var interactivePreviewElementInstanceId: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
       LOG.debug("New single preview element focus: $newValue")
       // The order matters because we first want to change the composable being previewed and then start interactive loop when enabled
       // but we want to stop the loop first and then change the composable when disabled
       isInteractive.set(newValue != null)
       if (isInteractive.get()) { // Enable interactive
-        this.singleElementFilteredProvider.composableMethodFqn = newValue
+        this.singleElementFilteredProvider.instanceId = newValue
         sceneComponentProvider.enabled = false
-        refresh().invokeOnCompletion {
+        forceRefresh().invokeOnCompletion {
           ticker.start()
           interactionHandler?.let { it.selected = InteractionMode.INTERACTIVE }
 
@@ -258,9 +263,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         surface.disableMouseClickDisplay()
         interactionHandler?.let { it.selected = InteractionMode.DEFAULT }
         ticker.stop()
-        this.singleElementFilteredProvider.composableMethodFqn = null
+        this.singleElementFilteredProvider.instanceId = null
         sceneComponentProvider.enabled = true
-        refresh()
+        this.singleElementFilteredProvider.instanceId = null
+        forceRefresh()
       }
     }
   }
@@ -326,7 +332,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * we do not have enough information about errors and the rendering to show the preview. Once it has rendered,
    * even with errors, we can display additional information about the state of the preview.
    */
-  private var hasRenderedAtLeastOnce = false
+  private val hasRenderedAtLeastOnce = AtomicBoolean(false)
 
   /**
    * Callback called after refresh has happened
@@ -366,9 +372,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   private val ticker = ControllableTicker({
-                                            surface.models.map {
-                                              surface.getSceneManager(it)
-                                            }.filterIsInstance<LayoutlibSceneManager>().forEach {
+                                            surface.layoutlibSceneManagers.forEach {
                                               it.executeCallbacks().thenRun(
                                                 Runnable { it.requestRender() })
                                             }
@@ -430,14 +434,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var isAutoBuildEnabled: Boolean = COMPOSE_PREVIEW_AUTO_BUILD.get()
     get() = COMPOSE_PREVIEW_AUTO_BUILD.get() && field
 
-  private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce || surface.models.asSequence()
-    .mapNotNull { surface.getSceneManager(it) }
-    .filterIsInstance<LayoutlibSceneManager>()
-    .mapNotNull { it.renderResult?.logger?.brokenClasses?.values }
-    .flatten()
-    .any {
-      it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
-    }
+  private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce.get() || surface.layoutlibSceneManagers
+    .any { it.renderResult.isComposeErrorResult() }
 
   private fun hasSyntaxErrors(): Boolean = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
 
@@ -467,11 +465,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   /**
    * Returns true if the surface has at least one correctly rendered preview.
    */
-  private fun hasAtLeastOneValidPreview() = surface.models.asSequence()
-    .mapNotNull { surface.getSceneManager(it) }
-    .filterIsInstance<LayoutlibSceneManager>()
+  private fun hasAtLeastOneValidPreview() = surface.layoutlibSceneManagers
     .mapNotNull { it.renderResult }
-    .any { it.renderResult.isSuccess && it.logger.brokenClasses.values.isEmpty() }
+    .any { !it.isComposeErrorResult() }
 
   /**
    * Hides the preview content and shows an error message on the surface.
@@ -516,19 +512,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   /**
-   * Utility method that requests a given [LayoutlibSceneManager] to render. It applies logic that specific to compose to render components
-   * that do not simply render in a first pass.
-   */
-  private fun LayoutlibSceneManager.requestComposeRender(): CompletableFuture<Void> = if (StudioFlags.COMPOSE_PREVIEW_DOUBLE_RENDER.get()) {
-    requestRender()
-      .thenCompose { executeCallbacks() }
-      .thenCompose { requestRender() }
-  }
-  else {
-    requestRender()
-  }
-
-  /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering.
    */
@@ -553,16 +536,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val existingModels = surface.models.toMutableList()
 
     // Now we generate all the models (or reuse) for the PreviewElements.
-    val models = filePreviewElements
-      .flatMap {
-        if (it is ParametrizedPreviewElementTemplate) {
-          it.instances()
-        }
-        else {
-          sequenceOf(it)
-        }
-      }
-      .filterIsInstance<PreviewElementInstance>()
+    val models = instantiatedElementProvider
+      .previewElements
       .map {
         val xmlOutput = it.toPreviewXml()
           // Whether to paint the debug boundaries or not
@@ -642,6 +617,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         .map { it.requestComposeRender() }
         .toTypedArray())
         .await()
+      hasRenderedAtLeastOnce.set(true)
     }
     else {
       showModalErrorMessage(message("panel.no.previews.defined"))
@@ -651,9 +627,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       LOG.debug("Render completed in ${stopwatch?.duration?.toMillis()}ms")
 
       // Log any rendering errors
-      surface.models.asSequence()
-        .mapNotNull { surface.getSceneManager(it) }
-        .filterIsInstance<LayoutlibSceneManager>()
+      surface.layoutlibSceneManagers
         .forEach {
           val modelName = it.model.modelDisplayName
           it.renderResult?.let { result ->
@@ -674,7 +648,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         .sortedWith(previewElementComparatorBySourcePosition)
         .toList()
     }
-    hasRenderedAtLeastOnce = true
 
     withContext(uiThread) {
       surface.zoomToFit()
@@ -706,7 +679,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       startRenderingUI()
       val filePreviewElements = withContext(workerThread) {
-        previewProvider.previewElements
+        memoizedElementsProvider.previewElements
       }
 
       if (filePreviewElements.toList() == previewElements) {
@@ -741,9 +714,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       stopRenderingUI()
     }
 
-  private fun forceRefresh() {
+  private fun forceRefresh(): Job {
     previewElements = emptyList() // This will just force a refresh
-    refresh()
+    return refresh()
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {

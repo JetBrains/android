@@ -42,9 +42,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author yole
- */
 public class ConstantFieldConverter extends Converter<String> implements CustomReferenceConverter<String> {
   @Override
   public String fromString(@Nullable @NonNls String s, ConvertContext context) {

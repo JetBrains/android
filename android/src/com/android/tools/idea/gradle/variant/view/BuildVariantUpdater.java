@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -402,7 +403,7 @@ public class BuildVariantUpdater {
     // TODO: if feature variant is exposed in the model, change this hard coded imposed 1:1 variant between base and feature
     for (String gradlePath : androidModel.getAndroidProject().getDynamicFeatures()) {
       if (isNotEmpty(gradlePath)) {
-        Module dependencyModule = ProjectStructure.getInstance(project).getModuleFinder().findModuleByGradlePath(gradlePath);
+        Module dependencyModule = GradleUtil.findModuleByGradlePath(project, gradlePath);
         if (dependencyModule != null) {
           AndroidModuleModel depModuleModel = AndroidModuleModel.get(dependencyModule);
           String variantToSelect = androidModel.getSelectedVariant().getName();

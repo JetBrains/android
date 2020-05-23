@@ -182,17 +182,7 @@ fun createAndShowResourcePickerPopup(
     popupDialog::close,
     disposable
   )
-  val popupContentPanel = JPanel().apply {
-    layout = VerticalFlowLayout(0,0)
-    isOpaque = false
-    add(JLabel("Choose a resource", SwingConstants.LEADING).apply {
-      border = JBUI.Borders.empty(8)
-      font = font.deriveFont(JBUI.scaleFontSize(10f))
-      isOpaque = false
-    })
-    add(resourcePicker)
-  }
-  popupDialog.show(popupContentPanel, null, locationToShow ?: MouseInfo.getPointerInfo().location)
+  popupDialog.show(resourcePicker, null, locationToShow ?: MouseInfo.getPointerInfo().location)
 }
 
 private fun restoreFocus(restoreFocusTo: Component?) {

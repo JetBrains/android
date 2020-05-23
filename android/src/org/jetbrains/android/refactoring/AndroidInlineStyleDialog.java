@@ -10,9 +10,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidInlineStyleDialog extends InlineOptionsDialog {
   private final String myStyleName;
   private final boolean myInlineThisByDefault;

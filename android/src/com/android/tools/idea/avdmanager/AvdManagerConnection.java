@@ -438,21 +438,22 @@ public class AvdManagerConnection {
   }
 
   @NotNull
-  private ListenableFuture<IDevice> continueToStartAvd(@Nullable Project project, @NotNull AvdInfo info, @NotNull List<String> parameters) {
+  private ListenableFuture<IDevice> continueToStartAvd(@Nullable Project project, @NotNull AvdInfo avd, @NotNull List<String> parameters) {
     final File emulatorBinary = getEmulatorBinary();
     if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!");
       return Futures.immediateFailedFuture(new RuntimeException("No emulator binary found"));
     }
 
-    String avdName = info.getName();
+    avd = reloadAvd(avd); // Reload the AVD in case it was modified externally.
+    String avdName = avd.getName();
 
     // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux and
     // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
     // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
     // perform the same action here. If it is not stale, then we should show this error and if possible, bring that window to the front.
-    if (myAvdManager.isAvdRunning(info, SDK_LOG)) {
-      myAvdManager.logRunningAvdInfo(info, SDK_LOG);
+    if (myAvdManager.isAvdRunning(avd, SDK_LOG)) {
+      myAvdManager.logRunningAvdInfo(avd, SDK_LOG);
       String baseFolder;
       try {
         baseFolder = myAvdManager.getBaseAvdFolder().getAbsolutePath();
@@ -469,8 +470,8 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
-    GeneralCommandLine commandLine = newEmulatorCommand(project, emulatorBinary, info, parameters);
-    EmulatorRunner runner = new EmulatorRunner(commandLine, info);
+    GeneralCommandLine commandLine = newEmulatorCommand(project, emulatorBinary, avd, parameters);
+    EmulatorRunner runner = new EmulatorRunner(commandLine, avd);
     addListeners(runner);
 
     final ProcessHandler processHandler;
@@ -515,9 +516,9 @@ public class AvdManagerConnection {
 
     // Send notification that the device has been launched.
     MessageBus messageBus = project != null ? project.getMessageBus() : ApplicationManager.getApplication().getMessageBus();
-    messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(info, commandLine, project);
+    messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avd, commandLine, project);
 
-    return EmulatorConnectionListener.getDeviceForEmulator(project, info.getName(), processHandler, 5, TimeUnit.MINUTES);
+    return EmulatorConnectionListener.getDeviceForEmulator(project, avd.getName(), processHandler, 5, TimeUnit.MINUTES);
   }
 
   @NotNull
@@ -969,7 +970,20 @@ public class AvdManagerConnection {
     }
   }
 
-  public AvdInfo reloadAvd(@NotNull AvdInfo avdInfo) throws AndroidLocation.AndroidLocationException {
+  @Nullable
+  public AvdInfo reloadAvd(@NotNull String avdId) {
+    if (initIfNecessary()) {
+      assert myAvdManager != null;
+      AvdInfo avd = myAvdManager.getAvd(avdId, false);
+      if (avd != null) {
+        return reloadAvd(avd);
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  public AvdInfo reloadAvd(@NotNull AvdInfo avdInfo) {
     return myAvdManager.reloadAvd(avdInfo, SDK_LOG);
   }
 

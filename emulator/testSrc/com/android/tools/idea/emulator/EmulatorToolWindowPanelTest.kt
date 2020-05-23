@@ -73,7 +73,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.emulatorView).isNull()
 
     panel.createContent(false)
-    assertThat(panel.emulatorView).isNotNull()
+    val emulatorView = panel.emulatorView ?: throw AssertionError()
 
     // Check appearance.
     panel.zoomToolbarIsVisible = true
@@ -85,11 +85,11 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 253 height: 521")
     assertAppearance(ui, "image1")
 
-    panel.showLongRunningOperationIndicator("Just a sec...")
+    emulatorView.showLongRunningOperationIndicator("Just a sec...")
     ui.layoutAndDispatchEvents()
     assertAppearance(ui, "image2")
 
-    panel.hideLongRunningOperationIndicator()
+    emulatorView.hideLongRunningOperationIndicator()
     ui.layoutAndDispatchEvents()
     assertAppearance(ui, "image1")
     assertThat(call.completion.isCancelled).isFalse()

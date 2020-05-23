@@ -48,6 +48,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionUtil;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
+import com.android.tools.idea.gradle.project.common.AndroidSupportVersionUtilKt;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -55,6 +56,7 @@ import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.application.Application;
@@ -77,7 +79,7 @@ import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.ui.AppIcon;
-import com.intellij.ui.content.ContentManagerAdapter;
+import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import java.io.File;
@@ -231,6 +233,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
       BuildAttributionManager buildAttributionManager = null;
       boolean enableBuildAttribution = BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject);
+      File attributionFileDir = null;
 
       try {
         AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
@@ -242,8 +245,11 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         }
 
         commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
-        File attributionFileDir = BuildAttributionUtil.getAgpAttributionFileDir(myRequest.getBuildFilePath());
+
+        AndroidSupportVersionUtilKt.addAndroidSupportVersionArg(commandLineArguments);
+
         if (enableBuildAttribution) {
+          attributionFileDir = Files.createTempDir();
           commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
                                                          attributionFileDir.getAbsolutePath()));
         }
@@ -561,7 +567,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     }
   }
 
-  private class CloseListener extends ContentManagerAdapter implements VetoableProjectManagerListener {
+  private class CloseListener implements ContentManagerListener, VetoableProjectManagerListener {
     private boolean myIsApplicationExitingOrProjectClosing;
     private boolean myUserAcceptedCancel;
 

@@ -26,9 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
   private final PsiElement myStyleElement;
   private final String myStyleName;

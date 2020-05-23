@@ -19,16 +19,15 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,13 +65,6 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   }
 
   private void initTable() {
-    myTableModel.addTableModelListener(event -> {
-      if (event.getType() == TableModelEvent.UPDATE && event.getColumn() == ModifyDeviceSetDialogTableModel.SELECTED_MODEL_COLUMN_INDEX) {
-        assert myTable != null;
-        getOKAction().setEnabled(IntStream.range(0, myTable.getRowCount()).anyMatch(myTable::isSelected));
-      }
-    });
-
     myTable = new ModifyDeviceSetDialogTable();
 
     myTable.setModel(myTableModel);
@@ -85,7 +77,9 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
     JComponent panel = new JPanel();
     GroupLayout layout = new GroupLayout(panel);
     Component label = new JLabel("Available devices");
+
     Component scrollPane = new JBScrollPane(myTable);
+    scrollPane.setPreferredSize(JBUI.size(556, 270));
 
     Group horizontalGroup = layout.createParallelGroup()
       .addComponent(label)
@@ -104,9 +98,8 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   }
 
   @Override
-  protected void createDefaultActions() {
-    super.createDefaultActions();
-    myOKAction.setEnabled(false);
+  protected @NotNull String getDimensionServiceKey() {
+    return "com.android.tools.idea.run.deployment.ModifyDeviceSetDialog";
   }
 
   @NotNull

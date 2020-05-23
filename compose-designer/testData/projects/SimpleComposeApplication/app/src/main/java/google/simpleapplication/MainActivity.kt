@@ -51,3 +51,9 @@ fun TwoElementsPreview() {
         }
     }
 }
+
+@Preview
+@Composable
+fun NavigatablePreview() {
+  PreviewInOtherFile()
+}

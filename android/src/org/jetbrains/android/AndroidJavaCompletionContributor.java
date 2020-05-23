@@ -26,9 +26,6 @@ import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidJavaCompletionContributor extends CompletionContributor {
   private static final String[] EXCLUDED_PACKAGES = new String[]{"javax.swing", "javafx"};
 

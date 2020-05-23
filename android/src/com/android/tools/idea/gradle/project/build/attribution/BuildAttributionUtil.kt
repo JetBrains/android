@@ -20,10 +20,7 @@ package com.android.tools.idea.gradle.project.build.attribution
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.ProjectStructure
-import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.utils.FileUtils
 import com.intellij.openapi.project.Project
-import java.io.File
 
 private val minimumSupportedAgpVersion = GradleVersion.tryParseAndroidGradlePluginVersion("4.0.0-beta05")!!
 
@@ -37,9 +34,5 @@ fun isAgpVersionHigherOrEqualToMinimal(project: Project): Boolean {
 }
 
 private fun GradleVersion.higherOrEqualToMinimal() = compareTo(minimumSupportedAgpVersion) >= 0
-
-fun getAgpAttributionFileDir(buildDir: File): File {
-  return FileUtils.join(buildDir, GradleUtil.BUILD_DIR_DEFAULT_NAME)
-}
 
 fun buildOutputLine(): String = BuildAttributionOutputLinkFilter.INSIGHTS_AVAILABLE_LINE

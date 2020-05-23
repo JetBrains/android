@@ -16,7 +16,11 @@
 package com.android.tools.profilers.cpu.analysis;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadTrackModel;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -28,6 +32,26 @@ public class CpuThreadAnalysisSummaryTabModel extends CpuAnalysisSummaryTabModel
   public CpuThreadAnalysisSummaryTabModel(@NotNull Range captureRange, @NotNull Range selectionRange) {
     super(captureRange);
     mySelectionRange = selectionRange;
+  }
+
+  /**
+   * @return up to k capture nodes in this thread that intersects with the selection range. Returns an empty list if the model contains more
+   * than 1 threads.
+   */
+  @NotNull
+  public List<CaptureNode> getTopNodesInSelectionRange(int k) {
+    // Only show selected nodes when 1 thread is selected.
+    if (getDataSeries().size() != 1) {
+      return new ArrayList<>();
+    }
+    CaptureNode rootNode = getDataSeries().get(0).getCallChartModel().getNode();
+    if (rootNode != null) {
+      return rootNode.getDescendantsStream()
+        .filter(node -> node.getDepth() > 0 && mySelectionRange.intersectsWith(node.getStartGlobal(), node.getEndGlobal()))
+        .limit(k)
+        .collect(Collectors.toList());
+    }
+    return new ArrayList<>();
   }
 
   @NotNull

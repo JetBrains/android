@@ -18,15 +18,15 @@ package com.android.tools.idea.emulator.actions
 import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.DummyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
-import com.android.tools.idea.emulator.invokeLater
+import com.android.tools.idea.emulator.invokeLaterInAnyModalityState
 import com.android.tools.idea.emulator.logger
 import com.android.tools.idea.protobuf.ByteString
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -56,7 +56,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
     override fun onNext(response: Image) {
       val timestamp = Date()
-      ApplicationManager.getApplication().executeOnPooledThread {
+      executeOnPooledThread {
         createAndOpenScreenshotFile(response.image, timestamp, project)
       }
     }
@@ -83,7 +83,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
           val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file.toFile()) ?: return
 
-          invokeLater {
+          invokeLaterInAnyModalityState {
             FileEditorManager.getInstance(project).openFile(virtualFile, true)
           }
           return

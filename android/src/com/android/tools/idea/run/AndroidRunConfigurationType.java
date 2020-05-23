@@ -9,7 +9,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.NotNullLazyValue;
 import icons.StudioIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,7 +17,7 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
     super("AndroidRunConfigurationType", AndroidBundle.message("android.run.configuration.type.name"), AndroidBundle.message("android.run.configuration.type.description"),
           NotNullLazyValue.createValue(() -> StudioIcons.Shell.Filetree.ANDROID_PROJECT));
 
-    addFactory(new AndroidRunConfigurationFactory(this));
+    addFactory(new AndroidRunConfigurationFactory());
   }
 
   @Override
@@ -26,7 +25,11 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
     return "reference.dialogs.rundebug.AndroidRunConfigurationType";
   }
 
-  public static class AndroidRunConfigurationFactory extends ConfigurationFactory {
+  public class AndroidRunConfigurationFactory extends AndroidRunConfigurationFactoryBase {
+    public AndroidRunConfigurationFactory() {
+      super(AndroidRunConfigurationType.this);
+    }
+
     @Override
     @NotNull
     public String getId() {
@@ -34,33 +37,10 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
       return "Android App";
     }
 
-    protected AndroidRunConfigurationFactory(@NotNull ConfigurationType type) {
-      super(type);
-    }
-
     @NotNull
     @Override
     public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
       return new AndroidRunConfiguration(project, this);
-    }
-
-    @NotNull
-    @Override
-    public RunConfigurationSingletonPolicy getSingletonPolicy() {
-      return RunConfigurationSingletonPolicy.MULTIPLE_INSTANCE;
-    }
-
-    @Override
-    public boolean isApplicable(@NotNull Project project) {
-      return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
-    }
-
-    @Override
-    public void configureBeforeRunTaskDefaults(Key<? extends BeforeRunTask> providerID, BeforeRunTask task) {
-      // Disable the default Make compile step for this run configuration type
-      if (CompileStepBeforeRun.ID.equals(providerID)) {
-        task.setEnabled(false);
-      }
     }
   }
 

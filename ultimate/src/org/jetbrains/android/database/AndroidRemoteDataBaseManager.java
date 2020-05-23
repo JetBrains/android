@@ -14,9 +14,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @State(name = "AndroidRemoteDataBaseManager", storages = @Storage("androidRemoteDatabases.xml"))
 public class AndroidRemoteDataBaseManager implements PersistentStateComponent<AndroidRemoteDataBaseManager.State> {
   private State myState = new State();

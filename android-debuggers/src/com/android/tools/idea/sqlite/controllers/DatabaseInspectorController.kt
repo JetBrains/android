@@ -23,6 +23,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
+import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController.EvaluationParams
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
@@ -116,6 +117,7 @@ class DatabaseInspectorControllerImpl(
 
       val diffOperations = performDiff(currentState, newState)
 
+      closeTabsBelongingToClosedDatabases(currentOpenDatabaseIds, openDatabaseIds)
       view.updateDatabases(diffOperations)
 
       currentOpenDatabaseIds = openDatabaseIds
@@ -124,6 +126,15 @@ class DatabaseInspectorControllerImpl(
 
     override fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
       updateExistingDatabaseSchemaView(databaseId, oldSchema, newSchema)
+    }
+
+    private fun closeTabsBelongingToClosedDatabases(currentlyOpenDbs: List<SqliteDatabaseId>, newOpenDbs: List<SqliteDatabaseId>) {
+      val closedDbs = currentlyOpenDbs.filter { !newOpenDbs.contains(it) }
+      val tabsToClose = resultSetControllers.keys
+        .filterIsInstance<TabId.TableTab>()
+        .filter { closedDbs.contains(it.databaseId) }
+
+      tabsToClose.forEach { closeTab(it) }
     }
 
     private fun performDiff(currentState: List<ViewDatabase>, newState: List<ViewDatabase>): List<DatabaseDiffOperation> {
@@ -170,13 +181,10 @@ class DatabaseInspectorControllerImpl(
   }
 
   override suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) = withContext(uiThread) {
-    openNewEvaluatorTab().evaluateSqlStatement(databaseId, sqliteStatement).await()
+    openNewEvaluatorTab().showAndExecuteSqlStatement(databaseId, sqliteStatement).await()
   }
 
   override suspend fun closeDatabase(databaseId: SqliteDatabaseId) = withContext(uiThread) {
-    // TODO(b/143873070) when a database is closed with the close button the corresponding file is not deleted.
-    if (!model.getOpenDatabaseIds().contains(databaseId)) return@withContext
-
     val openDatabases = model.getOpenDatabaseIds()
     val tabsToClose = if (openDatabases.size == 1 && openDatabases.first() == databaseId) {
       // close all tabs
@@ -207,14 +215,29 @@ class DatabaseInspectorControllerImpl(
   override fun restoreSavedState(previousState: SavedUiState?) {
     val savedState = previousState as? SavedUiStateImpl
     tabsToRestore.clear()
-    savedState?.let { tabsToRestore.addAll(savedState.tabs) }
+    savedState?.let {
+      val (tabsNotRequiringDb, tabsRequiringDb) = savedState.tabs.partition { it is TabDescription.AdHocQuery && it.databasePath == null }
+
+      // tabs associated with a database will be opened when the database is opened
+      tabsToRestore.addAll(tabsRequiringDb)
+
+      // tabs not associated with a db can be opened immediately
+      tabsNotRequiringDb
+        .map { (it as TabDescription.AdHocQuery).query }
+        .forEach {
+          openNewEvaluatorTab(EvaluationParams(null, it))
+        }
+    }
   }
 
   override fun saveState(): SavedUiState {
     val tabs = resultSetControllers.mapNotNull {
       when (val tabId = it.key) {
-        is TabId.TableTab -> TabDescription.TableTab(tabId.databaseId.path, tabId.tableName)
-        is TabId.AdHocQueryTab -> null
+        is TabId.TableTab -> TabDescription.Table(tabId.databaseId.path, tabId.tableName)
+        is TabId.AdHocQueryTab -> {
+          val params = (it.value as SqliteEvaluatorController).saveEvaluationParams()
+          TabDescription.AdHocQuery(params.databaseId?.path, params.statementText)
+        }
       }
     }
     return SavedUiStateImpl(tabs)
@@ -249,10 +272,6 @@ class DatabaseInspectorControllerImpl(
       schema
     }
     catch (e: LiveInspectorException) {
-      ensureActive()
-      withContext(uiThread) {
-        view.reportError("Error reading Sqlite database", e)
-      }
       null
     }
     catch (e: Exception) {
@@ -272,9 +291,15 @@ class DatabaseInspectorControllerImpl(
   private fun restoreTabs(databaseId: SqliteDatabaseId, schema: SqliteSchema) {
     tabsToRestore.filter { it.databasePath == databaseId.path }
       .also { tabsToRestore.removeAll(it) }
-      .filterIsInstance<TabDescription.TableTab>()
-      .mapNotNull { tabDescription -> schema.tables.find { tabDescription.tableName == it.name } }
-      .forEach { openTableTab(databaseId, it) }
+      .forEach { tabDescription ->
+        when (tabDescription) {
+          is TabDescription.Table ->
+            schema.tables.find { tabDescription.tableName == it.name }?.let { openTableTab(databaseId, it) }
+          is TabDescription.AdHocQuery -> {
+            openNewEvaluatorTab(EvaluationParams(databaseId, tabDescription.query))
+          }
+        }
+      }
   }
 
   private fun closeTab(tabId: TabId) {
@@ -343,7 +368,7 @@ class DatabaseInspectorControllerImpl(
     }
   }
 
-  private fun openNewEvaluatorTab(): SqliteEvaluatorController {
+  private fun openNewEvaluatorTab(evaluationParams: EvaluationParams? = null): SqliteEvaluatorController {
     evaluatorTabCount += 1
 
     val tabId = TabId.AdHocQueryTab(evaluatorTabCount)
@@ -365,7 +390,7 @@ class DatabaseInspectorControllerImpl(
       taskExecutor
     )
     Disposer.register(project, sqliteEvaluatorController)
-    sqliteEvaluatorController.setUp()
+    sqliteEvaluatorController.setUp(evaluationParams)
 
     sqliteEvaluatorController.addListener(SqliteEvaluatorControllerListenerImpl())
 
@@ -455,8 +480,11 @@ class DatabaseInspectorControllerImpl(
   private class SavedUiStateImpl(val tabs: List<TabDescription>) : SavedUiState
 
   @UiThread
-  private sealed class TabDescription(val databasePath: String) {
-    class TableTab(path: String, val tableName: String) : TabDescription(path)
+  private sealed class TabDescription {
+    abstract val databasePath: String?
+
+    class Table(override val databasePath: String, val tableName: String) : TabDescription()
+    class AdHocQuery(override val databasePath: String?, val query: String) : TabDescription()
   }
 }
 

@@ -69,10 +69,10 @@ class TreeStructureTest {
     val mockUiData = MockUiData(tasksList = listOf(task1, task2, task3))
     val tasksRoot = CriticalPathTasksRoot(mockUiData.criticalPathTasks, mockRoot)
     val expectedStructure = """
-      Tasks determining this build's duration|1 warning|15.000 s|CRITICAL_PATH_TASKS_ROOT
-        :app:compile|null|2.000 s|CRITICAL_PATH_TASK_PAGE
-        :app:resources|null|1.000 s|CRITICAL_PATH_TASK_PAGE
-        :lib:compile|null|1.000 s|CRITICAL_PATH_TASK_PAGE
+      Tasks determining this build's duration|1 warning|15.0s|CRITICAL_PATH_TASKS_ROOT
+        :app:compile|null|2.0s|CRITICAL_PATH_TASK_PAGE
+        :app:resources|null|1.0s|CRITICAL_PATH_TASK_PAGE
+        :lib:compile|null|1.0s|CRITICAL_PATH_TASK_PAGE
     """.trimIndent()
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Truth.assertThat(tasksRoot.printTree()).isEqualTo(expectedStructure)
@@ -86,17 +86,17 @@ class TreeStructureTest {
     val mockUiData = MockUiData(tasksList = listOf(task1, task2, task3))
     val pluginsRoot = CriticalPathPluginsRoot(mockUiData.criticalPathPlugins, mockRoot)
     val expectedStructure = """
-      Plugins with tasks determining this build's duration|1 warning|15.000 s|PLUGINS_ROOT
-        compiler.plugin|1 warning|3.000 s|PLUGIN_PAGE
-          Tasks determining this build's duration|1 warning|3.000 s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
-            :app:compile|null|2.000 s|PLUGIN_CRITICAL_PATH_TASK_PAGE
-            :lib:compile|null|1.000 s|PLUGIN_CRITICAL_PATH_TASK_PAGE
+      Plugins with tasks determining this build's duration|1 warning|15.0s|PLUGINS_ROOT
+        compiler.plugin|1 warning|3.0s|PLUGIN_PAGE
+          Tasks determining this build's duration|1 warning|3.0s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
+            :app:compile|null|2.0s|PLUGIN_CRITICAL_PATH_TASK_PAGE
+            :lib:compile|null|1.0s|PLUGIN_CRITICAL_PATH_TASK_PAGE
           Warnings (1)|null|null|PLUGIN_WARNINGS_ROOT
-            Always-run Tasks|1 warning|2.000 s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
-              :app:compile|null|2.000 s|PLUGIN_ALWAYS_RUN_NO_OUTPUTS_PAGE
-        resources.plugin||1.000 s|PLUGIN_PAGE
-          Tasks determining this build's duration||1.000 s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
-            :app:resources|null|1.000 s|PLUGIN_CRITICAL_PATH_TASK_PAGE
+            Always-run Tasks|1 warning|2.0s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
+              :app:compile|null|2.0s|PLUGIN_ALWAYS_RUN_NO_OUTPUTS_PAGE
+        resources.plugin||1.0s|PLUGIN_PAGE
+          Tasks determining this build's duration||1.0s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
+            :app:resources|null|1.0s|PLUGIN_CRITICAL_PATH_TASK_PAGE
           Warnings (0)|null|null|PLUGIN_WARNINGS_ROOT
     """.trimIndent()
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
@@ -118,9 +118,9 @@ class TreeStructureTest {
     val issuesRootNode = TaskIssuesRoot(data, mockRoot)
     val expectedStructure = """
       Always-run Tasks|3 warnings|null|ALWAYS_RUN_ISSUE_ROOT
-        :app:compile|null|2.000 s|ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
-        :app:resources|null|1.000 s|ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
-        :lib:compile|null|1.000 s|ALWAYS_RUN_NO_OUTPUTS_PAGE
+        :app:compile|null|2.0s|ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
+        :app:resources|null|1.0s|ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
+        :lib:compile|null|1.0s|ALWAYS_RUN_NO_OUTPUTS_PAGE
     """.trimIndent()
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Truth.assertThat(issuesRootNode.printTree()).isEqualTo(expectedStructure)
@@ -134,9 +134,9 @@ class TreeStructureTest {
     val annotationProcessorsRoot = AnnotationProcessorsRoot(mockUiData.mockAnnotationProcessorsData(), mockRoot)
     val expectedStructure = """
       Non-incremental Annotation Processors|3 warnings|null|ANNOTATION_PROCESSORS_ROOT
-        com.google.auto.value.processor.AutoAnnotationProcessor|null|0.123 s|ANNOTATION_PROCESSOR_PAGE
-        com.google.auto.value.processor.AutoValueBuilderProcessor|null|0.456 s|ANNOTATION_PROCESSOR_PAGE
-        com.google.auto.value.processor.AutoOneOfProcessor|null|0.789 s|ANNOTATION_PROCESSOR_PAGE
+        com.google.auto.value.processor.AutoAnnotationProcessor|null|0.1s|ANNOTATION_PROCESSOR_PAGE
+        com.google.auto.value.processor.AutoValueBuilderProcessor|null|0.5s|ANNOTATION_PROCESSOR_PAGE
+        com.google.auto.value.processor.AutoOneOfProcessor|null|0.8s|ANNOTATION_PROCESSOR_PAGE
     """.trimIndent()
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Truth.assertThat(annotationProcessorsRoot.printTree()).isEqualTo(expectedStructure)
@@ -169,15 +169,15 @@ class TreeStructureTest {
     val expectedStructure = """
       Warnings (7)|null|null|WARNINGS_ROOT
         Always-run Tasks|2 warnings|null|ALWAYS_RUN_ISSUE_ROOT
-          :app:compile|null|2.000 s|ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
-          :lib:compile|null|1.000 s|ALWAYS_RUN_NO_OUTPUTS_PAGE
+          :app:compile|null|2.0s|ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
+          :lib:compile|null|1.0s|ALWAYS_RUN_NO_OUTPUTS_PAGE
         Task Setup Issues|2 warnings|null|TASK_SETUP_ISSUE_ROOT
-          :app:compile|null|2.000 s|TASK_SETUP_ISSUE_PAGE
-          :app:resources|null|1.000 s|TASK_SETUP_ISSUE_PAGE
+          :app:compile|null|2.0s|TASK_SETUP_ISSUE_PAGE
+          :app:resources|null|1.0s|TASK_SETUP_ISSUE_PAGE
         Non-incremental Annotation Processors|3 warnings|null|ANNOTATION_PROCESSORS_ROOT
-          com.google.auto.value.processor.AutoAnnotationProcessor|null|0.123 s|ANNOTATION_PROCESSOR_PAGE
-          com.google.auto.value.processor.AutoValueBuilderProcessor|null|0.456 s|ANNOTATION_PROCESSOR_PAGE
-          com.google.auto.value.processor.AutoOneOfProcessor|null|0.789 s|ANNOTATION_PROCESSOR_PAGE
+          com.google.auto.value.processor.AutoAnnotationProcessor|null|0.1s|ANNOTATION_PROCESSOR_PAGE
+          com.google.auto.value.processor.AutoValueBuilderProcessor|null|0.5s|ANNOTATION_PROCESSOR_PAGE
+          com.google.auto.value.processor.AutoOneOfProcessor|null|0.8s|ANNOTATION_PROCESSOR_PAGE
     """.trimIndent()
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Truth.assertThat(warningsRoot.printTree()).isEqualTo(expectedStructure)
@@ -197,33 +197,33 @@ class TreeStructureTest {
 
     val expectedBuildFinishedString = DateFormatUtil.formatDateTime(data.buildSummary.buildFinishedTimestamp)
     val expectedStructure = """
-      Build:|finished at ${expectedBuildFinishedString}|20.000 s|BUILD_SUMMARY
-      Plugins with tasks determining this build's duration|2 warnings|15.000 s|PLUGINS_ROOT
-        compiler.plugin|1 warning|3.000 s|PLUGIN_PAGE
-          Tasks determining this build's duration|1 warning|3.000 s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
-            :app:compile|null|2.000 s|PLUGIN_CRITICAL_PATH_TASK_PAGE
-            :lib:compile|null|1.000 s|PLUGIN_CRITICAL_PATH_TASK_PAGE
+      Build:|finished at ${expectedBuildFinishedString}|20.0s|BUILD_SUMMARY
+      Plugins with tasks determining this build's duration|2 warnings|15.0s|PLUGINS_ROOT
+        compiler.plugin|1 warning|3.0s|PLUGIN_PAGE
+          Tasks determining this build's duration|1 warning|3.0s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
+            :app:compile|null|2.0s|PLUGIN_CRITICAL_PATH_TASK_PAGE
+            :lib:compile|null|1.0s|PLUGIN_CRITICAL_PATH_TASK_PAGE
           Warnings (1)|null|null|PLUGIN_WARNINGS_ROOT
-            Always-run Tasks|1 warning|2.000 s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
-              :app:compile|null|2.000 s|PLUGIN_ALWAYS_RUN_NO_OUTPUTS_PAGE
-        resources.plugin|1 warning|1.000 s|PLUGIN_PAGE
-          Tasks determining this build's duration|1 warning|1.000 s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
-            :app:resources|null|1.000 s|PLUGIN_CRITICAL_PATH_TASK_PAGE
+            Always-run Tasks|1 warning|2.0s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
+              :app:compile|null|2.0s|PLUGIN_ALWAYS_RUN_NO_OUTPUTS_PAGE
+        resources.plugin|1 warning|1.0s|PLUGIN_PAGE
+          Tasks determining this build's duration|1 warning|1.0s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
+            :app:resources|null|1.0s|PLUGIN_CRITICAL_PATH_TASK_PAGE
           Warnings (1)|null|null|PLUGIN_WARNINGS_ROOT
-            Always-run Tasks|1 warning|1.000 s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
-              :app:resources|null|1.000 s|PLUGIN_ALWAYS_RUN_NO_OUTPUTS_PAGE
-      Tasks determining this build's duration|2 warnings|15.000 s|CRITICAL_PATH_TASKS_ROOT
-        :app:compile|null|2.000 s|CRITICAL_PATH_TASK_PAGE
-        :app:resources|null|1.000 s|CRITICAL_PATH_TASK_PAGE
-        :lib:compile|null|1.000 s|CRITICAL_PATH_TASK_PAGE
+            Always-run Tasks|1 warning|1.0s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
+              :app:resources|null|1.0s|PLUGIN_ALWAYS_RUN_NO_OUTPUTS_PAGE
+      Tasks determining this build's duration|2 warnings|15.0s|CRITICAL_PATH_TASKS_ROOT
+        :app:compile|null|2.0s|CRITICAL_PATH_TASK_PAGE
+        :app:resources|null|1.0s|CRITICAL_PATH_TASK_PAGE
+        :lib:compile|null|1.0s|CRITICAL_PATH_TASK_PAGE
       Warnings (5)|null|null|WARNINGS_ROOT
         Always-run Tasks|2 warnings|null|ALWAYS_RUN_ISSUE_ROOT
-          :app:compile|null|2.000 s|ALWAYS_RUN_NO_OUTPUTS_PAGE
-          :app:resources|null|1.000 s|ALWAYS_RUN_NO_OUTPUTS_PAGE
+          :app:compile|null|2.0s|ALWAYS_RUN_NO_OUTPUTS_PAGE
+          :app:resources|null|1.0s|ALWAYS_RUN_NO_OUTPUTS_PAGE
         Non-incremental Annotation Processors|3 warnings|null|ANNOTATION_PROCESSORS_ROOT
-          com.google.auto.value.processor.AutoAnnotationProcessor|null|0.123 s|ANNOTATION_PROCESSOR_PAGE
-          com.google.auto.value.processor.AutoValueBuilderProcessor|null|0.456 s|ANNOTATION_PROCESSOR_PAGE
-          com.google.auto.value.processor.AutoOneOfProcessor|null|0.789 s|ANNOTATION_PROCESSOR_PAGE
+          com.google.auto.value.processor.AutoAnnotationProcessor|null|0.1s|ANNOTATION_PROCESSOR_PAGE
+          com.google.auto.value.processor.AutoValueBuilderProcessor|null|0.5s|ANNOTATION_PROCESSOR_PAGE
+          com.google.auto.value.processor.AutoOneOfProcessor|null|0.8s|ANNOTATION_PROCESSOR_PAGE
     """.trimIndent()
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Truth.assertThat(rootNode.printTree()).isEqualTo(expectedStructure)

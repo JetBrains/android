@@ -110,11 +110,17 @@ final class AsyncDevicesGetter {
       return Optional.empty();
     }
 
+    AndroidDebugBridge bridge = new DdmlibAndroidDebugBridge(adb);
+
+    if (!bridge.isConnected()) {
+      Logger.getInstance(AsyncDevicesGetter.class).info("ADB is not connected");
+      return Optional.empty();
+    }
+
     boolean snapshotsEnabled = mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean();
     FileSystem fileSystem = FileSystems.getDefault();
     AsyncSupplier<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask(snapshotsEnabled, fileSystem, myChecker);
 
-    AndroidDebugBridge bridge = new DdmlibAndroidDebugBridge(adb);
     AsyncSupplier<List<ConnectedDevice>> connectedDevicesTask = new ConnectedDevicesTask(bridge, snapshotsEnabled, myChecker);
 
     Optional<Collection<VirtualDevice>> virtualDevices = myVirtualDevicesWorker.perform(virtualDevicesTask);

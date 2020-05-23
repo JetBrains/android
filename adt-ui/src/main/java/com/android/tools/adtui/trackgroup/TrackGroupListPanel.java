@@ -19,6 +19,7 @@ import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.ViewBinder;
@@ -133,10 +134,7 @@ public class TrackGroupListPanel implements TrackGroupMover {
    * Enable/disable dragging and selection for all track groups.
    */
   public void setEnabled(boolean enabled) {
-    myTrackGroups.forEach(trackGroup -> {
-      trackGroup.getTrackList().setDragEnabled(enabled);
-      trackGroup.getTrackList().setEnabled(enabled);
-    });
+    myTrackGroups.forEach(trackGroup -> trackGroup.setEventHandlersEnabled(enabled));
   }
 
   @NotNull
@@ -184,7 +182,13 @@ public class TrackGroupListPanel implements TrackGroupMover {
     }
     for (int i = 0; i < myTrackGroups.size(); ++i) {
       // Track groups occupy both columns regardless of whether we have a tooltip component.
-      myPanel.add(myTrackGroups.get(i).getComponent(), new TabularLayout.Constraint(i, 0, 1, 2), i);
+      JComponent trackGroupComponent = myTrackGroups.get(i).getComponent();
+      myPanel.add(trackGroupComponent, new TabularLayout.Constraint(i, 0, 1, 2), i);
+      // Delegate events to the track group component so SPACE + dragging works on it.
+      DelegateMouseEventHandler.delegateTo(myPanel)
+        .installListenerOn(trackGroupComponent)
+        .installMotionListenerOn(trackGroupComponent)
+        .installMouseWheelListenerOn(trackGroupComponent);
     }
     myPanel.revalidate();
   }

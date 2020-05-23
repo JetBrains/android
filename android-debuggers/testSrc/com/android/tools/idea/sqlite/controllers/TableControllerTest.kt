@@ -2023,6 +2023,42 @@ class TableControllerTest : PlatformTestCase() {
     verify(tableView, times(1)).startTableLoading()
   }
 
+  fun testToggleLiveUpdatesKeepsTableNotEditable() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      project,
+      10,
+      tableView,
+      { null },
+      mockDatabaseConnection,
+      SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
+      edtExecutor,
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Assert
+    verify(tableView, times(3)).setEditable(false)
+
+    // Act
+    tableView.listeners.first().toggleLiveUpdatesInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(tableView, times(6)).setEditable(false)
+
+    tableView.listeners.first().toggleLiveUpdatesInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(tableView, times(7)).setEditable(false)
+    verify(tableView, times(0)).setEditable(true)
+  }
+
   fun testViewsAreNotEditable() {
     // Prepare
     val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(

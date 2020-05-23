@@ -18,9 +18,6 @@ package org.jetbrains.android.dom.converters;
 
 import com.intellij.util.xml.converters.values.BooleanValueConverter;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidBooleanValueConverter extends BooleanValueConverter {
   public AndroidBooleanValueConverter() {
     super(false);

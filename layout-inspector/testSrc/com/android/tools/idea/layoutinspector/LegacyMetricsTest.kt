@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit
 class LegacyMetricsTest {
 
   @get:Rule
-  val inspectorRule = LayoutInspectorTransportRule().withLegacyClient().withDefaultDevice(connected = false)
+  val inspectorRule = LayoutInspectorTransportRule().withLegacyClient().withDefaultDevice()
 
   @get:Rule
   val usageTrackerRule = MetricsTrackerRule()

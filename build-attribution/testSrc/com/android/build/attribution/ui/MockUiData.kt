@@ -77,6 +77,9 @@ class MockUiData(
     override val infoCount: Int = tasks.count { it.hasInfo }
   }
 
+  fun mockTask(module: String, name: String, pluginName: String, executionTimeMs: Long) =
+    mockTask(module, name, pluginName, executionTimeMs, criticalPathDurationMs)
+
   fun mockCriticalPathPluginsUiData() = object : CriticalPathPluginsUiData {
     override val criticalPathDuration = TimeWithPercentage(criticalPathDurationMs, totalBuildDurationMs)
     override val miscStepsTime = criticalPathDuration.supplement()

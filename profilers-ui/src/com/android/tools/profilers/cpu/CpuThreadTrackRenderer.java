@@ -27,12 +27,16 @@ import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.adtui.util.SwingUtil;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
+import com.android.tools.profilers.cpu.capturedetails.CodeNavigationHandler;
+import com.android.tools.profilers.stacktrace.CodeNavigator;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
@@ -48,7 +52,12 @@ import org.jetbrains.annotations.Nullable;
  * Track renderer for CPU threads in CPU capture stage.
  */
 public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel, ProfilerTrackRendererType> {
-  private final AspectObserver myObserver = new AspectObserver();
+  @NotNull private final AspectObserver myObserver = new AspectObserver();
+  @NotNull private final StudioProfilersView myProfilersView;
+
+  public CpuThreadTrackRenderer(@NotNull StudioProfilersView profilersView) {
+    myProfilersView = profilersView;
+  }
 
   @NotNull
   @Override
@@ -143,9 +152,9 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     return threadStateChart;
   }
 
-  private static HTreeChart<CaptureNode> createHChart(@NotNull CaptureDetails.CallChart callChartModel,
-                                                      @NotNull Range captureRange,
-                                                      boolean isCollapsed) {
+  private HTreeChart<CaptureNode> createHChart(@NotNull CaptureDetails.CallChart callChartModel,
+                                               @NotNull Range captureRange,
+                                               boolean isCollapsed) {
     CaptureNode node = callChartModel.getNode();
     Range selectionRange = callChartModel.getRange();
 
@@ -156,13 +165,23 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
         .setRootVisible(false)
         .setNodeSelectionEnabled(true);
     if (isCollapsed) {
-      builder.setCustomNodeHeightPx(1).setNodeYPaddingPx(0);
+      return builder.setCustomNodeHeightPx(1).setNodeYPaddingPx(0).build();
     }
-    return builder.build();
+    HTreeChart<CaptureNode> chart = builder.build();
+    // Add context menu for source navigation.
+    Cpu.CpuTraceType traceType = callChartModel.getCapture().getType();
+    if (traceType != Cpu.CpuTraceType.ATRACE && traceType != Cpu.CpuTraceType.PERFETTO) {
+      CodeNavigator navigator = myProfilersView.getStudioProfilers().getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
+      CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator);
+      chart.addMouseListener(handler);
+      myProfilersView.getIdeProfilerComponents().createContextMenuInstaller()
+        .installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
+    }
+    return chart;
   }
 
   private static class CpuThreadColorProvider extends StateChartColorProvider<ThreadState> {
-    private EnumColors<ThreadState> myEnumColors = ProfilerColors.THREAD_STATES.build();
+    private final EnumColors<ThreadState> myEnumColors = ProfilerColors.THREAD_STATES.build();
 
     @NotNull
     @Override

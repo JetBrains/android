@@ -16,9 +16,6 @@ import org.jetbrains.jps.model.module.JpsModule;
 import java.io.File;
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
   public AndroidResourceCachingBuildTarget(@NotNull JpsModule module) {
     super(MyTargetType.INSTANCE, module);

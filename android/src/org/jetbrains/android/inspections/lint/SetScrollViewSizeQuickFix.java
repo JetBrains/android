@@ -9,9 +9,6 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class SetScrollViewSizeQuickFix implements LintIdeQuickFix {
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {

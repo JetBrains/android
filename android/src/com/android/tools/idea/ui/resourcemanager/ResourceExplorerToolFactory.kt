@@ -32,7 +32,6 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
@@ -56,7 +55,7 @@ private const val STRIPE_TITLE = "Resource Manager"
 /**
  * Provides the tool explorer panel
  */
-class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Any> {
+class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware {
 
   override fun init(window: ToolWindow) {
     window.stripeTitle = STRIPE_TITLE
@@ -79,10 +78,7 @@ class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Any>
 
   override fun shouldBeAvailable(project: Project) = true
 
-  /**
-   * Implementation of [Condition].
-   */
-  override fun value(o: Any) = true
+  override fun isApplicable(project: Project) = true
 }
 
 private fun connectListeners(

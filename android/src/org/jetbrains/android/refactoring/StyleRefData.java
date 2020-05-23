@@ -3,9 +3,6 @@ package org.jetbrains.android.refactoring;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 class StyleRefData {
   private final String myStyleName;
   private final String myStylePackage;

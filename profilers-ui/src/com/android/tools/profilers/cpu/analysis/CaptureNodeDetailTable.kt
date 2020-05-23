@@ -22,14 +22,18 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import javax.swing.JPanel
 import javax.swing.JTable
+import javax.swing.ListSelectionModel
 import javax.swing.table.AbstractTableModel
 import com.android.tools.adtui.common.border as BorderColor
 
 /**
  * UI component for presenting capture node details, such as duration, CPU duration etc.
+ *
+ * @param viewRange if not null, selection will update this range to the selected node; otherwise, row selection is disabled.
  */
 class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
-                             private val captureRange: Range) {
+                             private val captureRange: Range,
+                             private val viewRange: Range? = null) {
   val table: JTable
   val component = JPanel(TabularLayout("*", "Fit,Fit"))
 
@@ -40,11 +44,28 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
       autoCreateRowSorter = true
       showVerticalLines = true
       showHorizontalLines = false
+      columnModel.columnMargin = 10  // align headers and contents
       columnModel.getColumn(Column.START_TIME.ordinal).cellRenderer = TimestampRenderer()
       columnModel.getColumn(Column.WALL_DURATION.ordinal).cellRenderer = DurationRenderer()
       columnModel.getColumn(Column.SELF_TIME.ordinal).cellRenderer = DurationRenderer()
       columnModel.getColumn(Column.CPU_DURATION.ordinal).cellRenderer = DurationRenderer()
       columnModel.getColumn(Column.CPU_SELF_TIME.ordinal).cellRenderer = DurationRenderer()
+
+      if (viewRange != null) {
+        setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+        selectionModel.addListSelectionListener {
+          if (selectedRow >= 0) {
+            extendedCaptureNodes[convertRowIndexToModel(selectedRow)].node.let {
+              viewRange.set(it.startGlobal.toDouble(), it.endGlobal.toDouble())
+            }
+          }
+        }
+      }
+      else {
+        rowSelectionAllowed = false
+        columnSelectionAllowed = false
+        cellSelectionEnabled = false
+      }
     }
     component.apply {
       border = JBUI.Borders.customLine(BorderColor, 1)
@@ -92,30 +113,32 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
 
   /**
    * Column definition for the capture node details table.
+   *
+   * @param type use Java number classes (e.g. [java.lang.Long]) to ensure proper sorting in JTable
    */
   private enum class Column(val displayName: String, val type: Class<*>) {
-    START_TIME("Start Time", Long::class.java) {
+    START_TIME("Start Time", java.lang.Long::class.java) {
       override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
         // Display start time relative to capture start time.
         return data.node.startGlobal - captureRange.min.toLong()
       }
     },
-    WALL_DURATION("Wall Duration", Long::class.java) {
+    WALL_DURATION("Wall Duration", java.lang.Long::class.java) {
       override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
         return data.node.endGlobal - data.node.startGlobal
       }
     },
-    SELF_TIME("Self Time", Long::class.java) {
+    SELF_TIME("Self Time", java.lang.Long::class.java) {
       override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
         return data.selfGlobal
       }
     },
-    CPU_DURATION("CPU Duration", Long::class.java) {
+    CPU_DURATION("CPU Duration", java.lang.Long::class.java) {
       override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
         return data.node.endThread - data.node.startThread
       }
     },
-    CPU_SELF_TIME("CPU Self Time", Long::class.java) {
+    CPU_SELF_TIME("CPU Self Time", java.lang.Long::class.java) {
       override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
         return data.selfThread
       }

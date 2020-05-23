@@ -21,6 +21,7 @@ import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.annotations.concurrency.Slow
+import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
@@ -268,6 +269,11 @@ interface PreviewElementTemplate : PreviewElement {
  * Definition of a preview element
  */
 interface PreviewElementInstance : PreviewElement, XmlSerializable {
+  /**
+   * Unique identifier that can be used for filtering.
+   */
+  val instanceId: String
+
   override fun toPreviewXml(xmlBuilder: PreviewXmlBuilder): PreviewXmlBuilder {
     val matchParent = displaySettings.showDecoration
     val width = dimensionToString(configuration.width, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
@@ -294,6 +300,8 @@ data class SinglePreviewElementInstance(override val composableMethodFqn: String
                                         override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
                                         override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
                                         override val configuration: PreviewConfiguration) : PreviewElementInstance {
+  override val instanceId: String = composableMethodFqn
+
   companion object {
     @JvmStatic
     @TestOnly
@@ -319,6 +327,8 @@ private data class ParametrizedPreviewElementInstance(private val basePreviewEle
                                                       private val parameterName: String,
                                                       val providerClassFqn: String,
                                                       val index: Int) : PreviewElementInstance, PreviewElement by basePreviewElement {
+  override val instanceId: String = "$composableMethodFqn#$parameterName$index"
+
   override val displaySettings: PreviewDisplaySettings = PreviewDisplaySettings(
     "${basePreviewElement.displaySettings.name} ($parameterName $index)",
     basePreviewElement.displaySettings.group,
@@ -337,6 +347,12 @@ private data class ParametrizedPreviewElementInstance(private val basePreviewEle
     return xmlBuilder
   }
 }
+
+/**
+ * If the [PreviewElement] is a [ParametrizedPreviewElementInstance], returns the provider class FQN and the target value index.
+ */
+internal fun PreviewElement.previewProviderClassAndIndex() =
+  if (this is ParametrizedPreviewElementInstance) Pair(providerClassFqn, index) else null
 
 /**
  * Definition of a preview element that can spawn multiple [PreviewElement]s based on parameters.
@@ -380,6 +396,25 @@ data class ParametrizedPreviewElementTemplate(private val basePreviewElement: Pr
       return sequenceOf()
     }.first()
   }
+}
+
+/**
+ * A [PreviewElementProvider] that instantiates any [PreviewElementTemplate]s in the [delegate].
+ */
+class PreviewElementTemplateInstanceProvider(private val delegate: PreviewElementProvider)
+  : PreviewElementProvider {
+  override val previewElements: Sequence<PreviewElementInstance>
+    get() = delegate.previewElements.flatMap {
+      when (it) {
+        is ParametrizedPreviewElementTemplate -> it.instances()
+        is PreviewElementInstance -> sequenceOf(it)
+        else -> {
+          Logger.getInstance(PreviewElementTemplateInstanceProvider::class.java).warn(
+            "Class was not instance or template ${it::class.qualifiedName}")
+          emptySequence()
+        }
+      }
+    }
 }
 
 /**

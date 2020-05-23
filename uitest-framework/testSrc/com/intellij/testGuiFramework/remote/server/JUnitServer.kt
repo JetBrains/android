@@ -18,9 +18,6 @@ package com.intellij.testGuiFramework.remote.server
 import com.intellij.testGuiFramework.remote.transport.MessageFromClient
 import com.intellij.testGuiFramework.remote.transport.MessageFromServer
 
-/**
- * @author Sergey Karashevich
- */
 interface JUnitServer {
 
   fun send(message: MessageFromServer)

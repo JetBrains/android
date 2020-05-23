@@ -31,7 +31,7 @@ import java.util.ArrayList;
  */
 public final class OverlayComponent extends AnimatedComponent {
 
-  @NotNull private final ArrayList<DurationDataRenderer> myDurationRenderers;
+  @NotNull private final ArrayList<AbstractDurationDataRenderer> myDurationRenderers;
   @NotNull private final Component myDispatchComponent;
 
   public OverlayComponent(@NotNull Component dispatchComponent) {
@@ -78,7 +78,7 @@ public final class OverlayComponent extends AnimatedComponent {
     });
   }
 
-  public void addDurationDataRenderer(@NotNull DurationDataRenderer renderer) {
+  public void addDurationDataRenderer(@NotNull AbstractDurationDataRenderer renderer) {
     myDurationRenderers.add(renderer);
   }
 
@@ -86,14 +86,14 @@ public final class OverlayComponent extends AnimatedComponent {
   protected void draw(Graphics2D g, Dimension size) {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     // TODO make this an interface
-    for (DurationDataRenderer renderer : myDurationRenderers) {
+    for (AbstractDurationDataRenderer renderer : myDurationRenderers) {
       renderer.renderOverlay(this, g);
     }
   }
 
   private void handleOrDispatchEvent(MouseEvent e) {
     boolean handled = false;
-    for (DurationDataRenderer renderer : myDurationRenderers) {
+    for (AbstractDurationDataRenderer renderer : myDurationRenderers) {
       // TODO make this an interface
       handled |= renderer.handleMouseEvent(this, myDispatchComponent, e);
       if (handled) {

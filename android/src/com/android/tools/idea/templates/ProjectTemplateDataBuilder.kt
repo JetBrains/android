@@ -56,7 +56,6 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var javaVersion: JavaVersion? = null
   var sdkDir: File? = null
   var language: Language? = null
-  var bytecodeLevel: BytecodeLevel? = null
   var kotlinVersion: String? = null
   var buildToolsVersion: Revision? = null
   var explicitBuildToolsVersion: Boolean? = null
@@ -68,6 +67,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var applicationName: String? = null
 
   internal fun setEssentials(project: Project) {
+    applicationName = project.name
     kotlinVersion = bundledRuntimeVersion()
     gradlePluginVersion = determineGradlePluginVersion(project)
     javaVersion = determineJavaVersion(project)
@@ -145,7 +145,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
     gradlePluginVersion!!.toString(),
     javaVersion!!.toString(),
     sdkDir,
-    com.android.tools.idea.wizard.template.Language.valueOf(language!!.toString()),
+    Language.valueOf(language!!.toString()),
     kotlinVersion!!,
     buildToolsVersion!!.toString(),
     topOut!!,
@@ -153,8 +153,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
     includedFormFactorNames,
     debugKeyStoreSha1,
     overridePathCheck,
-    isNewProject,
-    bytecodeLevel!!
+    isNewProject
   )
 }
 

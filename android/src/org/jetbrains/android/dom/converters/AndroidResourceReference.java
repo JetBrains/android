@@ -42,9 +42,6 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author coyote
- */
 public class AndroidResourceReference extends AndroidResourceReferenceBase {
   private final GenericDomValue<ResourceValue> myValue;
   private boolean myIncludeDynamicFeatures;

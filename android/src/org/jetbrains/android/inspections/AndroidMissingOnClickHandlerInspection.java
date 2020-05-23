@@ -35,9 +35,6 @@ import java.util.*;
 import org.jetbrains.kotlin.asJava.LightClassUtilsKt;
 import org.jetbrains.kotlin.psi.KtClass;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool {
   @NotNull
   private static Collection<PsiClass> findRelatedActivities(@NotNull XmlFile file,

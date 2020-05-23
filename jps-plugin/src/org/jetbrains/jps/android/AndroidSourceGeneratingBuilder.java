@@ -56,9 +56,6 @@ import org.jetbrains.jps.service.JpsServiceManager;
 import java.io.*;
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.incremental.android.AndroidSourceGeneratingBuilder");
 

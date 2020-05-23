@@ -347,7 +347,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
                                    @NotNull SceneContext sceneContext,
                                    @NotNull SceneComponent component) {
     List<SceneComponent> children = component.getChildren();
-    buildListPaths(component, list);
+    buildListPaths(sceneContext, component, list);
     if (!children.isEmpty()) {
       // Cache connections between children
       for (SceneComponent child : component.getChildren()) {
@@ -373,21 +373,43 @@ public class MotionLayoutDecorator extends SceneDecorator {
     }
   }
 
-  private void buildListPaths(@NotNull SceneComponent component, @NotNull DisplayList list) {
+  private void buildListPaths(SceneContext sceneContext,
+                              @NotNull SceneComponent component,
+                              @NotNull DisplayList list) {
     MotionLayoutComponentHelper helper = MotionLayoutComponentHelper.create(component.getNlComponent());
 
     if (helper.isInTransition() && helper.getShowPaths()) {
       List<SceneComponent> children = component.getChildren();
       int size = mPathBuffer.length / 2;
+      float x = component.getDrawX();
+      float y = component.getDrawY();
+      float w = component.getDrawWidth();
+      float h = component.getDrawHeight();
+      float factor = sceneContext.getSwingDimensionDip(10000) / (float)sceneContext.getSwingDimension(10000);
+      h *= factor;
+      w *= factor;
+
       for (SceneComponent child : children) {
         int len = helper.getPath(child.getNlComponent(), mPathBuffer, size);
         if (len > 0) {
-          int x = component.getDrawX();
-          int y = component.getDrawY();
-          int w = component.getDrawWidth();
-          int h = component.getDrawHeight();
-          int keyFrameCount = helper.getKeyframePos(child.getNlComponent(), keyFrameTypes, keyFramePos);
-          DrawMotionPath.buildDisplayList(child.isSelected(), list, mPathBuffer, size * 2, keyFrameTypes, keyFramePos, keyFrameCount, x, y, w, h);
+          float cbx = x + child.getDrawWidth() * factor / 2;
+          float cby = y + child.getDrawHeight() * factor / 2;
+          float cbw = w - child.getDrawWidth() * factor;
+          float cbh = h - child.getDrawHeight() * factor;
+
+          NlComponent childComponent = child.getNlComponent();
+          Integer pos = (Integer)childComponent.getClientProperty(MotionLayoutSceneInteraction.MOTION_DRAG_KEYFRAME);
+          Integer key_pos_type = (Integer)childComponent.getClientProperty(MotionLayoutSceneInteraction.MOTION_KEY_POS_TYPE);
+          float[] key_pos_percent= (float[])childComponent.getClientProperty(MotionLayoutSceneInteraction.MOTION_KEY_POS_PERCENT);
+          float percentX = (key_pos_percent == null)?Float.NaN:key_pos_percent[0];
+          float percentY = (key_pos_percent == null)?Float.NaN:key_pos_percent[1];
+          int selected_key = -1;
+          if (pos != null) {
+            selected_key = pos;
+          }
+          int keyFrameCount = helper.getKeyframePos(childComponent, keyFrameTypes, keyFramePos);
+          DrawMotionPath.buildDisplayList(child.isSelected(), list, selected_key, (key_pos_type==null)?-1:key_pos_type , mPathBuffer,
+                                          size * 2, keyFrameTypes, keyFramePos, keyFrameCount, x, y, w, h, cbx, cby, cbw, cbh,percentX,percentY);
         }
       }
     }

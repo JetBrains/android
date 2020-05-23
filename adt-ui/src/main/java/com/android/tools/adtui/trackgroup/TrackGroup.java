@@ -65,6 +65,12 @@ public class TrackGroup extends AspectObserver {
   private static final Font TITLE_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(5f);
   private static final String TOGGLE_EXPAND_COLLAPSE_TRACK_KEY = "TOGGLE_EXPAND_COLLAPSE_KEY";
 
+  /**
+   * A column sizing that takes the reorder icon into account to allow mouse events to pass through.
+   */
+  private static final String COL_SIZES =
+    Track.REORDER_ICON.getIconWidth() + "px," + (Track.DEFAULT_TITLE_COL_PX - Track.REORDER_ICON.getIconWidth()) + "px,*";
+
   private final TrackGroupModel myModel;
 
   private final JPanel myComponent;
@@ -78,6 +84,11 @@ public class TrackGroup extends AspectObserver {
   private final CommonButton myCollapseButton;
   private final Map<Integer, Track> myTrackMap;
   private final AspectObserver myObserver = new AspectObserver();
+
+  @Nullable
+  private final BoxSelectionComponent myBoxSelectionComponent;
+
+  private boolean myIsEnabled = true;
 
   /**
    * @param groupModel      {@link TrackGroup} data model
@@ -158,18 +169,28 @@ public class TrackGroup extends AspectObserver {
     myTrackTitleOverlay.addMouseListener(trackTitleMouseEventHandler);
     myTrackTitleOverlay.addMouseMotionListener(trackTitleMouseEventHandler);
 
-    myComponent = new JPanel(new TabularLayout(Track.COL_SIZES, "Fit,Fit"));
+    myComponent = new JPanel(new TabularLayout(COL_SIZES));
     if (groupModel.getRangeSelectionModel() != null) {
-      BoxSelectionComponent boxSelection = new BoxSelectionComponent(groupModel.getRangeSelectionModel(), myTrackList);
+      myBoxSelectionComponent = new BoxSelectionComponent(groupModel.getRangeSelectionModel(), myTrackList);
       DelegateMouseEventHandler.delegateTo(myOverlay)
-        .installListenerOn(boxSelection)
-        .installMotionListenerOn(boxSelection);
-      myComponent.add(boxSelection, new TabularLayout.Constraint(1, 1));
+        .installListenerOn(myBoxSelectionComponent)
+        .installMotionListenerOn(myBoxSelectionComponent);
+      myComponent.add(myBoxSelectionComponent, new TabularLayout.Constraint(1, 2));
     }
-    myComponent.add(myTrackTitleOverlay, new TabularLayout.Constraint(1, 0));
-    myComponent.add(myOverlay, new TabularLayout.Constraint(1, 1));
-    myComponent.add(titlePanel, new TabularLayout.Constraint(0, 0, 1, 2));
-    myComponent.add(myTrackList, new TabularLayout.Constraint(1, 0, 1, 2));
+    else {
+      myBoxSelectionComponent = null;
+    }
+    // +-----------------------------+
+    // |title panel                  |
+    // |-+-------------+-------------+
+    // |=|>track title |track content|
+    // |=|>track title |track content|
+    // |=+-------------+-------------+
+    //   |title overlay|overlay      |
+    myComponent.add(myTrackTitleOverlay, new TabularLayout.Constraint(1, 1));
+    myComponent.add(myOverlay, new TabularLayout.Constraint(1, 2));
+    myComponent.add(titlePanel, new TabularLayout.Constraint(0, 0, 1, 3));
+    myComponent.add(myTrackList, new TabularLayout.Constraint(1, 0, 1, 3));
 
     initKeyBindings(myTrackList);
   }
@@ -245,6 +266,18 @@ public class TrackGroup extends AspectObserver {
     return myTrackMap;
   }
 
+  /**
+   * Enable/disable mouse event handlers.
+   */
+  public void setEventHandlersEnabled(boolean enabled) {
+    myIsEnabled = enabled;
+    myTrackList.setEnabled(enabled);
+    myTrackList.setDragEnabled(enabled);
+    if (myBoxSelectionComponent != null) {
+      myBoxSelectionComponent.setEventHandlersEnabled(enabled);
+    }
+  }
+
   private void initShowMoreDropdown() {
     myActionsDropdown.getAction().clear();
 
@@ -318,6 +351,12 @@ public class TrackGroup extends AspectObserver {
 
     @Override
     protected void handle(MouseEvent event) {
+      if (!myIsEnabled) {
+        // Dispatch event to the root component so that it can forward to the parent component.
+        myComponent.dispatchEvent(event);
+        return;
+      }
+
       int oldTrackIndex = myTrackIndex;
       myTrackIndex = myTrackList.locationToIndex(event.getPoint());
 
@@ -357,6 +396,17 @@ public class TrackGroup extends AspectObserver {
 
       // Fall through for the track list itself.
       myTrackList.dispatchEvent(event);
+    }
+
+    @Override
+    public void mousePressed(MouseEvent event) {
+      // Clear box selection if users manually clicks on the track title to select a track.
+      // This ensures that box selection doesn't carry over when user switches tracks. For this to work, it should be done before the normal
+      // selection logic kicks in.
+      if (myBoxSelectionComponent != null && myBoxSelectionComponent.getModel().isSelectionEnabled()) {
+        myBoxSelectionComponent.clearSelection();
+      }
+      super.mousePressed(event);
     }
   }
 

@@ -15,9 +15,6 @@ import com.intellij.psi.PsiReferenceExpression;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidResourceQuickFixProvider extends UnresolvedReferenceQuickFixProvider<PsiReferenceExpression> {
   @Override
   public void registerFixes(@NotNull PsiReferenceExpression exp, @NotNull QuickFixActionRegistrar registrar) {

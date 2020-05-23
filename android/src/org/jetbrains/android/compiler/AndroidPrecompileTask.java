@@ -45,9 +45,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidPrecompileTask implements CompileTask {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidPrecompileTask");
 

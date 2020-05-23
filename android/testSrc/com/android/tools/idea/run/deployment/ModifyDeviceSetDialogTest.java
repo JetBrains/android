@@ -19,7 +19,13 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.ide.util.ProjectPropertiesComponentImpl;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Collections;
 import org.junit.After;
 import org.junit.Before;
@@ -39,18 +45,22 @@ public final class ModifyDeviceSetDialogTest {
   @Before
   public void initDialog() {
     ApplicationManager.getApplication().invokeAndWait(() -> {
+      Project project = myRule.getProject();
+      Key key = new Key("Pixel_4_API_29");
+
       Device device = new VirtualDevice.Builder()
-        .setName("Pixel 3 API 29")
-        .setKey(new Key("Pixel_3_API_29"))
+        .setName("Pixel 4 API 29")
+        .setKey(key)
         .setAndroidDevice(Mockito.mock(AndroidDevice.class))
         .build();
 
-      DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+      PropertiesComponent properties = new ProjectPropertiesComponentImpl();
+      Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
 
-      myDialog = new ModifyDeviceSetDialog(
-        myRule.getProject(),
-        new ModifyDeviceSetDialogTableModel(Collections.singletonList(device)),
-        project -> service);
+      DevicesSelectedService service = new DevicesSelectedService(project, p -> properties, clock);
+      service.setDeviceKeysSelectedWithDialog(Collections.singleton(key));
+
+      myDialog = new ModifyDeviceSetDialog(project, new ModifyDeviceSetDialogTableModel(Collections.singletonList(device)), p -> service);
     });
   }
 
@@ -62,7 +72,7 @@ public final class ModifyDeviceSetDialogTest {
   @Test
   public void initTable() {
     // Act
-    myDialog.getTable().setSelected(true, 0);
+    myDialog.getTable().setSelected(false, 0);
 
     // Assert
     assertTrue(myDialog.isOKActionEnabled());

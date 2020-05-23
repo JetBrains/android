@@ -5,9 +5,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidBuildTestingManager {
 
   private static AndroidBuildTestingManager ourTestingManager;

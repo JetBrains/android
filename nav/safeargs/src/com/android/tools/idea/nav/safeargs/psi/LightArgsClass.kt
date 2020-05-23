@@ -85,6 +85,11 @@ class LightArgsClass(facet: AndroidFacet,
                                   returnType = annotateNullability(thisType))
       .addParameter("bundle", bundleType)
 
+    val toBundle = createMethod(
+      name = "toBundle",
+      returnType = annotateNullability(bundleType)
+    )
+
     val getters: Array<PsiMethod> = fragment.arguments.map { arg ->
       val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
       createMethod(name = "get${arg.name.capitalize()}",
@@ -92,7 +97,7 @@ class LightArgsClass(facet: AndroidFacet,
                    returnType = annotateNullability(psiType, arg.nullable))
     }.toTypedArray()
 
-    return getters + fromBundle
+    return getters + fromBundle + toBundle
   }
 
   private fun computeFields(): Array<PsiField> {

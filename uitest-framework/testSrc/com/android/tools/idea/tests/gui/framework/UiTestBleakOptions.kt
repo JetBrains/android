@@ -44,6 +44,7 @@ private val globalWhitelist = Whitelist<LeakInfo>(listOf(
   WhitelistEntry { it.leaktrace.signatureAt(-2) == "com.intellij.util.containers.ConcurrentSoftValueHashMap#myMap" },
   WhitelistEntry { it.leaktrace.signatureAt(-2) == "com.intellij.util.containers.ConcurrentSoftKeySoftValueHashMap#myMap" },
 
+  WhitelistEntry { it.leaktrace.signatureAt(-3) == "com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl#myDocumentCache" },
   WhitelistEntry { it.leaktrace.signatureAt(-4) == "com.android.tools.idea.configurations.ConfigurationManager#myCache" },
   WhitelistEntry { it.leaktrace.signatureAt(-4) == "com.maddyhome.idea.copyright.util.NewFileTracker#newFiles" }, // b/126417715
   WhitelistEntry { it.leaktrace.signatureAt(-3) == "com.intellij.openapi.vfs.newvfs.impl.VfsData\$Segment#myObjectArray" },
@@ -56,7 +57,7 @@ private val globalWhitelist = Whitelist<LeakInfo>(listOf(
   WhitelistEntry { it.leaktrace.signatureAt(2) == "sun.java2d.Disposer#records" },
   WhitelistEntry { it.leaktrace.signatureAt(2) == "sun.java2d.marlin.OffHeapArray#REF_LIST" },
   WhitelistEntry { it.leaktrace.signatureAt(2) == "sun.awt.X11.XInputMethod#lastXICFocussedComponent" }, // b/126447315
-  WhitelistEntry { it.leaktrace.signatureAt(-3) == "sun.font.XRGlyphCache#cacheMap" },
+  WhitelistEntry { it.leaktrace.signatureAt(-2) == "sun.font.XRGlyphCache#cacheMap" },
   // this accounts for both myObject2NodeMap and myRootObjects
   WhitelistEntry {
     it.leaktrace.element(-2)?.referenceLabel in listOf("_set", "_values") &&

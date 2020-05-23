@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 public class AndroidSyncIssueFileEventResult extends AndroidSyncIssueEventResult implements FileMessageEventResult {
-  @NotNull private FilePosition myFilePosition;
+  @NotNull private final FilePosition myFilePosition;
 
   public AndroidSyncIssueFileEventResult(@NotNull NotificationData notificationData) {
     super(notificationData);

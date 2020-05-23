@@ -48,9 +48,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class CreateResourceFileAction extends CreateResourceActionBase {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.actions.CreateResourceFileAction");
 

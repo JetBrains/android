@@ -185,7 +185,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
 
   @NotNull
   @Override
-  public JComponent getComponent() {
+  public JComponent getAvdProviderComponent() {
     return myRefreshProvider.getComponent();
   }
 

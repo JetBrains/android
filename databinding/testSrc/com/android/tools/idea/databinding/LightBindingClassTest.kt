@@ -596,13 +596,13 @@ class LightBindingClassTest {
     listOf("test.db.databinding.ViewRootActivityBinding", "test.db.databinding.MergeRootActivityBinding").forEach { classPath ->
       (fixture.findClass(classPath, context) as LightBindingClass).let { binding ->
         val methods = binding.methods.filter { it.hasModifier(JvmModifier.STATIC) }
-        assertThat(methods.map { it.presentation!!.presentableText }).containsExactly(
-          "inflate(LayoutInflater)",
-          "inflate(LayoutInflater, Object)",
-          "inflate(LayoutInflater, ViewGroup, boolean)",
-          "inflate(LayoutInflater, ViewGroup, boolean, Object)",
-          "bind(View)",
-          "bind(View, Object)"
+        assertThat(methods.map { it.presentation!!.presentableText to it.isDeprecated }).containsExactly(
+          "inflate(LayoutInflater)" to false,
+          "inflate(LayoutInflater, Object)" to true,
+          "inflate(LayoutInflater, ViewGroup, boolean)" to false,
+          "inflate(LayoutInflater, ViewGroup, boolean, Object)" to true,
+          "bind(View)" to false,
+          "bind(View, Object)" to true
         )
       }
     }

@@ -105,11 +105,14 @@ val LEGACY_STREAM = Common.Stream.newBuilder().apply {
 class LayoutInspectorTransportRule(
   private val timer: FakeTimer = FakeTimer(),
   private val adbRule: FakeAdbRule = FakeAdbRule(),
-  private val transportService: FakeTransportService = FakeTransportService(timer),
+  val transportService: FakeTransportService = FakeTransportService(timer),
   private val grpcServer: FakeGrpcServer =
     FakeGrpcServer.createFakeGrpcServer("LayoutInspectorTestChannel", transportService, transportService),
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
 ) : TestRule {
+
+  private var isStarted = false
+  private var isCompleted = false
 
   lateinit var inspector: LayoutInspector
   lateinit var inspectorClient: InspectorClient
@@ -216,7 +219,7 @@ class LayoutInspectorTransportRule(
                          handler: (Commands.Command, MutableList<Common.Event>) -> Unit) =
     apply { commandHandlers[type] = handler }
 
-  fun withDefaultDevice(connected: Boolean) = apply {
+  fun withDefaultDevice() = apply {
     beforeActions.add {
       if (inspectorClient is DefaultInspectorClient) {
         addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
@@ -225,19 +228,26 @@ class LayoutInspectorTransportRule(
         addProcess(LEGACY_DEVICE, DEFAULT_PROCESS)
       }
     }
-    if (connected) {
-        beforeActions.add {
-          if (inspectorClient is LegacyClient) {
-            attachTo(LEGACY_STREAM, DEFAULT_PROCESS)
-          }
-          else {
-            inspectorClient.attach(DEFAULT_STREAM, DEFAULT_PROCESS)
-            advanceTime(1100, TimeUnit.MILLISECONDS)
-            waitForStart()
-            transportService.addEventToStream(DEFAULT_STREAM.streamId, createComponentTreeEvent(initialRoot))
-            advanceTime(1100, TimeUnit.MILLISECONDS)
-          }
-        }
+  }
+
+  fun attach() = apply {
+    val attacher = {
+      if (inspectorClient is LegacyClient) {
+        attachTo(LEGACY_STREAM, DEFAULT_PROCESS)
+      }
+      else {
+        inspectorClient.attach(DEFAULT_STREAM, DEFAULT_PROCESS)
+        advanceTime(1100, TimeUnit.MILLISECONDS)
+        waitForStart()
+        transportService.addEventToStream(DEFAULT_STREAM.streamId, createComponentTreeEvent(initialRoot))
+        advanceTime(1100, TimeUnit.MILLISECONDS)
+      }
+    }
+    if (!isStarted) {
+      beforeActions.add(attacher)
+    }
+    else {
+      attacher()
     }
   }
 
@@ -329,7 +339,9 @@ class LayoutInspectorTransportRule(
         override fun evaluate() {
           before()
           try {
+            isStarted = true
             base.evaluate()
+            isCompleted = true
           }
           finally {
             after()
@@ -372,7 +384,7 @@ class LayoutInspectorTransportRule(
     assertThat(unsetSettingsLatch.await(30, TimeUnit.SECONDS)).isTrue()
   }
 
-  private fun createComponentTreeEvent(rootView: ViewNode): Common.Event {
+  fun createComponentTreeEvent(rootView: ViewNode): Common.Event {
     val strings = TestStringTable()
     val tree = TreeBuilder(strings)
     val config = ConfigurationBuilder(strings)

@@ -16,6 +16,7 @@
 <idea-plugin version="2">
   <id>com.android.tools.idea.smali</id>
   <name>Smali Support</name>
+  <category>Android</category>
   <vendor url="http://www.google.com">Google, Inc.</vendor>
 
   <description><![CDATA[Adds support for <em>smali</em> files produced by Android disassembler]]></description>

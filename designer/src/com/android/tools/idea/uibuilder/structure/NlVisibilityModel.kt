@@ -17,12 +17,10 @@ package com.android.tools.idea.uibuilder.structure
 
 import com.android.SdkConstants
 import com.android.SdkConstants.TOOLS_URI
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility.Companion.convert
-import com.intellij.openapi.actionSystem.Presentation
-import icons.StudioIcons
 
 /**
  * Helper model for component visibility.
@@ -79,11 +77,19 @@ class NlVisibilityModel(val component: NlComponent) {
    * If tools attribute is not none, it returns tools attribute visibility and true
    * If tools attribute is none, it returns android attribute visibility and false
    */
-  fun getCurrentVisibility(): Pair<Visibility, Boolean> {
-    if (toolsVisibility != Visibility.NONE) {
-      return Pair(toolsVisibility, true)
+  fun getCurrentVisibility(): Visibility {
+    if (isToolsAttrAvailable()) {
+      return toolsVisibility
     }
-    return Pair(androidVisibility, false)
+    return androidVisibility
+  }
+
+  /**
+   * Returns true if there's tools attribute visibility that can override android
+   * visibility attribute.
+   */
+  fun isToolsAttrAvailable(): Boolean {
+    return toolsVisibility != Visibility.NONE
   }
 
   /**
@@ -92,12 +98,12 @@ class NlVisibilityModel(val component: NlComponent) {
   fun writeToComponent(
     visibility: Visibility,
     uri: String) {
-    val modification = ComponentModification(component, "Update Visibility")
+    val transaction = component.startAttributeTransaction()
     when (visibility) {
-      Visibility.NONE -> modification.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, null)
-      Visibility.VISIBLE -> modification.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "visible")
-      Visibility.INVISIBLE -> modification.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "invisible")
-      Visibility.GONE -> modification.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "gone")
+      Visibility.NONE -> transaction.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, null)
+      Visibility.VISIBLE -> transaction.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "visible")
+      Visibility.INVISIBLE -> transaction.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "invisible")
+      Visibility.GONE -> transaction.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "gone")
     }
 
     if (TOOLS_URI == uri) {
@@ -106,7 +112,7 @@ class NlVisibilityModel(val component: NlComponent) {
       myAndroidVisibility = visibility
     }
 
-    modification.commit()
+    NlWriteCommandActionUtil.run(component, "Update visibility", Runnable { transaction.commit() })
   }
 
   /**
@@ -123,42 +129,6 @@ class NlVisibilityModel(val component: NlComponent) {
   }
 }
 
-/**
- * Update the presentation based on the visibility.
- */
-fun updatePresentation(
-  visibility: Visibility,
-  isToolsAttr: Boolean,
-  presentation: Presentation) {
-
-  when (visibility) {
-    Visibility.NONE -> {
-      presentation.icon = StudioIcons.Common.REMOVE
-      presentation.text = "Visibility not set"
-    }
-    Visibility.VISIBLE -> {
-      presentation.icon = if (isToolsAttr)
-        StudioIcons.LayoutEditor.Properties.VISIBLE_TOOLS_ATTRIBUTE else
-        StudioIcons.LayoutEditor.Properties.VISIBLE
-      presentation.text = "visible"
-    }
-    Visibility.INVISIBLE -> {
-      presentation.icon = if (isToolsAttr)
-        StudioIcons.LayoutEditor.Properties.INVISIBLE_TOOLS_ATTRIBUTE else
-        StudioIcons.LayoutEditor.Properties.INVISIBLE
-      presentation.text = "invisible"
-    }
-    Visibility.GONE -> {
-      presentation.icon = if (isToolsAttr)
-        StudioIcons.LayoutEditor.Properties.GONE_TOOLS_ATTRIBUTE else
-        StudioIcons.LayoutEditor.Properties.GONE
-      presentation.text = "gone"
-    }
-  }
-  presentation.isEnabled = true
-  presentation.isVisible = true
-}
-
 private fun determineVisibility(childVisibility: Visibility, parentVisibility: Visibility): Visibility {
   return when (parentVisibility) {
     Visibility.NONE -> childVisibility
@@ -170,12 +140,14 @@ private fun determineVisibility(childVisibility: Visibility, parentVisibility: V
 
 /**
  * Loops thru all of its parents and return the actual visibility of the component like in Android Device.
+ * It takes into account the tools visibility.
  */
 fun getVisibilityFromParents(component: NlComponent): Visibility {
-  var visibility = convert(component)
+  var visibility = NlVisibilityModel(component).getCurrentVisibility()
   var parent = component.parent
   while (parent != null) {
-    visibility = determineVisibility(visibility, convert(parent))
+    val parentVisibility = NlVisibilityModel(parent).getCurrentVisibility()
+    visibility = determineVisibility(visibility, parentVisibility)
     parent = parent.parent
   }
 

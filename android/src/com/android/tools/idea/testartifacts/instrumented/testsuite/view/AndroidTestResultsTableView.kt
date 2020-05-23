@@ -40,6 +40,7 @@ import javax.swing.JTable
 import javax.swing.ListSelectionModel
 import javax.swing.RowFilter
 import javax.swing.event.ListSelectionEvent
+import javax.swing.event.TableModelEvent
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableModel
@@ -115,6 +116,14 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener) {
   fun refreshTable() {
     myTableView.updateColumnSizes()
     myModel.fireTableDataChanged()
+  }
+
+  /**
+   * Clears currently selected items in the table.
+   */
+  @UiThread
+  fun clearSelection() {
+    myTableView.clearSelection()
   }
 
   /**
@@ -203,8 +212,14 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       listener.onAndroidTestResultsRowSelected(
         it,
         (model.columnInfos.getOrNull(selectedColumn) as? AndroidTestResultsColumn)?.device)
-      clearSelection()
     }
+  }
+
+  override fun tableChanged(e: TableModelEvent?) {
+    // JDK-4276786: JTable doesn't preserve the selection so we manually restore the previous selection.
+    val prevSelectedObject = selectedObject
+    super.tableChanged(e)
+    prevSelectedObject?.let { addSelection(it) }
   }
 }
 

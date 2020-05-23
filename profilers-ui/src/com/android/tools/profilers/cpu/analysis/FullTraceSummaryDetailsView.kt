@@ -35,6 +35,7 @@ class FullTraceSummaryDetailsView(profilersView: StudioProfilersView,
     addRowToCommonSection("Duration", durationLabel)
     tabModel.selectionRange.addDependency(observer).onChange(Range.Aspect.RANGE) { updateRangeLabels() }
     updateRangeLabels()
+    addSection(HelpTextView())
   }
 
   private fun updateRangeLabels() {

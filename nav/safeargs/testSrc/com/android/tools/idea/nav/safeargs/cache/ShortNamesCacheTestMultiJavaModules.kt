@@ -52,6 +52,12 @@ class ShortNamesCacheTestMultiJavaModules {
     NavigationResourcesModificationListener.ensureSubscribed(fixture.project)
   }
 
+  /**
+   *  Project structure:
+   *  base app module --> lib1 dep module(safe arg mode is off) --> lib2 dep module(safe arg mode is on)
+   *
+   *  So light classes from lib2 module should be exposed, but light classes from lib1 should not be exposed.
+   */
   @Test
   fun multiModuleTest() {
     projectRule.requestSyncAndWait()
@@ -60,7 +66,7 @@ class ShortNamesCacheTestMultiJavaModules {
     // Check light arg classes
     assertThat(cache.getContents("FirstFragmentArgs", fixture.project)).containsExactly(
       "com.example.myapplication.FirstFragmentArgs",
-      "com.example.mylibrary.FirstFragmentArgs"
+      "com.example.mylibrary2.FirstFragmentArgs"
     )
 
     assertThat(cache.getContents("SecondFragmentArgs", fixture.project)).containsExactly(
@@ -71,26 +77,17 @@ class ShortNamesCacheTestMultiJavaModules {
     // Check light direction classes
     assertThat(cache.getContents("FirstFragmentDirections", fixture.project)).containsExactly(
       "com.example.myapplication.FirstFragmentDirections",
-      "com.example.mylibrary.FirstFragmentDirections"
+      "com.example.mylibrary2.FirstFragmentDirections"
     )
 
     assertThat(cache.getContents("SecondFragmentDirections", fixture.project)).containsExactly(
       "com.example.myapplication.SecondFragmentDirections"
     )
 
-    assertThat(cache.getContents("NavGraphDirections", fixture.project)).containsExactly(
-      "com.example.myapplication.NavGraphDirections"
-    )
-
-    assertThat(cache.getContents("LibnavGraphDirections", fixture.project)).containsExactly(
-      "com.example.mylibrary.LibnavGraphDirections"
-    )
-
-
     // Check light builder classes
     assertThat(cache.getContents("Builder", fixture.project)).containsAllOf(
       "com.example.myapplication.FirstFragmentArgs.Builder",
-      "com.example.mylibrary.FirstFragmentArgs.Builder"
+      "com.example.mylibrary2.FirstFragmentArgs.Builder"
     )
 
     assertThat(cache.getContents("Builder", fixture.project)).contains(

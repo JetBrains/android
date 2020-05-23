@@ -76,7 +76,7 @@ class LayoutInspectorSettingsTest {
     var toolWindow: ToolWindow? = null
 
     override fun initToolWindow(bean: ToolWindowEP) {
-      assertThat(bean.condition!!.value(project)).isTrue()
+      assertThat(bean.toolWindowFactory.isApplicable(project)).isTrue()
       assertThat(bean.id).isEqualTo(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
       toolWindow = MyMockToolWindow(project)
     }

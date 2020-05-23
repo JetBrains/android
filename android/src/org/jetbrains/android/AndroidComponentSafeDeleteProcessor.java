@@ -24,9 +24,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidComponentSafeDeleteProcessor extends SafeDeleteProcessorDelegateBase {
 
   private final JavaSafeDeleteProcessor myBaseHandler = new JavaSafeDeleteProcessor();

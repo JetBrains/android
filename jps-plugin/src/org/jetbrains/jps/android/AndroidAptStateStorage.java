@@ -12,9 +12,6 @@ import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidAptStateStorage extends AbstractStateStorage<String, AndroidAptValidityState> {
 
   public static final StorageProvider<AndroidAptStateStorage> PROVIDER = new StorageProvider<AndroidAptStateStorage>() {

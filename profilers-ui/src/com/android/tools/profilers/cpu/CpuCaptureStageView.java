@@ -83,7 +83,6 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
    */
   private static final double TIMELINE_PAN_FACTOR = 0.1;
   private static final double TIMELINE_DRAG_FACTOR = 0.001;
-  private static final ProfilerTrackRendererFactory TRACK_RENDERER_FACTORY = new ProfilerTrackRendererFactory();
 
   /**
    * Key binding keys.
@@ -95,6 +94,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private static final String PANNING_MODE_ON_KEY = "panning_mode_on";
   private static final String PANNING_MODE_OFF_KEY = "panning_mode_off";
 
+  private final ProfilerTrackRendererFactory myTrackRendererFactory;
   private final TrackGroupListPanel myTrackGroupList;
   private final CpuAnalysisPanel myAnalysisPanel;
   private final JScrollPane myScrollPane;
@@ -108,6 +108,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
+    myTrackRendererFactory = new ProfilerTrackRendererFactory(getProfilersView());
     myTrackGroupList = createTrackGroupListPanel();
     myScrollPane = new JBScrollPane(myTrackGroupList.getComponent(),
                                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -264,7 +265,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
   @NotNull
   private TrackGroupListPanel createTrackGroupListPanel() {
-    TrackGroupListPanel trackGroupListPanel = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
+    TrackGroupListPanel trackGroupListPanel = new TrackGroupListPanel(myTrackRendererFactory);
     MouseAdapter mouseListener = new MouseAdapter() {
       private int myLastX = 0;
 

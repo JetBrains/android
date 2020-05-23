@@ -79,9 +79,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackageWizardStep> {
   public static final String BUNDLE = "bundle";
   public static final String APK = "apk";

@@ -25,9 +25,6 @@ import org.jetbrains.android.util.ProjectBasedErrorReporter;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidInlineLayoutHandler extends InlineActionHandler {
   private static AndroidInlineTestConfig ourTestConfig;
 

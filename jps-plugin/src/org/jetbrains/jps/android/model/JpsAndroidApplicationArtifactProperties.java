@@ -7,9 +7,6 @@ import org.jetbrains.jps.model.module.JpsModule;
 
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public interface JpsAndroidApplicationArtifactProperties extends JpsElement {
 
   AndroidArtifactSigningMode getSigningMode();

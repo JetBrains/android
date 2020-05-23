@@ -13,9 +13,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidFindStyleApplicationsDialog extends DialogWrapper {
   private JPanel myPanel;
   private JBRadioButton myModuleScopeRadio;

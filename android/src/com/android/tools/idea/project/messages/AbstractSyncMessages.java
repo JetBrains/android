@@ -23,26 +23,26 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent;
+import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueQuickFix;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.Failure;
 import com.intellij.build.events.MessageEvent;
+import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.Navigatable;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -139,7 +139,7 @@ public abstract class AbstractSyncMessages implements Disposable {
       updateNotification(notification, text, quickFixes);
     }
 
-    report(notification);
+    report(notification, ContainerUtil.map(quickFixes, it -> new AndroidSyncIssueQuickFix(it)));
   }
 
   @NotNull
@@ -183,48 +183,23 @@ public abstract class AbstractSyncMessages implements Disposable {
     }
   }
 
-  public void report(@NotNull NotificationData notification) {
+  public void report(@NotNull NotificationData notification, @NotNull List<? extends BuildIssueQuickFix> quickFixes) {
     // Save on array to be shown by build view later.
     Object taskId = GradleSyncState.getInstance(myProject).getExternalSystemTaskId();
     if (taskId == null) {
       taskId = PENDING_TASK_ID;
     }
     else {
-      showNotification(notification, taskId);
+      showNotification(notification, taskId, quickFixes);
     }
     synchronized (myLock) {
       myCurrentNotifications.computeIfAbsent(taskId, key -> new ArrayList<>()).add(notification);
     }
   }
 
-  /**
-   * Show all pending events on the Build View, using the given taskId as parent. It clears the pending notifications after showing them.
-   *
-   * @param taskId id of task associated with this sync.
-   * @return The list of failures on the events associated to taskId.
-   */
-  @NotNull
-  public List<Failure> showEvents(@NotNull ExternalSystemTaskId taskId) {
-    List<Failure> result;
-    // Show notifications created without a taskId
-    synchronized (myLock) {
-      for (NotificationData notification : myCurrentNotifications.getOrDefault(PENDING_TASK_ID, Collections.emptyList())) {
-        showNotification(notification, taskId);
-      }
-      myCurrentNotifications.remove(taskId);
-      myCurrentNotifications.remove(PENDING_TASK_ID);
-
-      result = myShownFailures.remove(taskId);
-    }
-    if (result == null) {
-      result = Collections.emptyList();
-    }
-    // Report any sync issues reported to the user to the usage tracker.
-    SyncIssueUsageReporter.Companion.getInstance(getProject()).reportToUsageTracker();
-    return result;
-  }
-
-  private void showNotification(@NotNull NotificationData notification, @NotNull Object taskId) {
+  private void showNotification(@NotNull NotificationData notification,
+                                @NotNull Object taskId,
+                                @NotNull List<? extends BuildIssueQuickFix> quickFixes) {
     String title = notification.getTitle();
     // Since the title of the notification data is the group, it is better to display the first line of the message
     String[] lines = notification.getMessage().split(SystemProperties.getLineSeparator());
@@ -234,10 +209,10 @@ public abstract class AbstractSyncMessages implements Disposable {
 
     AndroidSyncIssueEvent issueEvent;
     if (notification.getFilePath() != null) {
-      issueEvent = new AndroidSyncIssueFileEvent(taskId, notification, title);
+      issueEvent = new AndroidSyncIssueFileEvent(taskId, notification, title, quickFixes);
     }
     else {
-      issueEvent = new AndroidSyncIssueEvent(taskId, notification, title);
+      issueEvent = new AndroidSyncIssueEvent(taskId, notification, title, quickFixes);
     }
 
     // Only include errors in the summary text output

@@ -33,9 +33,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidInlineUtil {
   private AndroidInlineUtil() {
   }

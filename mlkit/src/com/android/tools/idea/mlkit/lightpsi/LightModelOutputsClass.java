@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
-import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
-import com.android.tools.mlkit.MlNames;
+import com.android.tools.idea.psi.light.DeprecatableLightMethodBuilder;
 import com.android.tools.mlkit.MlNames;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.PsiClass;
@@ -28,11 +28,12 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
-import com.intellij.psi.impl.light.LightMethodBuilder;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
@@ -57,12 +58,16 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
     // Caches getter methods for output class.
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
-        PsiMethod[] methods = new PsiMethod[tensorInfos.size()];
-        for (int i = 0; i < methods.length; i++) {
-          methods[i] = buildGetterMethod(tensorInfos.get(i));
+        List<PsiMethod> methods = new ArrayList<>();
+        for (TensorInfo tensorInfo : tensorInfos) {
+          methods.add(buildGetterMethod(tensorInfo, false));
+          if (!CodeUtils.getPsiClassType(tensorInfo, getProject(), getResolveScope()).getClassName().equals("TensorBuffer")) {
+            // Adds fallback getter method.
+            methods.add(buildGetterMethod(tensorInfo, true));
+          }
         }
 
-        return CachedValueProvider.Result.create(methods, ModificationTracker.NEVER_CHANGED);
+        return CachedValueProvider.Result.create(methods.toArray(PsiMethod.EMPTY_ARRAY), ModificationTracker.NEVER_CHANGED);
       }, false);
   }
 
@@ -85,16 +90,19 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
   }
 
   @NotNull
-  private PsiMethod buildGetterMethod(@NotNull TensorInfo tensorInfo) {
+  private PsiMethod buildGetterMethod(@NotNull TensorInfo tensorInfo, boolean usedForFallback) {
     GlobalSearchScope scope = getResolveScope();
-    PsiClassType returnType = CodeUtils.getPsiClassType(tensorInfo, getProject(), scope);
+    PsiClassType returnType = usedForFallback
+                              ? PsiType.getTypeByName(ClassNames.TENSOR_BUFFER, getProject(), scope)
+                              : CodeUtils.getPsiClassType(tensorInfo, getProject(), scope);
     String methodName = MlNames.formatGetterName(tensorInfo.getIdentifierName(), CodeUtils.getTypeName(returnType));
-    LightMethodBuilder method =
-      new NullabilityLightMethodBuilder(myManager, methodName)
-        .setMethodReturnType(returnType, true)
-        .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
-        .setContainingClass(this);
-    method.setNavigationElement(this);
+    DeprecatableLightMethodBuilder method = new DeprecatableLightMethodBuilder(myManager, JavaLanguage.INSTANCE, methodName);
+    method
+      .setMethodReturnType(returnType, true)
+      .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
+      .setContainingClass(this)
+      .setNavigationElement(this);
+    method.setDeprecated(usedForFallback);
     return method;
   }
 

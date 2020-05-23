@@ -16,11 +16,15 @@
 package com.android.tools.adtui
 
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.adtui.common.clickableTextColor
+import com.android.tools.adtui.common.linkForeground
 import com.android.tools.adtui.model.formatter.NumberFormatter
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.components.JBLabel
 import java.awt.Font
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
 import java.awt.font.TextAttribute
@@ -64,24 +68,30 @@ class StatLabel @JvmOverloads constructor(num: Long,
 
     // If there is an associated action, visually indicate so
     if(action != null) {
-      numLabel.foreground = clickableTextColor
-      descLabel.foreground = clickableTextColor
+      isFocusable = true
+      numLabel.foreground = linkForeground
+      descLabel.foreground = linkForeground
       val (numOff, numOn) = makeUnderlinedFontSwitchers(numLabel)
       val (descOff, descOn) = makeUnderlinedFontSwitchers(descLabel)
+      fun on() { numOn(); descOn() }
+      fun off() { numOff(); descOff() }
       addMouseListener(object : MouseListener {
-        override fun mouseEntered(e: MouseEvent?) {
-          numOn()
-          descOn()
-        }
-
-        override fun mouseExited(e: MouseEvent?) {
-          numOff()
-          descOff()
-        }
-
+        override fun mouseEntered(e: MouseEvent?) = on()
+        override fun mouseExited(e: MouseEvent?) = off()
         override fun mouseClicked(e: MouseEvent?) = action.run()
         override fun mousePressed(e: MouseEvent?) {}
         override fun mouseReleased(e: MouseEvent?) {}
+      })
+      addFocusListener(object : FocusListener {
+        override fun focusGained(e: FocusEvent?) = on()
+        override fun focusLost(e: FocusEvent?) = off()
+      })
+      addKeyListener(object : KeyAdapter() {
+        override fun keyPressed(e: KeyEvent) {
+          if ((e.keyCode == KeyEvent.VK_ENTER || e.keyCode == KeyEvent.VK_SPACE) && isFocusOwner) {
+            action.run()
+          }
+        }
       })
     }
   }

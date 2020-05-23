@@ -90,6 +90,6 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   private NewProjectWizardFixture clickFinish() {
-    return clickFinish(Wait.seconds(15), Wait.seconds(120));
+    return clickFinish(Wait.seconds(15), Wait.seconds(240));
   }
 }

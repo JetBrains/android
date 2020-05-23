@@ -20,7 +20,8 @@ import com.android.tools.idea.actions.LayoutPreviewHandler
 import com.android.tools.idea.flags.StudioFlags.NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
-import icons.StudioIcons
+import icons.StudioIcons.LayoutEditor.Toolbar.TOOLS_ATTRIBUTE_OFF
+import icons.StudioIcons.LayoutEditor.Toolbar.TOOLS_ATTRIBUTE_ON
 
 /**
  * [ToggleAction] to enable or disable using 'tools' namespaced 'visibility' and 'layout_editor_absoluteX/Y' attributes in the Layout Editor
@@ -31,13 +32,13 @@ import icons.StudioIcons
 object DisableToolsVisibilityAndPositionInPreviewAction : ToggleAction(
   "Toggle tools visibility and position",
   "Disable or Enable 'tools:visibility' and 'tools:layout_editor_absoluteX/Y' attributes in the Layout preview.",
-  // TODO(146151278): Use the correct icons once they're available, should have a variant for 'selected' mode.
-  StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE) {
+  TOOLS_ATTRIBUTE_ON) {
 
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isVisible = NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW.get()
     e.presentation.isEnabled = e.getPreviewHandler() != null
+    e.presentation.icon = if (isSelected(e)) TOOLS_ATTRIBUTE_OFF else TOOLS_ATTRIBUTE_ON
   }
 
   override fun isSelected(e: AnActionEvent): Boolean {

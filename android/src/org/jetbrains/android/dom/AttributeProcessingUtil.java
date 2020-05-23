@@ -323,7 +323,7 @@ public class AttributeProcessingUtil {
    */
   private static Collection<PsiClass> getAdditionalAttributesClasses(@NotNull AndroidFacet facet, @NotNull PsiClass c) {
     if (CLASS_NESTED_SCROLL_VIEW.isEquals(StringUtil.notNullize(c.getQualifiedName()))) {
-      return Collections.singleton(getViewClassMap(facet).get(SCROLL_VIEW));
+      return Collections.singleton(getViewClassByTagName(facet, SCROLL_VIEW));
     }
 
     return Collections.emptySet();

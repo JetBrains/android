@@ -18,9 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
-/**
- * @author yole
- */
 public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
   public ManifestDomFileDescription() {
     super(Manifest.class, AndroidManifest.NODE_MANIFEST);

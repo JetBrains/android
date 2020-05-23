@@ -5,9 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 public class ResourceFileData {
   // order matters because of id assigning in R.java
   private final List<ResourceEntry> myValueResources;

@@ -13,9 +13,6 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidAptValidityState implements ValidityState {
   private static final int SIGNATURE = 0xDEADBEEF;
   private static final byte VERSION = 1;

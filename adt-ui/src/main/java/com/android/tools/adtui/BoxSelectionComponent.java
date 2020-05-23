@@ -23,8 +23,9 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import javax.swing.JList;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
  *       --------------------
  *       |<---- Range ----->|
  */
-public class BoxSelectionComponent extends RangeSelectionComponent {
+public class BoxSelectionComponent extends RangeSelectionComponent implements MouseListener, MouseMotionListener {
 
   @NotNull private final JList<?> myList;
 
@@ -51,6 +52,11 @@ public class BoxSelectionComponent extends RangeSelectionComponent {
   public BoxSelectionComponent(@NotNull RangeSelectionModel model, @NotNull JList<?> list) {
     super(model);
     myList = list;
+  }
+
+  public void clearSelection() {
+    getModel().clear();
+    myList.clearSelection();
   }
 
   @Override
@@ -121,38 +127,59 @@ public class BoxSelectionComponent extends RangeSelectionComponent {
 
   @Override
   protected void initListeners() {
-    MouseAdapter adapter = new BoxSelectionMouseAdapter();
-    this.addMouseListener(adapter);
-    this.addMouseMotionListener(adapter);
+    setEventHandlersEnabled(true);
   }
 
-  private class BoxSelectionMouseAdapter extends MouseAdapter {
-    private int myLastX = 0;
-    private int myLastRowIndex = -1;
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-      getModel().beginUpdate();
-      getModel().clear();
-      myList.clearSelection();
-      myLastX = e.getX();
-      myLastRowIndex = myList.locationToIndex(e.getPoint());
+  /**
+   * Enable/disable mouse event handlers.
+   */
+  public void setEventHandlersEnabled(boolean enabled) {
+    if (enabled) {
+      addMouseListener(this);
+      addMouseMotionListener(this);
     }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-      getModel().endUpdate();
-      myLastX = 0;
-      myLastRowIndex = -1;
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-      double pressed = xToRange(myLastX);
-      double current = xToRange(e.getX());
-      int rowIndex = myList.locationToIndex(e.getPoint());
-      getModel().set(Math.min(pressed, current), Math.max(pressed, current));
-      myList.setSelectionInterval(myLastRowIndex, rowIndex);
+    else {
+      removeMouseListener(this);
+      removeMouseMotionListener(this);
     }
   }
+
+  private int myLastX = 0;
+  private int myLastRowIndex = -1;
+
+  @Override
+  public void mousePressed(MouseEvent e) {
+    getModel().beginUpdate();
+    clearSelection();
+    myLastX = e.getX();
+    myLastRowIndex = myList.locationToIndex(e.getPoint());
+  }
+
+  @Override
+  public void mouseReleased(MouseEvent e) {
+    getModel().endUpdate();
+    myLastX = 0;
+    myLastRowIndex = -1;
+  }
+
+  @Override
+  public void mouseDragged(MouseEvent e) {
+    double pressed = xToRange(myLastX);
+    double current = xToRange(e.getX());
+    int rowIndex = myList.locationToIndex(e.getPoint());
+    getModel().set(Math.min(pressed, current), Math.max(pressed, current));
+    myList.setSelectionInterval(myLastRowIndex, rowIndex);
+  }
+
+  @Override
+  public void mouseClicked(MouseEvent e) { }
+
+  @Override
+  public void mouseEntered(MouseEvent e) { }
+
+  @Override
+  public void mouseExited(MouseEvent e) { }
+
+  @Override
+  public void mouseMoved(MouseEvent e) { }
 }

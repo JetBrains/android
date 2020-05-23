@@ -109,6 +109,31 @@ public final class ModifyDeviceSetDialogTableTest {
   }
 
   @Test
+  public void setModelIssue() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 29")
+      .setValidityReason("Missing system image")
+      .setKey(new Key("Pixel_4_API_29"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device));
+
+    // Act
+    myTable.setModel(model);
+
+    // Assert
+    // @formatter:off
+    Object data = Arrays.asList(
+      Arrays.asList("",    "Type",           "Device"),
+      Arrays.asList(false, device.getIcon(), "<html>Pixel 4 API 29<br>Missing system image"));
+    // @formatter:on
+
+    assertEquals(data, myTable.getData());
+  }
+
+  @Test
   public void setModelSerialNumber() {
     // Arrange
     Device device1 = new PhysicalDevice.Builder()
@@ -184,31 +209,6 @@ public final class ModifyDeviceSetDialogTableTest {
     Object data = Arrays.asList(
       Arrays.asList("",    "Type",           "Device",         "Snapshot"),
       Arrays.asList(false, device.getIcon(), "Pixel 3 API 29", "Snapshot"));
-    // @formatter:on
-
-    assertEquals(data, myTable.getData());
-  }
-
-  @Test
-  public void setModelIssue() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setValidityReason("Missing system image")
-      .setKey(new Key("Pixel_3_API_29"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device));
-
-    // Act
-    myTable.setModel(model);
-
-    // Assert
-    // @formatter:off
-    Object data = Arrays.asList(
-      Arrays.asList("",    "Type",           "Device",         "Issue"),
-      Arrays.asList(false, device.getIcon(), "Pixel 3 API 29", "Missing system image"));
     // @formatter:on
 
     assertEquals(data, myTable.getData());

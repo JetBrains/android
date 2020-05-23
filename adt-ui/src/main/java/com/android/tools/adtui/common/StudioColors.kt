@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.common
 
+import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.Color
@@ -45,6 +46,11 @@ val secondaryPanelBackground = JBColor.namedColor("UIDesigner.Panel.background",
 val border = JBColor.namedColor("UIDesigner.Panel.borderColor", JBColor(0xc9c9c9, 0x282828))
 
 /**
+ * Color of the 3d lines in the transform panel of the layout editor
+ */
+val lines3d = JBColor.namedColor("UIDesigner.Panel.lines3d", JBColor(0x2D2D2D, 0x26A04A))
+
+/**
  * Border color to use when separating element inside the same panel.
  *
  * Example: border between the category list and widget list in the
@@ -71,7 +77,7 @@ val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(
  *
  * Example: text color of "Leak" button
  */
-val clickableTextColor = JBColor.namedColor("Content.clickable", JBColor(0x397FE4, 0x7CAEFE))
+val linkForeground = JBColor.namedColor("Link.foreground", JBColor(0x195FC4, 0x9CCEFE))
 
 /**
  * Background color for selected content.
@@ -123,3 +129,10 @@ val tabbedPaneFocus = JBUI.CurrentTheme.TabbedPane.ENABLED_SELECTED_COLOR
  * Example: Analysis tab of a cpu profiling capture.
  */
 val tabbedPaneHoverHighlight = JBUI.CurrentTheme.TabbedPane.HOVER_COLOR
+
+/**
+ * Color of the text used to display help information.
+ *
+ * Example: Keyboard/mouse shortcut descriptions in Summary tab of a cpu profiling capture.
+ */
+val helpText = JBColor.namedColor("Editor.foreground", JBColor(Gray._80, Gray._160))

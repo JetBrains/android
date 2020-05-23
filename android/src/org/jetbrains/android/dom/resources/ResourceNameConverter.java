@@ -42,9 +42,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class ResourceNameConverter extends ResolvingConverter<String> implements CustomReferenceConverter<String> {
   @Override
   public String fromString(@Nullable @NonNls String s, ConvertContext context) {

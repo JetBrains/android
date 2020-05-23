@@ -26,9 +26,6 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 
-/**
- * @author Vladislav.Soroka
- */
 public class AndroidGradleTaskManagerTest {
 
   @Test

@@ -40,9 +40,6 @@ import java.util.Map;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidSdkConfigurableForm {
   private JComboBox myInternalJdkComboBox;
   private JPanel myContentPanel;

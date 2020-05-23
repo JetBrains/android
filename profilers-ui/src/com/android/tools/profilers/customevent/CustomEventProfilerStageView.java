@@ -39,7 +39,6 @@ import org.jetbrains.annotations.NotNull;
  * This class represents the view of all the custom events that users have chosen to track for Custom Event Visualization.
  */
 public class CustomEventProfilerStageView extends StageView<CustomEventProfilerStage> {
-  private static final ProfilerTrackRendererFactory TRACK_RENDERER_FACTORY = new ProfilerTrackRendererFactory();
 
   @NotNull
   private final TrackGroupListPanel myTrackGroupList;
@@ -47,7 +46,7 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
   public CustomEventProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CustomEventProfilerStage stage) {
     super(profilersView, stage);
 
-    myTrackGroupList = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
+    myTrackGroupList = new TrackGroupListPanel(new ProfilerTrackRendererFactory(getProfilersView()));
     myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels());
 
     // Add a dependency for when the range changes so the track group list has to be repainted as the timeline moves.

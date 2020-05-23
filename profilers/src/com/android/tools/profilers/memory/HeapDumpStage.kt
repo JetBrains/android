@@ -38,4 +38,5 @@ class HeapDumpStage(profilers: StudioProfilers,
 
   override fun getParentStage() = MemoryProfilerStage(studioProfilers, loader)
   override fun getHomeStageClass() = MemoryProfilerStage::class.java
+  override fun isInteractingWithTimeline() = false
 }

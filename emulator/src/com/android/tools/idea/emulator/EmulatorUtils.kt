@@ -30,7 +30,7 @@ import kotlin.math.roundToInt
 /**
  * Invokes given function on the UI thread regardless of the modality state.
  */
-internal fun invokeLater(@UiThread action: () -> Unit) {
+internal fun invokeLaterInAnyModalityState(@UiThread action: () -> Unit) {
   ApplicationManager.getApplication().invokeLater(action, ModalityState.any())
 }
 

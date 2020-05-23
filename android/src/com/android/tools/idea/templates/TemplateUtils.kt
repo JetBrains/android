@@ -263,6 +263,15 @@ fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: St
   return maxOf(resolved, minCoordinate, GradleCoordinate.COMPARE_PLUS_LOWER).toString()
 }
 
-fun capitalizeAppName(appName: String?) = appName?.split(" ")?.joinToString("") {
-  it.usLocaleCapitalize()
+fun getAppNameForTheme(appName: String): String {
+  val result = appName
+    .split(" ")
+    .joinToString("") {
+      it.usLocaleCapitalize()
+    }
+    .filter {
+      // The characters need to be valid characters for Java because name is used for resource names
+      Character.isJavaIdentifierPart(it)
+    }
+  return if (result.isEmpty()) { "App" } else result
 }

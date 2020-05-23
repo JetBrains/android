@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.structure;
 
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.editor.ActionUtils;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
@@ -29,6 +30,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
@@ -100,6 +102,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
   private final NlTreeBadgeHandler myBadgeHandler;
+  private final NlVisibilityGutterPanel myVisibilityGutterPanel;
 
   @Nullable private NlModel myModel;
   private boolean mySkipWait;
@@ -110,7 +113,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Nullable private Rectangle myInsertionReceiverBounds;
   @Nullable private NlDesignSurface mySurface;
 
-  public NlComponentTree(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
+  public NlComponentTree(@NotNull Project project,
+                         @Nullable NlDesignSurface designSurface,
+                         NlVisibilityGutterPanel visibilityGutter) {
     mySelectionIsUpdating = new AtomicBoolean(false);
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
@@ -146,6 +151,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       return !components.isEmpty() ? components.get(0).getTagName() : null;
     });
     help.registerCustomShortcutSet(KeyEvent.VK_F1, InputEvent.SHIFT_MASK, this);
+    myVisibilityGutterPanel = visibilityGutter;
+    addTreeExpansionListener(myVisibilityGutterPanel);
   }
 
   private void enableDnD() {
@@ -290,6 +297,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           }
           mySelectionIsUpdating.set(true);
 
+          // TODO b/157095734 resolve multi-selection in motion layout
+          getSelectionModel().setSelectionMode(MotionUtils.getTreeSelectionModel(myModel));
+
           List<TreePath> expandedPaths = TreeUtil.collectExpandedPaths(NlComponentTree.this);
           Object oldRoot = treeModel.getRoot();
           setModel(new NlComponentTreeModel(myModel));
@@ -324,6 +334,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   private void updateSelection() {
+    // When updating selection it can expand collapsed paths.
+    myVisibilityGutterPanel.update(NlComponentTree.this);
     if (!mySelectionIsUpdating.compareAndSet(false, true)) {
       return;
     }

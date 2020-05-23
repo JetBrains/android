@@ -51,7 +51,6 @@ import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
@@ -66,6 +65,7 @@ import static org.mockito.Mockito.when;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.gradle.actions.SyncProjectAction;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -80,7 +80,6 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckException;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -108,7 +107,6 @@ import com.intellij.openapi.externalSystem.model.project.ExternalModuleBuildClas
 import com.intellij.openapi.externalSystem.model.project.ExternalProjectBuildClasspathPojo;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.settings.AbstractExternalSystemLocalSettings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -138,6 +136,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -165,6 +164,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
+    String externalProjectPath = toCanonicalPath(project.getBasePath());
+    projectSettings.setExternalProjectPath(externalProjectPath);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(singletonList(projectSettings));
   }
 
@@ -795,10 +796,23 @@ b/154962759 */
 
     // Verify that ContentRootData DataNode is created for buildSrc module.
     Collection<DataNode<ContentRootData>> contentRootData = ExternalSystemApiUtil.findAll(moduleData, ProjectKeys.CONTENT_ROOT);
-    assertThat(contentRootData).hasSize(1);
     File buildSrcDir = new File(getProject().getBasePath(), "buildSrc");
-    assertThat(contentRootData.iterator().next().getData().getRootPath())
-            .isEqualTo(FileUtils.toSystemIndependentPath(buildSrcDir.getPath()));
+    if (isModulePerSourceSet()) {
+      String buildSrcDirPath = buildSrcDir.getPath();
+      assertThat(ContainerUtil.map(contentRootData, e -> e.getData().getRootPath())).containsExactly(
+        buildSrcDirPath,
+        buildSrcDirPath + "/src/main/java",
+        buildSrcDirPath + "/src/main/groovy",
+        buildSrcDirPath + "/src/main/resources",
+        buildSrcDirPath + "/src/test/java",
+        buildSrcDirPath + "/src/test/groovy",
+        buildSrcDirPath + "/src/test/resources"
+      );
+    } else {
+      assertThat(contentRootData).hasSize(1);
+      assertThat(contentRootData.iterator().next().getData().getRootPath())
+        .isEqualTo(FileUtils.toSystemIndependentPath(buildSrcDir.getPath()));
+    }
 
     // Verify that buildSrc/lib1 has dependency on buildSrc/lib2.
     Module lib1Module = getModule("lib1");
@@ -915,7 +929,6 @@ b/154962759 */
   public void testDaemonStops() throws Exception {
     loadSimpleApplication();
     List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
-/* b/155929877
     assertThat(daemonStatus).isNotEmpty();
     GradleDaemonServices.stopDaemons();
     daemonStatus = GradleDaemonServices.getDaemonsStatus();
@@ -926,7 +939,6 @@ b/154962759 */
     requestSyncAndWait();
     daemonStatus = GradleDaemonServices.getDaemonsStatus();
     assertThat(daemonStatus).isNotEmpty();
-b/155929877 */
   }
 
   @NotNull
@@ -935,5 +947,9 @@ b/155929877 */
       .map(it -> it.getArtifacts())
       .flatMap(Collection::stream)
       .collect(toList());
+  }
+
+  private boolean isModulePerSourceSet() {
+    return !IdeInfo.getInstance().isAndroidStudio();
   }
 }

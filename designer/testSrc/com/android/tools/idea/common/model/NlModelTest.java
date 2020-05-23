@@ -428,7 +428,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  // b/126334920
+  // b/156479695
   public void ignore_testAddComponentsWithDependencyCheck() {
     List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
@@ -478,7 +478,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  // b/126334920
+  // b/156479695
   public void ignore_testAddComponentsNoDependencyCheckOnMove() {
     List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)

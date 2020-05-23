@@ -119,6 +119,10 @@ fun expandCollectionParameters(psiElement: PsiElement, parameterValues: Deque<Sq
  * matching them by the order they have in the queue.
  */
 fun inlineParameterValues(psiElement: PsiElement, parameterValues: Deque<SqliteValue>): String {
+  if (parameterValues.isEmpty()) {
+    return psiElement.text
+  }
+
   // Can't do psiElement.copy because cloning the view provider of the RoomSql PsiFile doesn't work.
   val psiElementCopy = AndroidSqlParserDefinition.parseSqlQuery(psiElement.project, psiElement.text)
 

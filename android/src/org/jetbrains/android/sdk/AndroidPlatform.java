@@ -41,9 +41,6 @@ import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.util.PathUtil.getCanonicalPath;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidPlatform {
   @NotNull private final AndroidSdkData mySdkData;
   @NotNull private final IAndroidTarget myTarget;

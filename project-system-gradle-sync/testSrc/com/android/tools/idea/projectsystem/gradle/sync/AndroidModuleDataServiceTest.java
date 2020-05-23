@@ -39,6 +39,7 @@ import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.RunManagerEx;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
@@ -144,7 +145,9 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     ConfigurationFactory configurationFactory = AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0];
     Project project = getProject();
     AndroidJUnitConfiguration jUnitConfiguration = new AndroidJUnitConfiguration(project, configurationFactory);
-    runManager.addConfiguration(runManager.createConfiguration(jUnitConfiguration, configurationFactory), true);
+    RunnerAndConfigurationSettings settings = runManager.createConfiguration(jUnitConfiguration, configurationFactory);
+    settings.storeInDotIdeaFolder();
+    runManager.addConfiguration(settings);
 
     List<RunConfiguration> junitRunConfigurations = runManager.getConfigurationsList(AndroidJUnitConfigurationType.getInstance());
     for (RunConfiguration runConfiguration : junitRunConfigurations) {

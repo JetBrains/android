@@ -31,6 +31,7 @@ import com.android.ide.common.gradle.model.IdeFilterData
 import com.android.ide.common.gradle.model.IdeGraphItem
 import com.android.ide.common.gradle.model.IdeInstantRun
 import com.android.ide.common.gradle.model.IdeJavaArtifact
+import com.android.ide.common.gradle.model.IdeJavaArtifactImpl
 import com.android.ide.common.gradle.model.IdeJavaCompileOptions
 import com.android.ide.common.gradle.model.IdeJavaLibrary
 import com.android.ide.common.gradle.model.IdeLintOptions
@@ -220,18 +221,9 @@ class ModelSerializationTest {
   fun level2Dependencies() = assertSerializable {
     // We use a local one to avoid changing the global one that is used for other tests.
     val localDependenciesFactory = IdeDependenciesFactory()
-    val javaGraphItem = GraphItemStub("javaLibrary", listOf(), "")
-    val androidGraphItem = GraphItemStub("androidLibrary", listOf(), "")
-    val moduleGraphItem = GraphItemStub("module", listOf(), "")
-
-    val level2JavaLibrary = l2JavaLibrary("javaLibrary")
-    val level2AndroidLibrary = l2AndroidLibrary("androidLibrary")
-    val level2ModuleLibrary = l2ModuleLibrary("module")
-
-    val graphStub = DependencyGraphsStub(listOf(javaGraphItem, androidGraphItem, moduleGraphItem), listOf(), listOf(), listOf())
-    localDependenciesFactory.setUpGlobalLibraryMap(listOf(GlobalLibraryMapStub(
-      mapOf("javaLibrary" to level2JavaLibrary, "androidLibrary" to level2AndroidLibrary, "module" to level2ModuleLibrary))))
-    localDependenciesFactory.createFromDependencyGraphs(graphStub) as com.android.ide.common.gradle.model.level2.IdeDependenciesImpl
+    localDependenciesFactory.create(
+      IdeAndroidArtifactImpl(AndroidArtifactStub(), modelCache, dependenciesFactory, gradleVersion))
+      as com.android.ide.common.gradle.model.level2.IdeDependenciesImpl
   }
 
   /*
@@ -304,7 +296,7 @@ class ModelSerializationTest {
 
   @Test
   fun javaArtifact() =
-    assertSerializable { IdeJavaArtifact(JavaArtifactStub(), modelCache, dependenciesFactory, gradleVersion) }
+    assertSerializable { IdeJavaArtifactImpl(JavaArtifactStub(), modelCache, dependenciesFactory, gradleVersion) }
 
   @Test
   fun javaCompileOptions() =

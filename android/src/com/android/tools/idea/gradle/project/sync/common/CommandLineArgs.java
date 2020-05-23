@@ -23,7 +23,6 @@ import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED;
 import static com.android.builder.model.AndroidProject.PROPERTY_INVOKED_FROM_IDE;
 import static com.android.builder.model.AndroidProject.PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL;
-import static com.android.builder.model.AndroidProject.PROPERTY_ANDROID_SUPPORT_VERSION;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
@@ -33,15 +32,13 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.common.AndroidSupportVersionUtilKt;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.util.ArrayList;
@@ -92,16 +89,9 @@ public class CommandLineArgs {
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_ADVANCED, true));
     args.add(createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true));
     // Sent to plugin starting with Studio 3.0
-    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, GradleSyncState.isLevel4Model()
-                                                                        ? MODEL_LEVEL_4_NEW_DEP_MODEL
-                                                                        : MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD));
+    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD));
 
-    // Obtains the version of the Android Support plugin.
-    IdeaPluginDescriptor androidSupport = PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.android"));
-    if (androidSupport != null && !isDevBuild(androidSupport.getVersion())) {
-      // Example of version to pass: 2.4.0.6
-      args.add(createProjectProperty(PROPERTY_ANDROID_SUPPORT_VERSION, androidSupport.getVersion()));
-    }
+    AndroidSupportVersionUtilKt.addAndroidSupportVersionArg(args);
     // Skip download of source and javadoc jars during Gradle sync, this flag only has effect on AGP 3.5.
     //noinspection deprecation AGP 3.6 and above do not download sources at all.
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD, true));
@@ -132,10 +122,6 @@ public class CommandLineArgs {
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }
     return args;
-  }
-
-  private static boolean isDevBuild(String version) {
-    return version.equals("dev build");  // set in org.jetbrains.android plugin.xml
   }
 
   public static boolean isInTestingMode() {

@@ -25,9 +25,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidArtifactBuildTaskProvider extends ArtifactBuildTaskProvider {
   @NonNls private static final String BUILDER_NAME = "Android Artifact Processor";
 

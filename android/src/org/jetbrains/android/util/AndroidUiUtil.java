@@ -30,9 +30,6 @@ import org.jetbrains.android.compiler.artifact.NewKeyStoreDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidUiUtil {
   private static final Logger LOG = Logger.getInstance(AndroidUiUtil.class);
 

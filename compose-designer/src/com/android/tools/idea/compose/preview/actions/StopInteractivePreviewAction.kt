@@ -34,11 +34,11 @@ class StopInteractivePreviewAction: AnActionButton(message("action.stop.interact
     e.presentation.isEnabled = true
     e.presentation.isVisible = findComposePreviewManagersForContext(e.dataContext).any {
       // We wait until refresh is completed to show the button
-      it.interactivePreviewElementFqn != null && !it.status().isRefreshing
+      it.interactivePreviewElementInstanceId != null && !it.status().isRefreshing
     }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    findComposePreviewManagersForContext(e.dataContext).forEach { it.interactivePreviewElementFqn = null }
+    findComposePreviewManagersForContext(e.dataContext).forEach { it.interactivePreviewElementInstanceId = null }
   }
 }

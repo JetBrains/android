@@ -24,7 +24,6 @@ import static com.intellij.openapi.roots.DependencyScope.TEST;
 
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -324,7 +323,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   private DependencySet extractDependencies(@NotNull File basePath, @NotNull DependencyScope scope, @Nullable IdeBaseArtifact artifact) {
     if (artifact != null) {
       ModuleFinder moduleFinder = ProjectStructure.getInstance(myModule.getProject()).getModuleFinder();
-      return DependenciesExtractor.getInstance().extractFrom(basePath, artifact, scope, moduleFinder);
+      return DependenciesExtractor.getInstance().extractFrom(basePath, artifact.getLevel2Dependencies(), scope, moduleFinder);
     }
     return DependencySet.EMPTY;
   }

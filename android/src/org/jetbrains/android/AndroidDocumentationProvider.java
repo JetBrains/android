@@ -44,9 +44,6 @@ import java.util.List;
 import static com.android.SdkConstants.CLASS_R;
 import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidDocumentationProvider implements DocumentationProvider, ExternalDocumentationProvider {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.AndroidDocumentationProvider");
 

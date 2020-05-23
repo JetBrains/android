@@ -27,9 +27,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidPreDexBuilder extends AndroidTargetBuilder<AndroidPreDexBuildTarget.MyRootDescriptor, AndroidPreDexBuildTarget> {
 
   @NonNls private static final String BUILDER_NAME = "Android Pre Dex";

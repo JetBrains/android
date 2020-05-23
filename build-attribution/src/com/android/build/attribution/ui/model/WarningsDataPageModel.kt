@@ -22,11 +22,10 @@ import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
-import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
+import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
 import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import com.intellij.openapi.util.text.StringUtil
 import javax.swing.tree.DefaultMutableTreeNode
@@ -187,7 +186,7 @@ class TaskWarningTypeNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = warningTypeData.type.uiName,
       suffix = issuesCountString(warningTypeData.warningCount, warningTypeData.infoCount),
-      rightAlignedSuffix = warningTypeData.timeContribution.durationString()
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(warningTypeData.timeContribution.timeMs)
     )
 }
 
@@ -205,8 +204,8 @@ class TaskWarningDetailsNodeDescriptor(
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = issueData.task.taskPath,
-      showWarnIcon = true,
-      rightAlignedSuffix = issueData.task.executionTime.durationString()
+      nodeIconState = NodeIconState.WARNING_ICON,
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(issueData.task.executionTime.timeMs)
     )
 }
 
@@ -232,7 +231,9 @@ class AnnotationProcessorDetailsNodeDescriptor(
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = annotationProcessorData.className,
-      showWarnIcon = true,
-      rightAlignedSuffix = durationString(annotationProcessorData.compilationTimeMs)
+      nodeIconState = NodeIconState.WARNING_ICON,
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(annotationProcessorData.compilationTimeMs)
     )
 }
+
+private fun rightAlignedNodeDurationTextFromMs(timeMs: Long) = "%.1fs".format(timeMs.toDouble() / 1000)

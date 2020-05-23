@@ -125,16 +125,15 @@ class BuildAttributionAnalyticsManager(
   private fun transformPluginType(pluginType: PluginData.PluginType) =
     when (pluginType) {
       PluginData.PluginType.UNKNOWN -> BuildAttributionPluginIdentifier.PluginType.UNKNOWN_TYPE
-      // In 4.0 and before adding the distinction between buildSrc and binary plugins, both of them were treated as binary plugins
-      // TODO: update the proto to add two new fields for buildSrc and binary plugins
-      PluginData.PluginType.BINARY_PLUGIN, PluginData.PluginType.BUILDSRC_PLUGIN -> BuildAttributionPluginIdentifier.PluginType.BINARY_PLUGIN
       PluginData.PluginType.SCRIPT -> BuildAttributionPluginIdentifier.PluginType.BUILD_SCRIPT
+      PluginData.PluginType.BUILDSRC_PLUGIN -> BuildAttributionPluginIdentifier.PluginType.BUILD_SRC
+      PluginData.PluginType.BINARY_PLUGIN -> BuildAttributionPluginIdentifier.PluginType.OTHER_PLUGIN
     }
 
   private fun transformPluginData(pluginData: PluginData): BuildAttributionPluginIdentifier {
     val pluginType = transformPluginType(pluginData.pluginType)
     val builder = BuildAttributionPluginIdentifier.newBuilder().setType(pluginType)
-    if (pluginType == BuildAttributionPluginIdentifier.PluginType.BINARY_PLUGIN) {
+    if (pluginType == BuildAttributionPluginIdentifier.PluginType.OTHER_PLUGIN) {
       builder.pluginDisplayName = pluginData.displayName
     }
     return builder.build()

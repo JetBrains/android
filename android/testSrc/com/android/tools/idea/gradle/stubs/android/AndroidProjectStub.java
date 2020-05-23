@@ -43,7 +43,7 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull private final Map<String, BuildTypeContainer> myBuildTypes = Maps.newHashMap();
   @NotNull private final Map<String, ProductFlavorContainer> myProductFlavors = Maps.newHashMap();
-  @NotNull private final Map<String, IdeVariant> myVariants = Maps.newHashMap();
+  @NotNull private final Map<String, Variant> myVariants = Maps.newHashMap();
   @NotNull private final List<VariantBuildInformation> myVariantsBuiltInformation = new ArrayList<>();
   @NotNull private final List<SigningConfig> mySigningConfigs = new ArrayList<>();
   @NotNull private final List<String> myFlavorDimensions = new ArrayList<>();
@@ -96,8 +96,8 @@ public class AndroidProjectStub implements AndroidProject {
     return null;
   }
 
-  public void forEachVariant(@NotNull Consumer<IdeVariant> action) {
-    for (IdeVariant next : myVariants.values()) {
+  public void forEachVariant(@NotNull Consumer<Variant> action) {
+    for (Variant next : myVariants.values()) {
       action.accept(next);
     }
   }
@@ -349,6 +349,12 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull
   public LintOptions getLintOptions() {
     return mock(LintOptions.class);
+  }
+
+  @NonNull
+  @Override
+  public List<File> getLintRuleJars() {
+    return Collections.emptyList();
   }
 
   @Override

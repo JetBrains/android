@@ -75,6 +75,18 @@ class MemoryVisualizationViewTest {
   }
 
   @Test
+  fun filterPersistBeforeAndAfterSelection() {
+    val component = visualizationView.component
+    MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage)
+    var hitCount = 0
+    stage.captureSelection.filterHandler.addMatchCountResultListener {  hitCount++}
+    visualizationView.onSelectionChanged(true)
+    assertThat(hitCount).isEqualTo(1) // Validate we refreshed the filter
+    visualizationView.onSelectionChanged(false)
+    assertThat(hitCount).isEqualTo(2) // Validate we refreshed the filter
+  }
+
+  @Test
   fun classGroupingResetOnDeselected() {
     val heapSet = MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage)
     heapSet.classGrouping = ClassGrouping.ARRANGE_BY_CLASS

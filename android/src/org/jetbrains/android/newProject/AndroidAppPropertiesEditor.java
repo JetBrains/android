@@ -20,9 +20,6 @@ import javax.swing.event.DocumentEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidAppPropertiesEditor {
   private JTextField myApplicationNameField;
   private JTextField myPackageNameField;

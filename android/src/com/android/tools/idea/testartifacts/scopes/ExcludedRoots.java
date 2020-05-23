@@ -17,7 +17,6 @@ package com.android.tools.idea.testartifacts.scopes;
 
 import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
 import static com.android.utils.FileUtils.toSystemDependentPath;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
@@ -26,8 +25,8 @@ import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.ide.common.gradle.model.IdeDependencies;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
@@ -211,22 +210,19 @@ class ExcludedRoots {
   }
 
   private void addLibraryPaths(@NotNull IdeBaseArtifact artifact) {
-    IdeDependencies dependencies = artifact.getDependencies();
-    dependencies.forEachLibrary(library -> {
-      if (isEmpty(library.getProject())) {
-        for (File file : library.getLocalJars()) {
-          if (!isAlreadyIncluded(file)) {
-            myExcludedRoots.add(file);
-          }
+    com.android.ide.common.gradle.model.level2.IdeDependencies dependencies = artifact.getLevel2Dependencies();
+    dependencies.getAndroidLibraries().forEach(library -> {
+      for (String path : library.getLocalJars()) {
+        File file = new File(path);
+        if (!isAlreadyIncluded(file)) {
+          myExcludedRoots.add(file);
         }
       }
     });
-    dependencies.forEachJavaLibrary(library -> {
-      if (isEmpty(library.getProject())) {
-        File jarFile = library.getJarFile();
-        if (!isAlreadyIncluded(jarFile)) {
-          myExcludedRoots.add(jarFile);
-        }
+    dependencies.getJavaLibraries().forEach(library -> {
+      File jarFile = library.getArtifact();
+      if (!isAlreadyIncluded(jarFile)) {
+        myExcludedRoots.add(jarFile);
       }
     });
   }
@@ -239,18 +235,14 @@ class ExcludedRoots {
   }
 
   private void removeLibraryPaths(@NotNull IdeBaseArtifact artifact) {
-    IdeDependencies dependencies = artifact.getDependencies();
-    dependencies.forEachLibrary(library -> {
-      if (isEmpty(library.getProject())) {
-        for (File file : library.getLocalJars()) {
-          myExcludedRoots.remove(file);
-        }
+    IdeDependencies dependencies = artifact.getLevel2Dependencies();
+    dependencies.getAndroidLibraries().forEach(library -> {
+      for (String path : library.getLocalJars()) {
+        myExcludedRoots.remove(new File(path));
       }
     });
-    dependencies.forEachJavaLibrary(library -> {
-      if (isEmpty(library.getProject())) {
-        myExcludedRoots.remove(library.getJarFile());
-      }
+    dependencies.getJavaLibraries().forEach(library -> {
+      myExcludedRoots.remove(library.getArtifact());
     });
   }
 

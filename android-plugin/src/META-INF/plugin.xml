@@ -1,13 +1,15 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <name>Android Support</name>
+  <name>Android</name>
   <id>org.jetbrains.android</id>
   <description>
     <![CDATA[
     Supports the development of <a href="https://developer.android.com">Android</a> applications with IntelliJ IDEA and Android Studio.
     ]]>
   </description>
-  <version>10.4.1 Canary 10</version>
-  <vendor>JetBrains &amp; Google</vendor>
+  <category>Android</category>
+  <version>dev build</version>
+  <vendor>JetBrains, Google</vendor>
+  <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
 
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -42,4 +44,5 @@
   <xi:include href="/META-INF/app-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/build-attribution.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-test-retention.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

@@ -15,9 +15,6 @@
  */
 package org.jetbrains.jps.android.model;
 
-/**
- * @author nik
- */
 public class JpsAndroidSdkProperties {
   private final String myBuildTargetHashString;
   private final String myJdkName;

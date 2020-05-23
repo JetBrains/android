@@ -133,8 +133,10 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
   private static PsiElement correctResourceElement(PsiElement element) {
     if (element instanceof XmlElement && !(element instanceof XmlFile)) {
       XmlTag tag = element instanceof XmlTag ? (XmlTag)element : PsiTreeUtil.getParentOfType(element, XmlTag.class);
-      if (tag != null && ResourcesDomFileDescription.isResourcesFile((XmlFile)tag.getContainingFile())) {
-        return tag;
+      if (tag != null) {
+        PsiFile file = tag.getContainingFile();
+        if (file instanceof XmlFile && ResourcesDomFileDescription.isResourcesFile((XmlFile)file))
+          return tag;
       }
       return null;
     }

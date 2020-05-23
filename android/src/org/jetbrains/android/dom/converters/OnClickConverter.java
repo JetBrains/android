@@ -30,9 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class OnClickConverter extends Converter<String> implements CustomReferenceConverter<String> {
   private static final String DEFAULT_MENU_ITEM_CLASS = "android.view.MenuItem";
   private static final String ABS_MENU_ITEM_CLASS = "com.actionbarsherlock.view.MenuItem";

@@ -16,9 +16,6 @@ import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import java.io.IOException;
 import java.util.Arrays;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidXmlFormatterTest extends AndroidTestCase {
   private static final String BASE_PATH = "formatter/xml/";
 

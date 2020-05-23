@@ -9,9 +9,6 @@ import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.ResourceBundle;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidCommonBundle {
   @NonNls private static final String BUNDLE_NAME = "messages.AndroidCommonBundle";
   private static Reference<ResourceBundle> ourBundle;

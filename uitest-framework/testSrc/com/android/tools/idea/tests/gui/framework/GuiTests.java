@@ -653,13 +653,19 @@ public final class GuiTests {
     }
   }
 
-  private static String progressIndicators() {
+  public static String progressIndicators() {
+    Collection<ProgressIndicator> progressIndicators = getIndicatorsCollection();
+    return progressIndicators.stream()
+      .map(it -> nullToEmpty(it.getText()))
+      .collect(Collectors.joining(","));
+  }
+
+  @NotNull
+  private static Collection<ProgressIndicator> getIndicatorsCollection() {
     try {
       Field field = CoreProgressManager.class.getDeclaredField("currentIndicators");
       field.setAccessible(true);
-      return ((ConcurrentLongObjectMap<ProgressIndicator>)field.get(null)).values().stream()
-        .map(it -> nullToEmpty(it.getText()))
-        .collect(Collectors.joining(","));
+      return ((ConcurrentLongObjectMap<ProgressIndicator>)field.get(null)).values();
     }
     catch (NoSuchFieldException | IllegalAccessException ex) {
       throw new RuntimeException("Failure retrieving CoreProgressManager.currentIndicators", ex);
@@ -684,6 +690,6 @@ public final class GuiTests {
   public static void waitForProjectIndexingToFinish(@NotNull Project project) {
     // Bazel wipes all Android Studio Caches between tests and all JDK and Android SDK libraries are re-indexed (about 50K files)
     // Usually this take 20-30 secs, but depends heavily on the machine and its load
-    waitForProjectIndexingToFinish(project, Wait.seconds(120));
+    waitForProjectIndexingToFinish(project, Wait.seconds(240));
   }
 }

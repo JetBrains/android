@@ -67,7 +67,6 @@ class AppInspectionDiscoveryHostTest {
     device: Common.Device = FakeTransportService.FAKE_DEVICE,
     process: Common.Process = FakeTransportService.FAKE_PROCESS
   ) {
-    transportService.addDevice(device)
     transportService.addProcess(device, process)
     advanceTimer()
   }
@@ -77,6 +76,15 @@ class AppInspectionDiscoveryHostTest {
     transportService.removeProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     // Despite the confusing name, this triggers a process end event.
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_OFFLINE_PROCESS)
+    advanceTimer()
+  }
+
+  private fun launchFakeDevice(device: Common.Device = FakeTransportService.FAKE_DEVICE) {
+    transportService.addDevice(device)
+    advanceTimer()
+  }
+
+  private fun removeFakeDevice() {
     transportService.addDevice(FakeTransportService.FAKE_OFFLINE_DEVICE)
     advanceTimer()
   }
@@ -96,6 +104,7 @@ class AppInspectionDiscoveryHostTest {
       }
     })
 
+    launchFakeDevice()
     launchFakeProcess()
 
     latch.await()
@@ -109,6 +118,7 @@ class AppInspectionDiscoveryHostTest {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
 
     // Generate a new process.
+    launchFakeDevice()
     launchFakeProcess()
 
     val latch = CountDownLatch(1)
@@ -152,6 +162,7 @@ class AppInspectionDiscoveryHostTest {
     })
 
     // Wait for process to connect.
+    launchFakeDevice()
     launchFakeProcess()
     processConnectLatch.await()
 
@@ -184,6 +195,7 @@ class AppInspectionDiscoveryHostTest {
     })
 
     // Wait for process to connect.
+    launchFakeDevice()
     launchFakeProcess()
     firstProcessLatch.await()
 
@@ -215,11 +227,13 @@ class AppInspectionDiscoveryHostTest {
     // Launch process in stream 1
     val fakeDevice1 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel1").setManufacturer("fakeMan2").build()
     val fakeProcess1 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(1).build()
+    launchFakeDevice(fakeDevice1)
     launchFakeProcess(fakeDevice1, fakeProcess1)
 
     // Launch process with same pid in stream 2
     val fakeDevice2 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(2).setModel("fakeModel2").setManufacturer("fakeMan2").build()
     val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(2).build()
+    launchFakeDevice(fakeDevice2)
     launchFakeProcess(fakeDevice2, fakeProcess2)
 
     latch.await()
@@ -245,12 +259,14 @@ class AppInspectionDiscoveryHostTest {
     val fakeDevice1 =
       FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial("1").build()
     val fakeProcess1 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(1).build()
+    launchFakeDevice(fakeDevice1)
     launchFakeProcess(fakeDevice1, fakeProcess1)
 
     // Launch process with same pid in stream 2
     val fakeDevice2 =
       FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(2).setModel("fakeModel").setManufacturer("fakeMan").setSerial("2").build()
     val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(2).build()
+    launchFakeDevice(fakeDevice2)
     launchFakeProcess(fakeDevice2, fakeProcess2)
 
     latch.await()
@@ -287,6 +303,7 @@ class AppInspectionDiscoveryHostTest {
     val process = FakeTransportService.FAKE_PROCESS.toBuilder()
       .setDeviceId(1)
       .build()
+    launchFakeDevice(oldDevice)
     launchFakeProcess(oldDevice, process)
 
 
@@ -301,10 +318,64 @@ class AppInspectionDiscoveryHostTest {
     val newProcess = FakeTransportService.FAKE_PROCESS.toBuilder()
       .setDeviceId(2)
       .build()
+    launchFakeDevice(newDevice)
     launchFakeProcess(newDevice, newProcess)
 
     // Verify discovery host has only notified about the process that ran on >= O device.
     latch.await()
     assertThat(processDescriptor.stream.device.apiLevel >= AndroidVersion.VersionCodes.O)
+  }
+
+  // Test the scenario where discovery encounters a device it has discovered before.
+  @Test
+  fun discoveryIgnoresPastEventsFromReconnectedDevice() {
+    // Setup
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+    val firstProcessReadyLatch = CountDownLatch(1)
+    val secondProcessReadyLatch = CountDownLatch(1)
+    val processDisconnectLatch = CountDownLatch(1)
+    var firstProcessTimestamp: Long? = null
+    var secondProcessTimestamp: Long? = null
+    discoveryHost.addProcessListener(executor, object : ProcessListener {
+      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+        if (firstProcessReadyLatch.count > 0) {
+          firstProcessTimestamp = timer.currentTimeNs
+          firstProcessReadyLatch.countDown()
+        } else {
+          secondProcessTimestamp = timer.currentTimeNs
+          secondProcessReadyLatch.countDown()
+        }
+      }
+
+      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+        processDisconnectLatch.countDown()
+      }
+    })
+
+    // Fake device connection.
+    launchFakeDevice()
+
+    // Fake process connection on the device.
+    launchFakeProcess()
+    firstProcessReadyLatch.await()
+
+    // Fake process disconnect.
+    removeFakeProcess()
+    processDisconnectLatch.await()
+
+    // Fake device disconnect.
+    removeFakeDevice()
+
+    // This test should not discover anything that happened prior to this timestamp.
+    val deviceDisconnectTimestamp = timer.currentTimeNs
+
+    // Fake device and process connection again.
+    launchFakeDevice()
+    launchFakeProcess()
+
+    secondProcessReadyLatch.await()
+    assertThat(firstProcessTimestamp!!).isLessThan(deviceDisconnectTimestamp)
+    assertThat(deviceDisconnectTimestamp).isLessThan(secondProcessTimestamp!!)
   }
 }

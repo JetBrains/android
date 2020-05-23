@@ -104,7 +104,8 @@ public class RangeSelectionModel extends AspectModel<RangeSelectionModel.Aspect>
     }
 
     if (myEventToFire != null) {
-      myListeners.forEach(myEventToFire);
+      // `myEventToFire` may indirectly modify `myListeners`, so we iterate over a copy instead, e.g., b/157022496
+      new ArrayList<>(myListeners).forEach(myEventToFire);
       myEventToFire = null;
     }
   }
@@ -250,6 +251,10 @@ public class RangeSelectionModel extends AspectModel<RangeSelectionModel.Aspect>
    */
   public void setSelectionEnabled(boolean enabled) {
     mySelectionEnabled = enabled;
+  }
+
+  public boolean isSelectionEnabled() {
+    return mySelectionEnabled;
   }
 
   /**

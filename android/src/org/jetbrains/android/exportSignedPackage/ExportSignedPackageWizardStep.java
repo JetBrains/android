@@ -22,9 +22,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class ExportSignedPackageWizardStep extends StepAdapter {
   private int previousStepIndex = -1;
 

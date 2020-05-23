@@ -49,13 +49,13 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.ui.BrowserHyperlinkListener;
-import com.intellij.ui.ColorUtil;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.LineSeparator;
 import com.intellij.util.containers.ContainerUtil;
@@ -66,8 +66,10 @@ import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.FocusTraversalPolicy;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -116,6 +118,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   // Do not use this separator in sample code block as it would cause document creation failure on Windows, see b/156460170.
   private static final String LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().getSeparatorString();
   private static final String INDENT = "    ";
+  private static final Color CODE_PANE_BORDER_COLOR = new JBColor(0xC9C9C9, 0x2C2F30);
+  private static final Color CODE_EDITOR_BG_COLOR = JBColor.namedColor("MlModelBinding.Viewer.CodeEditor.background", 0xF1F3F4, 0x3D3F41);
 
   private final Project myProject;
   private final VirtualFile myFile;
@@ -123,6 +127,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private final UiStyleTracker myUiStyleTracker;
   private final JBScrollPane myRootPane;
 
+  @Nullable private JBTabbedPane myTabbedCodePaneForFocus;
   @Nullable private LightModelClass myLightModelClass;
 
   public TfliteModelFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
@@ -132,6 +137,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     myUiStyleTracker = new UiStyleTracker();
     myLightModelClass = getLatestLightModelClass();
     myRootPane = new JBScrollPane(createContentPanel());
+    myRootPane.setFocusCycleRoot(true);
+    myRootPane.setFocusTraversalPolicy(new EditorFocusTraversalPolicy());
 
     if (myLightModelClass != null) {
       LoggingUtils.logEvent(EventType.MODEL_VIEWER_OPEN, myLightModelClass.getModelInfo());
@@ -302,24 +309,24 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
     JBTabbedPane tabbedCodePane = new JBTabbedPane();
     tabbedCodePane.setBackground(UIUtil.getTextFieldBackground());
-    tabbedCodePane.setBorder(BorderFactory.createLineBorder(new JBColor(ColorUtil.fromHex("#C9C9C9"), ColorUtil.fromHex("#2C2F30"))));
+    tabbedCodePane.setBorder(BorderFactory.createLineBorder(CODE_PANE_BORDER_COLOR));
     tabbedCodePane.setTabComponentInsets(JBUI.insets(0));
     String sampleKotlinCode = buildSampleCodeInKotlin(modelClass, modelInfo);
     tabbedCodePane.add("Kotlin", createCodeEditor(myProject, KotlinFileType.INSTANCE, sampleKotlinCode));
     String sampleJavaCode = buildSampleCodeInJava(modelClass, modelInfo);
     tabbedCodePane.add("Java", createCodeEditor(myProject, JavaFileType.INSTANCE, sampleJavaCode));
     codePaneContainer.add(tabbedCodePane);
+    myTabbedCodePaneForFocus = tabbedCodePane;
 
     return sectionPanel;
   }
 
   @NotNull
   private static EditorTextField createCodeEditor(@NotNull Project project, @NotNull FileType fileType, @NotNull String codeBody) {
-    Color bgColor = new JBColor(ColorUtil.fromHex("#F1F3F4"), ColorUtil.fromHex("#3D3F41"));
     EditorTextField codeEditor = new EditorTextField(codeBody, project, fileType);
     codeEditor.setAlignmentX(Component.LEFT_ALIGNMENT);
-    codeEditor.setBackground(bgColor);
-    codeEditor.setBorder(Borders.customLine(bgColor, 12));
+    codeEditor.setBackground(CODE_EDITOR_BG_COLOR);
+    codeEditor.setBorder(Borders.customLine(CODE_EDITOR_BG_COLOR, 12));
     codeEditor.setFont(new Font(Font.MONOSPACED, Font.PLAIN, StartupUiUtil.getLabelFont().getSize()));
     codeEditor.setOneLineMode(false);
     codeEditor.getDocument().setReadOnly(true);
@@ -377,7 +384,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         cellWidth = Math.max(cellWidth, preferredSize.width);
         rowHeights[r] = Math.max(rowHeights[r], preferredSize.height);
       }
-      column.setPreferredWidth(cellWidth + 10);
+      column.setPreferredWidth(cellWidth + JBUIScale.scale(10));
     }
     for (int r = 0; r < table.getRowCount(); r++) {
       table.setRowHeight(r, rowHeights[r]);
@@ -464,7 +471,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     String modelClassName = modelClass.getName();
     codeBuilder.append(INDENT).append(String.format("%s model = %s.newInstance(context);\n\n", modelClassName, modelClassName));
 
-    PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
+    PsiMethod processMethod = findUndeprecatedProcessMethod(modelClass);
     if (processMethod.getReturnType() != null) {
       codeBuilder.append(buildTensorInputSampleCodeInJava(processMethod, modelInfo));
 
@@ -487,6 +494,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     if (outputsClass != null) {
       Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
+        if (psiMethod.isDeprecated()) {
+          continue;
+        }
         String tensorName = outputTensorNameIterator.next();
         codeBuilder
           .append(INDENT)
@@ -524,7 +534,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       .append(INDENT)
       .append(String.format("val model = %s.newInstance(context)\n\n", modelClass.getName()));
 
-    PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
+    PsiMethod processMethod = findUndeprecatedProcessMethod(modelClass);
     if (processMethod.getReturnType() != null) {
       codeBuilder.append(buildTensorInputSampleCodeInKotlin(processMethod, modelInfo));
 
@@ -541,6 +551,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     if (outputsClass != null) {
       Iterator<String> outputTensorNameIterator = modelInfo.getOutputs().stream().map(TensorInfo::getIdentifierName).iterator();
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
+        if (psiMethod.isDeprecated()) {
+          continue;
+        }
         String tensorName = outputTensorNameIterator.next();
         codeBuilder
           .append(INDENT)
@@ -563,6 +576,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       .append("}");
 
     return codeBuilder.toString();
+  }
+
+  @NotNull
+  private static PsiMethod findUndeprecatedProcessMethod(@NotNull PsiClass psiClass) {
+    PsiMethod[] methods = psiClass.findMethodsByName("process", false);
+    return ContainerUtil.filter(Arrays.asList(methods), method -> !method.isDeprecated()).get(0);
   }
 
   /**
@@ -679,7 +698,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myRootPane;
+    return myTabbedCodePaneForFocus;
   }
 
   @NotNull
@@ -922,6 +941,53 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       myLabelFont = StartupUiUtil.getLabelFont();
       myUnderDarcula = StartupUiUtil.isUnderDarcula();
       return true;
+    }
+  }
+
+  /**
+   * {@link FocusTraversalPolicy} for {@link TfliteModelFileEditor} to traverse focus in viewer.
+   */
+  private class EditorFocusTraversalPolicy extends FocusTraversalPolicy {
+
+    @Override
+    @Nullable
+    public Component getComponentAfter(@NotNull Container aContainer,@NotNull Component aComponent) {
+      if (aComponent == myTabbedCodePaneForFocus) {
+        return myTabbedCodePaneForFocus.getSelectedComponent();
+      } else {
+        return myTabbedCodePaneForFocus;
+      }
+    }
+
+    @Override
+    @Nullable
+    public Component getComponentBefore(@NotNull Container aContainer,@NotNull Component aComponent) {
+      if (aComponent == myTabbedCodePaneForFocus) {
+        return myTabbedCodePaneForFocus.getSelectedComponent();
+      } else {
+        return myTabbedCodePaneForFocus;
+      }
+    }
+
+    @Override
+    @Nullable
+    public Component getFirstComponent(@NotNull Container aContainer) {
+      return myTabbedCodePaneForFocus;
+    }
+
+    @Override
+    @Nullable
+    public Component getLastComponent(@NotNull Container aContainer) {
+      if (myTabbedCodePaneForFocus != null) {
+        return myTabbedCodePaneForFocus.getSelectedComponent();
+      }
+      return null;
+    }
+
+    @Override
+    @Nullable
+    public Component getDefaultComponent(@NotNull Container aContainer) {
+      return myTabbedCodePaneForFocus;
     }
   }
 }

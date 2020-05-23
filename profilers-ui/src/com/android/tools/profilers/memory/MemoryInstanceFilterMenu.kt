@@ -70,6 +70,6 @@ private class InstanceFilterMenuRenderer: ProfilerComboboxCellRenderer<CaptureOb
                                      index: Int,
                                      selected: Boolean,
                                      hasFocus: Boolean) {
-    append("Show ${value?.displayName ?: "All Classes"}")
+    append("Show ${value?.displayName ?: "all classes"}")
   }
 }

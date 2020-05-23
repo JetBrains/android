@@ -21,8 +21,13 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfigurati
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
+import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.utils.FileUtils
+import com.intellij.execution.RunManagerEx
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -40,7 +45,6 @@ import com.intellij.openapi.roots.ExcludeFolder
 import com.intellij.openapi.roots.InheritedJdkOrderEntry
 import com.intellij.openapi.roots.JavadocOrderRootType
 import com.intellij.openapi.roots.JdkOrderEntry
-import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleRootModel
@@ -57,7 +61,6 @@ import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
 import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration
-import org.jetbrains.kotlin.idea.util.projectStructure.version
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.lang.Math.max
@@ -186,6 +189,7 @@ class ProjectDumper(
         prop("Version") { ProjectRootManager.getInstance(project).projectSdk?.versionString?.replaceJdkVersion() }
       }
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { dump(it) }
+      RunManagerEx.getInstanceEx(project).allConfigurationsList.sortedBy { it.name }.forEach { dump(it) }
     }
   }
 
@@ -237,6 +241,44 @@ private fun ProjectDumper.dump(module: Module) {
     moduleRootModel.orderEntries.sortedBy { it.presentableName.removeAndroidVersionsFromDependencyNames().replaceKnownPaths() }.forEach {
       dump(it)
     }
+  }
+}
+
+private fun ProjectDumper.dump(runConfiguration: RunConfiguration) {
+  head("RUN_CONFIGURATION") { runConfiguration.name }
+  nest {
+    prop("*class*") { runConfiguration.javaClass.simpleName }
+    when (runConfiguration) {
+      is AndroidRunConfigurationBase -> dump(runConfiguration)
+      else -> prop("**UNSUPPORTED**") { "*" }
+    }
+  }
+}
+
+private fun ProjectDumper.dump(runConfiguration: AndroidRunConfigurationBase) {
+  prop("ModuleName") { runConfiguration.configurationModule.moduleName }
+  prop("Module") { runConfiguration.configurationModule.module?.name }
+  prop("ClearLogcat") { runConfiguration.CLEAR_LOGCAT.takeUnless { it == false }?.toString() }
+  prop("ShowLogcatAutomatically") { runConfiguration.SHOW_LOGCAT_AUTOMATICALLY.takeUnless { it == false }?.toString() }
+  prop("SkipNoopApkInstallations") { runConfiguration.SKIP_NOOP_APK_INSTALLATIONS.takeUnless { it == true }?.toString() }
+  prop("ForceStopRunningApp") { runConfiguration.FORCE_STOP_RUNNING_APP.takeUnless { it == true }?.toString() }
+  if (runConfiguration is AndroidTestRunConfiguration) {
+    prop("TestingType") { runConfiguration.TESTING_TYPE.takeUnless { it == AndroidTestRunConfiguration.TEST_ALL_IN_MODULE }?.toString() }
+    prop("MethodName") { runConfiguration.METHOD_NAME }
+    prop("ClassName") { runConfiguration.CLASS_NAME }
+    prop("PackageName") { runConfiguration.PACKAGE_NAME }
+    prop("InstrumentationRunnerClass") { runConfiguration.INSTRUMENTATION_RUNNER_CLASS }
+    prop("ExtraOptions") { runConfiguration.EXTRA_OPTIONS }
+    prop("IncludeGradleExtraOptions") { runConfiguration.INCLUDE_GRADLE_EXTRA_OPTIONS.takeUnless { it == true }?.toString() }
+    prop("TargetSelectionMode") { runConfiguration.deployTargetContext.TARGET_SELECTION_MODE }
+    prop("DebuggerType") { runConfiguration.androidDebuggerContext.DEBUGGER_TYPE }
+  }
+  prop("AdvancedProfilingEnabled") { runConfiguration.profilerState.ADVANCED_PROFILING_ENABLED.takeUnless { it == false }?.toString() }
+  prop(
+    "StartupCpuProfilingEnabled") { runConfiguration.profilerState.STARTUP_CPU_PROFILING_ENABLED.takeUnless { it == false }?.toString() }
+  prop(
+    "StartupCpuProfilingConfigurationName") {
+    runConfiguration.profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME.takeUnless { it == CpuProfilerConfig.Technology.SAMPLED_JAVA.getName() }
   }
 }
 

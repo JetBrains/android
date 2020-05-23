@@ -35,6 +35,8 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
+import com.android.tools.idea.ui.resourcemanager.rendering.ColorIconProvider;
+import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon;
 import com.android.utils.HashCodes;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -59,9 +61,11 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.Consumer;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
+import com.intellij.util.ui.JBScalableIcon;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.MouseInfo;
@@ -290,20 +294,23 @@ public class AndroidAnnotatorUtil {
   }
 
   public static class ColorRenderer extends GutterIconRenderer {
-    private final PsiElement myElement;
-    private final Color myColor;
-    private final ResourceReference myResourceReference;
+    @NotNull private final PsiElement myElement;
+    @Nullable private final Color myColor;
+    @NotNull private final ResourceResolver myResolver;
+    @Nullable private final ResourceReference myResourceReference;
     private final Consumer<String> mySetColorTask;
     private final boolean myIncludeClickAction;
     @Nullable private final Configuration myConfiguration;
 
     public ColorRenderer(@NotNull PsiElement element,
                          @Nullable Color color,
+                         @NotNull ResourceResolver resolver,
                          @Nullable ResourceReference resourceReference,
                          boolean includeClickAction,
                          @Nullable Configuration configuration) {
       myElement = element;
       myColor = color;
+      myResolver = resolver;
       myResourceReference = resourceReference;
       myIncludeClickAction = includeClickAction;
       mySetColorTask = createSetAttributeTask(myElement);
@@ -313,6 +320,23 @@ public class AndroidAnnotatorUtil {
     @NotNull
     @Override
     public Icon getIcon() {
+      if (myResourceReference != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(myElement);
+        if (facet != null) {
+          ResourceValue value = myResolver.getUnresolvedResource(myResourceReference);
+          List<Color> colors = IdeResourcesUtil.resolveMultipleColors(myResolver, value, myElement.getProject());
+          if (!colors.isEmpty()) {
+            MultipleColorIcon icon = new MultipleColorIcon();
+            icon.setColors(colors);
+            int scaledIconSize = JBUIScale.scale(ICON_SIZE);
+            icon.setWidth(scaledIconSize);
+            icon.setHeight(scaledIconSize);
+            return icon;
+          }
+          return JBUIScale.scaleIcon(EmptyIcon.create(ICON_SIZE));
+        }
+      }
+
       Color color = getCurrentColor();
       return color == null ? JBUI.scale(EmptyIcon.create(ICON_SIZE)) : JBUI.scale(new ColorIcon(ICON_SIZE, color));
     }
@@ -347,6 +371,7 @@ public class AndroidAnnotatorUtil {
     }
 
     private void openColorPicker(@Nullable Color currentColor) {
+      // TODO: When the color is color state, open color picker with resource tab and select it.
       ResourceChooserHelperKt.createAndShowColorPickerPopup(
         currentColor,
         myResourceReference,

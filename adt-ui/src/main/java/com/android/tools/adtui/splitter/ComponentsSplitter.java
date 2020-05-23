@@ -42,8 +42,6 @@ import java.awt.event.MouseEvent;
  * This is a copy of {@link com.intellij.openapi.ui.ThreeComponentsSplitter} with a fix in {@link #getMinSize(JComponent)}
  * which allows this component to be used with just 2 components and still honor the minimum size of the components.
  * TODO: Remove this class if the IDEA bug: 164142 gets fixed.
- *
- * @author Vladimir Kondratyev
  */
 public class ComponentsSplitter extends JPanel implements Disposable {
   private static final Icon SplitGlueV = EmptyIcon.create(17, 6);

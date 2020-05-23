@@ -23,9 +23,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
   public AndroidResourcePackagingBuildTarget(@NotNull JpsModule module) {
     super(MyTargetType.INSTANCE, module);

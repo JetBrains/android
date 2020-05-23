@@ -299,19 +299,14 @@ public final class StudioFlags {
     true);
 
   public static final Flag<Boolean> NELE_VISUALIZATION = Flag.create(
-    NELE, "visualisation", "Layout Visualisation Tool",
-    "Enable Visualisation Tool to preview layout in multiple devices at the same time",
+    NELE, "visualisation", "Layout Validation Tool",
+    "Enable Layout Validation Tool to preview layout in multiple configurations at the same time",
     true);
 
-  public static final Flag<Boolean> NELE_COLOR_BLIND_MODE = Flag.create(
-    NELE, "color.blind.mode", "Color Blind Mode",
-    "Enable Visualisation Tool to preview layouts in multiple color blind modes at the same time",
-    true);
-
-  public static final Flag<Boolean> NELE_LARGE_FONT_MODE = Flag.create(
-    NELE, "large.font.mode", "Large Font Mode",
-    "Enable Visualisation Tool to preview layouts in multiple font sizes at the same time",
-    true);
+  public static final Flag<Boolean> NELE_VISUALIZATION_LOCALE_MODE = Flag.create(
+    NELE, "visualization.locale", "Locale Mode in Layout Validation Tool",
+    "Enable locale mode in Layout Validation Tool to preview layout in project's locales",
+    false);
 
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
@@ -321,7 +316,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW = Flag.create(
     NELE, "toggle.tools.attributes.preview", "New Toggle for Tools namespaces attributes",
     "Enable the new toggle in the Layout Editor. Allows toggling tools attributes in the Layout preview.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_SHOW_RECYCLER_VIEW_SETUP_WIZARD = Flag.create(
     NELE, "recyclerview.setup.wizard", "Show setup wizard for recycler view",
@@ -340,6 +335,12 @@ public final class StudioFlags {
     NELE, "toggle.layout.editor.validator.a11y", "Toggle layout validator for layout editor.",
     "When the model changes, layout editor will run the series of layout validations and update lint output",
     false);
+
+  public static final Flag<Boolean> NELE_TRANSFORM_PANEL = Flag.create(
+    NELE, "toggle.layout.editor.transform.panel", "Toggle transform panel in layout editor and motion editor.",
+    "Enable the new transform panel in the layout editor and motion editor",
+    true);
+
   //endregion
 
   //region Navigation Editor
@@ -520,11 +521,6 @@ public final class StudioFlags {
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
     "This option is only respected when running Android Studio internally.", false
   );
-
-  // REMOVE or change default to true after http://b/80245603 is fixed.
-  public static final Flag<Boolean> L4_DEPENDENCY_MODEL = Flag.create(
-    GRADLE_IDE, "level4.dependency.model", "Use L4 DependencyGraph Model",
-    "Use level4 DependencyGraph model.", false);
 
   public static final Flag<Boolean> ALLOW_DIFFERENT_JDK_VERSION = Flag.create(
     GRADLE_IDE, "jdk.allow.different", "Allow different Gradle JDK", "Allow usage of a different JDK version when running Gradle.", true);

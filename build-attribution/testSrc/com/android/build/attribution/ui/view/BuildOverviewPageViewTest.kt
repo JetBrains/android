@@ -43,10 +43,10 @@ class BuildOverviewPageViewTest {
     val expectedBuildFinishedString = DateFormatUtil.formatDateTime(model.reportUiData.buildSummary.buildFinishedTimestamp)
     Truth.assertThat(text).isEqualTo("""
       Build finished on $expectedBuildFinishedString
-      Total build duration was 20.000 s.
+      Total build duration was 20.0s.
       Includes:
-      Build configuration: 4.000 s
-      Critical path tasks execution: 15.000 s
+      Build configuration: 4.0s
+      Critical path tasks execution: 15.0s
       Common views into this build
       [Tasks impacting build duration]
       [Plugins with tasks impacting build duration]

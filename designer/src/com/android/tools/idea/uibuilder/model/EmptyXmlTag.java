@@ -40,9 +40,6 @@ import javax.swing.*;
 import java.util.Collections;
 import java.util.Map;
 
-/**
- * @author Alexander Lobas
- */
 public class EmptyXmlTag implements XmlTag {
   public static XmlTag INSTANCE = new EmptyXmlTag();
 

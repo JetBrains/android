@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import com.google.common.collect.*;
+import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -32,7 +33,7 @@ public class DependencySet {
 
   // Use linked list to maintain insertion order.
   private final Multimap<String, LibraryDependency> myLibrariesByName = LinkedListMultimap.create();
-  private final Map<String, ModuleDependency> myModulesByPath = Maps.newLinkedHashMap();
+  private final Map<Module, ModuleDependency> myModuleDependenciesByModule = Maps.newLinkedHashMap();
 
   DependencySet() {
   }
@@ -112,10 +113,10 @@ public class DependencySet {
    * @param dependency the dependency to add.
    */
   void add(@NotNull ModuleDependency dependency) {
-    String gradlePath = dependency.getGradlePath();
-    Dependency storedDependency = myModulesByPath.get(gradlePath);
+    Module module = dependency.getModule();
+    Dependency storedDependency = myModuleDependenciesByModule.get(module);
     if (storedDependency == null || hasHigherScope(dependency, storedDependency)) {
-      myModulesByPath.put(gradlePath, dependency);
+      myModuleDependenciesByModule.put(module, dependency);
     }
   }
 
@@ -130,6 +131,6 @@ public class DependencySet {
 
   @NotNull
   public ImmutableCollection<ModuleDependency> onModules() {
-    return ImmutableList.copyOf(myModulesByPath.values());
+    return ImmutableList.copyOf(myModuleDependenciesByModule.values());
   }
 }
