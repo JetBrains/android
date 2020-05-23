@@ -28,11 +28,9 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 
 import com.android.builder.model.AaptOptions;
-import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ApiVersion;
 import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaCompileOptions;
 import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.ProductFlavorContainer;
@@ -81,8 +79,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   // Placeholder application id if the project is never built before, there is no way to get application id.
   public static final String UNINITIALIZED_APPLICATION_ID = "uninitialized.application.id";
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
+  private final static String ourAndroidSyncVersion = "2020-05-21/2";
 
   @NotNull private ProjectSystemId myProjectSystemId;
+  @NotNull private String myAndroidSyncVersion;
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
   @NotNull private IdeAndroidProject myAndroidProject;
@@ -122,7 +122,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                                           @NotNull File rootDirPath,
                                           @NotNull IdeAndroidProject androidProject,
                                           @NotNull String variantName) {
-    return new AndroidModuleModel(moduleName, rootDirPath, androidProject, variantName);
+    return new AndroidModuleModel(ourAndroidSyncVersion, moduleName, rootDirPath, androidProject, variantName);
   }
 
   /**
@@ -145,17 +145,22 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                                           @NotNull Collection<SyncIssue> syncIssues) {
     IdeAndroidProject ideAndroidProject = IdeAndroidProjectImpl.create(androidProject, dependenciesFactory, variantsToAdd, syncIssues);
     ideAndroidProject.addVariants(cachedVariants);
-    return new AndroidModuleModel(moduleName, rootDirPath, ideAndroidProject, variantName);
+    return new AndroidModuleModel(ourAndroidSyncVersion, moduleName, rootDirPath, ideAndroidProject, variantName);
   }
 
-  @PropertyMapping({"myModuleName", "myRootDirPath", "myAndroidProject", "mySelectedVariantName"})
+  @PropertyMapping({"myAndroidSyncVersion", "myModuleName", "myRootDirPath", "myAndroidProject", "mySelectedVariantName"})
   @VisibleForTesting
-  AndroidModuleModel(@NotNull String moduleName,
+  AndroidModuleModel(@NotNull String androidSyncVersion,
+                     @NotNull String moduleName,
                      @NotNull File rootDirPath,
                      @NotNull IdeAndroidProject androidProject,
                      @NotNull String variantName) {
     myAndroidProject = androidProject;
-
+    if (!androidSyncVersion.equals(ourAndroidSyncVersion)) {
+      throw new IllegalArgumentException(
+        String.format("Attempting to deserialize a model of incompatible version (%s)", androidSyncVersion));
+    }
+    myAndroidSyncVersion = ourAndroidSyncVersion;
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
