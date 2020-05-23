@@ -17,7 +17,8 @@ package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessorServiceGrpc
-import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
+import com.android.tools.profilers.systemtrace.ProcessModel
+import com.android.tools.profilers.systemtrace.ThreadModel
 import com.intellij.openapi.diagnostic.Logger
 import io.grpc.Channel
 import io.grpc.ManagedChannelBuilder
@@ -30,7 +31,10 @@ import java.io.File
 class TraceProcessorDaemonClient(optionalChannel: Channel? = null) {
   // TODO(b/149379691): Use a port picker to select an available port, pass it down to the daemon as an argument and use it here.
   private val channel: Channel by lazy {
-    optionalChannel ?: ManagedChannelBuilder.forAddress("localhost", 20204).usePlaintext().build() }
+    optionalChannel ?: ManagedChannelBuilder.forAddress("localhost", 20204)
+      .usePlaintext()
+      .maxInboundMessageSize(128 * 1024 * 1024) // 128 Mb
+      .build() }
   private val stub: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub by lazy {
     TraceProcessorServiceGrpc.newBlockingStub(channel)
   }
@@ -39,24 +43,23 @@ class TraceProcessorDaemonClient(optionalChannel: Channel? = null) {
     private val LOGGER = Logger.getInstance(TraceProcessorDaemonClient::class.java)
   }
 
-  fun loadTrace(traceId: Long, traceFile: File): List<CpuThreadSliceInfo> {
+  fun loadTrace(traceId: Long, traceFile: File): List<ProcessModel> {
     val requestProto = TraceProcessor.LoadTraceRequest.newBuilder()
       .setTraceId(traceId)
       .setTracePath(traceFile.absolutePath)
       .build()
     val responseProto = stub.loadTrace(requestProto)
-    val threadList = mutableListOf<CpuThreadSliceInfo>()
+
+    val processList = mutableListOf<ProcessModel>()
 
     for (process in responseProto.processMetadata.processList) {
-      for (thread in process.threadList) {
-        // We are only interested on the main thread of each process.
-        if (thread.id == process.id) {
-          threadList.add(
-            CpuThreadSliceInfo(thread.id.toInt(), thread.name, process.id.toInt(), process.name))
-        }
-      }
+      val threadMap = process.threadList.asSequence()
+        .map { thread -> thread.id.toInt() to ThreadModel(thread.id.toInt(), process.id.toInt(), thread.name, listOf(), listOf()) }
+        .toMap()
+        .toSortedMap()
+      processList.add(ProcessModel(process.id.toInt(), process.name, threadMap, mapOf()))
     }
-    return threadList.toList()
+    return processList.toList()
   }
 
   fun queryBatchRequest(request: TraceProcessor.QueryBatchRequest): TraceProcessor.QueryBatchResponse {

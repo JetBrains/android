@@ -113,6 +113,10 @@ class DumbModeTest {
               android:id="@+id/main_fragment"
               android:name="test.safeargs.MainFragment"
               android:label="MainFragment">
+              
+              <action
+                android:id="@+id/action_main_fragment_to_main"
+                app:destination="@id/main" />
           </fragment>
         </navigation>
       """.trimIndent())
@@ -126,7 +130,7 @@ class DumbModeTest {
     val enlargedScope = fragmentClass.resolveScope
 
     val moduleCache = SafeArgsCacheModuleService.getInstance(safeArgsRule.androidFacet)
-    assertThat(moduleCache.directions.map { it.name }).containsExactly("MainDirections", "MainFragmentDirections")
+    assertThat(moduleCache.directions.map { it.name }).containsExactly("MainFragmentDirections")
 
     moduleCache.directions.forEach { directionsClass ->
       assertThat(PsiSearchScopeUtil.isInScope(dumbScope, directionsClass)).isFalse()

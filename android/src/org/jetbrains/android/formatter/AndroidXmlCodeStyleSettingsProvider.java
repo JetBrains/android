@@ -12,9 +12,6 @@ import com.intellij.psi.codeStyle.CustomCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidXmlCodeStyleSettingsProvider extends CodeStyleSettingsProvider {
   @NotNull
   @Override

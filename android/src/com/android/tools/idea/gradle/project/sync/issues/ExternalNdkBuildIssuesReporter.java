@@ -42,6 +42,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
@@ -104,6 +105,7 @@ class ExternalNdkBuildIssuesReporter extends BaseSyncIssuesReporter {
               null,
               new FilePosition(new File(position.file.getPath()), position.line, position.column));
           List<GradleIssueChecker> knownIssuesCheckList = GradleIssueChecker.getKnownIssuesCheckList();
+          List<BuildIssueQuickFix> quickFixes = new ArrayList<>();
           for (BuildIssueChecker<GradleIssueData> checker : knownIssuesCheckList) {
             BuildIssue buildIssue = checker.check(issueData);
             if (buildIssue != null) {
@@ -113,10 +115,11 @@ class ExternalNdkBuildIssuesReporter extends BaseSyncIssuesReporter {
                     quickFix.runQuickFix(project, DataManager.getDataProvider((JComponent)event.getSource()));
                   }
                 });
+                quickFixes.add(quickFix);
               }
             }
           }
-          messages.report(notificationData);
+          messages.report(notificationData, quickFixes);
           continue;
         }
 

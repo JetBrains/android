@@ -18,9 +18,6 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.Client;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author coyote
- */
 public interface DebugLauncher {
     void launchDebug(@NotNull Client client);
 }

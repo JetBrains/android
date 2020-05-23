@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
-import com.android.tools.idea.run.AndroidRunConfigurationType;
+import com.android.tools.idea.run.AndroidRunConfigurationFactoryBase;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.ConfigurationTypeUtil;
@@ -44,7 +44,12 @@ public final class AndroidTestRunConfigurationType implements ConfigurationType 
     }
   };
 
-  private final ConfigurationFactory myFactory = new AndroidRunConfigurationType.AndroidRunConfigurationFactory(this) {
+  private final ConfigurationFactory myFactory = new AndroidRunConfigurationFactoryBase(this) {
+    @Override
+    public @NotNull String getId() {
+      return "Android Instrumented Tests";
+    }
+
     @NotNull
     @Override
     public RunConfiguration createTemplateConfiguration(@NotNull Project project) {

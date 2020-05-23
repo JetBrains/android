@@ -16,6 +16,8 @@
 package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.stdui.EmptyStatePanel
+import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
@@ -24,7 +26,6 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
-import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -34,7 +35,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.IdeFocusManager
-import com.intellij.ui.BrowserHyperlinkListener
 import com.intellij.ui.UIBundle
 import com.intellij.ui.tabs.JBTabsBorder
 import com.intellij.ui.tabs.TabInfo
@@ -43,17 +43,13 @@ import com.intellij.ui.tabs.impl.JBEditorTabsBorder
 import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.intellij.xml.util.XmlStringUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
-import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.JEditorPane
 import javax.swing.JPanel
-import javax.swing.text.html.HTMLDocument
 
 @UiThread
 class DatabaseInspectorViewImpl(
@@ -170,23 +166,12 @@ class DatabaseInspectorViewImpl(
   }
 
   private fun addEmptyStatePanel(text: String) {
-    val escapedText = XmlStringUtil.escapeString(text)
-    val editorPane = JEditorPane()
-    editorPane.editorKit = UIUtil.getHTMLEditorKit()
-    editorPane.text =
-      // language=html
-      "<h2>Database Inspector</h2>${escapedText}<h3><a href='https://d.android.com/r/studio-ui/db-inspector-help'>Learn more</a></h3>"
-    val document = editorPane.document as HTMLDocument
-    document.styleSheet.addRule("body { text-align: center; }")
-    document.styleSheet.addRule("h2, h3 { font-weight: normal; }")
-    editorPane.name = "right-panel-empty-state"
-    editorPane.isOpaque = false
-    editorPane.isEditable = false
-    editorPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE)
+    val emptyStatePanel = EmptyStatePanel(text, UrlData("Learn more", "https://d.android.com/r/studio-ui/db-inspector-help"))
+    emptyStatePanel.name = "right-panel-empty-state"
 
     centerPanel.removeAll()
-    centerPanel.layout = GridBagLayout()
-    centerPanel.add(editorPane)
+    centerPanel.layout = BorderLayout()
+    centerPanel.add(emptyStatePanel)
     centerPanel.revalidate()
     centerPanel.repaint()
   }

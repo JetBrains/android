@@ -127,7 +127,6 @@ class RenderTemplateModel private constructor(
         )
 
         projectTemplateDataBuilder.language = language.value
-        projectTemplateDataBuilder.bytecodeLevel = bytecodeLevel.value
 
         val sha1File = androidFacet?.let { getDebugKeystore(it) } ?: getOrCreateDefaultDebugKeystore()
         projectTemplateDataBuilder.debugKeyStoreSha1 = KeystoreUtils.sha1(sha1File)

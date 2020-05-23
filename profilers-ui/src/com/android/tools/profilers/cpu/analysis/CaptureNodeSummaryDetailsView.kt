@@ -23,7 +23,6 @@ import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profilers.ProfilerFonts
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.ui.components.Label
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.FlowLayout
@@ -57,7 +56,7 @@ class CaptureNodeSummaryDetailsView(profilersView: StudioProfilersView,
 
   private fun buildSelectedNodeTable() = JPanel(TabularLayout("*").setVGap(8)).apply {
     val selectedNodes = tabModel.dataSeries.map { it.node }
-    add(JLabel("Selected event(s)".apply {
+    add(JLabel("Selected event".apply {
       font = ProfilerFonts.H3_FONT
       isOpaque = false
     }), TabularLayout.Constraint(0, 0))
@@ -89,11 +88,12 @@ class CaptureNodeSummaryDetailsView(profilersView: StudioProfilersView,
     }
 
     // Table to display longest running occurrences.
-    val topOccurrencesLabel = Label("Longest running occurrences").apply {
+    val topOccurrencesLabel = JLabel("Longest running occurrences (select row to navigate)").apply {
       isOpaque = false
       font = ProfilerFonts.H3_FONT
     }
-    val topOccurrencesTable = CaptureNodeDetailTable(model.getLongestRunningOccurrences(10), tabModel.captureRange)
+    val topOccurrencesTable = CaptureNodeDetailTable(model.getLongestRunningOccurrences(10), tabModel.captureRange,
+                                                     profilersView.studioProfilers.stage.timeline.viewRange)
 
     val panel = JPanel(TabularLayout("*", "Fit,Fit,Fit").setVGap(8)).apply {
       isOpaque = false

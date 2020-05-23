@@ -19,9 +19,6 @@ import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidSdkResolveScopeProvider extends ResolveScopeProvider {
 
   @Nullable

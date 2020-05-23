@@ -25,7 +25,6 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,35 +37,9 @@ public final class ExecutionTargetServiceTest {
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
   @Test
-  public void updateActiveTarget() {
+  public void setActiveTarget() {
     // Arrange
     ExecutionTargetManager executionTargetManager = new FakeExecutionTargetManager();
-
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Device connectedDevice = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
-      .setConnectionTime(Instant.parse("2020-03-13T23:13:20.913Z"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    AsyncDevicesGetter getter = Mockito.mock(AsyncDevicesGetter.class);
-
-    Mockito.when(getter.get())
-      .thenReturn(Optional.of(Collections.singletonList(device)), Optional.of(Collections.singletonList(connectedDevice)));
-
-    DevicesSelectedService devicesSelectedService = Mockito.mock(DevicesSelectedService.class);
-
-    Mockito.when(devicesSelectedService.getSelectedDevices(Collections.singletonList(device)))
-      .thenReturn(Collections.singletonList(device));
-
-    Mockito.when(devicesSelectedService.getSelectedDevices(Collections.singletonList(connectedDevice)))
-      .thenReturn(Collections.singletonList(connectedDevice));
 
     RunConfiguration configuration = Mockito.mock(RunConfiguration.class);
 
@@ -77,20 +50,32 @@ public final class ExecutionTargetServiceTest {
     Mockito.when(runManager.getSelectedConfiguration()).thenReturn(configurationAndSettings);
     Mockito.when(runManager.findSettings(configuration)).thenReturn(configurationAndSettings);
 
-    ExecutionTargetService executionTargetService = new ExecutionTargetService.Builder()
-      .setProject(myRule.getProject())
-      .setExecutionTargetManagerGetInstance(project -> executionTargetManager)
-      .setAsyncDevicesGetterGetInstance(project -> getter)
-      .setDevicesSelectedServiceGetInstance(project -> devicesSelectedService)
-      .setRunManagerGetInstance(project -> runManager)
+    ExecutionTargetService executionTargetService =
+      new ExecutionTargetService(myRule.getProject(), project -> executionTargetManager, project -> runManager);
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 29")
+      .setKey(new Key("Pixel_4_API_29"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
+    DeviceAndSnapshotComboBoxExecutionTarget target1 = new DeviceAndSnapshotComboBoxExecutionTarget(Collections.singletonList(device));
+
+    Device connectedDevice = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 29")
+      .setKey(new Key("Pixel_4_API_29"))
+      .setConnectionTime(Instant.parse("2020-03-13T23:13:20.913Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    DeviceAndSnapshotComboBoxExecutionTarget target2 =
+      new DeviceAndSnapshotComboBoxExecutionTarget(Collections.singletonList(connectedDevice));
+
     // Act
-    executionTargetService.updateActiveTarget();
-    executionTargetService.updateActiveTarget();
+    executionTargetService.setActiveTarget(target1);
+    executionTargetService.setActiveTarget(target2);
 
     // Assert
-    Object target = new DeviceAndSnapshotComboBoxExecutionTarget(Collections.singletonList(connectedDevice));
-    assertEquals(target, executionTargetManager.getActiveTarget());
+    assertEquals(target2, executionTargetManager.getActiveTarget());
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import java.util.ArrayList;
@@ -32,7 +31,6 @@ final class ModifyDeviceSetDialogTableModel extends AbstractTableModel {
   private static final int DEVICE_MODEL_COLUMN_INDEX = 2;
   private static final int SERIAL_NUMBER_MODEL_COLUMN_INDEX = 3;
   private static final int SNAPSHOT_MODEL_COLUMN_INDEX = 4;
-  private static final int ISSUE_MODEL_COLUMN_INDEX = 5;
 
   @NotNull
   private final List<Boolean> mySelected;
@@ -67,7 +65,7 @@ final class ModifyDeviceSetDialogTableModel extends AbstractTableModel {
 
   @Override
   public int getColumnCount() {
-    return 6;
+    return 5;
   }
 
   @NotNull
@@ -84,8 +82,6 @@ final class ModifyDeviceSetDialogTableModel extends AbstractTableModel {
         return "Serial Number";
       case SNAPSHOT_MODEL_COLUMN_INDEX:
         return "Snapshot";
-      case ISSUE_MODEL_COLUMN_INDEX:
-        return "Issue";
       default:
         throw new AssertionError(modelColumnIndex);
     }
@@ -102,7 +98,6 @@ final class ModifyDeviceSetDialogTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
       case SNAPSHOT_MODEL_COLUMN_INDEX:
-      case ISSUE_MODEL_COLUMN_INDEX:
         return Object.class;
       default:
         throw new AssertionError(modelColumnIndex);
@@ -118,7 +113,6 @@ final class ModifyDeviceSetDialogTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
       case SNAPSHOT_MODEL_COLUMN_INDEX:
-      case ISSUE_MODEL_COLUMN_INDEX:
         return false;
       default:
         throw new AssertionError(modelColumnIndex);
@@ -134,14 +128,15 @@ final class ModifyDeviceSetDialogTableModel extends AbstractTableModel {
       case TYPE_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getIcon();
       case DEVICE_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex).getName();
+        Device device = myDevices.get(modelRowIndex);
+        String reason = device.getValidityReason();
+
+        return reason == null ? device.getName() : "<html>" + device.getName() + "<br>" + reason;
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
         return getSerialNumber(myDevices.get(modelRowIndex));
       case SNAPSHOT_MODEL_COLUMN_INDEX:
         Object snapshot = myDevices.get(modelRowIndex).getSnapshot();
         return snapshot == null ? "" : snapshot.toString();
-      case ISSUE_MODEL_COLUMN_INDEX:
-        return Strings.nullToEmpty(myDevices.get(modelRowIndex).getValidityReason());
       default:
         throw new AssertionError(modelColumnIndex);
     }

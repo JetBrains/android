@@ -3,9 +3,6 @@ package org.jetbrains.android.database;
 import com.android.ddmlib.IDevice;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidDbConnectionInfo {
   private final IDevice myDevice;
   private final String myPackageName;

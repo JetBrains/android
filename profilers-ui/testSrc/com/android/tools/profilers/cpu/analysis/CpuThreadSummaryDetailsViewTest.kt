@@ -115,6 +115,27 @@ class CpuThreadSummaryDetailsViewTest {
       dataSeries.add(cpuThreadTrackModel)
     }
     val view = CpuThreadSummaryDetailsView(profilersView, model)
-    assertThat(TreeWalker(view.component).descendants().filterIsInstance<JTable>()).isNotEmpty()
+    assertThat(TreeWalker(view).descendants().filterIsInstance<JTable>()).isNotEmpty()
+  }
+
+  @Test
+  fun threadStatesNotPopulatedForNonSysTrace() {
+    val timeline = DefaultTimeline().apply {
+      viewRange.set(0.0, 0.0)
+    }
+    val sysTrace = Mockito.mock(CpuCapture::class.java).apply {
+      Mockito.`when`(type).thenReturn(Cpu.CpuTraceType.ART)
+      Mockito.`when`(getThreadStatesForThread(123)).thenReturn(listOf())
+    }
+    val cpuThreadTrackModel = CpuThreadTrackModel(
+      sysTrace,
+      CpuThreadInfo(123, "foo"),
+      timeline,
+      MultiSelectionModel())
+    val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply {
+      dataSeries.add(cpuThreadTrackModel)
+    }
+    val view = CpuThreadSummaryDetailsView(profilersView, model)
+    assertThat(TreeWalker(view).descendants().filterIsInstance<JTable>()).isEmpty()
   }
 }

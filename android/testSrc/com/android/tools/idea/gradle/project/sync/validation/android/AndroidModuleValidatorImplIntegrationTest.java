@@ -33,7 +33,6 @@ public class AndroidModuleValidatorImplIntegrationTest extends AndroidGradleTest
       EncodingValidationStrategy.class,
       BuildTools23Rc1ValidationStrategy.class,
       LayoutRenderingIssueValidationStrategy.class,
-      ExtraGeneratedFolderValidationStrategy.class
     };
     int strategyCount = expectedStrategyTypes.length;
 

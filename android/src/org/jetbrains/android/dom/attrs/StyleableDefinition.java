@@ -7,8 +7,6 @@ import java.util.List;
 
 /**
  * Information about an styleable resource.
- *
- * @author Eugene.Kudelevsky
  */
 public interface StyleableDefinition {
   @NotNull

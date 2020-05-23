@@ -6,9 +6,6 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 public class HintBasedErrorReporter implements ErrorReporter {
   private final Editor myEditor;
 

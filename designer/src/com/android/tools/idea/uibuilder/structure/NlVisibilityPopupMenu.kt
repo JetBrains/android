@@ -17,13 +17,7 @@ package com.android.tools.idea.uibuilder.structure
 
 import com.android.SdkConstants
 import com.android.tools.adtui.common.secondaryPanelBackground
-import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
-import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.actionSystem.Toggleable
-import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.ui.colorpicker.LightCalloutPopup
@@ -33,8 +27,10 @@ import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.Point
-import java.util.function.BiFunction
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 
@@ -42,36 +38,25 @@ import javax.swing.JPopupMenu
  * Menu that displays all available visibility options to choose from.
  * [SdkConstants.ANDROID_URI] and [SdkConstants.TOOLS_URI].
  */
-class NlVisibilityPopupMenu {
+class NlVisibilityPopupMenu(
+  onClick: (visibility: Visibility, uri: String) -> Unit,
+  onClose: (() -> Unit)) {
+  val content = VisibilityPopupContent(onClick)
+  val popupMenu = LightCalloutPopup(content, onClose)
 
-  /** Invoker needs to be set for determining position of the menu. */
-  var invoker: UpdatableActionButton? = null
-
-  /** Shows menu that displays all available visibility options to choose from. */
-  fun showMenu(model: NlVisibilityModel, e: AnActionEvent) {
+  fun show(model: NlVisibilityModel, invoker: JComponent, p: Point) {
     val application = ApplicationManager.getApplication()
     if (!application.isReadAccessAllowed) {
-      application.readAction {
-        showMenu(model, e)
-      }
-      return
+      return application.readAction { show(model, invoker, p) }
     }
+    content.update(model)
+    popupMenu.show(invoker, p, Balloon.Position.atRight)
+  }
 
-    val content = VisibilityPopupContent(model)
-    val popupMenu = LightCalloutPopup(
-        content,
-        closedCallback = {
-          // Ideally this should update the button. But doesn't seem to always work.
-          invoker?.toggleAction?.let {
-            it.isSelected = false
-          }
-          invoker?.presentation?.let {
-            Toggleable.setSelected(it, false)
-          }
-        })
-    val x: Int = if (invoker != null) invoker!!.width else 0
-    val y: Int = if (invoker != null) invoker!!.height / 2 else 0
-    popupMenu.show(invoker, Point(x, y), Balloon.Position.atRight)
+  val balloon: Balloon? get() = popupMenu.getBalloon()
+
+  fun cancel() {
+    popupMenu.cancel()
   }
 }
 
@@ -79,13 +64,16 @@ class NlVisibilityPopupMenu {
  * UI contents inside the popup menu.
  */
 class VisibilityPopupContent(
-  model: NlVisibilityModel) : JPanel() {
+  private val onClick: (visibility: Visibility, uri: String) -> Unit) : JPanel() {
   companion object {
     private const val MENU_OUTER_PADDING = 10
     private const val MENU_INNER_PADDING = 5
     private const val ICON_PADDING_X = 6
     private const val ICON_PADDING_Y = 6
   }
+
+  var androidButtons: VisibilityPopupButtons? = null
+  var toolsButtons: VisibilityPopupButtons? = null
 
   init {
     layout = GridBagLayout()
@@ -107,7 +95,7 @@ class VisibilityPopupContent(
     c.gridy++
     c.ipady = ICON_PADDING_Y
     c.ipadx = ICON_PADDING_X
-    addButtons(this, c, SdkConstants.ANDROID_URI, model)
+    androidButtons = addButtons(this, c, SdkConstants.ANDROID_URI)
 
     // Having trouble getting this separator to show.
     c.gridy++
@@ -128,128 +116,75 @@ class VisibilityPopupContent(
     c.gridy++
     c.ipady = ICON_PADDING_Y
     c.ipadx = ICON_PADDING_X
-    addButtons(this, c, SdkConstants.TOOLS_URI, model)
+    toolsButtons = addButtons(this, c, SdkConstants.TOOLS_URI)
+  }
+
+  fun update(model: NlVisibilityModel) {
+    androidButtons?.update(model)
+    toolsButtons?.update(model)
   }
 
   private fun addButtons(panel: JPanel,
                          c: GridBagConstraints,
-                         uri: String,
-                         model: NlVisibilityModel) {
-    val buttons = VisibilityPopupButtons(uri, model)
+                         uri: String): VisibilityPopupButtons {
+    val buttons = VisibilityPopupButtons(uri, onClick)
     buttons.buttons.forEach {
       panel.add(it, c)
       c.gridx++
     }
+    return buttons
   }
 }
 
-/**
- * Class that controls 4 buttons each representing the visibility settings for
- * the component.
- */
-@VisibleForTesting
 class VisibilityPopupButtons(
   private val uri: String,
-  private val model: NlVisibilityModel) {
+  private val onClickListener: (visibility: Visibility, uri: String) -> Unit) {
 
-  /** Actions that updates component visibility. */
-  private val actions = ArrayList<VisibilityToggleAction>()
-
-  /** List of buttons, each represent one of the visibility settings for the component. */
-  val buttons = ArrayList<ActionButton>()
+  private val isToolsAttr = uri == SdkConstants.TOOLS_URI
+  val buttons = ArrayList<NlVisibilityButton>()
 
   init {
-    buttons.add(createActionButton(Visibility.NONE))
-    buttons.add(createActionButton(Visibility.VISIBLE))
-    buttons.add(createActionButton(Visibility.INVISIBLE))
-    buttons.add(createActionButton(Visibility.GONE))
+    buttons.add(createButton(Visibility.NONE))
+    buttons.add(createButton(Visibility.VISIBLE))
+    buttons.add(createButton(Visibility.INVISIBLE))
+    buttons.add(createButton(Visibility.GONE))
+  }
 
+  fun update(model: NlVisibilityModel) {
     buttons.forEach {
-      actions.add(it.action as VisibilityToggleAction)
-    }
-  }
-
-  private fun createActionButton(visibility: Visibility): ActionButton {
-    val action = VisibilityToggleAction(
-      model,
-      uri,
-      visibility,
-      BiFunction { model, button ->
-        updateOtherButtons(button)
-      })
-
-    val presentation = action.templatePresentation
-    updatePresentation(visibility, SdkConstants.TOOLS_URI == uri, presentation)
-
-    val dim = Dimension(RESOURCE_ICON_SIZE, RESOURCE_ICON_SIZE)
-    val button = ActionButton(action, presentation, "Visibility change", dim)
-    button.isEnabled = true
-    return button
-  }
-
-  /** Make sure that all other buttons are set false. */
-  private fun updateOtherButtons(currentAction: VisibilityToggleAction) {
-    actions.forEach {
-      if (it != currentAction) {
-        it.isSelected = false
+      if (isToolsAttr) {
+        it.isClicked = it.visibility == model.toolsVisibility
+      } else {
+        it.isClicked = it.visibility == model.androidVisibility
       }
     }
   }
-}
 
-/**
- * Create an action, that can perform:
- * - Clicking update component visibility
- * - Able to update view without updating component.
- *
- * @param model - model that represents the current view
- * @param visibility - visibility setting that this action represent.
- * @param uri - either tools or android.
- */
-@VisibleForTesting
-class VisibilityToggleAction(
-  val model: NlVisibilityModel,
-  val uri: String,
-  val visibility: Visibility,
-  private val callback: BiFunction<NlVisibilityModel, VisibilityToggleAction, Unit>) : ControllableToggleAction() {
-
-  init {
-    isSelected = model.contains(visibility, uri)
-  }
-
-  override fun setSelected(e: AnActionEvent, state: Boolean) {
-    if (!state) {
-      /*
-       * isSelected not updated intentionally. Visibility must be one of 4:
-       * none, visible, invisible, gone. Only way to toggle this action must
-       * be by clicking other 3 button.
-       */
+  private fun onClick(button: NlVisibilityButton) {
+    if (button.isClicked) {
       return
     }
-    isSelected = state
-    model.writeToComponent(visibility, uri)
-    callback.apply(model, this)
-  }
-}
 
-/**
- * Action that can toggle the button on/off.
- * Updating [isSelected] will update the presentation.
- */
-open class ControllableToggleAction(): ToggleAction() {
-
-  /**  Update the button state. */
-  var isSelected: Boolean = false
-  set(value) {
-    field = value
-    Toggleable.setSelected(templatePresentation, value)
+    buttons.forEach {
+      it.isClicked = false
+    }
+    button.isClicked = true
+    button.parent?.repaint()
+    onClickListener.invoke(button.visibility!!, uri)
   }
 
-  override fun isSelected(e: AnActionEvent): Boolean {
-    return isSelected
-  }
+  private fun createButton(visibility: Visibility): NlVisibilityButton {
+    val isToolsAttr = uri == SdkConstants.TOOLS_URI
+    val button = NlVisibilityButton()
+    val item = ButtonPresentation(visibility, isToolsAttr)
+    button.update(item)
 
-  override fun setSelected(e: AnActionEvent, state: Boolean) {
-    isSelected = state
+    button.addMouseListener(object: MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent?) {
+        onClick(button)
+      }
+    })
+
+    return button
   }
 }

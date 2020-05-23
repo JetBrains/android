@@ -117,7 +117,6 @@ fun NdkVariant.format(): String = """{
 @Suppress("DEPRECATION")
 fun AndroidModuleModel.format(): String = "\n" + """
     androidProject = ${androidProject.format()}
-    selectedMainCompileDependencies = ${selectedMainCompileDependencies.format()}
     selectedMainCompileLevel2Dependencies = ${selectedMainCompileLevel2Dependencies.format()}
     selectedAndroidTestCompileDependencies = ${selectedAndroidTestCompileDependencies?.format()}
     features = ${features.format()}
@@ -146,7 +145,6 @@ fun AndroidModuleModel.format(): String = "\n" + """
     variantNames = ${variantNames.format()}
     javaLanguageLevel = $javaLanguageLevel
     overridesManifestPackage = ${overridesManifestPackage()}
-    extraGeneratedSourceFolderPaths = ${extraGeneratedSourceFolderPaths.format()}
     syncIssues = ${syncIssues?.format()}
     artifactForAndroidTest = ${artifactForAndroidTest?.format()}
     testExecutionStrategy = $testExecutionStrategy

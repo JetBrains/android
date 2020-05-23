@@ -10,9 +10,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidConversionUtil {
   @NonNls static final String OPTION_VALUE_ATTRIBUTE = "value";
 

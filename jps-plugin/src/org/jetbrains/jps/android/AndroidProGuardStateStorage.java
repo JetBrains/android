@@ -11,9 +11,6 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidProGuardStateStorage implements StorageOwner {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.jps.android.AndroidProGuardStateStorage");
 

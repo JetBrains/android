@@ -30,9 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 
-/**
- * @author Vladislav.Soroka
- */
 public class AndroidProjectTaskRunner extends ProjectTaskRunner {
   @Override
   public void run(@NotNull Project project,

@@ -2,9 +2,6 @@ package org.jetbrains.android.util;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class WaitingStrategies {
   public static abstract class Strategy {
     private Strategy() {

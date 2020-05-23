@@ -81,21 +81,6 @@ final class DevicesSelectedService {
     return project.getService(DevicesSelectedService.class);
   }
 
-  @NotNull
-  List<Device> getSelectedDevices(@NotNull List<Device> devices) {
-    if (isMultipleDevicesSelectedInComboBox()) {
-      return getDevicesSelectedWithDialog(devices);
-    }
-
-    Device device = getDeviceSelectedWithComboBox(devices);
-
-    if (device == null) {
-      return Collections.emptyList();
-    }
-
-    return Collections.singletonList(device);
-  }
-
   @Nullable
   Device getDeviceSelectedWithComboBox(@NotNull List<Device> devices) {
     if (devices.isEmpty()) {
@@ -191,7 +176,7 @@ final class DevicesSelectedService {
   }
 
   @NotNull
-  private List<Device> getDevicesSelectedWithDialog(@NotNull List<Device> devices) {
+  List<Device> getDevicesSelectedWithDialog(@NotNull List<Device> devices) {
     Collection<Key> keys = getDeviceKeysSelectedWithDialog();
     return ContainerUtil.filter(devices, device -> keys.contains(device.getKey()));
   }

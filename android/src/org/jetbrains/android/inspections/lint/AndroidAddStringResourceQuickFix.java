@@ -17,9 +17,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.google.common.base.CharMatcher.inRange;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidAddStringResourceQuickFix extends AndroidAddStringResourceAction {
   private static final CharMatcher DISALLOWED_CHARS = inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).negate();
   private final PsiElement myStartElement;

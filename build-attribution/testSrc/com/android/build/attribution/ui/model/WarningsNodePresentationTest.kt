@@ -19,6 +19,7 @@ import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
+import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -38,8 +39,8 @@ class WarningsNodePresentationTest {
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:compile",
       suffix = "",
-      showWarnIcon = true,
-      rightAlignedSuffix = "2.000 s"
+      nodeIconState = NodeIconState.WARNING_ICON,
+      rightAlignedSuffix = "2.0s"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -51,8 +52,8 @@ class WarningsNodePresentationTest {
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = "Always-run Tasks",
       suffix = "1 warning",
-      showWarnIcon = false,
-      rightAlignedSuffix = "2.000 s"
+      nodeIconState = NodeIconState.NO_ICON,
+      rightAlignedSuffix = "2.0s"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -64,7 +65,7 @@ class WarningsNodePresentationTest {
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = "Non-incremental Annotation Processors",
       suffix = "3 warnings",
-      showWarnIcon = false
+      nodeIconState = NodeIconState.NO_ICON
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -76,8 +77,8 @@ class WarningsNodePresentationTest {
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = "com.google.auto.value.processor.AutoAnnotationProcessor",
       suffix = "",
-      showWarnIcon = true,
-      rightAlignedSuffix = "0.123 s"
+      nodeIconState = NodeIconState.WARNING_ICON,
+      rightAlignedSuffix = "0.1s"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }

@@ -48,11 +48,25 @@ class LightDirectionsClassTest {
           <fragment
               android:id="@+id/fragment1"
               android:name="test.safeargs.Fragment1"
-              android:label="Fragment1" />
+              android:label="Fragment1" >
+              
+              <action
+                  android:id="@+id/action_Fragment1_to_main"
+                  app:destination="@id/main" />
+          </fragment>
           <fragment
               android:id="@+id/fragment2"
               android:name="test.safeargs.Fragment2"
-              android:label="Fragment2" />
+              android:label="Fragment2" >
+              
+              <action
+                  android:id="@+id/action_Fragment2_to_main"
+                  app:destination="@id/main" />
+          </fragment>
+
+          <action
+              android:id="@+id/action_main_to_fragment1"
+              app:destination="@id/fragment1" />
         </navigation>
       """.trimIndent())
 

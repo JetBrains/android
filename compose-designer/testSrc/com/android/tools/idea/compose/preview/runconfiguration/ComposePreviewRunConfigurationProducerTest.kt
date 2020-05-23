@@ -90,6 +90,33 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     }
   }
 
+  fun testParameterProvider() {
+    val file = myFixture.addFileToProject(
+      "src/TestPreviewParameter.kt",
+      // language=kotlin
+      """
+        package my.composable.app
+
+        import androidx.ui.tooling.preview.Preview
+        import androidx.ui.tooling.preview.PreviewParameter
+        import androidx.compose.Composable
+
+        class Names: CollectionPreviewParameterProvider<String>(listOf("Android", "Studio"))
+
+        @Composable
+        @Preview
+        fun Preview1(@PreviewParameter(Names::class) name: String) {
+        }
+      """.trimIndent())
+
+    val composableWithParameterProvider = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
+    val configuration = createConfigurationFromElement(composableWithParameterProvider)
+    assertEquals("Preview1", configuration.name)
+    assertEquals("my.composable.app.TestPreviewParameterKt.Preview1", configuration.composableMethodFqn)
+    // We should set the providerClassFqn value when running Compose Previews with a @PreviewParameter argument
+    assertEquals("my.composable.app.Names", configuration.providerClassFqn)
+  }
+
   fun testSetupConfigurationFromContextLibraryModule() {
     val modulePath = getAdditionalModulePath("myLibrary")
 

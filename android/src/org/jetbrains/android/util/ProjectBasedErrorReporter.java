@@ -3,9 +3,6 @@ package org.jetbrains.android.util;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class ProjectBasedErrorReporter implements ErrorReporter {
   private final Project myProject;
 

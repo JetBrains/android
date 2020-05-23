@@ -16,9 +16,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidSourceItemsProvider extends FacetBasedPackagingSourceItemsProvider<AndroidFacet, AndroidFinalPackageElement> {
   public AndroidSourceItemsProvider() {
     super(AndroidFacet.ID, AndroidFinalPackageElementType.getInstance());

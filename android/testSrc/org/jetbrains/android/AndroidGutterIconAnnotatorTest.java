@@ -26,11 +26,14 @@ import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.rendering.GutterIconRenderer.NavigationTargetProvider;
 import com.android.tools.idea.rendering.TestRenderingUtils;
 import com.android.tools.idea.testing.AndroidTestUtils;
+import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon;
 import com.android.tools.idea.util.FileExtensions;
+import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -60,6 +63,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    IconLoader.activate();
     myFixture.copyFileToProject("annotator/color_test.xml", "res/layout/color_test.xml");
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors1.xml");
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors2.xml");
@@ -71,6 +75,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/layer_list.xml", "res/drawable/layer_list.xml");
     myFixture.copyFileToProject("annotator/selector.xml", "res/color/selector.xml");
     myFixture.copyFileToProject("annotator/shape.xml", "res/drawable/shape.xml");
+    myFixture.copyFileToProject("annotator/animated_selector.xml", "res/drawable/animated_selector.xml");
     myFixture.copyFileToProject("annotator/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("render/imageutils/actual.png", "res/drawable-mdpi/drawable1.png");
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
@@ -93,19 +98,19 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
   public void testColorReferenceInJava1() {
     // Color resource reference in java file
     HighlightInfo highlightInfo = findHighlightInfo("src/p1/p2/ColorTest.java", "R.color.color1", PsiReferenceExpression.class);
-    checkHighlightInfoColor(highlightInfo, new Color(63, 81, 181));
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of((new Color(63, 81, 181))));
   }
 
   public void testColorReferenceInJava2() {
     // Color resource reference in java file
     HighlightInfo highlightInfo = findHighlightInfo("src/p1/p2/ColorTest.java", "R.color.color2", PsiReferenceExpression.class);
-    checkHighlightInfoColor(highlightInfo, new Color(0x303F9F));
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of((new Color(0x303F9F))));
   }
 
   public void testSelectorReferenceInJava() {
     // Selector color resource reference in java file
     HighlightInfo highlightInfo = findHighlightInfo("src/p1/p2/ColorTest.java", "R.color.selector", PsiReferenceExpression.class);
-    checkHighlightInfoColor(highlightInfo, new Color(0, 255, 0));
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of(new Color(255, 0, 0), new Color(0, 0, 255), new Color(0, 255, 0)));
   }
 
   public void testJavaFileWithErrors() {
@@ -113,7 +118,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     AndroidTestUtils.moveCaret(myFixture, "R.color.selector|;");
     myFixture.type("not valid code anymore!!!");
     HighlightInfo highlightInfo = findHighlightInfo("src/p1/p2/ColorTest.java", "R.color.color1", PsiReferenceExpression.class);
-    checkHighlightInfoColor(highlightInfo, new Color(63, 81, 181));
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of((new Color(63, 81, 181))));
   }
 
   public void testColorInValues1() {
@@ -161,7 +166,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
   public void testColorReferenceInXml1() {
     // Reference to a color from a layout file
     HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@color/color1", XmlAttributeValue.class);
-    checkHighlightInfoColor(highlightInfo, new Color(63, 81, 181));
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of(new Color(63, 81, 181)));
     // Click to open the color picker
     assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNotNull();
   }
@@ -169,7 +174,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
   public void testColorReferenceInXml2() {
     // Reference to a color from a layout file
     HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@color/color2", XmlAttributeValue.class);
-    checkHighlightInfoColor(highlightInfo, new Color(0x303F9F));
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of(new Color(0x303F9F)));
     // Click to open the color picker
     assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNotNull();
   }
@@ -177,7 +182,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
   public void testColorReferenceInXml3() {
     // Reference to a selector color from a layout file
     HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@color/selector", XmlAttributeValue.class);
-    checkHighlightInfoColor(highlightInfo, new Color(0, 255, 0));
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of(new Color(255, 0, 0), new Color(0, 0, 255), new Color(0, 255, 0)));
   }
 
   public void testIconReferenceInXml() throws IOException {
@@ -213,6 +218,19 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     VirtualFile expectedFile = FileExtensions.toVirtualFile(expectedPath);
     assertThat(getNavigationTarget(highlightInfo)).isEqualTo(expectedFile);
     checkHighlightInfoImage(highlightInfo, expectedFile);
+  }
+
+  public void testThemeAttributeDrawableFallbackIcon() throws Exception {
+    // Reference to a theme attribute drawable from a layout file.
+    HighlightInfo highlightInfo =
+      findHighlightInfo("res/layout/color_test.xml", "?android:attr/actionModeCutDrawable", XmlAttributeValue.class);
+    checkHighlightInfoImage(highlightInfo, "annotator/ic_fallback_thumbnail.png");
+  }
+
+  public void testAnimatedSelectorFallbackIcon() throws Exception {
+    // Reference to an animated selector drawable from a layout file.
+    HighlightInfo highlightInfo = findHighlightInfo("res/layout/color_test.xml", "@drawable/animated_selector", XmlAttributeValue.class);
+    checkHighlightInfoImage(highlightInfo, "annotator/ic_fallback_thumbnail.png");
   }
 
   @NotNull
@@ -262,6 +280,18 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     ColorIcon colorIcon = (ColorIcon)icon;
     Color color = colorIcon.getIconColor();
     assertThat(color).isEqualTo(expectedColor);
+  }
+
+  private static void checkHighlightInfoColors(@NotNull HighlightInfo highlightInfo, @NotNull List<Color> expectedColors) {
+    assertThat(highlightInfo.getGutterIconRenderer()).isNotNull();
+    assertThat(highlightInfo.getGutterIconRenderer()).isInstanceOf(GutterIconRenderer.class);
+    GutterIconRenderer renderer = (GutterIconRenderer)highlightInfo.getGutterIconRenderer();
+    assertThat(renderer).isNotNull();
+    Icon icon = renderer.getIcon();
+    assertThat(icon).isInstanceOf(MultipleColorIcon.class);
+    MultipleColorIcon colorIcon = (MultipleColorIcon)icon;
+    List<Color> color = colorIcon.getColors();
+    assertThat(color).isEqualTo(expectedColors);;
   }
 
   @NotNull

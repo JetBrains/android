@@ -34,6 +34,9 @@ import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.energy.EnergyMonitorTooltip;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
+import com.android.tools.profilers.memory.CaptureDurationData;
+import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
+import com.android.tools.profilers.memory.HeapDumpStage;
 import com.android.tools.profilers.memory.MemoryMonitorTooltip;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
@@ -504,6 +507,15 @@ public class StudioProfilersViewTest {
     myProfilers.setProcess(device, process);
     assertThat(myView.getStageViewComponent().isVisible()).isTrue();
     assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
+  }
+
+  @Test
+  public void nonTimelineStageHidesRightToolbar_timelineStageShowsRightToolbar() throws Exception {
+    myProfilers.setStage(new HeapDumpStage(myProfilers, new FakeCaptureObjectLoader(), null, null));
+    assertThat(myView.getRightToolbar().isVisible()).isFalse();
+
+    myProfilers.setStage(new MemoryProfilerStage(myProfilers));
+    assertThat(myView.getRightToolbar().isVisible()).isTrue();
   }
 
   public void transitionStage(Stage stage) throws Exception {

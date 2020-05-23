@@ -18,16 +18,12 @@ package com.android.tools.idea.emulator
 
 import com.intellij.openapi.actionSystem.DataKey
 
-/**
- * Embedded Emulator constants.
- */
+/** Embedded Emulator constants. */
 
 const val EMULATOR_TOOL_WINDOW_ID = "Emulator"
 
-val EMULATOR_CONTROLLER_KEY = DataKey.create<EmulatorController>("EmulatorController")
+@JvmField val EMULATOR_CONTROLLER_KEY = DataKey.create<EmulatorController>("EmulatorController")
 
-val EMULATOR_VIEW_KEY = DataKey.create<EmulatorView>("EmulatorView")
-
-internal val EMULATOR_TOOL_WINDOW_PANEL_KEY = DataKey.create<EmulatorToolWindowPanel>("EmulatorToolWindowPanel")
+@JvmField val EMULATOR_VIEW_KEY = DataKey.create<EmulatorView>("EmulatorView")
 
 internal const val EMULATOR_MAIN_TOOLBAR_ID = "EmulatorToolbar"

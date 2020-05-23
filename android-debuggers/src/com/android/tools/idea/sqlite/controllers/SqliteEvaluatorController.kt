@@ -56,25 +56,25 @@ class SqliteEvaluatorController(
   private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener = SqliteEvaluatorViewListenerImpl()
   private val listeners = mutableListOf<Listener>()
   private val openDatabases = mutableListOf<SqliteDatabaseId>()
-  // currently chosen in combobox
-  private var activeDatabase: SqliteDatabaseId? = null
-  // database which was used for last query/update
-  private var queriedDatabase: SqliteDatabaseId? = null
-  private var sqliteStatement: String = ""
+  // database currently active in combobox + current text in textfield
+  private var currentEvaluationParams: EvaluationParams = EvaluationParams(null, "")
+
+  // database + query that were used for last query/exec
+  private var lastUsedEvaluationParams : EvaluationParams? = null
 
   private val modelListener = object : DatabaseInspectorModel.Listener {
     override fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>) {
       openDatabases.clear()
       openDatabases.addAll(openDatabaseIds.sortedBy { it.name })
 
-      if (activeDatabase !in openDatabases) {
-        activeDatabase = openDatabases.firstOrNull()
+      if (currentEvaluationParams.databaseId !in openDatabaseIds) {
+        currentEvaluationParams =  currentEvaluationParams.copy(databaseId = openDatabases.firstOrNull())
       }
-      if (queriedDatabase != null && queriedDatabase!! !in openDatabases) {
+      if (lastUsedEvaluationParams?.databaseId !in openDatabaseIds) {
         resetTable()
       }
 
-      view.setDatabases(ArrayList(openDatabases), activeDatabase)
+      view.setDatabases(ArrayList(openDatabases), currentEvaluationParams.databaseId)
       updateRunSqliteStatementButtonState()
     }
 
@@ -83,10 +83,21 @@ class SqliteEvaluatorController(
     }
   }
 
-  fun setUp() {
+  fun setUp(evaluationParams: EvaluationParams? = null) {
     view.addListener(sqliteEvaluatorViewListener)
     view.tableView.setEditable(false)
     model.addListener(modelListener)
+    if (evaluationParams != null) {
+      val statement = createSqliteStatement(project, evaluationParams.statementText)
+      // we don't want to automatically run a statement that can modify a database
+      if (evaluationParams.databaseId in openDatabases && statement.isQueryStatement) {
+        showAndExecuteSqlStatement(evaluationParams.databaseId!!, statement)
+      }
+      else {
+        currentEvaluationParams = currentEvaluationParams.copy(statementText = evaluationParams.statementText)
+        view.showSqliteStatement(currentEvaluationParams.statementText)
+      }
+    }
   }
 
   override fun refreshData(): ListenableFuture<Unit> {
@@ -115,30 +126,28 @@ class SqliteEvaluatorController(
     listeners.clear()
   }
 
-  fun evaluateSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
-    view.showSqliteStatement(sqliteStatement.sqliteStatementWithInlineParameters)
+  fun showAndExecuteSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     if (databaseId !in openDatabases) {
-      return immediateFailedFuture(IllegalStateException("Can't evaluate SQLite statement, unknown database: '${databaseId.path}'"))
+      return immediateFailedFuture(IllegalStateException("Can't evaluate SQLite statement, unknown database: '${databaseId?.path}'"))
     }
 
-    activeDatabase = databaseId
-    view.setDatabases(openDatabases, activeDatabase)
-    return execute(databaseId, sqliteStatement)
+    currentEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
+    view.showSqliteStatement(sqliteStatement.sqliteStatementWithInlineParameters)
+    view.setDatabases(ArrayList(openDatabases), currentEvaluationParams.databaseId)
+    return executeSqlStatement(databaseId!!, sqliteStatement)
   }
 
-  fun evaluateSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: String): ListenableFuture<Unit> {
-    return evaluateSqlStatement(databaseId, createSqliteStatement(project, sqliteStatement))
+  fun saveEvaluationParams(): EvaluationParams {
+    // prefer newly entered data over last evaluated
+    val databaseId = lastUsedEvaluationParams?.takeIf { currentEvaluationParams.statementText == it.statementText }?.databaseId
+    return EvaluationParams(databaseId, currentEvaluationParams.statementText)
   }
 
-  private fun execute(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+  private fun executeSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     resetTable()
-
     val databaseConnection = model.getDatabaseConnection(databaseId)!!
-    queriedDatabase = databaseId
-    return if (
-      sqliteStatement.statementType == SqliteStatementType.SELECT ||
-      sqliteStatement.statementType == SqliteStatementType.EXPLAIN
-    ) {
+    lastUsedEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
+    return if (sqliteStatement.isQueryStatement) {
       runQuery(databaseConnection, sqliteStatement)
     }
     else {
@@ -147,16 +156,18 @@ class SqliteEvaluatorController(
   }
 
   private fun resetTable() {
-    queriedDatabase = null
+    if (lastUsedEvaluationParams != null) {
+      lastUsedEvaluationParams = null
+      view.tableView.resetView()
+    }
     if (currentTableController != null) {
       Disposer.dispose(currentTableController!!)
       currentTableController = null
     }
-    view.tableView.resetView()
   }
 
   private fun updateRunSqliteStatementButtonState() {
-    view.setRunSqliteStatementEnabled(activeDatabase != null && !hasParsingError(project, sqliteStatement))
+    view.setRunSqliteStatementEnabled(currentEvaluationParams.databaseId != null && !hasParsingError(project, currentEvaluationParams.statementText))
   }
 
   private fun runQuery(databaseConnection: DatabaseConnection, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
@@ -194,16 +205,16 @@ class SqliteEvaluatorController(
       DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
       )
-      activeDatabase?.let { evaluateSqlStatement(it, sqliteStatement) }
+      executeSqlStatement(currentEvaluationParams.databaseId!!, createSqliteStatement(project, currentEvaluationParams.statementText))
     }
 
     override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
-      sqliteStatement = newSqliteStatement
+      currentEvaluationParams = currentEvaluationParams.copy(statementText = newSqliteStatement)
       updateRunSqliteStatementButtonState()
     }
 
     override fun onDatabaseSelected(databaseId: SqliteDatabaseId) {
-      activeDatabase = databaseId
+      currentEvaluationParams = currentEvaluationParams.copy(databaseId = databaseId)
     }
   }
 
@@ -214,4 +225,9 @@ class SqliteEvaluatorController(
      * */
     fun onSqliteStatementExecuted(databaseId: SqliteDatabaseId)
   }
+
+  data class EvaluationParams(val databaseId: SqliteDatabaseId?, val statementText: String)
 }
+
+private val SqliteStatement.isQueryStatement
+  get() = statementType == SqliteStatementType.SELECT || statementType == SqliteStatementType.EXPLAIN

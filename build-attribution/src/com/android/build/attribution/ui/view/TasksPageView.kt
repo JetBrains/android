@@ -20,14 +20,11 @@ import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.model.TasksTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.view.details.ChartsPanel
 import com.android.build.attribution.ui.view.details.TaskViewDetailPagesFactory
-import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
-import com.intellij.ui.EnumComboBoxModel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
-import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.components.JBLabel
@@ -42,7 +39,7 @@ import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.Component
-import java.awt.event.ItemEvent
+import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -64,13 +61,12 @@ class TasksPageView(
   // Flag to prevent triggering calls to action handler on pulled from the model updates.
   private var fireActionHandlerEvents = true
 
-  val groupingCombo = ComboBox(EnumComboBoxModel(TasksDataPageModel.Grouping::class.java)).apply {
-    name = "tasksGroupingCombo"
-    renderer = SimpleListCellRenderer.create { label, value, index -> label.text = value.uiName }
-    selectedItem = this@TasksPageView.model.selectedGrouping
-    addItemListener { event ->
-      if (fireActionHandlerEvents && event.stateChange == ItemEvent.SELECTED) {
-        actionHandlers.tasksGroupingSelectionUpdated(event.item as TasksDataPageModel.Grouping)
+  val groupingCheckBox = JCheckBox("Group by plugin", false).apply {
+    name = "tasksGroupingCheckBox"
+    addActionListener { event ->
+      if (fireActionHandlerEvents) {
+        val grouping = if (isSelected) TasksDataPageModel.Grouping.BY_PLUGIN else TasksDataPageModel.Grouping.UNGROUPED
+        actionHandlers.tasksGroupingSelectionUpdated(grouping)
       }
     }
   }
@@ -145,7 +141,7 @@ class TasksPageView(
   override val additionalControls: JPanel = JPanel().apply {
     layout = HorizontalLayout(10)
     name = "tasks-view-additional-controls"
-    add(groupingCombo)
+    add(groupingCheckBox)
   }
 
   init {
@@ -155,7 +151,7 @@ class TasksPageView(
 
   private fun updateViewFromModel() {
     fireActionHandlerEvents = false
-    groupingCombo.selectedItem = model.selectedGrouping
+    groupingCheckBox.isSelected = model.selectedGrouping == TasksDataPageModel.Grouping.BY_PLUGIN
     treeHeaderLabel.text = model.treeHeaderText
     if (tree.model.root != model.treeRoot) {
       (tree.model as DefaultTreeModel).setRoot(model.treeRoot)

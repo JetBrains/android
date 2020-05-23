@@ -23,9 +23,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author yole, coyote
- */
 public final class StyleableDefinitionImpl implements StyleableDefinition {
   @NotNull private final ResourceReference myStyleable;
   @NotNull private final List<AttributeDefinition> myAttributes = new ArrayList<>();

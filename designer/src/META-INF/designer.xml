@@ -173,9 +173,9 @@
     <!-- TODO: add shortcuts and group for nav editor, multi-preview, custom view, compose, and split editor -->
 
 
-    <action id="LayoutValidator.run"
+    <action id="Android.Designer.LayoutValidatorAction"
             text="Run Layout Validator"
-            icon="StudioIcons.Shell.ToolWindows.TODO"
+            icon="StudioIcons.LayoutEditor.Toolbar.ACCESSIBILITY"
             class="com.android.tools.idea.uibuilder.surface.LayoutValidatorAction">
     </action>
   </actions>

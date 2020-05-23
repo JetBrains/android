@@ -59,9 +59,10 @@ import java.util.concurrent.TimeUnit
 class DefaultPropertiesProviderTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val inspectorRule = LayoutInspectorTransportRule(projectRule = projectRule)
-    .withDefaultDevice(connected = true)
+    .withDefaultDevice()
     .withDemoLayout()
     .withCommandHandler(LayoutInspectorCommand.Type.GET_PROPERTIES, ::handleGetPropertiesCommand)
+    .attach()
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectorRule).around(EdtRule())!!

@@ -18,9 +18,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class ChooseKeyDialog extends DialogWrapper {
   private JPanel myNewKeyPanel;
   private JBRadioButton myCreateNewKeyRadioButton;

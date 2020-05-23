@@ -24,8 +24,11 @@ import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
+import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
+import com.android.tools.idea.sqlite.mocks.MockDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorView
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
@@ -42,6 +45,7 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.ui.mainView.AddColumns
 import com.android.tools.idea.sqlite.ui.mainView.AddTable
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseDiffOperation
@@ -72,6 +76,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.InOrder
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
@@ -81,6 +86,8 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.util.concurrent.Executor
+import javax.swing.Icon
+import javax.swing.JComponent
 
 class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   private lateinit var mockSqliteView: MockDatabaseInspectorView
@@ -1021,7 +1028,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(mockViewFactory.tableView, times(2)).startTableLoading()
   }
 
-  fun testTabsAreRestored() {
+  fun testTableTabsAreRestored() {
     // Prepare
     val table1 = SqliteTable("table1", emptyList(), null, false)
     val table2 = SqliteTable("table2", emptyList(), null, false)
@@ -1080,6 +1087,60 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         StudioIcons.DatabaseInspector.TABLE,
         mockViewFactory.tableView.component
       )
+  }
+
+  fun testAdHoqQueryTabsAreRestored() {
+    // Prepare
+    val table1 = SqliteTable("table1", emptyList(), null, false)
+    val schema = SqliteSchema(listOf(table1))
+    val id = SqliteDatabaseId.LiveSqliteDatabaseId("path", "name", 1)
+    val db = LiveSqliteDatabase(id, MockDatabaseConnection(schema))
+
+    val selectStatement = createSqliteStatement(project, "SELECT * FROM table1")
+    val insertStatement = createSqliteStatement(project, "INSERT INTO table VALUES(1)")
+    // Act: open AdHoq Tab
+    runDispatching {
+      sqliteController.addSqliteDatabase(db)
+      sqliteController.runSqlStatement(id, selectStatement)
+      sqliteController.runSqlStatement(id, insertStatement)
+    }
+
+    // Save state and restart
+    val savedState = sqliteController.saveState()
+    Disposer.dispose(sqliteController)
+    mockDatabaseInspectorModel.clearDatabases()
+
+    val newFactory = MockDatabaseInspectorViewsFactory()
+    sqliteController = DatabaseInspectorControllerImpl(
+      project,
+      mockDatabaseInspectorModel,
+      newFactory,
+      edtExecutor,
+      taskExecutor
+    )
+    sqliteController.setUp()
+    sqliteController.restoreSavedState(savedState)
+
+    val restartedDbId = SqliteDatabaseId.LiveSqliteDatabaseId("path", "name", 2)
+    val databaseConnection = DatabaseConnectionWrapper(MockDatabaseConnection(schema))
+    val restartedDb = LiveSqliteDatabase(restartedDbId, databaseConnection)
+
+    // Act: restore state and re-add db
+    runDispatching {
+      sqliteController.addSqliteDatabase(restartedDb)
+    }
+
+    // Verify
+    verify(newFactory.databaseInspectorView, times(2))
+      .openTab(
+        any(TabId.AdHocQueryTab::class.java),
+        anyString(),
+        any(Icon::class.java),
+        any(JComponent::class.java)
+      )
+
+    // Check that INSERT statement was not executed, even though tab was restored
+    assertThat(databaseConnection.executedSqliteStatements).containsExactly(selectStatement.sqliteStatementText)
   }
 
   fun testUpdateSchemaAddsNewTableOnlyOnceIfCalledConcurrently() {
@@ -1200,5 +1261,55 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       StudioIcons.DatabaseInspector.VIEW,
       mockViewFactory.tableView.component
     )
+  }
+
+  fun testDatabaseTablesAreClosedWhenDatabaseIsClosed() {
+    // Prepare
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(MockSqliteResultSet()))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
+    }
+
+    // Act
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(databaseId1, testSqliteTable)
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(databaseId2, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockSqliteView).openTab(
+      TabId.TableTab(databaseId1, testSqliteTable.name),
+      testSqliteTable.name,
+      StudioIcons.DatabaseInspector.TABLE,
+      mockViewFactory.tableView.component
+    )
+    verify(mockSqliteView).openTab(
+      TabId.TableTab(databaseId2, testSqliteTable.name),
+      testSqliteTable.name,
+      StudioIcons.DatabaseInspector.TABLE,
+      mockViewFactory.tableView.component
+    )
+
+    // Act
+    mockDatabaseInspectorModel.removeDatabaseSchema(databaseId1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockSqliteView).closeTab(TabId.TableTab(databaseId1, testSqliteTable.name))
+    verify(mockSqliteView, times(0)).closeTab(TabId.TableTab(databaseId2, testSqliteTable.name))
+  }
+
+  fun testGetSchemaErrorsFromLiveInspectorAreNotReported() {
+    // Prepare
+    `when`(mockDatabaseConnection.readSchema()).thenThrow(LiveInspectorException::class.java)
+
+    // Act
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+
+    // Assert
+    orderVerifier.verify(mockSqliteView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
   }
 }

@@ -218,7 +218,6 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     androidXSupport = true
     setProjectDefaults(project)
     language = Language.Java
-    bytecodeLevel = BytecodeLevel.L7
     topOut = project.guessProjectDir()!!.toIoFile()
     debugKeyStoreSha1 = sha1(getOrCreateDefaultDebugKeystore())
     applicationPackage = defaultPackage
@@ -232,7 +231,7 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
     isLibrary = false
     formFactor = FormFactor.Mobile // FIXME
-    themesData = ThemesData()
+    themesData = ThemesData("App")
     apis = ApiTemplateData(
       buildApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
       targetApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),

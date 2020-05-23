@@ -77,14 +77,28 @@ public class MlUtils {
     return ancestor.map(virtualFile -> VfsUtilCore.getRelativePath(file, virtualFile)).orElse(null);
   }
 
+
+  /**
+   * Returns the set of missing dependencies required to enable GPU option in the auto-generated model classes.
+   */
+  @NotNull
+  public static List<GradleCoordinate> getMissingTfliteGpuDependencies(@NotNull Module module) {
+    return getMissingDependencies(module, getTfliteGpuDependencies());
+  }
+
   /**
    * Returns the set of missing dependencies that are required by the auto-generated model classes.
    */
   @NotNull
-  public static List<GradleCoordinate> getMissingDependencies(@NotNull Module module) {
+  public static List<GradleCoordinate> getMissingRequiredDependencies(@NotNull Module module) {
+    return getMissingDependencies(module, getRequiredDependencies());
+  }
+
+  @NotNull
+  private static List<GradleCoordinate> getMissingDependencies(@NotNull Module module, ImmutableList<String> dependencies) {
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
     List<GradleCoordinate> pendingDeps = new ArrayList<>();
-    for (String requiredDepString : getRequiredDependencies()) {
+    for (String requiredDepString : dependencies) {
       GradleCoordinate requiredDep = GradleCoordinate.parseCoordinateString(requiredDepString);
       GradleCoordinate requiredDepInAnyVersion = new GradleCoordinate(requiredDep.getGroupId(), requiredDep.getArtifactId(), "+");
       if (moduleSystem.getRegisteredDependency(requiredDepInAnyVersion) == null) {
@@ -99,8 +113,14 @@ public class MlUtils {
     // TODO(148887002): calculate required deps based on the given model file and figure out how to handle versions.
     return ImmutableList.of(
       "org.apache.commons:commons-compress:1.20",
-      "org.tensorflow:tensorflow-lite:2.1.0",
-      "org.tensorflow:tensorflow-lite-support:0.0.0-nightly"
+      "org.tensorflow:tensorflow-lite-support:0.1.0-rc0"
+    );
+  }
+
+  @NotNull
+  private static ImmutableList<String> getTfliteGpuDependencies() {
+    return ImmutableList.of(
+      "org.tensorflow:tensorflow-lite-gpu:2.2.0"
     );
   }
 }

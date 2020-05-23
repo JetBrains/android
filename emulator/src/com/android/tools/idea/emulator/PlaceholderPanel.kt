@@ -22,12 +22,12 @@ import com.android.repository.api.ProgressIndicator
 import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.settings.EmulatorSettingsUi
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -82,7 +82,7 @@ internal class PlaceholderPanel(project: Project): BorderLayoutPanel(), Disposab
       updateContent()
     })
 
-    ApplicationManager.getApplication().executeOnPooledThread {
+    executeOnPooledThread {
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
       val progress: ProgressIndicator = StudioLoggerProgressIndicator(AvdManagerConnection::class.java)
       val sdkManager = sdkHandler.getSdkManager(progress)
@@ -100,7 +100,7 @@ internal class PlaceholderPanel(project: Project): BorderLayoutPanel(), Disposab
   private fun localPackagesUpdated(packages: RepositoryPackages) {
     val emulatorPackage = packages.localPackages.get(SdkConstants.FD_EMULATOR)
     if (emulatorPackage != null) {
-      invokeLater {
+      invokeLaterInAnyModalityState {
         val sufficient = emulatorPackage.version >= Revision.parseRevision(MIN_REQUIRED_EMULATOR_VERSION)
         if (emulatorVersionIsSufficient != sufficient) {
           emulatorVersionIsSufficient = sufficient
@@ -141,9 +141,9 @@ internal class PlaceholderPanel(project: Project): BorderLayoutPanel(), Disposab
       <center>
       The Android Emulator is currently configured<br>
       to run as a standalone application. To make<br>
-      Android Emulator launch in this window<br>
+      the Android Emulator launch in this window<br>
       instead, select the <i>Launch in a tool window</i><br>
-      option in <font color = ${linkColorString}><a href=''>Emulator settings</a></font>.
+      option in the <font color = ${linkColorString}><a href=''>Emulator settings</a></font>.
       </center>
       """.trimIndent()
     }

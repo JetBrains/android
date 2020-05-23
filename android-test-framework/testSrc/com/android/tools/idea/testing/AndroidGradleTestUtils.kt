@@ -96,6 +96,7 @@ import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
+import com.intellij.openapi.util.io.systemIndependentPath
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.pom.java.LanguageLevel
@@ -591,6 +592,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     listOf(),
     listOf(),
     LintOptionsStub(),
+    listOf(),
     setOf(),
     JavaCompileOptionsStub(),
     AaptOptionsStub(),
@@ -651,15 +653,14 @@ fun setupTestProjectFromAndroidModel(
       }
       if (module.name != project.name) {
         modifiableModel.renameModule(module, project.name)
-        modifiableModel.setModuleGroupPath(module, arrayOf(project.name))
       }
       modifiableModel.commit()
       ExternalSystemModulePropertyManager
         .getInstance(module)
         .setExternalOptions(
           GRADLE_SYSTEM_ID,
-          ModuleData(":", GRADLE_SYSTEM_ID, JAVA.id, project.name, basePath.path, basePath.path),
-          ProjectData(GRADLE_SYSTEM_ID, project.name, project.basePath!!, basePath.path))
+          ModuleData(":", GRADLE_SYSTEM_ID, JAVA.id, project.name, basePath.systemIndependentPath, basePath.systemIndependentPath),
+          ProjectData(GRADLE_SYSTEM_ID, project.name, project.basePath!!, basePath.systemIndependentPath))
     }
   }
   else {
@@ -682,14 +683,14 @@ fun setupTestProjectFromAndroidModel(
     ProjectData(
       GRADLE_SYSTEM_ID,
       projectName,
-      basePath.path,
-      basePath.path),
+      basePath.systemIndependentPath,
+      basePath.systemIndependentPath),
     null)
 
   projectDataNode.addChild(
     DataNode<JavaProjectData>(
       JavaProjectData.KEY,
-      JavaProjectData(GRADLE_SYSTEM_ID, buildPath.path, LanguageLevel.JDK_1_6, null),
+      JavaProjectData(GRADLE_SYSTEM_ID, buildPath.systemIndependentPath, LanguageLevel.JDK_1_6, null),
       null
     )
   )
@@ -888,8 +889,8 @@ private fun createGradleModuleDataNode(
       GRADLE_SYSTEM_ID,
       JavaModuleType.getModuleType().id,
       moduleName,
-      moduleBasePath.path,
-      moduleBasePath.path
+      moduleBasePath.systemIndependentPath,
+      moduleBasePath.systemIndependentPath
     ),
     null
   )

@@ -61,8 +61,6 @@ fun installedEnvironments(sdkManager: RepoManager, targets: Collection<IAndroidT
     androidSdks = apisMap.map { ValueDescriptor(value = it.key, description = it.value) },
     compiledApis = compiledApisMap.map { ValueDescriptor(value = it.key, description = it.value) },
     buildTools = buildToolsMap.map { ValueDescriptor(value = it, description = null) },
-    ndks = listOf(ValueDescriptor(value = "", description = "Use Default")) + ndksMap.map {
-      ValueDescriptor(value = it, description = null)
-    }
+    ndks = ndksMap.map { ValueDescriptor(value = it, description = null) }
   )
 }

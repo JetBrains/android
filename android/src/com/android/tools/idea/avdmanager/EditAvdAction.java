@@ -32,7 +32,7 @@ public class EditAvdAction extends AvdUiAction {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myAvdInfoProvider.getComponent(), getProject(), getAvdInfo());
+    ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myAvdInfoProvider.getAvdProviderComponent(), getProject(), getAvdInfo());
     if (dialog.showAndGet()) {
       refreshAvds();
     }

@@ -24,6 +24,7 @@ import com.android.tools.idea.run.AppDeploymentListener
 import com.google.common.cache.CacheBuilder
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.runners.ExecutionUtil
+import com.intellij.ide.actions.ToggleToolbarAction
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -70,7 +71,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     @UiThread
     override fun selectionChanged(event: ContentManagerEvent) {
       if (event.operation == ContentManagerEvent.ContentOperation.add) {
-        viewSelectionChanged(event.source as ContentManager)
+        viewSelectionChanged(getToolWindow())
       }
     }
   }
@@ -122,7 +123,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
                                    AvdLaunchListener { avd, commandLine, project ->
                                      if (project == this.project && isEmbeddedEmulator(commandLine)) {
                                        RunningEmulatorCatalog.getInstance().updateNow()
-                                       invokeLater { onEmulatorUsed(avd.name) }
+                                       invokeLaterInAnyModalityState { onEmulatorUsed(avd.name) }
                                      }
                                    })
 
@@ -208,7 +209,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
     val contentManager = toolWindow.contentManager
     contentManager.addContentManagerListener(contentManagerListener)
-    viewSelectionChanged(contentManager)
+    viewSelectionChanged(toolWindow)
   }
 
   private fun destroyContent(toolWindow: ToolWindow) {
@@ -293,7 +294,8 @@ internal class EmulatorToolWindowManager private constructor(private val project
     contentManager.setSelectedContent(content)
   }
 
-  private fun viewSelectionChanged(contentManager: ContentManager) {
+  private fun viewSelectionChanged(toolWindow: ToolWindow) {
+    val contentManager = toolWindow.contentManager
     val content = contentManager.selectedContent
     val id = content?.getUserData(ID_KEY)
     if (id != selectedPanel?.id) {
@@ -303,6 +305,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
       if (id != null) {
         selectedPanel = findPanelByGrpcPort(id.grpcPort)
         selectedPanel?.createContent(frameIsCropped)
+        ToggleToolbarAction.setToolbarVisible(toolWindow, PropertiesComponent.getInstance(project), null)
       }
     }
   }
@@ -334,7 +337,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
   @AnyThread
   override fun emulatorAdded(emulator: EmulatorController) {
-    invokeLater {
+    invokeLaterInAnyModalityState {
       if (contentCreated && emulators.add(emulator)) {
         addEmulatorPanel(emulator)
       }
@@ -343,7 +346,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
   @AnyThread
   override fun emulatorRemoved(emulator: EmulatorController) {
-    invokeLater {
+    invokeLaterInAnyModalityState {
       if (contentCreated && emulators.remove(emulator)) {
         removeEmulatorPanel(emulator)
       }

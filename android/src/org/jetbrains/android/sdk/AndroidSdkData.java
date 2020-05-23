@@ -49,9 +49,6 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.parsePackageRevision;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidSdkData {
   private final Map<String, SoftReference<AndroidTargetData>> myTargetDataByTarget = Maps.newHashMap();
 

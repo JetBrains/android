@@ -17,9 +17,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidProjectStructureDetector extends ProjectStructureDetector {
   @NotNull
   @Override

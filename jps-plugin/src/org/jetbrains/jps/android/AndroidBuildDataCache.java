@@ -15,9 +15,6 @@ import org.jetbrains.jps.model.module.JpsModuleDependency;
 import java.io.*;
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidBuildDataCache {
   private static AndroidBuildDataCache ourInstance;
 

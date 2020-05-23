@@ -24,17 +24,23 @@ import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
+import com.android.tools.pixelprobe.util.Lists
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Layout validator for [NlDesignSurface].
  * It retrieves validation results from the [RenderResult] and update the lint accordingly.
  */
 class NlLayoutValidator(issueModel: IssueModel, parent: Disposable): Disposable {
+
+  interface Listener {
+    fun lintUpdated(result: ValidatorResult?)
+  }
 
   /** Helper class for displaying output to lint system */
   private val lintIntegrator = AccessibilityLintIntegrator(issueModel)
@@ -45,6 +51,8 @@ class NlLayoutValidator(issueModel: IssueModel, parent: Disposable): Disposable 
    */
   private val originMap: BiMap<View, NlComponent> = HashBiMap.create()
 
+  private val listeners: ArrayList<Listener> = ArrayList()
+
   init {
     Disposer.register(parent, this)
   }
@@ -53,23 +61,39 @@ class NlLayoutValidator(issueModel: IssueModel, parent: Disposable): Disposable 
    * Validate the layout and update the lint accordingly.
    */
   fun validateAndUpdateLint(renderResult: RenderResult, model: NlModel) {
+    val validatorResult = renderResult.validatorResult
+
+    if (validatorResult == null || validatorResult !is ValidatorResult) {
+      // Result not available.
+      listeners.forEach { it.lintUpdated(null) }
+      return
+    }
+
     lintIntegrator.disableAccessibilityLint()
     originMap.clear()
     val components = model.components
     if (components.isEmpty()) {
+      listeners.forEach { it.lintUpdated(null) }
       return
     }
+
     val root = components[0]
-
     buildComponentToViewMap(root)
-    val validatorResult = renderResult.validatorResult
-    if (validatorResult == null || validatorResult !is ValidatorResult) {
-      println("Unable to get validation results.")
-      return
-    }
-
     validatorResult.issues.forEach { lintIntegrator.createIssue(it, findComponent(it, validatorResult.srcMap)) }
     lintIntegrator.populateLints()
+
+    listeners.forEach { it.lintUpdated(validatorResult) }
+  }
+
+  fun addListener(listener: Listener) {
+    listeners.add(listener)
+  }
+
+  /**
+   * Disable the validator. It removes any existing issue visible to the panel.
+   */
+  fun disable() {
+    lintIntegrator.disableAccessibilityLint()
   }
 
   /**
@@ -94,6 +118,7 @@ class NlLayoutValidator(issueModel: IssueModel, parent: Disposable): Disposable 
 
   override fun dispose() {
     originMap.clear()
+    listeners.clear()
     lintIntegrator.disableAccessibilityLint()
   }
 }

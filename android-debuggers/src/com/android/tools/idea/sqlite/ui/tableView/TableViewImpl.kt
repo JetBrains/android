@@ -368,6 +368,11 @@ class TableViewImpl : TableView {
           (table.model as MyTableModel).setValueAt(null, row, column)
         }
       }
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = (table.model as? MyTableModel)?.isEditable ?: false
+        super.update(e)
+      }
     }
 
     setNullAction.registerCustomShortcutSet(

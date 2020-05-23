@@ -57,7 +57,6 @@ class NlTreeCellRenderer(
   private val primaryLabelMetrics = primaryLabel.getFontMetrics(primaryLabel.font)
   private val secondaryLabelMetrics = secondaryLabel.getFontMetrics(secondaryLabel.font)
   private val nlComponentFont = primaryLabel.font
-  private val nlComponentSecondaryFont = secondaryLabel.font
   private val otherFont = primaryLabel.font.deriveFont(Font.ITALIC)
 
   init {
@@ -105,6 +104,7 @@ class NlTreeCellRenderer(
       NlVisibilityModel.Visibility.GONE -> {
         primaryLabel.font = nlComponentFont.deriveFont(
           nlComponentFont.attributes + (TextAttribute.STRIKETHROUGH to TextAttribute.STRIKETHROUGH_ON))
+        primaryLabel.foreground = UIUtil.makeTransparent(primaryLabel.foreground, primaryLabel.background, 0.5)
       }
     }
 

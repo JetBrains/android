@@ -19,9 +19,6 @@ import org.junit.runner.Description
 import org.junit.runner.notification.Failure
 import java.io.Serializable
 
-/**
- * @author Sergey Karashevich
- */
 enum class Type {RUN_STARTED, STARTED, ASSUMPTION_FAILURE, RUN_FINISHED, FAILURE, FINISHED, IGNORED }
 
 open class JUnitInfo(val type: Type, val description: Description, val ideError: Boolean = false) : Serializable {

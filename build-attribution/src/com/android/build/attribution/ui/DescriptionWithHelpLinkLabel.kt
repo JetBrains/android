@@ -60,7 +60,7 @@ class DescriptionWithHelpLinkLabel(
       setHyperlinkTarget(learnMoreTarget.urlTarget)
     }
     val linkConstraints = GridBagConstraints().apply {
-      fill = GridBagConstraints.HORIZONTAL
+      fill = GridBagConstraints.NONE
       gridx = 0
       gridy = 1
       anchor = GridBagConstraints.LINE_START

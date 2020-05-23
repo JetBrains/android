@@ -15,18 +15,26 @@
  */
 package com.android.tools.idea.project;
 
-import com.android.tools.idea.ui.CustomNotificationListener;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.ui.CustomNotificationListener;
 import com.google.common.base.Objects;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.notification.impl.NotificationsManagerImpl;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.Balloon;
+import com.intellij.openapi.util.Key;
+import com.intellij.ui.BalloonLayoutData;
+import com.intellij.ui.awt.RelativePoint;
+import java.awt.Dimension;
+import java.awt.Point;
+import javax.swing.JFrame;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +46,8 @@ public class AndroidNotification {
     NotificationGroup.balloonGroup("Android Notification Group", PluginId.getId("org.jetbrains.android"));
   public static final NotificationGroup LOG_ONLY_GROUP =
     NotificationGroup.logOnlyGroup("Android Notification Log-Only Group", PluginId.getId("org.jetbrains.android"));
+  /** Fallback destination to show a notification balloon if the project is not opened (hence no IDE frame). */
+  private static final Key<JFrame> NOTIFICATION_DESTINATION_FALLBACK_KEY = Key.create("NOTIFICATION_DESTINATION_FALLBACK");
 
   @Nullable private Notification myNotification;
   @NotNull private final Project myProject;
@@ -121,7 +131,10 @@ public class AndroidNotification {
                                 @Nullable NotificationListener listener) {
     Notification notification = group.createNotification(title, text, type, listener);
     Runnable notificationTask = () -> {
-      if (!myProject.isDisposed() && myProject.isOpen()) {
+      if (myProject.isDisposed()) {
+        return;
+      }
+      if (myProject.isOpen()) {
         Notification old = myNotification;
         if (old != null) {
           boolean similar = Objects.equal(notification.getContent(), old.getContent());
@@ -132,6 +145,24 @@ public class AndroidNotification {
         myNotification = notification;
         notification.notify(myProject);
       }
+      else {
+        JFrame jFrame = getFallbackNotificationDestination(myProject);
+        if (jFrame == null) {
+          return;
+        }
+        Balloon balloon =
+          NotificationsManagerImpl
+            .createBalloon(jFrame.getRootPane(), notification, false, true, BalloonLayoutData.fullContent(), myProject);
+
+        Dimension jFrameSize = jFrame.getSize();
+        Dimension balloonSize = balloon.getPreferredSize();
+
+        // bottom-right corner
+        RelativePoint
+          point =
+          new RelativePoint(jFrame, new Point(jFrameSize.width - balloonSize.width / 2, jFrameSize.height - balloonSize.height / 2));
+        balloon.show(point, Balloon.Position.above);
+      }
     };
     Application application = ApplicationManager.getApplication();
     if (application.isDispatchThread()) {
@@ -140,6 +171,23 @@ public class AndroidNotification {
     else {
       application.invokeLater(notificationTask);
     }
+  }
+
+  /**
+   * Sets the fallback destination for notifications in a given project if the project is not opened.
+   *
+   * With the IntelliJ platform, a notification is typically only displayed when the project is opened. In such case, the notification is
+   * rendered in the {@link com.intellij.openapi.wm.IdeFrame} with that project opened. But for some use cases, for example
+   * (go/project-aplos), such IDE frame never exists. In such situation, caller can set the destination JFrame of notifications with this
+   * method when setting up the project.
+   */
+  public static void setFallbackNotificationDestination(Project project, JFrame jFrame) {
+    project.putUserData(NOTIFICATION_DESTINATION_FALLBACK_KEY, jFrame);
+  }
+
+  @Nullable
+  private static JFrame getFallbackNotificationDestination(Project project) {
+    return project.getUserData(NOTIFICATION_DESTINATION_FALLBACK_KEY);
   }
 
   @Nullable

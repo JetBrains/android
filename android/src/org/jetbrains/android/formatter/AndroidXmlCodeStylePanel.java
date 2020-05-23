@@ -24,9 +24,6 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
   private final JPanel myPanel;
   private final JBCheckBox myUseCustomSettings;

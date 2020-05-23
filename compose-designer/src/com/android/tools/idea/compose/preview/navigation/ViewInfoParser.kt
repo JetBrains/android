@@ -24,6 +24,7 @@ interface SourceLocation {
   val className: String
   val methodName: String
   val fileName: String
+  /** 1-indexed line number. */
   val lineNumber: Int
 
   /**

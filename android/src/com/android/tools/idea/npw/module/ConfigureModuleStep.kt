@@ -27,7 +27,6 @@ import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedPr
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.sdkManagerLocalPath
-import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.validator.ApiVersionValidator
 import com.android.tools.idea.npw.validator.ModuleValidator
@@ -47,7 +46,6 @@ import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
-import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Language
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.components.JBTextField
@@ -74,15 +72,13 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
   protected val moduleName: JTextField = JBTextField()
   protected val packageName: LabelWithEditButton = LabelWithEditButton()
   protected val languageCombo: JComboBox<Language> = LanguageComboProvider().createComponent()
-  protected val bytecodeCombo: JComboBox<BytecodeLevel> = BytecodeLevelComboProvider().createComponent()
   protected val apiLevelCombo: AndroidApiLevelComboBox = AndroidApiLevelComboBox()
 
   abstract val validatorPanel: ValidatorPanel
 
-  protected val moduleValidator = ModuleValidator(model.project)
+  private val moduleValidator = ModuleValidator(model.project)
   init {
     bindings.bindTwoWay(SelectedItemProperty(languageCombo), model.language)
-    bindings.bindTwoWay(SelectedItemProperty(bytecodeCombo), model.bytecodeLevel)
     bindings.bind(model.androidSdkInfo, SelectedItemProperty(apiLevelCombo))
 
     val isPackageNameSynced: BoolProperty = BoolValueProperty(true)

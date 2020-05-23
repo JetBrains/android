@@ -79,11 +79,15 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -399,7 +403,7 @@ public class RenderTask {
       myLayoutlibCallback.setLogger(IRenderLogger.NULL_LOGGER);
       if (myRenderSession != null) {
         try {
-          RenderService.runAsyncRenderAction(myRenderSession::dispose);
+          disposeRenderSession(myRenderSession);
           myRenderSession = null;
         }
         catch (Exception ignored) {
@@ -1175,7 +1179,7 @@ public class RenderTask {
               return CompletableFuture.completedFuture(map);
             }
             finally {
-              RenderService.runAsyncRenderAction(session::dispose);
+              disposeRenderSession(session);
             }
           }
 
@@ -1283,5 +1287,45 @@ public class RenderTask {
      */
     @Nullable
     String getAttribute(@NotNull XmlTag node, @Nullable String namespace, @NotNull String localName);
+  }
+
+  /**
+   * Properly disposes {@link RenderSession} as a single {@link RenderService} call.
+   * @param renderSession a session to be disposed of
+   */
+  private void disposeRenderSession(@NotNull RenderSession renderSession) {
+    Optional<Method> disposeMethod = Optional.empty();
+    try {
+      if (myLayoutlibCallback.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
+        Class<?> composeViewAdapter = myLayoutlibCallback.findClass(CLASS_COMPOSE_VIEW_ADAPTER);
+        // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we have to perform this filtering
+        disposeMethod = Arrays.stream(composeViewAdapter.getMethods()).filter(m -> m.getName().contains("dispose")).findFirst();
+      }
+    } catch (ClassNotFoundException ex) {
+      LOG.warn(CLASS_COMPOSE_VIEW_ADAPTER + " class not found", ex);
+    }
+    disposeMethod.ifPresent(m -> m.setAccessible(true));
+    Optional<Method> finalDisposeMethod = disposeMethod;
+    RenderService.runAsyncRenderAction(() -> {
+      finalDisposeMethod.ifPresent(m -> renderSession.getRootViews().forEach(v -> disposeIfCompose(v, m)));
+      renderSession.dispose();
+    });
+  }
+
+  /**
+   * Performs dispose() call against View object associated with {@link ViewInfo} if that object is an instance of ComposeViewAdapter
+   * @param viewInfo a {@link ViewInfo} associated with the View object to be potentially disposed of
+   * @param disposeMethod a dispose method to be executed against View object
+   */
+  private static void disposeIfCompose(@NotNull ViewInfo viewInfo, @NotNull Method disposeMethod) {
+    Object viewObject = viewInfo.getViewObject();
+    if (viewObject == null || !viewObject.getClass().getName().equals(CLASS_COMPOSE_VIEW_ADAPTER)) {
+      return;
+    }
+    try {
+      disposeMethod.invoke(viewObject);
+    } catch (IllegalAccessException | InvocationTargetException ex) {
+      LOG.warn( "Unexpected error while disposing compose view", ex);
+    }
   }
 }

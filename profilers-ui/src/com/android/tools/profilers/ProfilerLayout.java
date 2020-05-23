@@ -61,7 +61,7 @@ public class ProfilerLayout {
   public static final Insets TABLE_COLUMN_CELL_INSETS = new Insets(3, 10, 3, 0);
   public static final Insets TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS = new Insets(3, 0, 3, 10);
 
-  public static final int TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING = JBUI.scale(2);
+  public static final int TABLE_COLUMN_CELL_SPARKLINE_RIGHT_PADDING = JBUI.scale(2);
   public static final int TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING = JBUI.scale(1);
 
   public static final Insets LIST_ROW_INSETS = new Insets(2, 10, 0, 0);

@@ -2,9 +2,6 @@ package org.jetbrains.jps.android.model;
 
 import org.jetbrains.jps.model.JpsElement;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public interface JpsAndroidDexCompilerConfiguration extends JpsElement {
   String getVmOptions();
 

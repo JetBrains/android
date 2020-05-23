@@ -55,3 +55,7 @@ PROJECT             : LightSyncBasedTestsWithDefaultTestProjectStructureTest
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
+    RUN_CONFIGURATION   : LightSyncBasedTestsWithDefaultTestProjectStructureTest
+        *class*             : AndroidRunConfiguration
+        ModuleName          : LightSyncBasedTestsWithDefaultTestProjectStructureTest
+        Module              : LightSyncBasedTestsWithDefaultTestProjectStructureTest

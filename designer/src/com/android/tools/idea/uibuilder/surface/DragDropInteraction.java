@@ -47,6 +47,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.google.common.collect.Lists;
@@ -336,9 +337,14 @@ public class DragDropInteraction extends Interaction {
               SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER.isEquals(component.getTagName()) ||
               SdkConstants.CLASS_CONSTRAINT_LAYOUT_FLOW.isEquals(component.getTagName()) ||
               SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP.isEquals(component.getTagName()) ||
-              SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER.isEquals(component.getTagName());
-
-          if (constraintHelper && (!(myCurrentHandler instanceof ConstraintLayoutHandler))) {
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_IMAGE_FILTER_VIEW.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_IMAGE_FILTER_BUTTON.isEquals(component.getTagName()) ||
+              SdkConstants.CLASS_CONSTRAINT_LAYOUT_MOCK_VIEW.isEquals(component.getTagName());
+          boolean acceptableHandler =
+              (myCurrentHandler instanceof ConstraintLayoutHandler) ||
+              (myCurrentHandler instanceof MotionLayoutHandler);
+          if (constraintHelper && !acceptableHandler) {
             error = String.format(
               "<%1$s> does not accept <%2$s> as a child", myDragReceiver.getNlComponent().getTagName(), component.getTagName());
             myDoesAcceptDropAtLastPosition = false;

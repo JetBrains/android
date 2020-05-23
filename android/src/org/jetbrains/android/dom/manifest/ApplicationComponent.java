@@ -24,9 +24,6 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 
 import java.util.List;
 
-/**
- * @author coyote
- */
 public interface ApplicationComponent extends ManifestElementWithName {
   @Convert(ResourceReferenceConverter.class)
   @AndroidResourceType("string")

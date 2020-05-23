@@ -16,10 +16,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.emulator.control.Rotation.SkinRotation
-import com.google.common.base.Splitter
 import com.intellij.openapi.util.text.StringUtil.parseInt
-import java.io.IOException
-import java.nio.file.Files
 import java.nio.file.Path
 
 /**
@@ -80,29 +77,6 @@ class EmulatorConfiguration private constructor(
                                    hasOrientationSensors = hasOrientationSensors,
                                    hasAudioOutput = hasAudioOutput,
                                    initialOrientation = initialOrientation)
-    }
-
-    private fun readKeyValueFile(file: Path, keysToExtract: Set<String>): Map<String, String>? {
-      val splitter = Splitter.on('=').trimResults()
-      val result = mutableMapOf<String, String>()
-      try {
-        for (line in Files.readAllLines(file)) {
-          val keyValue = splitter.splitToList(line)
-          if (keyValue.size == 2 && keysToExtract.contains(keyValue[0])) {
-            result[keyValue[0]] = keyValue[1]
-          }
-        }
-        return result
-      }
-      catch (e: IOException) {
-        if (e.message == null) {
-          EmulatorConfiguration.logger.error("Error reading ${file}")
-        }
-        else {
-          EmulatorConfiguration.logger.error("Error reading ${file} - ${e.message}")
-        }
-        return null
-      }
     }
 
     private fun getSkinPath(configIni: Map<String, String>, avdFolder: Path): Path? {

@@ -107,21 +107,21 @@ class TrackGroupTest {
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1").setTrackSelectable(true).build()
     val trackModel = TrackModel.newBuilder(StringSelectable("Bar1"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar1")
       .setCollapsible(true)
-      .setCollapsed(true)
     trackGroupModel.addTrackModel(trackModel)
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
-    trackGroup.trackTitleOverlay.setBounds(0, 0, 100, 100)
+    trackGroup.trackList.setBounds(0, 0, 500, 100)
+    trackGroup.trackTitleOverlay.setBounds(16, 0, 100, 100)
 
     val ui = FakeUi(trackGroup.trackTitleOverlay)
     // Make sure test doesn't trip in a headless environment.
     trackGroup.trackList.ui = HeadlessListUI()
     // Single-click caret icon.
-    ui.mouse.press(29, 4)
-    assertThat(trackGroupModel[0].isCollapsed).isFalse()
+    ui.mouse.press(2, 4)
+    assertThat(trackGroupModel[0].isCollapsed).isTrue()
     ui.mouse.release()
     // Double-click label.
     ui.mouse.doubleClick(50, 10)
-    assertThat(trackGroupModel[0].isCollapsed).isTrue()
+    assertThat(trackGroupModel[0].isCollapsed).isFalse()
   }
 
   @Test
@@ -183,6 +183,8 @@ class TrackGroupTest {
     trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar"))
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
     trackGroup.component.setBounds(0, 0, 500, 100)
+    // Make sure test doesn't trip in a headless environment.
+    trackGroup.trackList.ui = HeadlessListUI()
     val treeWalker = TreeWalker(trackGroup.component)
     treeWalker.descendantStream().forEach(Component::doLayout)
     val boxComponent = treeWalker.descendants().filterIsInstance(BoxSelectionComponent::class.java).first()
@@ -192,5 +194,20 @@ class TrackGroupTest {
     boxUi.mouse.drag(0, 0, 100, 10)
     assertThat(rangeSelectionModel.selectionRange.isEmpty).isFalse()
     assertThat(trackGroup.trackList.selectedIndices.asList()).containsExactly(0)
+
+    // Box selection is cleared when manually selecting a track.
+    val trackTitleUi = FakeUi(trackGroup.trackTitleOverlay)
+    trackTitleUi.mouse.click(0, 0)
+    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(trackGroup.trackList.selectedIndices.asList()).containsExactly(0)
+
+    // Verify box selection can be disabled.
+    boxUi.mouse.click(0, 0) // Clear selection
+    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(trackGroup.trackList.selectedIndices.asList()).isEmpty()
+    trackGroup.setEventHandlersEnabled(false)
+    boxUi.mouse.drag(0, 0, 100, 10)
+    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(trackGroup.trackList.selectedIndices.asList()).isEmpty()
   }
 }

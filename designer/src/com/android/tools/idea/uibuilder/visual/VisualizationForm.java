@@ -571,7 +571,13 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       VisualizationToolSettings.getInstance().getGlobalState().setShowDecoration(state);
       myWorkBench.hideContent();
       myWorkBench.showLoading(RENDERING_MESSAGE);
-      mySurface.forceUserRequestedRefresh().thenRun(() -> {
+
+      mySurface.getModels().stream()
+        .map(model -> mySurface.getSceneManager(model))
+        .filter(manager -> manager instanceof LayoutlibSceneManager)
+        .forEach(manager -> ((LayoutlibSceneManager)manager).setShowDecorations(state));
+
+      mySurface.requestRender().thenRun(() -> {
         if (!Disposer.isDisposed(myWorkBench)) {
           myWorkBench.showContent();
         }

@@ -59,7 +59,7 @@ class CaptureNodeSummaryDetailsViewTest {
       dataSeries.add(CaptureNodeAnalysisModel(captureNode, Mockito.mock(CpuCapture::class.java)))
     }
     val view = CaptureNodeSummaryDetailsView(profilersView, model)
-    val treeWalker = TreeWalker(view.component)
+    val treeWalker = TreeWalker(view)
     assertThat(view.timeRangeLabel.text).isEqualTo("00:10.000 - 00:20.000")
     assertThat(view.dataTypeLabel.text).isEqualTo("Trace Event")
     // Selected node basic stats table and longest occurrences table.

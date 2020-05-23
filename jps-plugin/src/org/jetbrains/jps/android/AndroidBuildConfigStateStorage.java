@@ -12,9 +12,6 @@ import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidBuildConfigStateStorage extends AbstractStateStorage<String, AndroidBuildConfigState> {
 
   public static final StorageProvider<AndroidBuildConfigStateStorage> PROVIDER = new StorageProvider<AndroidBuildConfigStateStorage>() {

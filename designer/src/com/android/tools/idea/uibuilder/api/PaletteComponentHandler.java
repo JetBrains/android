@@ -176,6 +176,6 @@ public abstract class PaletteComponentHandler {
   @NotNull
   protected Icon loadBuiltinIcon(@NotNull String tagName) {
     Icon icon = AndroidDomElementDescriptorProvider.getIconForViewTag(getSimpleTagName(tagName));
-    return icon != null ? icon : StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW;
+    return icon != null ? icon : StudioIcons.LayoutEditor.Palette.VIEW;
   }
 }

@@ -64,9 +64,13 @@ class CpuThreadStateTable(val profilers: StudioProfilers,
       autoCreateRowSorter = true
       showVerticalLines = true
       showHorizontalLines = false
+      columnModel.columnMargin = 10  // align headers and contents
       columnModel.getColumn(Column.TIME.ordinal).cellRenderer = DurationRenderer()
       columnModel.getColumn(Column.PERCENT.ordinal).cellRenderer = PercentRenderer()
+      // Integers are right aligned by defaut. Cast them to String for left alignment.
+      columnModel.getColumn(Column.OCCURRENCES.ordinal).cellRenderer = IntegerAsStringTableCellRender()
     }
+
     val tableContainer = JPanel(TabularLayout("*", "Fit,Fit")).apply {
       border = JBUI.Borders.customLine(BorderColor, 2)
       isOpaque = false
@@ -155,6 +159,8 @@ class CpuThreadStateTable(val profilers: StudioProfilers,
 
   /**
    * Column definition for the thread state table.
+   *
+   * @param type use Java number classes (e.g. [java.lang.Long]) to ensure proper sorting in JTable
    */
   private enum class Column(val displayName: String, val type: Class<*>) {
     THREAD_STATE("Thread State", String::class.java) {
@@ -162,17 +168,17 @@ class CpuThreadStateTable(val profilers: StudioProfilers,
         return data.threadState.displayName
       }
     },
-    TIME("Duration", Long::class.java) {
+    TIME("Duration", java.lang.Long::class.java) {
       override fun getValueFrom(data: ThreadStateRow): Any {
         return data.duration
       }
     },
-    PERCENT("%", Double::class.java) {
+    PERCENT("%", java.lang.Double::class.java) {
       override fun getValueFrom(data: ThreadStateRow): Any {
         return data.percentage
       }
     },
-    OCCURRENCES("Occurrences", Long::class.java) {
+    OCCURRENCES("Occurrences", java.lang.Long::class.java) {
       override fun getValueFrom(data: ThreadStateRow): Any {
         return data.occurrences
       }

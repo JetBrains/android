@@ -24,18 +24,14 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 import com.android.builder.model.level2.Library;
-import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder;
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder;
 import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStubBuilder;
-import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.testing.Facets;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
@@ -51,8 +47,6 @@ import org.jetbrains.annotations.NotNull;
  * Tests for {@link DependenciesExtractor}.
  */
 public class DependenciesExtractorTest extends PlatformTestCase {
-  private AndroidProjectStub myAndroidProject;
-  private VariantStub myVariant;
   private ModuleFinder myModuleFinder;
   private DependenciesExtractor myDependenciesExtractor;
 
@@ -62,23 +56,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
     myModuleFinder = new ModuleFinder(myProject);
 
-    myAndroidProject = TestProjects.createBasicProject();
-    myVariant = myAndroidProject.getFirstVariant();
-    assertNotNull(myVariant);
-
     myDependenciesExtractor = new DependenciesExtractor();
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      if (myAndroidProject != null) {
-        myAndroidProject.dispose();
-      }
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testExtractFromJavaLibrary() {
@@ -87,11 +65,9 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
     IdeDependenciesStubBuilder builder = new IdeDependenciesStubBuilder();
     builder.setJavaLibraries(ImmutableList.of(javaLibrary));
-    myVariant.getMainArtifact().setLevel2Dependencies(builder.build());
-    myVariant.getInstrumentTestArtifact().setLevel2Dependencies(builder.build());
 
     Collection<LibraryDependency> dependencies =
-      myDependenciesExtractor.extractFrom(getProjectBasePath(), myVariant, myModuleFinder).onLibraries();
+      myDependenciesExtractor.extractFrom(getProjectBasePath(), builder.build(), COMPILE, myModuleFinder).onLibraries();
     assertThat(dependencies).hasSize(1);
 
     LibraryDependency dependency = getFirstItem(dependencies);
@@ -106,7 +82,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
   }
 
   public void testExtractFromAndroidLibraryWithLocalJar() {
-    String rootDirPath = myAndroidProject.getRootDir().getPath();
+    String rootDirPath = myProject.getBasePath();
     File libJar = new File(rootDirPath, join("bundle_aar", "androidLibrary.jar"));
     File libCompileJar = new File(rootDirPath, join("api.jar"));
 
@@ -123,10 +99,12 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
     IdeDependenciesStubBuilder dependenciesStubBuilder = new IdeDependenciesStubBuilder();
     dependenciesStubBuilder.setAndroidLibraries(ImmutableList.of(library));
-    myVariant.getMainArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
-    myVariant.getInstrumentTestArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
 
-    DependencySet dependencySet = myDependenciesExtractor.extractFrom(getProjectBasePath(), myVariant, myModuleFinder);
+    DependencySet dependencySet = myDependenciesExtractor.extractFrom(getProjectBasePath(),
+                                                                      dependenciesStubBuilder.build(),
+                                                                      COMPILE,
+                                                                      myModuleFinder
+    );
     List<LibraryDependency> dependencies = new ArrayList<>(dependencySet.onLibraries());
     assertThat(dependencies).hasSize(1);
 
@@ -154,15 +132,13 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
     IdeDependenciesStubBuilder dependenciesStubBuilder = new IdeDependenciesStubBuilder();
     dependenciesStubBuilder.setModuleDependencies(ImmutableList.of(library));
-    myVariant.getMainArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
-    myVariant.getInstrumentTestArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
     Collection<ModuleDependency> dependencies =
-      myDependenciesExtractor.extractFrom(getProjectBasePath(), myVariant, myModuleFinder).onModules();
+      myDependenciesExtractor.extractFrom(getProjectBasePath(), dependenciesStubBuilder.build(), COMPILE, myModuleFinder).onModules();
     assertThat(dependencies).hasSize(1);
 
     ModuleDependency dependency = getFirstItem(dependencies);
     assertNotNull(dependency);
-    assertEquals(gradlePath, dependency.getGradlePath());
+    assertEquals(libModule, dependency.getModule());
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(COMPILE, dependency.getScope());
     assertSame(libModule, dependency.getModule());

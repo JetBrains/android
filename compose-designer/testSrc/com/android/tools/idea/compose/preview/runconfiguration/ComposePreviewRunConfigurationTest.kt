@@ -50,13 +50,18 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
 
   fun testAmStartOptionsWithComposableMethod() {
     runConfiguration.composableMethodFqn = "com.mycomposeapp.SomeClass.SomeComposable"
+    runConfiguration.providerClassFqn = "com.mycomposeapp.ProviderClass"
+    runConfiguration.providerIndex = 3
 
     val status = mock(LaunchStatus::class.java)
-    var noApksProvider = NoApksProvider()
-    val task = runConfiguration.getApplicationLaunchTask(FakeApplicationIdProvider(), myFacet, "", false, status, noApksProvider) as ActivityLaunchTask
+    val noApksProvider = NoApksProvider()
+    val task = runConfiguration.getApplicationLaunchTask(FakeApplicationIdProvider(), myFacet, "", false, status,
+                                                         noApksProvider) as ActivityLaunchTask
     assertEquals("am start -n \"com.example.myapp/androidx.ui.tooling.preview.PreviewActivity\" " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER " +
-                 "--es composable com.mycomposeapp.SomeClass.SomeComposable",
+                 "--es composable com.mycomposeapp.SomeClass.SomeComposable" +
+                 " --es parameterProviderClassName com.mycomposeapp.ProviderClass" +
+                 " --ei parameterProviderIndex 3",
                  task.getStartActivityCommand(mock(IDevice::class.java), status, mock(ConsolePrinter::class.java)))
   }
 

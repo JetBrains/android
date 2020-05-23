@@ -23,9 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.Reader;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 public abstract class ValueResourcesFileParser implements IXMLBuilder {
   private boolean mySeenResources;
   private String myLastTypeAttr;

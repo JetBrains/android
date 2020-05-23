@@ -21,9 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidInlineStyleHandler extends InlineActionHandler {
   private static AndroidInlineTestConfig ourTestConfig;
 

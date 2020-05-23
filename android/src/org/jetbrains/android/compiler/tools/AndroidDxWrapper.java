@@ -38,9 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidDxWrapper {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.tools.AndroidDx");
 

@@ -41,7 +41,6 @@ public class CreateTransition extends BaseCreatePanel {
   static String TITLE = "Create ConstraintSet";
   JComboBox<String> mStartId = MEUI.makeComboBox(new String[]{});
   JComboBox<String> mEndId = MEUI.makeComboBox(new String[]{});
-  private final JTextField mTransitionId;
   private final String DURATION_PROMPT = "Duration in ms";
   private final String ENTER_TID = "Enter Transition's id";
   String[] options = {"Do Nothing",
@@ -77,16 +76,6 @@ public class CreateTransition extends BaseCreatePanel {
     gbc.insets = MEUI.dialogSeparatorInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JSeparator(), gbc);
-
-    grid(gbc, 0, y++);
-    gbc.weighty = 0;
-    gbc.insets = MEUI.dialogLabelInsets();
-    gbc.anchor = GridBagConstraints.CENTER;
-    add(new JLabel("ID"), gbc);
-    grid(gbc, 0, y++);
-    gbc.insets = MEUI.dialogControlInsets();
-    gbc.anchor = GridBagConstraints.CENTER;
-    add(mTransitionId = newTextField(ENTER_TID, 15), gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
@@ -160,19 +149,9 @@ public class CreateTransition extends BaseCreatePanel {
     if (DEBUG) {
       Debug.log(" IN CREATE TRANSITION");
     }
-    String tid = mTransitionId.getText().trim();
     String sid = (String) mStartId.getSelectedItem();
     String eid = (String) mEndId.getSelectedItem();
 
-    if (tid.equals(ENTER_TID)){
-      tid = "";
-    }
-    if (tid.length() > 0) {
-      if (Character.isDigit(tid.charAt(0))) {
-        showErrorDialog("Transition ID cannot start with a number");
-        return null;
-      }
-    }
     if (sid.length() == 0 && eid.length() == 0) {
       showErrorDialog("Transition must have a start and end id");
       return null;
@@ -189,9 +168,6 @@ public class CreateTransition extends BaseCreatePanel {
     // TODO error checking
     MeModel model = mMotionEditor.getMeModel();
     MTag.TagWriter writer = model.motionScene.getChildTagWriter(MotionSceneAttrs.Tags.TRANSITION);
-    if (tid.length() > 0) {
-      writer.setAttribute(MotionSceneAttrs.ANDROID, MotionSceneAttrs.Transition.ATTR_ID, addIdPrefix(tid));
-    }
     writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START, addIdPrefix(sid));
     writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_END, addIdPrefix(eid));
 

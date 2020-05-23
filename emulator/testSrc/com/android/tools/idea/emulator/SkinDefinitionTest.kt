@@ -51,7 +51,7 @@ class SkinDefinitionTest {
     assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_LANDSCAPE)).isEqualTo(Dimension(3322, 1623))
 
     // Check the createScaledLayout method without rotation or scaling.
-    var layout = skin.createScaledLayout(1440, 2880, SkinRotation.PORTRAIT)
+    var layout = skin.layout
     assertThat(layout.displaySize).isEqualTo(Dimension(1440, 2880))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-86, -242, 1623, 3322))
     assertThat(layout.frameImages).hasSize(8)
@@ -94,7 +94,7 @@ class SkinDefinitionTest {
     assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_LANDSCAPE)).isEqualTo(Dimension(3245, 1584))
 
     // Check the createScaledLayout method without rotation or scaling.
-    var layout = skin.createScaledLayout(1440, 2960, SkinRotation.PORTRAIT)
+    var layout = skin.layout
     assertThat(layout.displaySize).isEqualTo(Dimension(1440, 2960))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-65, -72, 1584, 3245))
     assertThat(layout.frameImages).hasSize(8)
@@ -126,6 +126,32 @@ class SkinDefinitionTest {
   }
 
   @Test
+  fun testPixel_4() {
+    val folder = getSkinFolder("pixel_4")
+    val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+
+    // Check the skin layout and consistency of the images.
+    val layout = skin.layout
+    assertThat(layout.displaySize).isEqualTo(Dimension(1080, 2280))
+    assertThat(layout.frameRectangle.size).isEqualTo(Dimension(1178, 2498))
+    assertThat(layout.frameImages).hasSize(8)
+    assertThat(layout.maskImages).hasSize(4) // Four round corners.
+  }
+
+  @Test
+  fun testPixel_4_XL() {
+    val folder = getSkinFolder("pixel_4_xl")
+    val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+
+    // Check the skin layout and consistency of the images.
+    val layout = skin.layout
+    assertThat(layout.displaySize).isEqualTo(Dimension(1440, 3040))
+    assertThat(layout.frameRectangle.size).isEqualTo(Dimension(1571, 3332))
+    assertThat(layout.frameImages).hasSize(8)
+    assertThat(layout.maskImages).hasSize(4) // Four round corners.
+  }
+
+  @Test
   fun testWearRound() {
     val folder = getSkinFolder("wear_round")
     val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
@@ -137,7 +163,7 @@ class SkinDefinitionTest {
     assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_LANDSCAPE)).isEqualTo(Dimension(380, 380))
 
     // Check the createScaledLayout method without rotation or scaling.
-    val layout = skin.createScaledLayout(320, 320, SkinRotation.PORTRAIT)
+    val layout = skin.layout
     assertThat(layout.displaySize).isEqualTo(Dimension(320, 320))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-30, -30, 380, 380))
     assertThat(layout.frameImages).hasSize(8)

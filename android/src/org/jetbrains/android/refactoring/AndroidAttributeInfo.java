@@ -5,9 +5,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class AndroidAttributeInfo {
   private final String myName;
   private final String myPackage;

@@ -36,17 +36,15 @@ public class MECreateTransitionTest extends BaseMotionEditorTest {
   public void testCreateTransitionLayout() {
     CreatorAccess panel = new CreatorAccess();
     String layout = "0,CreatorAccess      ,0,0,99,99\n" +
-                    "1,JLabel             ,5,2,88,5\n" +
-                    "1,JSeparator         ,0,10,99,0\n" +
-                    "1,JLabel             ,5,14,88,5\n" +
-                    "1,PromptedTextField  ,6,21,87,6\n" +
-                    "1,JLabel             ,5,30,88,5\n" +
-                    "1,MEComboBox         ,6,37,87,8\n" +
-                    "1,JLabel             ,5,48,88,5\n" +
-                    "1,MEComboBox         ,6,55,87,8\n" +
-                    "1,JLabel             ,5,67,88,5\n" +
-                    "1,MEComboBox         ,6,73,87,8\n" +
-                    "1,JButton            ,5,86,88,8\n";
+                    "1,JLabel             ,5,3,88,6\n" +
+                    "1,JSeparator         ,0,13,99,0\n" +
+                    "1,JLabel             ,5,17,88,6\n" +
+                    "1,MEComboBox         ,6,25,87,10\n" +
+                    "1,JLabel             ,5,38,88,6\n" +
+                    "1,MEComboBox         ,6,47,87,10\n" +
+                    "1,JLabel             ,5,60,88,6\n" +
+                    "1,MEComboBox         ,6,68,87,10\n" +
+                    "1,JButton            ,5,83,88,10\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
@@ -66,8 +64,6 @@ public class MECreateTransitionTest extends BaseMotionEditorTest {
     String info = "0,CreatorAccess,\n" +
                   "1,JLabel,CREATE TRANSITION\n" +
                   "1,JSeparator,\n" +
-                  "1,JLabel,ID\n" +
-                  "1,PromptedTextField,Enter Transition's id\n" +
                   "1,JLabel,Start\n" +
                   "1,MEComboBox,base_state,dial,people,half_people\n" +
                   "1,JLabel,End\n" +

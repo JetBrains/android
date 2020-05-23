@@ -34,6 +34,7 @@ class CommonAttributesInspectorBuilder(
   private val viewInspector = ViewInspectorBuilder(project, editorProvider)
   private val textInspector = TextViewInspectorBuilder(editorProvider)
   private val progressBarInspector = ProgressBarInspectorBuilder(editorProvider)
+  private val constraintLayoutFlowInspector = ConstraintLayoutFlowInspectorBuilder(editorProvider)
 
   override fun resetCache() {
     viewInspector.resetCache()
@@ -47,6 +48,7 @@ class CommonAttributesInspectorBuilder(
     viewInspector.attachToInspector(inspector, properties) { generator.title }
     textInspector.attachToInspector(inspector, properties) { generator.title }
     progressBarInspector.attachToInspector(inspector, properties)  { generator.title }
+    constraintLayoutFlowInspector.attachToInspector(inspector, properties) { generator.title }
     addCommonForAll(inspector, properties, generator)
   }
 

@@ -31,9 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-/**
-* @author Eugene.Kudelevsky
-*/
 public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionAction, HighPriorityAction {
   private final AndroidFacet myFacet;
   private final ResourceType myResourceType;

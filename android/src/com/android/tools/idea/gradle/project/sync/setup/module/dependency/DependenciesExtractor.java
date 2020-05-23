@@ -15,16 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 
 import com.android.builder.model.level2.Library;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
@@ -47,49 +41,25 @@ public class DependenciesExtractor {
   }
 
   /**
-   * Get a {@link DependencySet} contains merged dependencies from main artifact and test artifacts.
-   *
-   * @param variant      the variant to extract dependencies from.
-   * @param moduleFinder
-   * @return Instance of {@link DependencySet} retrieved from given variant.
-   */
-  @NotNull
-  public DependencySet extractFrom(@NotNull File basePath,
-                                   @NotNull IdeVariant variant,
-                                   @NotNull ModuleFinder moduleFinder) {
-    DependencySet dependencies = new DependencySet();
-
-    for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
-      populate(basePath, dependencies, testArtifact, moduleFinder, TEST);
-    }
-
-    IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
-    populate(basePath, dependencies, mainArtifact, moduleFinder, COMPILE);
-
-    return dependencies;
-  }
-
-  /**
-   * @param artifact the artifact to extract dependencies from.
-   * @param scope    Scope of the dependencies, e.g. "compile" or "test".
+   * @param artifactDependencies to extract dependencies from.
+   * @param scope                Scope of the dependencies, e.g. "compile" or "test".
    * @return Instance of {@link DependencySet} retrieved from given artifact.
    */
   @NotNull
   public DependencySet extractFrom(@NotNull File basePath,
-                                   @NotNull IdeBaseArtifact artifact,
+                                   @NotNull IdeDependencies artifactDependencies,
                                    @NotNull DependencyScope scope,
                                    @NotNull ModuleFinder moduleFinder) {
     DependencySet dependencies = new DependencySet();
-    populate(basePath, dependencies, artifact, moduleFinder, scope);
+    populate(basePath, dependencies, artifactDependencies, moduleFinder, scope);
     return dependencies;
   }
 
   private static void populate(@NotNull File basePath,
                                @NotNull DependencySet dependencies,
-                               @NotNull IdeBaseArtifact artifact,
+                               @NotNull IdeDependencies artifactDependencies,
                                @NotNull ModuleFinder moduleFinder,
                                @NotNull DependencyScope scope) {
-    IdeDependencies artifactDependencies = artifact.getLevel2Dependencies();
 
     for (Library library : artifactDependencies.getJavaLibraries()) {
       LibraryDependency libraryDependency =
@@ -105,18 +75,8 @@ public class DependenciesExtractor {
     for (Library library : artifactDependencies.getModuleDependencies()) {
       String gradlePath = library.getProjectPath();
       if (isNotEmpty(gradlePath)) {
-        Module module = null;
-        String moduleId = gradlePath;
-        String projectFolderPath = library.getBuildId();
-        if (isNotEmpty(projectFolderPath)) {
-          moduleId = createUniqueModuleId(projectFolderPath, gradlePath);
-          module = moduleFinder.findModuleByModuleId(moduleId);
-        }
-        if (module == null) {
-          moduleId = gradlePath;
-          module = moduleFinder.findModuleByGradlePath(moduleId);
-        }
-        ModuleDependency dependency = new ModuleDependency(moduleId, scope, module);
+        Module module = moduleFinder.findModuleFromLibrary(library);
+        ModuleDependency dependency = new ModuleDependency(scope, module);
         dependencies.add(dependency);
       }
     }

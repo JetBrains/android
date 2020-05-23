@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.google.common.annotations.VisibleForTesting
 
 /**
@@ -43,20 +44,20 @@ class GroupNameFilteredPreviewProvider(private val delegate: PreviewElementProvi
 }
 
 /**
- *  A [PreviewElementProvider] that filters by the Composable fully qualified name.
+ *  A [PreviewElementProvider] that filters [PreviewElementInstance] by the Composable instance ID.
  *
  * @param delegate the source [PreviewElementProvider] to be filtered.
  */
 @VisibleForTesting
-class SinglePreviewElementFilteredPreviewProvider(private val delegate: PreviewElementProvider): PreviewElementProvider {
+class SinglePreviewElementInstanceFilteredPreviewProvider(private val delegate: PreviewElementProvider): PreviewElementProvider {
   /**
-   * The Composable method fully qualified name to filter. If no [PreviewElement] is defined by that name, then
-   * this filter will return all the available previews.
+   * The Composable instance ID to filter. If no [PreviewElement] is defined by that name, then this filter will return all the available
+   * previews.
    */
-  var composableMethodFqn: String? = null
+  var instanceId: String? = null
 
   private val filteredPreviewElementProvider = FilteredPreviewElementProvider(delegate) {
-    composableMethodFqn == null || composableMethodFqn == it.composableMethodFqn
+    (it as? PreviewElementInstance)?.instanceId == instanceId
   }
 
   override val previewElements: Sequence<PreviewElement>

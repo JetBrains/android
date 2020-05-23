@@ -66,9 +66,6 @@ import org.jetbrains.kotlin.analyzer.ModuleInfo;
 import org.jetbrains.kotlin.idea.UserDataModuleInfoKt;
 import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class AndroidLightClassBase extends LightElement implements PsiClass, SyntheticElement {
   private static final boolean KOTLIN_PLUGIN_AVAILABLE = AndroidStudioKotlinPluginUtils.isKotlinPluginAvailable();
   private static final Key<Library> LIBRARY = Key.create(AndroidLightClassBase.class.getName() + ".LIBRARY");

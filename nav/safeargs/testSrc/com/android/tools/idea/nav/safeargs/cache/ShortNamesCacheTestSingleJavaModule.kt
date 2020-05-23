@@ -47,6 +47,10 @@ class ShortNamesCacheTestSingleJavaModule {
               <argument
                   android:name="arg1"
                   app:argType="string" />
+                  
+              <action
+                  android:id="@+id/action_Fragment_to_Main"
+                  app:destination="@id/main" />                  
           </fragment>
         </navigation>
       """.trimIndent()
@@ -61,10 +65,6 @@ class ShortNamesCacheTestSingleJavaModule {
     // Check light direction classes
     assertThat(cache.getContents("FragmentDirections", project)).containsExactly(
       "test.safeargs.FragmentDirections"
-    )
-
-    assertThat(cache.getContents("MainDirections", project)).containsExactly(
-      "test.safeargs.MainDirections"
     )
 
     // Check light builder classes

@@ -19,9 +19,6 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidManifestMergingTarget extends ModuleBasedTarget<AndroidManifestMergingTarget.MyRootDescriptor> {
   public AndroidManifestMergingTarget(
     ModuleBasedBuildTargetType<? extends ModuleBasedTarget<AndroidManifestMergingTarget.MyRootDescriptor>> targetType,

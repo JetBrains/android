@@ -100,6 +100,22 @@ class CpuThreadStateTableTest {
     assertThat(table.getValueAt(2, 3)).isEqualTo(1)
   }
 
+
+  @Test
+  fun tableShouldBeSortedByValueNotToString() {
+    val range = Range(0.0, MICROS_IN_MILLI * 12.0)
+    val dataSeries = listOf(LazyDataSeries { THREAD_3_STATES })
+    val table = CpuThreadStateTable(profilers, dataSeries, range).table
+
+    assertThat(table.rowCount).isEqualTo(2)
+    assertThat(table.columnCount).isEqualTo(4)
+    assertThat(table.getValueAt(0, 1)).isEqualTo(MICROS_IN_MILLI * 10)
+    assertThat(table.getValueAt(1, 1)).isEqualTo(MICROS_IN_MILLI * 2)
+    table.rowSorter.toggleSortOrder(1)
+    assertThat(table.getValueAt(0, 1)).isEqualTo(MICROS_IN_MILLI * 2)
+    assertThat(table.getValueAt(1, 1)).isEqualTo(MICROS_IN_MILLI * 10)
+  }
+
   companion object {
     val MICROS_IN_MILLI = TimeUnit.MILLISECONDS.toMicros(1)
     val THREAD_1_STATES = listOf(
@@ -116,6 +132,11 @@ class CpuThreadStateTableTest {
       SeriesData(MICROS_IN_MILLI * 2, ThreadState.SLEEPING),
       SeriesData(MICROS_IN_MILLI * 3, ThreadState.RUNNING),
       SeriesData(MICROS_IN_MILLI * 4, ThreadState.DEAD)
+    )
+    val THREAD_3_STATES = listOf(
+      SeriesData(0, ThreadState.SLEEPING),
+      SeriesData(MICROS_IN_MILLI * 10, ThreadState.RUNNING),
+      SeriesData(MICROS_IN_MILLI * 12, ThreadState.SLEEPING)
     )
   }
 }

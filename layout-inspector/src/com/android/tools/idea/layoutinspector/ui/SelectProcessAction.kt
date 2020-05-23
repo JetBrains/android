@@ -30,7 +30,6 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
@@ -38,12 +37,17 @@ import java.util.concurrent.Future
 
 val NO_PROCESS_ACTION = object : AnAction("No debuggable processes detected") {
   override fun actionPerformed(event: AnActionEvent) {}
-}.apply { templatePresentation.isEnabled = false }
+  override fun update(event: AnActionEvent) {
+    event.presentation.isEnabled = false
+  }
+}
 
-private val ICON = ColoredIconGenerator.generateColoredIcon(StudioIcons.Avd.DEVICE_PHONE, JBColor(0x6E6E6E, 0xAFB1B3))
+private val ICON_COLOR = JBColor(0x6E6E6E, 0xAFB1B3)
+private val ICON_PHONE = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE, ICON_COLOR)
+private val ICON_EMULATOR = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, ICON_COLOR)
 
 class SelectProcessAction(val layoutInspector: LayoutInspector) :
-  DropDownAction("Select Process", "Select a process to connect to.", ICON) {
+  DropDownAction("Select Process", "Select a process to connect to.", ICON_PHONE) {
 
   private var currentProcess = Common.Process.getDefaultInstance()
   private var project: Project? = null
@@ -57,6 +61,7 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
         if (layoutInspector.currentClient.selectedProcess == Common.Process.getDefaultInstance()) "Select Process" else processName
       currentProcess = layoutInspector.currentClient.selectedProcess
       event.presentation.text = actionName
+      event.presentation.icon = layoutInspector.currentClient.selectedStream.device.toIcon()
     }
   }
 
@@ -73,15 +78,27 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
         if (!serials.add(serial)) {
           continue
         }
-        val deviceName = buildDeviceName(serial, stream.device.model, stream.device.manufacturer)
-        add(DeviceAction(deviceName, stream, client, layoutInspector.layoutInspectorModel.project))
+        val deviceName = stream.device.toDisplayName()
+        if (stream.device.featureLevel < 23) {
+          add(object : AnAction("$deviceName (Unsupported for API < 23)") {
+            override fun update(event: AnActionEvent) {
+              event.presentation.isEnabled = false
+            }
+            override fun actionPerformed(e: AnActionEvent) {}
+          })
+        }
+        else {
+          add(DeviceAction(deviceName, stream, client, layoutInspector.layoutInspectorModel.project))
+        }
       }
     }
     if (childrenCount == 0) {
       val noDeviceAction = object : AnAction("No devices detected") {
+        override fun update(event: AnActionEvent) {
+          event.presentation.isEnabled = false
+        }
         override fun actionPerformed(event: AnActionEvent) {}
       }
-      noDeviceAction.templatePresentation.isEnabled = false
       add(noDeviceAction)
     }
     else {
@@ -123,7 +140,7 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
   class DeviceAction(deviceName: String,
                      stream: Common.Stream,
                      client: InspectorClient,
-                     project: Project) : DropDownAction(deviceName, null, null) {
+                     project: Project) : DropDownAction(deviceName, null, stream.device.toIcon()) {
     override fun displayTextInToolbar() = true
 
     init {
@@ -152,18 +169,20 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
   }
 }
 
-fun buildDeviceName(serial: String?, model: String, manufacturer: String?): String {
+private fun Common.Device.toDisplayName(): String {
   var displayModel = model
   val deviceNameBuilder = StringBuilder()
   val suffix = String.format("-%s", serial)
   if (displayModel.endsWith(suffix)) {
     displayModel = displayModel.substring(0, displayModel.length - suffix.length)
   }
-  if (!StringUtil.isEmpty(manufacturer)) {
+  if (!isEmulator && manufacturer.isNotBlank()) {
     deviceNameBuilder.append(manufacturer)
     deviceNameBuilder.append(" ")
   }
-  deviceNameBuilder.append(displayModel)
+  deviceNameBuilder.append(displayModel.replace('_', ' '))
 
   return deviceNameBuilder.toString()
 }
+
+private fun Common.Device.toIcon() = if (isEmulator) ICON_EMULATOR else ICON_PHONE

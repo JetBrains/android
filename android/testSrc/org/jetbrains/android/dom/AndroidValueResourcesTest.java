@@ -740,11 +740,11 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
                                               "  <string name='bar'>@string/foo</string>" +
                                               "</resources>");
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    myFixture.setReadEditorMarkupModel(true);
 
     IdentifierHighlighterPassFactory.doWithHighlightingEnabled(() -> {
       List<HighlightInfo> highlightInfos = myFixture.doHighlighting();
       if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-/* b/139262116
         // With new resources pipeline, all highlight usages of resources are found.
         assertThat(highlightInfos).hasSize(2);
         highlightInfos.forEach(it -> {
@@ -752,7 +752,6 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
         });
         List<String> getTextList = ContainerUtil.map(highlightInfos, it -> it.getText());
         assertThat(getTextList).containsExactlyElementsIn(Array.of("foo", "@string/foo"));
-b/139262116 */
       } else {
         assertThat(highlightInfos).hasSize(1);
         HighlightInfo highlightInfo = Iterables.getOnlyElement(highlightInfos);
@@ -770,7 +769,6 @@ b/139262116 */
 
       highlightInfos = myFixture.doHighlighting();
       if (StudioFlags.RESOLVE_USING_REPOS.get()) {
-/* b/139262116
         // With new resources pipeline, all highlight usages of resources are found.
         assertThat(highlightInfos).hasSize(2);
         List<Pair<HighlightSeverity, String>> severities =
@@ -778,7 +776,6 @@ b/139262116 */
         assertThat(severities).containsExactly(
           Pair.create(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY, "fXoo"),
           Pair.create( HighlightSeverity.ERROR, "@string/foo"));
-b/139262116 */
       } else {
         if (highlightInfos.size() == 1) {
           // Expected case.

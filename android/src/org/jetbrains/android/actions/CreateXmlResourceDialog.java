@@ -41,9 +41,6 @@ import javax.swing.*;
 import java.util.List;
 import java.util.function.Function;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class CreateXmlResourceDialog extends DialogWrapper {
 
   final CreateXmlResourcePanel myPanel;

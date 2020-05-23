@@ -17,9 +17,6 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class NewKeyStoreDialog extends DialogWrapper {
   private JPanel myNewKeyPanel;
   private JPanel myPanel;

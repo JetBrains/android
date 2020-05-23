@@ -16,37 +16,42 @@
 package com.android.tools.idea.emulator.actions
 
 import com.android.emulator.control.SnapshotPackage
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.DummyStreamObserver
 import com.android.tools.idea.emulator.EmulatorId
-import com.android.tools.idea.emulator.EmulatorToolWindowPanel
+import com.android.tools.idea.emulator.EmulatorView
+import com.android.tools.idea.emulator.actions.dialogs.CreateSnapshotDialog
+import com.android.tools.idea.emulator.invokeLaterInAnyModalityState
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.TextRange
-import com.intellij.util.containers.ContainerUtil.createConcurrentList
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
- * Creates and saves a snapshot of the Emulator state.
+ * Creates an Emulator snapshot and optionally designates it as the boot snapshot.
  */
 class EmulatorCreateSnapshotAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
     val project: Project = event.getRequiredData(CommonDataKeys.PROJECT)
     val emulatorController = getEmulatorController(event) ?: return
-    val emulatorPanel = getEmulatorToolWindowPanel(event) ?: return
-    val snapshotId = getSnapshotName(project) ?: return
-    emulatorController.saveSnapshot(snapshotId, CompletionTracker(emulatorController.emulatorId, emulatorPanel))
-  }
+    val emulatorView = getEmulatorView(event) ?: return
 
-  private fun getSnapshotName(project: Project): String? {
-    val suffix = TIMESTAMP_FORMAT.format(Date())
-    val defaultName = "snap_${suffix}"
-    val selection = TextRange(0, defaultName.length)
-    return Messages.showInputDialog(project, "Snapshot Name:", "Create Emulator Snapshot", null, defaultName, null, selection)
+    val dialog = CreateSnapshotDialog()
+    if (!dialog.createWrapper(project).showAndGet()) {
+      return
+    }
+
+    val emulatorId = emulatorController.emulatorId
+    val snapshotName = dialog.snapshotName.trim()
+    val bootSnapshotUpdater = {
+      if (dialog.useToBoot) {
+        SnapshotManager(emulatorId.avdFolder, emulatorId.avdId).saveBootMode(BootMode(BootType.SNAPSHOT, snapshotName))
+      }
+    }
+    emulatorController.saveSnapshot(snapshotName, CompletionTracker(emulatorId, emulatorView, bootSnapshotUpdater))
   }
 
   override fun isEnabled(event: AnActionEvent): Boolean {
@@ -55,25 +60,35 @@ class EmulatorCreateSnapshotAction : AbstractEmulatorAction() {
 
   private class CompletionTracker(
     val emulatorId: EmulatorId,
-    val emulatorPanel: EmulatorToolWindowPanel
+    val emulatorView: EmulatorView,
+    val bootSnapshotUpdater: () -> Unit
   ) : DummyStreamObserver<SnapshotPackage>() {
 
     init {
       inProgress.add(emulatorId)
-      emulatorPanel.showLongRunningOperationIndicator("Saving state...")
+      emulatorView.showLongRunningOperationIndicator("Saving state...")
     }
 
     override fun onCompleted() {
-      emulatorPanel.hideLongRunningOperationIndicator()
-      inProgress.remove(emulatorId)
+      executeOnPooledThread {
+        bootSnapshotUpdater()
+        finished()
+      }
+    }
+
+    override fun onError(t: Throwable) {
+      val notification = Notification("Android Emulator", "", "Unable to create a snapshot", NotificationType.ERROR)
+      Notifications.Bus.notify(notification)
+      finished()
+    }
+
+    private fun finished() {
+      invokeLaterInAnyModalityState {
+        emulatorView.hideLongRunningOperationIndicator()
+        inProgress.remove(emulatorId)
+      }
     }
   }
-
-  companion object {
-    @JvmStatic
-    private val TIMESTAMP_FORMAT = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
-
-    @JvmStatic
-    private val inProgress = createConcurrentList<EmulatorId>()
-  }
 }
+
+private val inProgress = mutableListOf<EmulatorId>()

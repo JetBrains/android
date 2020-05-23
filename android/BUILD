@@ -242,6 +242,9 @@ iml_module(
             "shard_count": 6,
             "test_filter": "org.jetbrains.android",
         },
+        "jetbrains.android.refactoring.MigrateToAndroidxGradleTest": {
+            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleTest",
+        },
         "AndroidLintCustomCheckTest": {
             "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
         },

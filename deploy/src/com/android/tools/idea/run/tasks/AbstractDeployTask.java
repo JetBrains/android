@@ -131,12 +131,12 @@ public abstract class AbstractDeployTask implements LaunchTask {
     long duration = stopwatch.elapsed(TimeUnit.MILLISECONDS);
     if (idsSkippedInstall.isEmpty()) {
       String content = String.format("%s successfully finished in %s.", getDescription(), StringUtil.formatDuration(duration));
-      NOTIFICATION_GROUP.createNotification(content, NotificationType.INFORMATION).setImportant(false).notify(myProject);
+      printer.stdout(content);
       logger.info("%s", content);
     } else {
       String title = String.format("%s successfully finished in %s.", getDescription(), StringUtil.formatDuration(duration));
       String content = createSkippedApkInstallMessage(idsSkippedInstall, idsSkippedInstall.size() == myPackages.size());
-      NOTIFICATION_GROUP.createNotification(title, content, NotificationType.INFORMATION, null).setImportant(false).notify(myProject);
+      printer.stdout(content);
       logger.info("%s. %s", title, content);
     }
 

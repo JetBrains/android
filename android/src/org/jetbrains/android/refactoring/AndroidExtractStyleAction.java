@@ -33,9 +33,6 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringAction {
   @NonNls public static final String ACTION_ID = "AndroidExtractStyleAction";
 

@@ -36,6 +36,7 @@ import com.android.tools.idea.ui.wizard.WizardUtils.hasComposeMinAgpVersion
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateConstraint
@@ -57,14 +58,20 @@ import javax.swing.JComponent
  *
  * Should we have something more specific than a ASGallery, that renders "Gallery items"?
  */
+
+class BlankModel: WizardModel() {
+  override fun handleFinished() {
+    // Nothing to do
+  }
+}
 abstract class ChooseGalleryItemStep(
-  model: RenderTemplateModel,
+  private val renderModel: RenderTemplateModel,
   formFactor: FormFactor,
   private val moduleTemplates: List<NamedModuleTemplate>,
   private val messageKeys: WizardGalleryItemsStepMessageKeys,
   private val emptyItemLabel: String,
   private val androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent()
-) : SkippableWizardStep<RenderTemplateModel>(model, message(messageKeys.addMessage, formFactor.id), formFactor.icon) {
+) : SkippableWizardStep<WizardModel>(BlankModel(), message(messageKeys.addMessage, formFactor.id), formFactor.icon) {
 
   abstract val templateRenderers: List<TemplateRenderer>
   private val itemGallery = WizardGallery(title, { t: NewTemplateRenderer? -> t!!.icon }, { t: NewTemplateRenderer? -> t!!.label })
@@ -76,7 +83,7 @@ abstract class ChooseGalleryItemStep(
   private val listeners = ListenerManager()
 
   protected val isNewModule: Boolean
-    get() = model.module == null
+    get() = renderModel.module == null
 
   constructor(
     renderModel: RenderTemplateModel,
@@ -91,7 +98,7 @@ abstract class ChooseGalleryItemStep(
   override fun getPreferredFocusComponent(): JComponent? = itemGallery
 
   public override fun createDependentSteps(): Collection<ModelWizardStep<*>> =
-    listOf(ConfigureTemplateParametersStep(model, message(messageKeys.stepTitle), moduleTemplates))
+    listOf(ConfigureTemplateParametersStep(renderModel, message(messageKeys.stepTitle), moduleTemplates))
 
   override fun dispose() = listeners.releaseAll()
 
@@ -106,7 +113,7 @@ abstract class ChooseGalleryItemStep(
 
     itemGallery.addListSelectionListener {
       itemGallery.selectedElement?.run {
-        model.newTemplate = this.template
+        renderModel.newTemplate = this.template
         wizard.updateNavigationProperties()
       }
       validateTemplate()
@@ -127,21 +134,21 @@ abstract class ChooseGalleryItemStep(
    */
   private fun validateTemplate() {
     val sdkInfo = androidSdkInfo.valueOrNull
-    val facet = model.androidFacet
+    val facet = renderModel.androidFacet
 
     fun AndroidFacet.getModuleInfo() = AndroidModuleInfo.getInstance(this)
 
     val moduleApiLevel = sdkInfo?.minApiLevel ?: facet?.getModuleInfo()?.minSdkVersion?.featureLevel ?: Integer.MAX_VALUE
     val moduleBuildApiLevel = sdkInfo?.buildApiLevel ?: facet?.getModuleInfo()?.buildSdkVersion?.featureLevel ?: Integer.MAX_VALUE
 
-    val project = model.project
+    val project = renderModel.project
     val isAndroidxProject = project.isAndroidx()
 
     invalidParameterMessage.set(
-      model.newTemplate.validate(moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, model.language.value, messageKeys)
+      renderModel.newTemplate.validate(moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, renderModel.language.value, messageKeys)
     )
 
-    if (invalidParameterMessage.get() == "" && !hasComposeMinAgpVersion(project, model.newTemplate.category)) {
+    if (invalidParameterMessage.get() == "" && !hasComposeMinAgpVersion(project, renderModel.newTemplate.category)) {
       invalidParameterMessage.set(message("android.wizard.validate.module.needs.new.agp", COMPOSE_MIN_AGP_VERSION))
     }
   }

@@ -90,7 +90,6 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(new LocaleMenuAction(mySurface::getConfiguration));
 
     group.addSeparator();
-    group.add(new LayoutValidatorAction());
     return group;
   }
 
@@ -124,6 +123,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
       return group;
     }
     addActionsWithSeparator(group, getZoomActionsWithShortcuts(mySurface, this));
+    group.add(LayoutValidatorAction.getInstance());
     group.add(IssueNotificationAction.getInstance());
     return group;
   }

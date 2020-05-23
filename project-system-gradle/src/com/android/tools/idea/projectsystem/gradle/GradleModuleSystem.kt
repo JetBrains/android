@@ -17,7 +17,6 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
-import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.BuildType
 import com.android.ide.common.gradle.model.GradleModelConverter
 import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
@@ -33,7 +32,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.gradle.run.PostBuildModelProvider
 import com.android.tools.idea.gradle.util.DynamicAppUtils
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
@@ -718,35 +716,19 @@ class GradleModuleSystem(
 private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
   if (isDisposed) return emptyList()
   val localLibManifests = dependencies.mapNotNull { it.sourceProviders.mainManifestFile }
+  fun com.android.builder.model.level2.Library.manifestFile(): File = this.folder.resolve(this.manifest)
 
-  val aarManifests = hashSetOf<File>()
-  AndroidModuleModel.get(this)
-    ?.selectedMainCompileDependencies
-    ?.libraries
-    ?.forEach { addAarManifests(it, aarManifests, dependencies) }
+  val aarManifests =
+    AndroidModuleModel.get(this)
+      ?.selectedMainCompileLevel2Dependencies
+      ?.androidLibraries
+      ?.mapNotNull { it.manifestFile() }
+      ?.toSet()
+      .orEmpty()
 
   // Local library manifests come first because they have higher priority.
   return localLibManifests +
          // If any of these are null, then the file is specified in the model,
          // but not actually available yet, such as exploded AAR manifests.
          aarManifests.mapNotNull { VfsUtil.findFileByIoFile(it, false) }
-}
-
-private fun addAarManifests(lib: AndroidLibrary, result: MutableSet<File>, moduleDeps: List<AndroidFacet>) {
-  lib.project?.let { projectName ->
-    // The model ends up with AndroidLibrary references both to normal, source modules,
-    // as well as AAR dependency wrappers. We don't want to add an AAR reference for
-    // normal libraries (so we find these and just return below), but we *do* want to
-    // include AAR wrappers.
-    // TODO(b/128928135): Make this build system-independent.
-    if (moduleDeps.any { projectName == GradleUtil.getGradlePath(it.module) }) {
-      return
-    }
-  }
-  if (lib.manifest !in result) {
-    result.add(lib.manifest)
-    lib.libraryDependencies.forEach {
-      addAarManifests(it, result, moduleDeps)
-    }
-  }
 }

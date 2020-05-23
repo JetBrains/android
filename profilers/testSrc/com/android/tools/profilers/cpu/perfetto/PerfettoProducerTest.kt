@@ -61,6 +61,26 @@ class PerfettoProducerTest {
   }
 
   @Test
+  fun validateSchedSwitchMapping() {
+    val producer = PerfettoProducer()
+    assertThat(producer.mapStateToString(0)).isEqualTo("R")
+    assertThat(producer.mapStateToString(1)).isEqualTo("S")
+    assertThat(producer.mapStateToString(2)).isEqualTo("D")
+    assertThat(producer.mapStateToString(4)).isEqualTo("T")
+    assertThat(producer.mapStateToString(8)).isEqualTo("t")
+    assertThat(producer.mapStateToString(16)).isEqualTo("Z")
+    assertThat(producer.mapStateToString(32)).isEqualTo("X")
+    assertThat(producer.mapStateToString(64)).isEqualTo("x")
+    assertThat(producer.mapStateToString(128)).isEqualTo("K")
+    assertThat(producer.mapStateToString(256)).isEqualTo("W")
+    assertThat(producer.mapStateToString(512)).isEqualTo("P")
+    assertThat(producer.mapStateToString(1024)).isEqualTo("N")
+    assertThat(producer.mapStateToString(17)).isEqualTo("SZ")
+    assertThat(producer.mapStateToString(2048)).isEqualTo("R+")
+    assertThat(producer.mapStateToString(2049)).isEqualTo("S+")
+  }
+
+  @Test
   fun validateClockSyncMarkers() {
     val parser = PerfettoProducer()
     assertThat(parser.parseFile(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))).isTrue()

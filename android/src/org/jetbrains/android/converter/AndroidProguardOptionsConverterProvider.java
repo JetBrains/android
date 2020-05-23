@@ -15,9 +15,6 @@ import org.jetbrains.jps.model.serialization.PathMacroUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidProguardOptionsConverterProvider extends ConverterProvider {
 
   protected AndroidProguardOptionsConverterProvider() {

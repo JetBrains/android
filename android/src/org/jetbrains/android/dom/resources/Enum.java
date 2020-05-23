@@ -19,9 +19,6 @@ package org.jetbrains.android.dom.resources;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.DomElement;
 
-/**
- * @author coyote
- */
 public interface Enum extends DomElement {
   GenericAttributeValue<String> getName();
   GenericAttributeValue<String> getValue();

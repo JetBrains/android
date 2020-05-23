@@ -15,19 +15,27 @@
  */
 package com.android.tools.profilers
 
-import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
+import com.android.tools.profilers.systemtrace.ProcessModel
+import com.android.tools.profilers.systemtrace.ThreadModel
 import java.io.File
 
 class FakeTraceProcessorService: TraceProcessorService {
-  override fun loadTrace(traceId: Long, traceFile: File): List<CpuThreadSliceInfo> {
+  override fun loadTrace(traceId: Long, traceFile: File): List<ProcessModel> {
     return listOf(
-      CpuThreadSliceInfo(1, "p1_fake_thread_1", 1, "process_p1"),
-      CpuThreadSliceInfo(2, "p1_fake_thread_2", 1, "process_p1"),
-      CpuThreadSliceInfo(6, "p2_fake_thread_1", 2, "process_p2")
-    )
+      ProcessModel(1, "process_p1",
+                   mapOf(
+                     1 to ThreadModel(1, 1, "p1_fake_thread_1", listOf(), listOf()),
+                     2 to ThreadModel(2, 1, "p1_fake_thread_2", listOf(), listOf())
+                   ),
+                   mapOf()),
+      ProcessModel(2, "process_p2",
+                   mapOf(
+                     6 to ThreadModel(6, 2, "p2_fake_thread_1", listOf(), listOf())
+                   ),
+                   mapOf()))
   }
 
   override fun loadMemoryData(abi: String, symbolizer: NativeFrameSymbolizer, memorySet: NativeMemoryHeapSet) {

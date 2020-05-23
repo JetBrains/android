@@ -29,12 +29,10 @@ import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.Dependencies;
-import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.MavenCoordinates;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.io.FileOpUtils;
@@ -46,7 +44,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -344,7 +341,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @Nullable
   private static ArtifactDependencySpec findNewExternalDependency(@NotNull Library library, @NotNull IdeVariant selectedVariant) {
-    JavaLibrary matchedLibrary = null;
+    @Nullable ArtifactDependencySpec matchedLibrary = null;
     for (IdeBaseArtifact testArtifact : selectedVariant.getTestArtifacts()) {
       matchedLibrary = findMatchedLibrary(library, testArtifact);
       if (matchedLibrary != null) {
@@ -358,21 +355,16 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       return null;
     }
 
-    // TODO use getRequestedCoordinates once the interface is fixed.
-    MavenCoordinates coordinates = matchedLibrary.getResolvedCoordinates();
-    if (coordinates == null) {
-      return null;
-    }
-    return ArtifactDependencySpec.create(coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getVersion());
+    return matchedLibrary;
   }
 
   @Nullable
-  private static JavaLibrary findMatchedLibrary(@NotNull Library library, @NotNull BaseArtifact artifact) {
-    Dependencies dependencies = artifact.getDependencies();
-    for (JavaLibrary gradleLibrary : dependencies.getJavaLibraries()) {
-      String libraryName = getNameWithoutExtension(gradleLibrary.getJarFile());
+  private static ArtifactDependencySpec findMatchedLibrary(@NotNull Library library, @NotNull IdeBaseArtifact artifact) {
+    IdeDependencies dependencies = artifact.getLevel2Dependencies();
+    for (com.android.builder.model.level2.Library gradleLibrary : dependencies.getJavaLibraries()) {
+      String libraryName = getNameWithoutExtension(gradleLibrary.getArtifact());
       if (libraryName.equals(library.getName())) {
-        return gradleLibrary;
+        return ArtifactDependencySpec.create(gradleLibrary.getArtifactAddress());
       }
     }
     return null;

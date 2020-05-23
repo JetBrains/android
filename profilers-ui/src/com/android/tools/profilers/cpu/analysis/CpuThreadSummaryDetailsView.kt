@@ -15,11 +15,17 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.formatter.TimeFormatter
+import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
 import javax.swing.JLabel
+import javax.swing.JPanel
+import com.android.tools.adtui.common.border as BorderColor
 
 class CpuThreadSummaryDetailsView(parentView: StudioProfilersView,
                                   tabModel: CpuThreadAnalysisSummaryTabModel) : SummaryDetailsViewBase<CpuThreadAnalysisSummaryTabModel>(
@@ -36,6 +42,8 @@ class CpuThreadSummaryDetailsView(parentView: StudioProfilersView,
   @get:VisibleForTesting
   val threadIdLabel = JLabel()
 
+  private val nodesTablePanel = JPanel(BorderLayout())
+
   init {
     // Common section
     addRowToCommonSection("Time Range", timeRangeLabel)
@@ -45,21 +53,50 @@ class CpuThreadSummaryDetailsView(parentView: StudioProfilersView,
       // Only display thread ID when a single thread is selected.
       addRowToCommonSection("ID", threadIdLabel.apply { text = tabModel.dataSeries[0].threadInfo.id.toString() })
     }
-    tabModel.selectionRange.addDependency(observer).onChange(Range.Aspect.RANGE) { updateRangeLabels() }
-    updateRangeLabels()
+    tabModel.selectionRange.addDependency(observer).onChange(Range.Aspect.RANGE) { onSelectionRangeChanged() }
+    onSelectionRangeChanged()
 
     // Thread states section
     // Merge thread state data series from all threads.
-    tabModel.dataSeries.map { it.threadStateSeries }.let { threadStateSeriesList ->
+    tabModel.dataSeries.mapNotNull { it.threadStateSeries }.let { threadStateSeriesList ->
       if (threadStateSeriesList.isNotEmpty()) {
         addSection(CpuThreadStateTable(parentView.studioProfilers, threadStateSeriesList, tabModel.selectionRange).component)
       }
     }
+    addSection(nodesTablePanel)
   }
 
-  private fun updateRangeLabels() {
+  private fun onSelectionRangeChanged() {
     val range = tabModel.selectionRange
     timeRangeLabel.text = formatTimeRangeAsString(range)
     durationLabel.text = TimeFormatter.getSingleUnitDurationString(range.length.toLong())
+    populateNodesTable()
+  }
+
+  private fun populateNodesTable() {
+    profilersView.studioProfilers.ideServices.poolExecutor.execute {
+      val nodesInRange = tabModel.getTopNodesInSelectionRange(NUMBER_OF_TABLE_NODES)
+        profilersView.studioProfilers.ideServices.mainExecutor.execute {
+          nodesTablePanel.removeAll()
+          if (nodesInRange.isNotEmpty()) {
+            val nodesTable = CaptureNodeDetailTable(nodesInRange, tabModel.captureRange,
+                                                    profilersView.studioProfilers.stage.timeline.viewRange)
+            val sizeText = if (nodesInRange.size == NUMBER_OF_TABLE_NODES) "first ${NUMBER_OF_TABLE_NODES}" else nodesInRange.size
+            val hideablePanel = HideablePanel.Builder("Events (${sizeText})", nodesTable.component)
+              .setPanelBorder(JBUI.Borders.empty())
+              .setContentBorder(JBUI.Borders.customLine(BorderColor))
+              .build().apply {
+                background = primaryContentBackground
+              }
+            nodesTablePanel.add(hideablePanel)
+          }
+          nodesTablePanel.invalidate()
+          nodesTablePanel.repaint()
+        }
+    }
+  }
+
+  companion object {
+    private const val NUMBER_OF_TABLE_NODES = 10
   }
 }

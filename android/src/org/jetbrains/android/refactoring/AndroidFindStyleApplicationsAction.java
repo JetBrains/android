@@ -28,9 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactoringAction {
   private final MyTestConfig myTestConfig;
 

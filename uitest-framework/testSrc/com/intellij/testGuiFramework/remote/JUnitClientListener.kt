@@ -28,8 +28,6 @@ import org.junit.runner.notification.RunListener
 /**
  * [JUnitClientListener] is responsible for listening to test events generated from the client and relaying that information back to the
  * server by sending a [TransportMessage] with a [JUnitInfo] object in its content field.
- *
- * @author Sergey Karashevich
  */
 class JUnitClientListener(val sendObjectFun: (JUnitInfo) -> Unit) : RunListener() {
 

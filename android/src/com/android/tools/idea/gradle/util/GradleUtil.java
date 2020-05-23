@@ -42,7 +42,6 @@ import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutput
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.join;
@@ -65,10 +64,7 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.MavenCoordinates;
-import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -78,8 +74,6 @@ import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -93,7 +87,6 @@ import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.icons.AllIcons;
@@ -119,7 +112,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -665,35 +657,6 @@ public final class GradleUtil {
   }
 
   /**
-   * Same as {@link #dependsOn(AndroidModuleModel, String)} but searches the list of Java Libraries
-   */
-  public static boolean dependsOnJavaLibrary(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    IdeDependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
-    for (Library library : dependencies.getJavaLibraries()) {
-      if (dependsOn(library, artifact)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Returns {@code true} if the androidTest artifact of the given Android model depends on the given artifact, which consists of a group id
-   * and an artifact id, such as {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
-   *
-   * @param androidModel the Android model to check
-   * @param artifact     the artifact
-   * @return {@code true} if the project depends on the given artifact (including transitively)
-   */
-  public static boolean dependsOnAndroidTest(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    IdeDependencies dependencies = androidModel.getSelectedAndroidTestCompileDependencies();
-    if (dependencies == null) {
-      return false;
-    }
-    return dependsOnAndroidLibrary(dependencies, artifact);
-  }
-
-  /**
    * Returns {@code true} if the given dependencies include the given artifact, which consists of a group id and an artifact id, such as
    * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
@@ -708,40 +671,6 @@ public final class GradleUtil {
       }
     }
     return false;
-  }
-
-  /**
-   * Returns {@code true} if the given library depends on the given artifact, which consists a group id and an artifact id, such as
-   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
-   *
-   * @param library      the Gradle library to check
-   * @param artifact     the artifact
-   * @param transitively if {@code false}, checks only direct dependencies, otherwise checks transitively
-   * @return {@code true} if the project depends on the given artifact
-   */
-  public static boolean dependsOn(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {
-    return getDependencyVersion(library, artifact, transitively) != null;
-  }
-
-  private static String getDependencyVersion(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {
-    MavenCoordinates resolvedCoordinates = library.getResolvedCoordinates();
-    //noinspection ConstantConditions
-    if (resolvedCoordinates != null) {
-      if (artifact.endsWith(resolvedCoordinates.getArtifactId()) &&
-          artifact.equals(resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId())) {
-        return resolvedCoordinates.getVersion();
-      }
-    }
-
-    if (transitively) {
-      for (AndroidLibrary dependency : library.getLibraryDependencies()) {
-        String version = getDependencyVersion(dependency, artifact, true);
-        if (version != null) {
-          return version;
-        }
-      }
-    }
-    return null;
   }
 
   /**
@@ -784,32 +713,6 @@ public final class GradleUtil {
       return null;
     }
     return new File(homePath, join(DOT_GRADLE, FN_GRADLE_PROPERTIES));
-  }
-
-  public static void setBuildToolsVersion(@NotNull Project project, @NotNull String version) {
-    List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
-
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        GradleBuildModel buildModel = GradleBuildModel.get(module);
-        if (buildModel != null) {
-          AndroidModel android = buildModel.android();
-          if (!version.equals(android.buildToolsVersion().toString())) {
-            android.buildToolsVersion().setValue(version);
-            modelsToUpdate.add(buildModel);
-          }
-        }
-      }
-    }
-
-    if (!modelsToUpdate.isEmpty()) {
-      runWriteCommandAction(project, () -> {
-        for (GradleBuildModel buildModel : modelsToUpdate) {
-          buildModel.applyChanges();
-        }
-      });
-    }
   }
 
   /**
@@ -1013,17 +916,6 @@ public final class GradleUtil {
 
   public static boolean hasKtsBuildFiles(@NotNull Project project) {
     return projectBuildFilesTypes(project).contains(DOT_KTS);
-  }
-
-  public static boolean isKtsFile(@Nullable VirtualFile file) {
-    // We deal with the null case in this method for the callers convenience.
-    if (file == null) {
-      return false;
-    }
-
-    HashSet<String> result = new HashSet<>();
-    addBuildFileType(result, file);
-    return result.contains(DOT_KTS);
   }
 
   private static void addBuildFileType(@NotNull HashSet<String> result, @Nullable VirtualFile buildFile) {

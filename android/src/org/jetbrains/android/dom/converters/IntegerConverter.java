@@ -25,9 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class IntegerConverter extends ResolvingConverter<String> {
   public static final IntegerConverter INSTANCE = new IntegerConverter();
 

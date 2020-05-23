@@ -67,9 +67,6 @@ import org.jetbrains.kotlin.psi.KtClassOrObject;
 import org.jetbrains.kotlin.psi.KtDeclaration;
 import org.jetbrains.kotlin.psi.KtNamedFunction;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction implements HighPriorityAction {
   @NotNull
   @Override

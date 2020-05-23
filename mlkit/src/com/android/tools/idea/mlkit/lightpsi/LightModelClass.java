@@ -18,6 +18,7 @@ package com.android.tools.idea.mlkit.lightpsi;
 import com.android.SdkConstants;
 import com.android.tools.idea.mlkit.LightModelClassConfig;
 import com.android.tools.idea.mlkit.LoggingUtils;
+import com.android.tools.idea.psi.light.DeprecatableLightMethodBuilder;
 import com.android.tools.idea.psi.light.NullabilityLightMethodBuilder;
 import com.android.tools.mlkit.MlNames;
 import com.android.tools.mlkit.ModelInfo;
@@ -94,12 +95,16 @@ public class LightModelClass extends AndroidLightClassBase {
       () -> {
         ModelInfo modelInfo = getModelInfo();
 
-        //Build methods
+        // Builds methods.
         List<PsiMethod> methods = new ArrayList<>();
-        methods.add(buildProcessMethod(modelInfo.getInputs()));
+        methods.add(buildProcessMethod(modelInfo.getInputs(), false));
+        if (modelInfo.getInputs().stream().anyMatch(tensorInfo -> tensorInfo.isRGBImage())) {
+          // Adds #process fallback method.
+          methods.add(buildProcessMethod(modelInfo.getInputs(), true));
+        }
         methods.addAll(buildNewInstanceStaticMethods());
 
-        //Build inner class
+        // Builds inner Outputs class.
         Map<String, PsiClass> innerClassMap = new HashMap<>();
         LightModelOutputsClass mlkitOutputClass = new LightModelOutputsClass(module, modelInfo.getOutputs(), this);
         innerClassMap.putIfAbsent(mlkitOutputClass.getName(), mlkitOutputClass);
@@ -193,21 +198,23 @@ public class LightModelClass extends AndroidLightClassBase {
   }
 
   @NotNull
-  private PsiMethod buildProcessMethod(@NotNull List<TensorInfo> tensorInfos) {
+  private PsiMethod buildProcessMethod(@NotNull List<TensorInfo> tensorInfos, boolean usedForFallback) {
     GlobalSearchScope scope = getResolveScope();
     String outputClassName =
       String.join(".", myClassConfig.myPackageName, myClassConfig.myClassName, MlNames.OUTPUTS);
 
     PsiType outputType = PsiType.getTypeByName(outputClassName, getProject(), scope);
-
-    NullabilityLightMethodBuilder method = new NullabilityLightMethodBuilder(getManager(), "process");
+    DeprecatableLightMethodBuilder method = new DeprecatableLightMethodBuilder(getManager(), JavaLanguage.INSTANCE, "process");
     method
       .setMethodReturnType(outputType, true)
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
       .setContainingClass(this);
+    method.setDeprecated(usedForFallback);
 
     for (TensorInfo tensorInfo : tensorInfos) {
-      PsiType tensorType = CodeUtils.getPsiClassType(tensorInfo, getProject(), getResolveScope());
+      PsiType tensorType = usedForFallback
+                           ? PsiType.getTypeByName(ClassNames.TENSOR_BUFFER, getProject(), scope)
+                           : CodeUtils.getPsiClassType(tensorInfo, getProject(), scope);
       method.addNullabilityParameter(tensorInfo.getIdentifierName(), tensorType, true);
     }
     method.setNavigationElement(this);

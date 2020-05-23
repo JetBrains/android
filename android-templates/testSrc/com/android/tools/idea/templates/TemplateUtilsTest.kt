@@ -32,9 +32,11 @@ class TemplateUtilsTest : TestCase() {
     assertFalse(hasExtension(fileWithoutExt, ext))
   }
 
-  fun testCapitalizeAppName() {
-    assertThat(capitalizeAppName("My Application")).isEqualTo("MyApplication")
-    assertThat(capitalizeAppName("  My Application  withSpace  ")).isEqualTo("MyApplicationWithSpace")
-    assertThat(capitalizeAppName("my application")).isEqualTo("MyApplication")
+  fun testAppNameForTheme() {
+    assertThat(getAppNameForTheme("My Application")).isEqualTo("MyApplication")
+    assertThat(getAppNameForTheme("  My Application  withSpace  ")).isEqualTo("MyApplicationWithSpace")
+    assertThat(getAppNameForTheme("my application")).isEqualTo("MyApplication")
+    assertThat(getAppNameForTheme("My-Application")).isEqualTo("MyApplication")
+    assertThat(getAppNameForTheme("--")).isEqualTo("App")
   }
 }

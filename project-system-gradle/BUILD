@@ -67,6 +67,7 @@ iml_module(
         "//tools/idea/plugins/junit:intellij.junit[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer[module]",
+        "//tools/idea/plugins/gradle:intellij.gradle.common[module]",
     ],
 )
 

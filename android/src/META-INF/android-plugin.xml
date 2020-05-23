@@ -40,11 +40,6 @@
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
 
-  <application-components>
-    <component>
-      <implementation-class>org.jetbrains.android.AndroidPlugin</implementation-class>
-    </component>
-  </application-components>
   <project-components>
     <component>
       <implementation-class>org.jetbrains.android.AndroidProjectComponent</implementation-class>
@@ -351,7 +346,7 @@
     <consoleActionsPostProcessor implementation="com.android.tools.idea.logcat.LogcatConsoleActionsPostProcessor" />
 
     <actionConfigurationCustomizer implementation="org.jetbrains.android.AndroidPlugin$ActionCustomizer"/>
-
+    <applicationService serviceImplementation="org.jetbrains.android.AndroidPlugin" preload="true"/>
     <applicationService serviceImplementation="com.android.tools.idea.emulator.EmulatorSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
     <applicationService serviceImplementation="com.android.tools.idea.ui.GuiTestingService"/>
@@ -412,9 +407,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.StudioSettingsController"/>
 
-    <applicationService serviceInterface="com.intellij.openapi.help.HelpManager"
-                        serviceImplementation="com.android.tools.idea.help.StudioHelpManagerImpl"
-                        overrides="true"/>
     <applicationService serviceImplementation="com.android.tools.idea.diagnostics.crash.StudioCrashReporter" />
     <applicationService serviceInterface="com.android.tools.idea.fonts.DownloadableFontCacheService"
                         serviceImplementation="com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl" />
@@ -600,7 +592,6 @@
                       facetIdList="android,apk"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.LOGCAT"
-                      conditionClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"
                       factoryClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"/>
     <facet.toolWindow id="Build Variants"
                       facetIdList="android,android-gradle"
@@ -612,7 +603,6 @@
                       facetIdList="android,apk"
                       anchor="right"
                       secondary="true"
-                      conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
                       icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater"/>

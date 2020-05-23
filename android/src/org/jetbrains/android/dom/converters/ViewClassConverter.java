@@ -19,9 +19,6 @@ package org.jetbrains.android.dom.converters;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.util.AndroidUtils;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class ViewClassConverter extends PackageClassConverter {
   public ViewClassConverter() {
     super(false, ArrayUtil.EMPTY_STRING_ARRAY, true, new String[]{AndroidUtils.VIEW_CLASS_NAME});

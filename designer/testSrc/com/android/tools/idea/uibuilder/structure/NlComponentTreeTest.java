@@ -88,6 +88,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
   private SyncNlModel myModel;
   private NlComponentTree myTree;
+  private NlVisibilityGutterPanel myPanel;
   private NlComponent myRelativeLayout;
   private NlComponent myLinearLayout;
   private NlComponent myButton;
@@ -123,7 +124,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
       })
       .build();
     mySurface.setModel(myModel);
-    myTree = new NlComponentTree(getProject(), mySurface);
+    myPanel = new NlVisibilityGutterPanel();
+    myTree = new NlComponentTree(getProject(), mySurface, myPanel);
     myTree.getUpdateQueue().setPassThrough(true);
     myTree.getUpdateQueue().flush();
     registerApplicationService(BrowserLauncher.class, myBrowserLauncher);
@@ -136,6 +138,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     myTextView = findFirst(TEXT_VIEW);
     myAbsoluteLayout = findFirst(ABSOLUTE_LAYOUT);
     Disposer.register(myDisposable, myTree);
+    Disposer.register(myDisposable, myPanel);
   }
 
   @NotNull
@@ -176,6 +179,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
       mySurface = null;
       myModel = null;
       myTree = null;
+      myPanel = null;
       myActionHandler = null;
       myDataContext = null;
     }

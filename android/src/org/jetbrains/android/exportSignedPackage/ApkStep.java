@@ -52,9 +52,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class ApkStep extends ExportSignedPackageWizardStep {
   public static final String APK_PATH_PROPERTY = "ExportedApkPath";
   public static final String APK_PATH_PROPERTY_UNSIGNED = "ExportedUnsignedApkPath";

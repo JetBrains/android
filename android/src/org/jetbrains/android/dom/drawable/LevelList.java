@@ -19,9 +19,6 @@ import com.intellij.util.xml.DefinesXml;
 
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @DefinesXml
 public interface LevelList extends DrawableDomElement {
   List<LevelListItem> getItems();

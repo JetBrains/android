@@ -435,6 +435,30 @@ public class RangeSelectionComponentTest {
     assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
   }
 
+  @Test
+  public void occludedRangeSetsDefaultCursor() {
+    RangeSelectionModel model = new RangeSelectionModel(new Range(10, 20), new Range(0, 100));
+    RangeSelectionComponent component = new RangeSelectionComponent(model);
+    boolean[] isOccluded = {true};
+    component.setRangeOcclusionTest(() -> isOccluded[0]);
+    component.setSize(100, 100);
+    FakeUi ui = new FakeUi(component);
+
+    // State marked as occluded, cursor should be default
+    ui.mouse.moveTo(getMinHandleX(model), 0);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getDefaultCursor());
+
+    // State marked as clear, cursor should be up to the selection component
+    isOccluded[0] = false;
+    ui.mouse.moveTo(15, 0);
+    assertThat(component.getCursor()).isEqualTo(AdtUiCursors.GRABBING);
+
+    // State marked as occluded again
+    isOccluded[0] = true;
+    ui.mouse.moveTo(15, 50);
+    assertThat(component.getCursor()).isEqualTo(Cursor.getDefaultCursor());
+  }
+
   private static void shiftAndValidateShift(FakeUi ui, RangeSelectionModel model, FakeKeyboard.Key key, int min, int max) {
     ui.keyboard.press(key);
     assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(min);

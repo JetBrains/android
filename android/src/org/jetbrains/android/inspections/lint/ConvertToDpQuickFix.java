@@ -19,9 +19,6 @@ import java.util.regex.Pattern;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class ConvertToDpQuickFix implements LintIdeQuickFix {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.lint.ConvertToDpQuickFix");
   private static final Pattern PX_ATTR_VALUE_PATTERN = Pattern.compile("(\\d+)px");

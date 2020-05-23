@@ -1424,3 +1424,7 @@ PROJECT             : AS36_noiml
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
+    RUN_CONFIGURATION   : app
+        *class*             : AndroidRunConfiguration
+        ModuleName          : AS36_noiml.app
+        Module              : AS36_noiml.app

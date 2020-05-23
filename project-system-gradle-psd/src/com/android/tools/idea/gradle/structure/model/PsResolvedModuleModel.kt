@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
+import com.android.tools.idea.gradle.project.model.NdkModuleModel
 
 /**
  * A sealed wrapper around a gradle model of a module identified by its gradle path.
@@ -28,7 +29,8 @@ sealed class PsResolvedModuleModel {
   data class PsAndroidModuleResolvedModel(
       override val gradlePath: String,
       override val buildFile: String?,
-      val model: AndroidModuleModel
+      val model: AndroidModuleModel,
+      val nativeModel: NdkModuleModel?
   ) : PsResolvedModuleModel()
 
   data class PsJavaModuleResolvedModel(

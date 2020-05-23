@@ -16,35 +16,42 @@
 package com.android.tools.idea.uibuilder.structure
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlComponentBackend
 import com.android.tools.idea.common.model.NlComponentModificationDelegate
+import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.uibuilder.LayoutTestCase
+import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility.Companion.convert
 import org.junit.Test
 import org.mockito.Mockito
 
-class NlVisibilityModelTest {
+class NlVisibilityModelTest: LayoutTestCase() {
 
   private val listOfVisibility: List<String?> = listOf(null, "invisible", "gone")
 
-  companion object {
-    fun generateModel(android: Visibility, tools: Visibility): NlVisibilityModel {
-      val component: NlComponent = Mockito.mock(NlComponent::class.java)
-      Mockito.`when`(component.getAttribute(SdkConstants.ANDROID_URI, "visibility"))
-        .thenReturn(Visibility.convert(android))
-      Mockito.`when`(component.getAttribute(SdkConstants.TOOLS_URI, "visibility"))
-        .thenReturn(Visibility.convert(tools))
-      val delegate = Mockito.mock(NlComponentModificationDelegate::class.java)
-      Mockito.`when`(component.componentModificationDelegate).thenReturn(delegate)
-      return NlVisibilityModel(component)
+  private fun generateModel(android: Visibility, tools: Visibility): NlVisibilityModel {
+    val component = component(SdkConstants.LINEAR_LAYOUT)
+      .withBounds(0, 0, 1000, 1000)
+      .id("@id/linear")
+
+    if (android != Visibility.NONE) {
+      component.withAttribute(SdkConstants.ANDROID_URI, "visibility", Visibility.convert(android)!!)
     }
+    if (tools != Visibility.NONE) {
+      component.withAttribute(SdkConstants.TOOLS_URI, "visibility", Visibility.convert(tools)!!)
+    }
+    val model = model("visibility.xml", component).build()
+
+    val nlComponent = model.getRoot()
+    return NlVisibilityModel(nlComponent)
   }
+
   @Test
   fun testConstructor() {
-    val component: NlComponent = Mockito.mock(NlComponent::class.java)
-    val model = NlVisibilityModel(component)
+    val model = generateModel(Visibility.NONE, Visibility.NONE)
     assertEquals(Visibility.NONE, model.androidVisibility)
     assertEquals(Visibility.NONE, model.toolsVisibility)
   }
@@ -54,7 +61,7 @@ class NlVisibilityModelTest {
     val model = generateModel(Visibility.VISIBLE, Visibility.NONE)
 
     assertEquals(Visibility.VISIBLE, model.androidVisibility)
-    assertEquals(Visibility.VISIBLE, model.getCurrentVisibility().first)
+    assertEquals(Visibility.VISIBLE, model.getCurrentVisibility())
     assertEquals(Visibility.NONE, model.toolsVisibility)
   }
 
@@ -64,7 +71,7 @@ class NlVisibilityModelTest {
 
     assertEquals(Visibility.NONE, model.androidVisibility)
     assertEquals(Visibility.GONE, model.toolsVisibility)
-    assertEquals(Visibility.GONE, model.getCurrentVisibility().first)
+    assertEquals(Visibility.GONE, model.getCurrentVisibility())
   }
 
   @Test
@@ -73,7 +80,7 @@ class NlVisibilityModelTest {
 
     assertEquals(Visibility.INVISIBLE, model.androidVisibility)
     assertEquals(Visibility.VISIBLE, model.toolsVisibility)
-    assertEquals(Visibility.VISIBLE, model.getCurrentVisibility().first)
+    assertEquals(Visibility.VISIBLE, model.getCurrentVisibility())
   }
 
   @Test

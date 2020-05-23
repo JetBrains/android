@@ -62,10 +62,6 @@ open class ViewNode(
   val hasProperties: Boolean
     get() = this !is ComposeViewNode
 
-  // scrollX and scrollY are only needed for loading of nodes from legacy device
-  var legacyScrollX: Int = 0
-  var legacyScrollY: Int = 0
-
   // imageBottom: the image painted before the sub views
   var imageBottom: Image? = null
 

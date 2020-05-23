@@ -24,7 +24,7 @@ import java.util.function.Predicate
  */
 class ProjectClassesInstanceFilter(ideProfilerServices: IdeProfilerServices)
   : CaptureObjectInstanceFilter(
-  "Project Classes",
+  "project classes",
   "Show instances of classes from only the current project.",
   null,
   null,

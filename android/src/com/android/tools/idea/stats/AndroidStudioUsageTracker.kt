@@ -20,6 +20,7 @@ import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.base.Strings
@@ -73,9 +74,15 @@ object AndroidStudioUsageTracker {
   val productDetails: ProductDetails
     get() {
       val application = ApplicationInfo.getInstance()
-
+      val productKind =
+        if (IdeInfo.getInstance().isGameTool) {
+          ProductDetails.ProductKind.GAME_TOOLS
+        }
+        else {
+          ProductDetails.ProductKind.STUDIO
+        }
       return ProductDetails.newBuilder()
-        .setProduct(ProductDetails.ProductKind.STUDIO)
+        .setProduct(productKind)
         .setBuild(application.build.asString())
         .setVersion(application.strictVersion)
         .setOsArchitecture(CommonMetricsData.osArchitecture)

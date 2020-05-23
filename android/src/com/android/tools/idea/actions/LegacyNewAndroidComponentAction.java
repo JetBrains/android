@@ -20,9 +20,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class LegacyNewAndroidComponentAction extends AnAction {
 
   protected LegacyNewAndroidComponentAction() {

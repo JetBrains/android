@@ -100,7 +100,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
         // Inline color
         assert (element.getColor() != null);
         Color color = element.getColor();
-        gutterIconRenderer = new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, null, true, configuration);
+        gutterIconRenderer = new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, resolver, null, true, configuration);
       }
       if (gutterIconRenderer != null) {
         rendererMap.put(element.getPsiElement(), gutterIconRenderer);
@@ -120,7 +120,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
       return getColorGutterIconRenderer(resolver, reference, facet, element, configuration);
     }
     else {
-      assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
+      assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP || type == ResourceType.ATTR;
       return getDrawableGutterIconRenderer(element, resolver, reference, facet, configuration);
     }
   }
@@ -131,17 +131,30 @@ public abstract class AndroidResourceExternalAnnotatorBase
                                                                   @NotNull ResourceReference reference,
                                                                   @NotNull AndroidFacet facet,
                                                                   @NotNull Configuration configuration) {
-    ResourceValue drawable = resourceResolver.getResolvedResource(reference);
+    ResourceValue drawable = null;
+    if (reference.getResourceType() == ResourceType.ATTR) {
+      // Resolve the theme attribute
+      ResourceValue resolvedAttribute = resourceResolver.findItemInTheme(reference);
+      if (resolvedAttribute == null) {
+        return null;
+      }
+      ResourceType resolvedAttributeType = resolvedAttribute.getResourceType();
+      if (resolvedAttributeType == ResourceType.DRAWABLE || resolvedAttributeType == ResourceType.MIPMAP) {
+        drawable = resolvedAttribute;
+      }
+    }
+    if (drawable == null) {
+      drawable = resourceResolver.getResolvedResource(reference);
+    }
     if (drawable == null) {
       return null;
     }
     VirtualFile bitmap = AndroidAnnotatorUtil.resolveDrawableFile(drawable, resourceResolver, facet);
     bitmap = AndroidAnnotatorUtil.pickBestBitmap(bitmap);
-    if (bitmap == null) {
-      return null;
+    if (bitmap != null) {
+      // Updating the GutterIconCache in the background thread to include the icon.
+      GutterIconCache.getInstance().getIcon(bitmap, resourceResolver, facet);
     }
-    // Updating the GutterIconCache in the background thread to include the icon.
-    GutterIconCache.getInstance().getIcon(bitmap, resourceResolver, facet);
     return new com.android.tools.idea.rendering.GutterIconRenderer(element, resourceResolver, facet, bitmap, configuration);
   }
 
@@ -161,7 +174,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     // For java and kotlin files, we should open color resource picker only and set R.color.[resource_name] to the field.
     // TODO: Open color resource picker for java and kotlin files.
     boolean isClickable = AndroidAnnotatorUtil.getFileType(element) == StdFileTypes.XML;
-    return new AndroidAnnotatorUtil.ColorRenderer(element, color, reference, isClickable, configuration);
+    return new AndroidAnnotatorUtil.ColorRenderer(element, color, resourceResolver, reference, isClickable, configuration);
   }
 
   @Override

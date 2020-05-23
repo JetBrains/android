@@ -15,9 +15,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidFileSetState implements ValidityState {
   private final Map<String, Long> myTimestamps;
 

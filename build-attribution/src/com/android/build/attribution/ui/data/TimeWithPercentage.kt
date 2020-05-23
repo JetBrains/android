@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.data
 
 data class TimeWithPercentage(val timeMs: Long, val totalMs: Long) : Comparable<TimeWithPercentage> {
   val percentage: Double = timeMs.toDouble() * 100 / totalMs
+  val timeS: Double = timeMs.toDouble() / 1000
   fun supplement() = TimeWithPercentage(totalMs - timeMs, totalMs)
 
   override fun compareTo(other: TimeWithPercentage): Int = this.timeMs.compareTo(other.timeMs)

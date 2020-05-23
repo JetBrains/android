@@ -36,6 +36,8 @@ import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.externalSystem.autoimport.AutoImportProjectTracker;
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -118,8 +120,11 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
    */
   @Override
   public void projectOpened() {
-    AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(myProject);
     IdeInfo ideInfo = IdeInfo.getInstance();
+    if (ideInfo.isAndroidStudio()) {
+      ExternalSystemProjectTracker.getInstance(myProject).setAutoReloadExternalChanges(false);
+    }
+    AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(myProject);
     if (ideInfo.isAndroidStudio() && androidProjectInfo.isLegacyIdeaAndroidProject() && !androidProjectInfo.isApkProject()) {
       myLegacyAndroidProjects.trackProject();
       if (!myGradleProjectInfo.isBuildWithGradle()) {

@@ -48,7 +48,6 @@ import com.android.SdkConstants.TAG_ITEM
 import com.android.SdkConstants.TAG_SELECTOR
 import com.android.builder.model.AaptOptions
 import com.android.builder.model.AaptOptions.Namespacing
-import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference

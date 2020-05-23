@@ -10,9 +10,6 @@ import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class AndroidBaseLayoutRefactoringAction extends AndroidBaseXmlRefactoringAction {
 
   @Override

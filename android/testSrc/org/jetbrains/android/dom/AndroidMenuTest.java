@@ -11,9 +11,6 @@ import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidMenuTest extends AndroidDomTestCase {
   public AndroidMenuTest() {
     super("dom/menu");

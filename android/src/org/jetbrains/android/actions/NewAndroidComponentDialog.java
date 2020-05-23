@@ -53,9 +53,6 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class NewAndroidComponentDialog extends DialogWrapper {
   private JPanel myPanel;
   private JLabel myKindLabel;

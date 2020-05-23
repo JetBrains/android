@@ -20,9 +20,6 @@ import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.converters.IntegerConverter;
 import org.jetbrains.android.dom.converters.QuietResourceReferenceConverter;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @Convert(QuietResourceReferenceConverter.class)
 @AdditionalConverter(IntegerConverter.class)
 public interface IntegerElement extends ResourceElement {

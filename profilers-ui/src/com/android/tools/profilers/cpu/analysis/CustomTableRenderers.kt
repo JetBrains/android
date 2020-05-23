@@ -50,3 +50,12 @@ internal class PercentRenderer : DefaultTableCellRenderer() {
     text = percentFormatter.format(percentage)
   }
 }
+
+/**
+ * Renders an integer as String. May be used for consistent alignment.
+ */
+internal class IntegerAsStringTableCellRender : DefaultTableCellRenderer() {
+  override fun setValue(value: Any?) {
+    text = (value as Long).toString()
+  }
+}

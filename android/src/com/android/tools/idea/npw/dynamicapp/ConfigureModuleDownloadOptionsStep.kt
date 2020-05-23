@@ -84,6 +84,9 @@ class ConfigureModuleDownloadOptionsStep(
           " for example, confirming whether the user wants to download the module."
         )
       }
+    }
+
+    row {
       featureTitle()
     }
 
@@ -95,6 +98,9 @@ class ConfigureModuleDownloadOptionsStep(
           "Specify whether to include this module at install-time unconditionally, or based on device features."
         )
       }
+    }
+
+    row {
       installationOptionCombo()
     }
 
