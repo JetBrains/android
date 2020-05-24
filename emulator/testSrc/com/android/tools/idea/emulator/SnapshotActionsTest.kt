@@ -19,7 +19,6 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.HeadlessDialogWrapperPeerFactory
 import com.android.tools.adtui.swing.createDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.concurrency.waitForCondition
@@ -35,17 +34,14 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.application.ApplicationManager.getApplication
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.DialogWrapperPeerFactory
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerComponentInstance
-import com.intellij.testFramework.replaceService
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -112,7 +108,7 @@ class SnapshotActionsTest {
     }
 
     var bootMode: BootMode? = null
-    waitForCondition(5, TimeUnit.SECONDS) {
+    waitForCondition(5, TimeUnit.SECONDS) { // Longer timeout for snapshot creation.
       bootMode = SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()
       return@waitForCondition bootMode != defaultBootMode
     }
@@ -137,13 +133,13 @@ class SnapshotActionsTest {
       ui.clickOn(okButton)
     }
 
-    waitForCondition(3, TimeUnit.SECONDS) {
+    waitForCondition(2, TimeUnit.SECONDS) {
       SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()?.bootType == BootType.QUICK
     }
   }
 
   private fun performActionAndInteractWithDialog(actionId: String, emulatorView: EmulatorView, interactor: (DialogWrapper) -> Unit) {
-    createDialogAndInteractWithIt(testRootDisposable, { performAction(actionId, emulatorView) }, interactor)
+    createDialogAndInteractWithIt({ performAction(actionId, emulatorView) }, interactor)
   }
 
   private fun performAction(actionId: String, emulatorView: EmulatorView) {
@@ -161,7 +157,7 @@ class SnapshotActionsTest {
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
-    val view = EmulatorView(emulatorController, projectRule.fixture.testRootDisposable, false)
+    val view = EmulatorView(emulatorController, testRootDisposable, false)
     waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
     return view
