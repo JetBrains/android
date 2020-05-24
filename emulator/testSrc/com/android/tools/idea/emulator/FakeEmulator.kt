@@ -382,11 +382,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   private inner class LoggingInterceptor : ServerInterceptor {
-    lateinit var callRecord: GrpcCallRecord
 
     override fun <ReqT, RespT> interceptCall(call: ServerCall<ReqT, RespT>,
                                              headers: Metadata,
                                              handler: ServerCallHandler<ReqT, RespT>): ServerCall.Listener<ReqT> {
+      val callRecord = GrpcCallRecord(call.methodDescriptor.fullMethodName)
+
       val forwardingCall = object: SimpleForwardingServerCall<ReqT, RespT>(call) {
         override fun sendMessage(response: RespT) {
           callRecord.responseMessageCounter.add(Unit)
@@ -395,7 +396,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
       return object : SimpleForwardingServerCallListener<ReqT>(handler.startCall(forwardingCall, headers)) {
         override fun onMessage(request: ReqT) {
-          callRecord = GrpcCallRecord(call.methodDescriptor.fullMethodName, request as MessageOrBuilder)
+          callRecord.request = request as MessageOrBuilder
           grpcCallLog.add(callRecord)
           super.onMessage(request)
         }
@@ -413,7 +414,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
   }
 
-  class GrpcCallRecord(val methodName: String, val request: MessageOrBuilder) {
+  class GrpcCallRecord(val methodName: String) {
+    lateinit var request: MessageOrBuilder
     /** One element is added to this queue for every response message sent to the client. */
     val responseMessageCounter = LinkedBlockingDeque<Unit>()
     /** Completed or cancelled when the gRPC call is completed or cancelled. */
