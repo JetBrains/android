@@ -60,7 +60,7 @@ import javax.swing.JScrollPane
 import kotlin.streams.toList
 
 /**
- * Tests for [EmulatorView] and emulator toolbar actions.
+ * Tests for [EmulatorView] and some of the emulator toolbar actions.
  */
 @RunsInEdt
 class EmulatorViewTest {
@@ -222,30 +222,9 @@ class EmulatorViewTest {
   fun testActions() {
     val view = createEmulatorView()
 
-    // Check EmulatorPowerButtonAction.
-    executeAction("android.emulator.power.button", view)
-    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""key: "Power"""")
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Power"""")
-
-    // Check EmulatorVolumeUpButtonAction.
-    executeAction("android.emulator.volume.up.button", view)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "AudioVolumeUp"""")
-
-    // Check EmulatorVolumeDownButtonAction.
-    executeAction("android.emulator.volume.down.button", view)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "AudioVolumeDown"""")
-
     // Check EmulatorBackButtonAction.
     executeAction("android.emulator.back.button", view)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "GoBack"""")
 
