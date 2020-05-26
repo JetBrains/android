@@ -23,11 +23,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.jetbrains.annotations.NotNull;
 
 class NewProjectDescriptor {
-  private String myActivity = "MainActivity";
   private String myPkg = "com.android.test.app";
   private int myMinSdkApi = SdkVersionInfo.LOWEST_ACTIVE_API;
   private String myName = "TestProject";
-  private String myDomain = "com.android";
+  // TODO(qumeric): consider adding "save location"
 
   protected NewProjectDescriptor(@NotNull String name) {
     withName(name);
@@ -50,14 +49,6 @@ class NewProjectDescriptor {
   }
 
   /**
-   * Set a custom activity name to use in the new project
-   */
-  NewProjectDescriptor withActivity(@NotNull String activity) {
-    myActivity = activity;
-    return this;
-  }
-
-  /**
    * Set a custom minimum SDK version to use in the new project
    */
   NewProjectDescriptor withMinSdk(int minSdkApi) {
@@ -66,18 +57,10 @@ class NewProjectDescriptor {
   }
 
   /**
-   * Set a custom company domain to enter in the new project wizard
-   */
-  NewProjectDescriptor withCompanyDomain(@NotNull String domain) {
-    myDomain = domain;
-    return this;
-  }
-
-  /**
    * Picks brief names in order to make the test execute faster (less slow typing in name text fields)
    */
   NewProjectDescriptor withBriefNames() {
-    withActivity("A").withCompanyDomain("C").withName("P").withPackageName("a.b");
+    withName("P").withPackageName("a.b");
     return this;
   }
 
