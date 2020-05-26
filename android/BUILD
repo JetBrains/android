@@ -224,6 +224,7 @@ iml_module(
             "data": ["//prebuilts/studio/sdk:ndk"],
             # Mismatches from ProjectDumper (b/150709248), and sync errors/timeout (b/152778663)
             "tags": ["no_windows"],
+            "shard_count": 2,
             "test_filter": "com.android.tools.idea.gradle.project.sync.snapshots",
         },
         "gradle.project.model.NdkModuleModelTest.testVariantAbiNames": {
