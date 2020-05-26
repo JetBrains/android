@@ -279,7 +279,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   }
 
   private static void disableKaptImportHandlers() {
-    ExtensionPoint<GradleProjectResolverExtension> resolverExtensionPoint = GradleProjectResolverExtension.EP_NAME.getPoint(null);
+    ExtensionPoint<GradleProjectResolverExtension> resolverExtensionPoint = GradleProjectResolverExtension.EP_NAME.getPoint();
     resolverExtensionPoint.unregisterExtension(KaptProjectResolverExtension.class);
   }
 
@@ -288,7 +288,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     // First we unregister the ConfigurationProducers, and after the ConfigurationType
 
     //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
-    ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint(null);
+    ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint();
     configurationProducerExtensionPoint.unregisterExtension(AllInPackageGradleConfigurationProducer.class);
     configurationProducerExtensionPoint.unregisterExtension(TestClassGradleConfigurationProducer.class);
 
@@ -301,7 +301,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       }
     }
 
-    ExtensionPoint<ConfigurationType> configurationTypeExtensionPoint = ConfigurationType.CONFIGURATION_TYPE_EP.getPoint(null);
+    ExtensionPoint<ConfigurationType> configurationTypeExtensionPoint = ConfigurationType.CONFIGURATION_TYPE_EP.getPoint();
     for (ConfigurationType configurationType : configurationTypeExtensionPoint.getExtensions()) {
       if (configurationType instanceof JUnitConfigurationType && !(configurationType instanceof AndroidJUnitConfigurationType)) {
         // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType

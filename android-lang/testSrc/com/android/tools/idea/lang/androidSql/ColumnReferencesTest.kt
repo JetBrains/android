@@ -31,7 +31,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
   override fun setUp() {
     super.setUp()
-    AndroidSqlContext.Provider.EP_NAME.getPoint(null).registerExtension(AndroidSqlTestContext.Provider(), testRootDisposable)
+    AndroidSqlContext.Provider.EP_NAME.getPoint().registerExtension(AndroidSqlTestContext.Provider(), testRootDisposable)
   }
 
   fun testDefaultColumnName() {
