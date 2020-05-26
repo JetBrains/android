@@ -372,7 +372,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
 
         EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
-        refresh()
+        forceRefresh()
       }
 
       override fun buildFailed() {
