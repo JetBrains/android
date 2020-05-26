@@ -672,7 +672,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     @JvmStatic
     private fun copyDir(from: Path, to: Path) {
-      val options = arrayOf<CopyOption>(LinkOption.NOFOLLOW_LINKS, StandardCopyOption.COPY_ATTRIBUTES)
+      val options = arrayOf<CopyOption>(StandardCopyOption.COPY_ATTRIBUTES)
       Files.walkFileTree(from, object : SimpleFileVisitor<Path>() {
         override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
           if (dir !== from || !Files.exists(to)) {
