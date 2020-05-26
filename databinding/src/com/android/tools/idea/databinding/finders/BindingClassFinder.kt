@@ -18,7 +18,6 @@ package com.android.tools.idea.databinding.finders
 import com.android.tools.idea.databinding.LayoutBindingProjectComponent
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
@@ -38,14 +37,18 @@ import org.jetbrains.android.facet.AndroidFacet
 class BindingClassFinder(private val project: Project) : PsiElementFinder() {
   companion object {
     fun findAllBindingClasses(project: Project): List<LightBindingClass> {
-      return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
-        .flatMap { facet -> findAllBindingClasses(facet) }
+      val bindingComponent = project.getComponent(LayoutBindingProjectComponent::class.java)
+      return bindingComponent.getAllBindingEnabledFacets()
+        .flatMap { facet -> findAllBindingClassesSkipEnabledCheck(facet) }
     }
 
     fun findAllBindingClasses(facet: AndroidFacet): List<LightBindingClass> {
       val bindingComponent = facet.module.project.getComponent(LayoutBindingProjectComponent::class.java)
       if (bindingComponent.getAllBindingEnabledFacets().isEmpty()) return emptyList()
+      return findAllBindingClassesSkipEnabledCheck(facet)
+    }
 
+    private fun findAllBindingClassesSkipEnabledCheck(facet: AndroidFacet): List<LightBindingClass> {
       val moduleDataBinding = ModuleDataBinding.getInstance(facet)
       val groups = moduleDataBinding.bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return emptyList()
       return groups.flatMap { group -> moduleDataBinding.getLightBindingClasses(group) }
