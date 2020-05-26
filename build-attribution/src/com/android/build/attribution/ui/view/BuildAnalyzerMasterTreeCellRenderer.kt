@@ -23,6 +23,7 @@ import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescrip
 import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
 import com.android.build.attribution.ui.warningIcon
+import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.intellij.ide.ui.UISettings.Companion.setupAntialiasing
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.ui.SimpleColoredComponent
@@ -81,7 +82,7 @@ class BuildAnalyzerMasterTreeCellRenderer : NodeRenderer() {
     icon = when (nodePresentation.nodeIconState) {
       NodeIconState.NO_ICON -> null
       NodeIconState.EMPTY_PLACEHOLDER -> emptyIcon()
-      NodeIconState.WARNING_ICON -> warningIcon()
+      NodeIconState.WARNING_ICON -> if (selected && hasFocus) generateWhiteIcon(warningIcon()) else warningIcon()
     }
     append(nodePresentation.mainText, SimpleTextAttributes.REGULAR_ATTRIBUTES, true)
     append(" ${nodePresentation.suffix}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
