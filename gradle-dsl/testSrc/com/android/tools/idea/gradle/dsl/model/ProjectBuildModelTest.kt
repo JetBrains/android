@@ -285,6 +285,29 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     assertEquals(settingFile.virtualFile, settingModel.virtualFile)
   }
 
+  @Test
+  fun testReparseThenChange() {
+    writeToBuildFile("")
+    val pbm = projectBuildModel
+    val gbm = pbm.projectBuildModel!!
+    gbm.ext().findProperty("foo").setValue("bar")
+
+    applyChanges(pbm)
+    pbm.reparse()
+    verifyFileContents(myBuildFile, TestFile.REPARSE_THEN_CHANGE_EXPECTED_ONE)
+
+    verifyPropertyModel("foo1", gbm.ext().findProperty("foo"), "bar")
+
+    val gbm2 = pbm.projectBuildModel!!
+    gbm2.ext().findProperty("foo").setValue("baz")
+
+    applyChanges(pbm)
+    pbm.reparse()
+    verifyFileContents(myBuildFile, TestFile.REPARSE_THEN_CHANGE_EXPECTED_TWO)
+    verifyPropertyModel("foo1 again", gbm.ext().findProperty("foo"), "baz")
+    verifyPropertyModel("foo2", gbm2.ext().findProperty("foo"), "baz")
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),
@@ -313,6 +336,8 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     RESOLVES_CORRECT_FILE_APPLIED("applyResolvesCorrectFileApplied"),
     RESOLVES_CORRECT_FILE_APPLIED_SUB("applyResolvesCorrectFileApplied_sub"),
     RESOLVES_CORRECT_FILE_SUB("applyResolvesCorrectFile_sub"),
+    REPARSE_THEN_CHANGE_EXPECTED_ONE("reparseThenChangeExpectedOne"),
+    REPARSE_THEN_CHANGE_EXPECTED_TWO("reparseThenChangeExpectedTwo"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

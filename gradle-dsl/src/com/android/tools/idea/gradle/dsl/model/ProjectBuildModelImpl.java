@@ -125,9 +125,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
 
   @Override
   public void reparse() {
-    // myBuildModelContext has all the files removed when reset() is called. We need to ensure we collect the files before calling reset.
     List<GradleDslFile> files = myBuildModelContext.getAllRequestedFiles();
-    myBuildModelContext.reset();
     files.forEach(GradleDslFile::reparse);
   }
 
