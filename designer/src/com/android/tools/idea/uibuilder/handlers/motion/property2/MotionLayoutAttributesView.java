@@ -58,6 +58,7 @@ import com.intellij.xml.XmlElementDescriptor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
@@ -144,6 +145,12 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
         default:
           addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, false);
+          if (StudioFlags.NELE_TRANSFORM_PANEL.get()) {
+            Map<String, PropertiesTable<NelePropertyItem>> allProperties = myModel.getAllProperties();
+            if (allProperties.containsKey("KeyAttribute")) {
+              addTransforms(inspector, selection, myModel, properties);
+            }
+          }
           break;
       }
       boolean showDefaultValues = selection.getType() == MotionEditorSelector.Type.CONSTRAINT;
