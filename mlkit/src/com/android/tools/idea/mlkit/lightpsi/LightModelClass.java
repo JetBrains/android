@@ -109,6 +109,8 @@ public class LightModelClass extends AndroidLightClassBase {
         LightModelOutputsClass mlkitOutputClass = new LightModelOutputsClass(module, modelInfo.getOutputs(), this);
         innerClassMap.putIfAbsent(mlkitOutputClass.getName(), mlkitOutputClass);
 
+        methods.add(buildCloseMethod());
+
         MyClassMembers data =
           new MyClassMembers(methods.toArray(PsiMethod.EMPTY_ARRAY), innerClassMap.values().toArray(PsiClass.EMPTY_ARRAY));
         return CachedValueProvider.Result.create(data, ModificationTracker.NEVER_CHANGED);
@@ -144,6 +146,17 @@ public class LightModelClass extends AndroidLightClassBase {
     methods.add(methodWithOptions);
 
     return methods;
+  }
+
+  @NotNull
+  private PsiMethod buildCloseMethod() {
+    LightMethodBuilder closeMethod = new NullabilityLightMethodBuilder(getManager(), "close")
+      .addModifier(PsiModifier.PUBLIC)
+      .setMethodReturnType(PsiType.VOID)
+      .setContainingClass(this);
+    closeMethod.setNavigationElement(this);
+
+    return closeMethod;
   }
 
   @Override
