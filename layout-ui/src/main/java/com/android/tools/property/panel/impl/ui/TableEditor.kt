@@ -25,8 +25,8 @@ import com.android.tools.property.panel.impl.model.TableRowEditListener
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.android.tools.property.ptable2.*
+import com.intellij.psi.codeStyle.NameUtil
 import com.intellij.util.text.Matcher
-import com.intellij.util.ui.FixingLayoutMatcherUtil
 import com.intellij.util.ui.JBUI
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
@@ -131,7 +131,7 @@ class TableEditor(val lineModel: TableLineModelImpl,
     if (lineModel.filter.isEmpty()) {
       return -1
     }
-    val matcher = FixingLayoutMatcherUtil.buildLayoutFixingMatcher("*${lineModel.filter}").build()
+    val matcher = NameUtil.buildMatcher("*${lineModel.filter}").build()
     val count = table.itemCount
     var best: PTableItem? = null
     var bestRow = -1

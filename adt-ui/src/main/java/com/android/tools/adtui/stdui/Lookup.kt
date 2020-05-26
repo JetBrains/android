@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.SelectiveFilteringListModel
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.codeStyle.MinusculeMatcher
+import com.intellij.psi.codeStyle.NameUtil
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
@@ -26,7 +27,6 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN
 import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.SpeedSearchUtil
-import com.intellij.util.ui.FixingLayoutMatcherUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import java.awt.*
 import java.awt.event.MouseAdapter
@@ -246,7 +246,7 @@ class Matcher {
   var pattern: String = ""
     set(value) {
       field = value
-      internalMatcher = FixingLayoutMatcherUtil.buildLayoutFixingMatcher("*$value").build()
+      internalMatcher = NameUtil.buildMatcher("*$value").build()
 
     }
 
