@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.android.tools.idea.wizard.template.Language;
+import java.io.File;
 import javax.swing.JComboBox;
 import javax.swing.JRootPane;
 import javax.swing.text.JTextComponent;
@@ -37,6 +38,13 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
   public ConfigureNewAndroidProjectStepFixture<W> enterName(@NotNull String text) {
     JTextComponent textField = findTextFieldWithLabel("Name");
     replaceText(textField, text);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureNewAndroidProjectStepFixture<W> addSeparatorToLocation() {
+    JTextComponent textField = findTextFieldWithLabel("Save Location");
+    replaceText(textField, textField.getText() + File.separator);
     return this;
   }
 
