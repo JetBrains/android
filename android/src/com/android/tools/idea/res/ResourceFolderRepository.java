@@ -1330,6 +1330,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                     }
 
                     scheduleScan(psiFile, folderType);
+                    return;
                   }
                 }
               } else if (parent instanceof XmlAttributeValue) {
@@ -1362,14 +1363,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                   }
 
                   scheduleScan(psiFile, folderType);
-                } else if (folderType != VALUES) {
-                  // This is an XML change within an ID generating folder to something that it's not an ID. While we do not need
-                  // to generate the ID, we need to notify that something relevant has changed.
-                  // One example of this change would be an edit to a drawable.
-                  setModificationCount(ourModificationCounter.incrementAndGet());
+                  return;
                 }
               }
-
+              // This is an XML change within an ID generating folder to something that it's not an ID. While we do not need
+              // to generate the ID, we need to notify that something relevant has changed.
+              // One example of this change would be an edit to a drawable.
+              setModificationCount(ourModificationCounter.incrementAndGet());
               return;
             }
 
