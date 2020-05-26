@@ -277,4 +277,26 @@ abstract public class SceneManager implements Disposable {
   protected HitProvider getHitProvider(@NotNull NlComponent component) {
     return myHitProvider;
   }
+
+  /**
+   * Notify this {@link SceneManager} that is active. It will be active by default.
+   *
+   * @param source caller used to keep track of the references to this model. See {@link #deactivate(Object)}
+   * @returns true if the {@link SceneManager} was not active before and was activated.
+   */
+  public boolean activate(@NotNull Object source) {
+    return getModel().activate(source);
+  }
+
+  /**
+   * Notify this {@link SceneManager} that it's not active. This means it can stop watching for events etc. It may be activated again in the
+   * future.
+   *
+   * @param source the source is used to keep track of the references that are using this model. Only when all the sources have called
+   *               deactivate(Object), the model will be really deactivated.
+   * @returns true if the {@link SceneManager} was active before and was deactivated.
+   */
+  public boolean deactivate(@NotNull Object source) {
+    return getModel().deactivate(source);
+  }
 }

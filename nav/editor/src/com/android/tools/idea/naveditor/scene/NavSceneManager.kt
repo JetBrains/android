@@ -313,14 +313,6 @@ open class NavSceneManager(
         scene.isAnimated = previous
       }
     }
-
-    override fun modelActivated(model: NlModel) {
-      updateHierarchy(model, model)
-      requestRender()
-    }
-
-    override fun modelDeactivated(model: NlModel) {
-    }
   }
 
   public override fun getHitProvider(component: NlComponent): HitProvider {
@@ -520,6 +512,13 @@ open class NavSceneManager(
         sceneComponent.setTargetProvider(NavActionTargetProvider)
         sceneComponent.updateTargets()
       }
+    }
+  }
+
+  override fun activate(source: Any): Boolean = super.activate(source).also {
+    if (it) {
+      updateHierarchy(model, model)
+      requestRender()
     }
   }
 }

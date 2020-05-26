@@ -48,6 +48,4 @@ public interface ModelListener {
   default void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {}
 
   default void modelActivated(@NotNull NlModel model) {}
-
-  default void modelDeactivated(@NotNull NlModel model) {}
 }

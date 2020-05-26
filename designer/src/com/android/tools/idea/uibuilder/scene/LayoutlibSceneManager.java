@@ -547,30 +547,6 @@ public class LayoutlibSceneManager extends SceneManager {
     }
 
     @Override
-    public void modelActivated(@NotNull NlModel model) {
-      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getModel().getProject());
-      ResourceNotificationManager.ResourceVersion version =
-        manager.getCurrentVersion(getModel().getFacet(), getModel().getFile(), getModel().getConfiguration());
-      if (!version.equals(myRenderedVersion)) {
-        requestModelUpdate();
-        model.updateTheme();
-      }
-      else {
-        requestLayoutAndRender(false);
-      }
-    }
-
-    @Override
-    public void modelDeactivated(@NotNull NlModel model) {
-      synchronized (myRenderingQueueLock) {
-        if (myRenderingQueue != null) {
-          myRenderingQueue.cancelAllUpdates();
-        }
-      }
-      disposeRenderTask();
-    }
-
-    @Override
     public void modelLiveUpdate(@NotNull NlModel model, boolean animate) {
       requestLayoutAndRender(animate);
     }
@@ -1487,5 +1463,40 @@ public class LayoutlibSceneManager extends SceneManager {
   public void setInteractive(boolean interactive) {
     isInteractive = interactive;
     getSceneViews().forEach(sv -> sv.setAnimated(isInteractive));
+  }
+
+  @Override
+  public boolean activate(@NotNull Object source) {
+    boolean active = super.activate(source);
+
+    if (active) {
+      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getModel().getProject());
+      ResourceNotificationManager.ResourceVersion version =
+        manager.getCurrentVersion(getModel().getFacet(), getModel().getFile(), getModel().getConfiguration());
+      if (!version.equals(myRenderedVersion)) {
+        requestModelUpdate();
+        getModel().updateTheme();
+      }
+      else {
+        requestLayoutAndRender(false);
+      }
+    }
+
+    return active;
+  }
+
+  @Override
+  public boolean deactivate(@NotNull Object source) {
+    boolean deactivated = super.deactivate(source);
+    if (deactivated) {
+      synchronized (myRenderingQueueLock) {
+        if (myRenderingQueue != null) {
+          myRenderingQueue.cancelAllUpdates();
+        }
+      }
+      disposeRenderTask();
+    }
+
+    return deactivated;
   }
 }

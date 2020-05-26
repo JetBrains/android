@@ -645,12 +645,12 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("@android:style/Theme.Material", configuration.getTheme());
 
     // Check that if we try to select an invalid theme, NlModel will set back the default theme
-    configuration.setTheme("@style/InvalidTheme");
     model.deactivate(this);
+    configuration.setTheme("@style/InvalidTheme");
     model.activate(this);
     assertEquals(defaultTheme, configuration.getTheme());
-    configuration.setTheme("@android:style/InvalidTheme");
     model.deactivate(this);
+    configuration.setTheme("@android:style/InvalidTheme");
     model.activate(this);
     assertEquals(defaultTheme, configuration.getTheme());
   }
@@ -814,9 +814,6 @@ public class NlModelTest extends LayoutTestCase {
     });
     model.addListener(remove2);
     model.deactivate(this);
-    verify(listener1).modelDeactivated(any());
-    verify(listener2).modelDeactivated(any());
-    verify(remove2).modelDeactivated(any());
 
     verifyNoMoreInteractions(remove1);
   }
@@ -844,7 +841,6 @@ public class NlModelTest extends LayoutTestCase {
     verifyZeroInteractions(listener1);
 
     model.deactivate(sourceA);
-    verify(listener1).modelDeactivated(any());
     verifyNoMoreInteractions(listener1);
   }
 
