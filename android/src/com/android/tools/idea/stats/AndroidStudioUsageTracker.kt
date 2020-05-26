@@ -75,7 +75,7 @@ object AndroidStudioUsageTracker {
     get() {
       val application = ApplicationInfo.getInstance()
       val productKind =
-        if (IdeInfo.getInstance().isGameTool) {
+        if (IdeInfo.isGameTool()) {
           ProductDetails.ProductKind.GAME_TOOLS
         }
         else {
