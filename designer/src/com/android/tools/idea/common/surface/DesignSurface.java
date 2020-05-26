@@ -478,7 +478,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     if (myIsActive) {
-      model.activate(this);
+      manager.activate(this);
     }
     return manager;
   }
@@ -1186,8 +1186,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     if (!myIsActive) {
-      for (NlModel model : getModels()) {
-        model.activate(this);
+      for (SceneManager manager : getSceneManagers()) {
+        manager.activate(this);
       }
     }
     myIsActive = true;
@@ -1195,8 +1195,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public void deactivate() {
     if (myIsActive) {
-      for (NlModel model : getModels()) {
-        model.deactivate(this);
+      for (SceneManager manager : getSceneManagers()) {
+        manager.deactivate(this);
       }
     }
     myIsActive = false;
