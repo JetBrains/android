@@ -15,11 +15,9 @@
  */
 package org.jetbrains.android.dom
 
-import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.psi.util.InheritanceUtil
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.xml.DomElement
 import com.intellij.util.xml.EvaluatedXmlName
@@ -32,8 +30,6 @@ import org.jetbrains.android.dom.layout.Layout
 import org.jetbrains.android.dom.layout.LayoutElement
 import org.jetbrains.android.dom.layout.LayoutViewElement
 import org.jetbrains.android.dom.layout.Merge
-import org.jetbrains.android.dom.layout.View
-import org.jetbrains.android.facet.LayoutViewClassUtils
 
 /**
  * [DomExtender] that registers a [CustomDomChildrenDescription] on tags corresponding to layouts, with completion variants for all
@@ -52,17 +48,10 @@ class AndroidLayoutDomExtender : DomExtender<LayoutElement>() {
 
   private fun registerCustomChildren(layoutElement: LayoutElement, registrar: DomExtensionsRegistrar) {
     val xmlTag = layoutElement.xmlElement as? XmlTag ?: return
-    val androidFacet = xmlTag.androidFacet ?: return
     when (layoutElement) {
-      is View -> {
-        val tagClass = layoutElement.viewClass.value ?: return
-        if (layoutElement.viewClass.value != null && InheritanceUtil.isInheritor(tagClass, SdkConstants.CLASS_VIEWGROUP)) {
-          registrar.registerCustomChildrenExtension(LayoutViewElement::class.java, ChildViewNameDescriptor)
-        }
-      }
       is LayoutViewElement -> {
-        val tagClass = LayoutViewClassUtils.findClassByTagName(androidFacet, xmlTag.localName, SdkConstants.CLASS_VIEW) ?: return
-        if (InheritanceUtil.isInheritor(tagClass, SdkConstants.CLASS_VIEWGROUP)) {
+        val descriptor = xmlTag.descriptor as? AndroidXmlLayoutViewDescriptor ?: return
+        if (descriptor.isViewGroup) {
           registrar.registerCustomChildrenExtension(LayoutViewElement::class.java, ChildViewNameDescriptor)
         }
       }

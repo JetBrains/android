@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.dom;
 
+import com.android.SdkConstants;
 import com.android.sdklib.SdkVersionInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
@@ -40,11 +41,11 @@ import java.util.Map;
 import javax.swing.Icon;
 import org.jetbrains.android.dom.layout.DataBindingElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
+import org.jetbrains.android.dom.layout.View;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.LayoutViewClassUtils;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +53,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
   private static final Map<String, Ref<Icon>> ourViewTagName2Icon = ContainerUtil.createSoftMap();
 
   @Nullable
-  private static XmlElementDescriptor getDescriptor(DomElement domElement, XmlTag tag, @Nullable String baseClassName) {
+  private static XmlElementDescriptor getDescriptor(@NotNull DomElement domElement, @NotNull XmlTag tag, @Nullable String baseClassName) {
     AndroidFacet facet = AndroidFacet.getInstance(domElement);
     if (facet == null) return null;
     final String name = domElement.getXmlTag().getName();
@@ -63,6 +64,9 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
 
     final DefinesXml definesXml = domElement.getAnnotation(DefinesXml.class);
     if (definesXml != null) {
+      if (domElement instanceof LayoutViewElement) {
+        return createAndroidXmlLayoutViewDescriptor(domElement, new DomElementXmlDescriptor(domElement), aClass, icon);
+      }
       return new AndroidXmlTagDescriptor(aClass, new DomElementXmlDescriptor(domElement), baseClassName, icon);
     }
     final PsiElement parent = tag.getParent();
@@ -72,11 +76,27 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
       if (parentDescriptor != null && parentDescriptor instanceof AndroidXmlTagDescriptor) {
         XmlElementDescriptor domDescriptor = parentDescriptor.getElementDescriptor(tag, (XmlTag)parent);
         if (domDescriptor != null) {
+          if (domElement instanceof LayoutViewElement) {
+            return createAndroidXmlLayoutViewDescriptor(domElement, domDescriptor, aClass, icon);
+          }
           return new AndroidXmlTagDescriptor(aClass, domDescriptor, baseClassName, icon);
         }
       }
     }
     return null;
+  }
+
+  private static AndroidXmlLayoutViewDescriptor createAndroidXmlLayoutViewDescriptor(
+    @NotNull DomElement element,
+    @NotNull XmlElementDescriptor baseDescriptor,
+    @Nullable PsiClass viewClassFromTag,
+    @Nullable Icon icon
+  ) {
+    PsiClass viewClass = viewClassFromTag;
+    if (element instanceof View) {
+      viewClass = ((View)element).getViewClass().getValue();
+    }
+    return new AndroidXmlLayoutViewDescriptor(viewClass, baseDescriptor, icon);
   }
 
   @Override
@@ -106,7 +126,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
 
     String className = null;
     if (domElement instanceof LayoutViewElement) {
-      className = AndroidUtils.VIEW_CLASS_NAME;
+      className = SdkConstants.CLASS_VIEW;
     }
     else if (domElement instanceof XmlResourceElement) {
       AndroidFacet facet = AndroidFacet.getInstance(domElement);

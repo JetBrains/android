@@ -102,6 +102,7 @@ import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.reflect.DomExtension;
+import com.intellij.xml.XmlElementDescriptor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -729,6 +730,12 @@ public class AttributeProcessingUtil {
       processManifestAttributes(tag, element, callback);
     }
     else if (element instanceof LayoutElement) {
+      XmlElementDescriptor descriptor = tag.getDescriptor();
+      if (descriptor instanceof AndroidXmlLayoutViewDescriptor &&
+          ((AndroidXmlLayoutViewDescriptor)descriptor).getViewClass() == null) {
+        // Don't register attributes for unresolved view class.
+        return;
+      }
       processLayoutAttributes(facet, tag, (LayoutElement)element, skippedAttributes, callback);
     }
     else if (element instanceof XmlResourceElement) {
