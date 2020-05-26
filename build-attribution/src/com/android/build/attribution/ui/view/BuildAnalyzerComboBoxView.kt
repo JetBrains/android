@@ -74,7 +74,8 @@ class BuildAnalyzerComboBoxView(
   /**
    * Main panel that contains all the UI.
    */
-  val wholePanel = JBPanel<JBPanel<*>>(BorderLayout()).apply {
+  val wholePanel = JBPanel<JBPanel<*>>(BorderLayout(0, 1)).apply {
+    background = JBUI.CurrentTheme.ToolWindow.headerBorderBackground()
     val controlsPanel = JBPanel<JBPanel<*>>(HorizontalLayout(10)).apply {
       border = JBUI.Borders.emptyLeft(4)
     }
