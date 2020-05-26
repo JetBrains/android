@@ -107,7 +107,7 @@ class WarningsPageView(
     val detailsHalf: JPanel = JPanel().apply {
       val dimension = JBUI.size(20, 5)
       layout = BorderLayout(dimension.width(), dimension.height())
-      border = JBUI.Borders.emptyLeft(20)
+      border = JBUI.Borders.empty(5, 20)
       add(detailsPanel, BorderLayout.CENTER)
     }
 
