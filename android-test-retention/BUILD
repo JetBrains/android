@@ -41,9 +41,12 @@ iml_module(
     deps = [
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/adt/idea/emulator:intellij.android.emulator[module]",
+        "//tools/idea/java/execution/impl:intellij.java.execution.impl[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
+        "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/idea/.idea/libraries:emulator-proto",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:studio-grpc",
