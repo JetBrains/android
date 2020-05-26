@@ -218,13 +218,7 @@ class EmulatorView(
     get() = screenScale.toFloat()
 
   override val scale: Double
-    get() {
-      if (!connected) {
-        return 1.0
-      }
-      val rotatedDisplaySize = computeRotatedDisplaySize(emulatorConfig, displayRotationInternal)
-      return min(displayWidth.toDouble() / rotatedDisplaySize.width, displayHeight.toDouble() / rotatedDisplaySize.height)
-    }
+    get() = computeScaleToFit(realSize, displayRotationInternal)
 
   override fun zoom(type: ZoomType): Boolean {
     val scaledSize = computeZoomedSize(type)
