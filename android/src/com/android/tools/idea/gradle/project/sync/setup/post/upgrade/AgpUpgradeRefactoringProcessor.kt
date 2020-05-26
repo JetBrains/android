@@ -63,21 +63,13 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
 
   override fun performRefactoring(usages: Array<out UsageInfo>?) {
     usages?.forEach {
-      // TODO(xof): the protocol here is clearly not quite right, because although most of the usage infos
-      //  will use the buildModel, it's not clear that all of them will.
-      //  This isn't just a naming problem: we want a GradleBuildModel refactoring processor to be able to
-      //  execute a refactoring based on just the usage infos, but those usage infos need therefore to know
-      //  how to perform their own refactoring -- and the collaboration needs to be such that the usage infos
-      //  update the build model and don't invalidate anything in that model before the applyChanges happens.
-      if (it is AgpUpgradeUsageInfo) {
-        it.performAgpUpgrade(this)
+      if (it is GradleBuildModelUsageInfo) {
+        it.performBuildModelRefactoring(this)
       }
     }
   }
 
   override fun performPsiSpoilingRefactoring() {
-    // this is (sort of) an abstraction violation, in that it "knows" that the buildModel is being modified in
-    // performRefactoring().
     buildModel.applyChanges()
 
     // this is (at present) somewhat speculative generality: it was originally motivated by the refactoring
@@ -86,16 +78,28 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
     // context of performPsiSpoilingRefactoring() destroyed Undo, so I rewrote the properties file manipulation,
     // at which point the manipulation could be done in performRefactoring().
     psiSpoilingUsageInfos.forEach {
-      if (it is AgpUpgradeUsageInfo)
-        it.performPsiSpoilingAgpUpgrade(this)
+      if (it is GradleBuildModelUsageInfo)
+        it.performPsiSpoilingBuildModelRefactoring(this)
     }
 
     super.performPsiSpoilingRefactoring()
   }
 }
 
-// TODO(xof): rename to AgpUpgradeRefactoringProcessor
-class AgpUpgradeVersionRefactoringProcessor(
+/**
+ * Instances of [GradleBuildModelUsageInfo] should perform their refactor through the buildModel, and must not
+ * invalidate either the BuildModel or the underlying Psi in their [performBuildModelRefactoring] method.  Any spoiling
+ * should be done in the [performPsiSpoilingBuildModelRefactoring] method, which will run after the changes in the
+ * buildModel have been applied.
+ */
+abstract class GradleBuildModelUsageInfo(element: PsiElement, val current: GradleVersion, val new: GradleVersion): UsageInfo(element) {
+  open fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    processor.psiSpoilingUsageInfos.add(this)
+  }
+  open fun performPsiSpoilingBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) = Unit
+}
+
+class AgpUpgradeRefactoringProcessor(
   project: Project,
   val current: GradleVersion,
   val new: GradleVersion
@@ -154,7 +158,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     this.new = new
   }
 
-  constructor(processor: AgpUpgradeVersionRefactoringProcessor): super(processor) {
+  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor) {
     this.current = processor.current
     this.new = processor.new
   }
@@ -165,12 +169,12 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
 class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeVersionRefactoringProcessor): super(processor)
+  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun findUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     // using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage, and additionally
-    // check the buildscript/repositories block for a google() gaven entry, recording an additional usage if we don't find one
+    // check the buildscript/repositories block for a google() gmaven entry, recording an additional usage if we don't find one
     buildModel.allIncludedBuildModels.forEach model@{ model ->
       model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
         when (val shouldUpdate = isUpdatablePluginVersion(new, dep)) {
@@ -216,22 +220,17 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
   }
 }
 
-abstract class AgpUpgradeUsageInfo(element: PsiElement, val current: GradleVersion, val new: GradleVersion): UsageInfo(element) {
-  open fun performAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) { processor.psiSpoilingUsageInfos.add(this) }
-  open fun performPsiSpoilingAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) = Unit
-}
-
 class AgpVersionUsageInfo(
   element: PsiElement,
   current: GradleVersion,
   new: GradleVersion,
   private val resultModel: GradlePropertyModel
-) : AgpUpgradeUsageInfo(element, current, new) {
+) : GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return "Upgrade AGP version from ${current} to ${new}"
   }
 
-  override fun performAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     resultModel.setValue(new.toString())
   }
 }
@@ -241,18 +240,21 @@ class RepositoriesNoGMavenUsageInfo(
   current: GradleVersion,
   new: GradleVersion,
   private val repositoriesModel: RepositoriesModel
-) : AgpUpgradeUsageInfo(element, current, new) {
+) : GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return "Add google() to repositories"
   }
 
-  override fun performAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     // FIXME(xof): this is wrong; the version in question is the version of Gradle, not the new version of AGP.
     //  This means this is intertwingled with the refactoring which upgrades Gradle version, though in practice
     //  it is unlikely to be a problem (the behaviour changed in Gradle 4.0.
     //  Further: we have the opportunity to make this correct if we can rely on the order of processing UsageInfos
     //  because if we assure ourselves that the Gradle upgrade happens before this one, we can (in principle)
     //  inspect the buildModel or the project to determine the appropriate version of Gradle.
+    //  However: at least if we have gone through a preview, the UsageInfo ordering is randomized as
+    //  BaseRefactoringProcessor#customizeUsagesView / UsageViewUtil#getNotExcludedUsageInfos makes a Set of
+    //  them.
     repositoriesModel.addGoogleMavenRepository(new)
   }
 }
@@ -260,7 +262,7 @@ class RepositoriesNoGMavenUsageInfo(
 class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeVersionRefactoringProcessor) : super(processor)
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
   override fun findUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -298,12 +300,12 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
   }
 }
 
-class GradleVersionUsageInfo(element: PsiElement, current: GradleVersion, new: GradleVersion): AgpUpgradeUsageInfo(element, current, new) {
+class GradleVersionUsageInfo(element: PsiElement, current: GradleVersion, new: GradleVersion): GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return "Upgrade Gradle version to $GRADLE_LATEST_VERSION"
   }
 
-  override fun performAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     (element as? Property)?.setValue(GradleWrapper.getDistributionUrl(GRADLE_LATEST_VERSION, true))
   }
 }
@@ -311,7 +313,7 @@ class GradleVersionUsageInfo(element: PsiElement, current: GradleVersion, new: G
 class AgpJava8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeVersionRefactoringProcessor): super(processor)
+  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun findUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -371,7 +373,7 @@ class JavaLanguageLevelUsageInfo(
   private val model: LanguageLevelPropertyModel,
   private val existing: Boolean,
   private val name: String
-): AgpUpgradeUsageInfo(element, current, new) {
+): GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return when (existing) {
       false -> "insert explicit $name to preserve previous behaviour"
@@ -379,7 +381,7 @@ class JavaLanguageLevelUsageInfo(
     }
   }
 
-  override fun performAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     when (existing) {
       false -> model.setLanguageLevel(LanguageLevel.JDK_1_7)
     }
@@ -398,7 +400,7 @@ class KotlinLanguageLevelUsageInfo(
     private val model: LanguageLevelPropertyModel,
     private val existing: Boolean,
     private val name: String
-  ): AgpUpgradeUsageInfo(element, current, new) {
+  ): GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
     return when (existing) {
       false -> "insert explicit $name to preserve previous behaviour"
@@ -406,7 +408,7 @@ class KotlinLanguageLevelUsageInfo(
     }
   }
 
-  override fun performAgpUpgrade(processor: GradleBuildModelRefactoringProcessor) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     when (existing) {
       // if we can find a path to a JDK_1_7 we could include that for jdkHome, but the Internet suggests it's not high-value
       false -> model.setLanguageLevel(LanguageLevel.JDK_1_6)
