@@ -22,6 +22,8 @@ import com.android.tools.idea.emulator.FakeEmulatorRule
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
+import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
+import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -38,6 +40,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import java.io.File
 import java.nio.file.Path
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 @Ignore("b/156983404")
@@ -53,6 +56,7 @@ class FindEmulatorAndSetupRetentionTest {
   lateinit var dataContext: DataContext
   lateinit var parentDataContext : DataContext
   val snapshotId = "snapshot_id"
+  lateinit var retentionDoneSignal: CountDownLatch
 
   @Before
   fun setUp() {
@@ -71,9 +75,20 @@ class FindEmulatorAndSetupRetentionTest {
           assertThat(snapshotFile.canRead()).isTrue()
           return snapshotFile
         }
+        if (dataId == RETENTION_ON_FINISH_KEY.name) {
+          return object: Runnable {
+            override fun run() {
+              retentionDoneSignal.countDown()
+            }
+          }
+        }
+        if (dataId == RETENTION_AUTO_CONNECT_DEBUGGER_KEY.name) {
+          return false
+        }
         return parentDataContext.getData(dataId)
       }
     }
+    retentionDoneSignal = CountDownLatch(1)
   }
 
   @Test
@@ -91,6 +106,7 @@ class FindEmulatorAndSetupRetentionTest {
                                       ActionManager.getInstance(), 0)
     val action = FindEmulatorAndSetupRetention()
     action.actionPerformed(anActionEvent)
+    retentionDoneSignal.await()
     // It pushes a header message, followed by a content message
     assertThat(emulator.getNextGrpcCall(2, TimeUnit.SECONDS).methodName)
       .matches("android.emulation.control.SnapshotService/PushSnapshot")

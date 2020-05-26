@@ -21,12 +21,9 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.application.ApplicationManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -53,6 +50,12 @@ public class RetentionView {
         return SNAPSHOT_ID;
       } else if (dataId == RetentionConstantsKt.EMULATOR_SNAPSHOT_FILE_KEY.getName()) {
         return snapshotFile;
+      } else if (dataId == RetentionConstantsKt.PACKAGE_NAME_KEY.getName()) {
+        return packageName;
+      } else if (dataId == RetentionConstantsKt.RETENTION_AUTO_CONNECT_DEBUGGER_KEY.getName()) {
+        return true;
+      } else if (dataId == RetentionConstantsKt.RETENTION_ON_FINISH_KEY.getName()) {
+        return (Runnable)() -> myRetentionDebugButton.setEnabled(true);
       }
       return null;
     }
@@ -61,8 +64,6 @@ public class RetentionView {
   @NotNull private String packageName = "";
   private JPanel myRootPanel;
   private JButton myRetentionDebugButton;
-  private boolean retentionInProgress = false;
-  private Lock retentionLoadLock = new ReentrantLock();
 
   /**
    * Returns the root panel.
@@ -86,30 +87,10 @@ public class RetentionView {
     myRetentionDebugButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        retentionLoadLock.lock();
-        boolean inProgress = retentionInProgress;
-        retentionInProgress = true;
         myRetentionDebugButton.setEnabled(false);
-        retentionLoadLock.unlock();
-        if (inProgress) {
-          return;
-        }
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
-          ApplicationManager.getApplication().runReadAction(
-            () -> {
-              try {
-                DataContext dataContext = DataManager.getInstance().getDataContext(myRootPanel);
-                ActionManager.getInstance().getAction(RetentionConstantsKt.LOAD_RETENTION_ACTION_ID).actionPerformed(
-                  AnActionEvent.createFromDataContext("", null, dataContext));
-              } finally {
-                retentionLoadLock.lock();
-                myRetentionDebugButton.setEnabled(true);
-                retentionInProgress = false;
-                retentionLoadLock.unlock();
-              }
-            }
-          );
-        });
+        DataContext dataContext = DataManager.getInstance().getDataContext(myRootPanel);
+        ActionManager.getInstance().getAction(RetentionConstantsKt.LOAD_RETENTION_ACTION_ID).actionPerformed(
+          AnActionEvent.createFromDataContext("", null, dataContext));
       }
     });
   }
