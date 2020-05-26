@@ -38,6 +38,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
+import java.awt.FlowLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -189,13 +190,12 @@ fun generateReportLinkLabel(
 fun generateReportLinkLabel(
   taskData: TaskUiData,
   generateReportClicked: (TaskUiData) -> Unit
-): JComponent = object : HyperlinkLabel() {
-  override fun getTextOffset(): Int {
-    return 0
-  }
-}.apply {
-  addHyperlinkListener { generateReportClicked(taskData) }
-  setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report", "")
+): JComponent = JPanel().apply {
+  layout = FlowLayout(FlowLayout.LEFT, 0, 0)
+  add(JLabel("Consider filing a bug to report this issue to the plugin developer. "))
+  val link = HyperlinkLabel("Generate report")
+  link.addHyperlinkListener { generateReportClicked(taskData) }
+  add(link)
 }
 
 fun reasonsToRunList(taskData: TaskUiData) = htmlTextLabel(createReasonsText(taskData.reasonsToRun))
