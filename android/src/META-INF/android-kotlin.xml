@@ -113,6 +113,7 @@
         <syntheticResolveExtension implementation="org.jetbrains.kotlin.android.parcel.IDEParcelableResolveExtension"/>
         <classBuilderFactoryInterceptorExtension implementation="org.jetbrains.kotlin.android.synthetic.codegen.ParcelableClinitClassBuilderInterceptorExtension"/>
         <quickFixContributor implementation="org.jetbrains.kotlin.android.parcel.quickfixes.ParcelableQuickFixContributor"/>
+        <quickFixContributor implementation="org.jetbrains.android.compose.ComposeDelegateStateImportFixContributor"/>
 
         <androidDexer implementation="org.jetbrains.kotlin.android.debugger.AndroidDexerImpl"/>
 
