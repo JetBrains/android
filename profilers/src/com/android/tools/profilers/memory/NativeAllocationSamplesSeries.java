@@ -53,7 +53,8 @@ class NativeAllocationSamplesSeries extends CaptureDataSeries<CaptureObject> {
           getDurationUs(info.getStartTime(), info.getEndTime()), false, false,
           new CaptureEntry<>(
             info,
-            () -> new NativeAllocationSampleCaptureObject(myClient, mySession, info, myStage)))));
+            () -> new NativeAllocationSampleCaptureObject(myClient, mySession, info, myStage)),
+          true)));
     }
 
     return seriesData;
