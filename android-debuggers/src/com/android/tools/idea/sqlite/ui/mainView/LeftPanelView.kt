@@ -21,6 +21,8 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
+import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.DoubleClickListener
@@ -178,9 +180,15 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     runSqlButton.addActionListener { mainView.listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
 
     keepConnectionsOpenButton.disabledIcon = IconLoader.getDisabledIcon(keepConnectionsOpenButton.icon)
-    keepConnectionsOpenButton.toolTipText = "Keep database connections open"
     keepConnectionsOpenButton.name = "keep-connections-open-button"
     keepConnectionsOpenButton.isEnabled = false
+    HelpTooltip()
+      .setTitle(DatabaseInspectorBundle.message("action.keep.open.tooltip.title"))
+      .setDescription(DatabaseInspectorBundle.message("action.keep.open.tooltip.desc"))
+      .setLink(DatabaseInspectorBundle.message("learn.more")) {
+        BrowserUtil.browse("d.android.com/r/studio-ui/db-inspector-help/lock-connections")
+      }
+      .installOn(keepConnectionsOpenButton)
     northPanel.add(keepConnectionsOpenButton)
 
     keepConnectionsOpenButton.addActionListener { mainView.listeners.forEach { it.toggleKeepConnectionOpenActionInvoked() } }
