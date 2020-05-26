@@ -114,6 +114,7 @@ class MemoryCaptureSelection(val ideServices: IdeProfilerServices) {
     myCaptureEntry = captureEntry
     selectedCapture = captureEntry?.captureObject
     classGroupingModel.update()
+    classGrouping = classGroupingModel.getElementAt(0)
     aspect.changed(CaptureSelectionAspect.CURRENT_LOADING_CAPTURE)
     return true
   }
