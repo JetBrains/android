@@ -21,7 +21,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
-
 import java.awt.Dimension;
 
 public class MECreateKeyPositionTest extends BaseMotionEditorTest {
@@ -103,10 +102,11 @@ public class MECreateKeyPositionTest extends BaseMotionEditorTest {
     panel.fillAttributes();
     MTag tag = panel.create();
     String created = "\n" +
-      "<KeyPosition\n" +
-      "   motion:framePosition=\"0\"\n" +
-      "   motion:motionTarget=\"@+id/button1\"\n" +
-      "   motion:percentX=\"0.3\" />\n";
+                     "<KeyPosition\n" +
+                     "   motion:framePosition=\"0\"\n" +
+                     "   motion:keyPositionType=\"deltaRelative\"\n" +
+                     "   motion:motionTarget=\"@+id/button1\"\n" +
+                     "   motion:percentX=\"0.3\" />\n";
     assertEquals(created, tag.toFormalXmlString(""));
   }
 }
