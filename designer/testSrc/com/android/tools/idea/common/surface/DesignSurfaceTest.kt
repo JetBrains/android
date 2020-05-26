@@ -26,6 +26,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
@@ -175,12 +176,10 @@ class TestInteractionHandler(surface: DesignSurface) : InteractionHandlerBase(su
 }
 
 class TestLayoutManager(private val surface: DesignSurface) : PositionableContentLayoutManager() {
-  override fun layoutContent(content: Collection<PositionableContent>) {
-  }
+  override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {}
 
-  override fun preferredLayoutSize(parent: Container?): Dimension = surface.sceneViews.map { it.contentSize }.firstOrNull() ?: Dimension(0,
-                                                                                                                                         0)
-
+  override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension =
+    surface.sceneViews.map { it.getContentSize(null) }.firstOrNull() ?: Dimension(0, 0)
 }
 
 class TestActionHandler(surface: DesignSurface) : DesignSurfaceActionHandler(surface) {

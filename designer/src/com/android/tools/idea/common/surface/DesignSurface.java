@@ -52,6 +52,7 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableCollection;

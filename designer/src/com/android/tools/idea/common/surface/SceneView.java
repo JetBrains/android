@@ -24,13 +24,13 @@ import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.ScaleKt;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.JBUI;
@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * View of a {@link Scene} used in a {@link DesignSurface}.
  */
-public abstract class SceneView extends PositionableContent {
+public abstract class SceneView {
   /**
    * Policy for determining the {@link Shape} of a {@link SceneView}.
    */
@@ -159,7 +159,6 @@ public abstract class SceneView extends PositionableContent {
    * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
    *                  returned.
    */
-  @Override
   @NotNull
   @SwingCoordinate
   public final Dimension getScaledContentSize(@Nullable Dimension dimension) {
@@ -168,22 +167,27 @@ public abstract class SceneView extends PositionableContent {
     }
 
     Dimension contentSize = getContentSize(dimension);
-    double scale = getScale();
+    return ScaleKt.scaleBy(contentSize, getScale());
+  }
 
-    dimension.setSize((int)(scale * contentSize.width), (int)(scale * contentSize.height));
-    return dimension;
+  /**
+   * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
+   * current zoom level
+   */
+  @NotNull
+  @SwingCoordinate
+  public final Dimension getScaledContentSize() {
+    return getScaledContentSize(null);
   }
 
   /**
    * Returns the margin requested by this {@link SceneView}
    */
-  @Override
   @NotNull
   public Insets getMargin() {
     return NO_MARGIN;
   }
 
-  @Override
   @NotNull
   @AndroidDpCoordinate
   abstract public Dimension getContentSize(@Nullable Dimension dimension);
@@ -228,19 +232,16 @@ public abstract class SceneView extends PositionableContent {
     return getSceneManager().getSceneScalingFactor();
   }
 
-  @Override
   public final void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
     x = screenX;
     y = screenY;
   }
 
-  @Override
   @SwingCoordinate
   public int getX() {
     return x;
   }
 
-  @Override
   @SwingCoordinate
   public int getY() {
     return y;

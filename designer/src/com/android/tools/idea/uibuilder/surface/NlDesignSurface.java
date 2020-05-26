@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 import static com.android.tools.idea.actions.DesignerDataKeys.LAYOUT_VALIDATOR_KEY;
 import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
@@ -34,6 +33,7 @@ import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.ScaleKt;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
@@ -41,7 +41,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
-import com.android.tools.idea.common.surface.PositionableContentLayoutManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -61,9 +60,9 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
-import com.android.tools.idea.validator.ValidatorResult;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -77,7 +76,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.Collection;
@@ -117,26 +115,19 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     @Override
-    public void layoutContent(@NotNull Collection<? extends PositionableContent> content) {
-      Dimension extentSize = myDesignSurface.getExtentSize();
-      int availableWidth = extentSize.width;
-      int availableHeight = extentSize.height;
-      myLayoutManager.layout(content, availableWidth, availableHeight, myDesignSurface.isCanvasResizing());
+    public void layoutContainer(@NotNull Collection<? extends PositionableContent> content, @NotNull Dimension availableSize) {
+      availableSize = myDesignSurface.getExtentSize();
+      myLayoutManager.layout(content, availableSize.width, availableSize.height, myDesignSurface.isCanvasResizing());
     }
 
+    @NotNull
     @Override
-    public Dimension preferredLayoutSize(Container parent) {
-      Dimension extentSize = myDesignSurface.getExtentSize();
-      int availableWidth = extentSize.width;
-      int availableHeight = extentSize.height;
-      Dimension dimension = myLayoutManager.getRequiredSize(myDesignSurface.getPositionableContent(), availableWidth, availableHeight, null);
+    public Dimension preferredLayoutSize(@NotNull Collection<? extends PositionableContent> content, @NotNull Dimension availableSize) {
+      availableSize = myDesignSurface.getExtentSize();
+      Dimension dimension = myLayoutManager.getRequiredSize(content, availableSize.width, availableSize.height, null);
 
       if (dimension.width >= 0 && dimension.height >= 0) {
         dimension.setSize(dimension.width + 2 * DEFAULT_SCREEN_OFFSET_X, dimension.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
-      }
-      else {
-        // The layout manager returned an invalid layout
-        dimension.setSize(0, 0);
       }
 
       dimension.setSize(
@@ -623,8 +614,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
     Collection<SceneView> sceneViews = getSceneViews();
+    Dimension scaledSize = new Dimension();
     for (SceneView view : sceneViews) {
-      if (view.getX() <= x && x <= (view.getX() + view.getScaledContentSize().width) && view.getY() <= y && y <= (view.getY() + view.getScaledContentSize().height)) {
+      ScaleKt.scaleBy(view.getContentSize(scaledSize), view.getScale());
+      if (view.getX() <= x &&
+          x <= (view.getX() + scaledSize.width) &&
+          view.getY() <= y &&
+          y <= (view.getY() + scaledSize.height)) {
         return view;
       }
     }
@@ -710,9 +706,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   @Override
   protected Dimension getPreferredContentSize(@SwingCoordinate int availableWidth, @SwingCoordinate int availableHeight) {
-    Collection<SceneView> sceneViews = getSceneViews();
     Dimension extent = getExtentSize();
-    return myLayoutManager.getPreferredSize(sceneViews, extent.width, extent.height, null);
+    return myLayoutManager.getPreferredSize(getPositionableContent(), extent.width, extent.height, null);
   }
 
   @Override

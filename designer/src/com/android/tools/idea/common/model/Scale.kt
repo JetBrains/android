@@ -17,6 +17,7 @@
 package com.android.tools.idea.common.model
 
 import com.android.tools.adtui.common.SwingLength
+import java.awt.Dimension
 
 /**
  * Represents the scale factor of the design surface and the conversion factor
@@ -32,4 +33,7 @@ inline class Scale(val value: Double) {
 
 operator fun AndroidLength.times(rhs: Scale): SwingLength = rhs * this
 operator fun SwingLength.div(rhs: Scale): AndroidLength = AndroidLength(rhs.value.toFloat() / value)
-
+fun Dimension.scaleBy(scale: Double): Dimension {
+  setSize((scale * width).toInt(), (scale * height).toInt())
+  return this
+}
