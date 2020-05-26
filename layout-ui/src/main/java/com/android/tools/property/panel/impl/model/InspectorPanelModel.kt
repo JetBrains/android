@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.TableLineModel
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.util.ui.FixingLayoutMatcherUtil
+import com.intellij.psi.codeStyle.NameUtil
 
 /**
  * A model for a property inspector.
@@ -119,7 +119,7 @@ class InspectorPanelModel {
 
   private fun applyFilter() {
     // Place a "*" in front of the filter to allow the typed filter to match other places than just the beginning of a string.
-    val matcher = FixingLayoutMatcherUtil.buildLayoutFixingMatcher("*$filter").build()
+    val matcher = NameUtil.buildMatcher("*$filter").build()
     lines.forEach { line ->
       when {
         !line.isSearchable -> line.visible = false
