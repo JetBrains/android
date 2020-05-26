@@ -43,6 +43,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -426,10 +427,26 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       "mlModelBinding" -> buildModel.android().buildFeatures().mlModelBinding()
       else -> throw IllegalArgumentException("currently only compose build feature is supported")
     }
-    if (feature.valueType != ValueType.NONE) {
-      return // we do not override value if it exists. TODO(qumeric): ask user?
+
+    if (feature.valueType == ValueType.NONE) {
+      feature.setValue(value)
     }
-    feature.setValue(value)
+  }
+
+  /**
+   * Sets Compose Options field values
+   */
+  override fun setComposeOptions(kotlinCompilerExtensionVersion: String?, kotlinCompilerVersion: String?) {
+    val buildModel = moduleGradleBuildModel ?: return
+    val composeOptionsModel = buildModel.android().composeOptions()
+
+    if (kotlinCompilerExtensionVersion != null) {
+      composeOptionsModel.kotlinCompilerExtensionVersion().setValueIfNone(kotlinCompilerExtensionVersion)
+    }
+
+    if (kotlinCompilerVersion != null) {
+      composeOptionsModel.kotlinCompilerVersion().setValueIfNone(kotlinCompilerVersion)
+    }
   }
 
   /**
@@ -472,6 +489,14 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   fun applyChanges() {
     if (!context.dryRun) {
       projectBuildModel?.applyChanges()
+    }
+  }
+
+  private fun ResolvedPropertyModel.setValueIfNone(value: String) {
+    if (valueType == ValueType.NONE) {
+      // Variable values need to be in double quotes
+      val quotedValue = if (value.contains('$')) "\"$value\"" else value
+      setValue(quotedValue)
     }
   }
 
