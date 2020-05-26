@@ -199,4 +199,20 @@ class AlwaysRunTasksAnalyzerTest {
     assertThat(alwaysRunTasks[0].taskData.originPlugin.pluginType).isEqualTo(PluginData.PluginType.BUILDSRC_PLUGIN)
     assertThat(alwaysRunTasks[0].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
   }
+
+  @Test
+  fun testIgnoringDeleteTasks() {
+    myProjectRule.load(SIMPLE_APPLICATION)
+
+    FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "app", SdkConstants.FN_BUILD_GRADLE), """
+      task dummyDelete(type: Delete) { }
+    """.trimIndent())
+
+    myProjectRule.invokeTasks("dummyDelete")
+
+    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
+                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+
+    assertThat(buildAttributionManager.analyzersProxy.getAlwaysRunTasks()).isEmpty()
+  }
 }
