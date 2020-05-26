@@ -19,6 +19,8 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.ID_PREFIX;
+import static com.android.SdkConstants.MotionSceneTags.CONSTRAINT;
+import static com.android.SdkConstants.MotionSceneTags.CONSTRAINT_SET;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
@@ -130,6 +132,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final Dimension COLORED_DRAWABLE_SIZE = new Dimension(3, 3);
   private static final String DRAWABLE_ID_SCAN = "resourceRepository/drawable_for_id_scan.xml";
   private static final String COLOR_STATELIST = "resourceRepository/statelist.xml";
+  private static final String MOTION_SCENE = "resourceRepository/motion_scene.xml";
 
   private ResourceFolderRepositoryFileCache myOldFileCacheService;
   private ResourceFolderRegistry myRegistry;
@@ -1382,6 +1385,31 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.isScanPending(psiFiles));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
+  }
+
+  public void testMotionScene() {
+    resetCounters();
+
+    VirtualFile virtualFile = myFixture.copyFileToProject(MOTION_SCENE, "res/xml/motion_scene.xml");
+    XmlFile file = (XmlFile)PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertNotNull(file);
+    ResourceFolderRepository resources = createRegisteredRepository();
+    assertNotNull(resources);
+
+    XmlTag motionScene = file.getRootTag();
+    XmlTag constraintSet = motionScene.findFirstSubTag(CONSTRAINT_SET);
+    XmlTag constraint = constraintSet.findFirstSubTag(CONSTRAINT);
+
+    // Change the attribute value of a tag in the motion scene
+    long generation = resources.getModificationCount();
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      constraint.setAttribute("rotationX", ANDROID_URI, "95");
+    });
+
+    // The change does not need a rescan
+    UIUtil.dispatchAllInvocationEvents();
+    assertFalse(resources.isScanPending(file));
+    assertTrue(generation != resources.getModificationCount());
   }
 
   public void testEditValueText() {
