@@ -193,9 +193,8 @@ public class CreateKeyPosition extends BaseCreateKey {
       showErrorDialog("was not able to parse \"" + pos.trim() + "\"");
       return null;
     }
-    if (mType.getSelectedIndex() != 0) {
-      keyPosition.setAttribute("motion", "keyPositionType", (String) mType.getSelectedItem());
-    }
+
+    keyPosition.setAttribute("motion", "keyPositionType", (String) mType.getSelectedItem());
 
     String xStr = mPercentX.getText().trim();
     if (xStr.length() > 0 && !xStr.equals(PERCENT_PROMPT)) {
