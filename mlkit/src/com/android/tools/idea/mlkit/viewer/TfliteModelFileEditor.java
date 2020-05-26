@@ -165,7 +165,10 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath())));
       }
 
-      if (modelInfo.isMetadataExisted()) {
+      if (modelInfo.isMetadataVersionTooHigh()) {
+        contentPanel.add(createMetadataVersionTooHighSection());
+      }
+      else if (modelInfo.isMetadataExisted()) {
         contentPanel.add(createModelSection(modelInfo));
         contentPanel.add(createTensorsSection(modelInfo));
       }
@@ -229,6 +232,21 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     addMetadataLinkLabel.setIcon(AllIcons.General.ContextHelp);
     addMetadataLinkLabel.setMaximumSize(addMetadataLinkLabel.getPreferredSize());
     sectionContentPanel.add(addMetadataLinkLabel);
+
+    return sectionPanel;
+  }
+
+  @NotNull
+  private static JComponent createMetadataVersionTooHighSection() {
+    JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
+    sectionPanel.add(createSectionHeader("Model"));
+
+    JBLabel infoLabel = new JBLabel(
+      "Model is not fully supported in current Android Studio or Android Gradle Plugin. " +
+      "Please update to latest version if possible to get best experience.");
+    infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    infoLabel.setBorder(Borders.empty(10, 20, 10, 0));
+    sectionPanel.add(infoLabel);
 
     return sectionPanel;
   }
