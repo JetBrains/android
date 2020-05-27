@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.gradle.tooling.UnsupportedVersionException
@@ -31,7 +32,19 @@ class UnexpectedIssueCheckerTest: AndroidGradleTestCase() {
     assertThat(buildIssue).isNotNull()
     assertThat(buildIssue!!.description).contains(error)
     assertThat(buildIssue.quickFixes).hasSize(2)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(UnexpectedIssueChecker.FileBugQuickFix::class.java)
-    assertThat(buildIssue.quickFixes[1]).isInstanceOf(UnexpectedIssueChecker.ShowLogQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(FileBugQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[1]).isInstanceOf(ShowLogQuickFix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      unexpectedIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "This is an unexpected error. Please file a bug containing the idea.log file.",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

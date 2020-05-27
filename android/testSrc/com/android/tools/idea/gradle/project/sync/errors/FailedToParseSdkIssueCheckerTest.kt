@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.SystemProperties
@@ -70,5 +71,27 @@ class FailedToParseSdkIssueCheckerTest: AndroidGradleTestCase() {
     assertThat(buildIssue!!.description).contains(
       "The directory 'add-ons', in the Android SDK at '/path/to/sdk/home', is either missing or empty")
     assertThat(buildIssue.quickFixes).hasSize(0)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      failedToParseSdkIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Build failed with Exception: failed to parse SDK",
+        "Caused by: java.lang.RuntimeException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      failedToParseSdkIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Build failed with Exception: failed to parse SDK",
+        "Caused by: java.net.SocketException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(false)
   }
 }

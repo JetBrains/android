@@ -19,6 +19,8 @@ import com.android.tools.idea.actions.SendFeedbackAction
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.ide.actions.RevealFileAction
@@ -31,6 +33,7 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.io.File
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 
 class UnexpectedIssueChecker: GradleIssueChecker {
   private val UNEXPECTED_ERROR_FILE_BUG = "This is an unexpected error. Please file a bug containing the idea.log file."
@@ -50,31 +53,40 @@ class UnexpectedIssueChecker: GradleIssueChecker {
     return buildIssueComposer.composeBuildIssue()
   }
 
-  class FileBugQuickFix: BuildIssueQuickFix {
-    override val id = "file.bug"
-
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      val future = CompletableFuture<Any>()
-      invokeLater {
-        SendFeedbackAction.submit(project)
-        future.complete(null)
-      }
-      return future
-    }
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return failureCause.contains(UNEXPECTED_ERROR_FILE_BUG)
   }
+}
 
-  class ShowLogQuickFix: BuildIssueQuickFix {
-    override val id = "show.log.file"
-    private val IDEA_LOG_FILE_NAME = "idea.log"
+class FileBugQuickFix: BuildIssueQuickFix {
+  override val id = "file.bug"
 
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      val future = CompletableFuture<Any>()
-      invokeLater {
-        val logFile = File(PathManager.getLogPath(), IDEA_LOG_FILE_NAME)
-        RevealFileAction.openFile(logFile)
-        future.complete(null)
-      }
-      return future
+  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    val future = CompletableFuture<Any>()
+    invokeLater {
+      SendFeedbackAction.submit(project)
+      future.complete(null)
     }
+    return future
+  }
+}
+
+class ShowLogQuickFix: BuildIssueQuickFix {
+  override val id = "show.log.file"
+  private val IDEA_LOG_FILE_NAME = "idea.log"
+
+  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    val future = CompletableFuture<Any>()
+    invokeLater {
+      val logFile = File(PathManager.getLogPath(), IDEA_LOG_FILE_NAME)
+      RevealFileAction.openFile(logFile)
+      future.complete(null)
+    }
+    return future
   }
 }

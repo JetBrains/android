@@ -23,6 +23,7 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.testframework.FakePackage.FakeLocalPackage
 import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.repository.testframework.FakeRepoManager
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallCmakeQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetCmakeDirQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -234,6 +235,70 @@ class MissingCMakerIssueCheckerTest : AndroidGradleTestCase() {
   fun testVersionSatisfiesWithPlusMismatch() {
     assertFalse(versionSatisfies(
       Revision.parseRevision("3.8.0"), createRevision("3.10.0", true)))
+  }
+
+  fun testCheckIssueHandled() {
+    val missingCMakeIssueChecker = MissingCMakeIssueChecker()
+    assertThat(
+      missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception was not found in PATH or by cmake.dir property",
+        "CMake options was not found in PATH or by cmake.dir property",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Failed to install the following Android SDK packages as some licences have not been accepted. \n" +
+        "Please check CMake options",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Failed to install the following SDK components: cmake",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Unable to find CMake with version: ABC",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Failed to find CMake. \n Please fix.",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Unable to get the CMake version ABC for the project",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 
   private fun createRevision(revision: String?, orHigher: Boolean): RevisionOrHigher {

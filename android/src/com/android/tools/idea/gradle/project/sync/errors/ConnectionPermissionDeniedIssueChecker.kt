@@ -23,15 +23,23 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import java.net.SocketException
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CONNECTION_DENIED
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.openapi.application.invokeLater
+import org.jetbrains.kotlin.tools.projectWizard.core.failure
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import java.util.function.Consumer
+import java.util.regex.Pattern
 
 
 class ConnectionPermissionDeniedIssueChecker: GradleIssueChecker {
+  private val SOCKET_EXCEPTION_PATTERN = Pattern.compile("Caused by: java.net.SocketException(.*)")
+  private val PERMISSION_DENIED = "Permission denied: connect"
+
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: return null
-    if (rootCause !is SocketException || message.isBlank() || !message.contains("Permission denied: connect")) return null
+    if (rootCause !is SocketException || message.isBlank() || !message.contains(PERMISSION_DENIED)) return null
 
     // Log metrics.
     invokeLater {
@@ -42,5 +50,14 @@ class ConnectionPermissionDeniedIssueChecker: GradleIssueChecker {
       addQuickFix("More details (and potential fix)",
                   OpenLinkQuickFix("https://developer.android.com/studio/troubleshoot.html#project-sync"))
     }.composeBuildIssue()
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return stacktrace != null && SOCKET_EXCEPTION_PATTERN.matcher(stacktrace).find() && failureCause.contains(PERMISSION_DENIED)
   }
 }

@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProces
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
 import com.android.tools.idea.npw.invokeLater
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataProvider
@@ -32,6 +34,7 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 
 class MissingAndroidPluginIssueChecker : GradleIssueChecker {
   private val PATTERN = "Could not find com.android.tools.build:gradle:"
@@ -47,28 +50,38 @@ class MissingAndroidPluginIssueChecker : GradleIssueChecker {
     }.composeBuildIssue()
   }
 
-  class AddGoogleMavenRepositoryQuickFix : BuildIssueQuickFix {
-    override val id = "add.google.maven.repo"
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return failureCause.startsWith(PATTERN)
+  }
 
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      invokeLater {
-        if (project.isInitialized) {
-          val pluginInfo = findFromBuildFiles(project)
-          val buildFile =
-            if (pluginInfo != null) pluginInfo.pluginBuildFile else getGradleBuildFile(getBaseDirPath(project)) ?: return@invokeLater
-          // Only add the google Maven repository if it doesn't already exist.
-          // TODO(karimai): Could there be a case when this condition is not always true ?
-          val projectBuildModel = ProjectBuildModel.getOrLog(project) ?: return@invokeLater
-          val gradleBuildModel = projectBuildModel.getModuleBuildModel(buildFile!!)
-          if (!gradleBuildModel.buildscript().repositories().hasGoogleMavenRepository()) {
-            val processor = AddRepoProcessor(project, listOf(buildFile), AddRepoProcessor.Repository.GOOGLE, true)
-            processor.setPreviewUsages(true)
-            processor.run()
-          }
+}
+
+class AddGoogleMavenRepositoryQuickFix : BuildIssueQuickFix {
+  override val id = "add.google.maven.repo"
+
+  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    invokeLater {
+      if (project.isInitialized) {
+        val pluginInfo = findFromBuildFiles(project)
+        val buildFile =
+          if (pluginInfo != null) pluginInfo.pluginBuildFile else getGradleBuildFile(getBaseDirPath(project)) ?: return@invokeLater
+        // Only add the google Maven repository if it doesn't already exist.
+        // TODO(karimai): Could there be a case when this condition is not always true ?
+        val projectBuildModel = ProjectBuildModel.getOrLog(project) ?: return@invokeLater
+        val gradleBuildModel = projectBuildModel.getModuleBuildModel(buildFile!!)
+        if (!gradleBuildModel.buildscript().repositories().hasGoogleMavenRepository()) {
+          val processor = AddRepoProcessor(project, listOf(buildFile), AddRepoProcessor.Repository.GOOGLE, true)
+          processor.setPreviewUsages(true)
+          processor.run()
         }
-        else Messages.showErrorDialog(project, "Failed to add Google Maven repository.", "Quick Fix")
       }
-      return CompletableFuture.completedFuture<Any>(null)
+      else Messages.showErrorDialog(project, "Failed to add Google Maven repository.", "Quick Fix")
     }
+    return CompletableFuture.completedFuture<Any>(null)
   }
 }
