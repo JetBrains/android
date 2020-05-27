@@ -85,7 +85,7 @@ fun taskInfoPanel(
   taskData: TaskUiData,
   analytics: BuildAttributionUiAnalytics,
   issueReporter: TaskIssueReporter
-): JPanel = taskInfoPanel(
+): JPanel = taskDetailsPanel(
   taskData,
   helpLinkListener = analytics::helpLinkClicked,
   generateReportClickedListener = {
@@ -94,7 +94,7 @@ fun taskInfoPanel(
   }
 )
 
-fun taskInfoPanel(
+fun taskDetailsPanel(
   taskData: TaskUiData,
   helpLinkListener: (BuildAnalyzerBrowserLinks) -> Unit,
   generateReportClickedListener: (TaskUiData) -> Unit
