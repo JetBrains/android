@@ -61,7 +61,6 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
-  // TODO(b/141846471): Fix the order of nodes representing multiple folders or merge them by package.
   fun testMultiFlavor() {
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.MULTI_FLAVOR)
     assertIsEqualToSnapshot(text)
