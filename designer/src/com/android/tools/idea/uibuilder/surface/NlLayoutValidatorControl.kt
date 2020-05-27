@@ -39,15 +39,24 @@ class NlLayoutValidatorControl(
     }
   }
 
+  private val validatorListener = object : NlLayoutValidator.Listener {
+    override fun lintUpdated(result: ValidatorResult?) {
+      if (result != null) {
+        surface.analyticsManager.trackShowIssuePanel()
+        surface.setShowIssuePanel(true)
+        validator.removeListener(this)
+      }
+    }
+  }
+
   init {
     surface.issuePanel.addMinimizeListener(issuePanelListener)
   }
 
   override fun runLayoutValidation() {
+    validator.addListener(validatorListener)
     surface.sceneManager?.isLayoutValidationEnabled = true
     surface.forceUserRequestedRefresh()
-    surface.analyticsManager.trackShowIssuePanel()
-    surface.setShowIssuePanel(true)
   }
 }
 
