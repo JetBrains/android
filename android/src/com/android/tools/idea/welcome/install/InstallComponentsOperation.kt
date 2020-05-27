@@ -28,7 +28,7 @@ import java.io.File
  */
 class InstallComponentsOperation(
   context: InstallContext,
-  private val components: Collection<InstallableComponent?>,
+  private val components: Collection<InstallableComponent>,
   private val componentInstaller: ComponentInstaller,
   progressRatio: Double
 ) : InstallOperation<File, File>(context, progressRatio) {
