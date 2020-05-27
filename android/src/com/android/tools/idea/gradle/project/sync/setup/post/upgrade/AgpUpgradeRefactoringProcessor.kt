@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.upgrade
 
 import com.android.SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
+import com.android.SdkConstants.GRADLE_MINIMUM_VERSION
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH
@@ -246,16 +247,18 @@ class RepositoriesNoGMavenUsageInfo(
   }
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    // FIXME(xof): this is wrong; the version in question is the version of Gradle, not the new version of AGP.
+    // FIXME(xof): this is (theoretically) wrong; the version in question is the version of Gradle that the project
+    //  will use, not the minimum-supported version of Gradle.
     //  This means this is intertwingled with the refactoring which upgrades Gradle version, though in practice
-    //  it is unlikely to be a problem (the behaviour changed in Gradle 4.0.
+    //  it is unlikely to be a problem (the behaviour changed in Gradle 4.0).
     //  Further: we have the opportunity to make this correct if we can rely on the order of processing UsageInfos
     //  because if we assure ourselves that the Gradle upgrade happens before this one, we can (in principle)
     //  inspect the buildModel or the project to determine the appropriate version of Gradle.
     //  However: at least if we have gone through a preview, the UsageInfo ordering is randomized as
     //  BaseRefactoringProcessor#customizeUsagesView / UsageViewUtil#getNotExcludedUsageInfos makes a Set of
     //  them.
-    repositoriesModel.addGoogleMavenRepository(new)
+    val gradleVersion = GradleVersion.tryParse(GRADLE_MINIMUM_VERSION) ?: return
+    repositoriesModel.addGoogleMavenRepository(gradleVersion)
   }
 }
 
