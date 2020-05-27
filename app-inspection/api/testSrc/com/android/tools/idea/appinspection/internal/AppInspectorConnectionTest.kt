@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.internal
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
 import com.android.tools.app.inspection.AppInspection.CrashEvent
-import com.android.tools.idea.appinspection.api.AppInspectionConnectionException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule

@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
@@ -272,6 +273,9 @@ class DatabaseInspectorControllerImpl(
       schema
     }
     catch (e: LiveInspectorException) {
+      null
+    }
+    catch (e: AppInspectionConnectionException) {
       null
     }
     catch (e: Exception) {
