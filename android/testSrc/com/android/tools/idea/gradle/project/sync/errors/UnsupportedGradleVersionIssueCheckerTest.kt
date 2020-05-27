@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
@@ -66,5 +67,27 @@ class UnsupportedGradleVersionIssueCheckerTest: AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(UnsupportedGradleVersionIssueChecker.FixGradleVersionInWrapperQuickFix::class.java)
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
     assertThat(buildIssue.quickFixes[2]).isInstanceOf(UnsupportedGradleVersionIssueChecker.OpenGradleSettingsQuickFix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      unsupportedGradleVersionIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Minimum supported Gradle version is (6.3). Current version is 4.3",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      unsupportedGradleVersionIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Gradle version 6.3 is required",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

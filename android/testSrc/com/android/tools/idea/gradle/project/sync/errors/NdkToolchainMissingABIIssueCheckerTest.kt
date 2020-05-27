@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -33,5 +34,17 @@ class NdkToolchainMissingABIIssueCheckerTest: AndroidGradleTestCase() {
                                                   "plugin version 3.0 or older.\n\nPlease use plugin version 3.1 or newer.")
     assertThat(buildIssue.quickFixes).hasSize(1)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(FixAndroidGradlePluginVersionQuickFix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      ndkToolchainMissingABIIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "No toolchains found in the NDK toolchains folder for ABI with prefix: ",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

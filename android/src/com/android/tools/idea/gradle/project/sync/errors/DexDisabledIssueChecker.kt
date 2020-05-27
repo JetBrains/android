@@ -24,6 +24,8 @@ import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath
 import com.android.tools.idea.gradle.util.GradleUtil.getParentModulePath
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.module.ModuleManager
@@ -42,6 +44,7 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.Arrays
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
@@ -49,6 +52,7 @@ private const val INVOKE_CUSTOM = "Invoke-customs are only supported starting wi
 private const val DEFAULT_INTERFACE_METHOD = "Default interface methods are only supported starting with Android N (--min-api 24)"
 private const val STATIC_INTERFACE_METHOD = "Static interface methods are only supported starting with Android N (--min-api 24)"
 private val FAILED_TASK_PATTERN = Pattern.compile("Execution failed for task '(.+)'.")
+private val EXCEPTION_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.RuntimeException(.*)")
 
 class DexDisabledIssueChecker: GradleIssueChecker {
   /**
@@ -88,6 +92,17 @@ class DexDisabledIssueChecker: GradleIssueChecker {
     }
     issueComposer.addQuickFix(SetLanguageLevel8AllQuickFix(setJvmTarget = false))
     return DexDisabledIssue(issueComposer.composeBuildIssue())
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return stacktrace != null && EXCEPTION_TRACE_PATTERN.matcher(stacktrace).find() &&
+      (failureCause.startsWith("Error: $INVOKE_CUSTOM") || failureCause.startsWith("Error: $DEFAULT_INTERFACE_METHOD") ||
+      failureCause.startsWith("Error: $STATIC_INTERFACE_METHOD"))
   }
 }
 

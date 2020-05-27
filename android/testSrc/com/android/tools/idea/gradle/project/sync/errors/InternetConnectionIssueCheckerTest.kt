@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -32,5 +33,37 @@ class InternetConnectionIssueCheckerTest : AndroidGradleTestCase() {
     // Check QuickFix.
     assertThat(buildIssue.quickFixes).hasSize(1)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(ToggleOfflineModeQuickFix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      internetConnectionIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Could not GET ",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      internetConnectionIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Could not HEAD ",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      internetConnectionIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Network is unreachable",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

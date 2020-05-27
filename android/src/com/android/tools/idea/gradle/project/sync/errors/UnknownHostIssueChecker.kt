@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
@@ -28,8 +30,12 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.net.UnknownHostException
+import java.util.function.Consumer
+import java.util.regex.Pattern
 
 class UnknownHostIssueChecker: GradleIssueChecker {
+  private val UNKNOWN_HOST_PATTERN = Pattern.compile("Caused by: java.net.UnknownHostException(.*)")
+
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: return null
@@ -48,5 +54,14 @@ class UnknownHostIssueChecker: GradleIssueChecker {
       addQuickFix("Learn about configuring HTTP proxies in Gradle",
                   OpenLinkQuickFix("https://docs.gradle.org/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy"))
     }.composeBuildIssue()
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return stacktrace != null && UNKNOWN_HOST_PATTERN.matcher(stacktrace).find()
   }
 }

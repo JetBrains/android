@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectFo
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.find.FindManager
@@ -41,6 +42,7 @@ import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandle
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.io.File
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import java.util.regex.Pattern
 
 class MissingDependencyIssueChecker: GradleIssueChecker {
@@ -89,6 +91,17 @@ class MissingDependencyIssueChecker: GradleIssueChecker {
       }
     }
     return null
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(failureCause.lines()[0]).matches() ||
+           (MISSING_DEPENDENCY_PATTERN.matcher(failureCause.lines()[0]).matches() &&
+            failureCause.lines().size > 1 && failureCause.lines()[1].startsWith("Required by:"))
   }
 }
 
