@@ -197,7 +197,7 @@ class EmulatorView(
   private var screenScale = 0.0 // Scale factor of the host screen.
     get() {
       if (field == 0.0) {
-        field = graphicsConfiguration.defaultTransform.scaleX
+        field = graphicsConfiguration?.defaultTransform?.scaleX ?: 1.0
       }
       return field
     }
