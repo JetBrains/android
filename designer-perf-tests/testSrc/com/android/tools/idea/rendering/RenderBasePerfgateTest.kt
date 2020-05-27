@@ -24,7 +24,6 @@ import junit.framework.TestCase
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Assert
-import java.util.concurrent.TimeUnit
 
 /**
  * Asserts that the given result matches the [.SIMPLE_LAYOUT] structure
@@ -93,12 +92,13 @@ class RenderBasePerfgateTest : AndroidTestCase() {
   @Throws(Exception::class)
   fun testBaseInflate() {
     val computable = ThrowableComputable<PerfgateRenderMetric, Exception> {
-      val task = RenderTestUtil.createRenderTask(myFacet, layoutFile, layoutConfiguration)
-      val metric = getInflateMetric(task) { result: RenderResult ->
-        checkSimpleLayoutResult(result)
+      var metric: PerfgateRenderMetric? = null
+      RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration) {
+        metric = getInflateMetric(it) { result: RenderResult ->
+          checkSimpleLayoutResult(result)
+        }
       }
-      task.dispose().get(5, TimeUnit.SECONDS)
-      metric
+      metric!!
     }
     computeAndRecordMetric("inflate_time_base", "inflate_memory_base", computable)
   }
@@ -106,10 +106,11 @@ class RenderBasePerfgateTest : AndroidTestCase() {
   @Throws(Exception::class)
   fun testBaseRender() {
     val computable = ThrowableComputable<PerfgateRenderMetric, Exception> {
-      val task = RenderTestUtil.createRenderTask(myFacet, layoutFile, layoutConfiguration)
-      val metric = getRenderMetric(task, ::checkSimpleLayoutResult)
-      task.dispose().get(5, TimeUnit.SECONDS)
-      metric
+      var metric: PerfgateRenderMetric? = null
+      RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration) {
+        metric = getRenderMetric(it, ::checkSimpleLayoutResult)
+      }
+      metric!!
     }
     computeAndRecordMetric("render_time_base", "render_memory_base", computable)
   }

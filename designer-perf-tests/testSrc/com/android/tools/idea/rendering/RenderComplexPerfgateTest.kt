@@ -30,7 +30,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 private fun checkComplexLayoutInflateResult(result: RenderResult) {
   AndroidGradleTestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
@@ -81,10 +80,11 @@ class RenderComplexPerfgateTest {
   @Test
   fun testComplexInflate() {
     val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable {
-      val task = RenderTestUtil.createRenderTask(facet, layoutFile, layoutConfiguration)
-      val metric = getInflateMetric(task, ::checkComplexLayoutInflateResult)
-      task.dispose().get(5, TimeUnit.SECONDS)
-      metric
+      var metric: PerfgateRenderMetric? = null
+      RenderTestUtil.withRenderTask(facet, layoutFile, layoutConfiguration) {
+        metric = getInflateMetric(it, ::checkComplexLayoutInflateResult)
+      }
+      metric!!
     }
 
     computeAndRecordMetric("inflate_time_complex", "inflate_memory_complex", computable)
@@ -93,10 +93,11 @@ class RenderComplexPerfgateTest {
   @Test
   fun testComplexRender() {
     val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable {
-      val task = RenderTestUtil.createRenderTask(facet, layoutFile, layoutConfiguration)
-      val metric = getRenderMetric(task, ::checkComplexLayoutInflateResult, ::checkComplexLayoutRenderResult)
-      task.dispose().get(5, TimeUnit.SECONDS)
-      metric
+      var metric: PerfgateRenderMetric? = null
+      RenderTestUtil.withRenderTask(facet, layoutFile, layoutConfiguration) {
+        metric = getRenderMetric(it, ::checkComplexLayoutInflateResult, ::checkComplexLayoutRenderResult)
+      }
+      metric!!
     }
 
     computeAndRecordMetric("render_time_complex", "render_memory_complex", computable)
