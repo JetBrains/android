@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,90 +13,70 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.welcome.install;
+package com.android.tools.idea.welcome.install
 
-import com.android.repository.api.RemotePackage;
-import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.util.FormatUtil;
-import com.google.common.collect.Lists;
-import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.progress.ProgressIndicator;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
+import com.android.repository.api.RemotePackage
+import com.android.tools.idea.sdk.StudioDownloader
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionException
+import com.android.tools.idea.util.formatElementListString
+import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.openapi.progress.ProgressIndicator
+import java.io.File
 
 /**
  * Install or updates SDK components if needed.
  */
-public class InstallComponentsOperation extends InstallOperation<File, File> {
-  @NotNull private final ComponentInstaller myComponentInstaller;
-  @NotNull private Collection<? extends InstallableComponent> myComponents;
-
-  public InstallComponentsOperation(@NotNull InstallContext context,
-                                    @NotNull Collection<? extends InstallableComponent> components,
-                                    @NotNull ComponentInstaller componentInstaller,
-                                    double progressRatio) {
-    super(context, progressRatio);
-    myComponentInstaller = componentInstaller;
-    myComponents = components;
-  }
-
-  @Nullable
-  private static String getRetryMessage(Collection<RemotePackage> packages) {
-    if (!packages.isEmpty()) {
-      List<String> descriptions = Lists.newArrayList();
-      for (RemotePackage p : packages) {
-        descriptions.add(p.getDisplayName());
-      }
-      return FormatUtil.formatElementListString(descriptions,
-                                                "The following SDK component was not installed: %s",
-                                                "The following SDK components were not installed: %1$s and %2$s",
-                                                "%1$s and %2$s more SDK components were not installed");
+class InstallComponentsOperation(
+  context: InstallContext,
+  private val components: Collection<InstallableComponent?>,
+  private val componentInstaller: ComponentInstaller,
+  progressRatio: Double
+) : InstallOperation<File, File>(context, progressRatio) {
+  @Throws(WizardException::class)
+  override fun perform(indicator: ProgressIndicator, argument: File): File {
+    indicator.text = "Checking for updated SDK components"
+    var packages: List<RemotePackage> = try {
+      componentInstaller.getPackagesToInstall(components)
     }
-    else {
-      return null;
+    catch (e: PackageResolutionException) {
+      throw WizardException("Failed to determine required packages", e)
     }
-  }
-
-  @NotNull
-  @Override
-  protected File perform(@NotNull ProgressIndicator indicator, @NotNull File sdkLocation) throws WizardException {
-    indicator.setText("Checking for updated SDK components");
-    List<RemotePackage> packages;
-    try {
-      packages = myComponentInstaller.getPackagesToInstall(myComponents);
-    }
-    catch (SdkQuickfixUtils.PackageResolutionException e) {
-      throw new WizardException("Failed to determine required packages", e);
-    }
-    while (!packages.isEmpty()) {
-      indicator.setFraction(0);
-      SdkManagerProgressIndicatorIntegration logger = new SdkManagerProgressIndicatorIntegration(indicator, myContext);
-      myComponentInstaller.installPackages(packages, new StudioDownloader(), logger);
+    while (packages.isNotEmpty()) {
+      indicator.fraction = 0.0
+      val logger = SdkManagerProgressIndicatorIntegration(indicator, context)
+      componentInstaller.installPackages(packages, StudioDownloader(), logger)
       // If we didn't set remote information on the installer we assume we weren't expecting updates. So set false for
       // defaultUpdateAvailable so we don't think everything failed to install.
-      try {
-        packages = myComponentInstaller.getPackagesToInstall(myComponents);
+      packages = try {
+        componentInstaller.getPackagesToInstall(components)
       }
-      catch (SdkQuickfixUtils.PackageResolutionException e) {
-        throw new WizardException("Failed to determine required packages", e);
+      catch (e: PackageResolutionException) {
+        throw WizardException("Failed to determine required packages", e)
       }
-      String message = getRetryMessage(packages);
-      if (message != null) {
-        promptToRetry(message, logger.getErrors(), null);
+      getRetryMessage(packages)?.let { message ->
+        promptToRetry(message, logger.errors, null)
       }
     }
-    myContext.print("Android SDK is up to date.\n", ConsoleViewContentType.SYSTEM_OUTPUT);
-    indicator.setFraction(1.0); // 100%
-    return sdkLocation;
+    context.print("Android SDK is up to date.\n", ConsoleViewContentType.SYSTEM_OUTPUT)
+    indicator.fraction = 1.0 // 100%
+    return argument
   }
 
-  @Override
-  public void cleanup(@NotNull File result) {
+  override fun cleanup(result: File) {
     // Nothing here to do
+  }
+
+  companion object {
+    private fun getRetryMessage(packages: Collection<RemotePackage>): String? {
+      if (packages.isEmpty()) {
+        return null
+      }
+      return formatElementListString(
+        packages.map { it.displayName },
+        "The following SDK component was not installed: %s",
+        "The following SDK components were not installed: %1\$s and %2\$s",
+        "%1\$s and %2\$s more SDK components were not installed"
+      )
+    }
   }
 }

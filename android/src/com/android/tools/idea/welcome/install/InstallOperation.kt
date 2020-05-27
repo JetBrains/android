@@ -33,8 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Type argument specifies the type of the operation return value and the argument
  */
 abstract class InstallOperation<Return, Argument>(
-  @JvmField
-  protected val myContext: InstallContext, // TODO: replace with ProgressIndicator.createSubProgress
+  protected val context: InstallContext, // TODO: replace with ProgressIndicator.createSubProgress
   private val progressRatio: Double
 ) {
   /**
@@ -48,13 +47,13 @@ abstract class InstallOperation<Return, Argument>(
    */
   @Throws(WizardException::class, InstallationCancelledException::class)
   fun execute(argument: Argument): Return {
-    myContext.checkCanceled()
+    context.checkCanceled()
     return if (progressRatio == 0.0) {
       perform(EmptyProgressIndicator(), argument)
     }
     else {
       try {
-        myContext.run(ThrowableComputable<Return, Exception> {
+        context.run(ThrowableComputable<Return, Exception> {
           val indicator = ProgressManager.getInstance().progressIndicator ?: EmptyProgressIndicator()
           perform(indicator, argument)
         }, progressRatio)
@@ -95,7 +94,7 @@ abstract class InstallOperation<Return, Argument>(
       throw WizardException(failureDescription, e)
     }
     else {
-      myContext.print(failureDescription + "\n", ConsoleViewContentType.ERROR_OUTPUT)
+      context.print(failureDescription + "\n", ConsoleViewContentType.ERROR_OUTPUT)
     }
   }
 
@@ -114,13 +113,13 @@ abstract class InstallOperation<Return, Argument>(
    * Note that currently it is expected that the function is fast and there is no progress to report.
    * Another option is to manage progress manually.
    */
-  fun <FinalResult> then(next: Function<Return, FinalResult>): InstallOperation<FinalResult, Argument> = then(wrap(myContext, next, 0.0))
+  fun <FinalResult> then(next: Function<Return, FinalResult>): InstallOperation<FinalResult, Argument> = then(wrap(context, next, 0.0))
 
   private class OperationChain<FinalResult, Argument, Return>(
     private val first: InstallOperation<Return, Argument>,
     private val second: InstallOperation<FinalResult, Return>
   ) : InstallOperation<FinalResult, Argument>(
-    first.myContext, 0.0) {
+    first.context, 0.0) {
     @Throws(WizardException::class, InstallationCancelledException::class)
     override fun perform(indicator: ProgressIndicator, argument: Argument): FinalResult {
       val firstResult = first.execute(argument)
