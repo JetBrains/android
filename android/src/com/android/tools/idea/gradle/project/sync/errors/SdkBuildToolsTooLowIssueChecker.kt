@@ -29,6 +29,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataProvider
@@ -42,6 +43,7 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.io.File
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import java.util.regex.Pattern
 
 /**
@@ -102,6 +104,15 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
       buildIssueComposer.addQuickFix("Open file.", OpenFileAtLocationQuickFix(FilePosition(File(buildFiles[0].path), -1, -1)))
     }
     return buildIssueComposer
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return SDK_BUILD_TOOLS_TOO_LOW_PATTERN.matcher(failureCause).matches()
   }
 }
 

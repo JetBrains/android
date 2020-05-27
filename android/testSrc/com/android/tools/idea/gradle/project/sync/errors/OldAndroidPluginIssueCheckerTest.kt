@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -34,5 +35,27 @@ class OldAndroidPluginIssueCheckerTest: AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes).hasSize(2)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(FixAndroidGradlePluginVersionQuickFix::class.java)
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenPluginBuildFileQuickFix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      oldAndroidPluginIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Plugin is too old, please update to a more recent version",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      oldAndroidPluginIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "The android gradle plugin version 2.2.0 is too old, please update to the latest version.",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

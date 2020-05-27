@@ -22,21 +22,24 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import java.util.function.Consumer
 import java.util.regex.Pattern
 
 class OldAndroidPluginIssueChecker: GradleIssueChecker {
   private val PATTERN = Pattern.compile(
     "The android gradle plugin version .+ is too old, please update to the latest version.")
+  private val PLUGIN_TOO_OLD = "Plugin is too old, please update to a more recent version"
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (message.isBlank() || !(message.startsWith("Plugin is too old, please update to a more recent version") ||
-        PATTERN.matcher(message.lines()[0]).matches())) return null
+    if (message.isBlank() || !(message.startsWith(PLUGIN_TOO_OLD) || PATTERN.matcher(message.lines()[0]).matches())) return null
 
     // Log metrics.
     invokeLater {
@@ -49,5 +52,14 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
       )
       addQuickFix("Open build file", OpenPluginBuildFileQuickFix())
     }.composeBuildIssue()
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return failureCause.startsWith(PLUGIN_TOO_OLD) || PATTERN.matcher(failureCause.lines()[0]).matches()
   }
 }

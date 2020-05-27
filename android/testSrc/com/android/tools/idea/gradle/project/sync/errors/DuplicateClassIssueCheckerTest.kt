@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import com.google.common.truth.Truth.assertThat
@@ -59,5 +60,30 @@ class DuplicateClassIssueCheckerTest {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
     assertThat(buildIssue.description).doesNotContain("\"<a href=\"d.android.com/r/tools/classpath-sync-errors\"")
     assertThat(buildIssue.description).contains("<a href=\"open.more.details\"")
+  }
+
+  @Test
+  fun `testCheckIssueHandled`() {
+    assertThat(
+      issueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Duplicate class  ABC \n" +
+        "Go to the documentation to learn how to <a href=\"d.android.com/r/tools/classpath-sync-errors\">Fix dependency resolution errors</a>.",
+        "Caused by: java.lang.RuntimeException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      issueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Duplicate class  ABC \n" +
+        "Go to the documentation to learn how to <a href=\"d.android.com/r/tools/classpath-sync-errors\">Fix dependency resolution errors</a>.",
+        "Caused by: java.net.SocketException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(false)
   }
 }

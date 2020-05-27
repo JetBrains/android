@@ -19,16 +19,21 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import java.util.function.Consumer
 
 class ErrorOpeningZipFileIssueChecker: GradleIssueChecker {
+  private val ERROR_ZIP_FILE = "error in opening zip file"
+
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (!message.contains("error in opening zip file")) return null
+    if (!message.contains(ERROR_ZIP_FILE)) return null
 
     // Log metrics.
     invokeLater {
@@ -39,5 +44,14 @@ class ErrorOpeningZipFileIssueChecker: GradleIssueChecker {
       addDescription("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
       addQuickFix(syncProjectQuickFix.linkText, syncProjectQuickFix)
     }.composeBuildIssue()
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return failureCause.contains(ERROR_ZIP_FILE)
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -33,5 +34,17 @@ class ErrorOpeningZipFileIssueCheckerTest : AndroidGradleTestCase() {
                                                   "connection timeout.)")
     assertThat(buildIssue.quickFixes).hasSize(1)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(SyncProjectRefreshingDependenciesQuickFix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      errorOpeningZipFileIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Build failed with Exception: error in opening zip file",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

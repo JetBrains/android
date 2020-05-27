@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.CreateGradleWrapperQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -36,5 +37,17 @@ class Gradle2RequiredIssueCheckerTest : AndroidGradleTestCase() {
     // Verify quickFix.
     assertThat(buildIssue.quickFixes).hasSize(1)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(CreateGradleWrapperQuickFix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      gradle2RequiredIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Build failed with Exception: org/codehaus/groovy/runtime/typehandling/ShortTypeHandling",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

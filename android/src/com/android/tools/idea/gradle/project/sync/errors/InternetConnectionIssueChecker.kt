@@ -19,18 +19,23 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import java.util.function.Consumer
 
 class InternetConnectionIssueChecker : GradleIssueChecker {
+  private val COULD_NOT_GET = "Could not GET "
+  private val COULD_NOT_HEAD = "Could not HEAD "
+  private val NETWORK_UNREACHABLE = "Network is unreachable"
+
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (!message.startsWith("Could not GET ") &&
-        !message.startsWith("Could not HEAD ") &&
-        !message.startsWith("Network is unreachable")) return null
+    if (!message.startsWith(COULD_NOT_GET) && !message.startsWith(COULD_NOT_HEAD) && !message.startsWith(NETWORK_UNREACHABLE)) return null
 
     // Log metrics.
     invokeLater {
@@ -39,5 +44,14 @@ class InternetConnectionIssueChecker : GradleIssueChecker {
     return BuildIssueComposer(message).apply {
       addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(true))
     }.composeBuildIssue()
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return failureCause.startsWith(COULD_NOT_GET) || failureCause.startsWith(COULD_NOT_HEAD) || failureCause.startsWith(NETWORK_UNREACHABLE)
   }
 }
