@@ -76,12 +76,9 @@ PROJECT             : project
             TypeId              : android-gradle
             GradlePath          : :app
         CONENT_ENTRY        : file://<PROJECT>/app
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
-            JavaResource        : file://<PROJECT>/app/src/main
             JavaSource          : file://<PROJECT>/app/src/main/java
             JavaResource        : file://<PROJECT>/app/src/main/res
-            JavaResource (test) : file://<PROJECT>/app/src/test
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
             EXCLUDE_FOLDER      : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]

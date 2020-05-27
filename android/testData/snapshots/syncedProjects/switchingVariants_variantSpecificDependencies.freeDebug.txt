@@ -91,7 +91,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/free/debug
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/free/debug
             JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/free/debug
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
@@ -101,7 +100,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
@@ -111,7 +109,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestFree
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/java
@@ -121,7 +118,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/java
@@ -131,7 +127,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/shaders
-            JavaResource        : file://<PROJECT>/app/src/debug
             JavaSource          : file://<PROJECT>/app/src/debug/aidl
             JavaResource        : file://<PROJECT>/app/src/debug/assets
             JavaSource          : file://<PROJECT>/app/src/debug/java
@@ -141,7 +136,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/app/src/debug/resources
             JavaSource          : file://<PROJECT>/app/src/debug/rs
             JavaSource          : file://<PROJECT>/app/src/debug/shaders
-            JavaResource        : file://<PROJECT>/app/src/free
             JavaSource          : file://<PROJECT>/app/src/free/aidl
             JavaResource        : file://<PROJECT>/app/src/free/assets
             JavaSource          : file://<PROJECT>/app/src/free/java
@@ -151,7 +145,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/app/src/free/resources
             JavaSource          : file://<PROJECT>/app/src/free/rs
             JavaSource          : file://<PROJECT>/app/src/free/shaders
-            JavaResource        : file://<PROJECT>/app/src/freeDebug
             JavaSource          : file://<PROJECT>/app/src/freeDebug/aidl
             JavaResource        : file://<PROJECT>/app/src/freeDebug/assets
             JavaSource          : file://<PROJECT>/app/src/freeDebug/java
@@ -161,7 +154,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/app/src/freeDebug/resources
             JavaSource          : file://<PROJECT>/app/src/freeDebug/rs
             JavaSource          : file://<PROJECT>/app/src/freeDebug/shaders
-            JavaResource        : file://<PROJECT>/app/src/main
             JavaSource          : file://<PROJECT>/app/src/main/aidl
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
@@ -171,7 +163,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
             JavaSource          : file://<PROJECT>/app/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/test
             JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
@@ -181,7 +172,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
             JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
@@ -191,7 +181,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/testFree
             JavaSource (test)   : file://<PROJECT>/app/src/testFree/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testFree/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testFree/java
@@ -201,7 +190,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/testFree/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testFree/rs
             JavaSource (test)   : file://<PROJECT>/app/src/testFree/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug
             JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/java
@@ -552,7 +540,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/moduleA/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/moduleA/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/java
@@ -562,7 +549,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/java
@@ -572,7 +558,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/moduleA/src/debug
             JavaSource          : file://<PROJECT>/moduleA/src/debug/aidl
             JavaResource        : file://<PROJECT>/moduleA/src/debug/assets
             JavaSource          : file://<PROJECT>/moduleA/src/debug/java
@@ -582,7 +567,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/moduleA/src/debug/resources
             JavaSource          : file://<PROJECT>/moduleA/src/debug/rs
             JavaSource          : file://<PROJECT>/moduleA/src/debug/shaders
-            JavaResource        : file://<PROJECT>/moduleA/src/main
             JavaSource          : file://<PROJECT>/moduleA/src/main/aidl
             JavaResource        : file://<PROJECT>/moduleA/src/main/assets
             JavaSource          : file://<PROJECT>/moduleA/src/main/java
@@ -592,7 +576,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/moduleA/src/main/resources
             JavaSource          : file://<PROJECT>/moduleA/src/main/rs
             JavaSource          : file://<PROJECT>/moduleA/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/moduleA/src/test
             JavaSource (test)   : file://<PROJECT>/moduleA/src/test/aidl
             JavaResource (test) : file://<PROJECT>/moduleA/src/test/assets
             JavaSource (test)   : file://<PROJECT>/moduleA/src/test/java
@@ -602,7 +585,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleA/src/test/resources
             JavaSource (test)   : file://<PROJECT>/moduleA/src/test/rs
             JavaSource (test)   : file://<PROJECT>/moduleA/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug
             JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/java
@@ -952,7 +934,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/moduleB/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/moduleB/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/java
@@ -962,7 +943,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/java
@@ -972,7 +952,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/moduleB/src/debug
             JavaSource          : file://<PROJECT>/moduleB/src/debug/aidl
             JavaResource        : file://<PROJECT>/moduleB/src/debug/assets
             JavaSource          : file://<PROJECT>/moduleB/src/debug/java
@@ -982,7 +961,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/moduleB/src/debug/resources
             JavaSource          : file://<PROJECT>/moduleB/src/debug/rs
             JavaSource          : file://<PROJECT>/moduleB/src/debug/shaders
-            JavaResource        : file://<PROJECT>/moduleB/src/main
             JavaSource          : file://<PROJECT>/moduleB/src/main/aidl
             JavaResource        : file://<PROJECT>/moduleB/src/main/assets
             JavaSource          : file://<PROJECT>/moduleB/src/main/java
@@ -992,7 +970,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/moduleB/src/main/resources
             JavaSource          : file://<PROJECT>/moduleB/src/main/rs
             JavaSource          : file://<PROJECT>/moduleB/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/moduleB/src/test
             JavaSource (test)   : file://<PROJECT>/moduleB/src/test/aidl
             JavaResource (test) : file://<PROJECT>/moduleB/src/test/assets
             JavaSource (test)   : file://<PROJECT>/moduleB/src/test/java
@@ -1002,7 +979,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleB/src/test/resources
             JavaSource (test)   : file://<PROJECT>/moduleB/src/test/rs
             JavaSource (test)   : file://<PROJECT>/moduleB/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug
             JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/java
