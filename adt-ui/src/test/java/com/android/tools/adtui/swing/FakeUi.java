@@ -30,6 +30,7 @@ import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.awt.image.VolatileImage;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Enumeration;
@@ -70,7 +71,8 @@ public final class FakeUi {
     this.screenScale = screenScale;
     keyboard = new FakeKeyboard();
     mouse = new FakeMouse(this, keyboard);
-    if (rootComponent.getParent() == null) {
+    //noinspection FloatingPointEquality
+    if (screenScale != 1 && rootComponent.getParent() == null) {
       // Applying graphics configuration involves reparenting, so don't do it for a component that already has a parent.
       applyGraphicsConfiguration(new FakeGraphicsConfiguration(screenScale), root);
     }
@@ -302,6 +304,11 @@ public final class FakeUi {
     @Override
     public GraphicsDevice getDevice() {
       return device;
+    }
+
+    @Override
+    public VolatileImage createCompatibleVolatileImage(int width, int height) {
+      return super.createCompatibleVolatileImage(width, height);
     }
 
     @Override
