@@ -19,9 +19,12 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.Rotation.SkinRotation
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ex.ProjectEx
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.ceil
@@ -106,3 +109,6 @@ internal fun Point.rotated(rotation: SkinRotation): Point {
 
 internal inline val <reified T> T.logger: Logger
   get() = Logger.getInstance(T::class.java)
+
+val Project.earlyDisposable: Disposable
+  get() = (this as? ProjectEx)?.earlyDisposable ?: this

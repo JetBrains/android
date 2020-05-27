@@ -65,7 +65,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
   private val properties = PropertiesComponent.getInstance(project)
   // IDs of recently launched AVDs keyed by themselves.
   private val recentLaunches = CacheBuilder.newBuilder().expireAfterWrite(LAUNCH_INFO_EXPIRATION).build<String, String>()
-  private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, project)
+  private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, project.earlyDisposable)
 
   private var contentManagerListener = object : ContentManagerListener {
     @UiThread
@@ -95,12 +95,12 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
 
   init {
-    Disposer.register(project, Disposable {
+    Disposer.register(project.earlyDisposable, Disposable {
       destroyContent(getToolWindow())
     })
 
     // Lazily initialize content since we can only have one frame.
-    val messageBusConnection = project.messageBus.connect(project)
+    val messageBusConnection = project.messageBus.connect(project.earlyDisposable)
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
       @UiThread
       override fun stateChanged(toolWindowManager: ToolWindowManager) {
@@ -409,7 +409,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     @JvmStatic
     fun initializeForProject(project: Project) {
       if (registeredProjects.add(project)) {
-        Disposer.register(project, Disposable { registeredProjects.remove(project) })
+        Disposer.register(project.earlyDisposable, Disposable { registeredProjects.remove(project) })
         EmulatorToolWindowManager(project)
       }
     }
