@@ -40,11 +40,17 @@ import java.util.regex.Pattern
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.METHOD_NOT_FOUND
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import java.util.function.Consumer
 
 class ClassLoadingIssueChecker: GradleIssueChecker {
   private val CLASS_NOT_FOUND_PATTERN = Pattern.compile("(.+) not found.")
+  private val NO_SUCH_METHOD_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.NoSuchMethodError(.*)")
+  private val CLASS_NOT_FOUND_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.ClassNotFoundException(.*)")
+  private val CANNOT_BE_CAST_TO_EXCEPTION = "cannot be cast to"
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
@@ -93,6 +99,19 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
     return buildIssueComposer.composeBuildIssue()
   }
 
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    if (stacktrace != null && NO_SUCH_METHOD_TRACE_PATTERN.matcher(stacktrace).find()) return true
+    if (stacktrace != null &&
+        CLASS_NOT_FOUND_TRACE_PATTERN.matcher(stacktrace).find() && CLASS_NOT_FOUND_PATTERN.matcher(failureCause).matches()) return true
+    if (failureCause.contains(CANNOT_BE_CAST_TO_EXCEPTION)) return true
+    return false
+  }
+
   private fun getExceptionMessage(exception: Throwable, message: String, projectPath: String): String? {
     when (exception) {
       is ClassNotFoundException -> {
@@ -115,7 +134,7 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
         return "Unable to find method '$message'"
       }
       else -> {
-        if (message.contains("cannot be cast to")) {
+        if (message.contains(CANNOT_BE_CAST_TO_EXCEPTION)) {
           // Log metrics.
           invokeLater {
             updateUsageTracker(projectPath, CANNOT_BE_CAST_TO)
@@ -126,38 +145,36 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
     }
     return null
   }
+}
 
-  class StopGradleDaemonQuickFix : BuildIssueQuickFix {
-    override val id = "stop.gradle.daemons"
+class StopGradleDaemonQuickFix : BuildIssueQuickFix {
+  override val id = "stop.gradle.daemons"
 
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      val future = CompletableFuture<Any>()
+  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    val future = CompletableFuture<Any>()
 
-      if (ApplicationManager.getApplication().isRestartCapable) {
-        val title = "Stop Gradle Daemons"
-        val message = """
+    if (ApplicationManager.getApplication().isRestartCapable) {
+      val title = "Stop Gradle Daemons"
+      val message = """
           Stopping all Gradle daemons will terminate any running Gradle builds (e.g. from the command line).
           This action will also restart the IDE.
           Do you want to continue?
           """.trimIndent()
-        val answer = Messages.showYesNoDialog(project, message, title,  Messages.getQuestionIcon())
-        if (answer == Messages.YES) {
-          invokeLater {
-            GradleUtil.stopAllGradleDaemonsAndRestart()
-            future.complete(null)
-          }
-        }
-      }
-      else {
+      val answer = Messages.showYesNoDialog(project, message, title,  Messages.getQuestionIcon())
+      if (answer == Messages.YES) {
         invokeLater {
-          BrowserUtil.browse("http://www.gradle.org/docs/current/userguide/gradle_daemon.html")
+          GradleUtil.stopAllGradleDaemonsAndRestart()
           future.complete(null)
         }
       }
-
-      return future
     }
+    else {
+      invokeLater {
+        BrowserUtil.browse("http://www.gradle.org/docs/current/userguide/gradle_daemon.html")
+        future.complete(null)
+      }
+    }
+
+    return future
   }
-
-
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -34,5 +35,17 @@ class UnsupportedModelVersionIssueCheckerTest: AndroidGradleTestCase() {
     assertThat(buildIssue!!.description).contains(message)
     assertThat(buildIssue!!.quickFixes).hasSize(1)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(FixAndroidGradlePluginVersionQuickFix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      unsupportedModelVersionIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "The project is using an unsupported version of the Android Gradle plug-in",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

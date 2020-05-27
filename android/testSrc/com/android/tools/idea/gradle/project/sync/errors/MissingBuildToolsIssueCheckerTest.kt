@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallBuildToolsQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -35,5 +36,37 @@ class MissingBuildToolsIssueCheckerTest: AndroidGradleTestCase() {
      assertThat(buildIssue!!.description).contains(errMsg)
      assertThat(buildIssue.quickFixes).hasSize(1)
      assertThat(buildIssue.quickFixes[0]).isInstanceOf(InstallBuildToolsQuickFix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      missingBuildToolsIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Cause: failed to find Build Tools revision ",
+        "Caused by: java.lang.IllegalStateException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingBuildToolsIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Cause: Failed to find Build Tools revision ",
+        "Caused by: com.intellij.openapi.externalSystem.model.ExternalSystemException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingBuildToolsIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Cause: failed to find Build Tools revision ",
+        "Caused by: java.net.SocketException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(false)
   }
 }
