@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
@@ -58,6 +59,7 @@ import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.Futures.immediateFailedFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
@@ -245,7 +247,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   fun testAddSqliteDatabaseFailureReadSchema() {
     // Prepare
     val exception = IllegalStateException("expected")
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFailedFuture(exception))
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(immediateFailedFuture(exception))
 
     // Act
     val result = runCatching {
@@ -1334,7 +1336,20 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testGetSchemaErrorsFromLiveInspectorAreNotReported() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenThrow(LiveInspectorException::class.java)
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(immediateFailedFuture(LiveInspectorException("message", "stack")))
+
+    // Act
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(databaseId1))
+    }
+
+    // Assert
+    orderVerifier.verify(mockSqliteView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
+  }
+
+  fun testGetSchemaConnectionErrorsAreNotReported() {
+    // Prepare
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(immediateFailedFuture(AppInspectionConnectionException("Connection closed")))
 
     // Act
     runDispatching {

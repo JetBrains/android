@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.api
+package com.android.tools.idea.appinspection.inspector.api
 
 /**
  * Signals the connection being used to send commands has encountered some sort of error.
