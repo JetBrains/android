@@ -239,6 +239,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
       myRenderVersions.put(file, configuration, myResourceRepository.modificationCount)
       myRenderModStamps.put(file, configuration, file.timeStamp)
     }
+    task?.dispose()
     return image
   }
 
