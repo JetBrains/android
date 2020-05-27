@@ -29,16 +29,16 @@ import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.lint.client.api.LintClient;
-import com.android.tools.lint.detector.api.LmModuleAndroidLibraryProject;
-import com.android.tools.lint.detector.api.LmModuleProject;
+import com.android.tools.lint.detector.api.LintModelModuleAndroidLibraryProject;
+import com.android.tools.lint.detector.api.LintModelModuleProject;
 import com.android.tools.lint.detector.api.Project;
-import com.android.tools.lint.model.LmAndroidLibrary;
-import com.android.tools.lint.model.LmDependency;
-import com.android.tools.lint.model.LmFactory;
-import com.android.tools.lint.model.LmLibrary;
-import com.android.tools.lint.model.LmModule;
-import com.android.tools.lint.model.LmModuleType;
-import com.android.tools.lint.model.LmVariant;
+import com.android.tools.lint.model.LintModelAndroidLibrary;
+import com.android.tools.lint.model.LintModelDependency;
+import com.android.tools.lint.model.LintModelFactory;
+import com.android.tools.lint.model.LintModelLibrary;
+import com.android.tools.lint.model.LintModelModule;
+import com.android.tools.lint.model.LintModelModuleType;
+import com.android.tools.lint.model.LintModelVariant;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -71,7 +71,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@linkplain LintIdeProject} represents a lint project, which typically corresponds to a {@link Module},
- * but can also correspond to a library "project" such as an {@link LmAndroidLibrary}.
+ * but can also correspond to a library "project" such as an {@link LintModelAndroidLibrary}.
  */
 public class AndroidLintIdeProject extends LintIdeProject {
   AndroidLintIdeProject(@NonNull LintClient client,
@@ -89,7 +89,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
 
     Map<Project, Module> projectMap = Maps.newHashMap();
     Map<Module, Project> moduleMap = Maps.newHashMap();
-    Map<LmAndroidLibrary, Project> libraryMap = Maps.newHashMap();
+    Map<LintModelAndroidLibrary, Project> libraryMap = Maps.newHashMap();
     if (files != null && !files.isEmpty()) {
       // Wrap list with a mutable list since we'll be removing the files as we see them
       files = Lists.newArrayList(files);
@@ -222,7 +222,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
                                   @NonNull Module module,
                                   @Nullable List<VirtualFile> files,
                                   @NonNull Map<Module, Project> moduleMap,
-                                  @NonNull Map<LmAndroidLibrary, Project> libraryMap,
+                                  @NonNull Map<LintModelAndroidLibrary, Project> libraryMap,
                                   @NonNull Map<Project, Module> projectMap,
                                   @NonNull List<Project> projects,
                                   boolean shallowModel) {
@@ -269,9 +269,9 @@ public class AndroidLintIdeProject extends LintIdeProject {
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      LmVariant variant = project.getBuildVariant();
+      LintModelVariant variant = project.getBuildVariant();
       if (variant != null) {
-        List<LmDependency> roots = variant.getMainArtifact().getDependencies().getCompileDependencies().getRoots();
+        List<LintModelDependency> roots = variant.getMainArtifact().getDependencies().getCompileDependencies().getRoots();
         addGradleLibraryProjects(client, files, libraryMap, projects, facet, project, projectMap, dependencies, roots);
       }
     }
@@ -301,8 +301,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
         AndroidModuleModel model = (AndroidModuleModel)androidModel;
         IdeAndroidProject builderModelProject = model.getAndroidProject();
         String variantName = model.getSelectedVariantName();
-        LmModule lintModel = new LmFactory().create(builderModelProject, dir, !shallowModel);
-        LmVariant variant = lintModel.findVariant(variantName);
+        LintModelModule lintModel = new LintModelFactory().create(builderModelProject, dir, !shallowModel);
+        LintModelVariant variant = lintModel.findVariant(variantName);
         if (variant == null) {
           variant = lintModel.getVariants().get(0);
         }
@@ -366,20 +366,20 @@ public class AndroidLintIdeProject extends LintIdeProject {
    */
   private static void addGradleLibraryProjects(@NonNull LintClient client,
                                                @Nullable List<VirtualFile> files,
-                                               @NonNull Map<LmAndroidLibrary, Project> libraryMap,
+                                               @NonNull Map<LintModelAndroidLibrary, Project> libraryMap,
                                                @NonNull List<Project> projects,
                                                @NonNull AndroidFacet facet,
                                                @NonNull Project project,
                                                @NonNull Map<Project, Module> projectMap,
                                                @NonNull List<Project> dependencies,
-                                               @NonNull List<LmDependency> graphItems) {
+                                               @NonNull List<LintModelDependency> graphItems) {
     com.intellij.openapi.project.Project ideaProject = facet.getModule().getProject();
-    for (LmDependency dependency : graphItems) {
-      LmLibrary l = dependency.findLibrary();
-      if (!(l instanceof LmAndroidLibrary)) {
+    for (LintModelDependency dependency : graphItems) {
+      LintModelLibrary l = dependency.findLibrary();
+      if (!(l instanceof LintModelAndroidLibrary)) {
         continue;
       }
-      LmAndroidLibrary library = (LmAndroidLibrary)l;
+      LintModelAndroidLibrary library = (LintModelAndroidLibrary)l;
       Project p = libraryMap.get(library);
       if (p == null) {
         File dir = library.getFolder();
@@ -448,8 +448,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
 
     @NonNull
     @Override
-    public LmModuleType getType() {
-      return LmFactory.getModuleType(myFacet.getConfiguration().getProjectType());
+    public LintModelModuleType getType() {
+      return LintModelFactory.getModuleType(myFacet.getConfiguration().getProjectType());
     }
 
     @Override
@@ -585,7 +585,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     }
   }
 
-  private static class LintGradleProject extends LmModuleProject {
+  private static class LintGradleProject extends LintModelModuleProject {
     private final AndroidModuleModel myAndroidModuleModel;
     private final AndroidFacet myFacet;
 
@@ -596,7 +596,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
       @NonNull LintClient client,
       @NonNull File dir,
       @NonNull File referenceDir,
-      @NonNull LmVariant variant,
+      @NonNull LintModelVariant variant,
       @NonNull AndroidFacet facet,
       @NonNull AndroidModuleModel androidModuleModel) {
       super(client, dir, referenceDir, variant, null);
@@ -649,12 +649,12 @@ public class AndroidLintIdeProject extends LintIdeProject {
     }
   }
 
-  private static class LintGradleLibraryProject extends LmModuleAndroidLibraryProject {
+  private static class LintGradleLibraryProject extends LintModelModuleAndroidLibraryProject {
     private LintGradleLibraryProject(@NonNull LintClient client,
                                      @NonNull File dir,
                                      @NonNull File referenceDir,
-                                     @NonNull LmDependency dependency,
-                                     @NonNull LmAndroidLibrary library) {
+                                     @NonNull LintModelDependency dependency,
+                                     @NonNull LintModelAndroidLibrary library) {
       super(client, dir, referenceDir, dependency, library);
     }
 
