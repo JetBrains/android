@@ -331,7 +331,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   private HoverHyperlinkLabel createDeselectAllLabel() {
-    HoverHyperlinkLabel label = new HoverHyperlinkLabel("Deselect all");
+    HoverHyperlinkLabel label = new HoverHyperlinkLabel("Clear selection");
     label.addHyperlinkListener(event -> getStage().getMultiSelectionModel().clearSelection());
     label.setBorder(new JBEmptyBorder(0, 0, 0, 4));
     label.setToolTipText("Click to deselect all threads/events");
