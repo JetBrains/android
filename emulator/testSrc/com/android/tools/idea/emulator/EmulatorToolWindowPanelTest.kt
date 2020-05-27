@@ -89,15 +89,6 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGBA8888 width: 253 height: 521")
     assertAppearance(ui, "image1")
 
-    emulatorView.showLongRunningOperationIndicator("Just a sec...")
-    ui.layoutAndDispatchEvents()
-    assertAppearance(ui, "image2")
-
-    emulatorView.hideLongRunningOperationIndicator()
-    ui.layoutAndDispatchEvents()
-    assertAppearance(ui, "image1")
-    assertThat(streamScreenshotCall.completion.isCancelled).isFalse()
-
     // Check EmulatorPowerButtonAction.
     var button = ui.findComponent { it is ActionButton && it.action.templateText == "Power" } ?: throw AssertionError()
     ui.mousePressOn(button)
@@ -130,6 +121,8 @@ class EmulatorToolWindowPanelTest {
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeDown"""")
+
+    assertThat(streamScreenshotCall.completion.isCancelled).isFalse()
 
     panel.destroyContent()
     assertThat(panel.emulatorView).isNull()
