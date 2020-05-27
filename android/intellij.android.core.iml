@@ -192,5 +192,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="xml-apis" level="project" />
+    <orderEntry type="module" module-name="intellij.webp" />
   </component>
 </module>
