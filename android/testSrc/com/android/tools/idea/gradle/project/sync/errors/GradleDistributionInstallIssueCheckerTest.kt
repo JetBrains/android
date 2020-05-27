@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
@@ -56,5 +57,17 @@ class GradleDistributionInstallIssueCheckerTest : AndroidGradleTestCase() {
     }
     catch (e: IOException) { }
     return zip
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      gradleDistributionInstallIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Could not install Gradle distribution from ",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

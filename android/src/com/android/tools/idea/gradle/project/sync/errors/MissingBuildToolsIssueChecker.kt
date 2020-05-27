@@ -25,12 +25,15 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallBuildToolsQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.MISSING_BUILD_TOOLS
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import java.util.function.Consumer
 import java.util.regex.Pattern
 
 /**
@@ -39,10 +42,14 @@ import java.util.regex.Pattern
  */
 class MissingBuildToolsIssueChecker: GradleIssueChecker {
   private val MISSING_BUILD_TOOLS_PATTERN = Pattern.compile("(Cause: )?([Ff])ailed to find Build Tools revision (.*)")
+  private val EXCEPTION_ILLEGAL_PATTERN = Pattern.compile("Caused by: java.lang.IllegalStateException(.*)")
+  private val EXCEPTION_EXTERNAL_SYSTEM_PATTERN =
+    Pattern.compile("Caused by: com.intellij.openapi.externalSystem.model.ExternalSystemException(.*)")
+
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (message.isBlank() ||
-        issueData.error !is IllegalStateException && issueData.error !is ExternalSystemException) return null
+    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    val message = rootCause.message ?: return null
+    if (message.isBlank() || rootCause !is IllegalStateException && rootCause !is ExternalSystemException) return null
     val matcher = MISSING_BUILD_TOOLS_PATTERN.matcher(message.lines()[0])
     if (!matcher.matches()) return null
 
@@ -68,5 +75,16 @@ class MissingBuildToolsIssueChecker: GradleIssueChecker {
         FixAndroidGradlePluginVersionQuickFix(null, null))
     }
     return buildIssueComposer
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return stacktrace != null &&
+           (EXCEPTION_ILLEGAL_PATTERN.matcher(stacktrace).find() || EXCEPTION_EXTERNAL_SYSTEM_PATTERN.matcher(stacktrace).find()) &&
+           MISSING_BUILD_TOOLS_PATTERN.matcher(failureCause.lines()[0]).matches()
   }
 }

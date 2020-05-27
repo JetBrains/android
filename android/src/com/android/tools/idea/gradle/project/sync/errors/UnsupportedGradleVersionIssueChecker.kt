@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.util.GradleWrapper
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataProvider
@@ -45,7 +46,9 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getRootCauseAndLocation
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION
 import org.jetbrains.plugins.gradle.settings.DistributionType
+import org.jetbrains.uast.USuperExpression
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import java.util.regex.Pattern
 
 class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
@@ -127,6 +130,15 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
       }
     }
     return null
+  }
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return UNSUPPORTED_GRADLE_VERSION_PATTERN_1.matcher(failureCause).matches() ||
+           UNSUPPORTED_GRADLE_VERSION_PATTERN_2.matcher(failureCause).matches()
   }
 
   class OpenGradleSettingsQuickFix: BuildIssueQuickFix {

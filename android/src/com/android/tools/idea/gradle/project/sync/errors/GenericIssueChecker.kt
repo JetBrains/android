@@ -21,12 +21,13 @@ import com.intellij.build.FilePosition
 import com.intellij.build.issue.BuildIssue
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getErrorLocation
 import java.io.File
 
 class GenericIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
+    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     val buildIssueComposer = BuildIssueComposer(message)
     if (message.isNotEmpty()) {
       val lines = message.lines()

@@ -25,6 +25,8 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.module.Module
@@ -37,12 +39,17 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.io.File
+import java.util.function.Consumer
+import java.util.regex.Pattern
 
 open class FailedToParseSdkIssueChecker: GradleIssueChecker {
+  private val FAILED_TO_PARSE = "failed to parse SDK"
+  private val EXCEPTION_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.RuntimeException(.*)")
+
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: return null
-    if (rootCause !is RuntimeException || message.isBlank() || !message.contains("failed to parse SDK")) return null
+    if (rootCause !is RuntimeException || message.isBlank() || !message.contains(FAILED_TO_PARSE)) return null
 
     // Log metrics.
     invokeLater {
@@ -62,6 +69,15 @@ open class FailedToParseSdkIssueChecker: GradleIssueChecker {
     }
 
     return buildIssueComposer.composeBuildIssue()
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return stacktrace != null && EXCEPTION_TRACE_PATTERN.matcher(stacktrace).find() && failureCause.contains(FAILED_TO_PARSE)
   }
 
   @VisibleForTesting

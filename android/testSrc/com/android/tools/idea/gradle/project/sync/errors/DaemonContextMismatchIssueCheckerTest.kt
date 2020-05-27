@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenProjectStructureQuickfix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -61,5 +62,18 @@ class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
     // Verify quickFix
     assertThat(buildIssue.quickFixes.size).isEqualTo(1)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenProjectStructureQuickfix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      daemonContextMismatchIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Build failed with Exception: The newly created daemon process has a different context than expected. \n" +
+        "what went wrong: \nJava home is different.\n Please check your build files.",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

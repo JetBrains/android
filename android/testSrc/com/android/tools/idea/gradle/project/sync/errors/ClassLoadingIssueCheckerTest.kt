@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.project.sync.errors.ClassLoadingIssueChecker.StopGradleDaemonQuickFix
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -61,4 +61,44 @@ class ClassLoadingIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(quickFixes[0]).isInstanceOf(SyncProjectRefreshingDependenciesQuickFix::class.java)
     assertThat(quickFixes[1]).isInstanceOf(StopGradleDaemonQuickFix::class.java)
   }
+
+  fun testCheckIssueHandled() {
+    // First, check when we have no such method exception raised.
+    assertThat(
+      classLoadingIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "this doesn't matter",
+        "org.gradle.api.ProjectConfigurationException: A problem occurred configuring project ':test'.\n" +
+        "Caused by: java.lang.NoSuchMethodError: no such method found\n",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    // Check when classNotFoundException is raised.
+    assertThat(
+      classLoadingIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "class ABC not found.",
+        "org.gradle.api.ProjectConfigurationException: A problem occurred configuring project ':test'.\n" +
+        "Caused by: java.lang.ClassNotFoundException: no such class found\n",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    // Check when failureCause has the desired messaging.
+    assertThat(
+      classLoadingIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "cannot be cast to",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+
+  }
+
 }

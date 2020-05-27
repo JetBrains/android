@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.utils.isDefaultGradleBuildFile
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.ActionManager
@@ -44,6 +45,7 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import org.jetbrains.plugins.gradle.settings.DistributionType
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import java.util.regex.Pattern
 
 class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
@@ -86,51 +88,60 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
     buildIssueComposer.addQuickFix("Apply Gradle plugin", ApplyGradlePluginQuickFix(filePosition))
   }
 
-  class GetGradleSettingsQuickFix : BuildIssueQuickFix {
-    override val id = "open.gradle.settings"
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return failureCause.startsWith(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX)
+  }
+}
 
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      val future = CompletableFuture<Any>()
+class GetGradleSettingsQuickFix : BuildIssueQuickFix {
+  override val id = "open.gradle.settings"
 
-      invokeLater {
-        if (isUsingWrapper(project)) {
-          val gradleWrapper = GradleWrapper.find(project) ?: return@invokeLater
-          val propertiesFile = gradleWrapper.propertiesFile ?: return@invokeLater
-          // Open properties file.
-          val descriptor = OpenFileDescriptor(project, propertiesFile)
-          FileEditorManager.getInstance(project).openTextEditor(descriptor, true)
-        }
-        future.complete(null)
+  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    val future = CompletableFuture<Any>()
+
+    invokeLater {
+      if (isUsingWrapper(project)) {
+        val gradleWrapper = GradleWrapper.find(project) ?: return@invokeLater
+        val propertiesFile = gradleWrapper.propertiesFile ?: return@invokeLater
+        // Open properties file.
+        val descriptor = OpenFileDescriptor(project, propertiesFile)
+        FileEditorManager.getInstance(project).openTextEditor(descriptor, true)
       }
-      return future
+      future.complete(null)
     }
-
-    private fun isUsingWrapper(project: Project) : Boolean {
-      if (GradleWrapper.find(project) == null) return false
-      // Check if we don't have a GradleWrapper, but the project uses a default wrapper configuration.
-      val distributionType = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)?.distributionType
-      return (distributionType == null || distributionType == DistributionType.DEFAULT_WRAPPED)
-    }
+    return future
   }
 
-  class ApplyGradlePluginQuickFix(private val myFilePosition: FilePosition) : BuildIssueQuickFix {
-    override val id = "apply.gradle.plugin"
+  private fun isUsingWrapper(project: Project) : Boolean {
+    if (GradleWrapper.find(project) == null) return false
+    // Check if we don't have a GradleWrapper, but the project uses a default wrapper configuration.
+    val distributionType = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)?.distributionType
+    return (distributionType == null || distributionType == DistributionType.DEFAULT_WRAPPED)
+  }
+}
 
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      val future = CompletableFuture<Any>()
+class ApplyGradlePluginQuickFix(private val myFilePosition: FilePosition) : BuildIssueQuickFix {
+  override val id = "apply.gradle.plugin"
 
-      invokeLater {
-        val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(myFilePosition.file) ?: return@invokeLater
-        OpenFileDescriptor(project, virtualFile, myFilePosition.startLine, myFilePosition.startColumn).navigate(true)
+  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    val future = CompletableFuture<Any>()
 
-        val actionManager = ActionManager.getInstance()
-        val action = actionManager.getAction(AddGradleDslPluginAction.ID)
-        assert(action is AddGradleDslPluginAction)
-        actionManager.tryToExecute(action, ActionCommand.getInputEvent(AddGradleDslPluginAction.ID), null,
-                                   ActionPlaces.UNKNOWN, true)
-        future.complete(null)
-      }
-      return future
+    invokeLater {
+      val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(myFilePosition.file) ?: return@invokeLater
+      OpenFileDescriptor(project, virtualFile, myFilePosition.startLine, myFilePosition.startColumn).navigate(true)
+
+      val actionManager = ActionManager.getInstance()
+      val action = actionManager.getAction(AddGradleDslPluginAction.ID)
+      assert(action is AddGradleDslPluginAction)
+      actionManager.tryToExecute(action, ActionCommand.getInputEvent(AddGradleDslPluginAction.ID), null,
+                                 ActionPlaces.UNKNOWN, true)
+      future.complete(null)
     }
+    return future
   }
 }

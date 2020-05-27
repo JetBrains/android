@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -32,5 +33,17 @@ class GradleBrokenPipeIssueCheckerTest : AndroidGradleTestCase() {
     // Verify quickFixes.
     assertThat(buildIssue.quickFixes).hasSize(1)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      gradleBrokenPipeIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Broken pipe",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -55,5 +56,27 @@ class MissingDependencyIssueCheckerTest: AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(ToggleOfflineModeQuickFix::class.java)
     assertThat(buildIssue.quickFixes[2]).isInstanceOf(SearchInBuildFilesQuickFix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      missingDependencyIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Could not find any version that matches the given value.",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingDependencyIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Could not find dependency kotlinx.\nRequired by: ':test'",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }
