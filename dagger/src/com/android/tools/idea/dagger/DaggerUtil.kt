@@ -61,6 +61,7 @@ const val DAGGER_BINDS_INSTANCE_ANNOTATION = "dagger.BindsInstance"
 const val INJECT_ANNOTATION = "javax.inject.Inject"
 const val DAGGER_COMPONENT_ANNOTATION = "dagger.Component"
 const val DAGGER_SUBCOMPONENT_ANNOTATION = "dagger.Subcomponent"
+const val DAGGER_ENTRY_POINT_ANNOTATION = "dagger.hilt.EntryPoint"
 
 private const val INCLUDES_ATTR_NAME = "includes"
 private const val MODULES_ATTR_NAME = "modules"
@@ -270,7 +271,13 @@ internal val PsiElement?.isDaggerComponentMethod: Boolean
   get() = this is PsiMethod && this.containingClass.isDaggerComponent ||
           this is KtNamedFunction && this.containingClass().isDaggerComponent
 
+internal val PsiElement?.isDaggerEntryPointMethod: Boolean
+  get() = this is PsiMethod && this.containingClass.isDaggerEntryPoint ||
+          this is KtNamedFunction && this.containingClass().isDaggerEntryPoint
+
 internal val PsiElement?.isDaggerComponent get() = isClassOrObjectAnnotatedWith(DAGGER_COMPONENT_ANNOTATION)
+
+internal val PsiElement?.isDaggerEntryPoint get() = isClassOrObjectAnnotatedWith(DAGGER_ENTRY_POINT_ANNOTATION)
 
 internal val PsiElement?.isDaggerSubcomponent get() = isClassOrObjectAnnotatedWith(DAGGER_SUBCOMPONENT_ANNOTATION)
 
@@ -295,12 +302,25 @@ private fun extractTypeAndQualifierInfo(element: PsiElement): Pair<PsiType, Qual
 }
 
 /**
- * Returns methods of interfaces annotated [DAGGER_COMPONENT_ANNOTATION] that have the a type and a [QualifierInfo] as a [provider].
+ * Returns methods of interfaces annotated [DAGGER_COMPONENT_ANNOTATION] that return a type and have a [QualifierInfo] as a [provider].
  */
 fun getDaggerComponentMethodsForProvider(provider: PsiElement): Collection<PsiMethod> {
   val (type, qualifierInfo) = extractTypeAndQualifierInfo(provider) ?: return emptyList()
   val components = getClassesWithAnnotation(provider.project, DAGGER_COMPONENT_ANNOTATION, provider.useScope)
   return components.flatMap {
+    // Instantiating methods doesn't have parameters.
+    component ->
+    component.methods.filter { it.returnType?.unboxed == type.unboxed && !it.hasParameters() }.filterByQualifier(qualifierInfo)
+  }
+}
+
+/**
+ * Returns methods of interfaces annotated [DAGGER_ENTRY_POINT_ANNOTATION] that return a type and have a [QualifierInfo] as a [provider].
+ */
+fun getDaggerEntryPointsMethodsForProvider(provider: PsiElement): Collection<PsiMethod> {
+  val (type, qualifierInfo) = extractTypeAndQualifierInfo(provider) ?: return emptyList()
+  val entryPoints = getClassesWithAnnotation(provider.project, DAGGER_ENTRY_POINT_ANNOTATION, provider.useScope)
+  return entryPoints.flatMap {
     // Instantiating methods doesn't have parameters.
     component ->
     component.methods.filter { it.returnType?.unboxed == type.unboxed && !it.hasParameters() }.filterByQualifier(qualifierInfo)

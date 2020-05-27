@@ -542,6 +542,63 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
   }
 
+  fun testEntryPointMethodsForProvider() {
+    val classFile = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      import javax.inject.Inject;
+
+      public class MyClass {
+        @Inject public MyClass() {}
+      }
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component()
+      public interface MyComponent {
+        MyClass getMyClass();
+      }
+    """.trimIndent()
+    )
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.hilt.EntryPoint;
+
+      @EntryPoint
+      public interface MyEntryPoint {
+        MyClass getMyClassInEntryPoint();
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(classFile)
+    val classProvider = myFixture.moveCaret("@Inject public MyCla|ss").parentOfType<PsiMethod>()!!
+
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(classProvider)
+
+    assertThat(presentation).contains(
+      """
+      |  Exposed by entry points (1 usage)
+      |   ${module.name} (1 usage)
+      |    test (1 usage)
+      |     MyEntryPoint (1 usage)
+      |      getMyClassInEntryPoint() (1 usage)
+      |       6MyClass getMyClassInEntryPoint();
+      """.trimMargin()
+    )
+  }
+
   fun testUsagesForModules() {
     val moduleFile = myFixture.addClass(
       //language=JAVA
