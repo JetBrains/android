@@ -22,6 +22,7 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,8 +53,10 @@ public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
   @Override
   @Nullable
   public Comparable getSortKey() {
+    VirtualFile virtualFile = getValue() != null ? getValue().getVirtualFile() : null;
+    String path = virtualFile != null ? virtualFile.getPath() : "";
     String sourceProviderName = mySourceProvider == null ? "" : mySourceProvider.getName();
-    return getQualifiedNameSortKey() + "-" + (SdkConstants.FD_MAIN.equals(sourceProviderName) ? "" : sourceProviderName);
+    return getQualifiedNameSortKey() + "-" + (SdkConstants.FD_MAIN.equals(sourceProviderName) ? "" : sourceProviderName) + "-" + path;
   }
 
   @Override

@@ -179,6 +179,7 @@ PROJECT             : MultiFlavor
             JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbc/aidl
             JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbc/assets
             JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbc/java
+            JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbc/java2
             JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbc/jni
             JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbc/ml
             JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbc/res
@@ -209,6 +210,7 @@ PROJECT             : MultiFlavor
             JavaSource          : file://<PROJECT>/app/src/secondAbc/aidl
             JavaResource        : file://<PROJECT>/app/src/secondAbc/assets
             JavaSource          : file://<PROJECT>/app/src/secondAbc/java
+            JavaSource          : file://<PROJECT>/app/src/secondAbc/java2
             JavaSource          : file://<PROJECT>/app/src/secondAbc/jni
             JavaResource        : file://<PROJECT>/app/src/secondAbc/ml
             JavaResource        : file://<PROJECT>/app/src/secondAbc/res
