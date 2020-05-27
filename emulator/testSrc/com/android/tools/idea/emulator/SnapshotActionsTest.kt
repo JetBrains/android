@@ -108,7 +108,7 @@ class SnapshotActionsTest {
     }
 
     var bootMode: BootMode? = null
-    waitForCondition(5, TimeUnit.SECONDS) { // Longer timeout for snapshot creation.
+    waitForCondition(8, TimeUnit.SECONDS) { // Longer timeout for snapshot creation.
       bootMode = SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()
       return@waitForCondition bootMode != defaultBootMode
     }
