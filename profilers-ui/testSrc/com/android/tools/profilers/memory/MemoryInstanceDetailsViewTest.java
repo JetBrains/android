@@ -239,7 +239,7 @@ public class MemoryInstanceDetailsViewTest {
     // Check that the Go To Instance menu item exists but is disabled since no instance is selected
     List<ContextMenuItem> menus = myFakeIdeProfilerComponents.getComponentContextMenus(tree);
     assertNotNull(menus);
-    assertEquals(1, menus.size());
+    assertEquals(2, menus.size());
     assertEquals("Go to Instance", menus.get(0).getText());
     assertFalse(menus.get(0).isEnabled());
 
@@ -307,5 +307,57 @@ public class MemoryInstanceDetailsViewTest {
                                     new String[]{NumberFormatter.formatInteger(ref.getShallowSize())},
                                     new String[]{NumberFormatter.formatInteger(ref.getRetainedSize())});
     }
+  }
+
+  @Test
+  public void testExpandUpToNearestGcRoot() {
+    FakeInstanceObject fake1 =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "REFERER")
+        .setName("Ref1").setFields(Collections.singletonList("mField1"))
+        .setDepth(0).setNativeSize(1).setShallowSize(2).setRetainedSize(3).build();
+    FakeInstanceObject fake2 =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 2, "REFERER")
+        .setName("Ref2").setFields(Collections.singletonList("mField2"))
+        .setDepth(4).setNativeSize(2).setShallowSize(5).setRetainedSize(6).build();
+    FakeInstanceObject fake3 =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 3, "REFERER")
+        .setName("Ref3").setFields(Collections.singletonList("mField3"))
+        .setDepth(7).setNativeSize(3).setShallowSize(8).setRetainedSize(9).build();
+
+    FakeInstanceObject fakeRootObject = new FakeInstanceObject.Builder(myFakeCaptureObject, 2, "REFEREE")
+      .setName("MockRoot").build();
+
+    fake1.setFieldValue("mField1", OBJECT, fakeRootObject);
+    fake2.setFieldValue("mField2", OBJECT, fakeRootObject);
+    fake3.setFieldValue("mField3", OBJECT, fakeRootObject);
+
+    myFakeCaptureObject
+      .addInstanceObjects(ImmutableSet.of(fake1, fake2, fake3, fakeRootObject));
+
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false,
+                                new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
+      null);
+    myStage.getCaptureSelection().selectInstanceObject(fakeRootObject);
+
+    JTree tree = myDetailsView.getReferenceTree();
+
+    // Check that the Go To Instance menu item exists but is disabled since no instance is selected
+    List<ContextMenuItem> menus = myFakeIdeProfilerComponents.getComponentContextMenus(tree);
+    assertNotNull(menus);
+    assertEquals(2, menus.size());
+    ContextMenuItem expandItem = menus.get(1);
+    assertEquals("Show Nearest GC Root", menus.get(1).getText());
+    assertFalse(expandItem.isEnabled());
+
+    // Selects the referer node and triggers the context menu action to select the ref instance.
+    tree.setSelectionPath(new TreePath(tree.getModel().getRoot()));
+    assertTrue(expandItem.isEnabled());
+
+    assertEquals(((ReferenceTreeNode)tree.getSelectionPath().getLastPathComponent()).getAdapter(), fakeRootObject);
+    expandItem.run();
+    assertEquals(((ReferenceObject)((ReferenceTreeNode)tree.getSelectionPath().getLastPathComponent()).getAdapter())
+                   .getReferenceInstance(),
+                 fake1);
   }
 }
