@@ -133,7 +133,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
 
     JPanel titleWrapper = new JPanel(new BorderLayout());
     titleWrapper.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, DEFAULT_BORDER_COLOR));
-    myTitle.setBorder(new JBEmptyBorder(4, 0, 4, 0));
+    myTitle.setBorder(new JBEmptyBorder(4, 4, 4, 0));
     titleWrapper.add(myTitle, BorderLayout.CENTER);
     titleWrapper.add(new CloseButton(e -> mySelection.selectInstanceObject(null)), BorderLayout.EAST);
     myPanel.add(myTabsPanel, BorderLayout.CENTER);
