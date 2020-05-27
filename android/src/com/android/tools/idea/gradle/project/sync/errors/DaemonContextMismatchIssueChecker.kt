@@ -19,21 +19,25 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenProjectStructureQuickfix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import java.util.function.Consumer
 
 class DaemonContextMismatchIssueChecker : GradleIssueChecker {
   private val JAVA_HOME = "javaHome="
+  private val ERROR_DAEMON = "The newly created daemon process has a different context than expected."
+  private val JAVA_HOME_DIFFERENT = "Java home is different."
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     val messageLines = message.lines()
     if (messageLines[0].isBlank() ||
-        !messageLines[0].contains("The newly created daemon process has a different context than expected.") ||
-        messageLines.size <= 3 || messageLines[2] != "Java home is different.") return null
+        !messageLines[0].contains(ERROR_DAEMON) || messageLines.size <= 3 || messageLines[2] != JAVA_HOME_DIFFERENT) return null
 
     val expectedAndActual = parseExpectedAndActualJavaHome(message) ?: return null
     if (expectedAndActual.isEmpty()) return null
@@ -47,6 +51,16 @@ class DaemonContextMismatchIssueChecker : GradleIssueChecker {
       addDescription("Please configure the JDK to match the expected one.")
       addQuickFix("Open JDK Settings", OpenProjectStructureQuickfix())
     }.composeBuildIssue()
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    val failureLines = failureCause.lines()
+    return failureLines[0].contains(ERROR_DAEMON) && failureLines.size > 3 && failureLines[2] == JAVA_HOME_DIFFERENT
   }
 
   private fun parseExpectedAndActualJavaHome(message: String): String? {
