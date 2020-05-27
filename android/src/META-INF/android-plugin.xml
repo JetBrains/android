@@ -398,8 +398,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.ddms.screenrecord.ScreenRecorderPersistentOptions"/>
 
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
-
-    <applicationInitializedListener implementation="com.android.tools.adtui.webp.WebpMetadata"/>
+    
     <fileType name="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlFileType" fieldName="INSTANCE"
               extensions="aidl" language="AIDL"/>
     <fileType name="Android RenderScript" implementationClass="com.android.tools.idea.lang.rs.AndroidRenderscriptFileType"
@@ -410,7 +409,6 @@
               extensions="psd"/>
     <fileType name="APK" implementationClass="com.android.tools.idea.apk.ApkFileType" fieldName="INSTANCE" extensions="apk"/>
     <fileType name="Font" implementationClass="com.android.tools.idea.fileTypes.FontFileType" fieldName="INSTANCE" extensions="ttf;otf"/>
-    <fileType name="Image" extensions="webp"/>
 
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.ManifestEditorProvider"/>
