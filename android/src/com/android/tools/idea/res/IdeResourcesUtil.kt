@@ -1229,7 +1229,14 @@ private fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name:
     items.isNotEmpty() && (items[0] as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
   }
   else {
-    !repoManager.resourceVisibility.isPrivate(type, name)
+    val repo = repoManager.appResources
+    val item = repo.getResources(namespace, type, name).firstOrNull()
+    if (item?.libraryName != null) {
+      (item as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
+    }
+    else {
+      !repoManager.resourceVisibility.isPrivate(type, name)
+    }
   }
 }
 
