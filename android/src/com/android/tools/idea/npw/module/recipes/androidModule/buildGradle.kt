@@ -118,6 +118,7 @@ dependencies {
       .split("\n").joinToString("\n") {
         it.replace("'", "\"")
           .toKtsFunction("compileSdkVersion")
+          .toKtsProperty("buildToolsVersion")
           .toKtsProperty("applicationId")
           .toKtsFunction("minSdkVersion")
           .toKtsFunction("targetSdkVersion")
