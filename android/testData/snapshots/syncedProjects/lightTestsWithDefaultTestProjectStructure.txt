@@ -48,7 +48,6 @@ PROJECT             : LightSyncBasedTestsWithDefaultTestProjectStructureTest
             TypeId              : android-gradle
             GradlePath          : :
         CONENT_ENTRY        : file://<PROJECT>
-            JavaResource        : file://<PROJECT>
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK

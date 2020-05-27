@@ -134,7 +134,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTest
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/java
@@ -144,7 +143,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/java
@@ -154,7 +152,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/debug
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/aidl
             JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/debug/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/java
@@ -164,7 +161,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/debug/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/rs
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/shaders
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/main
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/aidl
             JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/main/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/java
@@ -174,7 +170,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/main/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/rs
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/test
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/java
@@ -184,7 +179,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/rs
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/testDebug
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/java
@@ -636,7 +630,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/java
@@ -646,7 +639,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/java
@@ -656,7 +648,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/debug
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/aidl
             JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/debug/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/java
@@ -666,7 +657,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/debug/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/rs
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/shaders
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/main
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/aidl
             JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/main/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/java
@@ -676,7 +666,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/main/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/rs
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/test
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/test/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/java
@@ -686,7 +675,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/test/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/rs
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/java
@@ -1144,7 +1132,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTest
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/java
@@ -1154,7 +1141,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/java
@@ -1164,7 +1150,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/debug
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/aidl
             JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/debug/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/java
@@ -1174,7 +1159,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/debug/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/rs
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/shaders
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/main
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/aidl
             JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/main/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/java
@@ -1184,7 +1168,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/main/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/rs
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/test
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/java
@@ -1194,7 +1177,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/rs
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/testDebug
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/java
@@ -1597,7 +1579,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/java
@@ -1607,7 +1588,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/java
@@ -1617,7 +1597,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/debug
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/aidl
             JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/debug/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/java
@@ -1627,7 +1606,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/debug/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/rs
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/shaders
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/main
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/aidl
             JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/main/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/java
@@ -1637,7 +1615,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/main/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/rs
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/test
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/test/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/java
@@ -1647,7 +1624,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/test/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/rs
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/java
@@ -2128,7 +2104,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
@@ -2138,7 +2113,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
@@ -2148,7 +2122,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/app/src/debug
             JavaSource          : file://<PROJECT>/app/src/debug/aidl
             JavaResource        : file://<PROJECT>/app/src/debug/assets
             JavaSource          : file://<PROJECT>/app/src/debug/java
@@ -2158,7 +2131,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/app/src/debug/resources
             JavaSource          : file://<PROJECT>/app/src/debug/rs
             JavaSource          : file://<PROJECT>/app/src/debug/shaders
-            JavaResource        : file://<PROJECT>/app/src/main
             JavaSource          : file://<PROJECT>/app/src/main/aidl
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
@@ -2168,7 +2140,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
             JavaSource          : file://<PROJECT>/app/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/test
             JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
@@ -2178,7 +2149,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
             JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
@@ -2631,7 +2601,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/lib/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/lib/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTest
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/java
@@ -2641,7 +2610,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/java
@@ -2651,7 +2619,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/lib/src/debug
             JavaSource          : file://<PROJECT>/lib/src/debug/aidl
             JavaResource        : file://<PROJECT>/lib/src/debug/assets
             JavaSource          : file://<PROJECT>/lib/src/debug/java
@@ -2661,7 +2628,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/lib/src/debug/resources
             JavaSource          : file://<PROJECT>/lib/src/debug/rs
             JavaSource          : file://<PROJECT>/lib/src/debug/shaders
-            JavaResource        : file://<PROJECT>/lib/src/main
             JavaSource          : file://<PROJECT>/lib/src/main/aidl
             JavaResource        : file://<PROJECT>/lib/src/main/assets
             JavaSource          : file://<PROJECT>/lib/src/main/java
@@ -2671,7 +2637,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/lib/src/main/resources
             JavaSource          : file://<PROJECT>/lib/src/main/rs
             JavaSource          : file://<PROJECT>/lib/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/lib/src/test
             JavaSource (test)   : file://<PROJECT>/lib/src/test/aidl
             JavaResource (test) : file://<PROJECT>/lib/src/test/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/test/java
@@ -2681,7 +2646,6 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/lib/src/test/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/test/rs
             JavaSource (test)   : file://<PROJECT>/lib/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/lib/src/testDebug
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/java

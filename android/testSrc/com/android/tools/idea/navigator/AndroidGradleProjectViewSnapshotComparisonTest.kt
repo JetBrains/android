@@ -75,7 +75,6 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
       TestProjectToSnapshotPaths.MULTI_FLAVOR,
       projectViewSettings = ProjectViewSettings(hideEmptyPackages = true, flattenPackages = true)
     )
-    // TODO(b/153882815): Update the snapshot when fixed. Currently source code nodes are missing.
     assertIsEqualToSnapshot(text)
   }
 
