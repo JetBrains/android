@@ -35,6 +35,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileEditor.impl.text.QuickDefinitionProvider;
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -51,7 +52,7 @@ import org.jetbrains.annotations.NotNull;
  * accepted, creating the editor using {@link #createEditor(Project, VirtualFile)}, and specifying their ID via {@link #getEditorTypeId()}.
  * This parent class in turn is responsible for registering the accepted types against {@link DesignerTypeRegistrar}.
  */
-public abstract class DesignerEditorProvider implements FileEditorProvider, DumbAware {
+public abstract class DesignerEditorProvider implements FileEditorProvider, QuickDefinitionProvider, DumbAware {
 
   @NotNull
   private final List<DesignerEditorFileType> myAcceptedTypes;
