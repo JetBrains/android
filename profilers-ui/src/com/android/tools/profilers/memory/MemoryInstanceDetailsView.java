@@ -530,6 +530,32 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
       }
     });
 
+    contextMenuInstaller.installGenericContextMenu(tree, new ContextMenuItem() {
+      @NotNull
+      @Override
+      public String getText() {
+        return "Show Nearest GC Root";
+      }
+
+      @Nullable
+      @Override
+      public Icon getIcon() {
+        return null;
+      }
+
+      @Override
+      public boolean isEnabled() {
+        return myReferenceTree != null &&
+               myReferenceTree.getSelectionPath() != null &&
+               myReferenceTree.getSelectionPath().getLastPathComponent() instanceof ReferenceTreeNode;
+      }
+
+      @Override
+      public void run() {
+        expandFirstReferenceUpToGcRoot((ReferenceTreeNode)myReferenceTree.getSelectionPath().getLastPathComponent());
+      }
+    });
+
     tree.addFocusListener(new FocusAdapter() {
       @Override
       public void focusGained(FocusEvent e) {
@@ -540,5 +566,21 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     });
 
     return tree;
+  }
+
+  @VisibleForTesting
+  private void expandFirstReferenceUpToGcRoot(ReferenceTreeNode node) {
+    if (node.getAdapter().getDepth() > 0) {
+      node.expandNode();
+      List<MemoryObjectTreeNode<ValueObject>> children = node.myChildren;
+      if (!children.isEmpty() && children.get(0) instanceof ReferenceTreeNode) {
+        // This relies on that the reference list is always sorted by depth
+        expandFirstReferenceUpToGcRoot((ReferenceTreeNode)children.get(0));
+      }
+    } else if (myReferenceTree != null) {
+      TreePath path = new TreePath(node.getPathToRoot().toArray());
+      myReferenceTree.expandPath(path);
+      myReferenceTree.setSelectionPath(path);
+    }
   }
 }
