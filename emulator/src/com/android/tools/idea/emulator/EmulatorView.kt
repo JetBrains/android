@@ -154,7 +154,7 @@ class EmulatorView(
 
       override fun keyReleased(event: KeyEvent) {
         val keyboardEvent =
-          when (val c = event.keyCode) {
+          when (event.keyCode) {
             VK_LEFT, VK_KP_LEFT -> createHardwareKeyEvent("ArrowLeft")
             VK_RIGHT, VK_KP_RIGHT -> createHardwareKeyEvent("ArrowRight")
             VK_UP, VK_KP_UP -> createHardwareKeyEvent("ArrowUp")
@@ -371,6 +371,7 @@ class EmulatorView(
   private fun updateConnectionState(connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
       remove(disconnectedStateLabel)
+      invokeLaterInAnyModalityState(this::hideLongRunningOperationIndicator)
       if (isVisible) {
         requestScreenshotFeed()
       }
@@ -568,7 +569,6 @@ class EmulatorView(
         skinLayout = SkinLayout(Dimension(w, h))
       }
 
-      val firstTime = displayImage == null
       displayRotationInternal = screenshot.rotation
       displayWidth = displayShape.width
       displayHeight = displayShape.height
@@ -584,10 +584,6 @@ class EmulatorView(
       }
       else {
         imageSource.newPixels(screenshot.pixels, ColorModel.getRGBdefault(), 0, w)
-      }
-
-      if (firstTime) {
-        findLoadingPanel()?.run { stopLoading() }
       }
 
       frameNumber++
