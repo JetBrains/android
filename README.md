@@ -7,7 +7,6 @@ See the links below for implementation details and make sure to read
 
 ## Contents:
 * [Assistant](assistant/src/com/android/tools/idea/assistant/README.md)
-* [Building webp](adt-ui/lib/libwebp/README.md)
 * [Color picker](android/src/com/android/tools/idea/ui/resourcechooser/colorpicker2/README.md)
 * [Custom languages](android-lang/src/com/android/tools/idea/lang/README.md)
 * [Databinding](android-lang-databinding/README.md)
