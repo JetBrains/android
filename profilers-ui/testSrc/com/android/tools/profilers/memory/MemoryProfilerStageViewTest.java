@@ -757,6 +757,18 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     view.getNativeAllocationButton().doClick();
     assertThat(view.getNativeAllocationButton().isEnabled()).isFalse();
   }
+  @Test
+  public void testHeapDumpButtonDisabledWhenRecording() {
+    assumeTrue(myUnifiedPipeline);
+    myIdeProfilerServices.enableNativeMemorySampling(true);
+    MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
+    view.getNativeAllocationButton().doClick();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(view.getHeapDumpButton().isEnabled()).isFalse();
+    view.getNativeAllocationButton().doClick();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(view.getHeapDumpButton().isEnabled()).isTrue();
+  }
 
   @Test
   public void testWhenSessionDiesNativeAllocationButtonIsDisabled() {
