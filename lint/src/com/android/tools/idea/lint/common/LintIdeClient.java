@@ -37,9 +37,9 @@ import com.android.tools.lint.detector.api.Severity;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.android.tools.lint.helpers.DefaultUastParser;
-import com.android.tools.lint.model.LmLintOptions;
-import com.android.tools.lint.model.LmModule;
-import com.android.tools.lint.model.LmSeverity;
+import com.android.tools.lint.model.LintModelLintOptions;
+import com.android.tools.lint.model.LintModelModule;
+import com.android.tools.lint.model.LintModelSeverity;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
@@ -124,10 +124,10 @@ public class LintIdeClient extends LintClient implements Disposable {
     Collection<com.android.tools.lint.detector.api.Project> projects = request.getProjects();
     if (projects != null && !projects.isEmpty()) {
       com.android.tools.lint.detector.api.Project main = request.getMainProject(projects.iterator().next());
-      LmModule model = main.getBuildModule();
+      LintModelModule model = main.getBuildModule();
       if (model != null) {
         try {
-          LmLintOptions lintOptions = model.getLintOptions();
+          LintModelLintOptions lintOptions = model.getLintOptions();
           driver.setCheckTestSources(lintOptions.getCheckTestSources());
           driver.setCheckDependencies(lintOptions.getCheckDependencies());
         }
@@ -268,17 +268,17 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project, @Nullable final LintDriver driver) {
     if (project.isGradleProject() && project.isAndroidProject() && !project.isLibrary()) {
-      LmModule model = project.getBuildModule();
+      LintModelModule model = project.getBuildModule();
       if (model != null) {
         try {
-          LmLintOptions lintOptions = model.getLintOptions();
-          final Map<String, LmSeverity> overrides = lintOptions.getSeverityOverrides();
+          LintModelLintOptions lintOptions = model.getLintOptions();
+          final Map<String, LintModelSeverity> overrides = lintOptions.getSeverityOverrides();
           if (overrides != null && !overrides.isEmpty()) {
             return new DefaultConfiguration(this, project, null) {
               @NonNull
               @Override
               public Severity getSeverity(@NonNull Issue issue) {
-                LmSeverity severity = overrides.get(issue.getId());
+                LintModelSeverity severity = overrides.get(issue.getId());
                 if (severity != null) {
                   switch (severity) {
                     case FATAL:
