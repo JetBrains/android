@@ -158,7 +158,7 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
       var value = rotationX.value.toString()
       rotationXValue.text = value
       virtualButton.setRotateX(rotationX.value.toDouble())
-      if (!rotationX.valueIsAdjusting) {
+      if (!rotationX.valueIsAdjusting && !processingModelUpdate) {
         writeValue(propertyRotationX, value)
       }
       processingChange = false
@@ -168,7 +168,7 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
       var value = rotationY.value.toString()
       rotationYValue.text = value
       virtualButton.setRotateY(rotationY.value.toDouble())
-      if (!rotationY.valueIsAdjusting) {
+      if (!rotationY.valueIsAdjusting &&!processingModelUpdate) {
         writeValue(propertyRotationY, value)
       }
       processingChange = false
@@ -178,7 +178,7 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
       var value = rotationZ.value.toString()
       rotationZValue.text = value
       virtualButton.setRotate(rotationZ.value.toDouble())
-      if (!rotationZ.valueIsAdjusting) {
+      if (!rotationZ.valueIsAdjusting && !processingModelUpdate) {
         writeValue(propertyRotationZ, value)
       }
       processingChange = false
