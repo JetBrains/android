@@ -181,7 +181,7 @@ public final class AdtUiUtils {
   public static JComponent createHorizontalSeparator() {
     JPanel separatorWrapper = new JPanel(new TabularLayout("*", "*,Fit,*"));
     separatorWrapper.add(new JSeparator(), new TabularLayout.Constraint(1, 0));
-    Dimension size = new Dimension(1, 12);
+    Dimension size = new Dimension(1, 2);
     separatorWrapper.setMinimumSize(size);
     separatorWrapper.setPreferredSize(size);
     separatorWrapper.setOpaque(false);
