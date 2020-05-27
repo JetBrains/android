@@ -48,7 +48,6 @@ PROJECT             : testLightTestsWithDefaultTestProjectStructureForAndroidTes
             TypeId              : android-gradle
             GradlePath          : :
         CONENT_ENTRY        : file://<TEMP>
-            JavaResource        : file://<TEMP>
             JavaResource        : file://<TEMP>/res
             JavaSource          : file://<TEMP>/src
         JDK                 : <NAME_CUT> Android SDK
