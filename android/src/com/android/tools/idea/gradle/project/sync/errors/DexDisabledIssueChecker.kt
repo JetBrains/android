@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
@@ -69,22 +68,11 @@ class DexDisabledIssueChecker: GradleIssueChecker {
       return null
     }
     var rootMessage = rootCause.message ?: return null
-    if (!rootMessage.startsWith("Error: ")) {
-      return null
-    }
     rootMessage = rootMessage.removePrefix("Error: ")
-    val requiredApiLevel: String
-    when {
-      rootMessage.startsWith(INVOKE_CUSTOM) -> {
-        requiredApiLevel = "26"
-      }
-      rootMessage.startsWith(DEFAULT_INTERFACE_METHOD) -> {
-        requiredApiLevel = "24"
-      }
-      rootMessage.startsWith(STATIC_INTERFACE_METHOD) -> {
-        requiredApiLevel = "24"
-      }
-      else -> return null
+    if ((!rootMessage.startsWith(INVOKE_CUSTOM))
+        && (!rootMessage.startsWith(DEFAULT_INTERFACE_METHOD))
+        && (!rootMessage.startsWith(STATIC_INTERFACE_METHOD))) {
+      return null
     }
 
     // Confirm that there is a DexArchiveBuilderException
@@ -96,22 +84,30 @@ class DexDisabledIssueChecker: GradleIssueChecker {
     }
     val modulePath = extractModulePathFromError(issueData.error)
     if (modulePath != null) {
-      issueComposer.addQuickFix(EnableDexWithApiLevelQuickFixModule(modulePath, requiredApiLevel))
+      issueComposer.addQuickFix(SetLanguageLevel8ModuleQuickFix(modulePath, setJvmTarget = false))
     }
-    issueComposer.addQuickFix(EnableDexWithApiLevelQuickFixAll(requiredApiLevel))
-    return issueComposer.composeBuildIssue()
+    issueComposer.addQuickFix(SetLanguageLevel8AllQuickFix(setJvmTarget = false))
+    return DexDisabledIssue(issueComposer.composeBuildIssue())
   }
 }
 
-abstract class AbstractEnableDexWithApiLevelQuickFix(val apiLevel: String?): DescribedBuildIssueQuickFix {
+class DexDisabledIssue(private val buildIssue: BuildIssue): BuildIssue {
+  override val title = buildIssue.title
+  override val description = buildIssue.description
+  override val quickFixes = buildIssue.quickFixes
+  override fun getNavigatable(project: Project) = buildIssue.getNavigatable(project)
+}
+
+abstract class AbstractSetLanguageLevel8QuickFix(private val setJvmTarget: Boolean, private val modulesDescription: String) : DescribedBuildIssueQuickFix {
+  override val description = "Change Java language level${if (setJvmTarget) " and jvmTarget" else ""} to 8 in $modulesDescription if using a lower level."
+
   abstract fun buildFilesToApply(project: Project): List<VirtualFile>
-  abstract val commandSuffix: String
 
   override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     try {
       if (!project.isDisposed) {
-        enableDexInBuildFiles(project)
+        setJavaLevel8InBuildFiles(project, setJvmTarget)
       }
       future.complete(null)
     }
@@ -122,24 +118,22 @@ abstract class AbstractEnableDexWithApiLevelQuickFix(val apiLevel: String?): Des
   }
 
   @VisibleForTesting
-  fun enableDexInBuildFiles(project: Project) {
+  fun setJavaLevel8InBuildFiles(project: Project, jvmTarget: Boolean) {
     val buildFiles = buildFilesToApply(project)
     if (buildFiles.isEmpty()) {
       // There is nothing to change, show an error message
-      Messages.showErrorDialog(project, "Could not determine build files to apply fix", "Enable desugaring")
+      Messages.showErrorDialog(project, "Could not determine build files to apply fix", "Change Java language level to 8")
     }
     else {
-      val processor = EnableDexProcessor(project, buildFiles, apiLevel, commandSuffix)
+      val processor = SetJavaLanguageLevel8Processor(project, buildFiles, jvmTarget, modulesDescription)
       processor.setPreviewUsages(true)
       processor.run()
     }
   }
 }
 
-class EnableDexWithApiLevelQuickFixAll(apiLevel: String?): AbstractEnableDexWithApiLevelQuickFix(apiLevel) {
-  override val description = "Enable desugaring${apiLevel?.let{" and set minSdkVersion to $it"} ?: ""} in all modules."
-  override val id = "enable.desugaring.all${apiLevel?.let{".$apiLevel"} ?: ""}"
-  override val commandSuffix = " in all modules"
+class SetLanguageLevel8AllQuickFix(setJvmTarget: Boolean) : AbstractSetLanguageLevel8QuickFix(setJvmTarget, "all modules") {
+  override val id = "set.java.level.8.all"
 
   override fun buildFilesToApply(project: Project) = ModuleManager.getInstance(project)
     .modules
@@ -148,10 +142,8 @@ class EnableDexWithApiLevelQuickFixAll(apiLevel: String?): AbstractEnableDexWith
     .mapNotNull { it.buildFile}
 }
 
-class EnableDexWithApiLevelQuickFixModule(val modulePath: String, apiLevel: String?): AbstractEnableDexWithApiLevelQuickFix(apiLevel) {
-  override val description: String = "Enable desugaring${apiLevel?.let{" and set minSdkVersion to $it"} ?: ""} in module $modulePath."
-  override val id: String = "enable.desugaring.module${apiLevel?.let{".$apiLevel"} ?: ""}"
-  override val commandSuffix = " in $modulePath"
+class SetLanguageLevel8ModuleQuickFix(val modulePath: String, setJvmTarget: Boolean): AbstractSetLanguageLevel8QuickFix(setJvmTarget, "module $modulePath") {
+  override val id = "set.java.level.8.module"
 
   override fun buildFilesToApply(project: Project) = listOf(findModuleByGradlePath(project, modulePath))
     .filter { it != null && AndroidFacet.getInstance(it) != null }
@@ -159,16 +151,18 @@ class EnableDexWithApiLevelQuickFixModule(val modulePath: String, apiLevel: Stri
     .mapNotNull { it.buildFile}
 }
 
-private class EnableDexProcessor(project: Project, private val buildFiles: List<VirtualFile>, private val apiLevel: String?,
-                         private val commandSuffix: String) : BaseRefactoringProcessor(project) {
+private class SetJavaLanguageLevel8Processor(
+  project: Project,
+  private val buildFiles: List<VirtualFile>,
+  val setJvmTarget: Boolean,
+  private val modulesDescription: String)
+  : BaseRefactoringProcessor(project) {
   /**
-   * Find the points in build.gradle where the min SDK and java compatibility levels can be updated.
-   *
-   * For min SDK looks for android.defaultConfig.minSdkVersion and if the value is lower than apiLevel, then adds its usage. If the element
-   * cannot be found then adds the deepest of the exiting parents.
-   *
    * For Java compatibility looks for android.compileOptions.sourceCompatibility and android.compileOptions.targetCompatibility and adds
    * usage if its value is lower than 1.8. If the elements do not exist then adds usage of the parents.
+   *
+   * If setJvmTarget is true, also looks for android.kotlinOptions.jvmTarget and adds usage if its value is lower than 1.8. If the elements
+   * do not exist then adds usage of the parents.
    */
   override fun findUsages(): Array<UsageInfo> {
     val projectBuildModel = ProjectBuildModel.get(myProject)
@@ -178,36 +172,9 @@ private class EnableDexProcessor(project: Project, private val buildFiles: List<
       if (!file.isValid || !file.isWritable) {
         continue
       }
-      val elementToUsage = mutableMapOf<PsiElement, DexUsageInfo>()
+      val elementToUsage = mutableMapOf<PsiElement, SetJava8UsageInfo>()
       val android = projectBuildModel.getModuleBuildModel(file).android()
       val androidElement = (android as GradleDslBlockModel).psiElement!!
-
-      // Api level usages (add deepest existing element of android.defaultConfig.minSdkVersion)
-      if (apiLevel != null) {
-        var usageElement: PsiElement? = null
-        val apiLevelValue = Integer.valueOf(apiLevel)
-        val defaultConfig = android.defaultConfig()
-        val defaultConfigElement = (defaultConfig as GradleDslBlockModel).psiElement
-        if (defaultConfigElement == null) {
-          usageElement = androidElement
-        }
-        else {
-          val minSdkVersion = defaultConfig.minSdkVersion()
-          val minSdkVersionElement = minSdkVersion.fullExpressionPsiElement
-          if (minSdkVersionElement == null) {
-            usageElement = defaultConfigElement
-          }
-          else {
-            val minSdkVersionValue = minSdkVersion.getValue(INTEGER_TYPE)
-            if ((minSdkVersionValue == null) || (apiLevelValue > minSdkVersionValue)) {
-              usageElement = minSdkVersionElement
-            }
-          }
-        }
-        if (usageElement != null) {
-          elementToUsage.getOrPut(usageElement,  {DexUsageInfo(usageElement, file)}).apiLevel = apiLevel
-        }
-      }
 
       // source and target compatibility
       val compileOptions = android.compileOptions()
@@ -232,10 +199,31 @@ private class EnableDexProcessor(project: Project, private val buildFiles: List<
       }
 
       getCompatibilityUsage(compileOptions.sourceCompatibility())?.let {
-        elementToUsage.getOrPut(it, {DexUsageInfo(it, file)}).setSourceCompatibility = true
+        elementToUsage.getOrPut(it, {SetJava8UsageInfo(it, file)}).setSourceCompatibility = true
       }
       getCompatibilityUsage(compileOptions.targetCompatibility())?.let {
-        elementToUsage.getOrPut(it, {DexUsageInfo(it, file)}).setTargetCompatibility = true
+        elementToUsage.getOrPut(it, {SetJava8UsageInfo(it, file)}).setTargetCompatibility = true
+      }
+
+      // kotlin options
+      if (setJvmTarget) {
+        val kotlinOptions = android.kotlinOptions()
+        val kotlinOptionsElement = (kotlinOptions as GradleDslBlockModel).psiElement
+        if (kotlinOptionsElement == null) {
+          elementToUsage.getOrPut(androidElement, { SetJava8UsageInfo(androidElement, file) }).setKotlinTarget = true
+        }
+        else {
+          val jvmTarget = kotlinOptions.jvmTarget()
+          val jvmTargetElement = jvmTarget.fullExpressionPsiElement
+          if (jvmTargetElement == null) {
+            elementToUsage.getOrPut(kotlinOptionsElement, { SetJava8UsageInfo(kotlinOptionsElement, file) }).setKotlinTarget = true
+          }
+          else {
+            if (jvmTarget.toLanguageLevel()!!.isLessThan(LanguageLevel.JDK_1_8)) {
+              elementToUsage.getOrPut(jvmTargetElement, { SetJava8UsageInfo(jvmTargetElement, file) }).setKotlinTarget = true
+            }
+          }
+        }
       }
       usages.addAll(elementToUsage.values)
     }
@@ -246,29 +234,29 @@ private class EnableDexProcessor(project: Project, private val buildFiles: List<
     val projectBuildModel = ProjectBuildModel.get(myProject)
     for (file in buildFiles) {
       val fileUsages = Arrays.stream(usages)
-        .filter { it is DexUsageInfo && it.buildFile == file }
+        .filter { it is SetJava8UsageInfo && it.buildFile == file }
         .collect(Collectors.toList())
       if (fileUsages.isEmpty()) {
         continue
       }
       val android = projectBuildModel.getModuleBuildModel(file).android()
       fileUsages.forEach {
-        val dexUsage = it as DexUsageInfo
-        if (dexUsage.apiLevel != null) {
-          android.defaultConfig().minSdkVersion().setValue(Integer.valueOf(dexUsage.apiLevel))
-        }
-        if (dexUsage.setSourceCompatibility) {
+        val setJava8Usage = it as SetJava8UsageInfo
+        if (setJava8Usage.setSourceCompatibility) {
           android.compileOptions().sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_8)
         }
-        if (dexUsage.setTargetCompatibility) {
+        if (setJava8Usage.setTargetCompatibility) {
           android.compileOptions().targetCompatibility().setLanguageLevel(LanguageLevel.JDK_1_8)
+        }
+        if (setJava8Usage.setKotlinTarget) {
+          android.kotlinOptions().jvmTarget().setLanguageLevel(LanguageLevel.JDK_1_8)
         }
       }
     }
     projectBuildModel.applyChanges()
   }
 
-  override fun getCommandName() = "Enable desugaring$commandSuffix"
+  override fun getCommandName() = "Set Java level 8 in $modulesDescription"
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptor {
@@ -280,17 +268,15 @@ private class EnableDexProcessor(project: Project, private val buildFiles: List<
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader(): String {
-        return "Enable desugaring${if (apiLevel != null) " and set min SDK API level to $apiLevel" else ""}."
-      }
+      override fun getProcessedElementsHeader() = "Set Java level to 8."
     }
   }
 }
 
-private class DexUsageInfo(element: PsiElement, val buildFile: VirtualFile): UsageInfo(element) {
-  var apiLevel: String? = null
+private class SetJava8UsageInfo(element: PsiElement, val buildFile: VirtualFile): UsageInfo(element) {
   var setSourceCompatibility: Boolean = false
   var setTargetCompatibility: Boolean = false
+  var setKotlinTarget: Boolean = false
 
   override fun getTooltipText(): String {
     val lines = ArrayList<String>()
@@ -300,8 +286,8 @@ private class DexUsageInfo(element: PsiElement, val buildFile: VirtualFile): Usa
     if (setTargetCompatibility) {
       lines.add("android.compileOptions.targetCompatibility to VERSION_1_8")
     }
-    if (apiLevel != null) {
-      lines.add("android.baseConfig.minSdkVersion to $apiLevel")
+    if (setKotlinTarget) {
+      lines.add("android.kotlinOptions.jvmTarget to 1.8")
     }
     return lines.joinToString(prefix = "Set ", separator = ", ")
   }
