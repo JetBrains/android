@@ -91,7 +91,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/free/debug
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/free/debug
             JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/free/debug
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
@@ -101,7 +100,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
@@ -111,7 +109,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestFree
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/java
@@ -121,7 +118,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/java
@@ -131,7 +127,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/shaders
-            JavaResource        : file://<PROJECT>/app/src/debug
             JavaSource          : file://<PROJECT>/app/src/debug/aidl
             JavaResource        : file://<PROJECT>/app/src/debug/assets
             JavaSource          : file://<PROJECT>/app/src/debug/java
@@ -141,7 +136,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/app/src/debug/resources
             JavaSource          : file://<PROJECT>/app/src/debug/rs
             JavaSource          : file://<PROJECT>/app/src/debug/shaders
-            JavaResource        : file://<PROJECT>/app/src/free
             JavaSource          : file://<PROJECT>/app/src/free/aidl
             JavaResource        : file://<PROJECT>/app/src/free/assets
             JavaSource          : file://<PROJECT>/app/src/free/java
@@ -151,7 +145,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/app/src/free/resources
             JavaSource          : file://<PROJECT>/app/src/free/rs
             JavaSource          : file://<PROJECT>/app/src/free/shaders
-            JavaResource        : file://<PROJECT>/app/src/freeDebug
             JavaSource          : file://<PROJECT>/app/src/freeDebug/aidl
             JavaResource        : file://<PROJECT>/app/src/freeDebug/assets
             JavaSource          : file://<PROJECT>/app/src/freeDebug/java
@@ -161,7 +154,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/app/src/freeDebug/resources
             JavaSource          : file://<PROJECT>/app/src/freeDebug/rs
             JavaSource          : file://<PROJECT>/app/src/freeDebug/shaders
-            JavaResource        : file://<PROJECT>/app/src/main
             JavaSource          : file://<PROJECT>/app/src/main/aidl
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
@@ -171,7 +163,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
             JavaSource          : file://<PROJECT>/app/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/test
             JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
@@ -181,7 +172,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
             JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
@@ -191,7 +181,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/testFree
             JavaSource (test)   : file://<PROJECT>/app/src/testFree/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testFree/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testFree/java
@@ -201,7 +190,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/app/src/testFree/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testFree/rs
             JavaSource (test)   : file://<PROJECT>/app/src/testFree/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug
             JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/java
@@ -857,7 +845,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/mainModule/build/generated/res/rs/free/debug
             JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/source/buildConfig/androidTest/free/debug
             JavaSource          : file://<PROJECT>/mainModule/build/generated/source/buildConfig/free/debug
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTest
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/mainModule/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/java
@@ -867,7 +854,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/mainModule/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestDebug/java
@@ -877,7 +863,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestDebug/shaders
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFree
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFree/aidl
             JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFree/assets
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFree/java
@@ -887,7 +872,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFree/resources
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFree/rs
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFree/shaders
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFreeDebug
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFreeDebug/aidl
             JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFreeDebug/assets
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFreeDebug/java
@@ -897,7 +881,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFreeDebug/resources
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFreeDebug/rs
             JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFreeDebug/shaders
-            JavaResource        : file://<PROJECT>/mainModule/src/debug
             JavaSource          : file://<PROJECT>/mainModule/src/debug/aidl
             JavaResource        : file://<PROJECT>/mainModule/src/debug/assets
             JavaSource          : file://<PROJECT>/mainModule/src/debug/java
@@ -907,7 +890,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/mainModule/src/debug/resources
             JavaSource          : file://<PROJECT>/mainModule/src/debug/rs
             JavaSource          : file://<PROJECT>/mainModule/src/debug/shaders
-            JavaResource        : file://<PROJECT>/mainModule/src/free
             JavaSource          : file://<PROJECT>/mainModule/src/free/aidl
             JavaResource        : file://<PROJECT>/mainModule/src/free/assets
             JavaSource          : file://<PROJECT>/mainModule/src/free/java
@@ -917,7 +899,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/mainModule/src/free/resources
             JavaSource          : file://<PROJECT>/mainModule/src/free/rs
             JavaSource          : file://<PROJECT>/mainModule/src/free/shaders
-            JavaResource        : file://<PROJECT>/mainModule/src/freeDebug
             JavaSource          : file://<PROJECT>/mainModule/src/freeDebug/aidl
             JavaResource        : file://<PROJECT>/mainModule/src/freeDebug/assets
             JavaSource          : file://<PROJECT>/mainModule/src/freeDebug/java
@@ -927,7 +908,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/mainModule/src/freeDebug/resources
             JavaSource          : file://<PROJECT>/mainModule/src/freeDebug/rs
             JavaSource          : file://<PROJECT>/mainModule/src/freeDebug/shaders
-            JavaResource        : file://<PROJECT>/mainModule/src/main
             JavaSource          : file://<PROJECT>/mainModule/src/main/aidl
             JavaResource        : file://<PROJECT>/mainModule/src/main/assets
             JavaSource          : file://<PROJECT>/mainModule/src/main/java
@@ -937,7 +917,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/mainModule/src/main/resources
             JavaSource          : file://<PROJECT>/mainModule/src/main/rs
             JavaSource          : file://<PROJECT>/mainModule/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/mainModule/src/test
             JavaSource (test)   : file://<PROJECT>/mainModule/src/test/aidl
             JavaResource (test) : file://<PROJECT>/mainModule/src/test/assets
             JavaSource (test)   : file://<PROJECT>/mainModule/src/test/java
@@ -947,7 +926,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/mainModule/src/test/resources
             JavaSource (test)   : file://<PROJECT>/mainModule/src/test/rs
             JavaSource (test)   : file://<PROJECT>/mainModule/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/mainModule/src/testDebug
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/mainModule/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testDebug/java
@@ -957,7 +935,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/mainModule/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testDebug/shaders
-            JavaResource (test) : file://<PROJECT>/mainModule/src/testFree
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testFree/aidl
             JavaResource (test) : file://<PROJECT>/mainModule/src/testFree/assets
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testFree/java
@@ -967,7 +944,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/mainModule/src/testFree/resources
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testFree/rs
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testFree/shaders
-            JavaResource (test) : file://<PROJECT>/mainModule/src/testFreeDebug
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/aidl
             JavaResource (test) : file://<PROJECT>/mainModule/src/testFreeDebug/assets
             JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/java
@@ -1349,7 +1325,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleA/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/moduleA/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/java
@@ -1359,7 +1334,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/java
@@ -1369,7 +1343,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/moduleA/src/debug
             JavaSource          : file://<PROJECT>/moduleA/src/debug/aidl
             JavaResource        : file://<PROJECT>/moduleA/src/debug/assets
             JavaSource          : file://<PROJECT>/moduleA/src/debug/java
@@ -1379,7 +1352,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleA/src/debug/resources
             JavaSource          : file://<PROJECT>/moduleA/src/debug/rs
             JavaSource          : file://<PROJECT>/moduleA/src/debug/shaders
-            JavaResource        : file://<PROJECT>/moduleA/src/main
             JavaSource          : file://<PROJECT>/moduleA/src/main/aidl
             JavaResource        : file://<PROJECT>/moduleA/src/main/assets
             JavaSource          : file://<PROJECT>/moduleA/src/main/java
@@ -1389,7 +1361,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleA/src/main/resources
             JavaSource          : file://<PROJECT>/moduleA/src/main/rs
             JavaSource          : file://<PROJECT>/moduleA/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/moduleA/src/test
             JavaSource (test)   : file://<PROJECT>/moduleA/src/test/aidl
             JavaResource (test) : file://<PROJECT>/moduleA/src/test/assets
             JavaSource (test)   : file://<PROJECT>/moduleA/src/test/java
@@ -1399,7 +1370,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleA/src/test/resources
             JavaSource (test)   : file://<PROJECT>/moduleA/src/test/rs
             JavaSource (test)   : file://<PROJECT>/moduleA/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug
             JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/java
@@ -1763,7 +1733,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleB/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/moduleB/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/java
@@ -1773,7 +1742,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/java
@@ -1783,7 +1751,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/moduleB/src/debug
             JavaSource          : file://<PROJECT>/moduleB/src/debug/aidl
             JavaResource        : file://<PROJECT>/moduleB/src/debug/assets
             JavaSource          : file://<PROJECT>/moduleB/src/debug/java
@@ -1793,7 +1760,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleB/src/debug/resources
             JavaSource          : file://<PROJECT>/moduleB/src/debug/rs
             JavaSource          : file://<PROJECT>/moduleB/src/debug/shaders
-            JavaResource        : file://<PROJECT>/moduleB/src/main
             JavaSource          : file://<PROJECT>/moduleB/src/main/aidl
             JavaResource        : file://<PROJECT>/moduleB/src/main/assets
             JavaSource          : file://<PROJECT>/moduleB/src/main/java
@@ -1803,7 +1769,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleB/src/main/resources
             JavaSource          : file://<PROJECT>/moduleB/src/main/rs
             JavaSource          : file://<PROJECT>/moduleB/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/moduleB/src/test
             JavaSource (test)   : file://<PROJECT>/moduleB/src/test/aidl
             JavaResource (test) : file://<PROJECT>/moduleB/src/test/assets
             JavaSource (test)   : file://<PROJECT>/moduleB/src/test/java
@@ -1813,7 +1778,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleB/src/test/resources
             JavaSource (test)   : file://<PROJECT>/moduleB/src/test/rs
             JavaSource (test)   : file://<PROJECT>/moduleB/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug
             JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/java
@@ -2171,7 +2135,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleC/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/moduleC/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTest
             JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/moduleC/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/java
@@ -2181,7 +2144,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleC/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleC/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTestDebug/java
@@ -2191,7 +2153,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleC/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/moduleC/src/debug
             JavaSource          : file://<PROJECT>/moduleC/src/debug/aidl
             JavaResource        : file://<PROJECT>/moduleC/src/debug/assets
             JavaSource          : file://<PROJECT>/moduleC/src/debug/java
@@ -2201,7 +2162,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleC/src/debug/resources
             JavaSource          : file://<PROJECT>/moduleC/src/debug/rs
             JavaSource          : file://<PROJECT>/moduleC/src/debug/shaders
-            JavaResource        : file://<PROJECT>/moduleC/src/main
             JavaSource          : file://<PROJECT>/moduleC/src/main/aidl
             JavaResource        : file://<PROJECT>/moduleC/src/main/assets
             JavaSource          : file://<PROJECT>/moduleC/src/main/java
@@ -2211,7 +2171,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleC/src/main/resources
             JavaSource          : file://<PROJECT>/moduleC/src/main/rs
             JavaSource          : file://<PROJECT>/moduleC/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/moduleC/src/test
             JavaSource (test)   : file://<PROJECT>/moduleC/src/test/aidl
             JavaResource (test) : file://<PROJECT>/moduleC/src/test/assets
             JavaSource (test)   : file://<PROJECT>/moduleC/src/test/java
@@ -2221,7 +2180,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleC/src/test/resources
             JavaSource (test)   : file://<PROJECT>/moduleC/src/test/rs
             JavaSource (test)   : file://<PROJECT>/moduleC/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/moduleC/src/testDebug
             JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleC/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/java
@@ -2575,7 +2533,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleFlavor/build/generated/res/rs/free/debug
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/androidTest/free/debug
             JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/free/debug
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/java
@@ -2585,7 +2542,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/java
@@ -2595,7 +2551,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/shaders
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFree
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/aidl
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFree/assets
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/java
@@ -2605,7 +2560,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFree/resources
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/rs
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/shaders
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/java
@@ -2615,7 +2569,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/resources
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/rs
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/shaders
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/debug
             JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/aidl
             JavaResource        : file://<PROJECT>/moduleFlavor/src/debug/assets
             JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/java
@@ -2625,7 +2578,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleFlavor/src/debug/resources
             JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/rs
             JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/shaders
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/free
             JavaSource          : file://<PROJECT>/moduleFlavor/src/free/aidl
             JavaResource        : file://<PROJECT>/moduleFlavor/src/free/assets
             JavaSource          : file://<PROJECT>/moduleFlavor/src/free/java
@@ -2635,7 +2587,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleFlavor/src/free/resources
             JavaSource          : file://<PROJECT>/moduleFlavor/src/free/rs
             JavaSource          : file://<PROJECT>/moduleFlavor/src/free/shaders
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/freeDebug
             JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/aidl
             JavaResource        : file://<PROJECT>/moduleFlavor/src/freeDebug/assets
             JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/java
@@ -2645,7 +2596,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleFlavor/src/freeDebug/resources
             JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/rs
             JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/shaders
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/main
             JavaSource          : file://<PROJECT>/moduleFlavor/src/main/aidl
             JavaResource        : file://<PROJECT>/moduleFlavor/src/main/assets
             JavaSource          : file://<PROJECT>/moduleFlavor/src/main/java
@@ -2655,7 +2605,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/moduleFlavor/src/main/resources
             JavaSource          : file://<PROJECT>/moduleFlavor/src/main/rs
             JavaSource          : file://<PROJECT>/moduleFlavor/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/test
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/aidl
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/test/assets
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/java
@@ -2665,7 +2614,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/test/resources
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/rs
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testDebug
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/java
@@ -2675,7 +2623,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/shaders
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFree
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/aidl
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFree/assets
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/java
@@ -2685,7 +2632,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFree/resources
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/rs
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/shaders
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFreeDebug
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/aidl
             JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFreeDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/java
@@ -2766,7 +2712,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/modulePlus/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTest
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/java
@@ -2776,7 +2721,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTestDebug/java
@@ -2786,7 +2730,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/modulePlus/src/debug
             JavaSource          : file://<PROJECT>/modulePlus/src/debug/aidl
             JavaResource        : file://<PROJECT>/modulePlus/src/debug/assets
             JavaSource          : file://<PROJECT>/modulePlus/src/debug/java
@@ -2796,7 +2739,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/modulePlus/src/debug/resources
             JavaSource          : file://<PROJECT>/modulePlus/src/debug/rs
             JavaSource          : file://<PROJECT>/modulePlus/src/debug/shaders
-            JavaResource        : file://<PROJECT>/modulePlus/src/main
             JavaSource          : file://<PROJECT>/modulePlus/src/main/aidl
             JavaResource        : file://<PROJECT>/modulePlus/src/main/assets
             JavaSource          : file://<PROJECT>/modulePlus/src/main/java
@@ -2806,7 +2748,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource        : file://<PROJECT>/modulePlus/src/main/resources
             JavaSource          : file://<PROJECT>/modulePlus/src/main/rs
             JavaSource          : file://<PROJECT>/modulePlus/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/test
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/test/aidl
             JavaResource (test) : file://<PROJECT>/modulePlus/src/test/assets
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/test/java
@@ -2816,7 +2757,6 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             JavaResource (test) : file://<PROJECT>/modulePlus/src/test/resources
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/test/rs
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/testDebug
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/modulePlus/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/java
