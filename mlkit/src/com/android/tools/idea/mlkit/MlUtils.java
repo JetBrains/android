@@ -27,6 +27,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -83,7 +84,7 @@ public class MlUtils {
    */
   @NotNull
   public static List<GradleCoordinate> getMissingTfliteGpuDependencies(@NotNull Module module) {
-    return getMissingDependencies(module, getTfliteGpuDependencies());
+    return getMissingDependencies(module, ImmutableList.of("org.tensorflow:tensorflow-lite-gpu:2.2.0"));
   }
 
   /**
@@ -91,7 +92,10 @@ public class MlUtils {
    */
   @NotNull
   public static List<GradleCoordinate> getMissingRequiredDependencies(@NotNull Module module) {
-    return getMissingDependencies(module, getRequiredDependencies());
+    return getMissingDependencies(module, ImmutableList.of(
+      "org.tensorflow:tensorflow-lite-support:0.1.0-rc1",
+      "org.tensorflow:tensorflow-lite-metadata:0.1.0-rc1"
+    ));
   }
 
   @NotNull
@@ -99,28 +103,12 @@ public class MlUtils {
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
     List<GradleCoordinate> pendingDeps = new ArrayList<>();
     for (String requiredDepString : dependencies) {
-      GradleCoordinate requiredDep = GradleCoordinate.parseCoordinateString(requiredDepString);
+      GradleCoordinate requiredDep = Objects.requireNonNull(GradleCoordinate.parseCoordinateString(requiredDepString));
       GradleCoordinate requiredDepInAnyVersion = new GradleCoordinate(requiredDep.getGroupId(), requiredDep.getArtifactId(), "+");
       if (moduleSystem.getRegisteredDependency(requiredDepInAnyVersion) == null) {
         pendingDeps.add(requiredDep);
       }
     }
     return pendingDeps;
-  }
-
-  @NotNull
-  private static ImmutableList<String> getRequiredDependencies() {
-    // TODO(148887002): calculate required deps based on the given model file and figure out how to handle versions.
-    return ImmutableList.of(
-      "org.tensorflow:tensorflow-lite-support:0.1.0-rc1",
-      "org.tensorflow:tensorflow-lite-metadata:0.1.0-rc1"
-    );
-  }
-
-  @NotNull
-  private static ImmutableList<String> getTfliteGpuDependencies() {
-    return ImmutableList.of(
-      "org.tensorflow:tensorflow-lite-gpu:2.2.0"
-    );
   }
 }
