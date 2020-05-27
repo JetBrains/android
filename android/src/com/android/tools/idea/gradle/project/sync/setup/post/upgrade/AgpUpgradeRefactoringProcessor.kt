@@ -124,7 +124,8 @@ class AgpUpgradeRefactoringProcessor(
     val usages = ArrayList<UsageInfo>()
 
     usages.addAll(AgpClasspathDependencyRefactoringProcessor(this).findUsages())
-    // FIXME(xof): add the PsiElement of the first of usages to the UsageViewDescriptor
+    // FIXME(xof): add the PsiElements of these to the UsageViewDescriptor
+    usages.addAll(GMavenRepositoryRefactoringProcessor(this).findUsages())
     usages.addAll(AgpGradleVersionRefactoringProcessor(this).findUsages())
     usages.addAll(AgpJava8DefaultRefactoringProcessor(this).findUsages())
 
@@ -175,7 +176,6 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
   override fun findUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     // using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage, and additionally
-    // check the buildscript/repositories block for a google() gmaven entry, recording an additional usage if we don't find one
     buildModel.allIncludedBuildModels.forEach model@{ model ->
       model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
         when (val shouldUpdate = isUpdatablePluginVersion(new, dep)) {
@@ -187,15 +187,8 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
               is FakeArtifactElement -> element.realExpression.psiElement
               else -> element.psiElement
             }
-            // TODO(xof): arguably adding google() should be in its own processor rather than bundled with the version upgrade
             psiElement?.let {
               usages.add(AgpVersionUsageInfo(it, current, new, resultModel))
-              val repositories = model.buildscript().repositories()
-              if (!repositories.hasGoogleMavenRepository()) {
-                // TODO(xof) if we don't have a psiElement, we should add a suitable parent (and explain what
-                //  we're going to do in terms of that parent
-                repositories.psiElement?.let { element -> usages.add(RepositoriesNoGMavenUsageInfo(element, current, new, repositories)) }
-              }
             }
           }
           NO -> return@model
@@ -236,6 +229,51 @@ class AgpVersionUsageInfo(
   }
 }
 
+class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
+
+  override fun findUsages(): Array<UsageInfo> {
+    val usages = ArrayList<UsageInfo>()
+    // using the buildModel, look for classpath dependencies on AGP, and if we find one,
+    // check the buildscript/repositories block for a google() gmaven entry, recording an additional usage if we don't find one
+    buildModel.allIncludedBuildModels.forEach model@{ model ->
+      model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
+        when (isUpdatablePluginVersion(new, dep)) {
+          // consider returning a usage even if the dependency has the current version (in a chained upgrade, the dependency
+          // might have been updated before this RefactoringProcessor gets a chance to run).  The applicability of the processor
+          // will prevent this from being a problem.
+          YES, NO -> {
+            val repositories = model.buildscript().repositories()
+            if (!repositories.hasGoogleMavenRepository()) {
+              // TODO(xof) if we don't have a psiElement, we should add a suitable parent (and explain what
+              //  we're going to do in terms of that parent.
+              repositories.psiElement?.let { element -> usages.add(RepositoriesNoGMavenUsageInfo(element, current, new, repositories)) }
+            }
+          }
+          else -> Unit
+        }
+      }
+    }
+    return usages.toTypedArray()
+  }
+
+  override fun getCommandName(): String = "Add google() GMaven to buildscript repositories"
+
+  override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.gmaven"
+
+  override fun createUsageViewDescriptor(usages: Array<out UsageInfo>?): UsageViewDescriptor {
+    return object : UsageViewDescriptorAdapter() {
+      override fun getElements(): Array<PsiElement> {
+        return PsiElement.EMPTY_ARRAY
+      }
+
+      override fun getProcessedElementsHeader() = "Add google() GMaven to buildscript repositories"
+    }
+  }
+}
+
 class RepositoriesNoGMavenUsageInfo(
   element: PsiElement,
   current: GradleVersion,
@@ -243,7 +281,7 @@ class RepositoriesNoGMavenUsageInfo(
   private val repositoriesModel: RepositoriesModel
 ) : GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
-    return "Add google() to repositories"
+    return "Add google() to buildscript repositories"
   }
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
