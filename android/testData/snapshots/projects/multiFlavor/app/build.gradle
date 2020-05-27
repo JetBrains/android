@@ -38,12 +38,12 @@ android {
     sourceSets {
         firstAbcSecondAbc {
             java {
-                // srcDirs 'src/firstAbcSecondAbc/java2'  // TODO(b/141846471): Uncomment when fixed.
+                srcDirs 'src/firstAbcSecondAbc/java2'
             }
         }
         secondAbc {
             java {
-                // srcDirs 'src/secondAbc/java2'  // TODO(b/141846471): Uncomment when fixed.
+                srcDirs 'src/secondAbc/java2'
             }
         }
     }

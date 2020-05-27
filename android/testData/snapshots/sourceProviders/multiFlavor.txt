@@ -123,6 +123,7 @@ MODULE: MultiFlavor.app
                     ./app/src/secondAbc/jni
                 JavaDirectories:
                     ./app/src/secondAbc/java
+                    ./app/src/secondAbc/java2
                 JniLibsDirectories:
                     ./app/src/secondAbc/jniLibs
                 RenderscriptDirectories:
@@ -148,6 +149,7 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbc/jni
                 JavaDirectories:
                     ./app/src/firstAbcSecondAbc/java
+                    ./app/src/firstAbcSecondAbc/java2
                 JniLibsDirectories:
                     ./app/src/firstAbcSecondAbc/jniLibs
                 RenderscriptDirectories:
@@ -299,6 +301,7 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbc/jni
                 JavaDirectories:
                     ./app/src/firstAbcSecondAbc/java
+                    ./app/src/firstAbcSecondAbc/java2
                 JniLibsDirectories:
                     ./app/src/firstAbcSecondAbc/jniLibs
                 RenderscriptDirectories:
@@ -399,6 +402,7 @@ MODULE: MultiFlavor.app
                     ./app/src/secondAbc/jni
                 JavaDirectories:
                     ./app/src/secondAbc/java
+                    ./app/src/secondAbc/java2
                 JniLibsDirectories:
                     ./app/src/secondAbc/jniLibs
                 RenderscriptDirectories:
@@ -782,13 +786,16 @@ MODULE: MultiFlavor.app
                     file://./app/src/main/java
                     file://./app/src/firstAbc/java
                     file://./app/src/secondAbc/java
+                    file://./app/src/secondAbc/java2
                     file://./app/src/firstAbcSecondAbc/java
+                    file://./app/src/firstAbcSecondAbc/java2
                     file://./app/src/debug/java
                     file://./app/src/firstAbcSecondAbcDebug/java
                 JavaDirectories:
                     file://./app/src/main/java
                     file://./app/src/secondAbc/java
                     file://./app/src/firstAbcSecondAbc/java
+                    file://./app/src/firstAbcSecondAbc/java2
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                     file://./app/src/firstAbc/jniLibs
@@ -1102,8 +1109,10 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbc/assets
                 JavaDirectoryUrls:
                     file://./app/src/firstAbcSecondAbc/java
+                    file://./app/src/firstAbcSecondAbc/java2
                 JavaDirectories:
                     file://./app/src/firstAbcSecondAbc/java
+                    file://./app/src/firstAbcSecondAbc/java2
                 JniLibsDirectoryUrls:
                     file://./app/src/firstAbcSecondAbc/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1202,6 +1211,7 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondAbc/assets
                 JavaDirectoryUrls:
                     file://./app/src/secondAbc/java
+                    file://./app/src/secondAbc/java2
                 JavaDirectories:
                     file://./app/src/secondAbc/java
                 JniLibsDirectoryUrls:
@@ -1311,6 +1321,7 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondAbc/assets
                 JavaDirectoryUrls:
                     file://./app/src/secondAbc/java
+                    file://./app/src/secondAbc/java2
                 JavaDirectories:
                     file://./app/src/secondAbc/java
                 JniLibsDirectoryUrls:
@@ -1339,8 +1350,10 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbc/assets
                 JavaDirectoryUrls:
                     file://./app/src/firstAbcSecondAbc/java
+                    file://./app/src/firstAbcSecondAbc/java2
                 JavaDirectories:
                     file://./app/src/firstAbcSecondAbc/java
+                    file://./app/src/firstAbcSecondAbc/java2
                 JniLibsDirectoryUrls:
                     file://./app/src/firstAbcSecondAbc/jniLibs
                 RenderscriptDirectoryUrls:
