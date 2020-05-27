@@ -71,6 +71,7 @@ class NewKtsProjectTest {
       contains("applicationId =")
       contains("minSdkVersion(")
       contains("isMinifyEnabled =")
+      doesNotContainMatch("""buildToolsVersion ['"]""")
     }
   }
 
