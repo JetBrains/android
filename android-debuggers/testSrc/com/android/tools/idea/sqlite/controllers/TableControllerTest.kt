@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
@@ -2191,6 +2192,36 @@ class TableControllerTest : PlatformTestCase() {
     // Assert
     verify(tableView, times(3)).setEditable(false)
     verify(tableView, times(0)).setEditable(true)
+  }
+
+  fun testSetUpFailsWithAppInspectionException() {
+    // Prepare
+    val mockResultSet = mock(SqliteResultSet::class.java)
+    val connectionException = AppInspectionConnectionException("Connection closed")
+    `when`(mockResultSet.columns).thenReturn(Futures.immediateFailedFuture(connectionException))
+    `when`(mockDatabaseConnection.query(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      project,
+      10,
+      tableView,
+      mockDatabaseId,
+      { sqliteTable },
+      databaseRepository,
+      SqliteStatement(SqliteStatementType.UNKNOWN, ""),
+      {},
+      edtExecutor,
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    val error = pumpEventsAndWaitForFutureException(tableController.setUp())
+
+    // Assert
+    assertEquals(error.cause, connectionException)
+    orderVerifier.verify(tableView).startTableLoading()
+    orderVerifier.verify(tableView).resetView()
+    orderVerifier.verify(tableView).stopTableLoading()
   }
 
   private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
