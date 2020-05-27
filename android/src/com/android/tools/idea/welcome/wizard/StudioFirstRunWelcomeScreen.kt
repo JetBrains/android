@@ -24,6 +24,7 @@ import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.ComponentInstaller
 import com.android.tools.idea.welcome.install.InstallableComponent
 import com.android.tools.idea.wizard.model.ModelWizard
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo.isLinux
@@ -44,10 +45,10 @@ import javax.swing.JPanel
  * initial "Welcome Screen" UI (with a list of projects and options to start a new project, etc.)
  */
 class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : WelcomeScreen {
-  private val modelWizard: ModelWizard
-  private val mainPanel: JComponent
+  private lateinit var modelWizard: ModelWizard
+  private var mainPanel: JComponent? = null
 
-  init {
+  private fun setupWizard() {
     val model = FirstRunModel(mode)
 
     // TODO(qumeric): Add more steps and check witch steps to add for each different FirstRunWizardMode
@@ -101,7 +102,16 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
     Disposer.register(this, modelWizard)
   }
 
-  override fun getWelcomePanel(): JComponent = mainPanel
+  override fun getWelcomePanel(): JComponent {
+    // TODO(qumeric): I am not sure at which point getWelcomePanel runs.
+    //  Maybe it is worth to run setupWizard earlier and wait here for finish.
+    if (mainPanel == null) {
+      ApplicationManager.getApplication().invokeAndWait {
+        setupWizard();
+      }
+    }
+    return mainPanel!!
+  }
 
   override fun setupFrame(frame: JFrame) {
     // Intercept windowClosing event, to show the closing confirmation dialog
