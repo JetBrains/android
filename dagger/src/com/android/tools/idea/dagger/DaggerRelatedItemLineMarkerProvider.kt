@@ -123,6 +123,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
             message("providers") -> message("navigate.to.provider", fromElementString, toElementString)
             message("consumers") -> message("navigate.to.consumer", fromElementString, toElementString)
             message("exposed.by.components") -> message("navigate.to.component.exposes", fromElementString, toElementString)
+            message("exposed.by.entry.points") -> message("navigate.to.component.exposes", fromElementString, toElementString)
             message("parent.components") -> message("navigate.to.parent.component", fromElementString, toElementString)
             message("subcomponents") -> message("navigate.to.subcomponent", fromElementString, toElementString)
             message("included.in.components") -> message("navigate.to.component.that.include", fromElementString, toElementString)
@@ -200,7 +201,10 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
         val components = getDaggerComponentMethodsForProvider(provider).map {
           GotoItemWithAnalyticsTracking(provider, it, message("exposed.by.components"), it.parentOfType<PsiClass>()?.name)
         }
-        return consumers + components
+        val entryPoints = getDaggerEntryPointsMethodsForProvider(provider).map {
+          GotoItemWithAnalyticsTracking(provider, it, message("exposed.by.entry.points"), it.parentOfType<PsiClass>()?.name)
+        }
+        return consumers + components + entryPoints
       }
     }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)

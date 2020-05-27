@@ -90,14 +90,17 @@ internal class DaggerAnalyticsTrackerImpl(private val project: Project) : Dagger
   }
 }
 
+// TODO(b/157548167): Use correct types for isDaggerEntryPoint, isDaggerComponentMethod and isDaggerEntryPointMethod
 internal fun getTypeForMetrics(element: PsiElement): DaggerEditorEvent.ElementType {
   return when {
     element.isDaggerConsumer -> DaggerEditorEvent.ElementType.CONSUMER
     element.isDaggerProvider -> DaggerEditorEvent.ElementType.PROVIDER
     element.isDaggerModule -> DaggerEditorEvent.ElementType.MODULE
     element.isDaggerComponent -> DaggerEditorEvent.ElementType.COMPONENT
+    element.isDaggerEntryPoint -> DaggerEditorEvent.ElementType.COMPONENT
     element.isDaggerSubcomponent -> DaggerEditorEvent.ElementType.SUBCOMPONENT
     element.isDaggerComponentMethod -> DaggerEditorEvent.ElementType.COMPONENT
+    element.isDaggerEntryPointMethod -> DaggerEditorEvent.ElementType.COMPONENT
     else -> error("Invalid PsiElement for metrics")
   }
 }
