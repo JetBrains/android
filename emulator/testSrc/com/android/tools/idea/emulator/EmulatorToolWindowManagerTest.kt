@@ -107,6 +107,7 @@ class EmulatorToolWindowManagerTest {
     assertThat(toolWindow.isVisible).isTrue()
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
     assertThat(contentManager.contents).hasLength(1)
+    waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
 
     emulator2.start()
