@@ -63,7 +63,7 @@ class AndroidProjectViewNodeConsistencyTest : GradleIntegrationTest {
       TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
       TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
       TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),
-      TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS),
+      TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp")
     )
   }

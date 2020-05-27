@@ -174,18 +174,14 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     fun testExternalSourceSets() {
-      val projectRootPath = prepareProjectForImport(NON_STANDARD_SOURCE_SETS)
-      val request = GradleSyncInvoker.Request.testRequest(true)
-      AndroidGradleTests.importProject(project, request) {
-        // ignore missing manifest errors
-        it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
+      val projectRootPath = prepareGradleProject(NON_STANDARD_SOURCE_SETS, "project")
+      openPreparedProject("project/application") { project ->
+        val text = project.saveAndDump(
+          mapOf("EXTERNAL_SOURCE_SET" to File(projectRootPath, "externalRoot"),
+                "EXTERNAL_MANIFEST" to File(projectRootPath, "externalManifest"))
+        )
+        assertIsEqualToSnapshot(text)
       }
-
-      val text = project.saveAndDump(
-        mapOf("EXTERNAL_SOURCE_SET" to File(projectRootPath.parentFile, "externalRoot"),
-              "EXTERNAL_MANIFEST" to File(projectRootPath.parentFile, "externalManifest"))
-      )
-      assertIsEqualToSnapshot(text)
     }
 
     // See https://code.google.com/p/android/issues/detail?id=74259
