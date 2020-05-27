@@ -14,4 +14,6 @@
     <View android:background="@android:drawable/ic_lock_lock" android:layout_width="wrap_content" android:layout_height="wrap_content" />
     <View android:background="?android:attr/actionModeCutDrawable" android:layout_width="wrap_content" android:layout_height="wrap_content" />
     <View android:background="@drawable/animated_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <View android:background="?android:attr/actionMenuTextColor" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <View android:background="?android:attr/buttonCornerRadius" android:layout_width="wrap_content" android:layout_height="wrap_content" />
 </LinearLayout>
