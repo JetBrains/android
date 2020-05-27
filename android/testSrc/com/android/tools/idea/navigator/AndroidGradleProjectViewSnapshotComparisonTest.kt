@@ -30,6 +30,7 @@ import com.intellij.ide.impl.ProjectUtil
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.GroupByTypeComparator
+import com.intellij.ide.projectView.impl.ProjectViewImpl
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
@@ -49,7 +50,10 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/projectViews"
   override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
 
-  data class ProjectViewSettings(val hideEmptyPackages: Boolean = true)
+  data class ProjectViewSettings(
+    val hideEmptyPackages: Boolean = true,
+    val flattenPackages: Boolean = false
+  )
 
   fun testSimpleApplication() {
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION)
@@ -63,6 +67,15 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
 
   fun testMultiFlavor() {
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.MULTI_FLAVOR)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testMultiFlavor_flattenPackages() {
+    val text = importSyncAndDumpProject(
+      TestProjectToSnapshotPaths.MULTI_FLAVOR,
+      projectViewSettings = ProjectViewSettings(hideEmptyPackages = true, flattenPackages = true)
+    )
+    // TODO(b/153882815): Update the snapshot when fixed. Currently source code nodes are missing.
     assertIsEqualToSnapshot(text)
   }
 
@@ -256,11 +269,15 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     fun applySettings(settings: ProjectViewSettings) {
       ProjectView.getInstance(this).apply {
         setHideEmptyPackages(AndroidProjectViewPane.ID, settings.hideEmptyPackages)
+        (this as ProjectViewImpl).setFlattenPackages(AndroidProjectViewPane.ID, settings.flattenPackages);
       }
     }
 
     fun getCurrentSettings(): ProjectViewSettings = ProjectView.getInstance(this).let { view ->
-      ProjectViewSettings(hideEmptyPackages = view.isHideEmptyMiddlePackages(AndroidProjectViewPane.ID))
+      ProjectViewSettings(
+        hideEmptyPackages = view.isHideEmptyMiddlePackages(AndroidProjectViewPane.ID),
+        flattenPackages = view.isFlattenPackages(AndroidProjectViewPane.ID)
+      )
     }
 
     val oldSettings = getCurrentSettings()
