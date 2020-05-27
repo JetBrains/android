@@ -134,5 +134,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="jaxb-api" level="project" />
+    <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
   </component>
 </module>
