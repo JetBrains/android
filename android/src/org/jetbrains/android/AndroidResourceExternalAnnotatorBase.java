@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -135,15 +136,20 @@ public abstract class AndroidResourceExternalAnnotatorBase
     if (reference.getResourceType() == ResourceType.ATTR) {
       // Resolve the theme attribute
       ResourceValue resolvedAttribute = resourceResolver.findItemInTheme(reference);
-      if (resolvedAttribute == null) {
+      if (resolvedAttribute == null || resolvedAttribute.getValue() == null) {
         return null;
       }
-      ResourceType resolvedAttributeType = resolvedAttribute.getResourceType();
+      ResourceUrl resolvedAttributeUrl = ResourceUrl.parse(resolvedAttribute.getValue());
+      if (resolvedAttributeUrl == null) {
+        return null;
+      }
+      ResourceType resolvedAttributeType = resolvedAttributeUrl.type;
       if (resolvedAttributeType == ResourceType.DRAWABLE || resolvedAttributeType == ResourceType.MIPMAP) {
         drawable = resolvedAttribute;
       }
     }
-    if (drawable == null) {
+    else if (reference.getResourceType() == ResourceType.DRAWABLE || reference.getResourceType() == ResourceType.MIPMAP) {
+      // Resolve the Drawable/MipMap
       drawable = resourceResolver.getResolvedResource(reference);
     }
     if (drawable == null) {
