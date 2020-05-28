@@ -70,7 +70,6 @@ class ConstraintLayoutFlowInspectorBuilder(private val editorProvider: EditorPro
   private fun addSubtitle(inspector: InspectorPanel, s: String, titleLine: InspectorLineModel) {
     var component = JLabel(s)
     component.border = EmptyBorder(8, 8, 8, 8)
-    component.background = primaryContentBackground
     inspector.addComponent(component, titleLine)
   }
 
