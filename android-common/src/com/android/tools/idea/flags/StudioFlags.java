@@ -910,6 +910,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_FUNCTION_EXTRACTION = Flag.create(
+    COMPOSE, "editor.function.extraction",
+    "Enables extracting @Composable function from other composables",
+    "If enabled, function extracted from @Composable function will annotated @Composable",
+    true
+  );
+
   public static final Flag<Boolean> COMPOSE_WIZARD_TEMPLATES = Flag.create(
     COMPOSE, "wizard.templates",
     "Show Compose Wizards",
