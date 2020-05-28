@@ -26,6 +26,7 @@ import com.android.tools.idea.emulator.actions.BootMode
 import com.android.tools.idea.emulator.actions.BootType
 import com.android.tools.idea.emulator.actions.SnapshotInfo
 import com.android.tools.idea.emulator.actions.SnapshotManager
+import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
@@ -48,6 +49,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.`when`
+import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
@@ -66,11 +68,11 @@ class SnapshotActionsTest {
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
 
-  var emulator: FakeEmulator
+  private var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
     set(value) { nullableEmulator = value }
 
-  val testRootDisposable
+  private val testRootDisposable
     get() = projectRule.fixture.testRootDisposable
 
   @Before
@@ -93,6 +95,9 @@ class SnapshotActionsTest {
     val defaultBootMode = SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()
     assertThat(SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()).isEqualTo(defaultBootMode)
 
+    val configIni = emulator.avdFolder.resolve("config.ini")
+    val oldSize = Files.size(configIni)
+
     // Check snapshot creation.
     performActionAndInteractWithDialog("android.emulator.create.snapshot", view) { dialog ->
       // Executed when the CreateSnapshotDialog opens.
@@ -107,11 +112,12 @@ class SnapshotActionsTest {
       ui.clickOn(okButton)
     }
 
-    var bootMode: BootMode? = null
-    waitForCondition(8, TimeUnit.SECONDS) { // Longer timeout for snapshot creation.
-      bootMode = SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()
-      return@waitForCondition bootMode != defaultBootMode
-    }
+    val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/SaveSnapshot")
+    assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("snapshot_id: \"first snapshot\"")
+
+    waitForCondition(2, TimeUnit.SECONDS) { Files.size(configIni) != oldSize }
+    val bootMode = SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()
     assertThat(bootMode).isEqualTo(BootMode(BootType.SNAPSHOT, "first snapshot"))
 
     // Check switching to the quick boot mode.
