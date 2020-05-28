@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.constraint.MotionConstraintPanel;
@@ -55,11 +56,17 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import com.intellij.xml.XmlElementDescriptor;
+import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
@@ -157,6 +164,24 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       addCustomAttributes(inspector, selection, myModel, showDefaultValues);
     }
 
+    private void addSubtitle(InspectorPanel inspector, String s, InspectorLineModel titleLine) {
+      JComponent component = new JLabel(s);
+      component.setBorder(new EmptyBorder(8, 8, 8, 8));
+      inspector.addComponent(component, titleLine);
+    }
+
+    private class MySeparator extends AdtSecondaryPanel {
+      MySeparator() {
+        super(new BorderLayout());
+        add(new JSeparator(SwingConstants.HORIZONTAL), BorderLayout.CENTER);
+      }
+      @Override
+      public void updateUI() {
+        super.updateUI();
+        setBorder(JBUI.Borders.empty(4));
+      }
+    }
+
     private void addTransforms(@NotNull InspectorPanel inspector,
                                @NotNull MotionSelection selection,
                                @NotNull MotionLayoutAttributesModel model,
@@ -164,10 +189,12 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       InspectorLineModel titleModel = inspector.addExpandableTitle(InspectorSection.TRANSFORMS.getTitle(), false, new ArrayList());
       inspector.addComponent(new TransformsPanel(properties), titleModel);
 
+      ArrayList<String> rotationAttributes = new ArrayList<>();
+      rotationAttributes.add("rotationX");
+      rotationAttributes.add("rotationY");
+      rotationAttributes.add("rotation");
+
       ArrayList<String> attributes = new ArrayList<>();
-      attributes.add("rotationX");
-      attributes.add("rotationY");
-      attributes.add("rotation");
       attributes.add("scaleX");
       attributes.add("scaleY");
       attributes.add("translationX");
@@ -178,6 +205,15 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       NeleEnumSupportProvider enumSupportProvider = new NeleEnumSupportProvider(model);
       NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(enumSupportProvider);
       EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
+
+      for (String attributeName : rotationAttributes) {
+        NelePropertyItem property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName);
+        if (property != null) {
+          inspector.addEditor(editorProvider.createEditor(property, false), titleModel);
+        }
+      }
+      inspector.addComponent(new MySeparator(), titleModel);
+      addSubtitle(inspector, "Other Transforms", titleModel);
 
       for (String attributeName : attributes) {
         NelePropertyItem property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName);
