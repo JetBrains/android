@@ -72,7 +72,7 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
   fun testRowCountReturnsCorrectNumberOfRows() {
     // Prepare
     val rowCountCellValue = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setIntValue(12345)
+      .setLongValue(12345)
       .build()
 
     val row = SqliteInspectorProtocol.Row.newBuilder()

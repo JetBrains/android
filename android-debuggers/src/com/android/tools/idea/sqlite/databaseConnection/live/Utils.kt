@@ -58,11 +58,11 @@ internal fun SqliteInspectorProtocol.CellValue.toSqliteColumnValue(colName: Stri
   return when (oneOfCase) {
     // TODO(b/150761542) Handle all types in SqliteValue.
     SqliteInspectorProtocol.CellValue.OneOfCase.STRING_VALUE -> SqliteColumnValue(colName, SqliteValue.StringValue(stringValue))
-    SqliteInspectorProtocol.CellValue.OneOfCase.FLOAT_VALUE -> SqliteColumnValue(colName, SqliteValue.StringValue(floatValue.toString()))
+    SqliteInspectorProtocol.CellValue.OneOfCase.DOUBLE_VALUE -> SqliteColumnValue(colName, SqliteValue.StringValue(doubleValue.toString()))
     SqliteInspectorProtocol.CellValue.OneOfCase.BLOB_VALUE ->
       // TODO(b/151757927): this approach is inefficient, as we are using 4x the amount of memory. Create SqliteValue.BlobValue instead.
       SqliteColumnValue(colName, SqliteValue.StringValue(BaseEncoding.base16().encode(blobValue.toByteArray())))
-    SqliteInspectorProtocol.CellValue.OneOfCase.INT_VALUE -> SqliteColumnValue(colName, SqliteValue.StringValue(intValue.toString()))
+    SqliteInspectorProtocol.CellValue.OneOfCase.LONG_VALUE -> SqliteColumnValue(colName, SqliteValue.StringValue(longValue.toString()))
     SqliteInspectorProtocol.CellValue.OneOfCase.ONEOF_NOT_SET -> SqliteColumnValue(colName, SqliteValue.NullValue)
     null -> error("value is null")
   }
