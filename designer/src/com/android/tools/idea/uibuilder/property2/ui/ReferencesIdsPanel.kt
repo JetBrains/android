@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property2.ui
 
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.property.ptable2.PFormTable
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -24,17 +25,12 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.awt.dnd.DragSource
-import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
-import javax.swing.AbstractAction
-import javax.swing.Action
 import javax.swing.DropMode
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JPanel
 import javax.swing.JTable
-import javax.swing.KeyStroke
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.ListSelectionModel
 import javax.swing.TransferHandler
@@ -44,14 +40,14 @@ import javax.swing.table.AbstractTableModel
  * Panel showing the list of references for ConstraintHelpers
  */
 class ReferencesIdsPanel : JPanel(BorderLayout()) {
-  private var table: JTable
+  private var table: PFormTable // supports keyboard navigation
   private lateinit var referencesIds: NelePropertyItem
 
   private val dataModel = DataModel(this)
 
   init {
     focusTraversalPolicy = LayoutFocusTraversalPolicy()
-    table = JTable(dataModel)
+    table = PFormTable(dataModel)
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.columnModel.getColumn(0).maxWidth = JBUI.scale(32)
     table.autoResizeMode = JTable.AUTO_RESIZE_LAST_COLUMN
