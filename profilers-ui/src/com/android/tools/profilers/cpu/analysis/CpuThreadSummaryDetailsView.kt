@@ -76,23 +76,25 @@ class CpuThreadSummaryDetailsView(parentView: StudioProfilersView,
   private fun populateNodesTable() {
     profilersView.studioProfilers.ideServices.poolExecutor.execute {
       val nodesInRange = tabModel.getTopNodesInSelectionRange(NUMBER_OF_TABLE_NODES)
-        profilersView.studioProfilers.ideServices.mainExecutor.execute {
-          nodesTablePanel.removeAll()
-          if (nodesInRange.isNotEmpty()) {
-            val nodesTable = CaptureNodeDetailTable(nodesInRange, tabModel.captureRange,
-                                                    profilersView.studioProfilers.stage.timeline.viewRange)
-            val sizeText = if (nodesInRange.size == NUMBER_OF_TABLE_NODES) "first ${NUMBER_OF_TABLE_NODES}" else nodesInRange.size
-            val hideablePanel = HideablePanel.Builder("Events (${sizeText})", nodesTable.component)
-              .setPanelBorder(JBUI.Borders.empty())
-              .setContentBorder(JBUI.Borders.customLine(BorderColor))
-              .build().apply {
-                background = primaryContentBackground
-              }
-            nodesTablePanel.add(hideablePanel)
+      profilersView.studioProfilers.ideServices.mainExecutor.execute {
+        nodesTablePanel.removeAll()
+        if (nodesInRange.isNotEmpty()) {
+          val nodesTable = CaptureNodeDetailTable(nodesInRange, tabModel.captureRange,
+                                                  profilersView.studioProfilers.stage.timeline.viewRange)
+          val sizeText = if (nodesInRange.size == NUMBER_OF_TABLE_NODES) "first ${NUMBER_OF_TABLE_NODES}" else nodesInRange.size
+          val contentBorder = JBUI.Borders.merge(JBUI.Borders.customLine(BorderColor, 1), JBUI.Borders.empty(8, 0, 0, 0), true)
+          val hideablePanel = HideablePanel.Builder("Events (${sizeText})", nodesTable.component)
+            .setPanelBorder(JBUI.Borders.empty())
+            .setContentBorder(contentBorder)
+            .build()
+            .apply {
+            background = primaryContentBackground
           }
-          nodesTablePanel.invalidate()
-          nodesTablePanel.repaint()
+          nodesTablePanel.add(hideablePanel)
         }
+        nodesTablePanel.invalidate()
+        nodesTablePanel.repaint()
+      }
     }
   }
 
