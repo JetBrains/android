@@ -102,6 +102,7 @@ public class LightModelClass extends AndroidLightClassBase {
           // Adds #process fallback method.
           methods.add(buildProcessMethod(modelInfo.getInputs(), true));
         }
+        methods.add(buildCloseMethod());
         methods.addAll(buildNewInstanceStaticMethods());
 
         // Builds inner Outputs class.
@@ -144,6 +145,17 @@ public class LightModelClass extends AndroidLightClassBase {
     methods.add(methodWithOptions);
 
     return methods;
+  }
+
+  @NotNull
+  private PsiMethod buildCloseMethod() {
+    LightMethodBuilder closeMethod = new NullabilityLightMethodBuilder(getManager(), "close")
+      .addModifier(PsiModifier.PUBLIC)
+      .setMethodReturnType(PsiType.VOID)
+      .setContainingClass(this);
+    closeMethod.setNavigationElement(this);
+
+    return closeMethod;
   }
 
   @Override

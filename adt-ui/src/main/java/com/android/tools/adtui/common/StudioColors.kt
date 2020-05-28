@@ -51,6 +51,21 @@ val border = JBColor.namedColor("UIDesigner.Panel.borderColor", JBColor(0xc9c9c9
 val lines3d = JBColor.namedColor("UIDesigner.Panel.lines3d", JBColor(0x2D2D2D, 0x26A04A))
 
 /**
+ * Color of the graph lines in the transition panel of the layout editor
+ */
+val graphLines = JBColor.namedColor("UIDesigner.Panel.graphLines", JBColor(0x2D2D2D, 0xD9D9D9))
+
+/**
+ * Color of the graph lines in the transition panel of the layout editor
+ */
+val secondaryGraphLines = JBColor.namedColor("UIDesigner.Panel.secondaryGraphLines", JBColor(0x636363, 0x5F6265))
+
+/**
+ * Color of the graph lines in the transition panel of the layout editor
+ */
+val graphLabel = JBColor.namedColor("UIDesigner.Panel.graphLabel", JBColor(0x636363, 0x8A8A8A))
+
+/**
  * Border color to use when separating element inside the same panel.
  *
  * Example: border between the category list and widget list in the

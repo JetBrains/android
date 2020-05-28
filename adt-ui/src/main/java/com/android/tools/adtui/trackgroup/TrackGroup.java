@@ -141,7 +141,7 @@ public class TrackGroup extends AspectObserver {
     myTitleLabel = new JLabel(groupModel.getTitle());
     myTitleLabel.setFont(TITLE_FONT);
     myTitleLabel.setBorder(JBUI.Borders.emptyLeft(16));
-    myTitleInfoIcon = new JLabel(StudioIcons.Common.INFO);
+    myTitleInfoIcon = new JLabel(StudioIcons.Common.HELP);
     myTitleInfoIcon.setVisible(groupModel.getTitleInfo() != null);
     myTitleInfoIcon.setToolTipText(groupModel.getTitleInfo());
 

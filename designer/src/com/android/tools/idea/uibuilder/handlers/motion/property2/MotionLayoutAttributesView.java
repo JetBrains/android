@@ -37,6 +37,7 @@ import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvide
 import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanControlTypeProvider;
 import com.android.tools.idea.uibuilder.property2.ui.EmptyTablePanel;
 import com.android.tools.idea.uibuilder.property2.ui.TransformsPanel;
+import com.android.tools.idea.uibuilder.property2.ui.EasingCurvePanel;
 import com.android.tools.property.panel.api.EditorProvider;
 import com.android.tools.property.panel.api.FilteredPTableModel;
 import com.android.tools.property.panel.api.InspectorBuilder;
@@ -57,6 +58,7 @@ import com.intellij.xml.XmlElementDescriptor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
@@ -117,16 +119,38 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
           if (StudioFlags.NELE_TRANSFORM_PANEL.get()) {
             addTransforms(inspector, selection, myModel, properties);
           }
+          if (StudioFlags.NELE_TRANSITION_PANEL.get()) {
+            ArrayList<String> attributes = new ArrayList<>();
+            attributes.add("transitionEasing");
+            attributes.add("pathMotionArc");
+            attributes.add("transitionPathRotate");
+            addTransition(inspector, InspectorSection.TRANSITION, selection, myModel, "transitionEasing", properties, attributes);
+          }
           addSubTagSections(inspector, selection, myModel);
           break;
 
         case TRANSITION:
           addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, false);
+          if (StudioFlags.NELE_TRANSITION_PANEL.get()) {
+            ArrayList<String> attributes = new ArrayList<>();
+            attributes.add("motionInterpolator");
+            attributes.add("staggered");
+            attributes.add("autoTransition");
+            attributes.add("pathMotionArc");
+            attributes.add("layoutDuringTransition");
+            addTransition(inspector, InspectorSection.TRANSITION_MODIFIERS, selection, myModel, "motionInterpolator", properties, attributes);
+          }
           addSubTagSections(inspector, selection, myModel);
           break;
 
         default:
           addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, false);
+          if (StudioFlags.NELE_TRANSFORM_PANEL.get()) {
+            Map<String, PropertiesTable<NelePropertyItem>> allProperties = myModel.getAllProperties();
+            if (allProperties.containsKey("KeyAttribute")) {
+              addTransforms(inspector, selection, myModel, properties);
+            }
+          }
           break;
       }
       boolean showDefaultValues = selection.getType() == MotionEditorSelector.Type.CONSTRAINT;
@@ -157,6 +181,28 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
       for (String attributeName : attributes) {
         NelePropertyItem property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName);
+        if (property != null) {
+          inspector.addEditor(editorProvider.createEditor(property, false), titleModel);
+        }
+      }
+    }
+
+    private void addTransition(@NotNull InspectorPanel inspector,
+                               @NotNull InspectorSection title,
+                               @NotNull MotionSelection selection,
+                               @NotNull MotionLayoutAttributesModel model,
+                               @NotNull String easingAttributeName,
+                               @NotNull PropertiesTable<NelePropertyItem> properties,
+                               @NotNull ArrayList<String> attributes) {
+      InspectorLineModel titleModel = inspector.addExpandableTitle(title.getTitle(), false, new ArrayList());
+      inspector.addComponent(new EasingCurvePanel(easingAttributeName, properties), titleModel);
+
+      NeleEnumSupportProvider enumSupportProvider = new NeleEnumSupportProvider(model);
+      NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(enumSupportProvider);
+      EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
+
+      for (String attributeName : attributes) {
+        NelePropertyItem property = properties.getOrNull(SdkConstants.AUTO_URI, attributeName);
         if (property != null) {
           inspector.addEditor(editorProvider.createEditor(property, false), titleModel);
         }

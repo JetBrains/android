@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManagerEx
+import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -74,11 +75,38 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
   }
 
   fun testOpen36Project() {
-    val projectRoot = prepareGradleProject(TestProjectPaths.RUN_APP_36, "project")
+    prepareGradleProject(TestProjectPaths.RUN_APP_36, "project")
     openPreparedProject("project") { project ->
       val androidTestRunConfiguration =
         RunManagerEx.getInstanceEx(project).allConfigurationsList.filterIsInstance<AndroidTestRunConfiguration>().singleOrNull()
       assertThat(androidTestRunConfiguration?.name).isEqualTo("All Tests Sub 36")
+
+      val runConfigurations = RunManagerEx.getInstanceEx(project).allConfigurationsList.filterIsInstance<ModuleBasedConfiguration<*, *>>()
+      assertThat(runConfigurations.associate { it.name to it.configurationModule?.module?.name }).isEqualTo(mapOf(
+        "app" to "My36.app",
+        "sub36" to "My36.app.sub36",
+        "All Tests Sub 36" to "My36.app.sub36"
+      ))
+    }
+  }
+
+  fun testOpen36ProjectWithoutModules() {
+    val projectRoot = prepareGradleProject(TestProjectPaths.RUN_APP_36, "project")
+    runWriteAction {
+      val projectRootVirtualFile = VfsUtil.findFileByIoFile(projectRoot, false)!!
+      projectRootVirtualFile.findFileByRelativePath(".idea/modules.xml")!!.delete("test")
+      projectRootVirtualFile.findFileByRelativePath("app/app.iml")!!.delete("test")
+      projectRootVirtualFile.findFileByRelativePath("app/sub36/sub36.iml")!!.delete("test")
+      projectRootVirtualFile.findFileByRelativePath("My36.iml")!!.delete("test")
+    }
+
+    openPreparedProject("project") { project ->
+      val runConfigurations = RunManagerEx.getInstanceEx(project).allConfigurationsList.filterIsInstance<ModuleBasedConfiguration<*, *>>()
+      assertThat(runConfigurations.associate { it.name to it.configurationModule?.module?.name }).isEqualTo(mapOf(
+        "app" to "My36.app",
+        "sub36" to "My36.app.sub36",
+        "All Tests Sub 36" to "My36.app.sub36"
+      ))
     }
   }
 }

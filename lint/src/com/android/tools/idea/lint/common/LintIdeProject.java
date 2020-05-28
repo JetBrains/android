@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
-import com.android.tools.lint.model.LmModule;
+import com.android.tools.lint.model.LintModelModule;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -265,7 +265,7 @@ public class LintIdeProject extends Project {
     }
 
     protected boolean includeTests() {
-      LmModule model = getBuildModule();
+      LintModelModule model = getBuildModule();
       if (model != null) {
         return model.getLintOptions().getCheckTestSources();
       }

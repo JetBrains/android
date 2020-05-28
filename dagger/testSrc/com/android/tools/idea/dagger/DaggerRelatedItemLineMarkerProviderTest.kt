@@ -106,7 +106,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(gotoRelatedItems).hasSize(1)
     var provider = gotoRelatedItems.first()
 
-    assertThat(provider.group).isEqualTo("Provider(s)")
+    assertThat(provider.group).isEqualTo("Providers")
     assertThat(provider.element).isEqualTo(providerMethod)
 
     // Kotlin consumer
@@ -132,7 +132,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(gotoRelatedItems).hasSize(1)
     provider = gotoRelatedItems.first()
 
-    assertThat(provider.group).isEqualTo("Provider(s)")
+    assertThat(provider.group).isEqualTo("Providers")
     assertThat(provider.element).isEqualTo(providerMethod)
 
     // Kotlin consumer as function parameter
@@ -232,7 +232,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(1)
     val method = gotoRelatedItems.first()
-    assertThat(method.group).isEqualTo("Exposed by component(s)")
+    assertThat(method.group).isEqualTo("Exposed by components")
     assertThat(method.element?.text).isEqualTo("String getString();")
     assertThat(method.customName).isEqualTo("MyComponent")
 
@@ -291,13 +291,13 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(2)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
-    assertThat(result).containsAllOf("Included in component(s): MyComponent", "Included in module(s): MyModule2")
+    assertThat(result).containsAllOf("Included in components: MyComponent", "Included in modules: MyModule2")
 
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(1)
     assertThat(trackerService.calledMethods.last()).isEqualTo("trackClickOnGutter MODULE")
 
-    gotoRelatedItems.find { it.group == "Included in component(s)" }!!.navigate()
+    gotoRelatedItems.find { it.group == "Included in components" }!!.navigate()
     assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER MODULE COMPONENT")
   }
 
@@ -338,7 +338,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(1)
     val method = gotoRelatedItems.first()
-    assertThat(method.group).isEqualTo("Parent component(s)")
+    assertThat(method.group).isEqualTo("Parent components")
     assertThat((method.element as PsiClass).name).isEqualTo("MyDependantComponent")
 
     clickOnIcon(icon)
@@ -405,8 +405,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files for MySubcomponent" }!!)
     assertThat(gotoRelatedItems).hasSize(2)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
-    assertThat(result).containsAllOf("Parent component(s): MyComponent",
-                                     "Parent component(s): MyComponentKt")
+    assertThat(result).containsAllOf("Parent components: MyComponent",
+                                     "Parent components: MyComponentKt")
   }
 
   fun testSubcomponentsAndModulesForComponent() {
@@ -467,9 +467,9 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "Dependency Related Files for MyComponent" }!!)
     assertThat(gotoRelatedItems).hasSize(3)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
-    assertThat(result).containsAllOf("Subcomponent(s): MySubcomponent2",
-                                     "Subcomponent(s): MySubcomponent",
-                                     "Module(s) included: MyModule")
+    assertThat(result).containsAllOf("Subcomponents: MySubcomponent2",
+                                     "Subcomponents: MySubcomponent",
+                                     "Modules included: MyModule")
   }
 
   fun testObjectClassInKotlin() {
@@ -519,7 +519,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val gotoRelatedItems = getGotoElements(icons.find { it.tooltipText == "MyModule is included in component MyComponent" }!!)
     assertThat(gotoRelatedItems).hasSize(1)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
-    assertThat(result).containsExactly("Included in component(s): MyComponent")
+    assertThat(result).containsExactly("Included in components: MyComponent")
 
     myFixture.configureFromExistingVirtualFile(notModuleFile)
     myFixture.moveCaret("ON|E")
@@ -577,7 +577,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(1)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
-    assertThat(result).containsExactly("Consumer(s): injectedStringWithQualifier")
+    assertThat(result).containsExactly("Consumers: injectedStringWithQualifier")
 
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(2)
@@ -619,7 +619,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     )
     assertThat(gotoRelatedItems).hasSize(1)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
-    assertThat(result).containsExactly("Module(s) included: MyModule")
+    assertThat(result).containsExactly("Modules included: MyModule")
   }
 
   fun testSubcomponentsForSubcomponent() {
@@ -667,11 +667,11 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItems = getGotoElements(icon)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
-    assertThat(result).contains("Subcomponent(s): MySubcomponent")
+    assertThat(result).contains("Subcomponents: MySubcomponent")
 
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods.last()).isEqualTo("trackClickOnGutter SUBCOMPONENT")
-    gotoRelatedItems.find { it.group == "Subcomponent(s)" }!!.navigate()
+    gotoRelatedItems.find { it.group == "Subcomponents" }!!.navigate()
     assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER SUBCOMPONENT SUBCOMPONENT")
   }
 }

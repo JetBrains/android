@@ -133,7 +133,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
     myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0, 3));
 
     if (canConfigureAdvancedProfiling) {
-      if (IdeInfo.getInstance().isGameTool()) {
+      if (IdeInfo.isGameTool()) {
         HyperlinkLabel linkToInstructionMessage = new HyperlinkLabel();
         linkToInstructionMessage.setHyperlinkText("Please recompile the APK with ", "advanced profiling enabled", ".");
         linkToInstructionMessage.setHyperlinkTarget("https://developer.android.com/r/studio-ui/advanced-profiling");

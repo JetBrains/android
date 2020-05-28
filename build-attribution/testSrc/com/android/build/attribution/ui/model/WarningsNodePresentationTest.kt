@@ -50,7 +50,7 @@ class WarningsNodePresentationTest {
     val descriptor = TaskWarningTypeNodeDescriptor(data.issues.first())
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
-      mainText = "Always-run Tasks",
+      mainText = "Always-Run Tasks",
       suffix = "1 warning",
       nodeIconState = NodeIconState.NO_ICON,
       rightAlignedSuffix = "2.0s"

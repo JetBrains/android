@@ -27,12 +27,14 @@ import org.junit.Test
 class EmulatorConfigurationTest {
   private val baseDir = if (SystemInfo.isWindows) "C:/home/janedoe" else "/home/janedoe"
   private val fileSystem = Jimfs.newFileSystem()
-  private val avdParentFolder = fileSystem.getPath("${baseDir}/.android/avd")
+  private val baseFolder = fileSystem.getPath(baseDir)
+  private val avdParentFolder = baseFolder.resolve(".android/avd")
+  private val sdkFolder = baseFolder.resolve("Android/Sdk")
 
   @Test
   fun testPhone() {
     // Prepare.
-    val avdFolder = FakeEmulator.createPhoneAvd(avdParentFolder)
+    val avdFolder = FakeEmulator.createPhoneAvd(avdParentFolder, sdkFolder)
 
     // Act.
     val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
@@ -44,7 +46,8 @@ class EmulatorConfigurationTest {
     assertThat(config?.displayWidth).isEqualTo(1440)
     assertThat(config?.displayHeight).isEqualTo(2960)
     assertThat(config?.density).isEqualTo(480)
-    assertThat(config?.skinFolder?.fileName.toString()).isEqualTo("pixel_3_xl")
+    assertThat(config?.skinFolder?.toString()?.replace('\\', '/'))
+        .endsWith("tools/adt/idea/artwork/resources/device-art-resources/pixel_3_xl")
     assertThat(config?.hasAudioOutput).isTrue()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
@@ -53,7 +56,7 @@ class EmulatorConfigurationTest {
   @Test
   fun testTablet() {
     // Prepare.
-    val avdFolder = FakeEmulator.createTabletAvd(avdParentFolder)
+    val avdFolder = FakeEmulator.createTabletAvd(avdParentFolder, sdkFolder)
 
     // Act.
     val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
@@ -65,7 +68,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.displayWidth).isEqualTo(1600)
     assertThat(config?.displayHeight).isEqualTo(2560)
     assertThat(config?.density).isEqualTo(320)
-    assertThat(config?.skinFolder?.fileName.toString()).isEqualTo("nexus_10")
+    assertThat(config?.skinFolder?.toString()?.replace('\\', '/')).isEqualTo("${baseDir}/Android/Sdk/skins/nexus_10")
     assertThat(config?.hasAudioOutput).isTrue()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.LANDSCAPE)
