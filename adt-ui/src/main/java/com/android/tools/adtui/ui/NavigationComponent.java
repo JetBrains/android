@@ -59,7 +59,7 @@ public class NavigationComponent<T extends NavigationComponent.Item> extends JEd
 
   public NavigationComponent() {
     setEditable(false);
-    setContentType(UIUtil.HTML_MIME);
+    setEditorKit(UIUtil.getHTMLEditorKit());
     putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 
     // Disable links decoration.
