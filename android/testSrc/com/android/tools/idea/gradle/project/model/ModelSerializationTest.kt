@@ -30,7 +30,6 @@ import com.android.ide.common.gradle.model.IdeDependencyGraphs
 import com.android.ide.common.gradle.model.IdeFilterData
 import com.android.ide.common.gradle.model.IdeGraphItem
 import com.android.ide.common.gradle.model.IdeInstantRun
-import com.android.ide.common.gradle.model.IdeJavaArtifact
 import com.android.ide.common.gradle.model.IdeJavaArtifactImpl
 import com.android.ide.common.gradle.model.IdeJavaCompileOptions
 import com.android.ide.common.gradle.model.IdeJavaLibrary
@@ -59,7 +58,6 @@ import com.android.ide.common.gradle.model.IdeVectorDrawablesOptions
 import com.android.ide.common.gradle.model.IdeViewBindingOptions
 import com.android.ide.common.gradle.model.ModelCache
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
-import com.android.ide.common.gradle.model.level2.IdeLibraryFactory
 import com.android.ide.common.gradle.model.level2.IdeModuleLibrary
 import com.android.ide.common.gradle.model.stubs.AaptOptionsStub
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactOutputStub
@@ -73,7 +71,6 @@ import com.android.ide.common.gradle.model.stubs.ClassFieldStub
 import com.android.ide.common.gradle.model.stubs.DependenciesStub
 import com.android.ide.common.gradle.model.stubs.DependencyGraphsStub
 import com.android.ide.common.gradle.model.stubs.FilterDataStub
-import com.android.ide.common.gradle.model.stubs.GlobalLibraryMapStub
 import com.android.ide.common.gradle.model.stubs.GraphItemStub
 import com.android.ide.common.gradle.model.stubs.InstantRunStub
 import com.android.ide.common.gradle.model.stubs.JavaArtifactStub
@@ -101,12 +98,6 @@ import com.android.ide.common.gradle.model.stubs.TestedTargetVariantStub
 import com.android.ide.common.gradle.model.stubs.VariantStub
 import com.android.ide.common.gradle.model.stubs.VectorDrawablesOptionsStub
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
-import com.android.ide.common.gradle.model.stubs.l2AndroidLibrary
-import com.android.ide.common.gradle.model.stubs.l2JavaLibrary
-import com.android.ide.common.gradle.model.stubs.l2ModuleLibrary
-import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder
-import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStubBuilder
-import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStubBuilder
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.java.GradleModuleVersionImpl
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency
@@ -203,18 +194,36 @@ class ModelSerializationTest {
 
   @Test
   fun level2AndroidLibrary() = assertSerializable {
-    IdeLibraryFactory().create(
-      AndroidLibraryStubBuilder().build()) as com.android.ide.common.gradle.model.level2.IdeAndroidLibrary
+    com.android.ide.common.gradle.model.level2.IdeAndroidLibrary(
+      "artifactAddress",
+      File("folder"),
+      "manifest",
+      "jarFile",
+      "compileJarFile",
+      "resFolder",
+      File("resStaticLibrary"),
+      "assetsFolder",
+      listOf("localJars"),
+      "jniFolder",
+      "aidlFolder",
+      "renderscriptFolder",
+      "prouardRules",
+      "lintJar",
+      "externalAnnotations",
+      "publicResources",
+      File("artifactFile"),
+      "symbolFile"
+    )
   }
 
   @Test
   fun level2JavaLibrary() = assertSerializable {
-    IdeLibraryFactory().create(JavaLibraryStubBuilder().build()) as com.android.ide.common.gradle.model.level2.IdeJavaLibrary
+    com.android.ide.common.gradle.model.level2.IdeJavaLibrary("artifactAddress", File("artifactFile"))
   }
 
   @Test
   fun level2ModuleLibrary() = assertSerializable {
-    IdeLibraryFactory().create(ModuleLibraryStubBuilder().build()) as IdeModuleLibrary
+    IdeModuleLibrary()
   }
 
   @Test
