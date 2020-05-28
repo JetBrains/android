@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
-import com.android.tools.idea.run.AndroidProgramRunner
+import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.ConsolePrinter
@@ -45,7 +45,7 @@ import org.mockito.MockitoAnnotations
 class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
   private lateinit var configSettings : RunnerAndConfigurationSettings
   private lateinit var configuration : AndroidRunConfiguration
-  val runner = AndroidProgramRunner()
+  val runner = DefaultStudioProgramRunner()
   private lateinit var ex : Executor
   private lateinit var env : ExecutionEnvironment
 

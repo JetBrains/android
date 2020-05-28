@@ -16,7 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
-import com.android.tools.idea.run.AndroidBaseProgramRunner;
+import com.android.tools.idea.run.StudioProgramRunner;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RunProfile;
@@ -30,19 +30,27 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
+public class ProfilerProgramRunner extends StudioProgramRunner {
   @Override
   @NotNull
   public String getRunnerId() {
-    return "AndroidProfilerProgramRunner";
+    return "ProfilerProgramRunner";
   }
 
   @Override
   public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
+    if (!super.canRun(executorId, profile)) {
+      return false;
+    }
     if (!ProfileRunExecutor.EXECUTOR_ID.equals(executorId) || !(profile instanceof AndroidRunConfigurationBase)) {
       return false;
     }
     return ((AndroidRunConfigurationBase)profile).isProfilable();
+  }
+
+  @Override
+  protected boolean canRunWithMultipleDevices(@NotNull String executorId) {
+    return false;
   }
 
   @Nullable
