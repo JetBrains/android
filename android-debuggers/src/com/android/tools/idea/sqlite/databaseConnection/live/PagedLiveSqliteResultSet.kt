@@ -36,7 +36,8 @@ class PagedLiveSqliteResultSet(
 
   override val totalRowCount: ListenableFuture<Int>
     get() = sendQueryCommand(sqliteStatement.toRowCountStatement()).transform(taskExecutor) { response ->
-      response.query.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.intValue ?: 0
+      // TODO: remove the cast to Int since it's possible to go over the 2^31 limit
+      response.query.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.longValue?.toInt() ?: 0
     }
 
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
