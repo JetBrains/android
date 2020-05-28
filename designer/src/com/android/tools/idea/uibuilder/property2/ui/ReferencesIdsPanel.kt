@@ -49,13 +49,22 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
     focusTraversalPolicy = LayoutFocusTraversalPolicy()
     table = PFormTable(dataModel)
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    table.columnModel.getColumn(0).maxWidth = JBUI.scale(32)
     table.autoResizeMode = JTable.AUTO_RESIZE_LAST_COLUMN
-    table.rowHeight = JBUI.scale(26);
     table.dragEnabled = true;
     table.dropMode = DropMode.INSERT_ROWS;
     table.transferHandler = ReferencesTransferHandler(table);
     add(table)
+    updateUI()
+  }
+
+  override fun updateUI() {
+    super.updateUI()
+    if (table != null) {
+      val reorderIcon =  StudioIcons.Common.REORDER
+      var padding = JBUI.scale(4) * 2
+      var size = reorderIcon.iconWidth + padding
+      table.columnModel.getColumn(0).maxWidth = size
+    }
   }
 
   /**
