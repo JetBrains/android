@@ -27,7 +27,6 @@ import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunnerKt;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.execution.ui.ExecutionConsole;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.execution.ui.RunContentDescriptorReusePolicy;
@@ -44,7 +43,11 @@ import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
+/**
+ * Base {@link com.intellij.execution.runners.ProgramRunner} for all Android Studio (not ASWB) program runners.
+ * It provides the necessary support and management for working with hot swap (Apply (Code) Changes).
+ */
+public abstract class StudioProgramRunner extends AndroidProgramRunner {
   @Override
   @Nullable
   protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment env)
