@@ -27,21 +27,11 @@ private class ComposeGradleProjectRuleImpl(private val projectPath: String,
     projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/compose-designer/testData").path
     projectRule.load(projectPath)
     projectRule.requestSyncAndWait()
-    val gradleInvocationResult = projectRule.invokeTasks("compileDebugSources")
-    if (!gradleInvocationResult.isBuildSuccessful) {
-      Assert.fail("""
-        The project must compile correctly for the test to pass.
 
-        Compiler errors:
-        ${gradleInvocationResult.getCompilerMessages(Message.Kind.ERROR).joinToString("\n\n") { it.rawMessage }}
-
-
-        ${gradleInvocationResult.buildError}
-      """.trimIndent())
+    projectRule.invokeTasks("compileDebugSources").apply {
+      buildError?.printStackTrace()
+      Assert.assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
     }
-
-    Assert.assertTrue("The project must compile correctly for the test to pass",
-                      projectRule.invokeTasks("compileDebugSources").isBuildSuccessful)
   }
 
   override fun after(description: Description) {

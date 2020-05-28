@@ -54,8 +54,10 @@ class PerfgateComposeTest {
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
     projectRule.requestSyncAndWait()
 
-    assertTrue("The project must compile correctly for the test to pass",
-               projectRule.invokeTasks("compileDebugSources").isBuildSuccessful)
+    projectRule.invokeTasks("compileDebugSources").apply {
+      buildError?.printStackTrace()
+      assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
+    }
   }
 
   @After
