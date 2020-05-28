@@ -40,7 +40,7 @@ class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) : 
 
   init {
     val text = JEditorPane()
-    text.contentType = "text/html"
+    text.editorKit = UIUtil.getHTMLEditorKit()
     text.isEditable = false
     text.isFocusable = false
     text.text = createText()
