@@ -173,6 +173,7 @@ class TableViewImpl : TableView {
     liveUpdatesCheckBox.addActionListener { listeners.forEach { it.toggleLiveUpdatesInvoked() } }
     tableActionsPanel.add(liveUpdatesCheckBox)
 
+    table.isStriped = true
     table.background = primaryContentBackground
     table.emptyText.text = "Table is empty"
     table.setDefaultRenderer(String::class.java, MyColoredTableCellRenderer())
