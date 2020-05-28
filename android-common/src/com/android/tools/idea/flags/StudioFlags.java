@@ -907,7 +907,7 @@ public final class StudioFlags {
     COMPOSE, "editor.surround.with.widget.action",
     "Enables \"Surround with widget\" intention and template",
     "Enables \"Surround with widget\" intention inside composable functions and adds \"Surround with widget\" live template",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_FUNCTION_EXTRACTION = Flag.create(
