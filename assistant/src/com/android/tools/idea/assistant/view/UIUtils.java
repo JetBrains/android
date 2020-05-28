@@ -174,7 +174,7 @@ public class UIUtils {
    * @param headContent Extra header content to add. Example "<title>My Favorite!!</title>".
    */
   public static void setHtml(JEditorPane pane, String content, String css, String headContent) {
-    pane.setContentType("text/html");
+    pane.setEditorKit(UIUtil.getHTMLEditorKit());
     // It's assumed that markup is for display purposes in our context.
     pane.setEditable(false);
     // Margins should be handled by the css in this case.
