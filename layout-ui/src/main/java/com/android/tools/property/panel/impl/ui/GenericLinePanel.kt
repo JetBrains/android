@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.panel.impl.ui
 
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.impl.model.GenericInspectorLineModel
 import java.awt.BorderLayout
@@ -28,6 +29,7 @@ class GenericLinePanel(component: JComponent, private val model: GenericInspecto
   init {
     add(component)
     model.addValueChangedListener(ValueChangedListener { valueChanged() })
+    background = secondaryPanelBackground
   }
 
   private fun valueChanged() {

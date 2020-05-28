@@ -90,7 +90,7 @@ public class FullApkInstaller {
 
   @VisibleForTesting
   String getPmInstallOptions(@NotNull IDevice device) {
-    String pmInstallOptions = myLaunchOptions.getPmInstallOptions();
+    String pmInstallOptions = myLaunchOptions.getPmInstallOptions(device);
     // Embedded devices (Android Things) have all runtime permissions granted since there's no requirement for user interaction/display.
     // However, regular installation will not grant some permissions until the next device reboot. Installing with "-g" guarantees that
     // the permissions are properly granted at install time.
@@ -114,7 +114,7 @@ public class FullApkInstaller {
     }
 
     try {
-      Integer userId = LaunchUtils.getUserIdFromFlags(myLaunchOptions.getPmInstallOptions());
+      Integer userId = LaunchUtils.getUserIdFromFlags(myLaunchOptions.getPmInstallOptions(device));
       if (!myInstalledApkCache.isInstalled(device, localFile, packageName, userId)) {
         return true;
       }

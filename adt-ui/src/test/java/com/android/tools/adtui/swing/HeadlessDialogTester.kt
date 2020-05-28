@@ -91,40 +91,14 @@ fun enableHeadlessDialogs(disposable: Disposable) {
 
 /**
  * Executes a function that opens a modal dialog and then a function that interacts with it.
+ * The function returns when the dialog is closed.
  *
- * @param disposable used for cleanup
  * @param dialogCreator user code that opens a modal dialog
  * @param dialogInteractor user code for interacting with the dialog
  */
-fun createDialogAndInteractWithIt(disposable: Disposable, dialogCreator: () -> Unit, dialogInteractor: (DialogWrapper) -> Unit) {
-  executeWithModalDialog(modalDialogStack.size + 1, disposable, dialogInteractor)
-  dialogCreator()
-}
-
-/**
- * Executes a [Runnable] that opens a modal dialog and then a [Consumer] that interacts with it.
- * This version of the method is intended to be called from Java.
- *
- * @param disposable used for cleanup
- * @param dialogCreator user code that opens a modal dialog
- * @param dialogInteractor user code for interacting with the dialog
- */
-fun createDialogAndInteractWithIt(disposable: Disposable, dialogCreator: Runnable, dialogInteractor: Consumer<DialogWrapper>) {
-  createDialogAndInteractWithIt(disposable, dialogCreator::run, dialogInteractor::consume)
-}
-
-/**
- * Executes the supplied [callback] when the number of nested modal dialogs reaches [modalDepth].
- *
- * @param modalDepth the number of nested modal dialogs
- * @param disposable used for cleanup
- * @param callback user code for interacting with the dialog
- */
-fun executeWithModalDialog(modalDepth: Int, disposable: Disposable, callback: (DialogWrapper) -> Unit) {
-  require(modalDepth > 0)
-
-  val canceller = Disposer.newDisposable()
-  Disposer.register(disposable, canceller)
+fun createDialogAndInteractWithIt(dialogCreator: () -> Unit, dialogInteractor: (DialogWrapper) -> Unit) {
+  val modalDepth = modalDialogStack.size + 1
+  val dialogClosed = CountDownLatch(1)
 
   val futureTask = ListenableFutureTask.create {
     modalityChangeLock.lock()
@@ -134,15 +108,15 @@ fun executeWithModalDialog(modalDepth: Int, disposable: Disposable, callback: (D
           val dialog = modalDialogStack.last()
           invokeLater(ModalityState.any()) {
             try {
-              callback(dialog)
+              dialogInteractor(dialog)
             }
             finally {
               if (dialog.isShowing) {
                 dialog.close(CANCEL_EXIT_CODE)
               }
+              dialogClosed.countDown()
             }
           }
-          Disposer.dispose(canceller)
           break
         }
         modalityChangeCondition.await()
@@ -152,10 +126,30 @@ fun executeWithModalDialog(modalDepth: Int, disposable: Disposable, callback: (D
       modalityChangeLock.unlock()
     }
   }
-
-  Disposer.register(canceller, Disposable { futureTask.cancel(true) })
-
   getApplication().executeOnPooledThread(futureTask)
+
+  try {
+    dialogCreator()
+
+    while (dialogClosed.count > 0) {
+      UIUtil.dispatchAllInvocationEvents()
+      dialogClosed.await(10, TimeUnit.MILLISECONDS)
+    }
+  }
+  finally {
+    futureTask.cancel(true)
+  }
+}
+
+/**
+ * Executes a [Runnable] that opens a modal dialog and then a [Consumer] that interacts with it.
+ * The function returns when the dialog is closed. This version of the method is intended to be called from Java.
+ *
+ * @param dialogCreator user code that opens a modal dialog
+ * @param dialogInteractor user code for interacting with the dialog
+ */
+fun createDialogAndInteractWithIt(dialogCreator: Runnable, dialogInteractor: Consumer<DialogWrapper>) {
+  createDialogAndInteractWithIt(dialogCreator::run, dialogInteractor::consume)
 }
 
 private val modalityChangeLock = ReentrantLock()

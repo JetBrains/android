@@ -21,9 +21,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 /**
- * Borderless button with hover effect used by studio profilers.
+ * Borderless button with hover effect.
  */
-public class CommonButton extends JButton {
+public final class CommonButton extends JButton {
 
   public CommonButton() {
     this(null, null);
@@ -44,13 +44,5 @@ public class CommonButton extends JButton {
   @Override
   public void updateUI() {
     setUI(new CommonButtonUI());
-  }
-
-  /**
-   * Do not support keyboard accessibility until it is supported product-wide in Studio.
-   */
-  @Override
-  public boolean isFocusable() {
-    return false;
   }
 }

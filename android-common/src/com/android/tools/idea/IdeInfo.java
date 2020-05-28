@@ -32,7 +32,7 @@ public final class IdeInfo {
     return "AndroidStudio".equals(getPlatformPrefix());
   }
 
-  public boolean isGameTool() {
+  public static boolean isGameTool() {
     return "AndroidStudioGameTools".equals(getPlatformPrefix());
   }
 }

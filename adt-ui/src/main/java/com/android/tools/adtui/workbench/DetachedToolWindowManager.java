@@ -43,7 +43,6 @@ import java.util.List;
 public class DetachedToolWindowManager implements ProjectComponent {
   private final Application myApplication;
   private final Project myProject;
-  private final FileEditorManager myEditorManager;
   private final MyFileEditorManagerListener myEditorManagerListener;
   private final Map<FileEditor, WorkBench<?>> myWorkBenchMap;
   private final Map<String, DetachedToolWindow<?>> myToolWindowMap;
@@ -56,12 +55,9 @@ public class DetachedToolWindowManager implements ProjectComponent {
   }
 
   @VisibleForTesting
-  DetachedToolWindowManager(@NotNull Application application,
-                                   @NotNull Project currentProject,
-                                   @NotNull FileEditorManager fileEditorManager) {
+  DetachedToolWindowManager(@NotNull Application application, @NotNull Project currentProject) {
     myApplication = application;
     myProject = currentProject;
-    myEditorManager = fileEditorManager;
     myEditorManagerListener = new MyFileEditorManagerListener();
     myWorkBenchMap = new IdentityHashMap<>(13);
     myToolWindowMap = new HashMap<>(8);
@@ -121,6 +117,9 @@ public class DetachedToolWindowManager implements ProjectComponent {
 
   @Nullable
   private WorkBench getActiveWorkBench() {
+    if (myProject.isDisposed()){
+      return null;
+    }
     Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
     if (focusOwner instanceof WorkBench) {
       return (WorkBench)focusOwner;
@@ -129,7 +128,7 @@ public class DetachedToolWindowManager implements ProjectComponent {
     if (current != null) {
       return current;
     }
-    FileEditor[] selectedEditors = myEditorManager.getSelectedEditors();
+    FileEditor[] selectedEditors = FileEditorManager.getInstance(myProject).getSelectedEditors();
     if (selectedEditors.length == 0) {
       return null;
     }

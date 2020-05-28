@@ -74,16 +74,14 @@ public class VisualizationManager implements ProjectComponent {
   @Nullable private final MergingUpdateQueue myToolWindowUpdateQueue;
 
   private final Project myProject;
-  private final FileEditorManager myFileEditorManager;
 
   @Nullable private VisualizationForm myToolWindowForm;
   @Nullable private ToolWindow myToolWindow;
   private boolean myToolWindowReady = false;
   private boolean myToolWindowDisposed = false;
 
-  public VisualizationManager(final Project project, final FileEditorManager fileEditorManager) {
+  public VisualizationManager(final Project project) {
     myProject = project;
-    myFileEditorManager = fileEditorManager;
 
     if (!StudioFlags.NELE_VISUALIZATION.get()) {
       myToolWindowUpdateQueue = null;
@@ -98,7 +96,7 @@ public class VisualizationManager implements ProjectComponent {
   public void projectOpened() {
     StartupManager.getInstance(myProject).registerPostStartupActivity(() -> {
       myToolWindowReady = true;
-      processFileEditorChange(myFileEditorManager.getSelectedEditor());
+      processFileEditorChange(FileEditorManager.getInstance(myProject).getSelectedEditor());
     });
   }
 
@@ -323,7 +321,7 @@ public class VisualizationManager implements ProjectComponent {
       return ApplicationManager.getApplication().runReadAction((Computable<FileEditor>)() -> getActiveLayoutEditor(file));
     }
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    return Arrays.stream(myFileEditorManager.getSelectedEditors())
+    return Arrays.stream(FileEditorManager.getInstance(myProject).getSelectedEditors())
       .filter(editor -> {
         VirtualFile editorFile = editor.getFile();
         return editorFile != null && editorFile.equals(file);
@@ -341,7 +339,7 @@ public class VisualizationManager implements ProjectComponent {
       return ApplicationManager.getApplication().runReadAction((Computable<FileEditor>)() -> getFirstActiveLayoutEditor());
     }
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    return Arrays.stream(myFileEditorManager.getSelectedEditors())
+    return Arrays.stream(FileEditorManager.getInstance(myProject).getSelectedEditors())
       .filter(editor -> {
         VirtualFile editorFile = editor.getFile();
         ResourceFolderType type = IdeResourcesUtil.getFolderType(editorFile);

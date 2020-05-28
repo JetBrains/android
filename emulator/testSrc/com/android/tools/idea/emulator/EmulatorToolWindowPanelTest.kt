@@ -24,7 +24,9 @@ import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.UiTestRule
 import org.junit.Before
@@ -32,13 +34,15 @@ import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.awt.Component
 import java.awt.Dimension
+import java.awt.Point
 import java.io.File
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
 /**
- * Tests for [EmulatorToolWindowPanel].
+ * Tests for [EmulatorToolWindowPanel] and some of the toolbar actions.
  */
 @RunsInEdt
 class EmulatorToolWindowPanelTest {
@@ -77,26 +81,65 @@ class EmulatorToolWindowPanelTest {
 
     // Check appearance.
     panel.zoomToolbarIsVisible = true
-    var frameNumber = panel.emulatorView!!.frameNumber
+    var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0)
     panel.size = Dimension(400, 600)
     ui.layoutAndDispatchEvents()
-    val call = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 253 height: 521")
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGBA8888 width: 253 height: 521")
     assertAppearance(ui, "image1")
 
-    emulatorView.showLongRunningOperationIndicator("Just a sec...")
-    ui.layoutAndDispatchEvents()
-    assertAppearance(ui, "image2")
+    // Check EmulatorPowerButtonAction.
+    var button = ui.findComponent { it is ActionButton && it.action.templateText == "Power" } ?: throw AssertionError()
+    ui.mousePressOn(button)
+    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""key: "Power"""")
+    ui.mouseRelease()
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Power"""")
 
-    emulatorView.hideLongRunningOperationIndicator()
-    ui.layoutAndDispatchEvents()
-    assertAppearance(ui, "image1")
-    assertThat(call.completion.isCancelled).isFalse()
+    // Check EmulatorVolumeUpButtonAction.
+    button = ui.findComponent { it is ActionButton && it.action.templateText == "Volume Up" } ?: throw AssertionError()
+    ui.mousePressOn(button)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""key: "AudioVolumeUp"""")
+    ui.mouseRelease()
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeUp"""")
+
+    // Check EmulatorVolumeDownButtonAction.
+    button = ui.findComponent { it is ActionButton && it.action.templateText == "Volume Down" } ?: throw AssertionError()
+    ui.mousePressOn(button)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""key: "AudioVolumeDown"""")
+    ui.mouseRelease()
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeDown"""")
+
+    assertThat(streamScreenshotCall.completion.isCancelled).isFalse()
 
     panel.destroyContent()
     assertThat(panel.emulatorView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { call.completion.isCancelled }
+    waitForCondition(2, TimeUnit.SECONDS) { streamScreenshotCall.completion.isCancelled }
+  }
+
+  private fun FakeUi.mousePressOn(component: Component) {
+    val location: Point = getPosition(component)
+    mouse.press(location.x, location.y)
+    // Allow events to propagate.
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  }
+
+  private fun FakeUi.mouseRelease() {
+    mouse.release()
+    // Allow events to propagate.
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
   private fun getStreamScreenshotCallAndWaitForFrame(panel: EmulatorToolWindowPanel, frameNumber: Int): GrpcCallRecord {

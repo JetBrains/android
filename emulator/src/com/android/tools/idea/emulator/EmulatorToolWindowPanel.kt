@@ -164,13 +164,13 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
 
       addToolbars()
 
-      val loadingPanel = JBLoadingPanel(BorderLayout(), disposable)
+      val loadingPanel = JBLoadingPanel(BorderLayout(), disposable, 200)
       this.loadingPanel = loadingPanel
       loadingPanel.add(layeredPane, BorderLayout.CENTER)
       addToCenter(loadingPanel)
 
       loadingPanel.setLoadingText("Connecting to the Emulator")
-      loadingPanel.startLoading() // stopLoading is called by EmulatorView after receiving the first screen image.
+      loadingPanel.startLoading() // stopLoading is called by EmulatorView after the gRPC connection is established.
 
       loadingPanel.repaint()
     }
@@ -276,11 +276,8 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
       isOpaque = false
     }
   }
-
-  companion object {
-    @JvmStatic
-    private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
-    private const val isToolbarHorizontal = true
-    private const val EMULATOR_SECONDARY_TOOLBAR_ID = "EmulatorSecondaryToolbar"
-  }
 }
+
+private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+private const val EMULATOR_SECONDARY_TOOLBAR_ID = "EmulatorSecondaryToolbar"
+private const val isToolbarHorizontal = true

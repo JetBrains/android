@@ -26,7 +26,6 @@ import com.intellij.openapi.vfs.newvfs.impl.StubVirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.PlatformUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,7 +81,7 @@ public final class IntelliJCodeElement implements CodeElement {
 
   @Override
   public boolean isInUserCode() {
-    if (IdeInfo.getInstance().isGameTool()) {
+    if (IdeInfo.isGameTool()) {
       // For standalone game tools, source code navigation is not supported at this moment.
       return false;
     }

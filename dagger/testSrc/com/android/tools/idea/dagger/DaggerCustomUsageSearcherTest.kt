@@ -86,7 +86,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provider(s) (1 usage)
+      |  Providers (1 usage)
       |   ${module.name} (1 usage)
       |    myExample (1 usage)
       |     MyModule (1 usage)
@@ -146,7 +146,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (3 usages)
-      |  Provider(s) (3 usages)
+      |  Providers (3 usages)
       |   ${module.name} (3 usages)
       |     (3 usages)
       |     MyClass.kt (3 usages)
@@ -191,7 +191,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provider(s) (1 usage)
+      |  Providers (1 usage)
       |   ${module.name} (1 usage)
       |    myExample (1 usage)
       |     MyProvider (1 usage)
@@ -228,7 +228,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provider(s) (1 usage)
+      |  Providers (1 usage)
       |   ${module.name} (1 usage)
       |     (1 usage)
       |     MyProvider.kt (1 usage)
@@ -272,7 +272,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provider(s) (1 usage)
+      |  Providers (1 usage)
       |   ${module.name} (1 usage)
       |    myExample (1 usage)
       |     MyModule (1 usage)
@@ -318,7 +318,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provider(s) (1 usage)
+      |  Providers (1 usage)
       |   ${module.name} (1 usage)
       |     (1 usage)
       |     MyClass.kt (1 usage)
@@ -365,7 +365,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provider(s) (1 usage)
+      |  Providers (1 usage)
       |   ${module.name} (1 usage)
       |     (1 usage)
       |     MyClass.kt (1 usage)
@@ -389,7 +389,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Provider(s) (1 usage)
+      |  Providers (1 usage)
       |   ${module.name} (1 usage)
       |     (1 usage)
       |     MyClass.kt (1 usage)
@@ -479,7 +479,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (4 usages)
-      |  Consumer(s) (4 usages)
+      |  Consumers (4 usages)
       |   ${module.name} (4 usages)
       |    example (4 usages)
       |     MyClass (1 usage)
@@ -532,7 +532,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
       | Found usages (1 usage)
-      |  Exposed by component(s) (1 usage)
+      |  Exposed by components (1 usage)
       |   ${module.name} (1 usage)
       |    test (1 usage)
       |     MyComponent (1 usage)
@@ -596,14 +596,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Included in component(s) (2 usages)
+      |  Included in components (2 usages)
       |   ${myFixture.module.name} (2 usages)
       |    test (2 usages)
       |     MyComponent.java (1 usage)
       |      5public interface MyComponent {}
       |     MyComponentKt.kt (1 usage)
       |      5interface MyComponentKt
-      |  Included in module(s) (1 usage)
+      |  Included in modules (1 usage)
       |   ${myFixture.module.name} (1 usage)
       |    test (1 usage)
       |     MyModule2.java (1 usage)
@@ -644,7 +644,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Parent component(s) (1 usage)
+      |  Parent components (1 usage)
       |   ${myFixture.module.name} (1 usage)
       |    test (1 usage)
       |     MyDependantComponent.kt (1 usage)
@@ -722,7 +722,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Parent component(s) (3 usages)
+      |  Parent components (3 usages)
       |   ${myFixture.module.name} (3 usages)
       |    test (3 usages)
       |     MyComponent.java (1 usage)
@@ -779,7 +779,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Subcomponent(s) (1 usage)
+      |  Subcomponents (1 usage)
       |   ${myFixture.module.name} (1 usage)
       |    test (1 usage)
       |     MySubcomponent.java (1 usage)
@@ -847,7 +847,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Subcomponent(s) (2 usages)
+      |  Subcomponents (2 usages)
       |   ${myFixture.module.name} (2 usages)
       |    test (2 usages)
       |     MySubcomponent.java (1 usage)
@@ -859,7 +859,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Module(s) included (1 usage)
+      |  Modules included (1 usage)
       |   ${myFixture.module.name} (1 usage)
       |    test (1 usage)
       |     MyModule.java (1 usage)
@@ -898,7 +898,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
     assertThat(presentation).contains(
       """
-      |  Included in component(s) (1 usage)
+      |  Included in components (1 usage)
       |   ${myFixture.module.name} (1 usage)
       |    test (1 usage)
       |     MyComponent.java (1 usage)
@@ -939,7 +939,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(presentation).contains(
       """
           | Found usages (1 usage)
-          |  Provider(s) (1 usage)
+          |  Providers (1 usage)
           |   ${myFixture.module.name} (1 usage)
           |    example (1 usage)
           |     MyModule (1 usage)
@@ -982,7 +982,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-          |  Subcomponent(s) (1 usage)
+          |  Subcomponents (1 usage)
           |   ${myFixture.module.name} (1 usage)
           |    test (1 usage)
           |     MySubcomponent.kt (1 usage)
@@ -1022,7 +1022,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation).contains(
       """
-      |  Included in component(s) (1 usage)
+      |  Included in components (1 usage)
       |   ${myFixture.module.name} (1 usage)
       |    test (1 usage)
       |     MyComponent.kt (1 usage)

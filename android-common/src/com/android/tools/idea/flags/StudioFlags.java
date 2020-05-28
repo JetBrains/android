@@ -341,6 +341,11 @@ public final class StudioFlags {
     "Enable the new transform panel in the layout editor and motion editor",
     true);
 
+  public static final Flag<Boolean> NELE_TRANSITION_PANEL = Flag.create(
+    NELE, "toggle.layout.editor.transition.panel", "Toggle transition panel in motion editor.",
+    "Enable the new transition panel in the motion editor",
+    true);
+
   //endregion
 
   //region Navigation Editor
@@ -766,7 +771,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> MULTIDEVICE_INSTRUMENTATION_TESTS = Flag.create(
     TESTING, "multidevice.instrumentation.tests", "Allow running instrumentation tests on multiple devices at a time.",
     "If enabled, you can choose run-on-selected-devices for android instrumentation test run configurations.",
-    true
+    false
   );
 
   public static final Flag<Boolean> UTP_TEST_RESULT_SUPPORT = Flag.create(
@@ -812,7 +817,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW = Flag.create(
     COMPOSE, "preview.enabled", "Enable the Compose preview",
     "If enabled, a visual preview will be available for Compose.",
-    true);
+    false);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD = Flag.create(
     COMPOSE, "preview.fast.build.enabled", "Enable the use of \"compileDebugKotlin\" for the preview refresh",
@@ -846,35 +851,35 @@ public final class StudioFlags {
     "Compose-specific support in the code editor",
     "Controls whether Compose-specific editor features, like completion tweaks, are enabled. This flag has priority over " +
     "all flags in the `compose.editor.*` namespace.",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_PRESENTATION = Flag.create(
     COMPOSE, "editor.completion.presentation",
     "Custom presentation for code completion items for composable functions",
     "If enabled, code completion items for composable functions use a custom presentation (icon, text).",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_WEIGHER = Flag.create(
     COMPOSE, "editor.completion.weigher",
     "Custom weigher for Compose",
     "If enabled, code completion puts composable functions above other completion suggestions.",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER = Flag.create(
     COMPOSE, "editor.completion.insert.handler",
     "Custom insert handler for composable functions",
     "If enabled, code completion for composable functions uses a custom InsertHandler that inserts required parameter names.",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_AUTO_DOCUMENTATION = Flag.create(
     COMPOSE, "editor.auto.documentation",
     "Show quick documentation automatically for Compose",
     "If enabled, during code completion popup with documentation shows automatically",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION = Flag.create(
@@ -902,7 +907,7 @@ public final class StudioFlags {
     COMPOSE, "wizard.templates",
     "Show Compose Wizards",
     "If enabled, allows adding new Compose Projects/Modules/Activities through the wizards",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_ANIMATED_PREVIEW = Flag.create(

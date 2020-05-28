@@ -105,10 +105,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     when(myDetachedToolWindowFactory.create(any(Project.class), eq(WORKBENCH_TITLE2), eq(PalettePanelToolContent.getOtherDefinition())))
       .thenReturn(myDetachedToolWindow2b, null);
 
-    myManager = new DetachedToolWindowManager(
-      ApplicationManager.getApplication(),
-      getProject(),
-      FileEditorManager.getInstance(getProject()));
+    myManager = new DetachedToolWindowManager(ApplicationManager.getApplication(), getProject());
     myManager.initComponent();
     myManager.setDetachedToolWindowFactory(myDetachedToolWindowFactory);
     assert myManager.getComponentName().equals("DetachedToolWindowManager");

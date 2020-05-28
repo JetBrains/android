@@ -141,12 +141,14 @@ public class MlLightClassTest extends AndroidTestCase {
       "            mobilenetOutputs = mobilenetModel.process(buffer);\n" +
       "            List<Category> categoryList = mobilenetOutputs.getProbabilityAsCategoryList();\n" +
       "            TensorBuffer categoryBuffer = mobilenetOutputs.getProbabilityAsTensorBuffer();\n" +
+      "            mobilenetModel.close();\n" +
       "\n" +
       "            MobilenetModel219 mobilenetModel219 = MobilenetModel219.newInstance(this, options);\n" +
       "            MobilenetModel219.Outputs mobilenetOutputs2 = mobilenetModel219.process(image);\n" +
       "            mobilenetOutputs2 = mobilenetModel219.process(buffer);\n" +
       "            List<Category> categoryList2 = mobilenetOutputs2.getProbabilityAsCategoryList();\n" +
       "            TensorBuffer categoryBuffer2 = mobilenetOutputs2.getProbabilityAsTensorBuffer();\n" +
+      "            mobilenetModel219.close();\n" +
       "\n" +
       "            SsdModel ssdModel = SsdModel.newInstance(this);\n" +
       "            SsdModel.Outputs ssdOutputs = ssdModel.process(image);\n" +
@@ -155,6 +157,7 @@ public class MlLightClassTest extends AndroidTestCase {
       "            TensorBuffer classes = ssdOutputs.getClassesAsTensorBuffer();\n" +
       "            TensorBuffer scores = ssdOutputs.getScoresAsTensorBuffer();\n" +
       "            TensorBuffer numberofdetections = ssdOutputs.getNumberOfDetectionsAsTensorBuffer();\n" +
+      "            ssdModel.close();\n" +
       "\n" +
       "            TensorBuffer stylearray = null;\n" +
       "            StyleTransferModel styleTransferModel = StyleTransferModel.newInstance(this, options);\n" +
@@ -162,6 +165,7 @@ public class MlLightClassTest extends AndroidTestCase {
       "            outputs = styleTransferModel.process(buffer, stylearray);\n" +
       "            TensorImage styledimage = outputs.getStyledImageAsTensorImage();" +
       "            TensorBuffer styledimageBuffer = outputs.getStyledImageAsTensorBuffer();" +
+      "            styleTransferModel.close();\n" +
       "        } catch (IOException e) {};\n" +
       "    }\n" +
       "}"
@@ -199,6 +203,7 @@ public class MlLightClassTest extends AndroidTestCase {
       "            TensorBuffer tensorBuffer = null;\n" +
       "            MyPlainModel.Outputs output = myModel.process(tensorBuffer);\n" +
       "            TensorBuffer data0 = output.getOutputFeature0AsTensorBuffer();\n" +
+      "            myModel.close();\n" +
       "        } catch (IOException e) {};\n" +
       "    }\n" +
       "}"
@@ -313,6 +318,7 @@ public class MlLightClassTest extends AndroidTestCase {
       "        val mobilenetOutputs2 : MobilenetModel.Outputs = mobilenetModel.process(tensorBuffer)\n" +
       "        val probability : List<Category> = mobilenetOutputs.probabilityAsCategoryList\n" +
       "        val probabilityBuffer : TensorBuffer = mobilenetOutputs.probabilityAsTensorBuffer\n" +
+      "        mobilenetModel.close()\n" +
       "        Log.d(\"TAG\", \"Result\" + probability + probabilityBuffer + mobilenetOutputs2)\n" +
       "\n" +
       "        val ssdModel : SsdModel = SsdModel.newInstance(this, options)\n" +
@@ -322,6 +328,7 @@ public class MlLightClassTest extends AndroidTestCase {
       "        val classes : TensorBuffer = ssdOutputs.classesAsTensorBuffer\n" +
       "        val scores : TensorBuffer = ssdOutputs.scoresAsTensorBuffer\n" +
       "        val numberofdetections : TensorBuffer = ssdOutputs.numberOfDetectionsAsTensorBuffer\n" +
+      "        ssdModel.close()\n" +
       "        Log.d(\"TAG\", \"Result\" + locations + classes + scores + numberofdetections + ssdOutputs2)\n" +
       "\n" +
       "        val styleTransferModel : StyleTransferModel = StyleTransferModel.newInstance(this, options)\n" +
@@ -329,6 +336,7 @@ public class MlLightClassTest extends AndroidTestCase {
       "        val styleTransferOutputs2 : StyleTransferModel.Outputs = styleTransferModel.process(tensorBuffer, tensorBuffer)\n" +
       "        val styledImage : TensorImage = styleTransferOutputs.styledImageAsTensorImage\n" +
       "        val styledImageBuffer : TensorBuffer = styleTransferOutputs.styledImageAsTensorBuffer\n" +
+      "        styleTransferModel.close()\n" +
       "        Log.d(\"TAG\", \"Result\" + styledImage + styledImageBuffer + styleTransferOutputs2)\n" +
       "    }\n" +
       "}"

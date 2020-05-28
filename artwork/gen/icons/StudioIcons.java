@@ -250,6 +250,7 @@ public class StudioIcons {
       public static final Icon CHIP = load("/studio/icons/layout-editor/palette/chip.svg"); // 16x16
       public static final Icon CHRONOMETER = load("/studio/icons/layout-editor/palette/chronometer.svg"); // 16x16
       public static final Icon COLLAPSING_TOOLBAR_LAYOUT = load("/studio/icons/layout-editor/palette/collapsing-toolbar-layout.svg"); // 16x16
+      public static final Icon CONSTRAINT_HELPER = load("/studio/icons/layout-editor/palette/constraint-helper.svg"); // 16x16
       public static final Icon CONSTRAINT_LAYOUT = load("/studio/icons/layout-editor/palette/constraint-layout.svg"); // 16x16
       public static final Icon CONSTRAINT_SET = load("/studio/icons/layout-editor/palette/constraint-set.svg"); // 16x16
       public static final Icon COORDINATOR_LAYOUT = load("/studio/icons/layout-editor/palette/coordinator-layout.svg"); // 16x16
