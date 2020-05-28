@@ -174,7 +174,6 @@ class TableViewImpl : TableView {
     tableActionsPanel.add(liveUpdatesCheckBox)
 
     table.isStriped = true
-    table.background = primaryContentBackground
     table.emptyText.text = "Table is empty"
     table.setDefaultRenderer(String::class.java, MyColoredTableCellRenderer())
     table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
