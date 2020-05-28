@@ -14,7 +14,6 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
@@ -65,7 +64,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
   private final Project myProject;
 
   private AndroidPropertyFilesUpdater(Project project) {
-    myAlarm = new SingleAlarm(() -> TransactionGuard.submitTransaction(project, this::updatePropertyFilesIfNecessary), 50, this);
+    myAlarm = new SingleAlarm(this::updatePropertyFilesIfNecessary, 50, this);
     myProject = project;
 
     if (!ApplicationManager.getApplication().isUnitTestMode() &&
