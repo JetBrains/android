@@ -136,6 +136,82 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders
             EXCLUDE_FOLDER      : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/app/build
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/paidDebug/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/aidl_source_output_dir/paidDebugAndroidTest/out [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/paidDebug/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/paidDebugAndroidTest/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/paidDebugUnitTest/out [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/paidDebug/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/paidDebugAndroidTest/out [-]
+            Generated           : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/rs/androidTest/paid/debug [-]
+            Generated           : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/paid/debug [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/paid/debug [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/paid/debug [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestPaid/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestPaid/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestPaid/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestPaid/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestPaid/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestPaid/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestPaid/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestPaid/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestPaid/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestPaidDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestPaidDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestPaidDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestPaidDebug/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestPaidDebug/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestPaidDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestPaidDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestPaidDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestPaidDebug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/paid/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/paid/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/paid/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/paid/jni [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/paid/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/paid/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/paid/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/paid/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/paid/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/paidDebug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/paidDebug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/paidDebug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/paidDebug/jni [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/paidDebug/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/paidDebug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/paidDebug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/paidDebug/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/paidDebug/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testPaid/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testPaid/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testPaid/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testPaid/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testPaid/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testPaid/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testPaid/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testPaid/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testPaid/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testPaidDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testPaidDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testPaidDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testPaidDebug/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testPaidDebug/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testPaidDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testPaidDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testPaidDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testPaidDebug/shaders [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK

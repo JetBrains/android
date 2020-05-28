@@ -34,6 +34,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
+import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManager
+import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManagerImpl
+import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderModelState
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
@@ -237,6 +240,11 @@ private fun ProjectDumper.dump(module: Module) {
     prop("ExternalSource.Id") { moduleRootManager.externalSource?.id?.takeUnless { it == "GRADLE" } }
     val moduleRootModel = moduleRootManager as ModuleRootModel
     moduleRootModel.contentEntries.forEach { dump(it) }
+    val sourceFolderManager = SourceFolderManager.getInstance(module.project) as SourceFolderManagerImpl
+    val sourceFolders = sourceFolderManager.state?.sourceFolders?.filter { it.moduleName == module.name }.orEmpty()
+    sourceFolders.sortedBy { it.url.toPrintablePath() }.forEach {
+      dump(it)
+    }
     // TODO(b/124658218): Remove sorting if the order can be made stable.
     moduleRootModel.orderEntries.sortedBy { it.presentableName.removeAndroidVersionsFromDependencyNames().replaceKnownPaths() }.forEach {
       dump(it)
@@ -348,14 +356,22 @@ private fun ProjectDumper.dump(contentEntry: ContentEntry) {
   }
 }
 
+private fun ProjectDumper.dump(model: SourceFolderModelState) {
+  head("WATCHED_${model.type}_FOLDER") { model.url.toPrintablePath() }
+  nest {
+    prop("PackagePrefix") { model.packagePrefix }
+    prop("Generated") { model.generated.takeIf { it == true }?.toString() }
+  }
+}
+
 private fun ProjectDumper.dump(excludeFolder: ExcludeFolder) {
   head("EXCLUDE_FOLDER") { excludeFolder.url.toPrintablePath() }
 }
 
 private fun ProjectDumper.dump(sourceFolder: SourceFolder) {
   prop(
-      sourceFolder.rootType.javaClass.simpleName.removeSuffix("RootType") +
-      if (sourceFolder.isTestSource) " (test)" else ""
+    sourceFolder.rootType.javaClass.simpleName.removeSuffix("RootType") +
+    if (sourceFolder.isTestSource) " (test)" else ""
   ) { sourceFolder.url.toPrintablePath() }
   nest {
     prop("PackagePrefix") { sourceFolder.packagePrefix.nullize() }
