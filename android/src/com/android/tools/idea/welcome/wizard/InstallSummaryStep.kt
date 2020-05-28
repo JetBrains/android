@@ -44,7 +44,8 @@ class InstallSummaryStep(
 ) : ModelWizardStep<FirstRunModel>(model, "Verify Settings") {
   private val summaryText = JTextPane().apply {
     isEditable = false
-    contentType = UIUtil.HTML_MIME
+    editorKit = UIUtil.getHTMLEditorKit()
+
     // There is no need to add whitespace on the top
     addHyperlinkListener {
       if (it.eventType == HyperlinkEvent.EventType.ACTIVATED && it.url != null) {
