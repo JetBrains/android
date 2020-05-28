@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterAccumulator;
@@ -32,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CaptureNode implements HNode<CaptureNode> {
-
   /**
    * Start time with GLOBAL clock.
    */
@@ -77,6 +77,13 @@ public class CaptureNode implements HNode<CaptureNode> {
 
   @NotNull
   private final CaptureNodeModel myData;
+
+  /**
+   * Aspect model for the node {@link Aspect}. Only root nodes provide aspect changes so it is lazily initialized to avoid the overhead of
+   * its instantiation.
+   */
+  @Nullable
+  private AspectModel<Aspect> myAspectModel = null;
 
   public CaptureNode(@NotNull CaptureNodeModel model) {
     myChildren = new ArrayList<>();
@@ -181,6 +188,14 @@ public class CaptureNode implements HNode<CaptureNode> {
     myClockType = clockType;
   }
 
+  @NotNull
+  public AspectModel<Aspect> getAspectModel() {
+    if (myAspectModel == null) {
+      myAspectModel = new AspectModel<>();
+    }
+    return myAspectModel;
+  }
+
   /**
    * Returns the proportion of time the method was using CPU relative to the total (wall-clock) time that passed.
    */
@@ -239,6 +254,9 @@ public class CaptureNode implements HNode<CaptureNode> {
   public FilterResult applyFilter(@NotNull Filter filter) {
     FilterAccumulator accumulator = new FilterAccumulator(!filter.isEmpty());
     computeFilter(filter, false, accumulator);
+    if (myAspectModel != null) {
+      myAspectModel.changed(Aspect.FILTER_APPLIED);
+    }
     return accumulator.toFilterResult();
   }
 
@@ -301,5 +319,11 @@ public class CaptureNode implements HNode<CaptureNode> {
      * Neither this node matches to the filter nor one of its ancestor nor one of its descendant.
      */
     UNMATCH,
+  }
+  public enum Aspect {
+    /**
+     * Fired when a {@link Filter} is applied to this node.
+     */
+    FILTER_APPLIED
   }
 }
