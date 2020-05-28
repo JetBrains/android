@@ -1,6 +1,21 @@
 package org.jetbrains.android.inspections.lint;
 
-import com.android.tools.idea.lint.*;
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.DOT_KTS;
+import static com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE;
+import static com.android.SdkConstants.OLD_PROGUARD_FILE;
+import static com.android.tools.lint.detector.api.TextFormat.HTML;
+import static com.android.tools.lint.detector.api.TextFormat.RAW;
+
+import com.android.tools.idea.lint.LintIdeAnalytics;
+import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.LintIdeIssueRegistry;
+import com.android.tools.idea.lint.LintIdeProject;
+import com.android.tools.idea.lint.LintIdeRequest;
+import com.android.tools.idea.lint.ProvideLintFeedbackIntentionAction;
+import com.android.tools.idea.lint.ProvideLintFeedbackPanel;
+import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.PsiProjectListener;
 import com.android.tools.lint.checks.DeprecationDetector;
@@ -19,15 +34,25 @@ import com.intellij.codeInsight.daemon.DaemonBundle;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.*;
+import com.intellij.codeInspection.InspectionManager;
+import com.intellij.codeInspection.InspectionProfile;
+import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.codeInspection.ProblemHighlightType;
+import com.intellij.codeInspection.SuppressQuickFix;
 import com.intellij.codeInspection.ex.CustomEditInspectionToolsSettingsAction;
 import com.intellij.codeInspection.ex.DisableInspectionToolAction;
-import com.intellij.lang.annotation.*;
+import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.lang.annotation.AnnotationBuilder;
+import com.intellij.lang.annotation.AnnotationHolder;
+import com.intellij.lang.annotation.ExternalAnnotator;
+import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.keymap.KeymapUtil;
@@ -46,22 +71,20 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.xml.util.XmlStringUtil;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import javax.swing.*;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.KotlinFileType;
 import org.jetbrains.plugins.groovy.GroovyFileType;
-
-import javax.swing.*;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.lint.detector.api.TextFormat.HTML;
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 /**
  * @author Eugene.Kudelevsky
@@ -94,7 +117,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
     final FileType fileType = file.getFileType();
 
-    if (fileType == StdFileTypes.XML) {
+    if (fileType == XmlFileType.INSTANCE) {
       if (facet == null || ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getFileResourceFolderType(file) == null &&
                            !ANDROID_MANIFEST_XML.equals(vFile.getName())) {
         return null;
@@ -117,9 +140,9 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         PsiProjectListener.getInstance(project).ensureSubscribed();
       }
     }
-    else if (fileType != StdFileTypes.JAVA
+    else if (fileType != JavaFileType.INSTANCE
              && fileType != KotlinFileType.INSTANCE
-             && fileType != StdFileTypes.PROPERTIES) {
+             && fileType != PropertiesFileType.INSTANCE) {
       return null;
     }
 
@@ -137,13 +160,13 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       VirtualFile mainFile = state.getMainFile();
       final FileType fileType = mainFile.getFileType();
       String name = mainFile.getName();
-      if (fileType == StdFileTypes.XML) {
+      if (fileType == XmlFileType.INSTANCE) {
         if (name.equals(ANDROID_MANIFEST_XML)) {
           scope = Scope.MANIFEST_SCOPE;
         } else {
           scope = Scope.RESOURCE_FILE_SCOPE;
         }
-      } else if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) {
+      } else if (fileType == JavaFileType.INSTANCE || fileType == KotlinFileType.INSTANCE) {
         scope = Scope.JAVA_FILE_SCOPE;
         if (name.endsWith(DOT_KTS)) {
           scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE);
@@ -152,7 +175,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         scope = EnumSet.of(Scope.PROGUARD_FILE);
       } else if (fileType == GroovyFileType.GROOVY_FILE_TYPE) {
         scope = Scope.GRADLE_SCOPE;
-      } else if (fileType == StdFileTypes.PROPERTIES) {
+      } else if (fileType == PropertiesFileType.INSTANCE) {
         scope = Scope.PROPERTY_SCOPE;
       } else {
         // #collectionInformation above should have prevented this
