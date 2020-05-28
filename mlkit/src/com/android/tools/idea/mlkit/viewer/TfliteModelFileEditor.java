@@ -530,9 +530,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @NotNull
   private static String buildSampleCodeInKotlin(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
-    StringBuilder codeBuilder = new StringBuilder("try {\n")
-      .append(INDENT)
-      .append(String.format("val model = %s.newInstance(context)\n\n", modelClass.getName()));
+    StringBuilder codeBuilder = new StringBuilder(String.format("val model = %s.newInstance(context)\n\n", modelClass.getName()));
 
     PsiMethod processMethod = findUndeprecatedProcessMethod(modelClass);
     if (processMethod.getReturnType() != null) {
@@ -541,9 +539,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       String parameterNames = Arrays.stream(processMethod.getParameterList().getParameters())
         .map(PsiParameter::getName)
         .collect(Collectors.joining(", "));
-      codeBuilder.append(INDENT).append("// Runs model inference and gets result.\n");
       codeBuilder
-        .append(INDENT)
+        .append("// Runs model inference and gets result.\n")
         .append(String.format("val outputs = model.%s(%s)\n", processMethod.getName(), parameterNames));
     }
 
@@ -555,25 +552,17 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
           continue;
         }
         String tensorName = outputTensorNameIterator.next();
-        codeBuilder
-          .append(INDENT)
-          .append(String.format("val %s = outputs.%s\n", tensorName, convertToKotlinPropertyName(psiMethod.getName())));
+        codeBuilder.append(String.format("val %s = outputs.%s\n", tensorName, convertToKotlinPropertyName(psiMethod.getName())));
         switch (Objects.requireNonNull(psiMethod.getReturnType()).getCanonicalText()) {
           case ClassNames.TENSOR_LABEL:
-            codeBuilder.append(INDENT).append(String.format("val %sMap = %s.mapWithFloatValue\n", tensorName, tensorName));
+            codeBuilder.append(String.format("val %sMap = %s.mapWithFloatValue\n", tensorName, tensorName));
             break;
           case ClassNames.TENSOR_IMAGE:
-            codeBuilder.append(INDENT).append(String.format("val %sBitmap = %s.bitmap\n", tensorName, tensorName));
+            codeBuilder.append(String.format("val %sBitmap = %s.bitmap\n", tensorName, tensorName));
             break;
         }
       }
     }
-
-    codeBuilder
-      .append("} catch (e: IOException) {\n")
-      .append(INDENT)
-      .append("// TODO Handle the exception\n")
-      .append("}");
 
     return codeBuilder.toString();
   }
@@ -623,24 +612,23 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @NotNull
   private static String buildTensorInputSampleCodeInKotlin(@NotNull PsiMethod processMethod, @NotNull ModelInfo modelInfo) {
-    StringBuilder codeBuilder = new StringBuilder(INDENT + "// Creates inputs for reference.\n");
+    StringBuilder codeBuilder = new StringBuilder("// Creates inputs for reference.\n");
     Iterator<TensorInfo> tensorInfoIterator = modelInfo.getInputs().iterator();
     for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
       TensorInfo tensorInfo = tensorInfoIterator.next();
       switch (parameter.getType().getCanonicalText()) {
         case ClassNames.TENSOR_IMAGE:
-          codeBuilder.append(INDENT).append(String.format("val %s = TensorImage.fromBitmap(bitmap)\n", parameter.getName()));
+          codeBuilder.append(String.format("val %s = TensorImage.fromBitmap(bitmap)\n", parameter.getName()));
           break;
         case ClassNames.TENSOR_BUFFER:
           codeBuilder
-            .append(INDENT)
             .append(
               String.format(
                 "val %s = TensorBuffer.createFixedSize(%s, %s)\n",
                 parameter.getName(),
                 buildIntArrayInKotlin(tensorInfo.getShape()),
                 buildDataType(tensorInfo.getDataType())));
-          codeBuilder.append(INDENT).append(String.format("%s.loadBuffer(byteBuffer)\n", parameter.getName()));
+          codeBuilder.append(String.format("%s.loadBuffer(byteBuffer)\n", parameter.getName()));
           break;
       }
     }
