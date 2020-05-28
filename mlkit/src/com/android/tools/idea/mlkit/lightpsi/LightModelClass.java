@@ -102,14 +102,13 @@ public class LightModelClass extends AndroidLightClassBase {
           // Adds #process fallback method.
           methods.add(buildProcessMethod(modelInfo.getInputs(), true));
         }
+        methods.add(buildCloseMethod());
         methods.addAll(buildNewInstanceStaticMethods());
 
         // Builds inner Outputs class.
         Map<String, PsiClass> innerClassMap = new HashMap<>();
         LightModelOutputsClass mlkitOutputClass = new LightModelOutputsClass(module, modelInfo.getOutputs(), this);
         innerClassMap.putIfAbsent(mlkitOutputClass.getName(), mlkitOutputClass);
-
-        methods.add(buildCloseMethod());
 
         MyClassMembers data =
           new MyClassMembers(methods.toArray(PsiMethod.EMPTY_ARRAY), innerClassMap.values().toArray(PsiClass.EMPTY_ARRAY));
