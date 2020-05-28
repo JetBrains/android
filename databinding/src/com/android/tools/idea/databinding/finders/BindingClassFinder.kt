@@ -37,7 +37,7 @@ import org.jetbrains.android.facet.AndroidFacet
 class BindingClassFinder(private val project: Project) : PsiElementFinder() {
   companion object {
     fun findAllBindingClasses(project: Project): List<LightBindingClass> {
-      val bindingComponent = project.getComponent(LayoutBindingProjectComponent::class.java)
+      val bindingComponent = project.getService(LayoutBindingProjectComponent::class.java)
       return bindingComponent.getAllBindingEnabledFacets()
         .flatMap { facet -> findAllBindingClassesSkipEnabledCheck(facet) }
     }
