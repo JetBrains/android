@@ -667,7 +667,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
     populateModuleBuildDirs(gradleProject);
-    populateGlobalLibraryMap();
     if (isAndroidGradleProject()) {
       projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
     }
@@ -714,36 +713,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         }
       }
     }
-  }
-
-  /**
-   * Find and set global library map.
-   */
-  private void populateGlobalLibraryMap() {
-    List<GlobalLibraryMap> globalLibraryMaps = new ArrayList<>();
-
-    // Request GlobalLibraryMap for root and included projects.
-    Build mainBuild = resolverCtx.getModels().getMainBuild();
-    List<Build> includedBuilds = resolverCtx.getModels().getIncludedBuilds();
-    List<Build> builds = new ArrayList<>(includedBuilds.size() + 1);
-    builds.add(mainBuild);
-    builds.addAll(includedBuilds);
-
-    for (Build build : builds) {
-      GlobalLibraryMap mapOfCurrentBuild = null;
-      // Since GlobalLibraryMap is requested on each module, we need to find the map that was
-      // requested at the last, which is the one that contains the most of items.
-      for (ProjectModel projectModel : build.getProjects()) {
-        GlobalLibraryMap moduleMap = resolverCtx.getModels().getModel(projectModel, GlobalLibraryMap.class);
-        if (mapOfCurrentBuild == null || (moduleMap != null && moduleMap.getLibraries().size() > mapOfCurrentBuild.getLibraries().size())) {
-          mapOfCurrentBuild = moduleMap;
-        }
-      }
-      if (mapOfCurrentBuild != null) {
-        globalLibraryMaps.add(mapOfCurrentBuild);
-      }
-    }
-    myDependenciesFactory.setUpGlobalLibraryMap(globalLibraryMaps);
   }
 
   @Override
