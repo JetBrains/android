@@ -117,7 +117,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     // confuses Kotlin (consumer of the information in UserData). Invalidate the AAR R classes cache when the library table changes.
     LibraryTablesRegistrar.getInstance().getLibraryTable(project).addListener(object : LibraryTable.Listener {
       override fun afterLibraryAdded(newLibrary: Library) = aarClassesCache.invalidateAll()
-      override fun afterLibraryRenamed(library: Library) = aarClassesCache.invalidateAll()
+      override fun afterLibraryRenamed(library: Library, oldName: String?) = aarClassesCache.invalidateAll()
       override fun afterLibraryRemoved(library: Library) = aarClassesCache.invalidateAll()
     })
   }
