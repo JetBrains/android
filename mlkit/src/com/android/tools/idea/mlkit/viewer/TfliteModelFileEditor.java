@@ -517,7 +517,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
             break;
         }
       }
+      codeBuilder.append("\n");
     }
+
+    codeBuilder
+      .append(INDENT).append("// Releases model resources if no longer used.\n")
+      .append(INDENT).append("model.close();\n");
 
     codeBuilder
       .append("} catch (IOException e) {\n")
@@ -562,7 +567,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
             break;
         }
       }
+      codeBuilder.append("\n");
     }
+
+    codeBuilder
+      .append("// Releases model resources if no longer used.\n")
+      .append("model.close()\n");
 
     return codeBuilder.toString();
   }
