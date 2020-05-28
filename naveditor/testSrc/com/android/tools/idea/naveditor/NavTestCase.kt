@@ -22,6 +22,7 @@ import com.android.tools.idea.naveditor.scene.TestableThumbnailManager
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -62,8 +63,9 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
         virtualFileList.add(VfsUtil.findFileByIoFile(resFile, true))
       }
 
-      myAdditionalModules.plus(myModule).forEach {
-        PsiTestUtil.addProjectLibrary(it, libName, virtualFileList, emptyList<VirtualFile>())
+      val library = PsiTestUtil.addProjectLibrary(myModule, libName, virtualFileList, emptyList<VirtualFile>())
+      myAdditionalModules.forEach {
+        ModuleRootModificationUtil.addDependency(it, library)
       }
 
       myFixture.testDataPath = testDataPath
