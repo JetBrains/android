@@ -27,7 +27,6 @@ import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.adtui.util.SwingUtil;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.StudioProfilersView;
@@ -175,6 +174,11 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
       chart.addMouseListener(handler);
       myProfilersView.getIdeProfilerComponents().createContextMenuInstaller()
         .installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
+    }
+    if (node != null) {
+      // Force the call chart to update when a filter is applied to the root node. By setting the root to the same node we're not changing
+      // the tree model but just triggering a model-changed event.
+      node.getAspectModel().addDependency(myObserver).onChange(CaptureNode.Aspect.FILTER_APPLIED, () -> chart.setHTree(node));
     }
     return chart;
   }
