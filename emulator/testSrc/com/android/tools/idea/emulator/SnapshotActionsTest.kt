@@ -115,6 +115,7 @@ class SnapshotActionsTest {
     val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/SaveSnapshot")
     assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("snapshot_id: \"first snapshot\"")
+    call.completion.get(5, TimeUnit.SECONDS)
 
     waitForCondition(2, TimeUnit.SECONDS) { Files.size(configIni) != oldSize }
     val bootMode = SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()
