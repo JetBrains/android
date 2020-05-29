@@ -917,6 +917,9 @@ public class LayoutlibSceneManager extends SceneManager {
             .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
           return newTask.inflate().whenComplete((result, exception) -> {
             if (exception != null) {
+              if (result == null || !result.getRenderResult().isSuccess()) {
+                logger.error("INFLATE", "Error inflating the preview", exception, null, null);
+              }
               Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
             }
 

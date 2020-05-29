@@ -83,7 +83,7 @@ public class RenderService implements Disposable {
   private static final Key<RenderService> KEY = Key.create(RenderService.class.getName());
 
   static {
-    ourExecutor = new RenderExecutor();
+    ourExecutor = RenderExecutor.create();
     // Register the executor to be shutdown on close
     ShutDownTracker.getInstance().registerShutdownTask(RenderService::shutdownRenderExecutor);
   }
@@ -94,7 +94,7 @@ public class RenderService implements Disposable {
   public static void initializeRenderExecutor() {
     assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit testszs
 
-    ourExecutor = new RenderExecutor();
+    ourExecutor = RenderExecutor.create();
   }
 
   private static void shutdownRenderExecutor() {
@@ -117,6 +117,11 @@ public class RenderService implements Disposable {
   private final Object myCredential = new Object();
 
   private final ImagePool myImagePool = ImagePoolFactory.createImagePool();
+
+  @NotNull
+  public static RenderAsyncActionExecutor getRenderAsyncActionExecutor() {
+    return ourExecutor;
+  }
 
   /**
    * @return the {@linkplain RenderService} for the given facet.
@@ -225,7 +230,11 @@ public class RenderService implements Disposable {
   /**
    * Runs a action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
    * method.
+   *
+   * @deprecated This method is not safe to call, it might block unexpectedly waiting for the render thread.
+   *  Use {@link RenderService#getRenderAsyncActionExecutor()} instead.
    */
+  @Deprecated
   public static void runRenderAction(@NotNull final Runnable runnable) throws Exception {
     runRenderAction(Executors.callable(runnable));
   }
@@ -233,30 +242,13 @@ public class RenderService implements Disposable {
   /**
    * Runs a action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
    * method.
+   *
+   * @deprecated This method is not safe to call, it might block unexpectedly waiting for the render thread.
+   *  Use {@link RenderService#getRenderAsyncActionExecutor()} instead.
    */
+  @Deprecated
   public static <T> T runRenderAction(@NotNull Callable<T> callable) throws Exception {
     return ourExecutor.runAction(callable);
-  }
-
-  /**
-   * Runs an action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
-   * method.
-   * <p/>
-   * This method will run the passed action asynchronously and return a {@link CompletableFuture}
-   */
-  @NotNull
-  public static <T> CompletableFuture<T> runAsyncRenderAction(@NotNull Supplier<T> callable) {
-    return ourExecutor.runAsyncAction(callable);
-  }
-
-  /**
-   * Runs an action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
-   * method.
-   * <p/>
-   * This method will run the passed action asynchronously
-   */
-  public static void runAsyncRenderAction(@NotNull Runnable runnable) {
-    ourExecutor.runAsyncAction(runnable);
   }
 
   /**
