@@ -39,9 +39,10 @@ internal class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScrol
     row {
       launchInToolWindowCheckBox = checkBox("Launch in a tool window",
                                             comment = "Enabling this setting will cause Android Emulator to launch in a tool window. " +
-                                                      "Otherwise Android Emulator will launch as a standalone application. Some AVDs " +
+                                                      "Otherwise the Android Emulator will launch as a standalone application. Some AVDs " +
                                                       "will launch as standalone applications regardless of this setting due to their " +
-                                                      "hardware profiles or system images.").component
+                                                      "hardware profiles or system images. The Emulator's extended controls are not " +
+                                                      "available when launched in a tool window.").component
     }
   }
 
