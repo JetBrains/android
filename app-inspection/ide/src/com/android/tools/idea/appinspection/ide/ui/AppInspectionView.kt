@@ -21,6 +21,7 @@ import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
+import com.android.tools.idea.appinspection.api.ProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
@@ -149,7 +150,10 @@ class AppInspectionView(
           override fun onFailure(t: Throwable) {
             // We don't log cancellation exceptions because they are expected as part of the operation. For example: the service cancels all
             // outstanding futures when it is turned off.
-            if (t !is CancellationException) {
+            if (t !is CancellationException
+                // This happens when trying to launch an inspector on a process/device that no longer exists. In that case, we can safely
+                // ignore the attempt. We can count on the UI to be refreshed soon to remove the option.
+                && t !is ProcessNoLongerExistsException) {
               Logger.getInstance(AppInspectionView::class.java).error(t)
             }
           }
