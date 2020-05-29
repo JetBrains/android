@@ -488,6 +488,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
       myNativeAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
       myNativeAllocationButton.setToolTipText(isX86OrX64Device ? X86_RECORD_NATIVE_TOOLTIP : RECORD_NATIVE_TEXT);
     }
+    myHeapDumpButton.setEnabled(isAlive && !getStage().isTrackingAllocations());
     myNativeAllocationButton.setEnabled(!isX86OrX64Device && isAlive);
   }
 

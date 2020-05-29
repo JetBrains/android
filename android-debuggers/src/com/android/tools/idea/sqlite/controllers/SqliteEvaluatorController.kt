@@ -20,13 +20,13 @@ import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.createSqliteStatement
+import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.sqlLanguage.hasParsingError
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.Futures
@@ -35,7 +35,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import java.lang.IllegalStateException
 import java.util.concurrent.Executor
 
 /**
@@ -47,6 +46,7 @@ import java.util.concurrent.Executor
 class SqliteEvaluatorController(
   private val project: Project,
   private val model: DatabaseInspectorModel,
+  private val databaseRepository: DatabaseRepository,
   private val view: SqliteEvaluatorView,
   override val closeTabInvoked: () -> Unit,
   private val edtExecutor: Executor,
@@ -134,7 +134,7 @@ class SqliteEvaluatorController(
     currentEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
     view.showSqliteStatement(sqliteStatement.sqliteStatementWithInlineParameters)
     view.setDatabases(ArrayList(openDatabases), currentEvaluationParams.databaseId)
-    return executeSqlStatement(databaseId!!, sqliteStatement)
+    return executeSqlStatement(databaseId, sqliteStatement)
   }
 
   fun saveEvaluationParams(): EvaluationParams {
@@ -145,13 +145,13 @@ class SqliteEvaluatorController(
 
   private fun executeSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     resetTable()
-    val databaseConnection = model.getDatabaseConnection(databaseId)!!
+
     lastUsedEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
     return if (sqliteStatement.isQueryStatement) {
-      runQuery(databaseConnection, sqliteStatement)
+      runQuery(databaseId, sqliteStatement)
     }
     else {
-      runUpdate(databaseId, databaseConnection, sqliteStatement)
+      runUpdate(databaseId, sqliteStatement)
     }
   }
 
@@ -170,13 +170,14 @@ class SqliteEvaluatorController(
     view.setRunSqliteStatementEnabled(currentEvaluationParams.databaseId != null && !hasParsingError(project, currentEvaluationParams.statementText))
   }
 
-  private fun runQuery(databaseConnection: DatabaseConnection, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+  private fun runQuery(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     currentTableController = TableController(
       closeTabInvoked = closeTabInvoked,
       project = project,
       view = view.tableView,
       tableSupplier = { null },
-      databaseConnection = databaseConnection,
+      databaseId = databaseId,
+      databaseRepository = databaseRepository,
       sqliteStatement = sqliteStatement,
       edtExecutor = edtExecutor,
       taskExecutor = taskExecutor
@@ -185,12 +186,8 @@ class SqliteEvaluatorController(
     return currentTableController!!.setUp()
   }
 
-  private fun runUpdate(
-    databaseId: SqliteDatabaseId,
-    databaseConnection: DatabaseConnection,
-    sqliteStatement: SqliteStatement
-  ): ListenableFuture<Unit> {
-    return databaseConnection.execute(sqliteStatement)
+  private fun runUpdate(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+    return databaseRepository.executeStatement(databaseId, sqliteStatement)
       .transform(edtExecutor) {
         view.tableView.setEmptyText("The statement was run successfully.")
         listeners.forEach { it.onSqliteStatementExecuted(databaseId) }

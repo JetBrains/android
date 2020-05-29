@@ -30,6 +30,8 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
   val viewListeners = ArrayList<Listener>()
   var lastDisplayedResultSetTabId: TabId? = null
 
+  val errorInvocations = mutableListOf<Pair<String, Throwable?>>()
+
   override fun addListener(listener: Listener) {
     viewListeners.add(listener)
   }
@@ -60,5 +62,7 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
 
   override fun updateKeepConnectionOpenButton(keepOpen: Boolean) { }
 
-  override fun reportError(message: String, throwable: Throwable?) { }
+  override fun reportError(message: String, throwable: Throwable?) {
+    errorInvocations.add(Pair(message, throwable))
+  }
 }

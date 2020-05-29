@@ -26,6 +26,7 @@ import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.kotlin.idea.debugger.readAction
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -58,6 +59,9 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
   val rotationY = JSlider(-360, 360, 0)
   val rotationZ = JSlider(-360, 360, 0)
 
+  private var listLabels = ArrayList<JLabel>()
+  private var listValueLabels = ArrayList<JLabel>()
+
   init {
     val panelSize = JBUI.size(PANEL_WIDTH, PANEL_HEIGHT)
     preferredSize = panelSize
@@ -70,28 +74,35 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
     add(virtualButton)
     add(control, BorderLayout.SOUTH)
 
-    val rotationXLabel = JLabel("  X")
-    val rotationYLabel = JLabel("  Y")
-    val rotationZLabel = JLabel("  Z")
+    val rotationXLabel = JLabel("x")
+    val rotationYLabel = JLabel("y")
+    val rotationZLabel = JLabel("z")
     val rotationXValue = JLabel("0")
     val rotationYValue = JLabel("0")
     val rotationZValue = JLabel("0")
 
-    var mouseClickX = object : MouseAdapter() {
+    listLabels.add(rotationXLabel)
+    listLabels.add(rotationYLabel)
+    listLabels.add(rotationZLabel)
+    listValueLabels.add(rotationXValue)
+    listValueLabels.add(rotationYValue)
+    listValueLabels.add(rotationZValue)
+
+    val mouseClickX = object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
         if (e.clickCount == 2) {
           rotationX.value = 0
         }
       }
     }
-    var mouseClickY = object : MouseAdapter() {
+    val mouseClickY = object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
         if (e.clickCount == 2) {
           rotationY.value = 0
         }
       }
     }
-    var mouseClickZ = object : MouseAdapter() {
+    val mouseClickZ = object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
         if (e.clickCount == 2) {
           rotationZ.value = 0
@@ -105,14 +116,6 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
     rotationXValue.addMouseListener(mouseClickX)
     rotationYValue.addMouseListener(mouseClickY)
     rotationZValue.addMouseListener(mouseClickZ)
-
-    var columnSize = Dimension(40, 20)
-    rotationXLabel.preferredSize = columnSize
-    rotationYLabel.preferredSize = columnSize
-    rotationZLabel.preferredSize = columnSize
-    rotationXValue.preferredSize = columnSize
-    rotationYValue.preferredSize = columnSize
-    rotationZValue.preferredSize = columnSize
 
     val controlRotationX = JPanel()
     controlRotationX.layout = BoxLayout(controlRotationX, BoxLayout.LINE_AXIS)
@@ -132,7 +135,7 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
     controlRotationZ.add(rotationZ)
     controlRotationZ.add(rotationZValue)
 
-    var controlLabel = JPanel()
+    val controlLabel = JPanel()
     controlLabel.layout = BoxLayout(controlLabel, BoxLayout.LINE_AXIS)
     controlLabel.add(JLabel("Rotation"))
     controlLabel.add(Box.createHorizontalGlue())
@@ -155,7 +158,7 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
 
     rotationX.addChangeListener {
       processingChange = true
-      var value = rotationX.value.toString()
+      val value = rotationX.value.toString()
       rotationXValue.text = value
       virtualButton.setRotateX(rotationX.value.toDouble())
       if (!rotationX.valueIsAdjusting && !processingModelUpdate) {
@@ -165,7 +168,7 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
     }
     rotationY.addChangeListener {
       processingChange = true
-      var value = rotationY.value.toString()
+      val value = rotationY.value.toString()
       rotationYValue.text = value
       virtualButton.setRotateY(rotationY.value.toDouble())
       if (!rotationY.valueIsAdjusting &&!processingModelUpdate) {
@@ -175,7 +178,7 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
     }
     rotationZ.addChangeListener {
       processingChange = true
-      var value = rotationZ.value.toString()
+      val value = rotationZ.value.toString()
       rotationZValue.text = value
       virtualButton.setRotate(rotationZ.value.toDouble())
       if (!rotationZ.valueIsAdjusting && !processingModelUpdate) {
@@ -184,7 +187,7 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
       processingChange = false
     }
 
-    var listener = object: PropertiesModelListener<NelePropertyItem> {
+    val listener = object: PropertiesModelListener<NelePropertyItem> {
       override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
         updateFromValues()
       }
@@ -198,13 +201,34 @@ class TransformsPanel(properties: PropertiesTable<NelePropertyItem>) : JPanel(Bo
     propertyRotationZ?.model?.addListener(listener)
 
     updateFromValues()
+    updateUI()
+  }
+
+  override fun updateUI() {
+    super.updateUI()
+    if (listLabels != null) {
+      val font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+      val indent = EmptyBorder(0, JBUI.scale(20), 0, 0)
+      for (label in listLabels) {
+        label.font = font
+        label.border = indent
+      }
+      val placeholder = JLabel();
+      placeholder.font = font
+      placeholder.text = "XXXX"
+      val columnSize = placeholder.preferredSize
+      for (label in listValueLabels) {
+        label.font = font
+        label.preferredSize = columnSize
+      }
+    }
   }
 
   private fun writeValue(property : NelePropertyItem?, value : String) {
     if (property == null) {
       return
     }
-    var component = property.componentName
+    val component = property.componentName
     var propertyValue : String? = value
     if (propertyValue == "0") {
       propertyValue = null // set to null as it's the default value

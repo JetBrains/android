@@ -113,16 +113,19 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
   }
 
   fun testExecuteQuery() {
+    val largeFloat = Float.MAX_VALUE * 2.0
+    val largeInteger = Long.MAX_VALUE
+
     // Prepare
     val cellValueString = SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
 
-    val cellValueFloat = SqliteInspectorProtocol.CellValue.newBuilder().setFloatValue(1f).build()
+    val cellValueFloat = SqliteInspectorProtocol.CellValue.newBuilder().setDoubleValue(largeFloat).build()
 
     val cellValueBlob = SqliteInspectorProtocol.CellValue.newBuilder()
       .setBlobValue(ByteString.copyFrom("a blob".toByteArray()))
       .build()
 
-    val cellValueInt = SqliteInspectorProtocol.CellValue.newBuilder().setIntValue(1)
+    val cellValueInt = SqliteInspectorProtocol.CellValue.newBuilder().setLongValue(largeInteger)
       .build()
 
     val cellValueNull = SqliteInspectorProtocol.CellValue.newBuilder().build()
@@ -175,10 +178,10 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     assertNull(sqliteColumns[4].affinity)
 
     assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
-    assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(1f.toString()))
+    assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(largeFloat.toString()))
     // the value for the blob corresponds to the base16 encoding of the byte array of the blob.
     assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue("6120626C6F62"))
-    assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(1.toString()))
+    assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(largeInteger.toString()))
     assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
   }
 
@@ -186,13 +189,13 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     // Prepare
     val cellValueString = SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
 
-    val cellValueFloat = SqliteInspectorProtocol.CellValue.newBuilder().setFloatValue(1f).build()
+    val cellValueFloat = SqliteInspectorProtocol.CellValue.newBuilder().setDoubleValue(1.0).build()
 
     val cellValueBlob = SqliteInspectorProtocol.CellValue.newBuilder()
       .setBlobValue(ByteString.copyFrom("a blob".toByteArray()))
       .build()
 
-    val cellValueInt = SqliteInspectorProtocol.CellValue.newBuilder().setIntValue(1)
+    val cellValueInt = SqliteInspectorProtocol.CellValue.newBuilder().setLongValue(1)
       .build()
 
     val cellValueNull = SqliteInspectorProtocol.CellValue.newBuilder().build()

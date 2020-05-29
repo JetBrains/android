@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
@@ -24,17 +25,16 @@ import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController.EvaluationParams
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
-import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.model.getAllDatabaseIds
+import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.mainView.AddColumns
 import com.android.tools.idea.sqlite.ui.mainView.AddTable
@@ -54,7 +54,6 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import icons.StudioIcons
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.ensureActive
@@ -72,6 +71,7 @@ import javax.swing.JComponent
 class DatabaseInspectorControllerImpl(
   private val project: Project,
   private val model: DatabaseInspectorModel,
+  private val databaseRepository: DatabaseRepository,
   private val viewFactory: DatabaseInspectorViewsFactory,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
@@ -79,6 +79,9 @@ class DatabaseInspectorControllerImpl(
 
   private val uiThread = edtExecutor.asCoroutineDispatcher()
   private val workerThread = taskExecutor.asCoroutineDispatcher()
+
+  private val projectScope = AndroidCoroutineScope(project, uiThread)
+
   private val view = viewFactory.createDatabaseInspectorView(project)
   private val tabsToRestore = mutableListOf<TabDescription>()
 
@@ -160,31 +163,30 @@ class DatabaseInspectorControllerImpl(
     view.updateKeepConnectionOpenButton(keepConnectionsOpen)
   }
 
-  override suspend fun addSqliteDatabase(deferredDatabase: Deferred<SqliteDatabase>) = withContext(uiThread) {
+  override suspend fun addSqliteDatabase(deferredDatabaseId: Deferred<SqliteDatabaseId>) = withContext(uiThread) {
     view.startLoading("Getting database...")
 
-    val database = try {
-      deferredDatabase.await()
+    val databaseId = try {
+      deferredDatabaseId.await()
     }
     catch (e: Exception) {
       ensureActive()
       view.reportError("Error getting database", e)
       throw e
     }
-    addSqliteDatabase(database)
+    addSqliteDatabase(databaseId)
   }
 
-  override suspend fun addSqliteDatabase(database: SqliteDatabase) = withContext(uiThread) {
-    Disposer.register(this@DatabaseInspectorControllerImpl, database.databaseConnection)
-    val schema = readDatabaseSchema(database.databaseConnection) ?: return@withContext
-    addNewDatabase(database, schema)
+  override suspend fun addSqliteDatabase(databaseId: SqliteDatabaseId) = withContext(uiThread) {
+    val schema = readDatabaseSchema(databaseId) ?: return@withContext
+    addNewDatabase(databaseId, schema)
   }
 
   override suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) = withContext(uiThread) {
     openNewEvaluatorTab().showAndExecuteSqlStatement(databaseId, sqliteStatement).await()
   }
 
-  override suspend fun closeDatabase(databaseId: SqliteDatabaseId) = withContext(uiThread) {
+  override suspend fun closeDatabase(databaseId: SqliteDatabaseId): Unit = withContext(uiThread) {
     val openDatabases = model.getOpenDatabaseIds()
     val tabsToClose = if (openDatabases.size == 1 && openDatabases.first() == databaseId) {
       // close all tabs
@@ -199,12 +201,9 @@ class DatabaseInspectorControllerImpl(
 
     tabsToClose.forEach { closeTab(it) }
 
-    val databaseConnection = model.removeDatabaseSchema(databaseId)
-    checkNotNull(databaseConnection)
-
-    withContext(workerThread) {
-      Disposer.dispose(databaseConnection)
-    }
+    model.removeDatabaseSchema(databaseId)
+    databaseRepository.closeDatabase(databaseId)
+    return@withContext
   }
 
   @UiThread
@@ -258,6 +257,7 @@ class DatabaseInspectorControllerImpl(
   override fun dispose() = invokeAndWaitIfNeeded {
     view.removeListener(sqliteViewListener)
     model.removeListener(modelListener)
+    projectScope.launch { databaseRepository.release() }
 
     resultSetControllers.values
       .asSequence()
@@ -265,13 +265,17 @@ class DatabaseInspectorControllerImpl(
       .forEach { it.removeListeners() }
   }
 
-  private suspend fun readDatabaseSchema(databaseConnection: DatabaseConnection): SqliteSchema? = withContext(workerThread) {
+  // TODO(b/156349739) simplify coroutines threading
+  private suspend fun readDatabaseSchema(databaseId: SqliteDatabaseId): SqliteSchema? = withContext(workerThread) {
     try {
-      val schema = databaseConnection.readSchema().await()
+      val schema = databaseRepository.fetchSchema(databaseId)
       withContext(uiThread) { view.stopLoading() }
       schema
     }
     catch (e: LiveInspectorException) {
+      null
+    }
+    catch (e: AppInspectionConnectionException) {
       null
     }
     catch (e: Exception) {
@@ -283,9 +287,9 @@ class DatabaseInspectorControllerImpl(
     }
   }
 
-  private fun addNewDatabase(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
-    model.addDatabaseSchema(database.id, database.databaseConnection, sqliteSchema)
-    restoreTabs(database.id, sqliteSchema)
+  private fun addNewDatabase(databaseId: SqliteDatabaseId, sqliteSchema: SqliteSchema) {
+    model.addDatabaseSchema(databaseId, sqliteSchema)
+    restoreTabs(databaseId, sqliteSchema)
   }
 
   private fun restoreTabs(databaseId: SqliteDatabaseId, schema: SqliteSchema) {
@@ -311,9 +315,8 @@ class DatabaseInspectorControllerImpl(
   private suspend fun updateDatabaseSchema(databaseId: SqliteDatabaseId) {
     if (model.getCloseDatabaseIds().contains(databaseId)) return
 
-    val databaseConnection = model.getDatabaseConnection(databaseId)!!
     // TODO(b/154733971) this only works because the suspending function is called first, otherwise we have concurrency issues
-    val newSchema = readDatabaseSchema(databaseConnection) ?: return
+    val newSchema = readDatabaseSchema(databaseId) ?: return
     val oldSchema = model.getDatabaseSchema(databaseId) ?: return
     withContext(uiThread) {
       if (oldSchema != newSchema) {
@@ -384,6 +387,7 @@ class DatabaseInspectorControllerImpl(
     val sqliteEvaluatorController = SqliteEvaluatorController(
       project,
       model,
+      databaseRepository,
       sqliteEvaluatorView,
       { closeTab(tabId) },
       edtExecutor,
@@ -416,7 +420,8 @@ class DatabaseInspectorControllerImpl(
       project = project,
       view = tableView,
       tableSupplier = { model.getDatabaseSchema(databaseId)?.tables?.firstOrNull{ it.name == table.name } },
-      databaseConnection = model.getDatabaseConnection(databaseId)!!,
+      databaseId = databaseId,
+      databaseRepository = databaseRepository,
       sqliteStatement = createSqliteStatement(project, selectAllAndRowIdFromTable(table)),
       edtExecutor = edtExecutor,
       taskExecutor = taskExecutor
@@ -436,10 +441,6 @@ class DatabaseInspectorControllerImpl(
   }
 
   private inner class SqliteViewListenerImpl : DatabaseInspectorView.Listener {
-
-    /** [CoroutineScope] used for scheduling asynchronous tasks in response to UI events. */
-    private val scope = AndroidCoroutineScope(this@DatabaseInspectorControllerImpl)
-
     override fun tableNodeActionInvoked(databaseId: SqliteDatabaseId, table: SqliteTable) {
       databaseInspectorAnalyticsTracker.trackStatementExecuted(
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.SCHEMA_STATEMENT_CONTEXT
@@ -457,7 +458,7 @@ class DatabaseInspectorControllerImpl(
 
     override fun refreshAllOpenDatabasesSchemaActionInvoked() {
       databaseInspectorAnalyticsTracker.trackTargetRefreshed(AppInspectionEvent.DatabaseInspectorEvent.TargetType.SCHEMA_TARGET)
-      scope.launch(uiThread) {
+      projectScope.launch {
         model.getOpenDatabaseIds().forEach { updateDatabaseSchema(it) }
       }
     }
@@ -468,10 +469,8 @@ class DatabaseInspectorControllerImpl(
   }
 
   inner class SqliteEvaluatorControllerListenerImpl : SqliteEvaluatorController.Listener {
-    private val scope = AndroidCoroutineScope(this@DatabaseInspectorControllerImpl)
-
     override fun onSqliteStatementExecuted(databaseId: SqliteDatabaseId) {
-      scope.launch(uiThread) {
+      projectScope.launch {
         updateDatabaseSchema(databaseId)
       }
     }
@@ -498,16 +497,16 @@ interface DatabaseInspectorController : Disposable {
   fun setUp()
 
   /**
-   * Waits for [deferredDatabase] to be completed and adds it to the inspector UI.
+   * Waits for [deferredDatabaseId] to be completed and adds it to the inspector UI.
    *
-   * A loading UI is displayed while waiting for [deferredDatabase] to be ready.
+   * A loading UI is displayed while waiting for [deferredDatabaseId] to be ready.
    */
-  suspend fun addSqliteDatabase(deferredDatabase: Deferred<SqliteDatabase>)
+  suspend fun addSqliteDatabase(deferredDatabaseId: Deferred<SqliteDatabaseId>)
 
   /**
    * Adds a database that is immediately ready
    */
-  suspend fun addSqliteDatabase(database: SqliteDatabase)
+  suspend fun addSqliteDatabase(databaseId: SqliteDatabaseId)
 
   suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement)
   suspend fun closeDatabase(databaseId: SqliteDatabaseId)

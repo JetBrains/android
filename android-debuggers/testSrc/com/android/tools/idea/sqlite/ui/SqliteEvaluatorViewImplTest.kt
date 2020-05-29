@@ -31,10 +31,12 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
+import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.runDispatching
 import com.intellij.mock.MockPsiManager
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.util.Disposer
@@ -105,7 +107,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   fun testActiveDatabaseRemainsActiveWhenNewDbsAreAdded() {
     // Prepare
     val model = MockDatabaseInspectorModel()
-    val evaluatorController = sqliteEvaluatorController(model)
+    val evaluatorController = sqliteEvaluatorController(model, DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()))
     evaluatorController.setUp()
 
     val db0 = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db0"))
@@ -121,13 +123,13 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Act/Assert
     assertEquals(null, activeDatabaseId)
 
-    model.addDatabaseSchema(db2, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
+    model.addDatabaseSchema(db2, SqliteSchema(emptyList()))
     assertEquals(db2, activeDatabaseId)
 
-    model.addDatabaseSchema(db1, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
+    model.addDatabaseSchema(db1, SqliteSchema(emptyList()))
     assertEquals(db2, activeDatabaseId)
 
-    model.addDatabaseSchema(db0, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
+    model.addDatabaseSchema(db0, SqliteSchema(emptyList()))
     assertEquals(db2, activeDatabaseId)
 
     model.removeDatabaseSchema(db2)
@@ -178,7 +180,10 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Prepare
     val refreshButton =  TreeWalker(view.tableView.component).descendants().first { it.name == "refresh-button" }
 
-    val evaluatorController = sqliteEvaluatorController(MockDatabaseInspectorModel())
+    val evaluatorController = sqliteEvaluatorController(
+      MockDatabaseInspectorModel(),
+      DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
+    )
 
     // Act
     evaluatorController.setUp()
@@ -197,10 +202,15 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val database = SqliteDatabaseId.fromFileDatabase(sqliteFile)
 
     val model = DatabaseInspectorModelImpl()
-    val controller = sqliteEvaluatorController(model)
+    val repository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
+    runDispatching {
+      repository.addDatabaseConnection(database, realDatabaseConnection!!)
+    }
+
+    val controller = sqliteEvaluatorController(model, repository)
     controller.setUp()
 
-    model.addDatabaseSchema(database, realDatabaseConnection!!, SqliteSchema(emptyList()))
+    model.addDatabaseSchema(database, SqliteSchema(emptyList()))
 
     val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
 
@@ -281,12 +291,17 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val database = SqliteDatabaseId.fromFileDatabase(sqliteFile)
 
     val model = DatabaseInspectorModelImpl()
-    val controller = sqliteEvaluatorController(model)
+    val repository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
+    runDispatching {
+      repository.addDatabaseConnection(database, realDatabaseConnection!!)
+    }
+
+    val controller = sqliteEvaluatorController(model, repository)
     controller.setUp()
 
-    model.addDatabaseSchema(database, realDatabaseConnection!!, SqliteSchema(emptyList()))
+    model.addDatabaseSchema(database, SqliteSchema(emptyList()))
     val unrelated = SqliteDatabaseId.fromFileDatabase(MockVirtualFile("db0"))
-    model.addDatabaseSchema(unrelated, mock(DatabaseConnection::class.java), SqliteSchema(emptyList()))
+    model.addDatabaseSchema(unrelated, SqliteSchema(emptyList()))
 
     val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
 
@@ -309,10 +324,11 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals(0, table.model.rowCount)
   }
 
-  private fun sqliteEvaluatorController(model: DatabaseInspectorModel): SqliteEvaluatorController {
+  private fun sqliteEvaluatorController(model: DatabaseInspectorModel, repository: DatabaseRepositoryImpl): SqliteEvaluatorController {
     return SqliteEvaluatorController(
       project,
       model,
+      repository,
       view,
       {},
       EdtExecutorService.getInstance(),

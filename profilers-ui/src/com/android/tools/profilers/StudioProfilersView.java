@@ -77,7 +77,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.function.BiFunction;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
@@ -125,6 +124,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private CommonButton myZoomIn;
   private CommonButton myResetZoom;
   private CommonButton myZoomToSelection;
+  private CommonButton myBack;
   private ProfilerAction myZoomToSelectionAction;
 
   @NotNull
@@ -216,6 +216,12 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   }
 
   @VisibleForTesting
+  @NotNull
+  CommonButton getBackButton() {
+    return myBack;
+  }
+
+  @VisibleForTesting
   public StageView getStageView() {
     return myStageView;
   }
@@ -291,12 +297,12 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myToolbar.setPreferredSize(new Dimension(0, TOOLBAR_HEIGHT));
 
     myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    JButton button = new CommonButton(AllIcons.Actions.Back);
-    button.addActionListener(action -> {
+    myBack = new CommonButton(AllIcons.Actions.Back);
+    myBack.addActionListener(action -> {
       myProfiler.setStage(myProfiler.getStage().getParentStage());
       myProfiler.getIdeServices().getFeatureTracker().trackGoBack();
     });
-    myCommonToolbar.add(button);
+    myCommonToolbar.add(myBack);
     myCommonToolbar.add(new FlatSeparator());
 
     JComboBox<Class<? extends Stage>> stageCombo = new FlatComboBox<>();

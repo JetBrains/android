@@ -66,7 +66,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     myKeySdkInstallLocation = keySdkInstallLocation;
     myKeyJdkLocation = keyJdkLocation;
     myPackagesProvider = packagesProvider;
-    mySummaryText.setContentType(UIUtil.HTML_MIME);
+    mySummaryText.setEditorKit(UIUtil.getHTMLEditorKit());
     // There is no need to add whitespace on the top
     mySummaryText.setBorder(JBUI.Borders.empty(0, WizardConstants.STUDIO_WIZARD_INSET_SIZE, WizardConstants.STUDIO_WIZARD_INSET_SIZE,
                                                WizardConstants.STUDIO_WIZARD_INSET_SIZE));

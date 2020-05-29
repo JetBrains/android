@@ -133,7 +133,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
 
     JPanel titleWrapper = new JPanel(new BorderLayout());
     titleWrapper.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, DEFAULT_BORDER_COLOR));
-    myTitle.setBorder(new JBEmptyBorder(4, 0, 4, 0));
+    myTitle.setBorder(new JBEmptyBorder(4, 4, 4, 0));
     titleWrapper.add(myTitle, BorderLayout.CENTER);
     titleWrapper.add(new CloseButton(e -> mySelection.selectInstanceObject(null)), BorderLayout.EAST);
     myPanel.add(myTabsPanel, BorderLayout.CENTER);
@@ -164,6 +164,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     myAttributeColumns.put(
       InstanceAttribute.DEPTH,
       makeIntColumn("Depth",
+                    50,
                     ValueObject.class,
                     ValueObject::getDepth,
                     d -> 0 <= d && d < Integer.MAX_VALUE,
@@ -172,6 +173,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     myAttributeColumns.put(
       InstanceAttribute.ALLOCATION_TIME,
       makeIntColumn("Alloc Time",
+                    100,
                     InstanceObject.class,
                     InstanceObject::getAllocTime,
                     t -> t > Long.MIN_VALUE,
@@ -180,6 +182,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     myAttributeColumns.put(
       InstanceAttribute.DEALLOCATION_TIME,
       makeIntColumn("Dealloc Time",
+                    120,
                     InstanceObject.class,
                     InstanceObject::getDeallocTime,
                     t -> t < Long.MAX_VALUE,
@@ -187,13 +190,13 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
                     SortOrder.DESCENDING));
     myAttributeColumns.put(
       InstanceAttribute.NATIVE_SIZE,
-      makeSizeColumn("Native Size", ValueObject::getNativeSize));
+      makeSizeColumn("Native Size", 110, ValueObject::getNativeSize));
     myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
-      makeSizeColumn("Shallow Size", ValueObject::getShallowSize));
+      makeSizeColumn("Shallow Size", 120, ValueObject::getShallowSize));
     myAttributeColumns.put(
       InstanceAttribute.RETAINED_SIZE,
-      makeSizeColumn("Retained Size", ValueObject::getRetainedSize));
+      makeSizeColumn("Retained Size", 130, ValueObject::getRetainedSize));
 
     // Fires the handler once at the beginning to ensure we are sync'd with the latest selection state in the MemoryProfilerStage.
     instanceChanged();

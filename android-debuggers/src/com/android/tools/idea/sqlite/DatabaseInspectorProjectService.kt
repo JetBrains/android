@@ -23,14 +23,13 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorControllerImpl
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactory
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactoryImpl
+import com.android.tools.idea.sqlite.databaseConnection.jdbc.openJdbcDatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModelImpl
-import com.android.tools.idea.sqlite.model.FileSqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
 import com.google.common.util.concurrent.ListenableFuture
@@ -45,7 +44,6 @@ import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
-import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -79,13 +77,13 @@ interface DatabaseInspectorProjectService {
    * Opens a connection to the database contained in the file passed as argument. The database is then shown in the Database Inspector.
    */
   @AnyThread
-  fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabase>
+  fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabaseId>
 
   /**
-   * Shows the given [sqliteDatabase] in the inspector
+   * Shows the given database in the inspector
    */
   @AnyThread
-  fun openSqliteDatabase(sqliteDatabase: SqliteDatabase) : ListenableFuture<Unit>
+  fun openSqliteDatabase(databaseId: SqliteDatabaseId, databaseConnection: LiveDatabaseConnection) : ListenableFuture<Unit>
 
   /**
    * Runs the query passed as argument in the Sqlite Inspector.
@@ -150,14 +148,15 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   private val project: Project,
   private val edtExecutor: Executor = EdtExecutorService.getInstance(),
   private val taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
-  private val databaseConnectionFactory: DatabaseConnectionFactory = DatabaseConnectionFactoryImpl(),
+  private val databaseRepository: DatabaseRepositoryImpl = DatabaseRepositoryImpl(project, taskExecutor),
   private val fileOpener: Consumer<VirtualFile> = Consumer { OpenFileAction.openFile(it, project) },
   private val viewFactory: DatabaseInspectorViewsFactory = DatabaseInspectorViewsFactoryImpl(),
   private val model: DatabaseInspectorModel = DatabaseInspectorModelImpl(),
-  private val createController: (DatabaseInspectorModel) -> DatabaseInspectorController = { myModel ->
+  private val createController: (DatabaseInspectorModel, DatabaseRepositoryImpl) -> DatabaseInspectorController = { myModel, myRepository ->
     DatabaseInspectorControllerImpl(
       project,
       myModel,
+      myRepository,
       viewFactory,
       edtExecutor,
       taskExecutor
@@ -173,14 +172,15 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     project,
     edtExecutor,
     taskExecutor,
-    DatabaseConnectionFactoryImpl(),
+    DatabaseRepositoryImpl(project, taskExecutor),
     Consumer { OpenFileAction.openFile(it, project) },
     viewFactory,
     DatabaseInspectorModelImpl(),
-    { myModel ->
+    { myModel, myRepository ->
       DatabaseInspectorControllerImpl(
         project,
         myModel,
+        myRepository,
         viewFactory,
         edtExecutor,
         taskExecutor
@@ -203,7 +203,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   private val controller: DatabaseInspectorController by lazy @UiThread {
     ApplicationManager.getApplication().assertIsDispatchThread()
-    createController(model)
+    createController(model, databaseRepository)
   }
 
   override var ideServices: AppInspectionIdeServices? = null
@@ -212,23 +212,29 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     @UiThread get() = controller.component
 
   @AnyThread
-  override fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabase> = projectScope.future {
+  override fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabaseId> = projectScope.future {
+    val databaseId = async {
+      val databaseConnection = openJdbcDatabaseConnection(file, taskExecutor, workerThread)
+      val databaseId = SqliteDatabaseId.fromFileDatabase(file)
 
-    val database = async {
-      val connection = databaseConnectionFactory.getDatabaseConnection(file, taskExecutor).await()
-      FileSqliteDatabase(SqliteDatabaseId.fromFileDatabase(file), connection)
+      databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
+      databaseId
     }
 
     withContext(uiThread) {
-      controller.addSqliteDatabase(database)
+      controller.addSqliteDatabase(databaseId)
     }
 
-    database.await()
+    databaseId.await()
   }
 
   @AnyThread
-  override fun openSqliteDatabase(sqliteDatabase: SqliteDatabase): ListenableFuture<Unit> = projectScope.future(uiThread) {
-    controller.addSqliteDatabase(sqliteDatabase)
+  override fun openSqliteDatabase(
+    databaseId: SqliteDatabaseId,
+    databaseConnection: LiveDatabaseConnection
+  ): ListenableFuture<Unit> = projectScope.future(uiThread) {
+    databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
+    controller.addSqliteDatabase(databaseId)
   }
 
   @UiThread

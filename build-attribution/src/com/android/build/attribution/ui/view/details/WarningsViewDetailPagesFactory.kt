@@ -16,10 +16,8 @@
 package com.android.build.attribution.ui.view.details
 
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
-import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
-import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.durationString
@@ -28,9 +26,7 @@ import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescri
 import com.android.build.attribution.ui.model.TaskWarningDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningTypeNodeDescriptor
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
-import com.android.build.attribution.ui.panels.generateReportLinkLabel
-import com.android.build.attribution.ui.panels.htmlTextLabel
-import com.android.build.attribution.ui.panels.reasonsToRunList
+import com.android.build.attribution.ui.panels.taskDetailsPanel
 import com.android.build.attribution.ui.percentageString
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon
@@ -39,6 +35,8 @@ import com.android.tools.adtui.TabularLayout
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import java.awt.Component
+import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -77,27 +75,14 @@ class WarningsViewDetailPagesFactory(
   }
 
   private fun createWarningDetailsPage(issueData: TaskIssueUiData) = JPanel().apply {
-    var row = 0
-    fun position(y: Int, x: Int = 1, span: Int = 1) = TabularLayout.Constraint(y, x, colSpan = span)
-    fun addRow(component: JComponent, x: Int = 1, span: Int = 1) = add(component, TabularLayout.Constraint(row++, x, colSpan = span))
-    layout = TabularLayout("Fit,Fit,*")
-    add(JBLabel(warningIcon()).withBorder(JBUI.Borders.emptyRight(5)), position(0, 0))
-    addRow(JBLabel(issueData.task.taskPath).withFont(JBUI.Fonts.label().asBold()))
-    addRow(JBLabel("Duration: ${issueData.task.executionTime.durationString()} / ${issueData.task.executionTime.percentageString()}"))
-    addRow(JBLabel("Sub-project: ${issueData.task.module}"))
-    addRow(JBLabel("Plugin: ${issueData.task.pluginName}"))
-    addRow(JBLabel("Type: ${issueData.task.taskType}"))
-    addRow(JPanel().apply { border = JBUI.Borders.emptyTop(10) })
-    addRow(DescriptionWithHelpLinkLabel(issueData.explanation, issueData.helpLink, actionHandlers::helpLinkClicked), span = 2)
-    addRow(JPanel().apply { border = JBUI.Borders.emptyTop(10) })
-    addRow(JBLabel("Recommendation").withFont(JBUI.Fonts.label().asBold()))
-    addRow(htmlTextLabel(issueData.buildSrcRecommendation), span = 2)
-    if (issueData.task.sourceType != PluginSourceType.BUILD_SRC) {
-      addRow(generateReportLinkLabel(issueData.task, actionHandlers::generateReportClicked))
-    }
-    addRow(JPanel().apply { border = JBUI.Borders.emptyTop(10) })
-    addRow(JBLabel("Reason task ran").withFont(JBUI.Fonts.label().asBold()))
-    addRow(reasonsToRunList(issueData.task), span = 2)
+    layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    alignmentX = Component.LEFT_ALIGNMENT
+    add(JBLabel(issueData.task.taskPath).withFont(JBUI.Fonts.label().asBold()))
+    add(taskDetailsPanel(
+      issueData.task,
+      helpLinkListener = actionHandlers::helpLinkClicked,
+      generateReportClickedListener = actionHandlers::generateReportClicked
+    ))
   }
 
   private fun createAnnotationProcessorsRootDetailsPage(annotationProcessorsReport: AnnotationProcessorsReport) = JPanel().apply {

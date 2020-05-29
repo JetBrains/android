@@ -20,8 +20,6 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
-import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.invokeLater
@@ -38,7 +36,7 @@ import java.util.concurrent.Executor
 class DatabaseInspectorClient constructor(
   messenger: CommandMessenger,
   private val onErrorEventListener: (errorMessage: String) -> Unit,
-  private val onDatabaseAddedListener: (SqliteDatabase) -> Unit,
+  private val onDatabaseAddedListener: (SqliteDatabaseId, LiveDatabaseConnection) -> Unit,
   private val onDatabasePossiblyChanged: () -> Unit,
   private val onDatabaseClosed: (databaseId: SqliteDatabaseId) -> Unit,
   private val taskExecutor: Executor,
@@ -54,10 +52,9 @@ class DatabaseInspectorClient constructor(
         event.hasDatabaseOpened() -> {
           val openedDatabase = event.databaseOpened
           invokeLater {
-            val connection = LiveDatabaseConnection(dbMessenger, openedDatabase.databaseId, taskExecutor)
-            onDatabaseAddedListener(
-              LiveSqliteDatabase(SqliteDatabaseId.fromLiveDatabase(openedDatabase.path, openedDatabase.databaseId), connection)
-            )
+            val databaseId = SqliteDatabaseId.fromLiveDatabase(openedDatabase.path, openedDatabase.databaseId)
+            val databaseConnection = LiveDatabaseConnection(dbMessenger, openedDatabase.databaseId, taskExecutor)
+            onDatabaseAddedListener(databaseId, databaseConnection)
           }
         }
         event.hasDatabasePossiblyChanged() -> {

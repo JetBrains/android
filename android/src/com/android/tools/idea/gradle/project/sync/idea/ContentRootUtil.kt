@@ -93,13 +93,17 @@ private fun collectContentRootData(
   }
 
   // Function passed in to the methods below to register each source path with a ContentRootData object.
-  fun addSourceFolder(path: @SystemDependent String, sourceType: ExternalSystemSourceType) {
+  fun addSourceFolder(path: @SystemDependent String, sourceType: ExternalSystemSourceType?) {
     if (FileUtil.isAncestor(mainContentRootData.rootPath, path, false)) {
-      mainContentRootData.storePath(sourceType, path)
+      if (sourceType != null) {
+        mainContentRootData.storePath(sourceType, path)
+      }
     }
     else {
       val contentRootData = ContentRootData(GradleConstants.SYSTEM_ID, path)
-      contentRootData.storePath(sourceType, path)
+      if (sourceType != null) {
+        contentRootData.storePath(sourceType, path)
+      }
       newContentRoots.add(contentRootData)
     }
   }
@@ -168,11 +172,12 @@ private fun IdeVariant.processGeneratedSources(
  */
 private fun SourceProvider.processAll(
   forTest: Boolean = false,
-  processor: (String, ExternalSystemSourceType) -> Unit
+  processor: (String, ExternalSystemSourceType?) -> Unit
 ) {
-  (resourcesDirectories + resDirectories + assetsDirectories + mlModelsDirectories + manifestFile.parentFile).forEach {
+  (resourcesDirectories + resDirectories + assetsDirectories + mlModelsDirectories).forEach {
     processor(it.absolutePath, if (forTest) TEST_RESOURCE else RESOURCE)
   }
+  processor(manifestFile.parentFile.absolutePath, null)
 
   val allSources = aidlDirectories + javaDirectories + cDirectories + cppDirectories + renderscriptDirectories + shadersDirectories
 

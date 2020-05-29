@@ -163,7 +163,7 @@ fun JavaCodeInsightTestFixture.findClass(name: String, context: PsiElement): Psi
  * This is an alternative to [runBlocking] that avoids deadlocks if the current thread is the UI thread and the suspending [block] needs to
  * schedule work on the UI thread.
  */
-fun runDispatching(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> Unit) {
+fun <T> runDispatching(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> T): T {
   require(SwingUtilities.isEventDispatchThread()) // That's the thread dispatchAllEventsInIdeEventQueue requires.
 
   val result = CoroutineScope(context).async(block = block)
@@ -171,6 +171,7 @@ fun runDispatching(context: CoroutineContext = EmptyCoroutineContext, block: sus
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
-  runBlocking { result.await() } // Re-throws exceptions, if any.
+  val value = runBlocking { result.await() } // Re-throws exceptions, if any.
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  return value
 }
