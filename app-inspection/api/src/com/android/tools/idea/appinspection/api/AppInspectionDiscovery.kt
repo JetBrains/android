@@ -149,7 +149,7 @@ class AppInspectionDiscoveryHost(
       }
     }
     return Futures.immediateFailedFuture(
-      RuntimeException("Cannot attach to process because the device does not exist. Process: ${params.processDescriptor}"))
+      ProcessNoLongerExistsException("Cannot attach to process because the device does not exist. Process: ${params.processDescriptor}"))
   }
 
   /**
@@ -242,6 +242,14 @@ class AppInspectionDiscoveryHost(
     }
   }
 }
+
+/**
+ * Thrown when trying to launch an inspector on a process that no longer exists.
+ *
+ * Note: This may not necessarily signal something is broken. We expect this to happen occasionally due to bad timing. For example: user
+ * selects a process for inspection on device X right when X is shutting down.
+ */
+class ProcessNoLongerExistsException(message: String): Exception(message)
 
 /**
  * A class which keeps track of live [AppInspectionTarget] and [AppInspectorClient]. It exposes [launchInspector] that allows for launching
