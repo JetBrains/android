@@ -20,7 +20,10 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
+
 
 /**
  * This is responsible to manage the lifetime of an instance of the TraceProcessorDaemon,
@@ -36,7 +39,6 @@ class TraceProcessorDaemonManager: Disposable {
     private val TPD_DEV_PATH: String by lazy {
       when {
         SystemInfo.isWindows -> {
-          LOGGER.warn("TPD Backend not supported on Windows.")
           "prebuilts/tools/common/trace-processor-daemon/windows"
         }
         SystemInfo.isMac -> {
@@ -83,7 +85,22 @@ class TraceProcessorDaemonManager: Disposable {
   fun makeSureDaemonIsRunning() {
     // Spawn a new one if either we don't have one running already or if the current one is not alive anymore.
     if (!processIsRunning()) {
-      process = ProcessBuilder(getExecutablePath()).start()
+      LOGGER.info("TPD Manager: Starting new instance of TPD")
+      val newProcess = ProcessBuilder(getExecutablePath())
+        .redirectErrorStream(true)
+        .start()
+      val processInputReader = BufferedReader(InputStreamReader(newProcess.inputStream))
+
+      // wait until we receive the message that the daemon is listening
+      while (true) {
+        val line = processInputReader.readLine() ?: break
+        LOGGER.info("TPD Manager: TPD - $line")
+        if (line.startsWith("Server listening on ", true)) {
+          break
+        }
+      }
+      LOGGER.info("TPD Manager: TPD instance ready.")
+      process = newProcess
     }
   }
 

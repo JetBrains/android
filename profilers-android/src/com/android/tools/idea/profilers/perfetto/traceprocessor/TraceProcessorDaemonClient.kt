@@ -17,52 +17,85 @@ package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessorServiceGrpc
-import com.android.tools.profilers.systemtrace.ProcessModel
-import com.android.tools.profilers.systemtrace.ThreadModel
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
-import io.grpc.Channel
+import com.intellij.openapi.util.Disposer
+import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
-import java.io.File
+import io.grpc.StatusRuntimeException
+import java.lang.RuntimeException
 
 /**
  * gRPC client used to communicate with the daemon (which runs a gRPC server).
  * For the API details, see {@code tools/base/profiler/native/trace_processor_daemon/trace_processor_service.proto}.
  */
-class TraceProcessorDaemonClient(optionalChannel: Channel? = null) {
-  // TODO(b/149379691): Use a port picker to select an available port, pass it down to the daemon as an argument and use it here.
-  private val channel: Channel by lazy {
-    optionalChannel ?: ManagedChannelBuilder.forAddress("localhost", 20204)
-      .usePlaintext()
-      .maxInboundMessageSize(128 * 1024 * 1024) // 128 Mb
-      .build() }
-  private val stub: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub by lazy {
-    TraceProcessorServiceGrpc.newBlockingStub(channel)
+class TraceProcessorDaemonClient(val optionalChannel: ManagedChannel? = null): Disposable {
+  private val daemonManager = TraceProcessorDaemonManager()
+  private var cachedChannel: ManagedChannel? = null
+  private var cachedStub: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub? = null
+
+  init {
+    Disposer.register(this, daemonManager)
   }
 
   companion object {
     private val LOGGER = Logger.getInstance(TraceProcessorDaemonClient::class.java)
   }
 
-  fun loadTrace(traceId: Long, traceFile: File): List<ProcessModel> {
-    val requestProto = TraceProcessor.LoadTraceRequest.newBuilder()
-      .setTraceId(traceId)
-      .setTracePath(traceFile.absolutePath)
-      .build()
-    val responseProto = stub.loadTrace(requestProto)
-
-    val processList = mutableListOf<ProcessModel>()
-
-    for (process in responseProto.processMetadata.processList) {
-      val threadMap = process.threadList.asSequence()
-        .map { thread -> thread.id.toInt() to ThreadModel(thread.id.toInt(), process.id.toInt(), thread.name, listOf(), listOf()) }
-        .toMap()
-        .toSortedMap()
-      processList.add(ProcessModel(process.id.toInt(), process.name, threadMap, mapOf()))
+  private fun getStub(): TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub {
+    val previousChannel = cachedChannel
+    // If we either don't have a channel created already of if it has been broken, we must create a new one.
+    if (previousChannel == null || previousChannel.isShutdown || previousChannel.isTerminated) {
+      // TODO(b/149379691): Use a port picker to select an available port, pass it down to the daemon as an argument and use it here.
+      LOGGER.debug("TPD Client: building new channel")
+      cachedChannel = optionalChannel ?: ManagedChannelBuilder.forAddress("localhost", 20204)
+        .usePlaintext()
+        .maxInboundMessageSize(128 * 1024 * 1024) // 128 Mb
+        .build()
     }
-    return processList.toList()
+
+    // If we still have no stub or if we changed our channel, we need to update out stub.
+    if (cachedStub == null || previousChannel != cachedChannel) {
+      LOGGER.debug("TPD Client: building new stub")
+      cachedStub = TraceProcessorServiceGrpc.newBlockingStub(cachedChannel)
+    }
+
+    return cachedStub!!
+  }
+
+  fun loadTrace(requestProto: TraceProcessor.LoadTraceRequest): TraceProcessor.LoadTraceResponse {
+    return retry(requestProto) { getStub().loadTrace(it) }
   }
 
   fun queryBatchRequest(request: TraceProcessor.QueryBatchRequest): TraceProcessor.QueryBatchResponse {
-    return stub.queryBatch(request)
+    return retry(request) { getStub().queryBatch(it)}
+  }
+
+  // Retry the same call up to 3 times, if all of them fail rethrow the last exception.
+  // In between retries, sleep for 200ms, to allow the underlying issue to fix itself.
+  private fun <A, B> retry(request: A, rpc: (A) -> B): B {
+    var response: B? = null
+    var lastException: Exception? = null
+    for(i in 1..3){
+      try {
+        daemonManager.makeSureDaemonIsRunning()
+        lastException = null
+        response = rpc(request)
+        break
+      } catch (e: Exception) {
+        LOGGER.debug("TPD Client: Attempt $i of RPC failed (`${e.message}`).")
+        lastException = e
+        Thread.sleep(200)
+      }
+    }
+
+    if (response == null) {
+      throw RuntimeException("Unable to reach TPDaemon.", lastException)
+    }
+    return response
+  }
+
+  override fun dispose() {
+    cachedChannel?.shutdownNow()
   }
 }
