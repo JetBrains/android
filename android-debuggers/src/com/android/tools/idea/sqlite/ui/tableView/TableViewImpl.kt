@@ -173,6 +173,7 @@ class TableViewImpl : TableView {
     liveUpdatesCheckBox.addActionListener { listeners.forEach { it.toggleLiveUpdatesInvoked() } }
     tableActionsPanel.add(liveUpdatesCheckBox)
 
+    table.resetDefaultFocusTraversalKeys()
     table.isStriped = true
     table.emptyText.text = "Table is empty"
     table.setDefaultRenderer(String::class.java, MyColoredTableCellRenderer())
