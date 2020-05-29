@@ -69,6 +69,7 @@ import java.util.concurrent.TimeUnit
  */
 object AndroidStudioUsageTracker {
   private const val IDLE_TIME_BEFORE_SHOWING_DIALOG = 3 * 60 * 1000
+  const val STUDIO_EXPERIMENTS_OVERRIDE = "studio.experiments.override"
 
   @JvmStatic
   val productDetails: ProductDetails
@@ -81,15 +82,26 @@ object AndroidStudioUsageTracker {
         else {
           ProductDetails.ProductKind.STUDIO
         }
-      return ProductDetails.newBuilder()
-        .setProduct(productKind)
-        .setBuild(application.build.asString())
-        .setVersion(application.strictVersion)
-        .setOsArchitecture(CommonMetricsData.osArchitecture)
-        .setChannel(lifecycleChannelFromUpdateSettings())
-        .setTheme(currentIdeTheme())
-        .build()
+      return ProductDetails.newBuilder().apply {
+        product = productKind
+        build = application.build.asString()
+        version = application.strictVersion
+        osArchitecture = CommonMetricsData.osArchitecture
+        channel = lifecycleChannelFromUpdateSettings()
+        theme = currentIdeTheme()
+        addAllExperimentId(buildActiveExperimentList())
+      }.build()
     }
+
+  /** Gets list of active experiments. */
+  @JvmStatic
+  fun buildActiveExperimentList(): Collection<String> {
+    val experimentOverrides = System.getProperty(STUDIO_EXPERIMENTS_OVERRIDE)
+    if (experimentOverrides.isNullOrEmpty()) {
+      return listOf()
+    }
+    return experimentOverrides.split(',')
+  }
 
   /** Gets information about all the displays connected to this machine.  */
   private val displayDetails: Iterable<DisplayDetails>
