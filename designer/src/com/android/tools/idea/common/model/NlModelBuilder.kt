@@ -102,7 +102,7 @@ class NlModelBuilder constructor(val facet: AndroidFacet, val file: VirtualFile,
   fun build(): NlModel = modelFactory.build(this)
 
   companion object {
-    private fun getDefaultFile(project: Project, virtualFile: VirtualFile) =
+    public fun getDefaultFile(project: Project, virtualFile: VirtualFile) =
       AndroidPsiUtils.getPsiFileSafely(project, virtualFile) as XmlFile
   }
 }

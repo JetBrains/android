@@ -79,6 +79,7 @@ public class ScreenView extends ScreenViewBase {
    */
   public static final class ImageContentSizePolicy implements ContentSizePolicy {
     @NotNull private final ContentSizePolicy mySizePolicyDelegate;
+    private Dimension cachedDimension = null;
 
     public ImageContentSizePolicy(@NotNull ContentSizePolicy delegate) {
       mySizePolicyDelegate = delegate;
@@ -92,8 +93,16 @@ public class ScreenView extends ScreenViewBase {
 
         if (image.isValid()) {
           outDimension.setSize(image.getWidth(), image.getHeight());
+          // Save in case a future render fails. This way we can keep a constant size for failed
+          // renders.
+          cachedDimension = new Dimension(outDimension);
           return;
         }
+      }
+
+      if (cachedDimension != null) {
+        outDimension.setSize(cachedDimension);
+        return;
       }
 
       mySizePolicyDelegate.measure(screenView, outDimension);

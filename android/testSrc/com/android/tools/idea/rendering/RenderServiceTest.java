@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.google.common.util.concurrent.ListenableFuture;
 import java.util.concurrent.CompletableFuture;
 import junit.framework.TestCase;
 
@@ -68,7 +67,7 @@ public class RenderServiceTest extends TestCase {
   public void testAsyncRenderAction() throws ExecutionException, InterruptedException {
     AtomicBoolean called = new AtomicBoolean(false);
     CountDownLatch countDownLatch = new CountDownLatch(1);
-    CompletableFuture<Void> future = RenderService.runAsyncRenderAction(() -> {
+    CompletableFuture<Void> future = RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
       try {
         countDownLatch.await();
       }

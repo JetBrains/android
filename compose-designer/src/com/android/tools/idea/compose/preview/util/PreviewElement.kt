@@ -28,6 +28,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -99,8 +100,10 @@ internal val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
  * to be able to preview composable functions.
  * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
  */
-internal class ComposeAdapterLightVirtualFile(name: String, content: String) : LightVirtualFile(name, content) {
+internal class ComposeAdapterLightVirtualFile(name: String, content: String, private val originFileProvider: () -> VirtualFile?) : LightVirtualFile(name, content), BackedVirtualFile {
   override fun getParent() = FAKE_LAYOUT_RES_DIR
+
+  override fun getOriginFile(): VirtualFile? = originFileProvider()
 }
 
 /**
