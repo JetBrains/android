@@ -59,7 +59,7 @@ iml_module(
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/adt-branding:intellij.android.adt.branding",
     ],
     # do not sort: must match IML order
     deps = [
@@ -426,7 +426,7 @@ iml_module(
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/idea/.idea/libraries:guava-testlib[test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
-        "//tools/adt/idea/adt-branding:intellij.android.adt.branding[module, test]",
+        "//tools/idea/adt-branding:intellij.android.adt.branding[module, test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api[module, test]",
         "//tools/idea/.idea/libraries:equalsverifier[test]",
