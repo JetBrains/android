@@ -43,6 +43,7 @@ abstract class NamedExternalResource : TestRule {
     }
   }
 
+  @Throws(Throwable::class)
   abstract fun before(description: Description)
   abstract fun after(description: Description)
 }
