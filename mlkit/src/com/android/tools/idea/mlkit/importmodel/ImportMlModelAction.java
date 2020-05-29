@@ -17,10 +17,12 @@ package com.android.tools.idea.mlkit.importmodel;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -39,8 +41,9 @@ import org.jetbrains.annotations.NotNull;
  * Action to import machine learning model to Android project.
  */
 public class ImportMlModelAction extends AnAction {
-  private static final String ML_MODEL_BINDING_MIN_AGP_VERSION = "4.1.0-alpha04";
-  private static final String TITLE = "TensorFlow Lite Model";
+  @VisibleForTesting static final String MIN_AGP_VERSION = "4.1.0-alpha04";
+  @VisibleForTesting static final String TITLE = "TensorFlow Lite Model";
+  @VisibleForTesting static final int MIN_SDK_VERSION = 19;
 
   public ImportMlModelAction() {
     super(TITLE, null, StudioIcons.Shell.Filetree.ANDROID_FILE);
@@ -82,14 +85,21 @@ public class ImportMlModelAction extends AnAction {
     }
 
     GradleVersion agpVersion = androidPluginInfo.getPluginVersion();
-    if (agpVersion == null || agpVersion.compareTo(ML_MODEL_BINDING_MIN_AGP_VERSION) < 0) {
+    if (agpVersion == null || agpVersion.compareTo(MIN_AGP_VERSION) < 0) {
       presentation.setEnabled(false);
-      presentation.setText(AndroidBundle.message("android.wizard.action.requires.new.agp", TITLE, ML_MODEL_BINDING_MIN_AGP_VERSION));
+      presentation.setText(AndroidBundle.message("android.wizard.action.requires.new.agp", TITLE, MIN_AGP_VERSION));
       return;
     }
 
-    if (AndroidFacet.getInstance(module) == null) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet == null) {
       presentation.setEnabled(false);
+      return;
+    }
+
+    if (AndroidModuleInfo.getInstance(androidFacet).getMinSdkVersion().getFeatureLevel() < MIN_SDK_VERSION) {
+      presentation.setEnabled(false);
+      presentation.setText(AndroidBundle.message("android.wizard.action.requires.minsdk", TITLE, MIN_SDK_VERSION));
       return;
     }
 

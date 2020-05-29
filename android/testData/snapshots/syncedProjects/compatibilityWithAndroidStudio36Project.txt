@@ -87,7 +87,6 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
@@ -97,7 +96,6 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
@@ -107,7 +105,6 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/app/src/debug
             JavaSource          : file://<PROJECT>/app/src/debug/aidl
             JavaResource        : file://<PROJECT>/app/src/debug/assets
             JavaSource          : file://<PROJECT>/app/src/debug/java
@@ -117,7 +114,6 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/app/src/debug/resources
             JavaSource          : file://<PROJECT>/app/src/debug/rs
             JavaSource          : file://<PROJECT>/app/src/debug/shaders
-            JavaResource        : file://<PROJECT>/app/src/main
             JavaSource          : file://<PROJECT>/app/src/main/aidl
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
@@ -127,7 +123,6 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
             JavaSource          : file://<PROJECT>/app/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/test
             JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
@@ -137,7 +132,6 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
             JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
@@ -640,7 +634,6 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/features/dynamicfeature/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/features/dynamicfeature/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTest
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTest/java
@@ -650,7 +643,6 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/java
@@ -660,7 +652,6 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/features/dynamicfeature/src/debug
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/debug/aidl
             JavaResource        : file://<PROJECT>/features/dynamicfeature/src/debug/assets
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/debug/java
@@ -670,7 +661,6 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/features/dynamicfeature/src/debug/resources
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/debug/rs
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/debug/shaders
-            JavaResource        : file://<PROJECT>/features/dynamicfeature/src/main
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/main/aidl
             JavaResource        : file://<PROJECT>/features/dynamicfeature/src/main/assets
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/main/java
@@ -680,7 +670,6 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/features/dynamicfeature/src/main/resources
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/main/rs
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/test
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/test/aidl
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/test/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/test/java
@@ -690,7 +679,6 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/test/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/test/rs
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/testDebug
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/testDebug/java
@@ -772,7 +760,6 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/features/dynamicfeature2/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTest
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTest/java
@@ -782,7 +769,6 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/java
@@ -792,7 +778,6 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/debug
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/debug/aidl
             JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/debug/assets
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/debug/java
@@ -802,7 +787,6 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/debug/resources
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/debug/rs
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/debug/shaders
-            JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/main
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/main/aidl
             JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/main/assets
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/main/java
@@ -812,7 +796,6 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/main/resources
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/main/rs
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/test
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/test/aidl
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/test/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/test/java
@@ -822,7 +805,6 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/test/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/test/rs
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/testDebug
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/testDebug/java
@@ -930,7 +912,6 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/libs/android_library/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/libs/android_library/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/libs/android_library/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTest
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTest/java
@@ -940,7 +921,6 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTestDebug/java
@@ -950,7 +930,6 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/libs/android_library/src/debug
             JavaSource          : file://<PROJECT>/libs/android_library/src/debug/aidl
             JavaResource        : file://<PROJECT>/libs/android_library/src/debug/assets
             JavaSource          : file://<PROJECT>/libs/android_library/src/debug/java
@@ -960,7 +939,6 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/libs/android_library/src/debug/resources
             JavaSource          : file://<PROJECT>/libs/android_library/src/debug/rs
             JavaSource          : file://<PROJECT>/libs/android_library/src/debug/shaders
-            JavaResource        : file://<PROJECT>/libs/android_library/src/main
             JavaSource          : file://<PROJECT>/libs/android_library/src/main/aidl
             JavaResource        : file://<PROJECT>/libs/android_library/src/main/assets
             JavaSource          : file://<PROJECT>/libs/android_library/src/main/java
@@ -970,7 +948,6 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/libs/android_library/src/main/resources
             JavaSource          : file://<PROJECT>/libs/android_library/src/main/rs
             JavaSource          : file://<PROJECT>/libs/android_library/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/libs/android_library/src/test
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/test/aidl
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/test/assets
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/test/java
@@ -980,7 +957,6 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/test/resources
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/test/rs
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/libs/android_library/src/testDebug
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/testDebug/java

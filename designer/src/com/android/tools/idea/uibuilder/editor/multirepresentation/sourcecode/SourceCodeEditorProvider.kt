@@ -21,6 +21,7 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.openapi.fileEditor.impl.text.QuickDefinitionProvider
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -31,7 +32,7 @@ import com.intellij.psi.PsiManager
  * [FileEditorProvider] intended to be used with all source code files universally and therefore accepts all source code files. Creates
  * [SourceCodeEditorWithMultiRepresentationPreview] as a corresponding [FileEditor].
  */
-class SourceCodeEditorProvider : FileEditorProvider, DumbAware {
+class SourceCodeEditorProvider : FileEditorProvider, QuickDefinitionProvider, DumbAware {
   private val LOG = Logger.getInstance(SourceCodeEditorProvider::class.java)
 
   override fun accept(project: Project, file: VirtualFile): Boolean = NELE_SOURCE_CODE_EDITOR.get() && file.hasSourceFileExtension()

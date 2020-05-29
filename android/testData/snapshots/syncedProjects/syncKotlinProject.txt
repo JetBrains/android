@@ -140,7 +140,6 @@ PROJECT             : testSyncKotlinProject
             JavaSource          : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugAndroidTest
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugUnitTest
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
@@ -150,7 +149,6 @@ PROJECT             : testSyncKotlinProject
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
@@ -160,7 +158,6 @@ PROJECT             : testSyncKotlinProject
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/app/src/debug
             JavaSource          : file://<PROJECT>/app/src/debug/aidl
             JavaResource        : file://<PROJECT>/app/src/debug/assets
             JavaSource          : file://<PROJECT>/app/src/debug/java
@@ -170,7 +167,6 @@ PROJECT             : testSyncKotlinProject
             JavaResource        : file://<PROJECT>/app/src/debug/resources
             JavaSource          : file://<PROJECT>/app/src/debug/rs
             JavaSource          : file://<PROJECT>/app/src/debug/shaders
-            JavaResource        : file://<PROJECT>/app/src/main
             JavaSource          : file://<PROJECT>/app/src/main/aidl
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
@@ -181,7 +177,6 @@ PROJECT             : testSyncKotlinProject
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
             JavaSource          : file://<PROJECT>/app/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/test
             JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
@@ -191,7 +186,6 @@ PROJECT             : testSyncKotlinProject
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
             JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
@@ -766,7 +760,6 @@ PROJECT             : testSyncKotlinProject
             JavaResource        : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/awesomeandroidlibrary/build/generated/source/buildConfig/debug
-            JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/androidTest
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/java
@@ -776,7 +769,6 @@ PROJECT             : testSyncKotlinProject
             JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/shaders
-            JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/java
@@ -786,7 +778,6 @@ PROJECT             : testSyncKotlinProject
             JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/shaders
-            JavaResource        : file://<PROJECT>/awesomeandroidlibrary/src/debug
             JavaSource          : file://<PROJECT>/awesomeandroidlibrary/src/debug/aidl
             JavaResource        : file://<PROJECT>/awesomeandroidlibrary/src/debug/assets
             JavaSource          : file://<PROJECT>/awesomeandroidlibrary/src/debug/java
@@ -796,7 +787,6 @@ PROJECT             : testSyncKotlinProject
             JavaResource        : file://<PROJECT>/awesomeandroidlibrary/src/debug/resources
             JavaSource          : file://<PROJECT>/awesomeandroidlibrary/src/debug/rs
             JavaSource          : file://<PROJECT>/awesomeandroidlibrary/src/debug/shaders
-            JavaResource        : file://<PROJECT>/awesomeandroidlibrary/src/main
             JavaSource          : file://<PROJECT>/awesomeandroidlibrary/src/main/aidl
             JavaResource        : file://<PROJECT>/awesomeandroidlibrary/src/main/assets
             JavaSource          : file://<PROJECT>/awesomeandroidlibrary/src/main/java
@@ -807,7 +797,6 @@ PROJECT             : testSyncKotlinProject
             JavaResource        : file://<PROJECT>/awesomeandroidlibrary/src/main/resources
             JavaSource          : file://<PROJECT>/awesomeandroidlibrary/src/main/rs
             JavaSource          : file://<PROJECT>/awesomeandroidlibrary/src/main/shaders
-            JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/test
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/test/aidl
             JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/test/assets
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/test/java
@@ -817,7 +806,6 @@ PROJECT             : testSyncKotlinProject
             JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/test/resources
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/test/rs
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/test/shaders
-            JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/testDebug
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/java

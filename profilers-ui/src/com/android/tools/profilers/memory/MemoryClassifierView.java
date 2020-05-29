@@ -163,37 +163,38 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         createTreeNodeComparator(Comparator.comparing(NativeCallStackSet::getModuleName))));
     myAttributeColumns.put(
       ClassifierAttribute.ALLOCATIONS,
-      makeColumn("Allocations", ClassifierSet::getDeltaAllocationCount));
+      makeColumn("Allocations", 110, ClassifierSet::getDeltaAllocationCount));
     myAttributeColumns.put(
       ClassifierAttribute.DEALLOCATIONS,
-      makeColumn("Deallocations", ClassifierSet::getDeltaDeallocationCount));
+      makeColumn("Deallocations", 130, ClassifierSet::getDeltaDeallocationCount));
     myAttributeColumns.put(
       ClassifierAttribute.TOTAL_COUNT,
-      makeColumn("Total Count", ClassifierSet::getTotalObjectCount));
+      makeColumn("Total Count", 110, ClassifierSet::getTotalObjectCount));
     myAttributeColumns.put(
       ClassifierAttribute.NATIVE_SIZE,
-      makeColumn("Native Size", ClassifierSet::getTotalNativeSize, Comparator.comparing(ClassifierSet::getName)));
+      makeColumn("Native Size", 110, ClassifierSet::getTotalNativeSize, Comparator.comparing(ClassifierSet::getName)));
     myAttributeColumns.put(
       ClassifierAttribute.SHALLOW_SIZE,
-      makeColumn("Shallow Size", ClassifierSet::getTotalShallowSize, Comparator.comparing(ClassifierSet::getName)));
+      makeColumn("Shallow Size", 120, ClassifierSet::getTotalShallowSize, Comparator.comparing(ClassifierSet::getName)));
     myAttributeColumns.put(
       ClassifierAttribute.RETAINED_SIZE,
-      makeColumn("Retained Size", ClassifierSet::getTotalRetainedSize));
+      makeColumn("Retained Size", 130, ClassifierSet::getTotalRetainedSize));
     myAttributeColumns.put(
       ClassifierAttribute.ALLOCATIONS_SIZE,
-      makeColumn("Allocations Size", ClassifierSet::getAllocationSize));
+      makeColumn("Allocations Size", 160, ClassifierSet::getAllocationSize));
     myAttributeColumns.put(
       ClassifierAttribute.DEALLOCATIONS_SIZE,
-      makeColumn("Deallocations Size", ClassifierSet::getDeallocationSize));
+      makeColumn("Deallocations Size", 180, ClassifierSet::getDeallocationSize));
     myAttributeColumns.put(
       ClassifierAttribute.REMAINING_SIZE,
-      makeColumn("Remaining Size", ClassifierSet::getTotalRemainingSize));
+      makeColumn("Remaining Size", 140, ClassifierSet::getTotalRemainingSize));
   }
 
   /**
    * Make right-aligned, descending column displaying integer property with custom order for non-ClassSet values
    */
   private AttributeColumn<ClassifierSet> makeColumn(@NotNull String name,
+                                                    int width,
                                                     @NotNull ToLongFunction<ClassifierSet> prop,
                                                     @NotNull Comparator<ClassifierSet> comp) {
 
@@ -225,11 +226,15 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
       renderer = () -> new SimpleColumnRenderer<>(textGetter, v -> null, SwingConstants.RIGHT);
     }
 
+    int preferredWidth = Math.max(SimpleColumnRenderer.DEFAULT_COLUMN_WIDTH, width);
+    int maxWidth = preferredWidth * 4;
+
     return new AttributeColumn<>(
       name,
       renderer,
       SwingConstants.RIGHT,
-      SimpleColumnRenderer.DEFAULT_COLUMN_WIDTH,
+      preferredWidth,
+      maxWidth,
       SortOrder.DESCENDING,
       createTreeNodeComparator(comp, Comparator.comparingLong(prop))
     );
@@ -238,8 +243,8 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
   /**
    * Make right-aligned, descending column displaying integer property
    */
-  private AttributeColumn<ClassifierSet> makeColumn(String name, ToLongFunction<ClassifierSet> prop) {
-    return makeColumn(name, prop, Comparator.comparingLong(prop));
+  private AttributeColumn<ClassifierSet> makeColumn(String name, int width, ToLongFunction<ClassifierSet> prop) {
+    return makeColumn(name, width, prop, Comparator.comparingLong(prop));
   }
 
   @NotNull

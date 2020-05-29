@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.model
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.sqlLanguage.getSqliteStatementType
 import com.android.tools.idea.sqlite.sqlLanguage.getWrappableStatement
@@ -55,6 +56,7 @@ fun SqliteStatement.transform(newStatementType: SqliteStatementType, func: (Stri
   return SqliteStatement(newStatementType, newStatement, parametersValues, newStatementStringRepresentation)
 }
 
+@UiThread
 fun createSqliteStatement(
   project: Project,
   sqliteStatementText: String,

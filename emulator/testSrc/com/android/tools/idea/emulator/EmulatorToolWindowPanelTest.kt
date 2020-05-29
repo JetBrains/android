@@ -16,6 +16,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.actions.ZoomLabelAction
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.FakeUi.setPortableUiFont
@@ -87,6 +88,7 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGBA8888 width: 253 height: 521")
+    updateToolbars(ui)
     assertAppearance(ui, "image1")
 
     // Check EmulatorPowerButtonAction.
@@ -172,9 +174,21 @@ class EmulatorToolWindowPanelTest {
     get() = getData(EMULATOR_VIEW_KEY.name) as EmulatorView?
 
   private fun assertAppearance(ui: FakeUi, goldenImageName: String) {
-    ui.updateToolbars()
     val image = ui.render()
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.03)
+  }
+
+  private fun updateToolbars(ui: FakeUi) {
+    ui.updateToolbars()
+
+    // Trigger update of the zoom level label.
+    val zoomLabel = ui.findComponent {
+      it::class.java.name.startsWith(ZoomLabelAction::class.java.name + "\$createCustomComponent\$label")
+    }
+    zoomLabel?.addNotify()
+    zoomLabel?.removeNotify()
+
+    ui.layoutAndDispatchEvents()
   }
 
   private fun getGoldenFile(name: String): File {

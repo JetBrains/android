@@ -66,7 +66,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
   fun testRowCountReturnsCorrectNumberOfRows() {
     // Prepare
     val cellValue = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setIntValue(1)
+      .setLongValue(1)
       .build()
 
     val row = SqliteInspectorProtocol.Row.newBuilder()

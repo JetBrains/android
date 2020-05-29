@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.finallySync
@@ -23,16 +24,16 @@ import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
-import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.model.transform
+import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.google.common.base.Functions
@@ -57,8 +58,9 @@ class TableController(
   private val project: Project,
   private var rowBatchSize: Int = 50,
   private val view: TableView,
+  private val databaseId: SqliteDatabaseId,
   private val tableSupplier: () -> SqliteTable?,
-  private val databaseConnection: DatabaseConnection,
+  private val databaseRepository: DatabaseRepository,
   private val sqliteStatement: SqliteStatement,
   override val closeTabInvoked: () -> Unit,
   private val edtExecutor: Executor,
@@ -70,8 +72,6 @@ class TableController(
   private var start = 0
 
   private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
-
-  private var lastExecutedQuery = sqliteStatement
 
   /**
    * The list of columns currently shown in the view
@@ -92,8 +92,7 @@ class TableController(
 
   fun setUp(): ListenableFuture<Unit> {
     view.startTableLoading()
-    return databaseConnection.query(sqliteStatement).transformAsync(edtExecutor) { newResultSet ->
-      lastExecutedQuery = sqliteStatement
+    return databaseRepository.runQuery(databaseId, sqliteStatement).transformAsync(edtExecutor) { newResultSet ->
       view.setEditable(isEditable())
       view.showPageSizeValue(rowBatchSize)
       view.addListener(listener)
@@ -235,7 +234,7 @@ class TableController(
     future.addCallback(edtExecutor, success = {}) { error ->
       if (Disposer.isDisposed(this)) return@addCallback
       view.resetView()
-      if (error !is CancellationException) {
+      if (error !is CancellationException && error !is AppInspectionConnectionException) {
         view.reportError("Error retrieving data from table.", error)
       }
     }
@@ -260,9 +259,7 @@ class TableController(
       Disposer.dispose(resultSet)
 
       view.startTableLoading()
-      databaseConnection.query(selectOrderByStatement).transform(edtExecutor) { newResultSet ->
-        lastExecutedQuery = selectOrderByStatement
-
+      databaseRepository.runQuery(databaseId, selectOrderByStatement).transform(edtExecutor) { newResultSet ->
         if (Disposer.isDisposed(this@TableController)) {
           newResultSet.dispose()
           throw ProcessCanceledException()
@@ -336,53 +333,22 @@ class TableController(
     }
 
     override fun updateCellInvoked(targetRowIndex: Int, targetColumn: ResultSetSqliteColumn, newValue: SqliteValue) {
-      val table = tableSupplier()
-      if (table == null) {
+      val targetTable = tableSupplier()
+      if (targetTable == null) {
         view.reportError("Can't update. Table not found.", null)
         return
       }
 
       val targetRow = currentRows[targetRowIndex]
-      val rowIdColumnValue = targetRow.values.firstOrNull { it.columnName == table.rowIdName?.stringName }
-
-      val parametersValues = mutableListOf(newValue)
-
-      val whereExpression = if (rowIdColumnValue != null) {
-        parametersValues.add(rowIdColumnValue.value)
-        "${AndroidSqlLexer.getValidName(rowIdColumnValue.columnName)} = ?"
-      } else {
-        val tablePrimaryKeyNames = table.columns.filter { it.inPrimaryKey }.map { it.name }
-        val expression = targetRow.values
-          .filter { tablePrimaryKeyNames.contains(it.columnName) }
-          .onEach { parametersValues.add(it.value) }
-          .joinToString(separator = " AND ") {
-            "${AndroidSqlLexer.getValidName(it.columnName)} = ?"
-          }
-
-        // check that all columns in the primary key have been used
-        if (parametersValues.size - 1 != tablePrimaryKeyNames.size) "" else expression
-      }
-
-      if (whereExpression.isEmpty()) {
-        view.reportError("Can't update. No primary keys or rowid column.", null)
-        return
-      }
-
-      val updateStatement =
-        "UPDATE ${AndroidSqlLexer.getValidName(table.name)} " +
-        "SET ${AndroidSqlLexer.getValidName(targetColumn.name)} = ? " +
-        "WHERE $whereExpression"
-
-      databaseInspectorAnalyticsTracker.trackTableCellEdited()
-
-      databaseConnection.execute(createSqliteStatement(project, updateStatement, parametersValues))
+      databaseRepository.updateTable(databaseId, targetTable, targetRow, targetColumn.name, newValue)
         .addCallback(edtExecutor, object : FutureCallback<Unit> {
           override fun onSuccess(result: Unit?) {
+            databaseInspectorAnalyticsTracker.trackTableCellEdited()
             refreshData()
           }
 
           override fun onFailure(t: Throwable) {
-            view.reportError("Can't execute update", t)
+            view.reportError("Can't execute update: ", t)
           }
         })
     }

@@ -119,7 +119,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     mySupportedAbis = androidModuleModel != null ?
                       androidModuleModel.getSelectedVariant().getMainArtifact().getAbiFilters() :
-                      null;
+                      Collections.emptySet();
 
     myDeviceTable = new JBTable();
     myPanel = ScrollPaneFactory.createScrollPane(myDeviceTable);
