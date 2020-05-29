@@ -34,6 +34,7 @@ import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -101,6 +102,7 @@ public class DrawableRenderer implements Disposable {
         return null;
       }
     }, PooledThreadExecutor.INSTANCE);
+    Disposer.register(facet, this);
   }
 
   /**
