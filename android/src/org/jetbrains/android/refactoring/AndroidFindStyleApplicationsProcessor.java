@@ -233,7 +233,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
         psiFilesToProcess.add(psiFile);
       }
     }
-    final CacheManager cacheManager = CacheManager.SERVICE.getInstance(project);
+    final CacheManager cacheManager = CacheManager.getInstance(project);
     final GlobalSearchScope projectScope = GlobalSearchScope.projectScope(project);
 
     for (Map.Entry<AndroidAttributeInfo, String> entry : myAttrMap.entrySet()) {
