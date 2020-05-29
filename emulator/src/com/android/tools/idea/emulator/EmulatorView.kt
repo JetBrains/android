@@ -44,6 +44,7 @@ import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_END
@@ -140,19 +141,25 @@ class EmulatorView(
 
     addKeyListener(object : KeyAdapter() {
       override fun keyTyped(event: KeyEvent) {
+        val c = event.keyChar
         val keyboardEvent =
-          when (val c = event.keyChar) {
-            VK_UNDEFINED.toChar() -> return
-            '\b' -> createHardwareKeyEvent("Backspace")
-            VK_DELETE.toChar() -> createHardwareKeyEvent(if (SystemInfo.isMac) "Backspace" else "Delete")
-            VK_ESCAPE.toChar() -> createHardwareKeyEvent("Escape")
-            VK_TAB.toChar() -> createHardwareKeyEvent("Tab")
-            else -> KeyboardEvent.newBuilder().setText(c.toString()).build()
+          when {
+            c == VK_UNDEFINED.toChar() -> return
+            !Character.isISOControl(c) -> KeyboardEvent.newBuilder().setText(c.toString()).build()
+            event.modifiers != 0 -> return
+            c == VK_BACK_SPACE.toChar() -> createHardwareKeyEvent("Backspace")
+            c == VK_DELETE.toChar() -> createHardwareKeyEvent(if (SystemInfo.isMac) "Backspace" else "Delete")
+            c == VK_ESCAPE.toChar() -> createHardwareKeyEvent("Escape")
+            c == VK_TAB.toChar() -> createHardwareKeyEvent("Tab")
+            else -> return
           }
         emulator.sendKey(keyboardEvent)
       }
 
       override fun keyReleased(event: KeyEvent) {
+        if (event.modifiers != 0) {
+          return
+        }
         val keyboardEvent =
           when (event.keyCode) {
             VK_LEFT, VK_KP_LEFT -> createHardwareKeyEvent("ArrowLeft")
