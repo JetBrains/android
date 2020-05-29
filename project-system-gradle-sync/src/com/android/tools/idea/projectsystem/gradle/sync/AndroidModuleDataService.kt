@@ -50,6 +50,8 @@ import com.intellij.execution.RunManagerEx
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.project.ProjectData
@@ -118,6 +120,9 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     }
   }
 
+  /**
+   * This may be called from either the EDT or a background thread depending on if the project import is being run synchronously.
+   */
   override fun onSuccessImport(imported: Collection<DataNode<AndroidModuleModel>>,
                                projectData: ProjectData?,
                                project: Project,
@@ -125,7 +130,9 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     GradleProjectInfo.getInstance(project).isNewProject = false
     GradleProjectInfo.getInstance(project).isImportedProject = false
 
-    if (shouldRecommendPluginUpgrade(project)) recommendPluginUpgrade(project)
+    ApplicationManager.getApplication().executeOnPooledThread {
+      if (shouldRecommendPluginUpgrade(project)) recommendPluginUpgrade(project)
+    }
 
     if (IdeInfo.getInstance().isAndroidStudio) {
       ComposeInBetaChecker.checkIfComposeProject(project);
