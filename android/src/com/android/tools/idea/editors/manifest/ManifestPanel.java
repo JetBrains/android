@@ -20,10 +20,10 @@ import static com.android.tools.idea.gradle.project.sync.setup.module.dependency
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
 import com.android.SdkConstants;
-import com.android.builder.model.level2.Library;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
+import com.android.ide.common.gradle.model.level2.IdeLibrary;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
@@ -38,7 +38,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -1132,7 +1131,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     String source = null;
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
-      Library library =
+      IdeLibrary library =
         GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant());
       if (library != null) {
         source = getDependencyDisplayName(library);

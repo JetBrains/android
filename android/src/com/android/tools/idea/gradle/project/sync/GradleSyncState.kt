@@ -19,6 +19,7 @@ import com.android.SdkConstants.DOT_GRADLE
 import com.android.SdkConstants.DOT_KTS
 import com.android.annotations.concurrency.UiThread
 import com.android.builder.model.level2.Library
+import com.android.ide.common.gradle.model.level2.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
@@ -573,7 +574,7 @@ open class GradleSyncState @NonInjectable constructor(
   }
 }
 
-private fun Collection<Library>.findVersion(artifact: String) : GradleVersion? {
+private fun Collection<IdeLibrary>.findVersion(artifact: String) : GradleVersion? {
   val library = firstOrNull { library -> library.artifactAddress.startsWith(artifact) } ?: return null
   return GradleCoordinate.parseCoordinateString(library.artifactAddress)?.version
 }

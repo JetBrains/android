@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import com.android.builder.model.level2.Library;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.VARIANT_SELECTION_CONFLICTS;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
+import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.gradle.model.level2.IdeLibrary;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -34,20 +39,11 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.VARIANT_SELECTION_CONFLICTS;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
-import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Set of all variant-selection-related conflicts. We classify these conflicts in 2 groups:
@@ -124,14 +120,14 @@ public class ConflictSet {
   @Nullable
   private static String getExpectedVariant(@NotNull AndroidModuleModel dependentAndroidModel, @NotNull String dependencyGradlePath) {
     IdeVariant variant = dependentAndroidModel.getSelectedVariant();
-    for (Library dependency : variant.getMainArtifact().getLevel2Dependencies().getModuleDependencies()) {
+    for (IdeLibrary dependency : variant.getMainArtifact().getLevel2Dependencies().getModuleDependencies()) {
       if (dependencyGradlePath.equals(dependency.getProjectPath())) {
         return dependency.getVariant();
       }
     }
 
     for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
-      for (Library dependency : testArtifact.getLevel2Dependencies().getModuleDependencies()) {
+      for (IdeLibrary dependency : testArtifact.getLevel2Dependencies().getModuleDependencies()) {
         if (dependencyGradlePath.equals(dependency.getProjectPath())) {
           return dependency.getVariant();
         }

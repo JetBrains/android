@@ -20,6 +20,7 @@ import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
 import com.android.builder.model.BuildType
 import com.android.ide.common.gradle.model.GradleModelConverter
 import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
+import com.android.ide.common.gradle.model.level2.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersionRange
@@ -716,7 +717,7 @@ class GradleModuleSystem(
 private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
   if (isDisposed) return emptyList()
   val localLibManifests = dependencies.mapNotNull { it.sourceProviders.mainManifestFile }
-  fun com.android.builder.model.level2.Library.manifestFile(): File = this.folder.resolve(this.manifest)
+  fun IdeLibrary.manifestFile(): File = this.folder.resolve(this.manifest)
 
   val aarManifests =
     AndroidModuleModel.get(this)

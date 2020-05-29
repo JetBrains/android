@@ -21,6 +21,7 @@ import com.android.builder.model.AaptOptions;
 import com.android.builder.model.Variant;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.level2.IdeLibrary;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
@@ -271,8 +272,8 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   @NotNull
-  public static Collection<Library> findAarLibraries(@NotNull AndroidFacet facet) {
-    List<Library> libraries = new ArrayList<>();
+  public static Collection<IdeLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
+    List<IdeLibrary> libraries = new ArrayList<>();
     if (AndroidModel.isRequired(facet)) {
       AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
@@ -289,7 +290,7 @@ public final class ResourceRepositoryManager implements Disposable {
     return libraries;
   }
 
-  private static void addGradleLibraries(@NotNull List<Library> list, @NotNull AndroidModuleModel androidModuleModel) {
+  private static void addGradleLibraries(@NotNull List<IdeLibrary> list, @NotNull AndroidModuleModel androidModuleModel) {
     list.addAll(androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries());
   }
 
