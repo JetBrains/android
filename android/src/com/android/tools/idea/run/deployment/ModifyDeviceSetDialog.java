@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -22,12 +23,16 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
+import java.util.stream.IntStream;
+import javax.swing.Action;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +40,8 @@ import org.jetbrains.annotations.Nullable;
 final class ModifyDeviceSetDialog extends DialogWrapper {
   @NotNull
   private final Project myProject;
+
+  private final @NotNull BooleanSupplier myRunOnMultipleDevicesActionEnabledGet;
 
   @NotNull
   private final TableModel myTableModel;
@@ -46,29 +53,51 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   private ModifyDeviceSetDialogTable myTable;
 
   ModifyDeviceSetDialog(@NotNull Project project, @NotNull List<Device> devices) {
-    this(project, new ModifyDeviceSetDialogTableModel(devices), DevicesSelectedService::getInstance);
+    this(project,
+         StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED::get,
+         new ModifyDeviceSetDialogTableModel(devices),
+         DevicesSelectedService::getInstance);
   }
 
   @VisibleForTesting
   ModifyDeviceSetDialog(@NotNull Project project,
+                        @NotNull BooleanSupplier runOnMultipleDevicesActionEnabledGet,
                         @NotNull TableModel tableModel,
                         @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
     super(project);
 
     myProject = project;
+    myRunOnMultipleDevicesActionEnabledGet = runOnMultipleDevicesActionEnabledGet;
     myTableModel = tableModel;
     myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
 
     initTable();
+    initOkAction();
     init();
-    setTitle("Modify Device Set");
+    setTitle(runOnMultipleDevicesActionEnabledGet.getAsBoolean() ? "Run on Multiple Devices" : "Modify Device Set");
   }
 
   private void initTable() {
+    if (myRunOnMultipleDevicesActionEnabledGet.getAsBoolean()) {
+      myTableModel.addTableModelListener(event -> {
+        if (event.getColumn() == ModifyDeviceSetDialogTableModel.SELECTED_MODEL_COLUMN_INDEX && event.getType() == TableModelEvent.UPDATE) {
+          assert myTable != null;
+          getOKAction().setEnabled(IntStream.range(0, myTable.getRowCount()).anyMatch(myTable::isSelected));
+        }
+      });
+    }
+
     myTable = new ModifyDeviceSetDialogTable();
 
     myTable.setModel(myTableModel);
     myTable.setSelectedDevices(myDevicesSelectedServiceGetInstance.apply(myProject).getDeviceKeysSelectedWithDialog());
+  }
+
+  private void initOkAction() {
+    if (myRunOnMultipleDevicesActionEnabledGet.getAsBoolean()) {
+      myOKAction.setEnabled(false);
+      myOKAction.putValue(Action.NAME, "Run");
+    }
   }
 
   @NotNull
@@ -98,6 +127,21 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   }
 
   @Override
+  protected void doOKAction() {
+    super.doOKAction();
+
+    assert myTable != null;
+    myDevicesSelectedServiceGetInstance.apply(myProject).setDevicesSelectedWithDialog(myTable.getSelectedDevices());
+  }
+
+  @VisibleForTesting
+  @Override
+  @SuppressWarnings("EmptyMethod")
+  protected @NotNull Action getOKAction() {
+    return super.getOKAction();
+  }
+
+  @Override
   protected @NotNull String getDimensionServiceKey() {
     return "com.android.tools.idea.run.deployment.ModifyDeviceSetDialog";
   }
@@ -113,13 +157,5 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   ModifyDeviceSetDialogTable getTable() {
     assert myTable != null;
     return myTable;
-  }
-
-  @Override
-  protected void doOKAction() {
-    super.doOKAction();
-
-    assert myTable != null;
-    myDevicesSelectedServiceGetInstance.apply(myProject).setDevicesSelectedWithDialog(myTable.getSelectedDevices());
   }
 }
