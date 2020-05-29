@@ -43,7 +43,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android:intellij.android.core.tests",
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
