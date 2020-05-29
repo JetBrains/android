@@ -69,7 +69,9 @@ public final class FakeKeyboard {
     // Dispatch BEFORE adding the key to our list of pressed keys. If it is a modifier key, we
     // don't want it to included in "toModifiersCode" logic called by "dispatchKeyEvent".
     dispatchKeyEvent(event, key);
-    myPressedKeys.add(key);
+    if (event == KeyEvent.KEY_PRESSED) {
+      myPressedKeys.add(key);
+    }
   }
 
   /**
@@ -140,9 +142,12 @@ public final class FakeKeyboard {
     ESC(KeyEvent.VK_ESCAPE),
     LEFT(KeyEvent.VK_LEFT),
     META(KeyEvent.VK_META),
+    PAGE_DOWN(KeyEvent.VK_PAGE_DOWN),
+    PAGE_UP(KeyEvent.VK_PAGE_UP),
     RIGHT(KeyEvent.VK_RIGHT),
     SHIFT(KeyEvent.VK_SHIFT),
     SPACE(KeyEvent.VK_SPACE),
+    TAB(KeyEvent.VK_TAB),
     // Add more modifier keys here (alphabetically) as necessary
     A(KeyEvent.VK_A),
     D(KeyEvent.VK_D),
