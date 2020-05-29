@@ -109,7 +109,8 @@ object SkiaParser : SkiaParserService {
     devbuildServerInfo.shutdown()
   }
 
-  private fun buildTree(node: SkiaParser.InspectorView, isInterrupted: () -> Boolean): InspectorView? {
+  @VisibleForTesting
+  fun buildTree(node: SkiaParser.InspectorView, isInterrupted: () -> Boolean): InspectorView? {
     if (isInterrupted()) {
       throw InterruptedException()
     }

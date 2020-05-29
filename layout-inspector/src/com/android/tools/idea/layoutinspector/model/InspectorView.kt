@@ -43,7 +43,7 @@ class InspectorView(
   /**
    * Map of View IDs to views.
    */
-  val children: MutableMap<String, InspectorView> = mutableMapOf()
+  val children: MutableList<InspectorView> = mutableListOf()
 
   init {
     children.forEach { addChild(it) }
@@ -51,10 +51,10 @@ class InspectorView(
 
   @Suppress("unused") // invoked via reflection
   fun addChild(child: InspectorView) {
-    children[child.id] = child
+    children.add(child)
   }
 
   fun flatten(): Collection<InspectorView> {
-    return children.values.flatMap { it.flatten() }.plus(this)
+    return children.flatMap { it.flatten() }.plus(this)
   }
 }
