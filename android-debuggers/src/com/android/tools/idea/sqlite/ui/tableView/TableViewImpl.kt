@@ -387,20 +387,6 @@ class TableViewImpl : TableView {
   }
 
   private class MyTableHeaderRenderer : TableCellRenderer {
-    private val columnNameLabel = DefaultTableCellRenderer()
-    private val panel = JPanel(BorderLayout())
-
-    init {
-      val sortIcon = DefaultTableCellRenderer()
-      sortIcon.icon = AllIcons.General.ArrowSplitCenterV
-      columnNameLabel.icon = StudioIcons.DatabaseInspector.COLUMN
-      columnNameLabel.iconTextGap = 8
-
-      panel.background = Color(0, 0, 0, 0)
-      panel.add(columnNameLabel, BorderLayout.CENTER)
-      panel.add(sortIcon, BorderLayout.EAST)
-    }
-
     override fun getTableCellRendererComponent(
       table: JTable,
       value: Any,
@@ -409,16 +395,25 @@ class TableViewImpl : TableView {
       viewRowIndex: Int,
       viewColumnIndex: Int
     ): Component {
+      val columnNameLabel = DefaultTableCellRenderer()
+      val sortIcon = DefaultTableCellRenderer()
+
       if (viewColumnIndex == 0) {
         columnNameLabel.icon = null
-        (panel.getComponent(panel.componentCount - 1) as DefaultTableCellRenderer).icon = null
+        columnNameLabel.iconTextGap = 0
+        columnNameLabel.text = ""
       }
       else {
         columnNameLabel.icon = StudioIcons.DatabaseInspector.COLUMN
-        (panel.getComponent(panel.componentCount - 1) as DefaultTableCellRenderer).icon = AllIcons.General.ArrowSplitCenterV
+        columnNameLabel.iconTextGap = 8
+        sortIcon.icon = AllIcons.General.ArrowSplitCenterV
+        columnNameLabel.text = value as String
       }
 
-      columnNameLabel.text = value as String
+      val panel = JPanel(BorderLayout())
+      panel.background = Color(0, 0, 0, 0)
+      panel.add(columnNameLabel, BorderLayout.CENTER)
+      panel.add(sortIcon, BorderLayout.EAST)
       return panel
     }
   }
