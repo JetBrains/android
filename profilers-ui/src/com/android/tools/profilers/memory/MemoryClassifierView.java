@@ -19,6 +19,7 @@ import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
+
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
@@ -728,15 +729,16 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
           int width = getWidth();
           int height = getHeight();
 
-          Icon i = StudioIcons.Common.WARNING;
-          int iconWidth = i.getIconWidth();
-          int iconHeight = i.getIconHeight();
-          i.paintIcon(this, g, width - iconWidth, (height - iconHeight) / 2);
-
           String text = String.valueOf(myLeakCount);
           ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
           int textWidth = g.getFontMetrics().stringWidth(text);
-          g.drawString(text, width - iconWidth - textWidth - 4, (height + iconHeight) / 2 - 1);
+
+          Icon i = StudioIcons.Common.WARNING;
+          int iconWidth = i.getIconWidth();
+          int iconHeight = i.getIconHeight();
+          i.paintIcon(this, g, width - iconWidth - textWidth - 6, (height - iconHeight) / 2);
+
+          g.drawString(text, width - textWidth - 4, (height + iconHeight) / 2 - 2);
         }
         // paint real content last
         super.paintComponent(g);
@@ -820,6 +822,9 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
           myLeakCount = leakFilter != null ?
                         ((ClassifierSet)node.getAdapter()).getInstanceFilterMatchCount(leakFilter) :
                         0;
+          setToolTipText(myLeakCount > 1 ? "There are " + myLeakCount + " leaks" :
+                         myLeakCount > 0 ? "There is 1 leak" :
+                         null);
         }
         setTextAlign(SwingConstants.LEFT);
       }
