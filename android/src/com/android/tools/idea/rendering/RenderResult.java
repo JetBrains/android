@@ -169,6 +169,11 @@ public class RenderResult {
   }
 
   @NotNull
+  public static RenderResult createRenderTaskErrorResult(@NotNull PsiFile file, @Nullable Throwable throwable) {
+    return createErrorResult(file, Result.Status.ERROR_RENDER_TASK.createResult("Render error", throwable), null);
+  }
+
+  @NotNull
   private static RenderResult createErrorResult(@NotNull PsiFile file, @NotNull Result errorResult, @Nullable RenderLogger logger) {
     Module module = ModuleUtilCore.findModuleForPsiElement(file);
     assert module != null;

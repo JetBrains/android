@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.common.model.NlModel;
@@ -231,13 +232,14 @@ public class ScreenViewLayer extends Layer {
   }
 
   /**
-   * Check whether the provided render result has new image to draw.
+   * Check whether the provided render result has new image to draw. We only accept successful renders. If the new result is
+   * an error, we prefer to keep the last successful one.
    *
-   * @param renderResult The renderResult from {@link NlModel#getRenderResult()}
+   * @param renderResult The renderResult from {@link LayoutlibSceneManager#getRenderResult()}
    * @return false if renderResult is null or the same as the previous one or if no image is available, true otherwise
    */
   private boolean newRenderImageAvailable(@Nullable RenderResult renderResult) {
-    return renderResult != null && renderResult != myLastRenderResult;
+    return renderResult != null && renderResult.getRenderResult().isSuccess() && renderResult != myLastRenderResult;
   }
 
   private void cancelHighQualityScaleRequests() {

@@ -100,6 +100,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -113,7 +114,6 @@ import javax.swing.Timer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
@@ -918,6 +918,9 @@ public class LayoutlibSceneManager extends SceneManager {
             .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
           return newTask.inflate().whenComplete((result, exception) -> {
             if (exception != null) {
+              if (result == null || !result.getRenderResult().isSuccess()) {
+                logger.error("INFLATE", "Error inflating the preview", exception, null, null);
+              }
               Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
             }
 
@@ -940,16 +943,16 @@ public class LayoutlibSceneManager extends SceneManager {
               }
             }
           })
-            .thenApply(result -> {
+            .handle((result, exception) -> {
               if (result != null) {
                 CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(null, result, System.currentTimeMillis() - startInflateTimeMs, true);
                 return result;
               } else {
-                return RenderResult.createBlank(getModel().getFile());
+                return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
               }
             })
             .thenApply(result -> {
-              if (project.isDisposed()) {
+              if (project.isDisposed() || !result.getRenderResult().isSuccess()) {
                 return false;
               }
 
@@ -1104,12 +1107,14 @@ public class LayoutlibSceneManager extends SceneManager {
 
       long renderStartTimeMs = System.currentTimeMillis();
       return renderImpl(trigger)
-        .thenApply(result -> {
-          if (result == null) {
-            completeRender();
-            return null;
+        .handle((result, exception) -> {
+          if (result != null) {
+            return result;
+          } else {
+            return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
           }
-
+        })
+        .thenApply(result -> {
           myRenderResultLock.writeLock().lock();
           try {
             updateCachedRenderResult(result);
@@ -1170,7 +1175,6 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Returns if there are any pending render requests.
    */
-  @TestOnly
   public boolean isRendering() {
     synchronized (myRenderFutures) {
       return myIsCurrentlyRendering.get() || !myRenderFutures.isEmpty();
@@ -1473,7 +1477,8 @@ public class LayoutlibSceneManager extends SceneManager {
   public void executeCallbacksAndRequestRender(@Nullable Runnable callback) {
     try {
       if (callback != null) {
-        RenderService.runRenderAction(callback);
+        RenderService.getRenderAsyncActionExecutor()
+          .runAsyncActionWithTimeout(30, TimeUnit.MILLISECONDS, Executors.callable(callback)).get();
       }
       executeCallbacks().thenRun(() -> requestRender());
     }
