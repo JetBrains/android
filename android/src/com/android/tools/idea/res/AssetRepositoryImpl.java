@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.level2.IdeLibrary;
 import com.android.ide.common.rendering.api.AssetRepository;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -65,7 +65,7 @@ public class AssetRepositoryImpl extends AssetRepository {
   public InputStream openAsset(@NotNull String path, int mode) throws IOException {
     assert myFacet != null;
 
-    return getDirectories(myFacet, IdeaSourceProvider::getAssetsDirectories, Library::getAssetsFolder)
+    return getDirectories(myFacet, IdeaSourceProvider::getAssetsDirectories, IdeLibrary::getAssetsFolder)
       .map(assetDir -> assetDir.findFileByRelativePath(path))
       .map(assetDir -> {
         if (assetDir == null) {
@@ -133,7 +133,7 @@ public class AssetRepositoryImpl extends AssetRepository {
       return null;
     }
 
-    return getDirectories(myFacet, IdeaSourceProvider::getResDirectories, Library::getResFolder)
+    return getDirectories(myFacet, IdeaSourceProvider::getResDirectories, IdeLibrary::getResFolder)
       .filter(resDir -> VfsUtilCore.isAncestor(resDir, file, true))
       .map(resDir -> {
         try {
@@ -173,7 +173,7 @@ public class AssetRepositoryImpl extends AssetRepository {
   @NotNull
   private static Stream<VirtualFile> getDirectories(@NotNull AndroidFacet facet,
                                                     @NotNull Function<IdeaSourceProvider, Collection<VirtualFile>> sourceMapper,
-                                                    @NotNull Function<Library, String> aarMapper) {
+                                                    @NotNull Function<IdeLibrary, String> aarMapper) {
     Stream<VirtualFile> dirsFromSources =
       Stream.concat(Stream.of(facet), AndroidUtils.getAllAndroidDependencies(facet.getModule(), true).stream())
         .flatMap(f -> SourceProviderManager.getInstance(f).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream())

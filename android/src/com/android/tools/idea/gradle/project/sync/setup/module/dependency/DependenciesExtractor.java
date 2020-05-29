@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 
-import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.gradle.model.level2.IdeLibrary;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
@@ -61,18 +61,18 @@ public class DependenciesExtractor {
                                @NotNull ModuleFinder moduleFinder,
                                @NotNull DependencyScope scope) {
 
-    for (Library library : artifactDependencies.getJavaLibraries()) {
+    for (IdeLibrary library : artifactDependencies.getJavaLibraries()) {
       LibraryDependency libraryDependency =
         LibraryDependency
           .create(basePath, library.getArtifact(), library.getArtifactAddress(), scope, ImmutableList.of(library.getArtifact()));
       dependencies.add(libraryDependency);
     }
 
-    for (Library library : artifactDependencies.getAndroidLibraries()) {
+    for (IdeLibrary library : artifactDependencies.getAndroidLibraries()) {
       dependencies.add(createLibraryDependencyFromAndroidLibrary(basePath, library, scope));
     }
 
-    for (Library library : artifactDependencies.getModuleDependencies()) {
+    for (IdeLibrary library : artifactDependencies.getModuleDependencies()) {
       String gradlePath = library.getProjectPath();
       if (isNotEmpty(gradlePath)) {
         Module module = moduleFinder.findModuleFromLibrary(library);
@@ -84,7 +84,7 @@ public class DependenciesExtractor {
 
   @NotNull
   private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull File basePath,
-                                                                             @NotNull Library library,
+                                                                             @NotNull IdeLibrary library,
                                                                              @NotNull DependencyScope scope) {
     ImmutableList.Builder<File> binaryPaths = new ImmutableList.Builder<>();
     binaryPaths.add(FilePaths.toSystemDependentPath(library.getCompileJarFile()));
@@ -106,7 +106,7 @@ public class DependenciesExtractor {
    * com.google.guava:guava:11.0.2@jar -> guava:11.0.2
    */
   @NotNull
-  public static String getDependencyDisplayName(@NotNull Library library) {
+  public static String getDependencyDisplayName(@NotNull IdeLibrary library) {
     String artifactAddress = library.getArtifactAddress();
     GradleCoordinate coordinates = GradleCoordinate.parseCoordinateString(artifactAddress);
     if (coordinates != null) {

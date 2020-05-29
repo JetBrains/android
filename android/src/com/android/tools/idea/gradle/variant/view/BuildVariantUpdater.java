@@ -26,7 +26,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static com.intellij.util.ThreeState.YES;
 
-import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.level2.IdeLibrary;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
@@ -391,7 +391,7 @@ public class BuildVariantUpdater {
                                                                  @Nullable String abiToSelect,
                                                                  @NotNull List<AndroidFacet> affectedAndroidFacets,
                                                                  @NotNull List<NdkFacet> affectedNdkFacets) {
-    for (Library library : androidModel.getSelectedMainCompileLevel2Dependencies().getModuleDependencies()) {
+    for (IdeLibrary library : androidModel.getSelectedMainCompileLevel2Dependencies().getModuleDependencies()) {
       if (isNotEmpty(library.getVariant()) && isNotEmpty(library.getProjectPath())) {
         Module dependencyModule = ProjectStructure.getInstance(project).getModuleFinder().findModuleFromLibrary(library);
         updateDependencyModule(
