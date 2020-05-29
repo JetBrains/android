@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.run.DeviceCount;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.State;
 import com.android.tools.idea.run.editor.DeployTarget;
@@ -22,13 +24,24 @@ import com.android.tools.idea.run.editor.DeployTargetConfigurable;
 import com.android.tools.idea.run.editor.DeployTargetConfigurableContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
+import com.google.common.base.MoreObjects;
+import com.intellij.execution.Executor;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import javax.swing.JComponent;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider<State> {
+  static final Key<@NotNull Boolean> MULTIPLE_DEPLOY_TARGETS =
+    Key.create("com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.MULTIPLE_DEPLOY_TARGETS");
+
   @NotNull
   @Override
   public String getId() {
@@ -72,6 +85,30 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
     @Override
     public void applyTo(@NotNull State state, int id) {
     }
+  }
+
+  @Override
+  public boolean requiresRuntimePrompt(@NotNull Project project) {
+    return MoreObjects.firstNonNull(project.getUserData(MULTIPLE_DEPLOY_TARGETS), false);
+  }
+
+  @Override
+  public @Nullable DeployTarget<@NotNull State> showPrompt(@NotNull Executor executor,
+                                                           @NotNull ExecutionEnvironment environment,
+                                                           @NotNull AndroidFacet facet,
+                                                           @NotNull DeviceCount count,
+                                                           boolean androidInstrumentedTest,
+                                                           @NotNull Map<@NotNull String, @NotNull DeployTargetState> providerIdToStateMap,
+                                                           int configurationId,
+                                                           @NotNull LaunchCompatibilityChecker checker) {
+    Project project = facet.getModule().getProject();
+    List<Device> devices = AsyncDevicesGetter.getInstance(project).get().orElse(Collections.emptyList());
+
+    if (!new ModifyDeviceSetDialog(project, devices).showAndGet()) {
+      return null;
+    }
+
+    return new DeviceAndSnapshotComboBoxTarget(DevicesSelectedService.getInstance(project).getDevicesSelectedWithDialog(devices));
   }
 
   @NotNull

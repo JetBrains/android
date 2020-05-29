@@ -13,8 +13,12 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
+  public static final String ID = "AndroidRunConfigurationType";
+
   public AndroidRunConfigurationType() {
-    super("AndroidRunConfigurationType", AndroidBundle.message("android.run.configuration.type.name"), AndroidBundle.message("android.run.configuration.type.description"),
+    super(ID,
+          AndroidBundle.message("android.run.configuration.type.name"),
+          AndroidBundle.message("android.run.configuration.type.description"),
           NotNullLazyValue.createValue(() -> StudioIcons.Shell.Filetree.ANDROID_PROJECT));
 
     addFactory(new AndroidRunConfigurationFactory());
