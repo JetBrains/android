@@ -62,6 +62,8 @@ class TrackGroupTest {
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
 
     assertThat(trackGroup.trackList.isVisible).isFalse()
+    assertThat(trackGroup.overlay.isVisible).isFalse()
+    assertThat(trackGroup.trackTitleOverlay.isVisible).isFalse()
     assertThat(trackGroup.actionsDropdown.isVisible).isFalse()
     assertThat(trackGroup.actionsDropdown.toolTipText).isEqualTo("More actions")
     assertThat(trackGroup.separator.isVisible).isFalse()
@@ -69,12 +71,16 @@ class TrackGroupTest {
 
     trackGroup.setCollapsed(false)
     assertThat(trackGroup.trackList.isVisible).isTrue()
+    assertThat(trackGroup.overlay.isVisible).isTrue()
+    assertThat(trackGroup.trackTitleOverlay.isVisible).isTrue()
     assertThat(trackGroup.actionsDropdown.isVisible).isTrue()
-    assertThat(trackGroup.separator.isVisible).isFalse()
+    assertThat(trackGroup.separator.isVisible).isTrue()
     assertThat(trackGroup.collapseButton.text).isNull()
 
     trackGroup.setCollapsed(true)
     assertThat(trackGroup.trackList.isVisible).isFalse()
+    assertThat(trackGroup.overlay.isVisible).isFalse()
+    assertThat(trackGroup.trackTitleOverlay.isVisible).isFalse()
     assertThat(trackGroup.actionsDropdown.isVisible).isFalse()
     assertThat(trackGroup.separator.isVisible).isFalse()
     assertThat(trackGroup.collapseButton.text).isEqualTo("Expand Section")
