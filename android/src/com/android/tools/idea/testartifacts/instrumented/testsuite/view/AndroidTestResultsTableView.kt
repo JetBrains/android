@@ -16,7 +16,9 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestClassName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
@@ -24,8 +26,14 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.progress.util.ColorProgressBar
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.ui.AnimatedIcon
+import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.ColumnInfo
@@ -50,9 +58,11 @@ import javax.swing.table.TableRowSorter
  * A table to display Android test results. Test results are grouped by device and test case. The column is a device name
  * and the row is a test case.
  */
-class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener) {
+class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
+                                  javaPsiFacade: JavaPsiFacade,
+                                  testArtifactSearchScopes: TestArtifactSearchScopes?) {
   private val myModel = AndroidTestResultsTableModel()
-  private val myTableView = AndroidTestResultsTableViewComponent(myModel, listener)
+  private val myTableView = AndroidTestResultsTableViewComponent(myModel, listener, javaPsiFacade, testArtifactSearchScopes)
   private val myTableViewContainer = JBScrollPane(myTableView)
 
   /**
@@ -195,8 +205,10 @@ fun getColorFor(androidTestResult: AndroidTestCaseResult?): Color? {
  * An internal swing view component implementing AndroidTestResults table view.
  */
 private class AndroidTestResultsTableViewComponent(private val model: AndroidTestResultsTableModel,
-                                                   private val listener: AndroidTestResultsTableListener)
-  : TableView<AndroidTestResultsRow>(model) {
+                                                   private val listener: AndroidTestResultsTableListener,
+                                                   private val javaPsiFacade: JavaPsiFacade,
+                                                   private val testArtifactSearchScopes: TestArtifactSearchScopes?)
+  : TableView<AndroidTestResultsRow>(model), DataProvider {
   init {
     putClientProperty(AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED, true)
     selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
@@ -204,6 +216,8 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     tableHeader.resizingAllowed = false
     tableHeader.reorderingAllowed = false
     showHorizontalLines = false
+
+    PopupHandler.installPopupHandler(this, IdeActions.GROUP_TESTTREE_POPUP, ActionPlaces.TESTTREE_VIEW_POPUP)
   }
 
   override fun valueChanged(event: ListSelectionEvent) {
@@ -220,6 +234,19 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     val prevSelectedObject = selectedObject
     super.tableChanged(e)
     prevSelectedObject?.let { addSelection(it) }
+  }
+
+  override fun getData(dataId: String): Any? {
+    if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
+      val selectedTestResults = selectedObject ?: return null
+      val androidTestSourceScope = testArtifactSearchScopes?.androidTestSourceScope ?: return null
+      return selectedTestResults.getFullTestClassName().let {
+        javaPsiFacade.findClasses(it, androidTestSourceScope)
+      }.mapNotNull {
+        it.findMethodsByName(selectedTestResults.methodName).firstOrNull()
+      }.firstOrNull()
+    }
+    return null
   }
 }
 

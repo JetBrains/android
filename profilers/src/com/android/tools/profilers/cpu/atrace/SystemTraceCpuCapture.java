@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
 import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuSystemTraceData;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.ThreadState;
 import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter;
@@ -27,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public class SystemTraceCpuCapture extends BaseCpuCapture {
+public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTraceData {
   @NotNull
   private final Map<Integer, List<SeriesData<ThreadState>>> myThreadStateDataSeries;
 
@@ -64,6 +65,11 @@ public class SystemTraceCpuCapture extends BaseCpuCapture {
 
     myFrameManager = frameManager;
     mySurfaceflingerManager = surfaceflingerManager;
+  }
+
+  @Override
+  public CpuSystemTraceData getSystemTraceData() {
+    return this;
   }
 
   /**
@@ -104,7 +110,7 @@ public class SystemTraceCpuCapture extends BaseCpuCapture {
 
   @Override
   @NotNull
-  public List<SeriesData<SystemTraceFrame>> getFrames(SystemTraceFrame.FrameThread threadType) {
+  public List<SeriesData<SystemTraceFrame>> getFrames(@NotNull SystemTraceFrame.FrameThread threadType) {
     return myFrameManager.getFrames(threadType);
   }
 

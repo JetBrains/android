@@ -53,7 +53,7 @@ internal class PlaceholderPanel(project: Project): BorderLayoutPanel(), Disposab
   private var hyperlinkListener: HyperlinkListener
 
   init {
-    Disposer.register(project, this)
+    Disposer.register(project.earlyDisposable, this)
 
     emulatorLaunchesInToolWindow = EmulatorSettings.getInstance().launchInToolWindow
     emulatorVersionIsSufficient = true

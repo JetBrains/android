@@ -129,7 +129,7 @@ public class DefaultApkActivityLocator extends ActivityLocator{
     if (defaultActivityName == null) {
       StringBuilder errorMessage = new StringBuilder("Unable to find Default Activity in:\n");
       printActivities(activities, errorMessage);
-      LOG.error(errorMessage.toString());
+      LOG.info(errorMessage.toString());
     }
     return defaultActivityName;
   }

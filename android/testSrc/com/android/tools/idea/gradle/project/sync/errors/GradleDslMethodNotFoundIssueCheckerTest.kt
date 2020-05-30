@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -61,7 +62,19 @@ class GradleDslMethodNotFoundIssueCheckerTest : AndroidGradleTestCase() {
     // Verify quickFixes.
     assertThat(buildIssue.quickFixes).hasSize(3)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(FixAndroidGradlePluginVersionQuickFix::class.java)
-    assertThat(buildIssue.quickFixes[1]).isInstanceOf(GradleDslMethodNotFoundIssueChecker.GetGradleSettingsQuickFix::class.java)
-    assertThat(buildIssue.quickFixes[2]).isInstanceOf(GradleDslMethodNotFoundIssueChecker.ApplyGradlePluginQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[1]).isInstanceOf(GetGradleSettingsQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[2]).isInstanceOf(ApplyGradlePluginQuickFix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      gradleDslMethodNotFoundIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Gradle DSL method not found",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

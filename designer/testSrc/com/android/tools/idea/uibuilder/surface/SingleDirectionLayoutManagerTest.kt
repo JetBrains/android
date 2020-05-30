@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 
@@ -34,7 +35,7 @@ class SingleDirectionLayoutManagerTest: LayoutTestCase() {
     run {
       val w = 100
       val h = 150
-      val sceneView1 = TestSceneView(w, h)
+      val sceneView1 = TestPositionableContent(width = w, height = h)
       manager.layout(listOf(sceneView1), availableWidth, availableHeight)
       assertEquals((availableWidth - w) / 2, sceneView1.x)
       assertEquals((availableHeight - 150) / 2, sceneView1.y)
@@ -43,8 +44,8 @@ class SingleDirectionLayoutManagerTest: LayoutTestCase() {
     run {
       val w = 100
       val h = 280
-      val sceneView1 = TestSceneView(w, h)
-      val sceneView2 = TestSceneView(w, h)
+      val sceneView1 = TestPositionableContent(width = w, height = h)
+      val sceneView2 = TestPositionableContent(width = w, height = h)
       manager.layout(listOf(sceneView1, sceneView2), availableWidth, availableHeight, false)
       assertEquals((availableWidth - w * 2 - screenDeltaX) / 2, sceneView1.x)
       assertEquals(paddingY, sceneView1.y)
@@ -55,8 +56,8 @@ class SingleDirectionLayoutManagerTest: LayoutTestCase() {
     run {
       val w = 500
       val h = 1000
-      val sceneView1 = TestSceneView(w, h)
-      val sceneView2 = TestSceneView(w, h)
+      val sceneView1 = TestPositionableContent(width = w, height = h)
+      val sceneView2 = TestPositionableContent(width = w, height = h)
       manager.layout(listOf(sceneView1, sceneView2), availableWidth, availableHeight, false)
       assertEquals(paddingX, sceneView1.x)
       assertEquals(paddingY, sceneView1.y)
@@ -79,7 +80,7 @@ class SingleDirectionLayoutManagerTest: LayoutTestCase() {
     run {
       val w = 100
       val h = 150
-      val sceneView1 = TestSceneView(w, h)
+      val sceneView1 = TestPositionableContent(width = w, height = h)
       manager.layout(listOf(sceneView1), availableWidth, availableHeight)
       assertEquals((availableWidth - w) / 2, sceneView1.x)
       assertEquals((availableHeight - h) / 2, sceneView1.y)
@@ -88,8 +89,8 @@ class SingleDirectionLayoutManagerTest: LayoutTestCase() {
     run {
       val w = 100
       val h = 280
-      val sceneView1 = TestSceneView(w, h)
-      val sceneView2 = TestSceneView(w, h)
+      val sceneView1 = TestPositionableContent(width = w, height = h)
+      val sceneView2 = TestPositionableContent(width = w, height = h)
       manager.layout(listOf(sceneView1, sceneView2), availableWidth, availableHeight, false)
       assertEquals((availableWidth - w) / 2, sceneView1.x)
       assertEquals((availableHeight - h * 2 - screenDeltaY) / 2, sceneView1.y)
@@ -100,8 +101,8 @@ class SingleDirectionLayoutManagerTest: LayoutTestCase() {
     run {
       val w = 100
       val h = 500
-      val sceneView1 = TestSceneView(w, h)
-      val sceneView2 = TestSceneView(w, h)
+      val sceneView1 = TestPositionableContent(width = w, height = h)
+      val sceneView2 = TestPositionableContent(width = w, height = h)
       manager.layout(listOf(sceneView1, sceneView2), availableWidth, availableHeight, false)
       assertEquals((availableWidth - w) / 2, sceneView1.x)
       assertEquals(paddingY, sceneView1.y)
@@ -112,8 +113,8 @@ class SingleDirectionLayoutManagerTest: LayoutTestCase() {
     run {
       val w = 500
       val h = 1000
-      val sceneView1 = TestSceneView(w, h)
-      val sceneView2 = TestSceneView(w, h)
+      val sceneView1 = TestPositionableContent(width = w, height = h)
+      val sceneView2 = TestPositionableContent(width = w, height = h)
       manager.layout(listOf(sceneView1, sceneView2), availableWidth, availableHeight, false)
       assertEquals(paddingX, sceneView1.x)
       assertEquals(paddingY, sceneView1.y)

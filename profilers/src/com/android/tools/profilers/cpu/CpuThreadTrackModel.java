@@ -63,8 +63,8 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     myTimeline = timeline;
     myMultiSelectionModel = multiSelectionModel;
 
-    if (capture.getType() == Cpu.CpuTraceType.ATRACE || capture.getType() == Cpu.CpuTraceType.PERFETTO) {
-      myThreadStateSeries = new LazyDataSeries<>(() -> capture.getThreadStatesForThread(threadInfo.getId()));
+    if (capture.getSystemTraceData() != null) {
+      myThreadStateSeries = new LazyDataSeries<>(() -> capture.getSystemTraceData().getThreadStatesForThread(threadInfo.getId()));
       myThreadStateChartModel.addSeries(new RangedSeries<>(timeline.getViewRange(), myThreadStateSeries));
       myThreadStateTooltip.setThread(threadInfo.getName(), myThreadStateSeries);
     }

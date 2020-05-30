@@ -121,6 +121,7 @@
         <quickFixContributor implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinResolver"/>
         <resolveScopeEnlarger implementation="org.jetbrains.kotlin.android.AndroidKotlinResolveScopeEnlarger"/>
         <renameHandler implementation="org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler" order="first"/>
+        <additionalExtractableAnalyser implementation="org.jetbrains.android.compose.ComposableFunctionExtractableAnalyser"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.android.tools.idea.lint.common">

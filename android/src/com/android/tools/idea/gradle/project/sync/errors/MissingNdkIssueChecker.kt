@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersion
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.sdk.IdeSdks
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataProvider
@@ -33,6 +35,8 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
+import java.util.regex.Pattern
 
 private const val VERSION_PATTERN = "(?<version>([0-9]+)(?:\\.([0-9]+)(?:\\.([0-9]+))?)?([\\s-]*)?(?:(rc|alpha|beta|\\.)([0-9]+))?)"
 private val PREFERRED_VERSION_PATTERNS = listOf(
@@ -88,6 +92,18 @@ class MissingNdkIssueChecker: GradleIssueChecker {
       override val quickFixes: List<BuildIssueQuickFix> = quickFixes
       override fun getNavigatable(project: Project): Navigatable? = null
     }
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return tryExtractPreferredNdkDownloadVersion(failureCause) != null ||
+           matchesNdkNotConfigured(failureCause) ||
+           matchesKnownLocatorIssue(failureCause) ||
+           matchesTriedInstall(failureCause)
   }
 
   private fun appendQuickFix(quickFixes: MutableList<BuildIssueQuickFix>,

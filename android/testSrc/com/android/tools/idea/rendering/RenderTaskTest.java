@@ -47,7 +47,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -103,22 +102,29 @@ public class RenderTaskTest extends AndroidTestCase {
     }
   }
 
-  public void testCrashReport() throws Exception {
+  public void testCrashReport() {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
     RenderLogger logger = mock(RenderLogger.class);
     CrashReporter mockCrashReporter = mock(CrashReporter.class);
 
-    RenderTask task = RenderTestUtil.createRenderTask(myFacet, layoutFile, configuration, logger);
-    task.setCrashReporter(mockCrashReporter);
-    // Make sure we throw an exception during the inflate call
-    task.render((w, h) -> { throw new NullPointerException(); }).get();
+    RenderTestUtil.withRenderTask(myFacet, layoutFile, configuration, logger, task -> {
+      task.setCrashReporter(mockCrashReporter);
+      // Make sure we throw an exception during the inflate call
+      try {
+        task.render((w, h) -> {
+          throw new NullPointerException();
+        }).get();
+      } catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
 
-    verify(mockCrashReporter, times(1)).submit(isNotNull(CrashReport.class));
+      verify(mockCrashReporter, times(1)).submit(isNotNull(CrashReport.class));
+    });
   }
 
 
-  public void testDrawableRender() throws Exception {
+  public void testDrawableRender() {
     VirtualFile drawableFile = myFixture.addFileToProject("res/drawable/test.xml",
                                                           "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                                           "<shape xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -128,27 +134,30 @@ public class RenderTaskTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, drawableFile);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task = RenderTestUtil.createRenderTask(myFacet, drawableFile, configuration, logger);
-    // Workaround for a bug in layoutlib that will only fully initialize the static state if a render() call is made.
-    task.render().get();
-    ResourceValue resourceValue = new ResourceValueImpl(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
-    BufferedImage result = task.renderDrawable(resourceValue).get();
+    RenderTestUtil.withRenderTask(myFacet, drawableFile, configuration, logger, task -> {
+      // Workaround for a bug in layoutlib that will only fully initialize the static state if a render() call is made.
+      try {
+        task.render().get();
+        ResourceValue resourceValue = new ResourceValueImpl(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
+        BufferedImage result = task.renderDrawable(resourceValue).get();
 
-    assertNotNull(result);
-    //noinspection UndesirableClassUsage
-    BufferedImage goldenImage = new BufferedImage(result.getWidth(), result.getHeight(), result.getType());
-    Graphics2D g = goldenImage.createGraphics();
-    try {
-      g.setColor(Color.RED);
-      g.fillRect(0, 0, result.getWidth(), result.getHeight());
-    }
-    finally {
-      g.dispose();
-    }
+        assertNotNull(result);
+        //noinspection UndesirableClassUsage
+        BufferedImage goldenImage = new BufferedImage(result.getWidth(), result.getHeight(), result.getType());
+        Graphics2D g = goldenImage.createGraphics();
+        try {
+          g.setColor(Color.RED);
+          g.fillRect(0, 0, result.getWidth(), result.getHeight());
+        }
+        finally {
+          g.dispose();
+        }
 
-    ImageDiffUtil.assertImageSimilar("drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-
-    task.dispose().get(5, TimeUnit.SECONDS);
+        ImageDiffUtil.assertImageSimilar("drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      } catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
   }
 
   public void testCustomDrawableRender() throws Exception {
@@ -178,15 +187,20 @@ public class RenderTaskTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, drawableFile);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task = RenderTestUtil.createRenderTask(myFacet, drawableFile, configuration, logger);
-    ResourceValue resourceValue = new ResourceValueImpl(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
-    BufferedImage result = task.renderDrawable(resourceValue).get();
-    assertNotNull(result);
+    RenderTestUtil.withRenderTask(myFacet, drawableFile, configuration, logger, task -> {
+      ResourceValue resourceValue = new ResourceValueImpl(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
+      try {
+        BufferedImage result = task.renderDrawable(resourceValue).get();
+        assertNotNull(result);
 
-    File goldenImage = new File(getTestDataPath() + "/drawables/custom-golden.png");
-    ImageDiffUtil.assertImageSimilar(goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+        File goldenImage = new File(getTestDataPath() + "/drawables/custom-golden.png");
 
-    task.dispose().get(5, TimeUnit.SECONDS);
+        ImageDiffUtil.assertImageSimilar(goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      }
+      catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
   }
 
   /**
@@ -212,89 +226,94 @@ public class RenderTaskTest extends AndroidTestCase {
     checkSimpleLayoutResult(Futures.getUnchecked(futureResult));
   }
 
-  public void testRender() throws Exception {
+  public void testRender() {
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-    checkSimpleLayoutResult(task.render());
-    // Try a second render
-    checkSimpleLayoutResult(task.render());
-    // Try layout
-    checkSimpleLayoutResult(task.layout());
-    task.dispose().get(5, TimeUnit.SECONDS);
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      checkSimpleLayoutResult(task.render());
+      // Try a second render
+      checkSimpleLayoutResult(task.render());
+      // Try layout
+      checkSimpleLayoutResult(task.layout());
+    });
 
     // Now call inflate and check
-    task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-    checkSimpleLayoutResult(task.inflate());
-    checkSimpleLayoutResult(task.render());
-    task.dispose().get(5, TimeUnit.SECONDS);
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      checkSimpleLayoutResult(task.inflate());
+      checkSimpleLayoutResult(task.render());
+    });
 
     // Now call inflate and layout
-    task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-    checkSimpleLayoutResult(task.inflate());
-    checkSimpleLayoutResult(task.layout());
-    task.dispose().get(5, TimeUnit.SECONDS);
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      checkSimpleLayoutResult(task.inflate());
+      checkSimpleLayoutResult(task.layout());
+    });
 
     // layout without inflate should return null
-    task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-    assertNull(Futures.getUnchecked((task.layout())));
-    task.dispose().get(5, TimeUnit.SECONDS);
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      assertNull(Futures.getUnchecked((task.layout())));
+    });
   }
 
-  public void testAsyncCallAndDispose() throws ExecutionException, InterruptedException, TimeoutException {
+  public void testAsyncCallAndDispose() {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
     RenderLogger logger = mock(RenderLogger.class);
 
     for (int i = 0; i < 5; i++) {
-      RenderTask task = RenderTestUtil.createRenderTask(myFacet, layoutFile, configuration, logger);
-      Semaphore semaphore = new Semaphore(0);
-      task.runAsyncRenderAction(() -> {
+      RenderTestUtil.withRenderTask(myFacet, layoutFile, configuration, logger, task -> {
+        Semaphore semaphore = new Semaphore(0);
+        task.runAsyncRenderAction(() -> {
+          try {
+            semaphore.acquire();
+          }
+          catch (InterruptedException e) {
+            fail("Failed to acquire semaphore");
+          }
+          return null;
+        });
+        task.runAsyncRenderAction(() -> {
+          try {
+            semaphore.acquire();
+          }
+          catch (InterruptedException e) {
+            fail("Failed to acquire semaphore");
+          }
+          return null;
+        });
+
+        Future<?> disposeFuture = task.dispose();
+        semaphore.release();
+
+        Throwable exception = null;
+        // The render tasks won't finish until all tasks are done
         try {
-          semaphore.acquire();
+          disposeFuture.get(500, TimeUnit.MILLISECONDS);
         }
-        catch (InterruptedException e) {
-          fail("Failed to acquire semaphore");
+        catch (InterruptedException | ExecutionException e) {
+          exception = e;
         }
-        return null;
-      });
-      task.runAsyncRenderAction(() -> {
+        catch (TimeoutException ignored) {
+        }
+
+        if (exception != null) {
+          exception.printStackTrace();
+          fail("Unexpected exception");
+        }
+
+        semaphore.release();
         try {
-          semaphore.acquire();
+          disposeFuture.get(500, TimeUnit.MILLISECONDS);
+        } catch (Exception ex) {
+          throw new RuntimeException(ex);
         }
-        catch (InterruptedException e) {
-          fail("Failed to acquire semaphore");
-        }
-        return null;
       });
-
-      Future<?> disposeFuture = task.dispose();
-      semaphore.release();
-
-      Throwable exception = null;
-      // The render tasks won't finish until all tasks are done
-      try {
-        disposeFuture.get(500, TimeUnit.MILLISECONDS);
-      }
-      catch (InterruptedException | ExecutionException e) {
-        exception = e;
-      }
-      catch (TimeoutException ignored) {
-      }
-
-      if (exception != null) {
-        exception.printStackTrace();
-        fail("Unexpected exception");
-      }
-
-      semaphore.release();
-      disposeFuture.get(500, TimeUnit.MILLISECONDS);
     }
   }
 
-  public void testAaptGradient() throws Exception {
+  public void testAaptGradient() {
     @Language("XML")
     final String content = "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                            "        xmlns:aapt=\"http://schemas.android.com/aapt\"\n" +
@@ -329,18 +348,21 @@ public class RenderTaskTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, drawableFile);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task = RenderTestUtil.createRenderTask(myFacet, drawableFile, configuration, logger);
-    ResourceValue resourceValue = new ResourceValueImpl(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
-    BufferedImage result = task.renderDrawable(resourceValue).get();
-    assertNotNull(result);
+    RenderTestUtil.withRenderTask(myFacet, drawableFile, configuration, logger, task -> {
+      ResourceValue resourceValue = new ResourceValueImpl(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
+      try {
+        BufferedImage result = task.renderDrawable(resourceValue).get();
+        assertNotNull(result);
 
-    BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/gradient-golden.png"));
-    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-
-    task.dispose().get(5, TimeUnit.SECONDS);
+        BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/gradient-golden.png"));
+        ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      } catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
   }
 
-  public void testAnimatedVectorDrawable() throws Exception {
+  public void testAnimatedVectorDrawable() {
     @Language("XML")
     final String vector = "<animated-vector\n" +
                            "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -371,18 +393,21 @@ public class RenderTaskTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, drawableFile);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task = RenderTestUtil.createRenderTask(myFacet, drawableFile, configuration, logger);
-    ResourceValue resourceValue = new ResourceValueImpl(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
-    BufferedImage result = task.renderDrawable(resourceValue).get();
-    assertNotNull(result);
+    RenderTestUtil.withRenderTask(myFacet, drawableFile, configuration, logger, task -> {
+      ResourceValue resourceValue = new ResourceValueImpl(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
+      try {
+        BufferedImage result = task.renderDrawable(resourceValue).get();
+        assertNotNull(result);
 
-    BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/animated-vector-golden.png"));
-    ImageDiffUtil.assertImageSimilar("animated_vector_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-
-    task.dispose().get(5, TimeUnit.SECONDS);
+        BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/animated-vector-golden.png"));
+        ImageDiffUtil.assertImageSimilar("animated_vector_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      } catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
   }
 
-  public void testCjkFontSupport() throws InterruptedException, ExecutionException, TimeoutException, IOException {
+  public void testCjkFontSupport() {
     @Language("XML")
     final String content= "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                           "    android:layout_height=\"match_parent\"\n" +
@@ -438,16 +463,20 @@ public class RenderTaskTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-    task.setDecorations(false);
-    BufferedImage result = task.render().get().getRenderedImage().getCopy();
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      task.setDecorations(false);
+      try {
+        BufferedImage result = task.render().get().getRenderedImage().getCopy();
 
-    BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/cjk-golden.png"));
-    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-    task.dispose().get(5, TimeUnit.SECONDS);
+        BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/cjk-golden.png"));
+        ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      } catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
   }
 
-  public void testAnimatedVectorDrawableWithNestedAaptAttr() throws Exception {
+  public void testAnimatedVectorDrawableWithNestedAaptAttr() {
     @Language("XML")
     final String vector = "<animated-vector\n" +
                           "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -533,17 +562,20 @@ public class RenderTaskTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, layout);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task = RenderTestUtil.createRenderTask(myFacet, layout, configuration, logger);
-    BufferedImage result = task.render().get().getRenderedImage().getCopy();
+    RenderTestUtil.withRenderTask(myFacet, layout, configuration, logger, task -> {
+      try {
+        BufferedImage result = task.render().get().getRenderedImage().getCopy();
 
-    //ImageIO.write(result, "png", new File(getTestDataPath() + "/drawables/animated-vector-aapt-golden.png"));
-    BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/animated-vector-aapt-golden.png"));
-    ImageDiffUtil.assertImageSimilar("animated_vector_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-
-    task.dispose().get(5, TimeUnit.SECONDS);
+        //ImageIO.write(result, "png", new File(getTestDataPath() + "/drawables/animated-vector-aapt-golden.png"));
+        BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/animated-vector-aapt-golden.png"));
+        ImageDiffUtil.assertImageSimilar("animated_vector_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      } catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
   }
 
-  public void testEmojiSupport() throws InterruptedException, ExecutionException, TimeoutException, IOException {
+  public void testEmojiSupport() {
     @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                             "    android:layout_height=\"match_parent\"\n" +
                                             "    android:layout_width=\"match_parent\"\n" +
@@ -563,12 +595,16 @@ public class RenderTaskTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-    task.setDecorations(false);
-    BufferedImage result = task.render().get().getRenderedImage().getCopy();
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      task.setDecorations(false);
+      try {
+        BufferedImage result = task.render().get().getRenderedImage().getCopy();
 
-    BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/emoji.png"));
-    ImageDiffUtil.assertImageSimilar("emojis", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-    task.dispose().get(5, TimeUnit.SECONDS);
+        BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/emoji.png"));
+        ImageDiffUtil.assertImageSimilar("emojis", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      } catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
   }
 }

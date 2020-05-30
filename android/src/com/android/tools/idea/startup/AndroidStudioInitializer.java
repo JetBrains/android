@@ -33,11 +33,13 @@ import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProdu
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.android.tools.idea.ui.resourcemanager.actions.ShowFileInResourceManagerAction;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.junit.JUnitConfigurationProducer;
 import com.intellij.execution.junit.JUnitConfigurationType;
+import com.intellij.ide.ApplicationLoadListener;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.plugins.PluginManagerCore;
@@ -50,6 +52,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.PreloadingActivity;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.XmlHighlighterColors;
@@ -69,7 +72,6 @@ import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
-import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer;
 
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
@@ -79,6 +81,15 @@ import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfig
  * </p>
  */
 public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
+
+  public static class AndroidStudioLoadListener implements ApplicationLoadListener {
+
+    @Override
+    public void beforeApplicationLoaded(@NotNull Application application, @NotNull String configPath) {
+      AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
+    }
+  }
+
   @Override
   public void customize(@NotNull ActionManager actionManager) {
     checkInstallation();
@@ -121,7 +132,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
    * sets up collection of Android Studio specific analytics.
    */
   private static void setupAnalytics() {
-    UsageStatisticsPersistenceComponent.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
+    AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
 
     // If the user hasn't opted in, we will ask IJ to check if the user has
     // provided a decision on the statistics consent. If the user hasn't made a

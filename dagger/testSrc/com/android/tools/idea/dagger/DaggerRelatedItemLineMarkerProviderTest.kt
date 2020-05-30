@@ -674,4 +674,65 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     gotoRelatedItems.find { it.group == "Subcomponents" }!!.navigate()
     assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER SUBCOMPONENT SUBCOMPONENT")
   }
+
+  fun testEntryPointMethodsForProvider() {
+    // Provider
+    val providerFile = myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        package test;
+        import dagger.Provides;
+        import dagger.Module;
+
+        @Module
+        class MyModule {
+          @Provides String provider() {}
+        }
+      """.trimIndent()
+    ).virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {
+        String getString();
+      }
+    """.trimIndent()
+    )
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.hilt.EntryPoint;
+
+      @EntryPoint
+      public interface MyEntryPoint {
+        String getStringInEntryPoint();
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(providerFile)
+    myFixture.moveCaret("@Provides String pr|ovider")
+
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isNotEmpty()
+
+    val icon = icons.find { it.tooltipText == "Dependency Related Files for provider()" }!!
+      as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val gotoRelatedItems = getGotoElements(icon)
+    assertThat(gotoRelatedItems).hasSize(2)
+    val method = gotoRelatedItems.find { it.group == "Exposed by entry points" }!!
+    assertThat(method.element?.text).isEqualTo("String getStringInEntryPoint();")
+    assertThat(method.customName).isEqualTo("MyEntryPoint")
+
+    method.navigate()
+    assertThat(trackerService.calledMethods.single()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT")
+  }
 }

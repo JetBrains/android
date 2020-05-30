@@ -71,9 +71,12 @@ class EmulatorViewTest {
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
 
-  var emulator: FakeEmulator
+  private var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
     set(value) { nullableEmulator = value }
+
+  private val testRootDisposable
+    get() = projectRule.fixture.testRootDisposable
 
   @Before
   fun setUp() {
@@ -83,7 +86,7 @@ class EmulatorViewTest {
       return@thenAnswer emptyArray<FileEditor>()
     }
     `when`(fileEditorManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
-    projectRule.project.registerComponentInstance(FileEditorManager::class.java, fileEditorManager, projectRule.fixture.testRootDisposable)
+    projectRule.project.registerComponentInstance(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
   }
 
   @Test
@@ -196,6 +199,22 @@ class EmulatorViewTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Backspace"""")
 
+    ui.keyboard.type(FakeKeyboard.Key.TAB)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Tab"""")
+
+    // Ctrl+Tab should be ignored.
+    ui.keyboard.press(FakeKeyboard.Key.CTRL)
+    ui.keyboard.type(FakeKeyboard.Key.TAB)
+    ui.keyboard.release(FakeKeyboard.Key.CTRL)
+
+    ui.keyboard.press(FakeKeyboard.Key.PAGE_DOWN)
+    ui.keyboard.release(FakeKeyboard.Key.PAGE_DOWN)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "PageDown"""")
+
     // Check clockwise rotation.
     executeAction("android.emulator.rotate.right", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
@@ -285,8 +304,8 @@ class EmulatorViewTest {
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
-    val view = EmulatorView(emulatorController, projectRule.fixture.testRootDisposable, false)
-    waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    val view = EmulatorView(emulatorController, testRootDisposable, false)
+    waitForCondition(3, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
     return view
   }

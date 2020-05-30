@@ -15,10 +15,32 @@
  */
 package com.android.tools.idea.common.surface.layout
 
-import com.android.tools.idea.uibuilder.surface.TestSceneView
+import com.android.tools.idea.common.model.scaleBy
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
+import com.intellij.util.ui.JBUI
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.awt.Dimension
+import java.awt.Insets
+
+class TestPositionableContent(override var x: Int = 0,
+                              override var y: Int = 0,
+                              val width: Int,
+                              val height: Int,
+                              val scale: Double = 1.0,
+                              override val margin: Insets = JBUI.emptyInsets()) : PositionableContent() {
+  private val dimension = Dimension(width, height)
+
+  override fun setLocation(x: Int, y: Int) {
+    this.x = x
+    this.y = y
+  }
+
+  override fun getContentSize(dimension: Dimension?): Dimension = this.dimension
+
+  override fun getScaledContentSize(dimension: Dimension?): Dimension = getContentSize(dimension).scaleBy(scale)
+}
 
 class ScanlineUtilsTest {
   @Test
@@ -51,8 +73,8 @@ class ScanlineUtilsTest {
      */
 
     val sceneViews = listOf(
-      TestSceneView(10, 11).apply { setLocation(100, 101) },
-      TestSceneView(12, 13).apply { setLocation(200, 201) })
+      TestPositionableContent(100, 101, 10, 11),
+      TestPositionableContent(200, 201, 12, 13))
 
     // Verify start vertical scanlines
     assertArrayEquals(arrayOf(100, 200), sceneViews.findAllScanlines { it.x }.toTypedArray())

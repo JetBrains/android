@@ -23,7 +23,7 @@ import com.android.build.attribution.ui.model.TaskDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreePresentableNodeDescriptor
-import com.android.build.attribution.ui.panels.taskInfoPanel
+import com.android.build.attribution.ui.panels.taskDetailsPanel
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon
 import com.android.tools.adtui.TabularLayout
@@ -54,7 +54,7 @@ class TaskViewDetailPagesFactory(
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
     alignmentX = Component.LEFT_ALIGNMENT
     add(JBLabel(descriptor.taskData.taskPath).withFont(JBUI.Fonts.label().asBold()))
-    add(taskInfoPanel(
+    add(taskDetailsPanel(
       descriptor.taskData,
       helpLinkListener = actionHandlers::helpLinkClicked,
       generateReportClickedListener = actionHandlers::generateReportClicked

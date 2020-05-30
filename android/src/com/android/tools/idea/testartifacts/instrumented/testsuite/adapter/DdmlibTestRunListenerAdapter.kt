@@ -60,14 +60,19 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
     /**
      * Executes a given shell command on a given device. This function blocks caller
      * until the command finishes or times out and returns output in string.
+     *
+     * @param device a target device to run a command
+     * @param command a command to be executed
+     * @param postProcessOutput a function which post processes the command output
      */
     @WorkerThread
-    private fun executeShellCommandSync(device: IDevice, command: String): String {
+    private fun executeShellCommandSync(device: IDevice, command: String,
+                                        postProcessOutput: (output: String) -> String? = { it }): String? {
       val latch = CountDownLatch(1)
       val receiver = CollectingOutputReceiver(latch)
       device.executeShellCommand(command, receiver, 10, TimeUnit.SECONDS)
       latch.await(10, TimeUnit.SECONDS)
-      return receiver.output.trim()
+      return postProcessOutput(receiver.output)
     }
   }
 
@@ -78,14 +83,39 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
                                        device.version,
                                        Collections.synchronizedMap(LinkedHashMap())).apply {
     CoroutineScope(AndroidDispatchers.workerThread + androidCoroutineExceptionHandler).launch {
-      additionalInfo["RAM"] = executeShellCommandSync(
-        device,
-        """awk '( ${'$'}1 == "MemTotal:" ) { printf "%.1f GB", ${'$'}2/1000/1000 }' /proc/meminfo""")
-      additionalInfo["Processor"] = executeShellCommandSync(
-        device,
-        """cat /proc/cpuinfo | grep 'model name' | awk -F':' '{ print ${'$'}2 }' | uniq""")
-      additionalInfo["Manufacturer"] = executeShellCommandSync(
-        device, "getprop ro.product.manufacturer")
+      executeShellCommandSync(device, "cat /proc/meminfo") { output ->
+        output.lineSequence().map {
+          val (key, value) = it.split(':', ignoreCase=true, limit=2) + listOf("", "")
+          if (key.trim() == "MemTotal") {
+            val (ramSize, unit) = value.trim().split(' ', ignoreCase=true, limit=2)
+            val ramSizeFloat = ramSize.toFloatOrNull() ?: return@map null
+            when (unit) {
+              "kB" -> String.format("%.1f GB", ramSizeFloat / 1024 / 1024)
+              else -> null
+            }
+          } else {
+            null
+          }
+        }.filterNotNull().firstOrNull()
+      } ?.let { additionalInfo["RAM"] = it }
+
+      executeShellCommandSync(device, "cat /proc/cpuinfo") { output ->
+        val cpus = output.lineSequence().map {
+          val (key, value) = it.split(':', ignoreCase=true, limit=2) + listOf("", "")
+          if (key.trim() == "model name") {
+            value.trim()
+          } else {
+            null
+          }
+        }.filterNotNull().toSet()
+        if (cpus.isEmpty()) {
+          null
+        } else {
+          cpus.joinToString("\n")
+        }
+      }?.let { additionalInfo["Processor"] = it }
+
+      executeShellCommandSync(device, "getprop ro.product.manufacturer")?.let { additionalInfo["Manufacturer"] = it }
     }
   }
 

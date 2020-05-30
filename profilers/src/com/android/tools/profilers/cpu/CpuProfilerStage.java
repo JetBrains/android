@@ -758,8 +758,8 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
         || (getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING)) {
       // Capture has finished parsing.
       ensureCaptureInViewRange();
-      if (capture.getType() == CpuTraceType.ATRACE) {
-        if (!isImportTraceMode() && capture.isMissingData()) {
+      if (capture.getSystemTraceData() != null) {
+        if (!isImportTraceMode() && capture.getSystemTraceData().isMissingData()) {
           getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.ATRACE_BUFFER_OVERFLOW);
         }
       }

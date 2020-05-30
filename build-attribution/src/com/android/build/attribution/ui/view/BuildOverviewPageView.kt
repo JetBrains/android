@@ -18,6 +18,7 @@ package com.android.build.attribution.ui.view
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.tools.adtui.TabularLayout
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.VerticalLayout
@@ -31,11 +32,8 @@ class BuildOverviewPageView(
   val actionHandlers: ViewActionHandlers
 ) : BuildAnalyzerDataPageView {
 
-  override val component: JPanel = JPanel().apply {
-    name = "build-overview"
-    border = JBUI.Borders.empty(20)
+  private val buildInformationPanel = JPanel().apply {
     layout = VerticalLayout(0, SwingConstants.LEFT)
-
     val buildSummary = model.reportUiData.buildSummary
     val buildFinishedTime = DateFormatUtil.formatDateTime(buildSummary.buildFinishedTimestamp)
     add(JBLabel("Build finished on ${buildFinishedTime}").withFont(JBUI.Fonts.label().asBold()))
@@ -43,22 +41,30 @@ class BuildOverviewPageView(
     add(JBLabel("Includes:").withBorder(JBUI.Borders.emptyTop(20)))
     add(JBLabel("Build configuration: ${buildSummary.configurationDuration.durationString()}"))
     add(JBLabel("Critical path tasks execution: ${buildSummary.criticalPathDuration.durationString()}"))
+  }
 
-    add(JPanel().apply {
-      name = "links"
-      border = JBUI.Borders.emptyTop(20)
-      layout = VerticalLayout(10, SwingConstants.LEFT)
-      add(JBLabel("Common views into this build").withFont(JBUI.Fonts.label().asBold()))
-      add(HyperlinkLabel("Tasks impacting build duration").apply {
-        addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.UNGROUPED) }
-      })
-      add(HyperlinkLabel("Plugins with tasks impacting build duration").apply {
-        addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN) }
-      })
-      add(HyperlinkLabel("All warnings").apply {
-        addHyperlinkListener { actionHandlers.changeViewToWarningsLinkClicked() }
-      })
+  private val linksPanel = JPanel().apply {
+    name = "links"
+    layout = VerticalLayout(10, SwingConstants.LEFT)
+    add(JBLabel("Common views into this build").withFont(JBUI.Fonts.label().asBold()))
+    add(HyperlinkLabel("Tasks impacting build duration").apply {
+      addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.UNGROUPED) }
     })
+    add(HyperlinkLabel("Plugins with tasks impacting build duration").apply {
+      addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN) }
+    })
+    add(HyperlinkLabel("All warnings").apply {
+      addHyperlinkListener { actionHandlers.changeViewToWarningsLinkClicked() }
+    })
+  }
+
+  override val component: JPanel = JPanel().apply {
+    name = "build-overview"
+    border = JBUI.Borders.empty(20)
+    layout = TabularLayout("Fit,50px,Fit")
+
+    add(buildInformationPanel, TabularLayout.Constraint(0, 0))
+    add(linksPanel, TabularLayout.Constraint(0, 2))
   }
 
   override val additionalControls: JPanel = JPanel().apply { name = "build-overview-additional-controls" }

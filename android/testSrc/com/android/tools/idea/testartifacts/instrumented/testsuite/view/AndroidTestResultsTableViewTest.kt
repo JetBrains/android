@@ -17,6 +17,8 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
@@ -24,6 +26,12 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.google.common.truth.Truth.assertThat
+import com.intellij.lang.jvm.JvmMethod
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -36,14 +44,15 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.isNull
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
+import java.io.File
 import javax.swing.DefaultRowSorter
 import javax.swing.RowSorter
 import javax.swing.SortOrder
-import java.io.File
 
 /**
  * Unit tests for [AndroidTestResultsTableView].
@@ -60,8 +69,9 @@ class AndroidTestResultsTableViewTest {
     .around(EdtRule())
     .around(disposableRule)
 
-  @Mock
-  lateinit var mockListener: AndroidTestResultsTableListener
+  @Mock lateinit var mockListener: AndroidTestResultsTableListener
+  @Mock lateinit var mockJavaPsiFacade: JavaPsiFacade
+  @Mock lateinit var mockTestArtifactSearchScopes: TestArtifactSearchScopes
 
   @Before
   fun setup() {
@@ -70,7 +80,7 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun initialTable() {
-    val table = AndroidTestResultsTableView(mockListener)
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
 
     // Assert columns.
     assertThat(table.getModelForTesting().columnInfos).hasLength(2)
@@ -83,7 +93,7 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun addDevice() {
-    val table = AndroidTestResultsTableView(mockListener)
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
 
     table.addDevice(device("deviceId1", "deviceName1"))
     table.addDevice(device("deviceId2", "deviceName2"))
@@ -98,7 +108,7 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun addTestResults() {
-    val table = AndroidTestResultsTableView(mockListener)
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
     val testcase1OnDevice1 = AndroidTestCase("testid1", "method1", "class1", "package1")
@@ -140,7 +150,7 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun addTestResultsWithRetention() {
-    val table = AndroidTestResultsTableView(mockListener)
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
     val device1 = device("deviceId1", "deviceName1")
     val retentionFilePath = "foo"
     val testcase1OnDevice1 = AndroidTestCase(id = "testid1",
@@ -159,7 +169,7 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun clickTestResultsRow() {
-    val table = AndroidTestResultsTableView(mockListener)
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
 
@@ -206,7 +216,7 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun setRowFilter() {
-    val table = AndroidTestResultsTableView(mockListener)
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
     val device = device("deviceId", "deviceName")
     val testcase1 = AndroidTestCase("testid1", "method1", "class1", "package1")
     val testcase2 = AndroidTestCase("testid2", "method2", "class2", "package2")
@@ -226,7 +236,7 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun setColumnFilter() {
-    val table = AndroidTestResultsTableView(mockListener)
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
 
@@ -248,7 +258,7 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun sortRows() {
-    val table = AndroidTestResultsTableView(mockListener)
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
 
@@ -299,7 +309,7 @@ class AndroidTestResultsTableViewTest {
 
   @Test
   fun tableShouldRetainSelectionAfterDataIsUpdated() {
-    val table = AndroidTestResultsTableView(mockListener)
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
 
@@ -323,6 +333,35 @@ class AndroidTestResultsTableViewTest {
 
     // Again, make sure the test method1 is still being selected.
     assertThat(table.getTableViewForTesting().selectedObject?.methodName).isEqualTo("method1")
+  }
+
+  @Test
+  fun tableShouldImplementDataProviderAndProvideJavaPsiElementForSelectedRow() {
+    val mockAndroidTestSourceScope = mock<GlobalSearchScope>()
+    val mockPsiClass = mock<PsiClass>()
+    val mockJvmMethod = mock<JvmMethod>()
+    `when`(mockTestArtifactSearchScopes.androidTestSourceScope).thenReturn(mockAndroidTestSourceScope)
+    `when`(mockJavaPsiFacade.findClasses(eq("mytestpackage.mytestclass"), eq(mockAndroidTestSourceScope))).thenReturn(arrayOf(mockPsiClass))
+    `when`(mockPsiClass.findMethodsByName(eq("myTestMethodName"))).thenReturn(arrayOf(mockJvmMethod))
+    `when`(mockJvmMethod.name).thenReturn("myTestMethodName")
+
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
+    assertThat(table.getTableViewForTesting()).isInstanceOf(DataProvider::class.java)
+
+    val device1 = device("deviceId1", "deviceName1")
+    table.addTestCase(device1, AndroidTestCase("testid1", "myTestMethodName", "mytestclass", "mytestpackage"))
+
+    // Select the test case 1.
+    table.getTableViewForTesting().setColumnSelectionInterval(0, 0)
+    table.getTableViewForTesting().selectionModel.setSelectionInterval(0, 0)
+
+    val data = (table.getTableViewForTesting() as DataProvider).getData(CommonDataKeys.PSI_ELEMENT.name)
+    assertThat(data).isInstanceOf(JvmMethod::class.java)
+    assertThat((data as JvmMethod).name).isEqualTo("myTestMethodName")
+
+    // Clear the selection.
+    table.clearSelection()
+    assertThat((table.getTableViewForTesting() as DataProvider).getData(CommonDataKeys.PSI_ELEMENT.name)).isNull()
   }
 
   // Workaround for Kotlin nullability check.

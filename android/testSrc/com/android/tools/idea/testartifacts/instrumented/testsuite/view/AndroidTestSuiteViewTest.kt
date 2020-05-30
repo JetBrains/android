@@ -63,7 +63,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun attachToProcess() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
     view.attachToProcess(processHandler)
 
@@ -72,14 +72,14 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun detailsViewIsNotVisibleInitially() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
     assertThat(view.detailsViewForTesting.rootPanel.isVisible).isFalse()
   }
 
   @Test
   fun openAndCloseDetailsView() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
@@ -139,7 +139,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun filterByTestStatus() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
     val device1 = device("deviceId1", "deviceName1")
     val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 4)
@@ -234,7 +234,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun filterByDevice() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
@@ -280,7 +280,7 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun filterByApiLevel() {
-    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project)
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
     val device1 = device("deviceId1", "deviceName1", 29)
     val device2 = device("deviceId2", "deviceName2", 28)

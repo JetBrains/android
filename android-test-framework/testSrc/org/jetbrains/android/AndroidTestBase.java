@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.application.ex.PathManagerEx;
+import com.intellij.openapi.application.impl.ApplicationImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.impl.ModuleImpl;
 import com.intellij.openapi.project.Project;
@@ -99,13 +100,13 @@ public abstract class AndroidTestBase extends UsefulTestCase {
    */
   private static void checkUndisposedAndroidRelatedObjects() {
     DisposerExplorer.visitTree(disposable -> {
-      if (disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbService") ||
-          disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbOptionsService") ||
+      if (disposable.getClass().getName().startsWith("com.android.tools.analytics.HighlightingStats") ||
           (disposable instanceof ProjectImpl && (((ProjectImpl)disposable).isDefault() || ((ProjectImpl)disposable).isLight())) ||
           disposable.toString().startsWith("services of " + ProjectImpl.class.getName()) ||
           (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME)) ||
           disposable.toString().startsWith("services of " + ModuleImpl.class.getName()) ||
-          disposable instanceof PsiReferenceContributor) {
+          disposable instanceof PsiReferenceContributor ||
+          disposable.toString().startsWith("services of " + ApplicationImpl.class.getName())) {
         // Ignore application services and light projects and modules that are not disposed by tearDown.
         return DisposerExplorer.VisitResult.SKIP_CHILDREN;
       }

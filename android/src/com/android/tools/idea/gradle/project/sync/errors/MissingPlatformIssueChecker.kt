@@ -28,6 +28,8 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.facet.FacetManager
@@ -42,13 +44,17 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import java.util.regex.Pattern
 
 private val MISSING_PLATFORM_PATTERNS = listOf(
   Pattern.compile("(Cause: )?(F|f)ailed to find target with hash string '(.*)' in: (.*)"),
   Pattern.compile("(Cause: )?(F|f)ailed to find target (.*) : (.*)"),
-  Pattern.compile("(Cause: )?(F|f)ailed to find target (.*)")
-)
+  Pattern.compile("(Cause: )?(F|f)ailed to find target (.*)"))
+
+private val ILLEGAL_STATE_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.IllegalStateException(.*)")
+private val EXTERNAL_SYSTEM_EXCEPTION_PATTERN =
+  Pattern.compile("Caused by: com.intellij.openapi.externalSystem.model.ExternalSystemException(.*)")
 
 class MissingPlatformIssueChecker: GradleIssueChecker {
 
@@ -104,33 +110,43 @@ class MissingPlatformIssueChecker: GradleIssueChecker {
     return buildIssueComposer.composeBuildIssue()
   }
 
-  class InstallPlatformQuickFix(private val androidVersions: List<AndroidVersion>): BuildIssueQuickFix {
-    override val id = "install.android.platform"
-
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      val future = CompletableFuture<Any>()
-      val platforms = mutableListOf<String>()
-      invokeLater {
-        for (version in androidVersions) {
-          platforms.add(DetailsTypes.getPlatformPath(version))
-        }
-        val dialog = SdkQuickfixUtils.createDialogForPaths(project, platforms)
-        if (dialog != null && dialog.showAndGet()) {
-          GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_PLATFORM_INSTALLED)
-        }
-        future.complete(null)
-      }
-      return future
-    }
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return stacktrace != null && (ILLEGAL_STATE_TRACE_PATTERN.matcher(stacktrace).find() ||
+                                  EXTERNAL_SYSTEM_EXCEPTION_PATTERN.matcher(stacktrace).find()) && getMissingPlatform(failureCause) != null
   }
+}
 
-  class OpenAndroidSdkManagerQuickFix: BuildIssueQuickFix {
-    override val id = "open.android.sdk.manager"
+class InstallPlatformQuickFix(private val androidVersions: List<AndroidVersion>): BuildIssueQuickFix {
+  override val id = "install.android.platform"
 
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      SdkQuickfixUtils.showAndroidSdkManager()
-      return CompletableFuture.completedFuture<Any>(null)
+  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    val future = CompletableFuture<Any>()
+    val platforms = mutableListOf<String>()
+    invokeLater {
+      for (version in androidVersions) {
+        platforms.add(DetailsTypes.getPlatformPath(version))
+      }
+      val dialog = SdkQuickfixUtils.createDialogForPaths(project, platforms)
+      if (dialog != null && dialog.showAndGet()) {
+        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_PLATFORM_INSTALLED)
+      }
+      future.complete(null)
     }
+    return future
+  }
+}
+
+class OpenAndroidSdkManagerQuickFix: BuildIssueQuickFix {
+  override val id = "open.android.sdk.manager"
+
+  override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    SdkQuickfixUtils.showAndroidSdkManager()
+    return CompletableFuture.completedFuture<Any>(null)
   }
 }
 

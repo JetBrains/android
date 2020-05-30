@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.finallySync
@@ -233,7 +234,7 @@ class TableController(
     future.addCallback(edtExecutor, success = {}) { error ->
       if (Disposer.isDisposed(this)) return@addCallback
       view.resetView()
-      if (error !is CancellationException) {
+      if (error !is CancellationException && error !is AppInspectionConnectionException) {
         view.reportError("Error retrieving data from table.", error)
       }
     }

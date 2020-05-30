@@ -47,13 +47,14 @@ class SystemTraceCpuCaptureBuilderTest {
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1)
+    val systemTraceData = capture.systemTraceData!!
 
-    assertThat(capture.cpuCount).isEqualTo(2)
+    assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
     // We map the values to some string representation so we can compare the content easily, because SeriesData<*> does
     // not have a proper equals override.
-    assertThat(capture.getCpuThreadSliceInfoStates(0).map { "${it.x}-${it.value.processId}-${it.value.durationUs}" })
+    assertThat(systemTraceData.getCpuThreadSliceInfoStates(0).map { "${it.x}-${it.value.processId}-${it.value.durationUs}" })
       .containsExactly("0-1-40", "40-0-0", "60-1-30", "90-0-0", "120-1-60", "200-0-0").inOrder()
-    assertThat(capture.getCpuThreadSliceInfoStates(1).map { "${it.x}-${it.value.processId}-${it.value.durationUs}" })
+    assertThat(systemTraceData.getCpuThreadSliceInfoStates(1).map { "${it.x}-${it.value.processId}-${it.value.durationUs}" })
       .containsExactly("200-0-0").inOrder()
   }
 
@@ -76,11 +77,12 @@ class SystemTraceCpuCaptureBuilderTest {
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1)
+    val systemTraceData = capture.systemTraceData!!
 
-    assertThat(capture.cpuCount).isEqualTo(2)
+    assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
     // We map the values to some string representation so we can compare the content easily, because SeriesData<*> does
     // not have a proper equals override.
-    assertThat(capture.cpuUtilizationSeries.map { "${it.x}-${it.value}" })
+    assertThat(systemTraceData.getCpuUtilizationSeries().map { "${it.x}-${it.value}" })
       .containsExactly("0-30", "50000-20").inOrder() // First bucket = 30% utilization, Second bucket = 20% utilization.
   }
 

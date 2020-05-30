@@ -19,6 +19,7 @@ import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -67,7 +68,7 @@ public class HtmlLabel extends JEditorPane {
   }
 
   private static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane, @NotNull Font font, @NotNull String color) {
-    editorPane.setContentType("text/html");
+    editorPane.setEditorKit(UIUtil.getHTMLEditorKit());
     editorPane.setEditable(false);
     editorPane.setOpaque(false);
     editorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);

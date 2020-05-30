@@ -222,7 +222,7 @@ private class ComponentTreeLoaderImpl(
 
     private fun addChildNodeImages(node: ViewNode, view: InspectorView) {
       var beforeChildren = true
-      for (child in view.children.values) {
+      for (child in view.children) {
         val isChildNode = view.id != child.id && nodeMap.containsKey(child.id.toLong())
         when {
           isChildNode -> beforeChildren = false

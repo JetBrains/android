@@ -33,6 +33,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
 import com.google.wireless.android.sdk.stats.KotlinSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.command.UndoConfirmationPolicy
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -76,11 +77,15 @@ fun Recipe.render(c: RenderingContext, e: RecipeExecutor, loggingEvent: Template
 
 private fun Recipe.doRender(c: RenderingContext, e: RecipeExecutor): Boolean {
   try {
-    writeCommandAction(c.project).withName(c.commandName).run<IOException> {
-      this(e, c.templateData)
-      if (e is DefaultRecipeExecutor) {
-        e.applyChanges()
-      }
+    writeCommandAction(c.project)
+      .withName(c.commandName)
+      .withGlobalUndo()
+      .withUndoConfirmationPolicy(UndoConfirmationPolicy.REQUEST_CONFIRMATION)
+      .run<IOException> {
+        this(e, c.templateData)
+        if (e is DefaultRecipeExecutor) {
+          e.applyChanges()
+        }
     }
   }
   catch (e: IOException) {

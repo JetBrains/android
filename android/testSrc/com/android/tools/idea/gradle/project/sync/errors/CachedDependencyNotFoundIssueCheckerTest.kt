@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -34,5 +35,17 @@ class CachedDependencyNotFoundIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue!!.quickFixes.size).isEqualTo(1)
     assertThat(buildIssue.description).contains(expectedNotificationMessage)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(ToggleOfflineModeQuickFix::class.java)
+  }
+
+  fun testIssueHandled() {
+    assertThat(
+      cachedDependencyNotFoundIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "No cached version of dependency, available for offline mode.",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

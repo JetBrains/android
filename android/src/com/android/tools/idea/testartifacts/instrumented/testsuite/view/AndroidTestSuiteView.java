@@ -21,6 +21,7 @@ import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.stdui.CommonToggleButton;
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
@@ -39,11 +40,13 @@ import com.intellij.icons.AllIcons;
 import com.intellij.largeFilesEditor.GuiUtils;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.util.ColorProgressBar;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.SortedComboBoxModel;
 import com.intellij.ui.components.JBLabel;
@@ -220,10 +223,12 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
    * Constructs AndroidTestSuiteView.
    *
    * @param parentDisposable a parent disposable which this view's lifespan is tied with.
-   * @param project a project which this test suite view belongs to, or null.
+   * @param project a project which this test suite view belongs to.
+   * @param module a module which this test suite view belongs to. If null is given, some functions such as source code lookup
+   *               will be disabled in this view.
    */
   @UiThread
-  public AndroidTestSuiteView(@NotNull Disposable parentDisposable, @NotNull Project project) {
+  public AndroidTestSuiteView(@NotNull Disposable parentDisposable, @NotNull Project project, @Nullable Module module) {
     GuiUtils.setStandardLineBorderToPanel(myStatusPanel, 0, 0, 1, 0);
     GuiUtils.setStandardLineBorderToPanel(myFilterPanel, 0, 0, 1, 0);
 
@@ -259,7 +264,11 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     mySkippedToggleButton.addItemListener(resultFilterButtonItemListener);
     myInProgressToggleButton.addItemListener(resultFilterButtonItemListener);
 
-    myTable = new AndroidTestResultsTableView(this);
+    TestArtifactSearchScopes testArtifactSearchScopes = null;
+    if (module != null) {
+      testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(module);
+    }
+    myTable = new AndroidTestResultsTableView(this, JavaPsiFacade.getInstance(project), testArtifactSearchScopes);
     myTable.setRowFilter(testResults -> {
       if (myAllToggleButton.isSelected()) {
         return true;

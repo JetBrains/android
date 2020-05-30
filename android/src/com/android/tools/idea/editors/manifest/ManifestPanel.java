@@ -212,7 +212,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private JEditorPane createDetailsPane(@NotNull final AndroidFacet facet) {
     JEditorPane details = new JEditorPane();
     details.setMargin(JBUI.insets(5));
-    details.setContentType(UIUtil.HTML_MIME);
+    details.setEditorKit(UIUtil.getHTMLEditorKit());
     details.setEditable(false);
     details.setFont(myDefaultFont);
     details.setBackground(myBackgroundColor);

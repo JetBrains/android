@@ -38,8 +38,7 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiParameter
-import com.intellij.psi.PsiPrimitiveType
-import com.intellij.psi.PsiType
+import com.intellij.psi.impl.source.PsiClassReferenceType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlElement
@@ -109,8 +108,13 @@ class LightBindingClassTest {
     UIUtil.dispatchAllInvocationEvents()
   }
 
+  // TODO: Convert this legacy method to the inline version
   private fun findChild(psiFile: PsiFile, clazz: Class<out XmlElement>, predicate: (XmlTag) -> Boolean): Array<XmlTag> {
     return PsiTreeUtil.findChildrenOfType(psiFile, clazz).filterIsInstance<XmlTag>().filter(predicate).toTypedArray()
+  }
+
+  private inline fun <reified X : XmlElement> findChildren(psiFile: PsiFile, predicate: (X) -> Boolean): Array<X> {
+    return PsiTreeUtil.findChildrenOfType(psiFile, X::class.java).filterIsInstance<X>().filter(predicate).toTypedArray()
   }
 
   private fun verifyLightFieldsMatchXml(fields: List<PsiField>, vararg tags: XmlTag) {
@@ -230,8 +234,7 @@ class LightBindingClassTest {
     val context = fixture.addClass("public class FirstActivity {}")
 
     // This find forces a cache to be initialized
-    val firstBinding = fixture.findClass("test.db.databinding.ActivityFirstBinding", context) as LightBindingClass?
-    assertThat(firstBinding).isNotNull()
+    fixture.findClass("test.db.databinding.ActivityFirstBinding", context) as LightBindingClass
 
     fixture.addFileToProject("res/layout/activity_second.xml", """
       <?xml version="1.0" encoding="utf-8"?>
@@ -241,8 +244,7 @@ class LightBindingClassTest {
     """.trimIndent())
 
     // This second file should be findable, meaning the cache was updated
-    val secondBinding = fixture.findClass("test.db.databinding.ActivitySecondBinding", context) as LightBindingClass?
-    assertThat(secondBinding).isNotNull()
+    fixture.findClass("test.db.databinding.ActivitySecondBinding", context) as LightBindingClass
 
     // Make sure alternate layouts are found by searching for its BindingImpl
     assertThat(fixture.findClass("test.db.databinding.ActivitySecondBindingLandImpl", context)).isNull()
@@ -256,11 +258,57 @@ class LightBindingClassTest {
 
     assertThat(fixture.findClass("test.db.databinding.ActivitySecondBindingLandImpl", context)).isNotNull()
 
-    // We also should be returning the same "ActivityFirstBinding" light class, not a new instance
-    assertThat(fixture.findClass("test.db.databinding.ActivityFirstBinding", context)).isEqualTo(firstBinding)
-
     WriteCommandAction.runWriteCommandAction(project) { firstFile.delete() }
     assertThat(fixture.findClass("test.db.databinding.ActivityFirstBinding", context)).isNull()
+  }
+
+  @Test
+  fun changingIncludedLayoutIsReflectedInIncludingLayoutField() {
+    val includedLayoutFile = fixture.addFileToProject(
+      "res/layout/included_layout.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <EditText android:id="@+id/inner_value" />
+      </layout>
+    """.trimIndent())
+
+    fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+         <include
+          android:id="@+id/outer_value"
+          layout="@layout/included_layout" />
+      </layout>
+      """.trimIndent()
+    )
+
+    val context = fixture.addClass("public class ActivityMain {}")
+
+    // Sanity check initial state
+
+    val includedLayoutV1 = fixture.findClass("test.db.databinding.IncludedLayoutBinding", context) as LightBindingClass
+    val mainLayoutV1 = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val outerValueTypeV1 = mainLayoutV1.findFieldByName("outerValue", false)!!.type as PsiClassReferenceType
+    assertThat(outerValueTypeV1.reference.resolve()).isEqualTo(includedLayoutV1)
+
+    // Modify inner layout and sanity check that outer layout is affected
+
+    val attr = findChildren<XmlAttribute>(includedLayoutFile) { it.localName == "id" }.first()
+    updateXml(includedLayoutFile, attr.valueElement!!.valueTextRange, "@+id/inner_value_modified")
+
+    val includedLayoutV2 = fixture.findClass("test.db.databinding.IncludedLayoutBinding", context) as LightBindingClass
+    val mainLayoutV2 = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    assertThat(includedLayoutV2.findFieldByName("innerValueModified", false)).isNotNull()
+    assertThat(includedLayoutV2.findFieldByName("innerValue", false)).isNull()
+
+    val outerValueTypeV2 = mainLayoutV2.findFieldByName("outerValue", false)!!.type as PsiClassReferenceType
+    assertThat(outerValueTypeV2.reference.resolve()).isEqualTo(includedLayoutV2)
+    assertThat(outerValueTypeV2.reference.resolve()).isNotEqualTo(includedLayoutV1)
   }
 
   @Test
