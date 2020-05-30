@@ -199,6 +199,22 @@ class EmulatorViewTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Backspace"""")
 
+    ui.keyboard.type(FakeKeyboard.Key.TAB)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Tab"""")
+
+    // Ctrl+Tab should be ignored.
+    ui.keyboard.press(FakeKeyboard.Key.CTRL)
+    ui.keyboard.type(FakeKeyboard.Key.TAB)
+    ui.keyboard.release(FakeKeyboard.Key.CTRL)
+
+    ui.keyboard.press(FakeKeyboard.Key.PAGE_DOWN)
+    ui.keyboard.release(FakeKeyboard.Key.PAGE_DOWN)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "PageDown"""")
+
     // Check clockwise rotation.
     executeAction("android.emulator.rotate.right", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)

@@ -79,10 +79,12 @@ class CpuThreadStateTable(val profilers: StudioProfilers,
       add(table.tableHeader, TabularLayout.Constraint(0, 0))
       add(table, TabularLayout.Constraint(1, 0))
     }
-
-    component = HideablePanel(HideablePanel.Builder("States", tableContainer)
-                                .setPanelBorder(JBUI.Borders.empty())
-                                .setContentBorder(JBUI.Borders.customLine(BorderColor, 1))).apply {
+    val contentBorder = JBUI.Borders.merge(JBUI.Borders.customLine(BorderColor, 1), JBUI.Borders.empty(8, 0, 0, 0), true)
+    component = HideablePanel.Builder("States", tableContainer)
+      .setPanelBorder(JBUI.Borders.empty())
+      .setContentBorder(contentBorder)
+      .build()
+      .apply {
       background = primaryContentBackground
     }
   }
