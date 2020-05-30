@@ -114,7 +114,7 @@ class SessionItemTest(newPipeline: Boolean) {
     Truth.assertThat(myProfilers.stageClass).isEqualTo(NullMonitorStage::class.java)
 
     val sessionsManager = myProfilers.sessionsManager
-    val session = sessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
+    val session = sessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 1, 2, 0)
     sessionsManager.update()
     sessionsManager.setSession(session)
     Truth.assertThat(myProfilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
