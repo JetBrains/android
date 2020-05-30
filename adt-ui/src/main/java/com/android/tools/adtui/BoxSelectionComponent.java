@@ -106,12 +106,14 @@ public class BoxSelectionComponent extends RangeSelectionComponent implements Mo
     // Add spaces to both ends as padding between text and indicators.
     String measurementText = ' ' + TimeFormatter.getSingleUnitDurationString((long)getModel().getSelectionRange().getLength()) + ' ';
     int textWidth = g.getFontMetrics().stringWidth(measurementText);
-    int textHeight = g.getFontMetrics().getAscent();
+    int textHeight = g.getFontMetrics().getHeight();
     int textCenterX = startX + (endX - startX) / 2;
     int textStartX = textCenterX - textWidth / 2;
     int textEndX = textCenterX + textWidth / 2;
+    g.setColor(StudioColorsKt.getPrimaryContentBackground());
+    g.fillRect(startX, endY, endX - startX, textHeight);
     g.setColor(UIUtil.getLabelForeground());
-    g.drawString(measurementText, textStartX, endY + textHeight);
+    g.drawString(measurementText, textStartX, endY + g.getFontMetrics().getAscent());
     // Only draw indicators when the text is shorter than the box.
     if (textStartX > startX) {
       // Left vertical indicator.
