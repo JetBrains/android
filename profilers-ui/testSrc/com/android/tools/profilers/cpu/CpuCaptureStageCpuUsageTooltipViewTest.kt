@@ -27,6 +27,7 @@ import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,9 +40,15 @@ class CpuCaptureStageCpuUsageTooltipViewTest {
     enableEventsPipeline(true)
   }
 
-  @Rule
-  @JvmField
+  @get:Rule
   val grpcChannel = FakeGrpcChannel("CaptureCpuUsageTooltipTest", FakeTransportService(timer), FakeProfilerService(timer))
+
+  /**
+   * For initializing [com.intellij.ide.HelpTooltip].
+   */
+  @get:Rule
+  val appRule = ApplicationRule()
+
   private lateinit var captureStage: CpuCaptureStage
   private lateinit var tooltipView: FakeCaptureCpuUsageTooltipView
 

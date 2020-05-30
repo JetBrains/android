@@ -36,6 +36,7 @@ import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBSplitter
@@ -54,7 +55,15 @@ class CpuCaptureStageViewTest {
 
   @get:Rule
   val grpcChannel = FakeGrpcChannel("FramesTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer))
-  @get:Rule val myEdtRule = EdtRule()
+
+  @get:Rule
+  val edtRule = EdtRule()
+
+  /**
+   * For initializing [com.intellij.ide.HelpTooltip].
+   */
+  @get:Rule
+  val appRule = ApplicationRule()
 
   private lateinit var stage: CpuCaptureStage
   private lateinit var profilersView: StudioProfilersView
@@ -103,8 +112,6 @@ class CpuCaptureStageViewTest {
     val labels = treeWalker.descendants().filterIsInstance<JLabel>().toList()
     // Title label
     assertThat(labels[0].text).isEqualTo("Threads (3)")
-    // Title info icon
-    assertThat(labels[1].toolTipText).ignoringCase().contains("double-click on the thread name to expand/collapse it")
   }
 
   @Test
