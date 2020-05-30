@@ -48,9 +48,16 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.atLeast
+import org.mockito.Mockito.verify
 import java.awt.Dimension
+import java.awt.KeyboardFocusManager
+import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.KEY_PRESSED
+import java.awt.event.KeyEvent.VK_TAB
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
@@ -94,6 +101,7 @@ class EmulatorViewTest {
     val view = createEmulatorView()
     @Suppress("UndesirableClassUsage")
     val container = JScrollPane(view).apply { border = null }
+    container.isFocusable = true
     val ui = FakeUi(container, 2.0)
 
     // Check initial appearance.
@@ -194,26 +202,42 @@ class EmulatorViewTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""text: "A"""")
 
-    ui.keyboard.type(FakeKeyboard.Key.BACKSPACE)
+    ui.keyboard.pressAndRelease(FakeKeyboard.Key.BACKSPACE)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Backspace"""")
 
-    ui.keyboard.type(FakeKeyboard.Key.TAB)
+    ui.keyboard.pressAndRelease(FakeKeyboard.Key.TAB)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Tab"""")
 
     // Ctrl+Tab should be ignored.
-    ui.keyboard.press(FakeKeyboard.Key.CTRL)
-    ui.keyboard.type(FakeKeyboard.Key.TAB)
-    ui.keyboard.release(FakeKeyboard.Key.CTRL)
+    with(ui.keyboard) {
+      press(FakeKeyboard.Key.CTRL)
+      pressAndRelease(FakeKeyboard.Key.TAB)
+      release(FakeKeyboard.Key.CTRL)
+    }
 
-    ui.keyboard.press(FakeKeyboard.Key.PAGE_DOWN)
-    ui.keyboard.release(FakeKeyboard.Key.PAGE_DOWN)
+    ui.keyboard.pressAndRelease(FakeKeyboard.Key.PAGE_DOWN)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "PageDown"""")
+
+    val mockFocusManager: KeyboardFocusManager = mock()
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(mockFocusManager)
+    // Shift+Tab should trigger a forward local focus traversal.
+    with(ui.keyboard) {
+      setFocus(view)
+      press(FakeKeyboard.Key.SHIFT)
+      pressAndRelease(FakeKeyboard.Key.TAB)
+      release(FakeKeyboard.Key.SHIFT)
+    }
+    val arg1 = ArgumentCaptor.forClass(EmulatorView::class.java)
+    val arg2 = ArgumentCaptor.forClass(KeyEvent::class.java)
+    verify(mockFocusManager, atLeast(1)).processKeyEvent(arg1.capture(), arg2.capture())
+    val tabEvent = arg2.allValues.firstOrNull { it.id == KEY_PRESSED && it.keyCode == VK_TAB && it.modifiersEx == 0 }
+    assertThat(tabEvent).isNotNull()
 
     // Check clockwise rotation.
     executeAction("android.emulator.rotate.right", view)
