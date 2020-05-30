@@ -32,7 +32,9 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   private static final AtomicInteger TRACK_ID_GENERATOR = new AtomicInteger();
 
   private final String myTitle;
-  private final String myTitleInfo;
+  @Nullable private final String myTitleHelpText;
+  @Nullable private final String myTitleHelpLinkText;
+  @Nullable private final String myTitleHelpLinkUrl;
   private final boolean myCollapsedInitially;
   private final boolean myHideHeader;
   private final boolean myTrackSelectable;
@@ -45,7 +47,9 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
    */
   private TrackGroupModel(Builder builder) {
     myTitle = builder.myTitle;
-    myTitleInfo = builder.myTitleInfo;
+    myTitleHelpText = builder.myTitleHelpText;
+    myTitleHelpLinkText = builder.myTitleHelpLinkText;
+    myTitleHelpLinkUrl = builder.myTitleHelpLinkUrl;
     myCollapsedInitially = builder.myCollapsedInitially;
     myHideHeader = builder.myHideHeader;
     myTrackSelectable = builder.myTrackSelectable;
@@ -78,8 +82,18 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   }
 
   @Nullable
-  public String getTitleInfo() {
-    return myTitleInfo;
+  public String getTitleHelpText() {
+    return myTitleHelpText;
+  }
+
+  @Nullable
+  public String getTitleHelpLinkText() {
+    return myTitleHelpLinkText;
+  }
+
+  @Nullable
+  public String getTitleHelpLinkUrl() {
+    return myTitleHelpLinkUrl;
   }
 
   /**
@@ -117,7 +131,9 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
 
   public static class Builder {
     private String myTitle;
-    private String myTitleInfo;
+    @Nullable private String myTitleHelpText;
+    @Nullable private String myTitleHelpLinkText;
+    @Nullable private String myTitleHelpLinkUrl;
     private boolean myCollapsedInitially;
     private boolean myHideHeader;
     private boolean myTrackSelectable;
@@ -125,7 +141,9 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
 
     private Builder() {
       myTitle = "";
-      myTitleInfo = null;
+      myTitleHelpText = null;
+      myTitleHelpLinkText = null;
+      myTitleHelpLinkUrl = null;
       myCollapsedInitially = false;
       myHideHeader = false;
       myTrackSelectable = false;
@@ -140,10 +158,22 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     }
 
     /**
-     * @param titleInfo string to be displayed as tooltip next to the header.
+     * @param titleHelpText string to be displayed as tooltip next to the header. Supports HTML tags.
      */
-    public Builder setTitleInfo(@Nullable String titleInfo) {
-      myTitleInfo = titleInfo;
+    public Builder setTitleHelpText(@NotNull String titleHelpText) {
+      myTitleHelpText = titleHelpText;
+      return this;
+    }
+
+    /**
+     * A link to be displayed as tooltip next after the help text.
+     *
+     * @param titleHelpLinkText link text
+     * @param titleHelpLinkUrl  link URL
+     */
+    public Builder setTitleHelpLink(@NotNull String titleHelpLinkText, @NotNull String titleHelpLinkUrl) {
+      myTitleHelpLinkText = titleHelpLinkText;
+      myTitleHelpLinkUrl = titleHelpLinkUrl;
       return this;
     }
 

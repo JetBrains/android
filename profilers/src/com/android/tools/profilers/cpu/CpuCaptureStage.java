@@ -37,11 +37,11 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
-import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
-import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
+import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
+import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.UserEventDataSeries;
@@ -373,7 +373,14 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private static TrackGroupModel createDisplayTrackGroup(@NotNull CpuCapture cpuCapture, @NotNull Timeline timeline) {
-    TrackGroupModel display = TrackGroupModel.newBuilder().setTitle("Display").build();
+    TrackGroupModel display = TrackGroupModel.newBuilder()
+      .setTitle("Display")
+      .setTitleHelpText("This section contains display info. " +
+                        "<p><b>Frames</b>: when a frame is being drawn. Long frames are colored red.</p>" +
+                        "<p><b>Surfaceflinger</b>: system process responsible for sending buffers to display.</p>" +
+                        "<p><b>VSYNC</b>: a signal that synchronizes the display pipeline.</p>")
+      .setTitleHelpLink("Learn more", "https://source.android.com/devices/graphics")
+      .build();
 
     // Frame
     CpuFramesModel.FrameState mainFrames = new CpuFramesModel.FrameState(
@@ -406,7 +413,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
     TrackGroupModel threads = TrackGroupModel.newBuilder()
       .setTitle(threadsTitle)
-      .setTitleInfo("This section contains thread info. Double-click on the thread name to expand/collapse it.")
+      .setTitleHelpText("This section contains thread info. Double-click on the thread name to expand/collapse it.")
       .setTrackSelectable(true)
       // For box selection
       .setRangeSelectionModel(new RangeSelectionModel(timeline.getSelectionRange(), timeline.getViewRange()))
