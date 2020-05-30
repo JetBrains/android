@@ -198,23 +198,6 @@ public final class CpuProfilerTest {
   }
 
   @Test
-  public void importedSessionsStartTimeShouldBeTraceCreationTime() throws IOException {
-    Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
-                       myUnifiedPipeline);
-
-    myCpuProfiler = new CpuProfiler(myProfilers);
-    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
-    long traceCreationTime =
-      Files.readAttributes(Paths.get(trace.getPath()), BasicFileAttributes.class).creationTime().to(TimeUnit.NANOSECONDS);
-
-
-    SessionsManager sessionsManager = myProfilers.getSessionsManager();
-    // Imported session's start time should be equal to the imported trace file creation time
-    sessionsManager.importSessionFromFile(trace);
-    assertThat(sessionsManager.getSelectedSession().getStartTimestamp()).isEqualTo(traceCreationTime);
-  }
-
-  @Test
   public void testGetTraceInfoFromSession() {
     Assume.assumeTrue(myUnifiedPipeline);
 
@@ -304,7 +287,7 @@ public final class CpuProfilerTest {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
     // Imported session's start time should be equal to the imported trace file creation time
     sessionsManager.importSessionFromFile(trace);
-    assertThat(sessionsManager.getSelectedSession().getStartTimestamp()).isEqualTo(traceCreationTime);
+    Common.Session session = sessionsManager.getSelectedSession();
 
     // Create and select a different session.
     sessionsManager.beginSession(FAKE_DEVICE, FAKE_PROCESS);
@@ -313,6 +296,6 @@ public final class CpuProfilerTest {
 
     // Reimport again should select the existing session.
     sessionsManager.importSessionFromFile(trace);
-    assertThat(sessionsManager.getSelectedSession().getStartTimestamp()).isEqualTo(traceCreationTime);
+    assertThat(sessionsManager.getSelectedSession()).isEqualTo(session);
   }
 }

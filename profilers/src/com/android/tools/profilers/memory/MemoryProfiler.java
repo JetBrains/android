@@ -52,6 +52,7 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Pair;
 import io.grpc.StatusRuntimeException;
 import java.io.File;
 import java.io.IOException;
@@ -161,16 +162,17 @@ public class MemoryProfiler extends StudioProfiler {
 
   private void importHprof(@NotNull File file) {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    // The time when the session is created. Will determine the order in sessions panel.
     long startTimestampEpochMs = System.currentTimeMillis();
-    long sessionStartTimeNs = StudioProfilers.getFileCreationTimestampNs(file, startTimestampEpochMs);
+    Pair<Long, Long> timestampsNs = StudioProfilers.computeImportedFileStartEndTimestampsNs(file);
+    long sessionStartTimeNs = timestampsNs.first;
 
     // Select the session if the hprof has already been imported.
     if (sessionsManager.setSessionById(sessionStartTimeNs)) {
       return;
     }
 
-    // We don't really care about the session having a duration - arbitrarily create a 1-ns session.
-    long sessionEndTimeNs = sessionStartTimeNs + 1;
+    long sessionEndTimeNs = timestampsNs.second;
     byte[] bytes;
     try {
       bytes = Files.readAllBytes(Paths.get(file.getPath()));
@@ -225,15 +227,16 @@ public class MemoryProfiler extends StudioProfiler {
                                                                         SessionsManager.SessionCreationSource.MANUAL);
   }
 
-  private byte[] importCommon(@NotNull File file, long startTimestampEpochMs, AllocationsInfo.Builder info) {
+  private byte[] importCommon(@NotNull File file, AllocationsInfo.Builder info) {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
-    long sessionStartTimeNs = StudioProfilers.getFileCreationTimestampNs(file, startTimestampEpochMs);
-    // Select the session if the hprof has already been imported.
+    Pair<Long, Long> timestampsNs = StudioProfilers.computeImportedFileStartEndTimestampsNs(file);
+    long sessionStartTimeNs = timestampsNs.first;
+    // Select the session if the file has already been imported.
     if (sessionsManager.setSessionById(sessionStartTimeNs)) {
       return null;
     }
 
-    long sessionEndTimeNs = sessionStartTimeNs + 1;
+    long sessionEndTimeNs = timestampsNs.second;
     byte[] bytes;
     try {
       bytes = Files.readAllBytes(Paths.get(file.getPath()));
@@ -252,7 +255,7 @@ public class MemoryProfiler extends StudioProfiler {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
     long startTimestampEpochMs = System.currentTimeMillis();
     AllocationsInfo.Builder info = AllocationsInfo.newBuilder();
-    byte[] bytes = importCommon(file, startTimestampEpochMs, info);
+    byte[] bytes = importCommon(file, info);
     if (bytes == null) {
       return;
     }
@@ -279,7 +282,7 @@ public class MemoryProfiler extends StudioProfiler {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
     long startTimestampEpochMs = System.currentTimeMillis();
     AllocationsInfo.Builder info = AllocationsInfo.newBuilder();
-    byte[] bytes = importCommon(file, startTimestampEpochMs, info);
+    byte[] bytes = importCommon(file, info);
     if (bytes == null) {
       return;
     }
