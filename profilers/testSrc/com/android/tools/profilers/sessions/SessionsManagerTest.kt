@@ -548,8 +548,8 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
       myTransportService.addEventToStream(2, cpuTrace)
     }
     else {
-      myManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
-      myManager.createImportedSessionLegacy("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 1)
+      myManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 1, 2, 0)
+      myManager.createImportedSessionLegacy("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 3, 4, 1)
       myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
       myCpuService.addTraceInfo(cpuTraceInfo)
     }
