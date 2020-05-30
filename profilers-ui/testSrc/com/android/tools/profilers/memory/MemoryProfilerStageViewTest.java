@@ -34,7 +34,6 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
-import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
@@ -91,7 +90,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
@@ -386,6 +384,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
   }
 
+  @Ignore("b/158253502")
   @Test
   public void testLoadingTooltipViewWithStrongReference() throws Exception {
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
