@@ -34,7 +34,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import com.android.tools.profilers.cpu.CpuProfilerTestUtils;
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils;
 import com.android.tools.profilers.energy.EnergyMonitorTooltip;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
@@ -48,6 +47,7 @@ import com.android.tools.profilers.sessions.SessionsView;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import icons.StudioIcons;
@@ -78,6 +78,7 @@ public class StudioProfilersViewTest {
   @Rule public FakeGrpcServer myGrpcChannel =
     FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myService, myProfilerService);
   @Rule public final EdtRule myEdtRule = new EdtRule();
+  @Rule public final ApplicationRule myAppRule = new ApplicationRule();  // For initializing HelpTooltip.
 
   private StudioProfilers myProfilers;
   private FakeIdeProfilerServices myProfilerServices = new FakeIdeProfilerServices();
