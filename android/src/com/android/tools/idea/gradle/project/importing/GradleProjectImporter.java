@@ -125,7 +125,8 @@ public class GradleProjectImporter {
           null,
           null,
           -1,
-          -1));
+          -1,
+          true));
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
