@@ -23,6 +23,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -44,7 +45,7 @@ public final class FakeKeyboard {
     myFocus = focus;
   }
 
-  public boolean isPressed(Key key) {
+  public boolean isPressed(@NotNull Key key) {
     return myPressedKeys.contains(key);
   }
 
@@ -57,21 +58,24 @@ public final class FakeKeyboard {
    * target component. Therefore, you may need to call {@link SwingUtilities#invokeLater(Runnable)}
    * after calling this method, to ensure the key is handled before you check a component's state.
    */
-  public void press(Key key) {
+  public void press(@NotNull Key key) {
     performDownKeyEvent(key, KeyEvent.KEY_PRESSED);
   }
 
-  private void performDownKeyEvent(Key key, int event) {
-    if (isPressed(key)) {
-      throw new IllegalStateException(String.format("Can't press key %s as it's already pressed.", KeyEvent.getKeyText(key.code)));
+  public void release(@NotNull Key key) {
+    if (!isPressed(key)) {
+      throw new IllegalStateException(String.format("Can't release key %s as it's not pressed.", KeyEvent.getKeyText(key.code)));
     }
 
-    // Dispatch BEFORE adding the key to our list of pressed keys. If it is a modifier key, we
+    myPressedKeys.remove(key);
+    // Dispatch AFTER removing the key from our list of pressed keys. If it is a modifier key, we
     // don't want it to included in "toModifiersCode" logic called by "dispatchKeyEvent".
-    dispatchKeyEvent(event, key);
-    if (event == KeyEvent.KEY_PRESSED) {
-      myPressedKeys.add(key);
-    }
+    dispatchKeyEvent(KeyEvent.KEY_RELEASED, key);
+  }
+
+  public void pressAndRelease(@NotNull Key key) {
+    press(key);
+    release(key);
   }
 
   /**
@@ -86,19 +90,21 @@ public final class FakeKeyboard {
    * typing capital letters and a more complex example being the generation of e.g. chinese characters using
    * an input method) this might be a significant undertaking to do correctly.
    */
-  public void type(Key key) {
+  public void type(@NotNull Key key) {
     performDownKeyEvent(key, KeyEvent.KEY_TYPED);
   }
 
-  public void release(Key key) {
-    if (!isPressed(key)) {
-      throw new IllegalStateException(String.format("Can't release key %s as it's not pressed.", KeyEvent.getKeyText(key.code)));
+  private void performDownKeyEvent(@NotNull Key key, int event) {
+    if (isPressed(key)) {
+      throw new IllegalStateException(String.format("Can't press key %s as it's already pressed.", KeyEvent.getKeyText(key.code)));
     }
 
-    myPressedKeys.remove(key);
-    // Dispatch AFTER removing the key from our list of pressed keys. If it is a modifier key, we
+    // Dispatch BEFORE adding the key to our list of pressed keys. If it is a modifier key, we
     // don't want it to included in "toModifiersCode" logic called by "dispatchKeyEvent".
-    dispatchKeyEvent(KeyEvent.KEY_RELEASED, key);
+    dispatchKeyEvent(event, key);
+    if (event == KeyEvent.KEY_PRESSED) {
+      myPressedKeys.add(key);
+    }
   }
 
   public int toModifiersCode() {
@@ -118,7 +124,7 @@ public final class FakeKeyboard {
     return modifiers;
   }
 
-  private void dispatchKeyEvent(int eventType, Key key) {
+  private void dispatchKeyEvent(int eventType, @NotNull Key key) {
     if (myFocus == null) {
       return;
     }
