@@ -96,7 +96,7 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
         return Triple(found, missing, "")
       }
 
-      override fun getResolvedDependentLibraries(includeDependenciesRecursively: Boolean): Collection<Library> {
+      override fun getResolvedDependentLibraries(includeExportedTransitiveDeps: Boolean): Collection<Library> {
         return emptySet()
       }
 

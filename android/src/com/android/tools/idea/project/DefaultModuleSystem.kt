@@ -121,14 +121,16 @@ class DefaultModuleSystem(override val module: Module) :
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)
 
-  override fun getResolvedDependentLibraries(includeDependenciesRecursively: Boolean): Collection<Library> {
+  override fun getResolvedDependentLibraries(includeExportedTransitiveDeps: Boolean): Collection<Library> {
     val libraries = mutableListOf<Library>()
 
     val orderEnumerator = ModuleRootManager.getInstance(module)
       .orderEntries()
       .librariesOnly()
 
-    if (includeDependenciesRecursively) orderEnumerator.recursively()
+    if (includeExportedTransitiveDeps) {
+      orderEnumerator.recursively().exportedOnly()
+    }
 
     orderEnumerator.forEachLibrary { library ->
         // Typically, a library xml looks like the following:
