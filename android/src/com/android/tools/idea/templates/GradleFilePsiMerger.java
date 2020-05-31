@@ -68,7 +68,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrC
 /**
  * Utility class to help with merging Gradle files into one another
  */
-public class GradleFilePsiMerger {
+public final class GradleFilePsiMerger {
   /**
    * Merges the given source build.gradle content into the given destination build.gradle content,
    * and resolves and dynamic Gradle dependencies into specific versions. If a support library
