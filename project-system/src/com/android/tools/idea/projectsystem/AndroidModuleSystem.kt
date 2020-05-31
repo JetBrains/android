@@ -124,15 +124,16 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
    * <p>
    * **Note**: This function will not acquire read/write locks during it's operation.
    *
-   * @param includeDependenciesRecursively indicates if the module dependencies should be searched recursively.
+   * @param includeExportedTransitiveDeps indicates if the module dependencies should be searched recursively.
    * `false` = search only own module dependencies
+   * `true` = search module direct dependencies + exported transitive dependencies
    */
-  fun getResolvedDependentLibraries(includeDependenciesRecursively : Boolean): Collection<Library>
+  fun getResolvedDependentLibraries(includeExportedTransitiveDeps : Boolean): Collection<Library>
 
   /**
-   * Same as `getResolvedDependentLibraries(includeDependenciesRecursively = true)`.
+   * Same as `getResolvedDependentLibraries(includeExportedTransitiveDeps = true)`.
    */
-  fun getResolvedDependentLibraries(): Collection<Library> = getResolvedDependentLibraries(includeDependenciesRecursively = true)
+  fun getResolvedDependentLibraries(): Collection<Library> = getResolvedDependentLibraries(includeExportedTransitiveDeps = true)
 
   /**
    * Returns the Android modules that this module transitively depends on for resources.
