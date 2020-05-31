@@ -41,6 +41,8 @@ import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.ui.DeferredIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RowIcon
+import com.intellij.util.PathUtil
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemIndependent
 import sun.swing.ImageIconUIResource
 import java.io.File
@@ -49,6 +51,8 @@ import javax.swing.Icon
 class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/projectViews"
   override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
+  override fun getAdditionalRepos() =
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 
   data class ProjectViewSettings(
     val hideEmptyPackages: Boolean = true,
