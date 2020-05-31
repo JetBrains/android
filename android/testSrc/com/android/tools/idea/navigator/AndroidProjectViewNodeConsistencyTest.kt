@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator
 
+import com.android.testutils.AssumeUtil
 import com.android.tools.idea.navigator.nodes.FileGroupNode
 import com.android.tools.idea.navigator.nodes.FolderGroupNode
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -30,6 +31,8 @@ import com.intellij.ide.projectView.ProjectViewNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.PathUtil
+import org.jetbrains.android.AndroidTestBase
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -49,7 +52,7 @@ import java.util.ArrayDeque
 @RunWith(Parameterized::class)
 class AndroidProjectViewNodeConsistencyTest : GradleIntegrationTest {
 
-  data class TestProject(val template: String, val pathToOpen: String = "")
+  data class TestProject(val template: String, val pathToOpen: String = "", val skipWindows: Boolean = false)
 
   @JvmField
   @Parameterized.Parameter
@@ -60,7 +63,7 @@ class AndroidProjectViewNodeConsistencyTest : GradleIntegrationTest {
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testProjects(): Collection<*> = listOf(
-      TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
+      TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP, skipWindows = true),
       TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
       TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
@@ -78,7 +81,8 @@ class AndroidProjectViewNodeConsistencyTest : GradleIntegrationTest {
   override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
-  override fun getAdditionalRepos(): Collection<File> = listOf()
+  override fun getAdditionalRepos() =
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 
   private interface TestContext {
     val rootElement: ProjectViewNode<*>
@@ -92,7 +96,9 @@ class AndroidProjectViewNodeConsistencyTest : GradleIntegrationTest {
   }
 
   private fun runTest(test: TestContext.() -> Unit) {
-    val root = prepareGradleProject(testProjectName?.template ?: error("unit test parameter not initialized"), "project")
+    val testProjectName = testProjectName ?: error("unit test parameter not initialized")
+    if (testProjectName.skipWindows ?: true) AssumeUtil.assumeNotWindows()
+    val root = prepareGradleProject(testProjectName.template, "project")
     openPreparedProject("project${testProjectName?.pathToOpen}") { project ->
       val oldHideEmptyPackages = ProjectView.getInstance(project).isHideEmptyMiddlePackages(AndroidProjectViewPane.ID)
       ProjectView.getInstance(project).apply {

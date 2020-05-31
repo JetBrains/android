@@ -28,6 +28,7 @@ import com.android.builder.model.JavaLibrary
 import com.android.builder.model.ProductFlavorContainer
 import com.android.builder.model.SourceProvider
 import com.android.builder.model.SourceProviderContainer
+import com.android.builder.model.SyncIssue
 import com.android.builder.model.ViewBindingOptions
 import com.android.ide.common.gradle.model.IdeAndroidProjectImpl
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
@@ -69,14 +70,18 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.setupDataNodesForSelectedVariant
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
+import com.android.tools.idea.gradle.project.sync.issues.syncIssues
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
 import com.google.common.collect.ImmutableList
@@ -115,6 +120,9 @@ import org.jetbrains.plugins.gradle.model.ExternalTask
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import java.io.File
 import java.io.IOException
+import java.util.Arrays
+import java.util.function.Function
+import java.util.stream.Collectors
 
 typealias AndroidProjectBuilderCore = (projectName: String, basePath: File, agpVersion: String) -> AndroidProject
 
@@ -987,6 +995,7 @@ private fun <T> openPreparedProject(projectPath: File, action: (Project) -> T): 
     project
   }
   try {
+    verifySyncedSuccessfully(project)
     return action(project)
   }
   finally {
@@ -999,3 +1008,20 @@ private fun <T> openPreparedProject(projectPath: File, action: (Project) -> T): 
 
 private fun GradleIntegrationTest.nameToPath(name: String) =
   File(toSystemDependentName(getBaseTestPath() + "/" + name))
+
+private fun verifySyncedSuccessfully(project: Project) {
+  val lastSyncResult = project.getProjectSystem().getSyncManager().getLastSyncResult()
+  if (!lastSyncResult.isSuccessful) {
+    throw IllegalStateException(lastSyncResult.name)
+  }
+
+  // Also fail the test if SyncIssues with type errors are present.
+  val errors = ModuleManager.getInstance(project)
+    .modules
+    .flatMap { it.syncIssues() }
+    .filter { it.severity == SyncIssue.SEVERITY_ERROR }
+  if (errors.isNotEmpty()) {
+    throw IllegalStateException(errors.joinToString(separator = "\n") { it.message })
+  }
+}
+
