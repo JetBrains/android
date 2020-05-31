@@ -19,12 +19,13 @@ import com.android.emulator.control.KeyboardEvent
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.createHardwareKeyEvent
 import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import java.awt.Dimension
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 
@@ -59,11 +60,30 @@ open class DeviceButtonAction(private val keyName: String) : AbstractEmulatorAct
   }
 
   private class MyActionButton(
-    action: AnAction,
+    action: DeviceButtonAction,
     presentation: Presentation,
     place: String,
     minimumSize: Dimension
   ) : ActionButton(action, presentation, place, minimumSize) {
+
+    init {
+      // Pressing the SPACE key is the same as clicking the button.
+      addKeyListener(object : KeyAdapter() {
+        override fun keyPressed(keyEvent: KeyEvent) {
+          if (keyEvent.modifiers == 0 && keyEvent.keyCode == KeyEvent.VK_SPACE) {
+            val event = AnActionEvent.createFromAnAction(action, keyEvent, myPlace, dataContext)
+            action.buttonPressed(event)
+          }
+        }
+
+        override fun keyReleased(keyEvent: KeyEvent) {
+          if (keyEvent.modifiers == 0 && keyEvent.keyCode == KeyEvent.VK_SPACE) {
+            val event = AnActionEvent.createFromAnAction(action, keyEvent, myPlace, dataContext)
+            action.buttonReleased(event)
+          }
+        }
+      })
+    }
 
     override fun onMousePressed(mouseEvent: MouseEvent) {
       super.onMousePressed(mouseEvent)
