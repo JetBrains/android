@@ -90,6 +90,7 @@ class AppInspectionAnalyticsTrackerService(private val project: Project): AppIns
       .withProjectId(project)
 
     addMetadataTo(Events(studioEvent, appInspectionEvent))
+    studioEvent.setAppInspectionEvent(appInspectionEvent)
 
     UsageTracker.log(studioEvent)
   }
