@@ -938,6 +938,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_ANIMATION_INSPECTOR = Flag.create(
+    COMPOSE, "preview.animation.inspector",
+    "Enable compose preview animation inspection",
+    "If enabled, users can inspect animations in compose previews, e.g. play/pause and jump to specific frame",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = Flag.create(
     COMPOSE, "preview.debug.bounds",
     "Enable the debug bounds switch controls",

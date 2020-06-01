@@ -1468,6 +1468,21 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
+   * Executes the given {@link Runnable} callback synchronously. Then calls {@link #executeCallbacks()} and requests render afterwards.
+   */
+  public void executeCallbacksAndRequestRender(@Nullable Runnable callback) {
+    try {
+      if (callback != null) {
+        RenderService.runRenderAction(callback);
+      }
+      executeCallbacks().thenRun(() -> requestRender());
+    }
+    catch (Exception e) {
+      Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacksAndRequestRender did not complete successfully", e);
+    }
+  }
+
+  /**
    * Sets interactive mode of the scene.
    * @param interactive true if the scene is interactive, false otherwise.
    */

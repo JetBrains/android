@@ -37,11 +37,14 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import icons.StudioIcons
 import junit.framework.TestCase.assertFalse
 import org.fest.swing.core.GenericTypeMatcher
+import org.fest.swing.exception.ComponentLookupException
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.PatternTextMatcher
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -74,6 +77,7 @@ class ComposePreviewTest {
     StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.override(true)
     StudioFlags.COMPOSE_PREVIEW.override(true)
     StudioFlags.COMPOSE_ANIMATED_PREVIEW.override(true)
+    StudioFlags.COMPOSE_ANIMATION_INSPECTOR.override(true)
   }
 
   @After
@@ -81,6 +85,7 @@ class ComposePreviewTest {
     StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.clearOverride()
     StudioFlags.COMPOSE_PREVIEW.clearOverride()
     StudioFlags.COMPOSE_ANIMATED_PREVIEW.clearOverride()
+    StudioFlags.COMPOSE_ANIMATION_INSPECTOR.clearOverride()
   }
 
   private fun openComposePreview(fixture: IdeFrameFixture, fileName: String = "MainActivity.kt"): SplitEditorFixture {
@@ -307,6 +312,63 @@ class ComposePreviewTest {
     assertEquals(3, composePreview.designSurface
       .allSceneViews
       .size)
+
+    fixture.editor.close()
+  }
+
+  @Test
+  @RunIn(TestGroup.UNRELIABLE)
+  @Throws(Exception::class)
+  fun testAnimationInspector() {
+    fun SplitEditorFixture.findAnimationInspector() =
+      try {
+        guiTest.ideFrame().robot().finder().findByName(this.editor.component, "Animation Inspector")
+      }
+      catch (e: ComponentLookupException) {
+        null
+      }
+
+    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val composePreview = openComposePreview(fixture, "Animations.kt")
+
+    composePreview
+      .waitForRenderToFinish()
+      .getNotificationsFixture()
+      .assertNoNotifications()
+
+    assertEquals(2, composePreview.designSurface
+      .allSceneViews
+      .size)
+
+    composePreview.designSurface
+      .allSceneViews
+      .first()
+      .toolbar()
+      .clickButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+
+    composePreview
+      .waitForRenderToFinish()
+
+    assertEquals(1, composePreview.designSurface
+      .allSceneViews
+      .size)
+
+    assertNotNull(composePreview.findAnimationInspector())
+
+    composePreview.designSurface
+      .allSceneViews
+      .first()
+      .toolbar()
+      .clickButtonByIcon(StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR)
+
+    composePreview
+      .waitForRenderToFinish()
+
+    assertEquals(2, composePreview.designSurface
+      .allSceneViews
+      .size)
+
+    assertNull(composePreview.findAnimationInspector())
 
     fixture.editor.close()
   }
