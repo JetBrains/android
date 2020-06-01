@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.ui.tableView
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.notifyError
@@ -78,7 +77,7 @@ class TableViewImpl : TableView {
   private val listeners = mutableListOf<TableView.Listener>()
   private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
 
-  private var columns: List<ResultSetSqliteColumn>? = null
+  private var columns: List<ViewColumn>? = null
 
   private val rootPanel = JPanel(BorderLayout())
   override val component: JComponent = rootPanel
@@ -264,7 +263,7 @@ class TableViewImpl : TableView {
     centerPanel.repaint()
   }
 
-  override fun showTableColumns(columns: List<ResultSetSqliteColumn>) {
+  override fun showTableColumns(columns: List<ViewColumn>) {
     if (this.columns == columns) {
       return
     }
@@ -404,8 +403,15 @@ class TableViewImpl : TableView {
         columnNameLabel.text = ""
       }
       else {
-        columnNameLabel.icon = StudioIcons.DatabaseInspector.COLUMN
-        columnNameLabel.iconTextGap = 8
+        val columns = (table.model as MyTableModel).columns
+        val inPk = columns[viewColumnIndex-1].inPrimaryKey
+        if (inPk != null && inPk) {
+          columnNameLabel.icon = StudioIcons.DatabaseInspector.PRIMARY_KEY
+          columnNameLabel.iconTextGap = 8
+        }
+        else {
+          columnNameLabel.border = BorderFactory.createEmptyBorder(0, 4, 0, 0)
+        }
         sortIcon.icon = AllIcons.General.ArrowSplitCenterV
         columnNameLabel.text = value as String
       }
@@ -436,7 +442,7 @@ class TableViewImpl : TableView {
     }
   }
 
-  private inner class MyTableModel(val columns: List<ResultSetSqliteColumn>) : AbstractTableModel() {
+  private inner class MyTableModel(val columns: List<ViewColumn>) : AbstractTableModel() {
 
     private val rows = mutableListOf<MyRow>()
     var isEditable = false
