@@ -60,11 +60,13 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
   }
 
   private fun createTestIssue(): ValidatorData.Issue {
-    return ValidatorData.Issue(
-      ValidatorData.Type.ACCESSIBILITY,
-      "Test",
-      ValidatorData.Level.ERROR,
-      -1,
-      ValidatorData.Fix(""))
+    return ValidatorData.Issue.IssueBuilder()
+      .setType(ValidatorData.Type.ACCESSIBILITY)
+      .setMsg("Test")
+      .setLevel(ValidatorData.Level.ERROR)
+      .setSrcId(-1)
+      .setFix(ValidatorData.Fix(""))
+      .setSourceClass("")
+      .build()
   }
 }
