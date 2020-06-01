@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
@@ -47,6 +48,7 @@ import com.intellij.openapi.application.ModalityState.NON_MODAL
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.MessageType
 import com.intellij.util.SystemProperties
 import java.util.concurrent.TimeUnit
@@ -189,6 +191,12 @@ class ProjectUpgradeNotification(listener: NotificationListener)
                  NotificationType.INFORMATION,
                  listener)
 
+fun expireProjectUpgradeNotifications(project: Project?) {
+  NotificationsManager
+    .getNotificationsManager()
+    .getNotificationsOfType(ProjectUpgradeNotification::class.java, project)
+    .forEach { it.expire() }
+}
 
 // **************************************************************************
 // ** Forced upgrades
