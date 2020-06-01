@@ -21,12 +21,14 @@ import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.util.toPathString
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.ide.GeneralSettings
-import com.intellij.ide.impl.ProjectUtil
+import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil.confirmOpenNewProject
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.projectImport.ProjectOpenProcessor
 import javax.swing.Icon
 
@@ -63,8 +65,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       val projectFolder = if (virtualFile.isDirectory) virtualFile else virtualFile.parent
       return gradleImporter.importAndOpenProjectCore(projectToClose, forceOpenInNewFrame, projectFolder)
     }
-
-    return ProjectUtil.openProject(adjustedOpenTarget.path, projectToClose, forceOpenInNewFrame)
+    return PlatformProjectOpenProcessor.openExistingProject(adjustedOpenTarget.toNioPath(), OpenProjectTask(forceOpenInNewFrame = forceOpenInNewFrame, projectToClose = projectToClose))
   }
 
   private fun promptToCloseIfNecessary(project: Project?): Boolean {
@@ -74,7 +75,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       val exitCode = confirmOpenNewProject(false)
       if (exitCode == GeneralSettings.OPEN_PROJECT_SAME_WINDOW) {
         val toClose = if (project != null && !project.isDefault) project else openProjects[openProjects.size - 1]
-        if (!ProjectUtil.closeAndDispose(toClose)) {
+        if (!ProjectManagerEx.getInstanceEx().closeAndDispose(toClose)) {
           success = false
         }
       }
