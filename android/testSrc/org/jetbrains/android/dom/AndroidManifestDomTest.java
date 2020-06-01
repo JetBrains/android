@@ -1,13 +1,16 @@
 package org.jetbrains.android.dom;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -32,6 +35,74 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   @Override
   protected String getPathToCopy(String testFileName) {
     return SdkConstants.FN_ANDROID_MANIFEST_XML;
+  }
+
+  public void testQueriesHighlighting() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <queries>\n" +
+      "        <package android:name=\"com.android.internal.util\"/>\n" +
+      "    </queries>\n" +
+      "    <queries>\n" +
+      "        <intent>\n" +
+      "            <action android:name=\"android.intent.action.BATTERY_LOW\"/>\n" +
+      "            <data android:mimeType=\"basic string\"/>\n" +
+      "        </intent>\n" +
+      "    </queries>\n" +
+      "    <queries>\n" +
+      "        <provider android:authorities=\"p1.p2\"/>\n" +
+      "    </queries>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting();
+  }
+
+  public void testQueriesCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <queries>\n" +
+      "        <<caret>\n" +
+      "    </queries>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("package", "intent", "provider");
+  }
+
+  public void testQueriesSubtagCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <queries>\n" +
+      "        <package />\n" +
+      "    </queries>\n" +
+      "    <queries>\n" +
+      "        <intent>\n" +
+      "           <<caret>\n" +
+      "        </intent>\n" +
+      "    </queries>\n" +
+      "    <queries>\n" +
+      "        <provider />\n" +
+      "    </queries>\n" +
+      "</manifest>").getVirtualFile();
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    // Testing Intent subtags
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("data", "action");
+
+    // Testing Package tag attributes
+    AndroidTestUtils.moveCaret(myFixture, "<package |/>");
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("android:name");
+
+    // Testing Provider tag attributes
+    AndroidTestUtils.moveCaret(myFixture, " <provider |/>");
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("android:authorities");
   }
 
   public void testAttributeNameCompletion1() throws Throwable {
