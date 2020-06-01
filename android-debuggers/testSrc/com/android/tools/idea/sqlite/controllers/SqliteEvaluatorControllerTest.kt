@@ -25,7 +25,6 @@ import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
-import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockDatabaseRepository
@@ -43,6 +42,8 @@ import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
+import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
+import com.android.tools.idea.sqlite.utils.toViewColumns
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
@@ -309,10 +310,10 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     ))
 
     // Assert
-    orderVerifier.verify(sqliteEvaluatorView.tableView).showTableColumns(mockSqliteResultSet._columns)
+    orderVerifier.verify(sqliteEvaluatorView.tableView).showTableColumns(mockSqliteResultSet._columns.toViewColumns())
     orderVerifier.verify(sqliteEvaluatorView.tableView).updateRows(mockSqliteResultSet.rows.map { RowDiffOperation.AddRow(it) })
     orderVerifier.verify(sqliteEvaluatorView.tableView).resetView()
-    orderVerifier.verify(sqliteEvaluatorView.tableView).showTableColumns(mockSqliteResultSet._columns)
+    orderVerifier.verify(sqliteEvaluatorView.tableView).showTableColumns(mockSqliteResultSet._columns.toViewColumns())
     orderVerifier.verify(sqliteEvaluatorView.tableView).updateRows(mockSqliteResultSet.rows.map { RowDiffOperation.AddRow(it) })
   }
 
@@ -405,7 +406,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     // 1st invocation by setUp, 2nd by toggleLiveUpdatesInvoked, 3rd by notifyDataMightBeStale
-    verify(sqliteEvaluatorView.tableView, times(3)).showTableColumns(mockResultSet._columns)
+    verify(sqliteEvaluatorView.tableView, times(3)).showTableColumns(mockResultSet._columns.toViewColumns())
     // invocation by setUp
     verify(sqliteEvaluatorView.tableView, times(1)).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     // 1st by toggleLiveUpdatesInvoked, 2nd by notifyDataMightBeStale
@@ -448,8 +449,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(sqliteEvaluatorView.tableView).showTableColumns(mockSqliteResultSet1._columns)
-    verify(sqliteEvaluatorView.tableView, times(2)).showTableColumns(mockSqliteResultSet2._columns)
+    verify(sqliteEvaluatorView.tableView).showTableColumns(mockSqliteResultSet1._columns.toViewColumns())
+    verify(sqliteEvaluatorView.tableView, times(2)).showTableColumns(mockSqliteResultSet2._columns.toViewColumns())
   }
 
   fun testRunSelectStatementWithSemicolon() {
@@ -459,7 +460,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching {
@@ -475,7 +477,9 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(sqliteEvaluatorView).showSqliteStatement("SELECT * FROM t1;")
-    verify(sqliteEvaluatorView.tableView).showTableColumns(listOf(ResultSetSqliteColumn("c1", SqliteAffinity.INTEGER, true, false)))
+    verify(sqliteEvaluatorView.tableView).showTableColumns(
+      listOf(ResultSetSqliteColumn("c1", SqliteAffinity.INTEGER, true, false)).toViewColumns()
+    )
     verify(sqliteEvaluatorView.tableView).updateRows(listOf(RowDiffOperation.AddRow(sqliteRow)))
   }
 
@@ -486,7 +490,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching {
@@ -511,7 +516,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching {
@@ -527,7 +533,9 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(sqliteEvaluatorView).showSqliteStatement("SELECT * FROM t1")
-    verify(sqliteEvaluatorView.tableView).showTableColumns(listOf(ResultSetSqliteColumn("c1", SqliteAffinity.INTEGER, true, false)))
+    verify(sqliteEvaluatorView.tableView).showTableColumns(
+      listOf(ResultSetSqliteColumn("c1", SqliteAffinity.INTEGER, true, false)).toViewColumns()
+    )
     verify(sqliteEvaluatorView.tableView).updateRows(listOf(RowDiffOperation.AddRow(sqliteRow)))
   }
 
@@ -538,7 +546,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
@@ -554,7 +563,9 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(sqliteEvaluatorView).showSqliteStatement("SELECT * FROM t1 --comment")
-    verify(sqliteEvaluatorView.tableView).showTableColumns(listOf(ResultSetSqliteColumn("c1", SqliteAffinity.INTEGER, true, false)))
+    verify(sqliteEvaluatorView.tableView).showTableColumns(
+      listOf(ResultSetSqliteColumn("c1", SqliteAffinity.INTEGER, true, false)).toViewColumns()
+    )
     verify(sqliteEvaluatorView.tableView).updateRows(listOf(RowDiffOperation.AddRow(sqliteRow)))
   }
 
