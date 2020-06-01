@@ -21,22 +21,23 @@ import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.util.toPathString
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.ide.GeneralSettings
-import com.intellij.ide.impl.ProjectUtil
+import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil.confirmOpenNewProject
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.projectImport.ProjectOpenProcessor
-
 
 /**
  * A project open processor to open Gradle projects in Android Studio.
  *
  * It supports opening projects with or without .idea directory.
  */
-class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
+internal class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
   override fun getName(): String = "Android Gradle"
 
   override fun canOpenProject(file: VirtualFile): Boolean =
@@ -47,9 +48,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
     if (!canOpenProject(virtualFile)) return null
 
     val importTarget = ProjectImportUtil.findImportTarget(virtualFile)
-    val adjustedOpenTarget =
-        if (importTarget.isDirectory) importTarget
-        else importTarget.parent
+    val adjustedOpenTarget = if (importTarget.isDirectory) importTarget else importTarget.parent
 
     if (!canOpenAsExistingProject(adjustedOpenTarget)) {
       if (!forceOpenInNewFrame) {
@@ -62,8 +61,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       val projectFolder = if (virtualFile.isDirectory) virtualFile else virtualFile.parent
       return gradleImporter.importProjectCore(projectFolder, null)
     }
-
-    return ProjectUtil.openProject(adjustedOpenTarget.path, projectToClose, forceOpenInNewFrame)
+    return PlatformProjectOpenProcessor.openExistingProject(adjustedOpenTarget.toNioPath(), OpenProjectTask(forceOpenInNewFrame = forceOpenInNewFrame, projectToClose = projectToClose))
   }
 
   private fun promptToCloseIfNecessary(project: Project?): Boolean {
@@ -73,7 +71,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       val exitCode = confirmOpenNewProject(false)
       if (exitCode == GeneralSettings.OPEN_PROJECT_SAME_WINDOW) {
         val toClose = if (project != null && !project.isDefault) project else openProjects[openProjects.size - 1]
-        if (!ProjectUtil.closeAndDispose(toClose)) {
+        if (!ProjectManagerEx.getInstanceEx().closeAndDispose(toClose)) {
           success = false
         }
       }

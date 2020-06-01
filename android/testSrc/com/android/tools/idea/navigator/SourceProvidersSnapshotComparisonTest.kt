@@ -17,17 +17,13 @@ package com.android.tools.idea.navigator
 
 import com.android.builder.model.SourceProvider
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.AndroidGradleTests
-import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.*
 import com.android.tools.idea.util.toIoFile
-import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.SourceProviderManager
@@ -79,9 +75,9 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
       AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath())
     }
 
-    val project = ProjectUtil.openProject(projectPath.absolutePath, null, false)!!
+    val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath())
     val text = project.dumpSourceProviders()
-    ProjectUtil.closeAndDispose(project)
+    PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 
     assertIsEqualToSnapshot(text)
   }

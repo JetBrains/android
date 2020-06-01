@@ -34,12 +34,7 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT
+import com.android.tools.idea.templates.TemplateMetadata.*
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.WizardConstants
 import com.android.tools.idea.wizard.model.WizardModel
@@ -52,8 +47,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -68,8 +61,7 @@ import org.jetbrains.android.util.AndroidUtils
 import java.io.File
 import java.io.IOException
 import java.nio.file.Paths
-import java.util.Locale
-import java.util.Optional
+import java.util.*
 import java.util.regex.Pattern
 
 private val logger: Logger get() = logger<NewProjectModel>()
@@ -116,8 +108,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       }
 
       val path = Paths.get(projectLocation)
-      PlatformProjectOpenProcessor.openExistingProject(path, path, OpenProjectTask(forceOpenInNewFrame = true, project = newProject))
-
+      PlatformProjectOpenProcessor.openExistingProject(path, OpenProjectTask(forceOpenInNewFrame = true, project = newProject))
     }
   }
 
