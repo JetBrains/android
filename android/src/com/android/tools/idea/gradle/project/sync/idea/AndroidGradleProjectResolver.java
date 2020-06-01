@@ -32,8 +32,10 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE;
 import static com.android.tools.idea.gradle.project.sync.idea.issues.GradleWrapperImportCheck.validateGradleWrapper;
 import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade.displayForceUpdatesDisabledMessage;
+import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade.expireProjectUpgradeNotifications;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.getModuleIdForModule;
@@ -781,6 +783,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     validateGradleWrapper(resolverCtx.getProjectPath());
 
     displayInternalWarningIfForcedUpgradesAreDisabled();
+    expireProjectUpgradeNotifications(myProjectFinder.findProject(resolverCtx));
 
     cleanUpHttpProxySettings();
   }
