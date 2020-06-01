@@ -37,6 +37,7 @@ import org.fest.swing.driver.ComponentDriver
 import org.fest.swing.fixture.JMenuItemFixture
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
+import java.awt.Dimension
 import java.awt.Point
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -257,4 +258,6 @@ class SceneViewFixture(private val robot: Robot,
 
     return SceneViewTopPanelFixture(robot, sceneViewPeerPanel.sceneViewTopPanel)
   }
+
+  fun size(): Dimension = sceneView.scaledContentSize
 }

@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer
 
-import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.SplitEditor
 import com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
-import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelFixture
+import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -49,10 +48,11 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
   fun setDesignMode() = setMode("Design")
 
 
-  val designSurface: NlDesignSurfaceFixture by lazy {
-    val surface = waitUntilShowing(robot, Matchers.byType(NlDesignSurface::class.java))
-    NlDesignSurfaceFixture(robot, surface)
-  }
+  val designSurface: NlDesignSurfaceFixture
+    get() {
+      val surface = waitUntilShowing(robot, Matchers.byType(NlDesignSurface::class.java))
+      return NlDesignSurfaceFixture(robot, surface)
+    }
 
   /**
    * Returns whether the [NlDesignSurface] is showing in the split editor or not.
@@ -67,21 +67,19 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
         false
       }
 
-  private val loadingPanel: WorkBenchLoadingPanelFixture by lazy {
-    val workbench: WorkBench<*> = robot.finder().findByType(target(), WorkBench::class.java, false)
-    WorkBenchLoadingPanelFixture(robot, workbench.loadingPanel)
-  }
+  private val workbenchPanel: WorkBenchFixture
+    get() = WorkBenchFixture.findShowing(target(), robot)
 
-  fun waitForRenderToFinish(wait: Wait = Wait.seconds(10)): SplitEditorFixture {
-    designSurface.waitForRenderToFinish(wait)
-    wait.expecting("WorkBench is showing").until { !loadingPanel.isLoading() }
+  fun waitForRenderToFinish(wait: Wait = Wait.seconds(20)): SplitEditorFixture {
+    wait.expecting("WorkBench to show content").until { workbenchPanel.isShowingContent() }
     // Fade out of the loading panel takes 500ms
     Pause.pause(1000)
+    wait.expecting("Surface to be ready").until { hasDesignSurface }
+    designSurface.waitForRenderToFinish(wait)
     return this
   }
 
   fun hasRenderErrors() = designSurface.hasRenderErrors()
-
 
   fun findActionButtonByText(text: String): ActionButtonFixture {
     val button = waitUntilShowing(

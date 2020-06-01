@@ -52,21 +52,21 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
     return target().isShowing();
   }
 
+  public boolean hasRenderResult() {
+    LayoutlibSceneManager sceneManager = target().getSceneManager();
+    return sceneManager != null && sceneManager.getRenderResult() != null;
+  }
+
+  public boolean isRendering() {
+    LayoutlibSceneManager sceneManager = target().getSceneManager();
+    return sceneManager != null && sceneManager.isRendering();
+  }
+
   @Override
   public void waitForRenderToFinish(@NotNull Wait wait) {
     super.waitForRenderToFinish(wait);
 
-    wait.expecting("render to finish").until(() -> {
-      LayoutlibSceneManager sceneManager = target().getSceneManager();
-      RenderResult result = sceneManager != null ? sceneManager.getRenderResult() : null;
-      if (result == null) {
-        return false;
-      }
-      if (result.getLogger().hasErrors()) {
-        return target().isShowing() && getIssuePanelFixture().hasRenderError();
-      }
-      return target().isShowing() && !getIssuePanelFixture().hasRenderError();
-    });
+    wait.expecting("surface is showing and rendered").until(() -> isShowing() && !isRendering() && hasRenderResult());
     // Wait for the animation to finish
     pause(SceneComponent.ANIMATION_DURATION);
   }

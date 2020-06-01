@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture
 
+import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.adtui.workbench.WorkBenchLoadingPanel
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import org.fest.swing.core.Robot
+import java.awt.Container
 
-class WorkBenchLoadingPanelFixture(robot: Robot, loadingPanel: WorkBenchLoadingPanel) :
-  ComponentFixture<WorkBenchLoadingPanelFixture, WorkBenchLoadingPanel>(WorkBenchLoadingPanelFixture::class.java, robot, loadingPanel) {
+class WorkBenchFixture(robot: Robot, workbench: WorkBench<*>) :
+  ComponentFixture<WorkBenchFixture, WorkBench<*>>(WorkBenchFixture::class.java, robot, workbench) {
 
-  fun isLoading() = target().isLoading
-  fun hasError() = target().hasError()
+  fun isLoading() = target().loadingPanel.isLoading
+  fun isShowingContent() = target().isShowingContent
 
   companion object {
-    fun find(robot: Robot) =
-      WorkBenchLoadingPanelFixture(robot, robot.finder().find(Matchers.byType(WorkBenchLoadingPanel::class.java).andIsShowing()))
+    fun findShowing(root: Container, robot: Robot) =
+      WorkBenchFixture(robot, robot.finder().find(root, Matchers.byType(WorkBench::class.java).andIsShowing()))
   }
 }
