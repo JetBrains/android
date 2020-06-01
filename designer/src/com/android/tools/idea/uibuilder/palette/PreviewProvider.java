@@ -166,6 +166,7 @@ public class PreviewProvider implements Disposable {
     xml = String.format(LINEAR_LAYOUT, CONTAINER_ID, component.getTagDeprecated().getText());
 
     RenderResult result = renderImage(myRenderTimeoutSeconds, getRenderTask(model.getConfiguration()), xml);
+    disposeRenderTaskNoWait();
     if (result == null) {
       return null;
     }

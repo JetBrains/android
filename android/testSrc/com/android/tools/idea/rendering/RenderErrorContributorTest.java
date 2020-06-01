@@ -283,6 +283,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       if (useDumbMode) {
         DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(false);
       }
+      task.dispose();
     }
   }
 
