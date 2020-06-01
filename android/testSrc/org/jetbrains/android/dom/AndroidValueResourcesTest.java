@@ -297,6 +297,14 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     myFixture.checkResultByFile(myTestFolder + '/' + getTestName(true) + "_after.xml");
   }
 
+  public void testOverlayableTagCompletion() throws Throwable {
+    toTestCompletion("overlayable.xml", "overlayable_after.xml");
+  }
+
+  public void testPolicyTagCompletion() throws Throwable {
+    toTestCompletion("policy.xml", "policy_after.xml");
+  }
+
   public void testMoreTypes() throws Throwable {
     doTestHighlighting("moreTypes.xml");
   }

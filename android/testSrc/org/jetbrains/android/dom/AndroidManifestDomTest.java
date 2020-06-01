@@ -8,6 +8,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -32,6 +33,24 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   @Override
   protected String getPathToCopy(String testFileName) {
     return SdkConstants.FN_ANDROID_MANIFEST_XML;
+  }
+
+  public void testOverlayTagCompletion() throws Throwable {
+    toTestCompletion("overlay.xml", "overlay_after.xml");
+  }
+
+  public void testOverlayHighlighting() {
+    // Asserting that using overlay tag, and attributes does not produce a warning from AndroidDomInspection.
+    // Attribute values do not need to resolve to anything.
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "          package=\"p1.a\">\n" +
+      "  <overlay android:targetPackage=\"doesn't matter\" android:targetName=\"doesn't matter\">\n" +
+      "  </overlay>\n" +
+      "</manifest>").getVirtualFile();
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting();
   }
 
   public void testAttributeNameCompletion1() throws Throwable {
