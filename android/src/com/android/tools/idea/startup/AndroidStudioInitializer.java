@@ -135,7 +135,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       // and no metrics are ever sent.
       if (!application.isUnitTestMode() && !application.isHeadlessEnvironment() &&
         !Boolean.getBoolean("disable.android.analytics.consent.dialog.for.test")) {
-        AppUIUtil.showConsentsAgreementIfNeeded(getLog());
+        ApplicationManager.getApplication().invokeLater(() -> AppUIUtil.showConsentsAgreementIfNeeded(getLog()));
       }
     }
 
