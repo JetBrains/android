@@ -19,12 +19,7 @@ package com.android.tools.idea.navigator
 
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.AndroidGradleTests
-import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.assertIsEqualToSnapshot
-import com.intellij.ide.impl.ProjectUtil
+import com.android.tools.idea.testing.*
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.GroupByTypeComparator
@@ -34,6 +29,7 @@ import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.DeferredIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RetrievableIcon
@@ -105,9 +101,9 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
       AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath())
     }
 
-    val project = ProjectUtil.openProject(projectPath.absolutePath, null, false)!!
+    val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath())
     val text = project.dumpAndroidProjectView()
-    ProjectUtil.closeAndDispose(project)
+    PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 
     assertIsEqualToSnapshot(text)
   }
