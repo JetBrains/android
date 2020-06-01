@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.model.WarningsDataPageModel
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
@@ -43,6 +44,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreePath
 
 
 @NonNls
@@ -65,7 +67,9 @@ class WarningsPageView(
   val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
     isRootVisible = false
     cellRenderer = BuildAnalyzerMasterTreeCellRenderer()
-    TreeSpeedSearch(this).comparator = SpeedSearchComparator(false)
+    TreeSpeedSearch(this, TreeSpeedSearch.NODE_DESCRIPTOR_TOSTRING, true).apply {
+      comparator = SpeedSearchComparator(false)
+    }
     TreeUtil.installActions(this)
     addTreeSelectionListener { e ->
       if (fireActionHandlerEvents && e.path != null && e.isAddedPath) {
