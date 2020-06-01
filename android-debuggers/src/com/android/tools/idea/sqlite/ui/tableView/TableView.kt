@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.ui.tableView
 
-import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
@@ -41,7 +40,7 @@ interface TableView {
   fun showPageSizeValue(maxRowCount: Int)
 
   fun startTableLoading()
-  fun showTableColumns(columns: List<ResultSetSqliteColumn>)
+  fun showTableColumns(columns: List<ViewColumn>)
   fun stopTableLoading()
   fun reportError(message: String, t: Throwable?)
 
@@ -80,7 +79,7 @@ interface TableView {
     fun loadLastRowsInvoked()
     fun refreshDataInvoked()
     fun toggleLiveUpdatesInvoked()
-    fun updateCellInvoked(targetRowIndex: Int, targetColumn: ResultSetSqliteColumn, newValue: SqliteValue)
+    fun updateCellInvoked(targetRowIndex: Int, targetColumn: ViewColumn, newValue: SqliteValue)
 
     /**
      * Invoked when the user changes the number of rows to display per page.
@@ -90,7 +89,7 @@ interface TableView {
     /**
      * Invoked when the user wants to order the data by a specific column
      */
-    fun toggleOrderByColumnInvoked(sqliteColumn: ResultSetSqliteColumn)
+    fun toggleOrderByColumnInvoked(viewColumn: ViewColumn)
 
     /**
      * Invoked when the user wants to cancel the SQLite statement that is currently running.
@@ -98,6 +97,8 @@ interface TableView {
     fun cancelRunningStatementInvoked()
   }
 }
+
+data class ViewColumn(val name: String, val inPrimaryKey: Boolean)
 
 /** Class that represents a generic rows diff operation */
 sealed class RowDiffOperation {
