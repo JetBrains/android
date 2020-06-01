@@ -113,6 +113,7 @@ import javax.swing.Timer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
@@ -1167,6 +1168,16 @@ public class LayoutlibSceneManager extends SceneManager {
     }
     callbacks.forEach(callback -> callback.complete(null));
     myIsCurrentlyRendering.set(false);
+  }
+
+  /**
+   * Returns if there are any pending render requests.
+   */
+  @TestOnly
+  public boolean isRendering() {
+    synchronized (myRenderFutures) {
+      return myIsCurrentlyRendering.get() || !myRenderFutures.isEmpty();
+    }
   }
 
   @NotNull
