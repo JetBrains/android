@@ -26,12 +26,10 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.intellij.ide.startup.impl.StartupManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileFactory;
@@ -89,7 +87,6 @@ public final class GradleFilePsiMerger {
     else {
       project2 = ProjectManagerEx.getInstanceEx().newProject("MergingOnly", "", false, true);
       assert project2 != null;
-      ((StartupManagerImpl)StartupManager.getInstance(project2)).runStartupActivities();
       projectNeedsCleanup = true;
     }
 
