@@ -96,6 +96,7 @@ class EmulatorViewTest {
 
   @Test
   fun testEmulatorView() {
+    traceScreenshotFeedRequests = true
     val view = createEmulatorView()
     @Suppress("UndesirableClassUsage")
     val container = JScrollPane(view).apply { border = null }
@@ -110,6 +111,9 @@ class EmulatorViewTest {
     var call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 266 height: 547")
     assertAppearance(ui, "image1")
+    if (call.completion.isCancelled) {
+      throw AssertionError("Premature cancellation: ${view.lastScreenshotFeedRequestStack}")
+    }
     assertThat(call.completion.isCancelled).isFalse() // The call has not been cancelled.
     assertThat(call.completion.isDone).isFalse() // The call is still ongoing.
 
