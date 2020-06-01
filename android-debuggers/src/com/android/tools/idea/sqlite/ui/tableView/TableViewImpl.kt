@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui.tableView
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.notifyError
@@ -50,6 +51,8 @@ import java.awt.Component
 import java.awt.FlowLayout
 import java.awt.GridBagLayout
 import java.awt.Point
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.InputEvent
@@ -359,7 +362,7 @@ class TableViewImpl : TableView {
   }
 
   private fun setUpPopUp() {
-    val setNullAction = object : AnAction("Set to NULL") {
+    val setNullAction = object : AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
       override fun actionPerformed(e: AnActionEvent) {
         val row = table.selectedRow
         val column = table.selectedColumn
@@ -375,6 +378,17 @@ class TableViewImpl : TableView {
       }
     }
 
+    val copyToClipboardAction = object : AnAction(DatabaseInspectorBundle.message("action.copy.to.clipboard")) {
+      override fun actionPerformed(e: AnActionEvent) {
+        val row = table.selectedRow
+        val column = table.selectedColumn
+
+        val value = (table.model as MyTableModel).getValueAt(row, column)
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        clipboard.setContents(StringSelection(value), null)
+      }
+    }
+
     setNullAction.registerCustomShortcutSet(
       CustomShortcutSet(
         KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.ALT_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null)
@@ -382,7 +396,7 @@ class TableViewImpl : TableView {
       table
     )
 
-    PopupHandler.installUnknownPopupHandler(table, DefaultActionGroup(setNullAction), ActionManager.getInstance())
+    PopupHandler.installUnknownPopupHandler(table, DefaultActionGroup(copyToClipboardAction, setNullAction), ActionManager.getInstance())
   }
 
   private class MyTableHeaderRenderer : TableCellRenderer {
