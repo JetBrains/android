@@ -33,6 +33,7 @@ import com.intellij.ide.impl.ProjectUtil
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemIndependent
@@ -142,9 +143,9 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
       AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk())
     }
 
-    val project = ProjectUtil.openProject(projectPath.absolutePath, null, false)!!
+    val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath())
     val text = project.dumpAndroidProjectView()
-    ProjectUtil.closeAndDispose(project)
+    PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 
     assertIsEqualToSnapshot(text)
   }

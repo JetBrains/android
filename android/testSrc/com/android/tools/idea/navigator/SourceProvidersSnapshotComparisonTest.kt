@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.dumpSourceProviders
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemIndependent
@@ -89,9 +90,9 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
       AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk())
     }
 
-    val project = ProjectUtil.openProject(projectPath.absolutePath, null, false)!!
+    val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath())
     val text = project.dumpSourceProviders()
-    ProjectUtil.closeAndDispose(project)
+    PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 
     assertIsEqualToSnapshot(text)
   }
