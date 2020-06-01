@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8AllQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8ModuleQuickFix
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.issue.BuildIssueQuickFix
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
