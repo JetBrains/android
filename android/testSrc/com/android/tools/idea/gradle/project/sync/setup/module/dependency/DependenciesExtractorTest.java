@@ -59,7 +59,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
   public void testExtractFromJavaLibrary() {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
-    IdeLibrary javaLibrary = new IdeJavaLibrary("guava", jarFile);
+    IdeLibrary javaLibrary = new IdeJavaLibrary("guava", jarFile, false);
 
     IdeDependenciesStubBuilder builder = new IdeDependenciesStubBuilder();
     builder.setJavaLibraries(ImmutableList.of(javaLibrary));
@@ -142,16 +142,16 @@ public class DependenciesExtractorTest extends PlatformTestCase {
   }
 
   public void testGetDependencyDisplayName() {
-    IdeJavaLibrary library1 = new IdeJavaLibrary("com.google.guava:guava:11.0.2@jar", new File(""));
+    IdeJavaLibrary library1 = new IdeJavaLibrary("com.google.guava:guava:11.0.2@jar", new File(""), false);
     assertThat(getDependencyDisplayName(library1)).isEqualTo("guava:11.0.2");
 
-    IdeJavaLibrary library2 = new IdeJavaLibrary("android.arch.lifecycle:extensions:1.0.0-beta1@aar", new File(""));
+    IdeJavaLibrary library2 = new IdeJavaLibrary("android.arch.lifecycle:extensions:1.0.0-beta1@aar", new File(""), false);
     assertThat(getDependencyDisplayName(library2)).isEqualTo("lifecycle:extensions:1.0.0-beta1");
 
-    IdeJavaLibrary library3 = new IdeJavaLibrary("com.android.support.test.espresso:espresso-core:3.0.1@aar", new File(""));
+    IdeJavaLibrary library3 = new IdeJavaLibrary("com.android.support.test.espresso:espresso-core:3.0.1@aar", new File(""), false);
     assertThat(getDependencyDisplayName(library3)).isEqualTo("espresso-core:3.0.1");
 
-    IdeJavaLibrary library4 = new IdeJavaLibrary("foo:bar:1.0", new File(""));
+    IdeJavaLibrary library4 = new IdeJavaLibrary("foo:bar:1.0", new File(""), false);
     assertThat(getDependencyDisplayName(library4)).isEqualTo("foo:bar:1.0");
   }
 
