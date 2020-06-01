@@ -21,7 +21,7 @@ import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockParametersBindingDialogView
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
-import com.android.tools.idea.sqlite.toSqliteValues
+import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
