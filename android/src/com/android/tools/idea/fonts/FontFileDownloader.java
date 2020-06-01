@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -65,6 +66,12 @@ public class FontFileDownloader implements FileDownloader {
     myFileDescriptions = fileDescriptions;
     myParentComponent = parentComponent;
     myDialogTitle = IdeBundle.message("progress.download.0.title", StringUtil.capitalize(presentableDownloadName));
+  }
+
+  @Override
+  public @NotNull CompletableFuture<List<Pair<VirtualFile, DownloadableFileDescription>>> downloadWithBackgroundProgress(
+    @Nullable String targetDirectoryPath, @Nullable Project project) {
+    throw new UnsupportedOperationException("Async operations are not supported");
   }
 
   @Nullable
