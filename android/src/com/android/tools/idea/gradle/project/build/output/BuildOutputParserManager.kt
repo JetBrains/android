@@ -22,7 +22,6 @@ import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.google.wireless.android.sdk.stats.BuildOutputWindowStats
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.build.output.JavacOutputParser
-import com.intellij.build.output.KotlincOutputParser
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.TestOnly
@@ -41,7 +40,7 @@ class BuildOutputParserManager @TestOnly constructor(
                                                       AndroidGradlePluginOutputParser(),
                                                       DataBindingOutputParser(),
                                                       JavacOutputParser(),
-                                                      KotlincOutputParser(),
+                                                      KotlincWithQuickFixesParser(),
                                                       GradleBuildScriptErrorParser()).map { BuildOutputParserWrapper(it) })
 
   fun sendBuildFailureMetrics() {
