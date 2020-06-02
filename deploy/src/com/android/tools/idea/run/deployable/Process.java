@@ -21,18 +21,12 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 class Process {
-  private final int myPid;
   @NotNull private volatile Set<String> myApplicationIds;
   @NotNull private Client myClient;
 
   Process(@NotNull Client client) {
-    myPid = client.getClientData().getPid();
     myApplicationIds = new HashSet<>();
     myClient = client;
-  }
-
-  int getPid() {
-    return myPid;
   }
 
   @NotNull
