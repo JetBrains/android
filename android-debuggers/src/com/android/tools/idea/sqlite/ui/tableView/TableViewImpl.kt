@@ -500,6 +500,11 @@ class TableViewImpl : TableView {
     override fun setValueAt(newValue: Any?, modelRowIndex: Int, modelColumnIndex: Int) {
       assert(modelColumnIndex > 0) { "Setting value of column at index 0 is not allowed" }
 
+      val oldValue = getValueAt(modelRowIndex, modelColumnIndex)
+      if (oldValue == newValue) {
+        return
+      }
+
       val newSqliteValue = if (newValue == null) SqliteValue.NullValue else SqliteValue.StringValue(newValue.toString())
 
       val column = columns[modelColumnIndex - 1]
