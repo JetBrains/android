@@ -24,6 +24,7 @@ import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
@@ -171,12 +172,16 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     verify(parametersBindingDialogView, times(0)).show()
   }
 
+  fun testEvaluateSqlActionSelectFailure() {
+    evaluateSqlQueryFailure(SqliteStatementType.SELECT, "SELECT")
+  }
+
   fun testEvaluateSqlActionCreateSuccess() {
     evaluateSqlActionSuccess(SqliteStatementType.UNKNOWN, "CREATE")
   }
 
   fun testEvaluateSqlActionCreateFailure() {
-    evaluateSqlActionFailure(SqliteStatementType.UNKNOWN, "CREATE")
+    evaluateSqlExecuteFailure(SqliteStatementType.UNKNOWN, "CREATE")
   }
 
   fun testEvaluateSqlActionDropSuccess() {
@@ -184,7 +189,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
   }
 
   fun testEvaluateSqlActionDropFailure() {
-    evaluateSqlActionFailure(SqliteStatementType.UNKNOWN, "DROP")
+    evaluateSqlExecuteFailure(SqliteStatementType.UNKNOWN, "DROP")
   }
 
   fun testEvaluateSqlActionAlterSuccess() {
@@ -192,7 +197,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
   }
 
   fun testEvaluateSqlActionAlterFailure() {
-    evaluateSqlActionFailure(SqliteStatementType.UNKNOWN, "ALTER")
+    evaluateSqlExecuteFailure(SqliteStatementType.UNKNOWN, "ALTER")
   }
 
   fun testEvaluateSqlActionInsertSuccess() {
@@ -200,7 +205,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
   }
 
   fun testEvaluateSqlActionInsertFailure() {
-    evaluateSqlActionFailure(SqliteStatementType.INSERT, "INSERT")
+    evaluateSqlExecuteFailure(SqliteStatementType.INSERT, "INSERT")
   }
 
   fun testEvaluateSqlActionUpdateSuccess() {
@@ -208,7 +213,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
   }
 
   fun testEvaluateSqlActionUpdateFailure() {
-    evaluateSqlActionFailure(SqliteStatementType.UPDATE, "UPDATE")
+    evaluateSqlExecuteFailure(SqliteStatementType.UPDATE, "UPDATE")
   }
 
   fun testEvaluateSqlActionDeleteSuccess() {
@@ -216,7 +221,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
   }
 
   fun testEvaluateSqlActionDeleteFailure() {
-    evaluateSqlActionFailure(SqliteStatementType.DELETE, "DELETE")
+    evaluateSqlExecuteFailure(SqliteStatementType.DELETE, "DELETE")
   }
 
   fun testTableViewIsNotShownForDataManipulationStatements() {
@@ -609,7 +614,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     verify(sqliteEvaluatorView, times(2)).setRunSqliteStatementEnabled(false)
   }
 
-  private fun evaluateSqlActionFailure(sqliteStatementType: SqliteStatementType, sqliteStatement: String) {
+  private fun evaluateSqlExecuteFailure(sqliteStatementType: SqliteStatementType, sqliteStatement: String) {
     // Prepare
     val throwable = Throwable()
     `when`(mockDatabaseConnection.execute(SqliteStatement(sqliteStatementType, sqliteStatement)))
@@ -624,6 +629,28 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     // Assert
     verify(mockDatabaseConnection).execute(SqliteStatement(sqliteStatementType, sqliteStatement))
     verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing SQLite statement"), refEq(throwable))
+    verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement.")
+  }
+
+  private fun evaluateSqlQueryFailure(sqliteStatementType: SqliteStatementType, sqliteStatement: String) {
+    // Prepare
+    val throwable = Throwable()
+    val resultSet = mock(SqliteResultSet::class.java)
+    `when`(resultSet.columns).thenReturn(Futures.immediateFailedFuture(throwable))
+    `when`(resultSet.totalRowCount).thenReturn(Futures.immediateFailedFuture(throwable))
+    `when`(resultSet.getRowBatch(any(), any())).thenReturn(Futures.immediateFailedFuture(throwable))
+
+    `when`(mockDatabaseConnection.query(SqliteStatement(sqliteStatementType, sqliteStatement)))
+      .thenReturn(Futures.immediateFuture(resultSet))
+
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, SqliteStatement(sqliteStatementType, sqliteStatement))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockDatabaseConnection).query(SqliteStatement(sqliteStatementType, sqliteStatement))
     verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement.")
   }
 }
