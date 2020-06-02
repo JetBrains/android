@@ -30,6 +30,7 @@ import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -42,7 +43,8 @@ import java.util.concurrent.TimeUnit
 /**
  * This service holds a reference to [AppInspectionDiscoveryHost]. It will establish new connections when they are discovered.
  */
-internal class AppInspectionHostService : Disposable {
+@Service
+class AppInspectionDiscoveryService : Disposable {
   init {
     // The following line has the side effect of starting the transport service if it has not been already.
     // The consequence of not doing this is gRPC calls are never responded to.
@@ -82,8 +84,8 @@ internal class AppInspectionHostService : Disposable {
   }
 
   companion object {
-    private val logger = Logger.getInstance(AppInspectionHostService::class.java)
-    val instance: AppInspectionHostService
+    private val logger = Logger.getInstance(AppInspectionDiscoveryService::class.java)
+    val instance: AppInspectionDiscoveryService
       get() = service()
   }
 

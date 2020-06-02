@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.ide.ui
 
-import com.android.tools.idea.appinspection.ide.AppInspectionHostService
+import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.model.AndroidModuleInfo
@@ -71,7 +71,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
 
   private val appInspectionView = AppInspectionView(
     project,
-    AppInspectionHostService.instance.discoveryHost,
+    AppInspectionDiscoveryService.instance.discoveryHost,
     ideServices,
     ::getPreferredProcesses
   )
