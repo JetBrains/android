@@ -28,6 +28,7 @@ import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.base.Joiner
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -96,6 +97,7 @@ class EmulatorViewTest {
 
   @Test
   fun testEmulatorView() {
+    traceScreenshotFeedRequests = true
     val view = createEmulatorView()
     @Suppress("UndesirableClassUsage")
     val container = JScrollPane(view).apply { border = null }
@@ -110,6 +112,9 @@ class EmulatorViewTest {
     var call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 266 height: 547")
     assertAppearance(ui, "image1")
+    if (call.completion.isCancelled) {
+      throw AssertionError("Premature cancellation:\n\n${Joiner.on("\n\n").join(view.screenshotFeedRequestStacks)}")
+    }
     assertThat(call.completion.isCancelled).isFalse() // The call has not been cancelled.
     assertThat(call.completion.isDone).isFalse() // The call is still ongoing.
 
