@@ -394,7 +394,7 @@ class EmulatorView(
   private fun updateConnectionState(connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
       remove(disconnectedStateLabel)
-      if (isVisible) {
+      if (isVisible && screenshotFeed == null) {
         requestScreenshotFeed()
       }
     }
