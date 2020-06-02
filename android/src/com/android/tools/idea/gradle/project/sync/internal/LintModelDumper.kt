@@ -198,22 +198,22 @@ private fun ProjectDumper.dump(lintModelArtifact: LintModelArtifact) {
 
 private fun ProjectDumper.dump(lintModelDependencies: LintModelDependencies) {
   fun dump(dependency: LintModelDependency) {
-    prop(dependency.artifactName) {
+    prop(dependency.artifactName.replaceKnownPaths()) {
       "${dependency.requestedCoordinates?.replaceKnownPaths()} => ${dependency.artifactAddress.replaceKnownPaths()}"
     }
     nest {
-      dependency.dependencies.sortedBy { it.artifactName }.forEach { dump(it) }
+      dependency.dependencies.sortedBy { it.artifactName.replaceKnownPaths() }.forEach { dump(it) }
     }
   }
 
   with(lintModelDependencies) {
     head("CompileDependencies")
     nest {
-      compileDependencies.roots.sortedBy { it.artifactName }.forEach { dump(it) }
+      compileDependencies.roots.sortedBy { it.artifactName.replaceKnownPaths() }.forEach { dump(it) }
     }
     head("PackageDependencies")
     nest {
-      packageDependencies.roots.sortedBy { it.artifactName }.forEach { dump(it) }
+      packageDependencies.roots.sortedBy { it.artifactName.replaceKnownPaths() }.forEach { dump(it) }
     }
   }
 }
