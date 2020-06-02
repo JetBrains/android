@@ -19,7 +19,6 @@ import com.android.tools.idea.mlkit.LoggingUtils;
 import com.android.tools.idea.mlkit.MlModuleService;
 import com.android.tools.idea.mlkit.lightpsi.ClassNames;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
-import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.MlNames;
 import com.android.tools.mlkit.ModelInfo;
@@ -165,7 +164,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath())));
       }
 
-      if (modelInfo.isMetadataVersionTooHigh()) {
+      if (!modelInfo.isMinParserVersionSatisfied()) {
         contentPanel.add(createMetadataVersionTooHighSection());
       }
       else if (modelInfo.isMetadataExisted()) {
@@ -426,7 +425,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static List<List<String>> getTensorTableData(List<TensorInfo> tensorInfoList) {
     List<List<String>> tableData = new ArrayList<>();
     for (TensorInfo tensorInfo : tensorInfoList) {
-      MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
+      TensorInfo.NormalizationParams params = tensorInfo.getNormalizationParams();
       String minMaxColumn = isValidMinMaxColumn(params) ? convertFloatArrayPairToString(params.getMin(), params.getMax()) : "[] / []";
       tableData.add(
         Lists.newArrayList(
@@ -465,7 +464,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return CaseFormat.UPPER_UNDERSCORE.to(caseFormat, content);
   }
 
-  private static boolean isValidMinMaxColumn(@NotNull MetadataExtractor.NormalizationParams params) {
+  private static boolean isValidMinMaxColumn(@NotNull TensorInfo.NormalizationParams params) {
     for (float min : params.getMin()) {
       if (Floats.compare(min, Float.MIN_VALUE) != 0) {
         return true;
