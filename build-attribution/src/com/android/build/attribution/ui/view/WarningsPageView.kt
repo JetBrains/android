@@ -16,7 +16,6 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.ui.model.TasksDataPageModel
-import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.model.WarningsDataPageModel
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
@@ -39,12 +38,12 @@ import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Font
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.tree.DefaultTreeModel
-import javax.swing.tree.TreePath
 
 
 @NonNls
@@ -80,7 +79,7 @@ class WarningsPageView(
     }
   }
 
-  val treeHeaderLabel: JLabel = JBLabel().withFont(JBUI.Fonts.label().asBold())
+  val treeHeaderLabel: JLabel = JBLabel().apply { font = font.deriveFont(Font.BOLD) }
 
   val detailsPanel = object : CardLayoutPanel<WarningsTreePresentableNodeDescriptor, WarningsTreePresentableNodeDescriptor, JComponent>() {
     override fun prepare(key: WarningsTreePresentableNodeDescriptor): WarningsTreePresentableNodeDescriptor = key

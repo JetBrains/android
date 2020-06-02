@@ -19,7 +19,7 @@ import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
 import com.android.build.attribution.ui.panels.headerLabel
-import com.android.build.attribution.ui.panels.htmlTextLabel
+import com.android.build.attribution.ui.panels.htmlTextLabelWithLinesWrap
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.HyperlinkLabel
@@ -61,7 +61,7 @@ class WarningsRootNode(
       val listPanel = JBPanel<JBPanel<*>>(VerticalLayout(6))
       val totalWarningsCount = reportData.totalIssuesCount
       listPanel.add(
-        htmlTextLabel(
+        htmlTextLabelWithLinesWrap(
           if (children.isEmpty())
             "No warnings detected for this build."
           else

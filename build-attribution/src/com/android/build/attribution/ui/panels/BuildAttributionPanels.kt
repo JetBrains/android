@@ -38,16 +38,18 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.SwingHelper
 import java.awt.FlowLayout
+import java.awt.Font
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.SwingConstants
 
 interface TreeLinkListener<T> {
   fun clickedOn(target: T)
 }
 
+@Deprecated("Used only in old navigation model, to be removed with cleanup.")
 fun pluginInfoPanel(
   pluginUiData: CriticalPathPluginUiData,
   listener: TreeLinkListener<TaskIssueType>,
@@ -65,7 +67,7 @@ fun pluginInfoPanel(
   add(DescriptionWithHelpLinkLabel(pluginText.html, BuildAnalyzerBrowserLinks.CRITICAL_PATH, analytics::helpLinkClicked))
   add(JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
     border = JBUI.Borders.emptyTop(15)
-    add(JBLabel("Warnings detected").withFont(JBUI.Fonts.label().asBold()))
+    add(JBLabel("Warnings detected").apply { font = font.deriveFont(Font.BOLD) })
     for (issueGroup in pluginUiData.issues) {
       add(HyperlinkLabel("${issueGroup.type.uiName} (${issueGroup.size})").apply {
         addHyperlinkListener { listener.clickedOn(issueGroup.type) }
@@ -80,7 +82,7 @@ fun pluginInfoPanel(
   withPreferredWidth(400)
 }
 
-@Deprecated("Left to support previous version.")
+@Deprecated("Used only in old navigation model, to be removed with cleanup.")
 fun taskInfoPanel(
   taskData: TaskUiData,
   analytics: BuildAttributionUiAnalytics,
@@ -99,47 +101,29 @@ fun taskDetailsPanel(
   helpLinkListener: (BuildAnalyzerBrowserLinks) -> Unit,
   generateReportClickedListener: (TaskUiData) -> Unit
 ): JPanel {
-  val taskDescription = htmlTextLabel(
-    HtmlBuilder()
-      .openHtmlBody()
-      .add(
-        if (taskData.onLogicalCriticalPath)
-          "This task frequently determines build duration because of dependencies between its inputs/outputs and other tasks."
-        else
-          "This task occasionally determines build duration because of parallelism constraints introduced by number of cores or other tasks in the same module."
-      )
-      .closeHtmlBody()
-      .html
-  )
-  val taskInfo = htmlTextLabel(
-    HtmlBuilder()
-      .openHtmlBody()
-      .beginBold().add("Duration:").endBold()
-      .add(" ${taskData.executionTime.durationString()} / ${taskData.executionTime.percentageString()}")
-      .newline()
-      .add("Sub-project: ${taskData.module}")
-      .newline()
-      .add("Plugin: ${taskData.pluginName}")
-      .newline()
-      .add("Type: ${taskData.taskType}")
-      .closeHtmlBody()
-      .html
-  )
+  val determinesBuildDurationLine = if (taskData.onLogicalCriticalPath)
+    "This task frequently determines build duration because of dependencies between its inputs/outputs and other tasks."
+  else
+    "This task occasionally determines build duration because of parallelism constraints introduced by number of cores or other tasks in the same module."
+  val taskInfo = htmlTextLabelWithLinesWrap("""
+      ${determinesBuildDurationLine}<br/>
+      <br/>
+      <b>Duration:</b>  ${taskData.executionTime.durationString()} / ${taskData.executionTime.percentageString()}<br/>
+      Sub-project: ${taskData.module}<br/>
+      Plugin: ${taskData.pluginName}<br/>
+      Type: ${taskData.taskType}<br/>
+      <br/>
+      <b>Warnings</b><br/>
+    """.trimIndent())
 
-  val reasonsToRunHeader = JBLabel("Reason task ran").withFont(JBUI.Fonts.label().asBold())
-  val reasonsList = reasonsToRunList(taskData)
+  val reasonsList = htmlTextLabelWithLinesWrap("""
+    <b>Reason task ran</b><br/>
+    ${createReasonsText(taskData.reasonsToRun)}
+  """.trimIndent())
 
-  // Use tabular layout of two columns two make things wrap nicely.
-  // Elements with fixed width are just added to the first column and determine it's width.
-  // Elements that can and should wrap are added with 'colSpan=2' so that they can grab extra horizontal space when available.
-  val infoPanel = JBPanel<JBPanel<*>>(TabularLayout("Fit,*"))
+  val infoPanel = JBPanel<JBPanel<*>>(TabularLayout("*"))
   var row = 0
-  infoPanel.add(taskDescription, TabularLayout.Constraint(row++, 0, colSpan = 2))
-  infoPanel.add(taskInfo.withBorder(JBUI.Borders.emptyTop(10)), TabularLayout.Constraint(row++, 0))
-  infoPanel.add(
-    JBLabel("Warnings").withFont(JBUI.Fonts.label().asBold()).withBorder(JBUI.Borders.emptyTop(22)),
-    TabularLayout.Constraint(row++, 0)
-  )
+  infoPanel.add(taskInfo, TabularLayout.Constraint(row++, 0))
   if (taskData.issues.isEmpty()) {
     infoPanel.add(JLabel("No warnings found"), TabularLayout.Constraint(row++, 0))
   }
@@ -150,12 +134,12 @@ fun taskDetailsPanel(
     for ((index, issue) in taskData.issues.withIndex()) {
       infoPanel.add(
         taskWarningDescriptionPanel(issue, helpLinkListener, index > 0),
-        TabularLayout.Constraint(row++, 0, colSpan = 2)
+        TabularLayout.Constraint(row++, 0)
       )
     }
   }
-  infoPanel.add(reasonsToRunHeader.withBorder(JBUI.Borders.emptyTop(22)), TabularLayout.Constraint(row++, 0))
-  infoPanel.add(reasonsList.withBorder(JBUI.Borders.emptyTop(8)), TabularLayout.Constraint(row, 0, colSpan = 2))
+  reasonsList.border = JBUI.Borders.emptyTop(22)
+  infoPanel.add(reasonsList, TabularLayout.Constraint(row, 0))
 
   return infoPanel
 }
@@ -172,9 +156,9 @@ private fun taskWarningDescriptionPanel(
     add(horizontalRuler(), TabularLayout.Constraint(0, 1))
   }
   add(JBLabel(warningIcon()).withBorder(JBUI.Borders.emptyRight(5)), TabularLayout.Constraint(1, 0))
-  add(JBLabel(issue.type.uiName).withFont(JBUI.Fonts.label().asBold()), TabularLayout.Constraint(1, 1))
+  add(htmlTextLabelWithFixedLines("<b>${issue.type.uiName}</b>"), TabularLayout.Constraint(1, 1))
   add(DescriptionWithHelpLinkLabel(issue.explanation, issue.helpLink, helpLinkClickCallback), TabularLayout.Constraint(2, 1))
-  add(htmlTextLabel("<b>Recommendation:</b> ${issue.buildSrcRecommendation}"), TabularLayout.Constraint(3, 1))
+  add(htmlTextLabelWithLinesWrap("<b>Recommendation:</b> ${issue.buildSrcRecommendation}"), TabularLayout.Constraint(3, 1))
 }
 
 @Deprecated("Left to support previous version.")
@@ -183,9 +167,9 @@ fun generateReportLinkLabel(
   issueReporter: TaskIssueReporter,
   taskData: TaskUiData
 ): JComponent = generateReportLinkLabel(taskData) {
-    analytics.bugReportLinkClicked()
-    issueReporter.reportIssue(taskData)
-  }
+  analytics.bugReportLinkClicked()
+  issueReporter.reportIssue(taskData)
+}
 
 fun generateReportLinkLabel(
   taskData: TaskUiData,
@@ -198,7 +182,7 @@ fun generateReportLinkLabel(
   add(link)
 }
 
-fun reasonsToRunList(taskData: TaskUiData) = htmlTextLabel(createReasonsText(taskData.reasonsToRun))
+fun reasonsToRunList(taskData: TaskUiData) = htmlTextLabelWithLinesWrap(createReasonsText(taskData.reasonsToRun))
 
 private fun createReasonsText(reasons: List<String>): String = if (reasons.isEmpty()) {
   "No info"
@@ -232,9 +216,11 @@ fun createIssueTypeListPanel(issuesGroup: TaskIssuesGroup, listener: TreeLinkLis
     }
   }
 
+@Deprecated("Used only in old navigation model, to be removed with cleanup.")
 fun criticalPathHeader(prefix: String, duration: String): JComponent =
   headerLabel("${prefix} determining this build's duration (${duration})")
 
+@Deprecated("Used only in old navigation model, to be removed with cleanup.")
 fun headerLabel(text: String): JLabel = JBLabel(text).withFont(JBUI.Fonts.label(13f).asBold()).apply {
   name = "pageHeader"
 }
@@ -243,9 +229,14 @@ fun headerLabel(text: String): JLabel = JBLabel(text).withFont(JBUI.Fonts.label(
  * Label with auto-wrapping turned on that accepts html text.
  * Used in Build Analyzer to render long multi-line text.
  */
-fun htmlTextLabel(html: String): JBLabel = JBLabel(html).apply {
-  setAllowAutoWrapping(true)
-  setCopyable(true)
-  isFocusable = false
-  verticalTextPosition = SwingConstants.TOP
-}
+fun htmlTextLabelWithLinesWrap(htmlBodyContent: String): JComponent =
+  SwingHelper.createHtmlViewer(true, null, null, null).apply {
+    border = JBUI.Borders.empty()
+    SwingHelper.setHtml(this, htmlBodyContent, foreground)
+  }
+
+fun htmlTextLabelWithFixedLines(htmlBodyContent: String): JComponent =
+  SwingHelper.createHtmlViewer(false, null, null, null).apply {
+    border = JBUI.Borders.empty()
+    SwingHelper.setHtml(this, htmlBodyContent, foreground)
+  }
