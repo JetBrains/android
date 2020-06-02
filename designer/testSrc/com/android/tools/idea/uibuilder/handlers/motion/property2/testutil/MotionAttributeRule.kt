@@ -136,6 +136,7 @@ class MotionAttributeRule(
     projectRule.fixture.testDataPath = getDesignerPluginHome() + "/testData/motion"
     val facet = projectRule.module.androidFacet!!
     projectRule.fixture.copyFileToProject("attrs.xml", "res/values/attrs.xml")
+    projectRule.fixture.copyFileToProject("MotionLayout.kt", "src/MotionLayout.kt")
     val layout = projectRule.fixture.copyFileToProject(motionLayoutFilename, "res/layout/$motionLayoutFilename")
     val layoutFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, layout) as XmlFile
     val queue = MergingUpdateQueue("MQ", 100, true, null, projectRule.fixture.projectDisposable)
