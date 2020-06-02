@@ -21,7 +21,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.DownloadableFileService;
-import com.intellij.util.download.FileDownloader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,7 +77,7 @@ public class FontDownloadService {
       notify(myFailure);
       return;
     }
-    FileDownloader downloader = new FontFileDownloader(files, null, null, "Download Fonts");
+    FontFileDownloader downloader = new FontFileDownloader(files);
     try {
       downloader.download(myFontPath);
       notify(mySuccess);
@@ -104,7 +103,7 @@ public class FontDownloadService {
   private static boolean performSingleFileDownloads(@NotNull File fontPath, @NotNull List<DownloadableFileDescription> files) {
     boolean success = true;
     for (DownloadableFileDescription file : files) {
-      FileDownloader downloader = new FontFileDownloader(Collections.singletonList(file), null, null, "Download Fonts");
+      FontFileDownloader downloader = new FontFileDownloader(Collections.singletonList(file));
       try {
         downloader.download(fontPath);
       }
