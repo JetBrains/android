@@ -37,7 +37,7 @@ import java.io.File
 
 @RunsInEdt
 @RunWith(Parameterized::class)
-class LintModelSnapshotComparisionTest : GradleIntegrationTest, SnapshotComparisonTest {
+class LintModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparisonTest {
 
   data class TestProject(val template: String, val pathToOpen: String = "") {
     override fun toString(): String = "${template.removePrefix("projects/")}$pathToOpen"
