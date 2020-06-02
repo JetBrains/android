@@ -314,8 +314,14 @@ class RepositoriesNoGMavenUsageInfo(
 
 class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
-  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
+  constructor(project: Project, current: GradleVersion, new: GradleVersion, gradleVersion: GradleVersion): super(project, current, new) {
+    this.gradleVersion = gradleVersion
+  }
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor) {
+    gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION)
+  }
+
+  val gradleVersion: GradleVersion
 
   override fun findUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -331,7 +337,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
           val virtualFile = VfsUtil.findFileByIoFile(ioFile, true) ?: return@forEach
           val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
           val property = propertiesFile.findPropertyByKey(GRADLE_DISTRIBUTION_URL_PROPERTY) ?: return@forEach
-          usages.add(GradleVersionUsageInfo(property.psiElement, current, new))
+          usages.add(GradleVersionUsageInfo(property.psiElement, current, new, gradleVersion))
         }
       }
     }
@@ -339,7 +345,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     return usages.toTypedArray()
   }
 
-  override fun getCommandName(): String = "Upgrade Gradle version to $GRADLE_LATEST_VERSION"
+  override fun getCommandName(): String = "Upgrade Gradle version to $gradleVersion"
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.gradleVersion"
 
@@ -349,18 +355,23 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = "Upgrade Gradle version to $GRADLE_LATEST_VERSION"
+      override fun getProcessedElementsHeader() = "Upgrade Gradle version to $gradleVersion"
     }
   }
 }
 
-class GradleVersionUsageInfo(element: PsiElement, current: GradleVersion, new: GradleVersion): GradleBuildModelUsageInfo(element, current, new) {
+class GradleVersionUsageInfo(
+  element: PsiElement,
+  current: GradleVersion,
+  new: GradleVersion,
+  private val gradleVersion: GradleVersion
+) : GradleBuildModelUsageInfo(element, current, new) {
   override fun getTooltipText(): String {
-    return "Upgrade Gradle version to $GRADLE_LATEST_VERSION"
+    return "Upgrade Gradle version to $gradleVersion"
   }
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    (element as? Property)?.setValue(GradleWrapper.getDistributionUrl(GRADLE_LATEST_VERSION, true))
+    (element as? Property)?.setValue(GradleWrapper.getDistributionUrl(gradleVersion.toString(), true))
   }
 }
 
