@@ -307,6 +307,10 @@
       description="Adds a new data sample file">
     </action>
     <action id="Android.Device.Picker.Help" class="com.android.tools.idea.actions.DevicePickerHelpAction"/>
+
+    <action id="RenderLaggingMode" internal="true" class="com.android.tools.idea.rendering.actions.RenderLaggingMode">
+      <add-to-group group-id="Internal.Performance" anchor="last" />
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
