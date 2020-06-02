@@ -34,7 +34,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.ui.components.JBLoadingPanel
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -399,7 +398,6 @@ class EmulatorView(
   private fun updateConnectionState(connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
       remove(disconnectedStateLabel)
-      invokeLaterInAnyModalityState(this::hideLongRunningOperationIndicator)
       if (isVisible) {
         requestScreenshotFeed()
       }
@@ -414,10 +412,10 @@ class EmulatorView(
     repaint()
   }
 
-  private fun findLoadingPanel(): JBLoadingPanel? {
+  private fun findLoadingPanel(): EmulatorLoadingPanel? {
     var component = parent
     while (component != null) {
-      if (component is JBLoadingPanel) {
+      if (component is EmulatorLoadingPanel) {
         return component
       }
       component = component.parent
@@ -517,6 +515,10 @@ class EmulatorView(
     findLoadingPanel()?.stopLoading()
   }
 
+  fun hideLongRunningOperationIndicatorInstantly() {
+    findLoadingPanel()?.stopLoadingInstantly()
+  }
+
   private inner class ScreenshotReceiver(val displayShape: DisplayShape) : DummyStreamObserver<ImageMessage>() {
     private var cachedImageSource: MemoryImageSource? = null
     private var screenshotShape: DisplayShape? = null
@@ -587,6 +589,8 @@ class EmulatorView(
 
     @UiThread
     private fun updateDisplayImage() {
+      hideLongRunningOperationIndicatorInstantly()
+
       val screenshot = screenshotForDisplay.getAndSet(null) ?: return
       val w = screenshot.width
       val h = screenshot.height

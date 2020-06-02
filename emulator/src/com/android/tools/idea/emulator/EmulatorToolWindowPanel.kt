@@ -170,7 +170,7 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
 
       addToolbars()
 
-      val loadingPanel = JBLoadingPanel(BorderLayout(), disposable, 200)
+      val loadingPanel = EmulatorLoadingPanel(disposable)
       this.loadingPanel = loadingPanel
       loadingPanel.add(layeredPane, BorderLayout.CENTER)
       addToCenter(loadingPanel)
