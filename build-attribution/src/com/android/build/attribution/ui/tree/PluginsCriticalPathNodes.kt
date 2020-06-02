@@ -37,7 +37,7 @@ import com.android.build.attribution.ui.panels.TreeLinkListener
 import com.android.build.attribution.ui.panels.createIssueTypeListPanel
 import com.android.build.attribution.ui.panels.criticalPathHeader
 import com.android.build.attribution.ui.panels.headerLabel
-import com.android.build.attribution.ui.panels.htmlTextLabel
+import com.android.build.attribution.ui.panels.htmlTextLabelWithLinesWrap
 import com.android.build.attribution.ui.panels.pluginInfoPanel
 import com.android.build.attribution.ui.panels.taskInfoPanel
 import com.android.build.attribution.ui.percentageString
@@ -265,7 +265,7 @@ private class PluginIssuesRootNode(
       val listPanel = JBPanel<JBPanel<*>>(VerticalLayout(6))
       val totalWarningsCount = pluginUiData.warningCount
       listPanel.add(
-        htmlTextLabel(
+        htmlTextLabelWithLinesWrap(
           if (children.isEmpty())
             "No warnings detected for this build."
           else
