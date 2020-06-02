@@ -18,9 +18,13 @@ package com.android.tools.idea.lint
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
 import com.android.SdkConstants.DOT_GRADLE
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.SdkMavenRepository
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.performRecommendedPluginUpgrade
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.shouldRecommendPluginUpgrade
 import com.android.tools.idea.lint.common.LintBatchResult
 import com.android.tools.idea.lint.common.LintEditorResult
 import com.android.tools.idea.lint.common.LintIdeClient
@@ -200,6 +204,16 @@ class AndroidLintIdeSupport : LintIdeSupport() {
         manager.updateLibrariesToVersion(module, listOf(latest), null)
       }
     }
+  }
+
+  override fun recommendedAgpVersion(project: Project): GradleVersion? {
+    return GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  }
+  override fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean {
+    return shouldRecommendPluginUpgrade(project)
+  }
+  override fun updateAgpToLatest(project: Project) {
+    performRecommendedPluginUpgrade(project)
   }
 
   override fun resolveDynamic(project: Project, gc: GradleCoordinate): String? {
