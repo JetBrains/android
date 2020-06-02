@@ -23,6 +23,8 @@ import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.google.common.base.Stopwatch
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
+import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -174,6 +176,13 @@ class TableViewImpl : TableView {
     liveUpdatesCheckBox.isEnabled = false
     liveUpdatesCheckBox.addActionListener { listeners.forEach { it.toggleLiveUpdatesInvoked() } }
     tableActionsPanel.add(liveUpdatesCheckBox)
+
+    HelpTooltip()
+      .setDescription(DatabaseInspectorBundle.message("action.live.updates.desc"))
+      .setLink(DatabaseInspectorBundle.message("learn.more")) {
+        BrowserUtil.browse("d.android.com/r/studio-ui/db-inspector-help/live-updates")
+      }
+      .installOn(liveUpdatesCheckBox)
 
     table.resetDefaultFocusTraversalKeys()
     table.isStriped = true
