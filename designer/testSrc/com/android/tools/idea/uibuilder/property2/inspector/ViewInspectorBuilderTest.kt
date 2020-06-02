@@ -320,6 +320,7 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject("AppCompatCheckBox.java", "src/java/android/support/v7/widget/AppCompatCheckBox.java")
     projectRule.fixture.copyFileToProject("Chip.java", "src/java/com/google/android/material/chip/Chip.java")
+    projectRule.fixture.copyFileToProject("ChipGroup.java", "src/java/com/google/android/material/chip/ChipGroup.java")
     val util = InspectorTestUtil(projectRule, CHIP, parentTag = CHIP_GROUP)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
