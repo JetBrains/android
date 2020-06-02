@@ -874,6 +874,31 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertTrue(liveUpdatesCheckBox.isEnabled)
   }
 
+  fun testDoesntSetValueIfSameValue() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    val mockListener = mock(TableView.Listener::class.java)
+    view.addListener(mockListener)
+
+    val col = ResultSetSqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col)
+    val row = SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1"))))
+    val rows = listOf(row)
+
+    view.startTableLoading()
+    view.showTableColumns(cols.toViewColumns())
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
+    view.stopTableLoading()
+
+    // Act
+    table.model.setValueAt("val1", 0, 1)
+
+    // Assert
+    verify(mockListener, times(0)).updateCellInvoked(0, col.toViewColumn(), SqliteValue.StringValue("val1"))
+  }
+
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {
     val values = mutableListOf<String?>()
     for (i in 0 until table.model.rowCount) {
