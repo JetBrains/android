@@ -30,12 +30,6 @@
 
     <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationProvider" />
 
-    <!--
-    Notification provider that is used to detect when PreviewEditor notifications should be updated.
-    See ComposePreviewEditorNotificationAdapter
-    -->
-    <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewEditorNotificationAdapter"/>
-
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewAnnotationInFunctionWithParametersInspection"
                      language="kotlin"
                      enabledByDefault="true"

@@ -61,7 +61,6 @@ private fun createBuildNotificationPanel(project: Project,
   }
 }
 
-
 /**
  * [EditorNotifications.Provider] that displays the notification when a Kotlin file adds the preview import. The notification will close
  * the current editor and open one with the preview.
