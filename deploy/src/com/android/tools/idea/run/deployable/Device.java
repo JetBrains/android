@@ -63,6 +63,9 @@ public class Device {
   // Map from PIDs to Process wrappers of processes on device (in some sense, the Clients).
   // Important note: this object is only meant to be used in a single-writer, multi-reader setting.
   // In this implementation, only refresh() updates this concurrent hash map.
+  //
+  // Note that Process.myApplicationIds is implicitly guarded by myPidToProcess via the #compute*
+  // interface methods.
   @NotNull private final Map<Integer, Process> myPidToProcess = new ConcurrentHashMap<>();
 
   // Pre-O devices don't have the API necessary to resolve the package name directly from the PID.
@@ -94,12 +97,15 @@ public class Device {
       myResolutions.computeIfAbsent(applicationId, ignored -> resolveLegacyPid(applicationId));
     }
 
-    List<Client> clients = new ArrayList<>();
-    for (Process process : myPidToProcess.values()) {
-      if (process.containsApplicationId(applicationId)) {
-        clients.add(process.getClient());
-      }
-    }
+    // Find the list of Clients that match the given applicationId by:
+    //   Iterate through all Process objects, find the ones that contain the given applicationId,
+    //   and put their corresponding Clients into a list.
+    // Note the use of the stream API since myPidToProcess map is the synchronization primitive
+    // to Process's underlying data structures.
+    List<Client> clients = myPidToProcess.values().stream()
+      .filter(process -> process.containsApplicationId(applicationId))
+      .map(process -> process.getClient())
+      .collect(Collectors.toList());
 
     // Fall back when we fail or haven't succeeded yet.
     if (clients.isEmpty()) {
@@ -145,10 +151,10 @@ public class Device {
     addedPids.forEach(pid -> {
       Client client = clients.get(pid);
       Process process = new Process(client);
-      if (!isLegacyDevice()) {
-        resolveApplicationId(process);
-      }
       myPidToProcess.put(pid, process);
+      if (!isLegacyDevice()) {
+        resolveApplicationId(pid);
+      }
     });
 
     // For legacy devices, we do not know when an application is installed and we're caching results based on when
@@ -178,9 +184,9 @@ public class Device {
    * application ID if it's possible to resolve. Only if it's not possible will this fall back to
    * using the process name instead.
    */
-  private void resolveApplicationId(@NotNull Process process) {
+  private void resolveApplicationId(int pid) {
     myResolverExecutor.execute(() -> {
-      String command = String.format(Locale.US, "stat -c %%u /proc/%d | xargs -n 1 cmd package list packages --uid", process.getPid());
+      String command = String.format(Locale.US, "stat -c %%u /proc/%d | xargs -n 1 cmd package list packages --uid", pid);
 
       CollectingOutputReceiver receiver = new CollectingOutputReceiver();
       try {
@@ -197,9 +203,15 @@ public class Device {
       }
 
       Matcher m = PACKAGE_NAME_PATTERN.matcher(output);
+      List<String> packageNames = new ArrayList<>();
       while (m.find()) {
-        process.addApplicationId(m.group(1));
+        packageNames.add(m.group(1));
       }
+
+      myPidToProcess.computeIfPresent(pid, (key, process) -> {
+        packageNames.forEach(packageName -> process.addApplicationId(packageName));
+        return process;
+      });
     });
   }
 
