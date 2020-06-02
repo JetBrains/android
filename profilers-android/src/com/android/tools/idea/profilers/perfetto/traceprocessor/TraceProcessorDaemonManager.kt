@@ -32,6 +32,8 @@ import java.io.InputStreamReader
 class TraceProcessorDaemonManager: Disposable {
   // All access paths to process should be synchronized.
   private var process: Process? = null
+  // Controls if we started the dispose process for this manager, to prevent new instances of daemon to be spawned.
+  private var disposed = false
 
   private companion object {
     private val LOGGER = Logger.getInstance(TraceProcessorDaemonManager::class.java)
@@ -84,7 +86,7 @@ class TraceProcessorDaemonManager: Disposable {
   @Synchronized
   fun makeSureDaemonIsRunning() {
     // Spawn a new one if either we don't have one running already or if the current one is not alive anymore.
-    if (!processIsRunning()) {
+    if (!processIsRunning() && !disposed) {
       LOGGER.info("TPD Manager: Starting new instance of TPD")
       val newProcess = ProcessBuilder(getExecutablePath())
         .redirectErrorStream(true)
@@ -106,6 +108,7 @@ class TraceProcessorDaemonManager: Disposable {
 
   @Synchronized
   override fun dispose() {
+    disposed = true
     // We waitFor after destroying the process in order to not leave a Zombie process in the system.
     process?.destroyForcibly()?.waitFor()
   }
