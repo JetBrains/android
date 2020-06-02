@@ -33,6 +33,8 @@ class TraceProcessorDaemonClient(val optionalChannel: ManagedChannel? = null): D
   private val daemonManager = TraceProcessorDaemonManager()
   private var cachedChannel: ManagedChannel? = null
   private var cachedStub: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub? = null
+  // Controls if we started the dispose process for this manager, to prevent new instances of daemon to be spawned.
+  private var disposed = false
 
   init {
     Disposer.register(this, daemonManager)
@@ -74,14 +76,13 @@ class TraceProcessorDaemonClient(val optionalChannel: ManagedChannel? = null): D
   // Retry the same call up to 3 times, if all of them fail rethrow the last exception.
   // In between retries, sleep for 200ms, to allow the underlying issue to fix itself.
   private fun <A, B> retry(request: A, rpc: (A) -> B): B {
-    var response: B? = null
     var lastException: Exception? = null
     for(i in 1..3){
       try {
-        daemonManager.makeSureDaemonIsRunning()
-        lastException = null
-        response = rpc(request)
-        break
+        if (!disposed) {
+          daemonManager.makeSureDaemonIsRunning()
+          return rpc(request)
+        }
       } catch (e: Exception) {
         LOGGER.debug("TPD Client: Attempt $i of RPC failed (`${e.message}`).")
         lastException = e
@@ -89,13 +90,12 @@ class TraceProcessorDaemonClient(val optionalChannel: ManagedChannel? = null): D
       }
     }
 
-    if (response == null) {
-      throw RuntimeException("Unable to reach TPDaemon.", lastException)
-    }
-    return response
+    // If we arrived here, is because we never managed to return the rpc request above.
+    throw RuntimeException("Unable to reach TPDaemon.", lastException)
   }
 
   override fun dispose() {
+    disposed = true
     cachedChannel?.shutdownNow()
   }
 }
