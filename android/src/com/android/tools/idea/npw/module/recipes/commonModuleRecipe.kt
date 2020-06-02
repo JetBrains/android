@@ -20,7 +20,6 @@ import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
-import com.android.tools.idea.npw.module.recipes.androidModule.cMakeListsTxt
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -40,12 +39,10 @@ fun RecipeExecutor.generateCommonModule(
   useKts: Boolean,
   manifestXml: String,
   generateTests: Boolean = false,
-  includeCppSupport: Boolean = false,
   iconsGenerationStyle: IconsGenerationStyle = IconsGenerationStyle.ALL,
   themesXml: String? = androidModuleThemes(data.projectTemplateData.androidXSupport, data.themesData.main.name),
   themesXmlNight: String? = null,
   colorsXml: String? = androidModuleColors(),
-  cppFlags: String = "",
   addLintOptions: Boolean = false
   ) {
   val (projectData, srcOut, resOut, manifestOut, testOut, unitTestOut, _, moduleOut) = data
@@ -73,8 +70,6 @@ fun RecipeExecutor.generateCommonModule(
       apis.targetApi.apiString,
       useAndroidX,
       agpVersion,
-      includeCppSupport,
-      cppFlags,
       hasTests = generateTests,
       formFactorNames = projectData.includedFormFactorNames,
       addLintOptions = addLintOptions
@@ -116,13 +111,6 @@ fun RecipeExecutor.generateCommonModule(
     }
     themesXmlNight?.let {
       save(it, resOut.resolve(SdkConstants.FD_RES_VALUES_NIGHT).resolve("themes.xml"))
-    }
-  }
-
-  if (includeCppSupport) {
-    with(moduleOut.resolve("src/main/cpp")) {
-      createDirectory(this)
-      save(cMakeListsTxt(packageName), resolve("CMakeLists.txt"))
     }
   }
 }

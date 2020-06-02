@@ -80,10 +80,8 @@ interface ProjectModelData {
   val applicationName: StringProperty
   val packageName: StringProperty
   val projectLocation: StringProperty
-  val enableCppSupport: BoolProperty
   val useAppCompat: BoolProperty
   val useGradleKts: BoolProperty
-  val cppFlags: StringProperty
   var project: Project
   val isNewProject: Boolean
   val language: OptionalProperty<Language>
@@ -96,10 +94,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
   override val packageName = StringValueProperty()
   override val projectLocation = StringValueProperty()
-  override val enableCppSupport = BoolValueProperty()
   override val useAppCompat = BoolValueProperty()
   override val useGradleKts = BoolValueProperty()
-  override val cppFlags = StringValueProperty()
   override lateinit var project: Project
   override val isNewProject = true
   override val language = OptionalValueProperty<Language>()

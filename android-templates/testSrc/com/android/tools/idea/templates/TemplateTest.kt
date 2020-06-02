@@ -309,6 +309,16 @@ open class TemplateTest : AndroidGradleTestCase() {
     checkCreateTemplate("Android Things Empty Activity", withKotlin)
   }
 
+  @TemplateCheck
+  fun testNewNativeCppActivity() {
+    checkCreateTemplate("Native C++")
+  }
+
+  @TemplateCheck
+  fun testNewNativeCppActivityWithKotlin() {
+    checkCreateTemplate("Native C++", withKotlin)
+  }
+
   //--- Fragment templates ---
   @TemplateCheck
   fun testNewListFragment() {

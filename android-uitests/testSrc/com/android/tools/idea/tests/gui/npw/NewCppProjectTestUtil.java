@@ -85,11 +85,11 @@ public class NewCppProjectTestUtil {
 
     String gradleCppFlags = ideFrame.getEditor()
                                     .open("app/build.gradle")
-                                    .moveBetween("cppFlags \"", "")
+                                    .moveBetween("cppFlags '", "")
                                     .getCurrentLine();
 
     String cppFlags = toolChain == CppStandardType.DEFAULT ? "" : toolChain.getCompilerFlag();
-    Assert.assertEquals(String.format("cppFlags \"%s\"", cppFlags), gradleCppFlags.trim());
+    Assert.assertEquals(String.format("cppFlags '%s'", cppFlags), gradleCppFlags.trim());
 
     runAppOnEmulator(ideFrame);
   }
