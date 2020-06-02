@@ -713,15 +713,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
  * @param representation a compose PreviewRepresentation of the [psiFile].
  */
-internal class PreviewEditor(psiFile: PsiFile, val representation: ComposePreviewRepresentation) :
+internal class PreviewEditor(psiFile: PsiFile, private val representation: ComposePreviewRepresentation) :
   ComposePreviewManager by representation, DesignFileEditor(
   psiFile.virtualFile!!) {
-
-  var onRefresh: (() -> Unit)? = null
-    set(value) {
-      field = value
-      representation.onRefresh = value
-    }
 
   init {
     Disposer.register(this, representation)
