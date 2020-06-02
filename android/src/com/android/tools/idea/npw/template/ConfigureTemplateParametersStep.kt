@@ -389,16 +389,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     // Some parameter values should be saved for later runs through this wizard, so do that first.
     parameterRows.values.forEach(RowEntry<*>::accept)
 
-    // TODO: Find a better way to configure new module cpp support - b/155256488
-    model.enableCppSupport.set(false)
     parameterRows.forEach { (p, row) ->
       p.setFromProperty(row.property!!)
-
-      // Cpp changes are  at Module level, but cpp flags are at the Activity level, and there is no good way to pass them around
-      if (p is EnumParameter && "C++ Standard" == p.name) {
-        model.enableCppSupport.set(true)
-        model.cppFlags.set(p.value.toString())
-      }
     }
   }
 

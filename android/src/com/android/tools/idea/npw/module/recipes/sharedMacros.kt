@@ -93,9 +93,7 @@ fun androidConfig(
   minApi: String,
   targetApi: String,
   useAndroidX: Boolean,
-  cppFlags: String,
   isLibraryProject: Boolean,
-  includeCppSupport: Boolean = false,
   hasApplicationId: Boolean = false,
   applicationId: String = "",
   hasTests: Boolean = false,
@@ -117,26 +115,6 @@ fun androidConfig(
     """
   }
 
-  val cppBlock = renderIf(includeCppSupport) {
-    """
-      externalNativeBuild {
-        cmake {
-          cppFlags "${cppFlags}"
-        }
-      }
-  """
-  }
-  val cppBlock2 = renderIf(includeCppSupport) {
-    """
-      externalNativeBuild {
-        cmake {
-          path "src/main/cpp/CMakeLists.txt"
-          version "3.10.2"
-        }
-      }
-      """
-  }
-
   return """
     android {
     compileSdkVersion ${buildApiString.toIntOrNull() ?: "\"$buildApiString\""}
@@ -151,12 +129,10 @@ fun androidConfig(
 
       $testsBlock
       $proguardConsumerBlock
-      $cppBlock
     }
 
     $proguardConfigBlock
     $lintOptionsBlock
-    $cppBlock2
     }
     """
 }

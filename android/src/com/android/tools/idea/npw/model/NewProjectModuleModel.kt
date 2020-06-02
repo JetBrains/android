@@ -101,7 +101,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
   }
 
   private fun createMainRenderModel(): RenderTemplateModel = when {
-    projectModel.enableCppSupport.get() || !extraRenderTemplateModel.hasActivity -> {
+    !extraRenderTemplateModel.hasActivity -> {
       RenderTemplateModel.fromModuleModel(newModuleModel).apply {
         if (newRenderTemplate.isPresent.get()) {
           newTemplate = newRenderTemplate.value

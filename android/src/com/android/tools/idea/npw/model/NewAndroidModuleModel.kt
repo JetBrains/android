@@ -54,8 +54,6 @@ class ExistingProjectModelData(
   override val applicationName: StringValueProperty = StringValueProperty(message("android.wizard.module.config.new.application"))
   override val packageName: StringValueProperty = StringValueProperty()
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
-  override val enableCppSupport: BoolValueProperty = BoolValueProperty()
-  override val cppFlags: StringValueProperty = StringValueProperty("")
   override val useAppCompat = BoolValueProperty()
   override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
   override val isNewProject = false
@@ -146,7 +144,7 @@ class NewAndroidModuleModel(
   inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
     override val recipe: Recipe get() = when(formFactor.get()) {
       FormFactor.Mobile -> { data: TemplateData ->
-        generateAndroidModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get(), enableCppSupport.get(), cppFlags.get(), bytecodeLevel.value)
+        generateAndroidModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get(), bytecodeLevel.value)
       }
       FormFactor.Wear -> { data: TemplateData ->
         generateWearModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
