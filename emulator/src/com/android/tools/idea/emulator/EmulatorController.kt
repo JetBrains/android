@@ -41,6 +41,7 @@ import com.intellij.util.containers.ContainerUtil
 import io.grpc.CallCredentials
 import io.grpc.CompressorRegistry
 import io.grpc.ConnectivityState
+import io.grpc.Deadline
 import io.grpc.DecompressorRegistry
 import io.grpc.ManagedChannel
 import io.grpc.Metadata
@@ -164,8 +165,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
     val token = emulatorId.grpcToken
     if (token == null) {
-      emulatorController = EmulatorControllerGrpc.newStub(channel)
-      snapshotService = SnapshotServiceGrpc.newStub(channel)
+      emulatorController = EmulatorControllerGrpc.newStub(channel).withDeadlineAfter(20, TimeUnit.SECONDS)
+      snapshotService = SnapshotServiceGrpc.newStub(channel).withDeadlineAfter(20, TimeUnit.SECONDS)
     }
     else {
       val credentials = TokenCallCredentials(token)
@@ -272,8 +273,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("getVmState()")
     }
-    emulatorController.getVmState(Empty.getDefaultInstance(),
-                                  DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetVmStateMethod()))
+    emulatorController.withDeadlineAfter(3, TimeUnit.SECONDS)
+        .getVmState(Empty.getDefaultInstance(), DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetVmStateMethod()))
   }
 
   fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getDummyObserver()) {
