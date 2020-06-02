@@ -1,7 +1,6 @@
 android {
   externalNativeBuild {
-    cmake {
-      path = file("foo/bar")
+    ndkBuild {
       version = "1.2.3"
     }
   }

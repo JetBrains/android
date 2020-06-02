@@ -18,13 +18,21 @@ package com.android.tools.idea.gradle.dsl.model.android;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_APPLY_CHANGES;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_APPLY_CHANGES_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_VERSION_AND_APPLY_CHANGES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_VERSION_AND_APPLY_CHANGES_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_VERSION_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_VERSION_AND_APPLY_CHANGES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_VERSION_AND_APPLY_CHANGES_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_VERSION_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE_WITH_NEW_FILE_PATH;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE_WITH_VERSION;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD_WITH_NEW_FILE_PATH;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD_WITH_VERSION;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_C_MAKE_AND_APPLY_CHANGES;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_C_MAKE_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_NDK_BUILD_AND_APPLY_CHANGES;
@@ -34,6 +42,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
 import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -61,6 +70,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     CMakeModel cmake = externalNativeBuild.cmake();
     checkForValidPsiElement(cmake, CMakeModelImpl.class);
     assertEquals("path", "foo/bar", cmake.path());
+    assertEquals("version", "1.2.3", cmake.version());
   }
 
   @Test
@@ -75,6 +85,20 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     CMakeModel cmake = externalNativeBuild.cmake();
     checkForValidPsiElement(cmake, CMakeModelImpl.class);
     assertEquals("path", "foo/bar", cmake.path());
+  }
+
+  @Test
+  public void testCMakeWithVersion() throws Exception {
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE_WITH_VERSION);
+
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    CMakeModel cmake = externalNativeBuild.cmake();
+    checkForValidPsiElement(cmake, CMakeModelImpl.class);
+    assertEquals("version", "1.2.3", cmake.version());
   }
 
   @Test
@@ -155,6 +179,28 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testAddCMakeVersionAndReset() throws Exception {
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_VERSION_AND_RESET);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
+    CMakeModel cmake = externalNativeBuild.cmake();
+    assertMissingProperty(cmake.version());
+
+    cmake.version().setValue("1.2.3");
+    assertEquals("version", "1.2.3", cmake.version());
+
+    buildModel.resetState();
+    assertMissingProperty(cmake.version());
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_VERSION_AND_RESET);
+  }
+
+  @Test
   public void testAddCMakePathAndApplyChanges() throws Exception {
     writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_APPLY_CHANGES);
 
@@ -181,6 +227,32 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testAddCMakeVersionAndApplyChanges() throws Exception {
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_VERSION_AND_APPLY_CHANGES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    CMakeModel cmake = android.externalNativeBuild().cmake();
+    assertMissingProperty(cmake.version());
+
+    cmake.version().setValue("1.2.3");
+    assertEquals("version", "1.2.3", cmake.version());
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_VERSION_AND_APPLY_CHANGES_EXPECTED);
+    assertEquals("version", "1.2.3", cmake.version());
+
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    cmake = android.externalNativeBuild().cmake();
+    assertEquals("version", "1.2.3", cmake.version());
+  }
+
+  @Test
   public void testNdkBuild() throws Exception {
     writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD);
 
@@ -192,6 +264,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     NdkBuildModel ndkBuild = externalNativeBuild.ndkBuild();
     checkForValidPsiElement(ndkBuild, NdkBuildModelImpl.class);
     assertEquals("path", "foo/Android.mk", ndkBuild.path());
+    assertEquals("version", "1.2.3", ndkBuild.version());
   }
 
   @Test
@@ -206,6 +279,20 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     NdkBuildModel ndkBuild = externalNativeBuild.ndkBuild();
     checkForValidPsiElement(ndkBuild, NdkBuildModelImpl.class);
     assertEquals("path", "foo/Android.mk", ndkBuild.path());
+  }
+
+  @Test
+  public void testNdkBuildWithVersion() throws Exception {
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD_WITH_VERSION);
+
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    NdkBuildModel ndkBuild = externalNativeBuild.ndkBuild();
+    checkForValidPsiElement(ndkBuild, NdkBuildModelImpl.class);
+    assertEquals("version", "1.2.3", ndkBuild.version());
   }
 
   @Test
@@ -285,6 +372,27 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testAddNdkBuildVersionAndReset() throws Exception {
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_VERSION_AND_RESET);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    NdkBuildModel ndkBuild = android.externalNativeBuild().ndkBuild();
+    assertMissingProperty(ndkBuild.version());
+
+    ndkBuild.version().setValue("1.2.3");
+    assertEquals("version", "1.2.3", ndkBuild.version());
+
+    buildModel.resetState();
+    assertMissingProperty(ndkBuild.version());
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_VERSION_AND_RESET);
+  }
+
+  @Test
   public void testAddNdkBuildPathAndApplyChanges() throws Exception {
     writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES);
 
@@ -312,6 +420,33 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testAddNdkBuildVersionAndApplyChanges() throws Exception {
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_VERSION_AND_APPLY_CHANGES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    NdkBuildModel ndkBuild = android.externalNativeBuild().ndkBuild();
+    assertMissingProperty(ndkBuild.version());
+
+    ndkBuild.version().setValue("1.2.3");
+    assertEquals("version", "1.2.3", ndkBuild.version());
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_VERSION_AND_APPLY_CHANGES_EXPECTED);
+
+    assertEquals("version", "1.2.3", ndkBuild.version());
+
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    ndkBuild = android.externalNativeBuild().ndkBuild();
+    assertEquals("version", "1.2.3", ndkBuild.version());
+  }
+
+  @Test
   public void testSetConstructorToFunction() throws Exception {
     writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION);
 
@@ -321,8 +456,10 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
     NdkBuildModel ndkBuildModel = android.externalNativeBuild().ndkBuild();
     assertEquals("path", "foo/Android.mk", ndkBuildModel.path());
+    assertEquals("version", "1.2.3", ndkBuildModel.version());
 
     ndkBuildModel.path().setValue("foo/bar/file.txt");
+    ndkBuildModel.version().setValue("1.2.3");
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION_EXPECTED);
 
@@ -331,5 +468,6 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
     ndkBuildModel = android.externalNativeBuild().ndkBuild();
     verifyPropertyModel(ndkBuildModel.path(), STRING_TYPE, "foo/bar/file.txt", STRING, DERIVED, 0, "0");
+    verifyPropertyModel(ndkBuildModel.version(), STRING_TYPE, "1.2.3", STRING, REGULAR, 0, "mVersion");
   }
 }
