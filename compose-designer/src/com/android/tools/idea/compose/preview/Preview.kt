@@ -490,7 +490,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   /**
    * Method called when the notifications of the [PreviewEditor] need to be updated. This is called by the
-   * [ComposePreviewEditorNotificationAdapter] when the editor needs to refresh the notifications.
+   * [ComposePreviewNotificationProvider] when the editor needs to refresh the notifications.
    */
   override fun updateNotifications(parentEditor: FileEditor) = UIUtil.invokeLaterIfNeeded {
     if (!parentEditor.isValid) return@invokeLaterIfNeeded
@@ -739,31 +739,5 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   override fun registerShortcuts(applicableTo: JComponent) {
     ForceCompileAndRefreshAction(surface).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
-  }
-}
-
-/**
- * A thin [FileEditor] wrapper around [ComposePreviewRepresentation].
- *
- * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
- * @param representation a compose PreviewRepresentation of the [psiFile].
- */
-internal class PreviewEditor(psiFile: PsiFile, private val representation: ComposePreviewRepresentation) :
-  ComposePreviewManager by representation, DesignFileEditor(
-  psiFile.virtualFile!!) {
-
-  init {
-    Disposer.register(this, representation)
-    component.add(representation.component, BorderLayout.CENTER)
-  }
-
-  override fun getName(): String = "Compose Preview"
-
-  fun registerShortcuts(applicableTo: JComponent) {
-    representation.registerShortcuts(applicableTo)
-  }
-
-  fun updateNotifications() {
-    representation.updateNotifications(this@PreviewEditor)
   }
 }
