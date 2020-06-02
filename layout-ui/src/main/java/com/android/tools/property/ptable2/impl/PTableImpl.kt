@@ -608,13 +608,20 @@ class PTableImpl(
    */
   private inner class MouseTableListener : MouseAdapter() {
 
+    /**
+     * Handle expansion/collapse after clicking on the expand icon in the name column.
+     */
     override fun mousePressed(event: MouseEvent) {
       val row = rowAtPoint(event.point)
       if (row == -1) {
         return
       }
+      val column = columnAtPoint(event.point)
+      if (column != 0) {
+        return
+      }
 
-      // Ignore a toggle if the cell is editable. Allow the TableUI to start editing instead:
+      // Ignore a toggle if the name cell is editable. Allow the TableUI to start editing instead:
       if (tableModel.isCellEditable(item(row), PTableColumn.NAME)) {
         val editor = editorComponent ?: return
         val newEvent = SwingUtilities.convertMouseEvent(this@PTableImpl, event, editor)
