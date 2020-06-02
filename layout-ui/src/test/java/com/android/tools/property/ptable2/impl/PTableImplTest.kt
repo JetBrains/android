@@ -27,6 +27,7 @@ import com.android.tools.property.ptable2.item.Item
 import com.android.tools.property.ptable2.item.PTableTestModel
 import com.android.tools.property.ptable2.item.createModel
 import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.property.testing.ApplicationRule
 import com.android.tools.property.testing.RunWithTestFocusManager
 import com.android.tools.property.testing.SwingFocusRule
@@ -37,6 +38,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import java.awt.AWTEvent
 import java.awt.Dimension
 import java.awt.event.ActionEvent
@@ -59,12 +61,11 @@ class PTableImplTest {
   private var model: PTableTestModel? = null
   private var table: PTableImpl? = null
   private var editorProvider: SimplePTableCellEditorProvider? = null
+  private val appRule = ApplicationRule()
+  private val focusRule = SwingFocusRule(appRule)
 
-  @JvmField @Rule
-  val appRule = ApplicationRule()
-
-  @JvmField @Rule
-  val focusRule = SwingFocusRule(appRule)
+  @get:Rule
+  val ruleChain: RuleChain = RuleChain.outerRule(appRule).around(focusRule)
 
   @Before
   fun setUp() {
@@ -582,6 +583,33 @@ class PTableImplTest {
     assertThat(table!!.rowCount).isEqualTo(10)
     table!!.toggle(table!!.item(4) as PTableGroupItem)
     assertThat(table!!.rowCount).isEqualTo(6)
+  }
+
+  @Test
+  fun testClickOnExpanderIcon() {
+    if (appRule.testApplication.isHeadlessEnvironment) {
+      return
+    }
+    val fakeUI = FakeUi(table!!)
+    table!!.setBounds(0, 0, 400, 4000)
+    table!!.doLayout()
+    fakeUI.mouse.click(10, table!!.rowHeight * 4 + 10)
+    assertThat(table!!.rowCount).isEqualTo(9)
+    // Called from attempt to make cell editable & from expander icon check
+    assertThat(model!!.countOfIsCellEditable).isEqualTo(2)
+  }
+
+  @Test
+  fun testClickOnValueColumnIgnored() {
+    if (appRule.testApplication.isHeadlessEnvironment) {
+      return
+    }
+    val fakeUI = FakeUi(table!!)
+    table!!.setBounds(0, 0, 400, 4000)
+    table!!.doLayout()
+    fakeUI.mouse.click(210, table!!.rowHeight * 4 + 10)
+    // Called from attempt to make cell editable but NOT from expander icon check
+    assertThat(model!!.countOfIsCellEditable).isEqualTo(1)
   }
 
   private fun createPanel(): JPanel {
