@@ -184,6 +184,9 @@ class SqliteEvaluatorController(
     )
     Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
     return currentTableController!!.setUp()
+      .catching(edtExecutor, Throwable::class.java) { throwable ->
+        view.tableView.setEmptyText("An error occurred while running the statement.")
+      }
   }
 
   private fun runUpdate(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
