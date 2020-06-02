@@ -260,9 +260,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       forceRefresh()
     }
 
-  /**
-   *
-   */
   private val sceneComponentProvider = ComposeSceneComponentProvider()
 
   private val surface = NlDesignSurface.builder(project, this)
