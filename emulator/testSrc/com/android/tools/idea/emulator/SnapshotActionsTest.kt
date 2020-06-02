@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createDialogAndInteractWithIt
@@ -35,20 +33,13 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.registerComponentInstance
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentMatchers.anyBoolean
-import org.mockito.Mockito.`when`
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 import javax.swing.JCheckBox
@@ -64,7 +55,6 @@ class SnapshotActionsTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
   private var nullableEmulator: FakeEmulator? = null
-  private val filesOpened = mutableListOf<VirtualFile>()
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
 
@@ -78,13 +68,6 @@ class SnapshotActionsTest {
   @Before
   fun setUp() {
     FakeUi.setPortableUiFont()
-    val fileEditorManager = mock<FileEditorManagerEx>()
-    `when`(fileEditorManager.openFile(any(), anyBoolean())).thenAnswer { invocation ->
-      filesOpened.add(invocation.getArgument(0))
-      return@thenAnswer emptyArray<FileEditor>()
-    }
-    `when`(fileEditorManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
-    projectRule.project.registerComponentInstance(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
     enableHeadlessDialogs(testRootDisposable)
   }
 
