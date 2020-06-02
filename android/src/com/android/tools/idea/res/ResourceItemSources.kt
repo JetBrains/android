@@ -76,8 +76,8 @@ internal class PsiResourceFile(
   }
 
   fun removeItem(item: PsiResourceItem) {
-    item.sourceFile = null
     _items.remove(item.key, item)
+    item.sourceFile = null
   }
 
   val name = _psiFile.name
