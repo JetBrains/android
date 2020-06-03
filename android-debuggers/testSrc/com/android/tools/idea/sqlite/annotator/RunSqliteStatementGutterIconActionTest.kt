@@ -69,7 +69,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)
 
     mockAppInspectionIdeServices = mock(AppInspectionIdeServices::class.java)
-    `when`(mockDatabaseInspectorProjectService.ideServices).thenReturn(mockAppInspectionIdeServices)
+    `when`(mockDatabaseInspectorProjectService.getIdeServices()).thenReturn(mockAppInspectionIdeServices)
 
     mouseEvent = mock(MouseEvent::class.java)
     `when`(mouseEvent.component).thenReturn(mock(Component::class.java))

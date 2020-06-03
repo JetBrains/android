@@ -75,6 +75,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
   private lateinit var databaseInspectorModel: MockDatabaseInspectorModel
   private lateinit var databaseRepository: MockDatabaseRepository
 
+  private lateinit var successfulInvocationNotificationInvocations: MutableList<String>
+
   private lateinit var sqliteUtil: SqliteTestUtil
   private var realDatabaseConnection: DatabaseConnection? = null
 
@@ -86,12 +88,16 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     mockDatabaseConnection = mock(DatabaseConnection::class.java)
     viewFactory = MockDatabaseInspectorViewsFactory()
     sqliteEvaluatorView = viewFactory.sqliteEvaluatorView
+
+    successfulInvocationNotificationInvocations = mutableListOf()
+
     sqliteEvaluatorController = SqliteEvaluatorController(
       myProject,
       databaseInspectorModel,
       databaseRepository,
       sqliteEvaluatorView,
-      {},
+      { successfulInvocationNotificationInvocations.add(it) },
+      { },
       edtExecutor,
       edtExecutor
     )
@@ -140,6 +146,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).query(sqlStatement)
+    assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
   }
 
   fun testEvaluateSqlActionQueryFailure() {
@@ -156,7 +163,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).execute(sqlStatement)
-    verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing SQLite statement"), refEq(throwable))
+    verify(sqliteEvaluatorView.tableView).reportError(eq("An error occurred while running the statement"), refEq(throwable))
   }
 
   fun testEvaluateStatementWithoutParametersDoesntShowParamsBindingDialog() {
@@ -432,7 +439,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).execute(SqliteStatement(sqliteStatementType, sqliteStatement))
-    verify(sqliteEvaluatorView.tableView).setEmptyText("The statement was run successfully.")
+    verify(sqliteEvaluatorView.tableView).setEmptyText("The statement was run successfully")
+    assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
   }
 
   fun testOldTableControllerListenerIsRemoveFromViewWhenNewQueryIsExecuted() {
@@ -511,7 +519,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(sqliteEvaluatorView).showSqliteStatement("INSERT INTO t1 VALUES (0);")
-    verify(sqliteEvaluatorView.tableView).setEmptyText("The statement was run successfully.")
+    verify(sqliteEvaluatorView.tableView).setEmptyText("The statement was run successfully")
+    assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
   }
 
   fun testRunSelectStatementWithoutSemicolon() {
@@ -628,8 +637,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).execute(SqliteStatement(sqliteStatementType, sqliteStatement))
-    verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing SQLite statement"), refEq(throwable))
-    verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement.")
+    verify(sqliteEvaluatorView.tableView).reportError(eq("An error occurred while running the statement"), refEq(throwable))
+    verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement")
   }
 
   private fun evaluateSqlQueryFailure(sqliteStatementType: SqliteStatementType, sqliteStatement: String) {
@@ -651,6 +660,6 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(mockDatabaseConnection).query(SqliteStatement(sqliteStatementType, sqliteStatement))
-    verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement.")
+    verify(sqliteEvaluatorView.tableView).setEmptyText("An error occurred while running the statement")
   }
 }

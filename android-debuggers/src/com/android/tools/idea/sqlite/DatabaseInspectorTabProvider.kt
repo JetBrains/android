@@ -21,7 +21,6 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController.SavedUiState
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
@@ -83,8 +82,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
       }
 
       init {
-        databaseInspectorProjectService.ideServices = ideServices
-        databaseInspectorProjectService.startAppInspectionSession(savedState, databaseInspectorClientCommands)
+        databaseInspectorProjectService.startAppInspectionSession(savedState, databaseInspectorClientCommands, ideServices)
         client.startTrackingDatabaseConnections()
         client.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
           override fun onDispose() {
