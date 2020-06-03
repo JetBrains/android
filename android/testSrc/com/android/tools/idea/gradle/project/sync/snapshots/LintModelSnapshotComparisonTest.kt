@@ -57,7 +57,8 @@ class LintModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompariso
       TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
       TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
-      TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp")
+      TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
+      TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT)
     )
   }
 
