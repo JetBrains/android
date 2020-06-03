@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
@@ -109,13 +110,15 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     assertEmpty(model.getAllDatabaseIds())
   }
 
-  fun testStopSessionsRemovesDatabaseInspectorClientChannelFromController() {
+  fun testStopSessionsRemovesDatabaseInspectorClientChannelAndAppInspectionServicesFromController() {
     // Prepare
     val clientCommandsChannel = object : DatabaseInspectorClientCommandsChannel {
       override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> = Futures.immediateFuture(null)
     }
 
-    databaseInspectorProjectService.startAppInspectionSession(null, clientCommandsChannel)
+    val appInspectionServices = mock(AppInspectionIdeServices::class.java)
+
+    databaseInspectorProjectService.startAppInspectionSession(null, clientCommandsChannel, appInspectionServices)
 
     // Act
     runDispatching {
@@ -125,6 +128,8 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     // Assert
     verify(mockSqliteController).setDatabaseInspectorClientCommandsChannel(clientCommandsChannel)
     verify(mockSqliteController).setDatabaseInspectorClientCommandsChannel(null)
+    verify(mockSqliteController).setAppInspectionServices(appInspectionServices)
+    verify(mockSqliteController).setAppInspectionServices(null)
   }
 
   fun testDatabasePossiblyChangedNotifiesController() {
