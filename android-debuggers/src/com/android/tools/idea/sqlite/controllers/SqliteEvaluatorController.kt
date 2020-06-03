@@ -85,7 +85,6 @@ class SqliteEvaluatorController(
 
   fun setUp(evaluationParams: EvaluationParams? = null) {
     view.addListener(sqliteEvaluatorViewListener)
-    view.tableView.setEditable(false)
     model.addListener(modelListener)
     if (evaluationParams != null) {
       val statement = createSqliteStatement(project, evaluationParams.statementText)
