@@ -41,6 +41,7 @@ import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandle
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.modelAffinity
@@ -389,8 +390,18 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                             }
                                           }, Duration.ofMillis(30))
 
+  private val hasSuccessfulBuild = AtomicBoolean(false)
+
   init {
     Disposer.register(this, ticker)
+
+    launch {
+      // Update the current build status in the background
+      ReadAction.run<Throwable> {
+        hasSuccessfulBuild.set(hasBeenBuiltSuccessfully(psiFilePointer))
+      }
+    }
+
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
         val file = psiFilePointer.element
@@ -399,12 +410,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           return
         }
 
+        hasSuccessfulBuild.set(true)
         EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
         forceRefresh()
       }
 
       override fun buildFailed() {
         LOG.debug("buildFailed")
+        hasSuccessfulBuild.set(false)
         updateSurfaceVisibilityAndNotifications()
       }
 
@@ -474,13 +487,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     ComposePreviewManager.Status(hasErrorsAndNeedsBuild(), hasSyntaxErrors(), isOutOfDate(), false)
 
   /**
-   * Returns true if the surface has at least one correctly rendered preview.
-   */
-  private fun hasAtLeastOneValidPreview() = surface.layoutlibSceneManagers
-    .mapNotNull { it.renderResult }
-    .any { !it.isComposeErrorResult() }
-
-  /**
    * Hides the preview content and shows an error message on the surface.
    */
   private fun showModalErrorMessage(message: String) = UIUtil.invokeLaterIfNeeded {
@@ -509,18 +515,18 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Calling this method will also update the FileEditor notifications.
    */
   private fun updateSurfaceVisibilityAndNotifications() = UIUtil.invokeLaterIfNeeded {
-    if (workbench.isMessageVisible && !hasAtLeastOneValidPreview()) {
-      LOG.debug("No valid previews available")
-      showModalErrorMessage(message("panel.needs.build"))
-    }
-    else {
-      LOG.debug("Show content")
-      workbench.hideLoading()
-      workbench.showContent()
-    }
+      if (workbench.isMessageVisible && !hasSuccessfulBuild.get()) {
+        LOG.debug("Needs successful build")
+        showModalErrorMessage(message("panel.needs.build"))
+      }
+      else {
+        LOG.debug("Show content")
+        workbench.hideLoading()
+        workbench.showContent()
+      }
 
-    updateNotifications()
-  }
+      updateNotifications()
+    }
 
   /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
