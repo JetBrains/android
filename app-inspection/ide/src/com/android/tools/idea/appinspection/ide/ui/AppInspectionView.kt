@@ -56,6 +56,7 @@ class AppInspectionView(
   private val project: Project,
   private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
   private val ideServices: AppInspectionIdeServices,
+  private val getTabProviders: () -> Collection<AppInspectorTabProvider>,
   getPreferredProcesses: () -> List<String>
 ) : Disposable {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
@@ -68,6 +69,16 @@ class AppInspectionView(
   val processModel: AppInspectionProcessModel
 
   private val noInspectorsMessage = EmptyStatePanel(AppInspectionBundle.message("select.process"))
+
+  constructor(project: Project,
+              appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
+              ideServices: AppInspectionIdeServices,
+              getPreferredProcesses: () -> List<String>) :
+    this(project,
+         appInspectionDiscoveryHost,
+         ideServices,
+         { AppInspectorTabProvider.EP_NAME.extensionList },
+         getPreferredProcesses)
 
   private fun showCrashNotification(inspectorName: String) {
     ideServices.showNotification(
@@ -123,7 +134,7 @@ class AppInspectionView(
   }
 
   private fun launchInspectorTabsForCurrentProcess() {
-    AppInspectorTabProvider.EP_NAME.extensionList
+    getTabProviders()
       .filter { provider -> provider.isApplicable() }
       .forEach { provider ->
         appInspectionDiscoveryHost.launchInspector(
