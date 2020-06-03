@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -48,6 +49,7 @@ class SqliteEvaluatorController(
   private val model: DatabaseInspectorModel,
   private val databaseRepository: DatabaseRepository,
   private val view: SqliteEvaluatorView,
+  private val showSuccessfulExecutionNotification: (String) -> Unit,
   override val closeTabInvoked: () -> Unit,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
@@ -127,7 +129,7 @@ class SqliteEvaluatorController(
 
   fun showAndExecuteSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     if (databaseId !in openDatabases) {
-      return immediateFailedFuture(IllegalStateException("Can't evaluate SQLite statement, unknown database: '${databaseId?.path}'"))
+      return immediateFailedFuture(IllegalStateException("Can't evaluate SQLite statement, unknown database: '${databaseId.path}'"))
     }
 
     currentEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
@@ -183,19 +185,22 @@ class SqliteEvaluatorController(
     )
     Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
     return currentTableController!!.setUp()
-      .catching(edtExecutor, Throwable::class.java) { throwable ->
-        view.tableView.setEmptyText("An error occurred while running the statement.")
+      .transform(edtExecutor) {
+        showSuccessfulExecutionNotification(DatabaseInspectorBundle.message("statement.run.successfully"))
+      }.catching(edtExecutor, Throwable::class.java) {
+        view.tableView.setEmptyText(DatabaseInspectorBundle.message("error.running.statement"))
       }
   }
 
   private fun runUpdate(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     return databaseRepository.executeStatement(databaseId, sqliteStatement)
       .transform(edtExecutor) {
-        view.tableView.setEmptyText("The statement was run successfully.")
+        view.tableView.setEmptyText(DatabaseInspectorBundle.message("statement.run.successfully"))
+        showSuccessfulExecutionNotification(DatabaseInspectorBundle.message("statement.run.successfully"))
         listeners.forEach { it.onSqliteStatementExecuted(databaseId) }
       }.catching(edtExecutor, Throwable::class.java) { throwable ->
-        view.tableView.setEmptyText("An error occurred while running the statement.")
-        view.tableView.reportError("Error executing SQLite statement", throwable)
+        view.tableView.setEmptyText(DatabaseInspectorBundle.message("error.running.statement"))
+        view.tableView.reportError(DatabaseInspectorBundle.message("error.running.statement"), throwable)
       }.cancelOnDispose(this)
   }
 
