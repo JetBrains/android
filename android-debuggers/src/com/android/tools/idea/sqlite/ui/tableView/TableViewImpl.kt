@@ -373,16 +373,26 @@ class TableViewImpl : TableView {
   private fun setUpPopUp() {
     val setNullAction = object : AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
       override fun actionPerformed(e: AnActionEvent) {
-        val row = table.selectedRow
-        val column = table.selectedColumn
+        val rowIndex = table.selectedRow
+        val columnIndex = table.selectedColumn
 
-        if (column > 0) {
-          (table.model as MyTableModel).setValueAt(null, row, column)
+        if (columnIndex > 0) {
+          (table.model as MyTableModel).setValueAt(null, rowIndex, columnIndex)
         }
       }
 
       override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = (table.model as? MyTableModel)?.isEditable ?: false
+        val columnIndex = table.selectedColumn
+
+        val isNullable = if (columnIndex > 0) {
+          val column = (table.model as MyTableModel).columns[columnIndex-1]
+          column.isNullable
+        }
+        else {
+          false
+        }
+
+        e.presentation.isEnabled = (table.model as MyTableModel).isEditable && isNullable
         super.update(e)
       }
     }
