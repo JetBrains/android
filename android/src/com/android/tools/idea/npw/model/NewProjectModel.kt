@@ -47,6 +47,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -108,7 +109,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       }
 
       val path = Paths.get(projectLocation)
-      PlatformProjectOpenProcessor.openExistingProject(path, OpenProjectTask(forceOpenInNewFrame = true, project = newProject))
+      ProjectManagerEx.getInstanceEx().loadAndOpenProject(path, OpenProjectTask(forceOpenInNewFrame = true, project = newProject))
     }
   }
 
