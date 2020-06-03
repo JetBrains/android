@@ -18,7 +18,7 @@ package com.android.tools.idea.nav.safeargs.cache
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
 import com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker
 import com.android.tools.idea.nav.safeargs.project.SafeArgsEnabledFacetsProjectComponent
-import com.android.tools.idea.nav.safeargs.psi.LightArgsClass
+import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
 import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass

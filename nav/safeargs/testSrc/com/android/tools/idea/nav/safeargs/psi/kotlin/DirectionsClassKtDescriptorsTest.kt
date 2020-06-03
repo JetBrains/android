@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.nav.safeargs.kotlin
+package com.android.tools.idea.nav.safeargs.psi.kotlin
 
-import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.project.SafeArgSyntheticPackageProvider
@@ -36,15 +36,12 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class SafeArgKotlinPackageDescriptorTest {
+class DirectionsClassKtDescriptorsTest {
   @get:Rule
   val safeArgsRule = SafeArgsRule(SafeArgsMode.KOTLIN)
 
-  /**
-   * Check contributed args and directions class descriptors for single module case
-   */
   @Test
-  fun checkContributorsOfPackage() {
+  fun checkContributorsOfDirectionsClass() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -68,17 +65,7 @@ class SafeArgKotlinPackageDescriptorTest {
           <fragment
               android:id="@+id/fragment2"
               android:name="test.safeargs.Fragment2"
-              android:label="Fragment2" >
-            <argument
-                android:name="arg2"
-                app:argType="integer[]" />
-            <action
-              android:id="@+id/action_Fragment2_to_main"
-              app:destination="@id/main" />
-          </fragment>  
-          <action
-              android:id="@+id/action_main_to_fragment1"
-              app:destination="@id/fragment1" />                      
+              android:label="Fragment2" />
         </navigation>
       """.trimIndent())
 
@@ -89,7 +76,7 @@ class SafeArgKotlinPackageDescriptorTest {
       it is SafeArgsKtPackageProviderExtension
     }
 
-    val traceMock: BindingTrace = mock()
+    val traceMock: BindingTrace = MockitoKt.mock()
     val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
@@ -104,20 +91,36 @@ class SafeArgKotlinPackageDescriptorTest {
 
     val renderer = DescriptorRenderer.COMPACT_WITH_MODIFIERS
 
-    val classDescriptors = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
+    val directionsClassDescriptor = fragmentProvider.getPackageFragments(FqName("test.safeargs"))
       .first()
       .getMemberScope()
       .getContributedDescriptors()
-      .sortedWith(MemberComparator.INSTANCE)
+      .filter { it is LightDirectionsKtClass }
+      .first() as LightDirectionsKtClass
+
+    // Check primary constructor
+    directionsClassDescriptor.unsubstitutedPrimaryConstructor.let {
+      val rendered = renderer.render(it)
+      assertThat(rendered).isEqualTo("public constructor Fragment1Directions()")
+    }
+
+    // Check companion objects
+    val companionObject = directionsClassDescriptor.companionObjectDescriptor
+      .unsubstitutedMemberScope
+      .getContributedDescriptors()
+      .sortedWith (MemberComparator.INSTANCE)
       .map { renderer.render(it) }
 
-    assertThat(classDescriptors).containsExactly(
+    assertThat(companionObject).containsExactly(
       // unresolved type is due to the missing library module dependency in test setup
-      "public final class Fragment1Args : [ERROR : androidx.navigation.NavArgs]",
-      "public final class Fragment1Directions",
-      "public final class Fragment2Args : [ERROR : androidx.navigation.NavArgs]",
-      "public final class Fragment2Directions",
-      "public final class MainDirections"
-    )
+      "public final fun actionFragment1ToFragment2(): [ERROR : androidx.navigation.NavDirections]")
+
+    // Check methods
+    val contributors = directionsClassDescriptor.unsubstitutedMemberScope
+      .getContributedDescriptors()
+      .sortedWith (MemberComparator.INSTANCE)
+      .map { renderer.render(it) }
+
+    assertThat(contributors).isEmpty()
   }
 }

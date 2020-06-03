@@ -21,9 +21,8 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
 import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
-import com.android.tools.idea.nav.safeargs.psi.LightArgsClass
-import com.android.tools.idea.nav.safeargs.psi.LightDirectionsClass
-import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
+import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
+import com.android.tools.idea.nav.safeargs.psi.java.LightDirectionsClass
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.intellij.openapi.diagnostic.Logger

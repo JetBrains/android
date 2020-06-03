@@ -17,8 +17,8 @@ package com.android.tools.idea.nav.safeargs.project
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
-import com.android.tools.idea.nav.safeargs.kotlin.SafeArgKotlinPackageDescriptor
-import com.android.tools.idea.nav.safeargs.kotlin.SafeArgSyntheticPackageResourceData
+import com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgKotlinPackageDescriptor
+import com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgSyntheticPackageResourceData
 import com.android.tools.idea.nav.safeargs.module.SafeArgsResourceForKtDescriptors
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.projectsystem.getProjectSystem
