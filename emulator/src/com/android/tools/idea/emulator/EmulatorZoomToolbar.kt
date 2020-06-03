@@ -16,8 +16,10 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.editor.EditorActionsFloatingToolbar
-import com.android.tools.idea.uibuilder.editor.BasicDesignSurfaceActionGroups
+import com.android.tools.editor.EditorActionsToolbarActionGroups
+import com.android.tools.idea.uibuilder.editor.createZoomControlsGroup
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionGroup
 import javax.swing.JComponent
 
 internal class EmulatorZoomToolbar private constructor(
@@ -29,7 +31,10 @@ internal class EmulatorZoomToolbar private constructor(
     updateToolbar()
   }
 
-  override fun getActionGroups() = BasicDesignSurfaceActionGroups()
+  override fun getActionGroups() = object: EditorActionsToolbarActionGroups {
+    override val zoomControlsGroup: ActionGroup?
+      get() = createZoomControlsGroup()
+  }
 
   companion object {
     @JvmStatic
