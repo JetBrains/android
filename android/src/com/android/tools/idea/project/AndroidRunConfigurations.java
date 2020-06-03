@@ -20,7 +20,6 @@ import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantApp
 import static com.android.tools.idea.run.AndroidRunConfiguration.DO_NOTHING;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
 import static com.android.tools.idea.run.util.LaunchUtils.isWatchFaceApp;
-import static com.intellij.psi.impl.DebugUtil.currentStackTrace;
 
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
@@ -29,8 +28,6 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import java.util.List;
@@ -85,9 +82,9 @@ public class AndroidRunConfigurations {
     if (targetSelectionMode != null) {
       configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
-    TransactionGuard.submitTransaction(module.getProject(), () -> {
+    if (!module.getProject().isDisposed()){
       runManager.addConfiguration(settings);
       runManager.setSelectedConfiguration(settings);
-    });
+    }
   }
 }
