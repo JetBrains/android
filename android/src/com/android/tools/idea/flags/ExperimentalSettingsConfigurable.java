@@ -25,6 +25,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
 import com.android.tools.idea.rendering.RenderSettings;
+import com.android.tools.idea.ui.LayoutEditorSettingsKt;
 import com.android.tools.idea.ui.LayoutInspectorSettingsKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -66,6 +67,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myUseSingleVariantSyncCheckbox;
   private JSlider myLayoutEditorQualitySlider;
   private JCheckBox myLayoutInspectorCheckbox;
+  private JCheckBox myAtfCheckBox;
   private TitledSeparator myLayoutInspectorSeparator;
   private JCheckBox mySkipGradleTasksList;
   private JCheckBox myUseLayoutlibNative;
@@ -99,6 +101,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     boolean showLayoutInspectorSettings = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get();
     myLayoutInspectorSeparator.setVisible(showLayoutInspectorSettings);
     myLayoutInspectorCheckbox.setVisible(showLayoutInspectorSettings);
+    myAtfCheckBox.setVisible(StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR.get());
     initTraceComponents();
     reset();
   }
@@ -143,7 +146,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation()) ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector() ||
-           (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN));
+           (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN)) ||
+           myAtfCheckBox.isSelected() != LayoutEditorSettingsKt.getAlwaysEnableLayoutValidation();
   }
 
   private int getQualitySetting() {
@@ -159,6 +163,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myRenderSettings.setQuality(getQualitySetting() / 100f);
 
     LayoutInspectorSettingsKt.setEnableLiveLayoutInspector(myLayoutInspectorCheckbox.isSelected());
+    LayoutEditorSettingsKt.setAlwaysEnableLayoutValidation(myAtfCheckBox.isSelected());
     if (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN)) {
       myRestartCallback = () -> ApplicationManager.getApplication().invokeLater(() -> PluginManagerConfigurable.shutdownOrRestartApp());
       LayoutEditorEvent.Builder eventBuilder = LayoutEditorEvent.newBuilder();
@@ -341,6 +346,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myTraceGradleSyncCheckBox.setSelected(mySettings.TRACE_GRADLE_SYNC);
     myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
     myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);
+    myAtfCheckBox.setSelected(LayoutEditorSettingsKt.getAlwaysEnableLayoutValidation());
     updateTraceComponents();
   }
 

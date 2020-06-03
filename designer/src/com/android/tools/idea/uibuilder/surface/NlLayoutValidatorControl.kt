@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.common.error.IssuePanel
+import com.android.tools.idea.ui.alwaysEnableLayoutValidation
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
 
@@ -30,8 +31,10 @@ class NlLayoutValidatorControl(
   private val issuePanelListener = IssuePanel.MinimizeListener {
     if (it) {
       // Minimized
-      validator.disable()
-      surface.sceneManager?.isLayoutValidationEnabled = false
+      if (!alwaysEnableLayoutValidation) {
+        validator.disable()
+        surface.sceneManager?.isLayoutValidationEnabled = false
+      }
     }
     else if (surface.sceneManager?.isLayoutValidationEnabled == false) {
       surface.sceneManager?.isLayoutValidationEnabled = true
@@ -55,8 +58,10 @@ class NlLayoutValidatorControl(
 
   override fun runLayoutValidation() {
     validator.addListener(validatorListener)
-    surface.sceneManager?.isLayoutValidationEnabled = true
-    surface.forceUserRequestedRefresh()
+    val manager = surface.sceneManager ?: return
+    manager.isLayoutValidationEnabled = true
+    manager.forceReinflate()
+    surface.requestRender()
   }
 }
 

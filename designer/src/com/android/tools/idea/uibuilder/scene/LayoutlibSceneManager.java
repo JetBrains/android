@@ -58,6 +58,7 @@ import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
+import com.android.tools.idea.ui.LayoutEditorSettingsKt;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -909,7 +910,7 @@ public class LayoutlibSceneManager extends SceneManager {
     RenderLogger logger = renderService.createLogger(facet);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
       .withPsiFile(getModel().getFile())
-      .withLayoutValidation(isLayoutValidationEnabled)
+      .withLayoutValidation(isLayoutValidationEnabled || LayoutEditorSettingsKt.getAlwaysEnableLayoutValidation())
       .withLogger(logger);
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
