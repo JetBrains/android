@@ -97,9 +97,9 @@ class TableViewImpl : TableView {
 
   private val pageSizeComboBox = ComboBox<Int>()
 
-  private val refreshButton = CommonButton("Refresh Table", AllIcons.Actions.Refresh)
+  private val refreshButton = CommonButton(DatabaseInspectorBundle.message("action.refresh.table"), AllIcons.Actions.Refresh)
 
-  private val liveUpdatesCheckBox = JBCheckBox("Live Updates")
+  private val liveUpdatesCheckBox = JBCheckBox(DatabaseInspectorBundle.message("action.live.updates"))
 
   private val table = JBTable()
   private val tableScrollPane = JBScrollPane(table)
