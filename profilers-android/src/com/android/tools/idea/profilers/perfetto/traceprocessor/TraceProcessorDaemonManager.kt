@@ -23,6 +23,8 @@ import com.intellij.openapi.util.SystemInfo
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.lang.RuntimeException
+import java.util.regex.Pattern
 
 
 /**
@@ -34,9 +36,17 @@ class TraceProcessorDaemonManager: Disposable {
   private var process: Process? = null
   // Controls if we started the dispose process for this manager, to prevent new instances of daemon to be spawned.
   private var disposed = false
+  // The port in which the daemon is listening to, available to the Client to build the channel.
+  var daemonPort = 0
+    private set
 
   private companion object {
     private val LOGGER = Logger.getInstance(TraceProcessorDaemonManager::class.java)
+
+    // TPD is hardcoded to output these strings on stdout:
+    private val SERVER_STARTED = Pattern.compile("^Server listening on (?:127.0.0.1|localhost):(?<port>\\d+)\n*$")
+    // TPD write the following message to stdout when it cannot find a port to bind.
+    private val SERVER_PORT_BIND_FAILED = "Server failed to start. A port number wasn't bound."
 
     private val TPD_DEV_PATH: String by lazy {
       when {
@@ -93,15 +103,22 @@ class TraceProcessorDaemonManager: Disposable {
         .start()
       val processInputReader = BufferedReader(InputStreamReader(newProcess.inputStream))
 
-      // wait until we receive the message that the daemon is listening
+      // wait until we receive the message that the daemon is listening and get the port
+      var newProcessPort = 0
       while (true) {
         val line = processInputReader.readLine() ?: break
         LOGGER.info("TPD Manager: TPD - $line")
-        if (line.startsWith("Server listening on ", true)) {
+
+        val serverOkMatcher = SERVER_STARTED.matcher(line)
+        if (serverOkMatcher.matches()) {
+          newProcessPort = serverOkMatcher.group("port").toInt()
           break
+        } else if (line.startsWith(SERVER_PORT_BIND_FAILED)) {
+          throw RuntimeException("Unable to start TPD.")
         }
       }
-      LOGGER.info("TPD Manager: TPD instance ready.")
+      LOGGER.info("TPD Manager: TPD instance ready on port $newProcessPort.")
+      daemonPort = newProcessPort
       process = newProcess
     }
   }
