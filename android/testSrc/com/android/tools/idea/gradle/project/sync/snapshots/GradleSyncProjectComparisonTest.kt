@@ -259,12 +259,12 @@ abstract class GradleSyncProjectComparisonTest(
       )
     }
 
-    open fun testPsdSample() {
+    fun testPsdSample() {
       val text = importSyncAndDumpProject(PSD_SAMPLE_GROOVY)
       assertIsEqualToSnapshot(text)
     }
 
-    open fun testPsdSampleRenamingModule() {
+    fun testPsdSampleRenamingModule() {
       val beforeRename = importSyncAndDumpProject(PSD_SAMPLE_GROOVY)
       PsProjectImpl(project).let { projectModel ->
         projectModel.removeModule(":nested1")

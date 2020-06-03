@@ -1224,6 +1224,7 @@ PROJECT             : testPsdSampleRenamingModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
+        ORDER_ENTRY         : testPsdSampleRenamingModule.jav
     MODULE              : testPsdSampleRenamingModule.nested1
         ExternalModuleGroup : testPsdSampleRenamingModule
         ExternalModuleVersion         : unspecified
