@@ -652,6 +652,12 @@ public final class StudioFlags {
     NDK_SIDE_BY_SIDE, "ndk.sxs.enabled", "Enable side by side NDK support",
     "If enabled, C/C++ projects will have NDK side by side support",
     true);
+
+  public static final Flag<Boolean> USE_CONTENT_ROOTS_FOR_NATIVE_PROJECT_VIEW = Flag.create(
+    NDK, "use.content.roots.for.native.project.view", "Use content roots for native project view",
+    "If enabled, the C/C++ content roots are displayed in Android View and Project View. Otherwise, each individual native target " +
+    "is displayed.",
+    false);
   //endregion
 
   //region Editor
