@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.nav.safeargs.kotlin
+package com.android.tools.idea.nav.safeargs.psi.kotlin
 
-import com.android.tools.idea.nav.safeargs.psi.getPsiTypeStr
+import com.android.tools.idea.nav.safeargs.psi.java.getPsiTypeStr
 import com.google.common.annotations.VisibleForTesting
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap

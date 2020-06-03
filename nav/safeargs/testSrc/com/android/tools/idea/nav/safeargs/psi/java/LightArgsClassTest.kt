@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.nav.safeargs.psi
+package com.android.tools.idea.nav.safeargs.psi.java
 
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -26,12 +26,12 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class LightArgsBuilderClassTest {
+class LightArgsClassTest {
   @get:Rule
   val safeArgsRule = SafeArgsRule()
 
   @Test
-  fun canFindArgsBuilderClasses() {
+  fun canFindArgsClasses() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -52,11 +52,7 @@ class LightArgsBuilderClassTest {
           <fragment
               android:id="@+id/fragment2"
               android:name="test.safeargs.Fragment2"
-              android:label="Fragment2">
-            <argument
-                android:name="arg"
-                app:argType="string" />
-          </fragment>
+              android:label="Fragment2" />
         </navigation>
       """.trimIndent())
 
@@ -66,13 +62,13 @@ class LightArgsBuilderClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Classes can be found with context
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args.Builder", context)).isInstanceOf(
-      LightArgsBuilderClass::class.java)
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Args.Builder", context)).isInstanceOf(
-      LightArgsBuilderClass::class.java)
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args", context)).isInstanceOf(LightArgsClass::class.java)
+
+    // ... but not generated if no arguments
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Args", context)).isNull()
 
     // ... but cannot be found without context
     val psiFacade = JavaPsiFacade.getInstance(safeArgsRule.project)
-    assertThat(psiFacade.findClass("test.safeargs.Fragment1Args.Builder", GlobalSearchScope.allScope(safeArgsRule.project))).isNull()
+    assertThat(psiFacade.findClass("test.safeargs.Fragment1Args", GlobalSearchScope.allScope(safeArgsRule.project))).isNull()
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.nav.safeargs.psi
+package com.android.tools.idea.nav.safeargs.psi.java
 
 /**
  * Used for tests which verify that arguments inside nav XML files generate the expected PSI output.
