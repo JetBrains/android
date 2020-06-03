@@ -2264,7 +2264,7 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Assert
-    orderVerifier.verify(tableView).showTableColumns(listOf(ViewColumn("c1", true)))
+    orderVerifier.verify(tableView).showTableColumns(listOf(ViewColumn("c1", true, false)))
   }
 
   private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
@@ -2342,5 +2342,5 @@ class TableControllerTest : PlatformTestCase() {
     return result
   }
 
-  private fun List<SqliteColumn>.toViewColumns(): List<ViewColumn> = map { ViewColumn(it.name, it.inPrimaryKey) }
+  private fun List<SqliteColumn>.toViewColumns(): List<ViewColumn> = map { ViewColumn(it.name, it.inPrimaryKey, it.isNullable) }
 }
