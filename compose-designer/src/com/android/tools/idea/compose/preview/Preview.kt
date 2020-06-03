@@ -117,7 +117,7 @@ private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = 
  * Background color for the surface while "Interactive" is enabled.
  */
 private val INTERACTIVE_BACKGROUND_COLOR = JBColor(Color(203, 210, 217),
-                                                   Color(109, 116, 124))
+                                                   Color(70, 69, 77))
 
 /**
  * [NlModel] associated preview data
