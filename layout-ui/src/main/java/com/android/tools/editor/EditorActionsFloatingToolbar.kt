@@ -44,9 +44,6 @@ abstract class EditorActionsFloatingToolbar(
   parentDisposable: Disposable
 ) : PanZoomListener, Disposable {
 
-  /** The Disposable of the current action groups. Should be disposed every time the model changes. */
-  private var actionGroupsDisposable: Disposable? = null
-
   val designSurfaceToolbar: JComponent = JPanel(GridBagLayout()).apply { isOpaque = false }
 
   private val zoomToolbars: MutableList<ActionToolbar> = mutableListOf()
@@ -99,10 +96,7 @@ abstract class EditorActionsFloatingToolbar(
   }
 
   protected fun updateToolbar() {
-    actionGroupsDisposable?.let { Disposer.dispose(it) } // Manually dispose of old action group.
     val actionGroups = getActionGroups()
-    actionGroupsDisposable = actionGroups
-    Disposer.register(this, actionGroups)
     val actionManager = ActionManager.getInstance()
     val zoomControlsToolbar = actionGroups.zoomControlsGroup?.let { createToolbar(actionManager, it, component) }
 
@@ -150,7 +144,7 @@ abstract class EditorActionsFloatingToolbar(
       designSurfaceToolbar.add(zoomControlsPanel, zoomControlsConstraints)
     }
 
-    pauseZoomLabelTimerWhileInteractingOn(arrayOf(zoomLabelToolbar as JPanel, zoomControlsToolbar as JPanel))
+    pauseZoomLabelTimerWhileInteractingOn(listOfNotNull(zoomLabelToolbar as? JPanel, zoomControlsToolbar as? JPanel))
   }
 
   override fun dispose() {
@@ -179,7 +173,7 @@ abstract class EditorActionsFloatingToolbar(
    * The effect is that the [hiddenZoomLabelComponent] will only go invisible after a period of time has happened without interacting with
    * these [panels].
    */
-  private fun pauseZoomLabelTimerWhileInteractingOn(panels: Array<JPanel>) {
+  private fun pauseZoomLabelTimerWhileInteractingOn(panels: List<JPanel>) {
     val mouseListener = object : MouseAdapter() {
       override fun mouseEntered(e: MouseEvent?) {
         super.mouseEntered(e)
