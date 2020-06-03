@@ -56,6 +56,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -63,7 +64,6 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.android.util.AndroidUtils
@@ -114,10 +114,11 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
     val openProjectTask = OpenProjectTask(
       project = project,
+      contentRoot = projectBaseDirectory.toPath(),
       isNewProject = false,  // We have already created a new project.
       forceOpenInNewFrame = true
     )
-    PlatformProjectOpenProcessor.openExistingProject(projectBaseDirectory.toPath(), projectBaseDirectory.toPath(), openProjectTask)
+    ProjectManagerEx.getInstanceEx().loadAndOpenProject(projectBaseDirectory.toPath(), openProjectTask)
   }
   override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(true)
 
