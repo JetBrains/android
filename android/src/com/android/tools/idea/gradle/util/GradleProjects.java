@@ -28,10 +28,10 @@ import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.platform.PlatformProjectOpenProcessor;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -73,7 +73,7 @@ public final class GradleProjects {
     updateLastProjectLocation(project.getBasePath());
 
     Path projectDir = Paths.get(Objects.requireNonNull(project.getBasePath()));
-    PlatformProjectOpenProcessor.openExistingProject(projectDir, OpenProjectTask.withCreatedProject(project));
+    ProjectManagerEx.getInstanceEx().loadAndOpenProject(projectDir, OpenProjectTask.withCreatedProject(project, null));
   }
 
   public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {
