@@ -1,0 +1,10 @@
+android {
+  buildTypes {
+    release {
+      debuggable true
+    }
+    debug {
+      debuggable false
+    }
+  }
+}

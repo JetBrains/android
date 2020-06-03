@@ -1,10 +1,10 @@
 android {
   buildTypes {
     getByName("release") {
-      applicationIdSuffix = "-release"
+      isDebuggable = false
     }
     getByName("debug") {
-      applicationIdSuffix = "-debug"
+      isDebuggable = true
     }
   }
 }

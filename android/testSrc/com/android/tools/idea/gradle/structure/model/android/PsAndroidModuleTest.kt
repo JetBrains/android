@@ -482,7 +482,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     val debug = libModule.findBuildType("debug")
     assertNotNull(debug)
-    assertTrue(!debug!!.isDeclared)
+    assertTrue(debug!!.isDeclared)
   }
 
   fun testFallbackBuildTypes() {
@@ -495,8 +495,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertNotNull(libModule)
 
     val buildTypes = libModule.buildTypes
-    assertThat(buildTypes.map { it.name }).containsExactly("release")
-    assertThat(buildTypes).hasSize(1)
+    assertThat(buildTypes.map { it.name }).containsExactly("release", "debug")
+    assertThat(buildTypes).hasSize(2)
 
     val release = libModule.findBuildType("release")
     assertNotNull(release)
@@ -595,7 +595,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
-      .containsExactly("release", "new_build_type", "debug").inOrder()  // "debug" is not declared and goes last.
+      .containsExactly("release", "debug", "new_build_type").inOrder()
 
     newBuildType = appModule.findBuildType("new_build_type")
     assertNotNull(newBuildType)
@@ -614,7 +614,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
-      .containsExactly("release", "specialRelease", "debug").inOrder()
+      .containsExactly("release", "debug", "specialRelease").inOrder()
 
     appModule.removeBuildType(appModule.findBuildType("release")!!)
     assertThat(buildTypesChanged).isEqualTo(1)
@@ -631,11 +631,11 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
-      .containsExactly("specialRelease", "debug", "release").inOrder()  // "release" is not declared and goes last.
+      .containsExactly("release", "debug", "specialRelease").inOrder()
 
     val release = appModule.findBuildType("release")
     assertNotNull(release)
-    assertFalse(release!!.isDeclared)
+    assertTrue(release!!.isDeclared)
   }
 
   fun testRenameBuildType() {
@@ -650,7 +650,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
-      .containsExactly("release", "specialRelease", "debug").inOrder()
+      .containsExactly("release", "debug", "specialRelease").inOrder()
 
     appModule.findBuildType("release")!!.rename("almostRelease")
     assertThat(buildTypesChanged).isEqualTo(1)
@@ -667,11 +667,11 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
-      .containsExactly("almostRelease", "specialRelease", "debug", "release").inOrder()  // "release" is not declared and goes last.
+      .containsExactly("release", "debug", "almostRelease", "specialRelease").inOrder()
 
     val release = appModule.findBuildType("release")
     assertNotNull(release)
-    assertFalse(release!!.isDeclared)
+    assertTrue(release!!.isDeclared)
   }
 
   fun testVariants() {
