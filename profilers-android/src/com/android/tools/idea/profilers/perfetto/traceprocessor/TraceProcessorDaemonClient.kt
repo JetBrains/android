@@ -31,6 +31,7 @@ import java.lang.RuntimeException
  */
 class TraceProcessorDaemonClient(val optionalChannel: ManagedChannel? = null): Disposable {
   private val daemonManager = TraceProcessorDaemonManager()
+  private var cachedChannelPort = 0
   private var cachedChannel: ManagedChannel? = null
   private var cachedStub: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub? = null
   // Controls if we started the dispose process for this manager, to prevent new instances of daemon to be spawned.
@@ -44,13 +45,19 @@ class TraceProcessorDaemonClient(val optionalChannel: ManagedChannel? = null): D
     private val LOGGER = Logger.getInstance(TraceProcessorDaemonClient::class.java)
   }
 
+  @Synchronized
   private fun getStub(): TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub {
     val previousChannel = cachedChannel
     // If we either don't have a channel created already of if it has been broken, we must create a new one.
-    if (previousChannel == null || previousChannel.isShutdown || previousChannel.isTerminated) {
-      // TODO(b/149379691): Use a port picker to select an available port, pass it down to the daemon as an argument and use it here.
-      LOGGER.debug("TPD Client: building new channel")
-      cachedChannel = optionalChannel ?: ManagedChannelBuilder.forAddress("localhost", 20204)
+    if (previousChannel == null || previousChannel.isShutdown || previousChannel.isTerminated
+        || cachedChannelPort != daemonManager.daemonPort) {
+      // If we had a channel, let's make sure we shutdown it properly before creating a new one.
+      previousChannel?.shutdownNow()
+
+      // Lets set up the new channel now
+      cachedChannelPort = daemonManager.daemonPort
+      LOGGER.debug("TPD Client: building new channel to localhost:$cachedChannelPort")
+      cachedChannel = optionalChannel ?: ManagedChannelBuilder.forAddress("localhost", cachedChannelPort)
         .usePlaintext()
         .maxInboundMessageSize(128 * 1024 * 1024) // 128 Mb
         .build()
