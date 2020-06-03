@@ -97,7 +97,12 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
       .withLayoutValidation(true)
       .buildSynchronously()
     Assert.assertNotNull(task)
-    return Futures.getUnchecked(task!!.render())
+    try {
+      return Futures.getUnchecked(task!!.render())
+    }
+    finally {
+      task!!.dispose()
+    }
   }
 
   private fun filter(
