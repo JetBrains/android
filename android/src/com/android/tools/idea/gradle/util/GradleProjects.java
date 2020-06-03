@@ -70,9 +70,8 @@ public final class GradleProjects {
    * @param project the project to open.
    */
   public static void open(@NotNull Project project) {
-    updateLastProjectLocation(project.getBasePath());
-
     Path projectDir = Paths.get(Objects.requireNonNull(project.getBasePath()));
+    updateLastProjectLocation(projectDir);
     ProjectManagerEx.getInstanceEx().loadAndOpenProject(projectDir, OpenProjectTask.withCreatedProject(project, null));
   }
 
