@@ -229,9 +229,10 @@ private fun ProjectDumper.dump(lintModelSourceProvider: LintModelSourceProvider)
 
 private fun ProjectDumper.dump(lintModelLibrary: LintModelLibrary) {
   with(lintModelLibrary) {
-    head("LintModelLibrary") { artifactAddress.replaceKnownPaths() }
+    head("LintModelLibrary") { toString().replaceKnownPaths() }
     nest {
       jarFiles.forEach { prop("- JarFiles") { it.path.toPrintablePath() } }
+      prop("ArtifactAddress") { artifactAddress.replaceKnownPaths() }
       if (this@with is LintModelAndroidLibrary) {
         prop("Manifest") { manifest.path.toPrintablePath() }
         prop("Folder") { folder.path.toPrintablePath() }

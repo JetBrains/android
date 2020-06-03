@@ -315,8 +315,9 @@ MODULE              : project.app
             - AssetsDirectories : <ROOT>/app/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified
+            LintModelLibrary    : AndroidLibrary(__local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib1-1.0/jars/classes.jar
+                ArtifactAddress     : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib1-1.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib1-1.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib1-1.0/res
@@ -327,8 +328,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib1-1.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib1-1.0/proguard.txt [-]
                 ResolvedCoordinates : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified
-            LintModelLibrary    : com.example.libs:lib2:1.0
+            LintModelLibrary    : AndroidLibrary(com.example.libs:lib2:1.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/jars/classes.jar
+                ArtifactAddress     : com.example.libs:lib2:1.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/res
@@ -340,8 +342,9 @@ MODULE              : project.app
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/proguard.txt [-]
                 ResolvedCoordinates : com.example.libs:lib2:1.0
                 Provided            : true
-            LintModelLibrary    : artifacts::lib:unspecified
+            LintModelLibrary    : AndroidLibrary(:lib)
                 - JarFiles          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+                ArtifactAddress     : artifacts::lib:unspecified
                 Manifest            : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
                 Folder              : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
                 ResFolder           : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
@@ -353,8 +356,9 @@ MODULE              : project.app
                 ProguardRules       : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
                 ResolvedCoordinates : artifacts::lib:unspecified
-            LintModelLibrary    : com.android.support:appcompat-v7:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:appcompat-v7:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:appcompat-v7:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/res
@@ -365,8 +369,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/proguard.txt
                 ResolvedCoordinates : com.android.support:appcompat-v7:28.0.0
-            LintModelLibrary    : com.android.support:support-fragment:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:support-fragment:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:support-fragment:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/res [-]
@@ -377,8 +382,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:support-fragment:28.0.0
-            LintModelLibrary    : com.android.support:animated-vector-drawable:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:animated-vector-drawable:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:animated-vector-drawable:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/res [-]
@@ -389,8 +395,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/proguard.txt
                 ResolvedCoordinates : com.android.support:animated-vector-drawable:28.0.0
-            LintModelLibrary    : com.android.support:support-core-ui:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:support-core-ui:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:support-core-ui:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/res [-]
@@ -401,8 +408,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:support-core-ui:28.0.0
-            LintModelLibrary    : com.android.support:support-core-utils:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:support-core-utils:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:support-core-utils:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/res [-]
@@ -413,8 +421,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:support-core-utils:28.0.0
-            LintModelLibrary    : com.android.support:support-vector-drawable:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:support-vector-drawable:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:support-vector-drawable:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/res [-]
@@ -425,8 +434,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:support-vector-drawable:28.0.0
-            LintModelLibrary    : com.android.support:loader:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:loader:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:loader:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/res [-]
@@ -437,8 +447,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:loader:28.0.0
-            LintModelLibrary    : com.android.support:viewpager:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:viewpager:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:viewpager:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/res [-]
@@ -449,8 +460,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:viewpager:28.0.0
-            LintModelLibrary    : com.android.support:coordinatorlayout:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:coordinatorlayout:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:coordinatorlayout:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/res
@@ -461,8 +473,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/proguard.txt
                 ResolvedCoordinates : com.android.support:coordinatorlayout:28.0.0
-            LintModelLibrary    : com.android.support:drawerlayout:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:drawerlayout:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:drawerlayout:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/res [-]
@@ -473,8 +486,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:drawerlayout:28.0.0
-            LintModelLibrary    : com.android.support:slidingpanelayout:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:slidingpanelayout:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:slidingpanelayout:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/res [-]
@@ -485,8 +499,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:slidingpanelayout:28.0.0
-            LintModelLibrary    : com.android.support:customview:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:customview:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:customview:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/res [-]
@@ -497,8 +512,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:customview:28.0.0
-            LintModelLibrary    : com.android.support:swiperefreshlayout:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:swiperefreshlayout:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:swiperefreshlayout:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/res [-]
@@ -509,8 +525,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:swiperefreshlayout:28.0.0
-            LintModelLibrary    : com.android.support:asynclayoutinflater:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:asynclayoutinflater:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:asynclayoutinflater:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/res [-]
@@ -521,8 +538,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:asynclayoutinflater:28.0.0
-            LintModelLibrary    : com.android.support:support-compat:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:support-compat:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:support-compat:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/res
@@ -533,8 +551,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/proguard.txt
                 ResolvedCoordinates : com.android.support:support-compat:28.0.0
-            LintModelLibrary    : com.android.support:versionedparcelable:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:versionedparcelable:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:versionedparcelable:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/res [-]
@@ -545,8 +564,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/proguard.txt
                 ResolvedCoordinates : com.android.support:versionedparcelable:28.0.0
-            LintModelLibrary    : com.android.support:cursoradapter:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:cursoradapter:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:cursoradapter:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/res [-]
@@ -557,8 +577,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:cursoradapter:28.0.0
-            LintModelLibrary    : android.arch.lifecycle:runtime:1.1.1
+            LintModelLibrary    : AndroidLibrary(android.arch.lifecycle:runtime:1.1.1)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
+                ArtifactAddress     : android.arch.lifecycle:runtime:1.1.1
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res [-]
@@ -569,8 +590,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/proguard.txt
                 ResolvedCoordinates : android.arch.lifecycle:runtime:1.1.1
-            LintModelLibrary    : com.android.support:documentfile:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:documentfile:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:documentfile:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/res [-]
@@ -581,8 +603,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:documentfile:28.0.0
-            LintModelLibrary    : com.android.support:localbroadcastmanager:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:localbroadcastmanager:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:localbroadcastmanager:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/res [-]
@@ -593,8 +616,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:localbroadcastmanager:28.0.0
-            LintModelLibrary    : com.android.support:print:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:print:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:print:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/res [-]
@@ -605,8 +629,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:print:28.0.0
-            LintModelLibrary    : android.arch.lifecycle:viewmodel:1.1.1
+            LintModelLibrary    : AndroidLibrary(android.arch.lifecycle:viewmodel:1.1.1)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/jars/classes.jar
+                ArtifactAddress     : android.arch.lifecycle:viewmodel:1.1.1
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/res [-]
@@ -617,8 +642,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/proguard.txt
                 ResolvedCoordinates : android.arch.lifecycle:viewmodel:1.1.1
-            LintModelLibrary    : android.arch.lifecycle:livedata:1.1.1
+            LintModelLibrary    : AndroidLibrary(android.arch.lifecycle:livedata:1.1.1)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/jars/classes.jar
+                ArtifactAddress     : android.arch.lifecycle:livedata:1.1.1
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/res [-]
@@ -629,8 +655,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/proguard.txt [-]
                 ResolvedCoordinates : android.arch.lifecycle:livedata:1.1.1
-            LintModelLibrary    : android.arch.lifecycle:livedata-core:1.1.1
+            LintModelLibrary    : AndroidLibrary(android.arch.lifecycle:livedata-core:1.1.1)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/jars/classes.jar
+                ArtifactAddress     : android.arch.lifecycle:livedata-core:1.1.1
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/res [-]
@@ -641,8 +668,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/proguard.txt [-]
                 ResolvedCoordinates : android.arch.lifecycle:livedata-core:1.1.1
-            LintModelLibrary    : android.arch.core:runtime:1.1.1
+            LintModelLibrary    : AndroidLibrary(android.arch.core:runtime:1.1.1)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
+                ArtifactAddress     : android.arch.core:runtime:1.1.1
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res [-]
@@ -653,8 +681,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/proguard.txt [-]
                 ResolvedCoordinates : android.arch.core:runtime:1.1.1
-            LintModelLibrary    : com.android.support:interpolator:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:interpolator:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:interpolator:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/res [-]
@@ -665,8 +694,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:interpolator:28.0.0
-            LintModelLibrary    : com.android.support.constraint:constraint-layout:1.1.0
+            LintModelLibrary    : AndroidLibrary(com.android.support.constraint:constraint-layout:1.1.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.1.0/jars/classes.jar
+                ArtifactAddress     : com.android.support.constraint:constraint-layout:1.1.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.1.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.1.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.1.0/res
@@ -677,31 +707,39 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.1.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.1.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout:1.1.0
-            LintModelLibrary    : com.android.support:collections:28.0.0
+            LintModelLibrary    : JavaLibrary(com.android.support:collections:28.0.0)
                 - JarFiles          : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                ArtifactAddress     : com.android.support:collections:28.0.0
                 ResolvedCoordinates : com.android.support:collections:28.0.0
-            LintModelLibrary    : android.arch.lifecycle:common:1.1.1
+            LintModelLibrary    : JavaLibrary(android.arch.lifecycle:common:1.1.1)
                 - JarFiles          : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
+                ArtifactAddress     : android.arch.lifecycle:common:1.1.1
                 ResolvedCoordinates : android.arch.lifecycle:common:1.1.1
-            LintModelLibrary    : android.arch.core:common:1.1.1
+            LintModelLibrary    : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles          : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
+                ArtifactAddress     : android.arch.core:common:1.1.1
                 ResolvedCoordinates : android.arch.core:common:1.1.1
-            LintModelLibrary    : com.android.support:support-annotations:28.0.0
+            LintModelLibrary    : JavaLibrary(com.android.support:support-annotations:28.0.0)
                 - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
-            LintModelLibrary    : com.android.support.constraint:constraint-layout-solver:1.1.0
+            LintModelLibrary    : JavaLibrary(com.android.support.constraint:constraint-layout-solver:1.1.0)
                 - JarFiles          : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
+                ArtifactAddress     : com.android.support.constraint:constraint-layout-solver:1.1.0
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout-solver:1.1.0
-            LintModelLibrary    : com.example.jlib:lib3:1.0
+            LintModelLibrary    : JavaLibrary(com.example.jlib:lib3:1.0)
                 - JarFiles          : <DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar
+                ArtifactAddress     : com.example.jlib:lib3:1.0
                 ResolvedCoordinates : com.example.jlib:lib3:1.0
                 Provided            : true
-            LintModelLibrary    : com.example.jlib:lib4:1.0
+            LintModelLibrary    : JavaLibrary(com.example.jlib:lib4:1.0)
                 - JarFiles          : <DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar
+                ArtifactAddress     : com.example.jlib:lib4:1.0
                 ResolvedCoordinates : com.example.jlib:lib4:1.0
                 Provided            : true
-            LintModelLibrary    : com.android.support.test.espresso:espresso-core:3.0.2
+            LintModelLibrary    : AndroidLibrary(com.android.support.test.espresso:espresso-core:3.0.2)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/jars/classes.jar
+                ArtifactAddress     : com.android.support.test.espresso:espresso-core:3.0.2
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/res [-]
@@ -712,8 +750,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/proguard.txt
                 ResolvedCoordinates : com.android.support.test.espresso:espresso-core:3.0.2
-            LintModelLibrary    : com.android.support.test:runner:1.0.2
+            LintModelLibrary    : AndroidLibrary(com.android.support.test:runner:1.0.2)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/jars/classes.jar
+                ArtifactAddress     : com.android.support.test:runner:1.0.2
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/res [-]
@@ -724,8 +763,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/proguard.txt
                 ResolvedCoordinates : com.android.support.test:runner:1.0.2
-            LintModelLibrary    : com.android.support.test:monitor:1.0.2
+            LintModelLibrary    : AndroidLibrary(com.android.support.test:monitor:1.0.2)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/jars/classes.jar
+                ArtifactAddress     : com.android.support.test:monitor:1.0.2
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/res [-]
@@ -736,8 +776,9 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/proguard.txt
                 ResolvedCoordinates : com.android.support.test:monitor:1.0.2
-            LintModelLibrary    : com.android.support.test.espresso:espresso-idling-resource:3.0.2
+            LintModelLibrary    : AndroidLibrary(com.android.support.test.espresso:espresso-idling-resource:3.0.2)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/jars/classes.jar
+                ArtifactAddress     : com.android.support.test.espresso:espresso-idling-resource:3.0.2
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/res [-]
@@ -748,29 +789,37 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/proguard.txt [-]
                 ResolvedCoordinates : com.android.support.test.espresso:espresso-idling-resource:3.0.2
-            LintModelLibrary    : junit:junit:4.12
+            LintModelLibrary    : JavaLibrary(junit:junit:4.12)
                 - JarFiles          : <M2>/junit/junit/4.12/junit-4.12.jar
+                ArtifactAddress     : junit:junit:4.12
                 ResolvedCoordinates : junit:junit:4.12
-            LintModelLibrary    : org.hamcrest:hamcrest-integration:1.3
+            LintModelLibrary    : JavaLibrary(org.hamcrest:hamcrest-integration:1.3)
                 - JarFiles          : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
+                ArtifactAddress     : org.hamcrest:hamcrest-integration:1.3
                 ResolvedCoordinates : org.hamcrest:hamcrest-integration:1.3
-            LintModelLibrary    : org.hamcrest:hamcrest-library:1.3
+            LintModelLibrary    : JavaLibrary(org.hamcrest:hamcrest-library:1.3)
                 - JarFiles          : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
+                ArtifactAddress     : org.hamcrest:hamcrest-library:1.3
                 ResolvedCoordinates : org.hamcrest:hamcrest-library:1.3
-            LintModelLibrary    : org.hamcrest:hamcrest-core:1.3
+            LintModelLibrary    : JavaLibrary(org.hamcrest:hamcrest-core:1.3)
                 - JarFiles          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+                ArtifactAddress     : org.hamcrest:hamcrest-core:1.3
                 ResolvedCoordinates : org.hamcrest:hamcrest-core:1.3
-            LintModelLibrary    : net.sf.kxml:kxml2:2.3.0
+            LintModelLibrary    : JavaLibrary(net.sf.kxml:kxml2:2.3.0)
                 - JarFiles          : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
+                ArtifactAddress     : net.sf.kxml:kxml2:2.3.0
                 ResolvedCoordinates : net.sf.kxml:kxml2:2.3.0
-            LintModelLibrary    : com.squareup:javawriter:2.1.1
+            LintModelLibrary    : JavaLibrary(com.squareup:javawriter:2.1.1)
                 - JarFiles          : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
+                ArtifactAddress     : com.squareup:javawriter:2.1.1
                 ResolvedCoordinates : com.squareup:javawriter:2.1.1
-            LintModelLibrary    : javax.inject:javax.inject:1
+            LintModelLibrary    : JavaLibrary(javax.inject:javax.inject:1)
                 - JarFiles          : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
+                ArtifactAddress     : javax.inject:javax.inject:1
                 ResolvedCoordinates : javax.inject:javax.inject:1
-            LintModelLibrary    : com.google.code.findbugs:jsr305:2.0.1
+            LintModelLibrary    : JavaLibrary(com.google.code.findbugs:jsr305:2.0.1)
                 - JarFiles          : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
+                ArtifactAddress     : com.google.code.findbugs:jsr305:2.0.1
                 ResolvedCoordinates : com.google.code.findbugs:jsr305:2.0.1
 MODULE              : project.dyn_feature
     Dir                 : <ROOT>/dyn_feature
@@ -1117,8 +1166,9 @@ MODULE              : project.lib
             - AssetsDirectories : <ROOT>/lib/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : com.android.support:appcompat-v7:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:appcompat-v7:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:appcompat-v7:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/res
@@ -1129,8 +1179,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/proguard.txt
                 ResolvedCoordinates : com.android.support:appcompat-v7:28.0.0
-            LintModelLibrary    : com.android.support:support-fragment:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:support-fragment:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:support-fragment:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/res [-]
@@ -1141,8 +1192,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:support-fragment:28.0.0
-            LintModelLibrary    : com.android.support:animated-vector-drawable:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:animated-vector-drawable:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:animated-vector-drawable:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/res [-]
@@ -1153,8 +1205,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/proguard.txt
                 ResolvedCoordinates : com.android.support:animated-vector-drawable:28.0.0
-            LintModelLibrary    : com.android.support:support-core-ui:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:support-core-ui:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:support-core-ui:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/res [-]
@@ -1165,8 +1218,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:support-core-ui:28.0.0
-            LintModelLibrary    : com.android.support:support-core-utils:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:support-core-utils:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:support-core-utils:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/res [-]
@@ -1177,8 +1231,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:support-core-utils:28.0.0
-            LintModelLibrary    : com.android.support:support-vector-drawable:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:support-vector-drawable:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:support-vector-drawable:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/res [-]
@@ -1189,8 +1244,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:support-vector-drawable:28.0.0
-            LintModelLibrary    : com.android.support:loader:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:loader:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:loader:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/res [-]
@@ -1201,8 +1257,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:loader:28.0.0
-            LintModelLibrary    : com.android.support:viewpager:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:viewpager:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:viewpager:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/res [-]
@@ -1213,8 +1270,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:viewpager:28.0.0
-            LintModelLibrary    : com.android.support:coordinatorlayout:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:coordinatorlayout:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:coordinatorlayout:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/res
@@ -1225,8 +1283,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/proguard.txt
                 ResolvedCoordinates : com.android.support:coordinatorlayout:28.0.0
-            LintModelLibrary    : com.android.support:drawerlayout:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:drawerlayout:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:drawerlayout:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/res [-]
@@ -1237,8 +1296,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:drawerlayout:28.0.0
-            LintModelLibrary    : com.android.support:slidingpanelayout:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:slidingpanelayout:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:slidingpanelayout:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/res [-]
@@ -1249,8 +1309,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:slidingpanelayout:28.0.0
-            LintModelLibrary    : com.android.support:customview:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:customview:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:customview:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/res [-]
@@ -1261,8 +1322,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:customview:28.0.0
-            LintModelLibrary    : com.android.support:swiperefreshlayout:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:swiperefreshlayout:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:swiperefreshlayout:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/res [-]
@@ -1273,8 +1335,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:swiperefreshlayout:28.0.0
-            LintModelLibrary    : com.android.support:asynclayoutinflater:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:asynclayoutinflater:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:asynclayoutinflater:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/res [-]
@@ -1285,8 +1348,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:asynclayoutinflater:28.0.0
-            LintModelLibrary    : com.android.support:support-compat:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:support-compat:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:support-compat:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/res
@@ -1297,8 +1361,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/proguard.txt
                 ResolvedCoordinates : com.android.support:support-compat:28.0.0
-            LintModelLibrary    : com.android.support:versionedparcelable:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:versionedparcelable:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:versionedparcelable:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/res [-]
@@ -1309,8 +1374,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/proguard.txt
                 ResolvedCoordinates : com.android.support:versionedparcelable:28.0.0
-            LintModelLibrary    : com.android.support:cursoradapter:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:cursoradapter:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:cursoradapter:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/res [-]
@@ -1321,8 +1387,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:cursoradapter:28.0.0
-            LintModelLibrary    : android.arch.lifecycle:runtime:1.1.1
+            LintModelLibrary    : AndroidLibrary(android.arch.lifecycle:runtime:1.1.1)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
+                ArtifactAddress     : android.arch.lifecycle:runtime:1.1.1
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res [-]
@@ -1333,8 +1400,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/proguard.txt
                 ResolvedCoordinates : android.arch.lifecycle:runtime:1.1.1
-            LintModelLibrary    : com.android.support:documentfile:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:documentfile:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:documentfile:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/res [-]
@@ -1345,8 +1413,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:documentfile:28.0.0
-            LintModelLibrary    : com.android.support:localbroadcastmanager:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:localbroadcastmanager:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:localbroadcastmanager:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/res [-]
@@ -1357,8 +1426,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:localbroadcastmanager:28.0.0
-            LintModelLibrary    : com.android.support:print:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:print:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:print:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/res [-]
@@ -1369,8 +1439,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/annotations.zip
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:print:28.0.0
-            LintModelLibrary    : android.arch.lifecycle:viewmodel:1.1.1
+            LintModelLibrary    : AndroidLibrary(android.arch.lifecycle:viewmodel:1.1.1)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/jars/classes.jar
+                ArtifactAddress     : android.arch.lifecycle:viewmodel:1.1.1
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/res [-]
@@ -1381,8 +1452,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/proguard.txt
                 ResolvedCoordinates : android.arch.lifecycle:viewmodel:1.1.1
-            LintModelLibrary    : android.arch.lifecycle:livedata:1.1.1
+            LintModelLibrary    : AndroidLibrary(android.arch.lifecycle:livedata:1.1.1)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/jars/classes.jar
+                ArtifactAddress     : android.arch.lifecycle:livedata:1.1.1
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/res [-]
@@ -1393,8 +1465,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/proguard.txt [-]
                 ResolvedCoordinates : android.arch.lifecycle:livedata:1.1.1
-            LintModelLibrary    : android.arch.lifecycle:livedata-core:1.1.1
+            LintModelLibrary    : AndroidLibrary(android.arch.lifecycle:livedata-core:1.1.1)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/jars/classes.jar
+                ArtifactAddress     : android.arch.lifecycle:livedata-core:1.1.1
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/res [-]
@@ -1405,8 +1478,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/proguard.txt [-]
                 ResolvedCoordinates : android.arch.lifecycle:livedata-core:1.1.1
-            LintModelLibrary    : android.arch.core:runtime:1.1.1
+            LintModelLibrary    : AndroidLibrary(android.arch.core:runtime:1.1.1)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
+                ArtifactAddress     : android.arch.core:runtime:1.1.1
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/res [-]
@@ -1417,8 +1491,9 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/proguard.txt [-]
                 ResolvedCoordinates : android.arch.core:runtime:1.1.1
-            LintModelLibrary    : com.android.support:interpolator:28.0.0
+            LintModelLibrary    : AndroidLibrary(com.android.support:interpolator:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/jars/classes.jar
+                ArtifactAddress     : com.android.support:interpolator:28.0.0
                 Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/AndroidManifest.xml
                 Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0
                 ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/res [-]
@@ -1429,20 +1504,25 @@ MODULE              : project.lib
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:interpolator:28.0.0
-            LintModelLibrary    : com.android.support:collections:28.0.0
+            LintModelLibrary    : JavaLibrary(com.android.support:collections:28.0.0)
                 - JarFiles          : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                ArtifactAddress     : com.android.support:collections:28.0.0
                 ResolvedCoordinates : com.android.support:collections:28.0.0
-            LintModelLibrary    : android.arch.lifecycle:common:1.1.1
+            LintModelLibrary    : JavaLibrary(android.arch.lifecycle:common:1.1.1)
                 - JarFiles          : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
+                ArtifactAddress     : android.arch.lifecycle:common:1.1.1
                 ResolvedCoordinates : android.arch.lifecycle:common:1.1.1
-            LintModelLibrary    : android.arch.core:common:1.1.1
+            LintModelLibrary    : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles          : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
+                ArtifactAddress     : android.arch.core:common:1.1.1
                 ResolvedCoordinates : android.arch.core:common:1.1.1
-            LintModelLibrary    : com.android.support:support-annotations:28.0.0
+            LintModelLibrary    : JavaLibrary(com.android.support:support-annotations:28.0.0)
                 - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
-            LintModelLibrary    : artifacts::lib:unspecified
+            LintModelLibrary    : AndroidLibrary(:lib)
                 - JarFiles          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+                ArtifactAddress     : artifacts::lib:unspecified
                 Manifest            : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
                 Folder              : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
                 ResFolder           : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
@@ -1537,8 +1617,9 @@ MODULE              : project.nested1
             - AssetsDirectories : <ROOT>/nested1/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : artifacts::nested1:unspecified
+            LintModelLibrary    : AndroidLibrary(:nested1)
                 - JarFiles          : <ROOT>/nested1/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+                ArtifactAddress     : artifacts::nested1:unspecified
                 Manifest            : <ROOT>/nested1/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
                 Folder              : <ROOT>/nested1/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
                 ResFolder           : <ROOT>/nested1/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
@@ -1635,8 +1716,9 @@ MODULE              : project.nested1.deep
             - AssetsDirectories : <ROOT>/nested1/deep/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : artifacts::nested1:deep:unspecified
+            LintModelLibrary    : AndroidLibrary(:nested1:deep)
                 - JarFiles          : <ROOT>/nested1/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+                ArtifactAddress     : artifacts::nested1:deep:unspecified
                 Manifest            : <ROOT>/nested1/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
                 Folder              : <ROOT>/nested1/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
                 ResFolder           : <ROOT>/nested1/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
@@ -1747,8 +1829,9 @@ MODULE              : project.nested2
             - AssetsDirectories : <ROOT>/nested2/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : artifacts::nested2:unspecified
+            LintModelLibrary    : AndroidLibrary(:nested2)
                 - JarFiles          : <ROOT>/nested2/build/intermediates/library_manifest/basicDebug/AndroidManifest.xml/jars/classes.jar [-]
+                ArtifactAddress     : artifacts::nested2:unspecified
                 Manifest            : <ROOT>/nested2/build/intermediates/library_manifest/basicDebug/AndroidManifest.xml/AndroidManifest.xml [-]
                 Folder              : <ROOT>/nested2/build/intermediates/library_manifest/basicDebug/AndroidManifest.xml [-]
                 ResFolder           : <ROOT>/nested2/build/intermediates/library_manifest/basicDebug/AndroidManifest.xml/res [-]
@@ -1843,8 +1926,9 @@ MODULE              : project.nested2.deep
             - AssetsDirectories : <ROOT>/nested2/deep/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : artifacts::nested2:deep:unspecified
+            LintModelLibrary    : AndroidLibrary(:nested2:deep)
                 - JarFiles          : <ROOT>/nested2/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+                ArtifactAddress     : artifacts::nested2:deep:unspecified
                 Manifest            : <ROOT>/nested2/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
                 Folder              : <ROOT>/nested2/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
                 ResFolder           : <ROOT>/nested2/deep/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
@@ -1940,8 +2024,9 @@ MODULE              : project.nested2.trans.deep2
             - AssetsDirectories : <ROOT>/nested2/trans/deep2/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : artifacts::nested2:trans:deep2:unspecified
+            LintModelLibrary    : AndroidLibrary(:nested2:trans:deep2)
                 - JarFiles          : <ROOT>/nested2/trans/deep2/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+                ArtifactAddress     : artifacts::nested2:trans:deep2:unspecified
                 Manifest            : <ROOT>/nested2/trans/deep2/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
                 Folder              : <ROOT>/nested2/trans/deep2/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
                 ResFolder           : <ROOT>/nested2/trans/deep2/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
