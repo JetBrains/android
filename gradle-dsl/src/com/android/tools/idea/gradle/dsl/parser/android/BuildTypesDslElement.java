@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainCon
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.Lists;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +36,7 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
     return BuildTypeDslElement.BUILD_TYPE;
   }
 
-  @NotNull private static final List<String> implicitBuildTypes = Arrays.asList("debug", "release");
+  @NotNull private static final List<String> implicitBuildTypes = ContainerUtil.immutableList("debug", "release");
 
   @Override
   public boolean implicitlyExists(@NotNull String name) {
