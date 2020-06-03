@@ -365,6 +365,10 @@ class TableController(
    */
   private fun ResultSetSqliteColumn.toViewColumn(table: SqliteTable? = null): ViewColumn {
     val schemaColumn = table?.columns?.firstOrNull { it.name == name }
-    return ViewColumn(name, schemaColumn?.inPrimaryKey ?: inPrimaryKey ?: false)
+    return ViewColumn(
+      name,
+      schemaColumn?.inPrimaryKey ?: inPrimaryKey ?: false,
+      schemaColumn?.isNullable ?: isNullable ?: true
+    )
   }
 }
