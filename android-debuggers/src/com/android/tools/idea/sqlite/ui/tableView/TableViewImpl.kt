@@ -301,6 +301,10 @@ class TableViewImpl : TableView {
     table.emptyText.text = text
   }
 
+  override fun setRowOffset(rowOffset: Int) {
+    (table.model as MyTableModel).rowOffset = rowOffset
+  }
+
   override fun reportError(message: String, t: Throwable?) {
     notifyError(message, t)
   }
@@ -487,6 +491,7 @@ class TableViewImpl : TableView {
 
     private val rows = mutableListOf<MyRow>()
     var isEditable = false
+    var rowOffset: Int = 0
 
     override fun getColumnName(modelColumnIndex: Int): String {
       return if (modelColumnIndex == 0) {
@@ -505,7 +510,7 @@ class TableViewImpl : TableView {
 
     override fun getValueAt(modelRowIndex: Int, modelColumnIndex: Int): String? {
       return if (modelColumnIndex == 0) {
-        (modelRowIndex + 1).toString()
+        (rowOffset + modelRowIndex + 1).toString()
       }
       else {
         when (val value = rows[modelRowIndex].values[modelColumnIndex - 1]) {

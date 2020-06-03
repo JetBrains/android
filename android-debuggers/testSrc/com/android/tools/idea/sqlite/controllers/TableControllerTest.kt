@@ -192,6 +192,7 @@ class TableControllerTest : PlatformTestCase() {
     // Assert
     orderVerifier.verify(tableView).startTableLoading()
     orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns.toViewColumns())
+    orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     orderVerifier.verify(tableView).stopTableLoading()
 
@@ -355,6 +356,7 @@ class TableControllerTest : PlatformTestCase() {
     // Assert
     orderVerifier.verify(tableView).startTableLoading()
     orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns.toViewColumns())
+    orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     orderVerifier.verify(tableView).stopTableLoading()
 
@@ -474,9 +476,13 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.refreshData())
 
     // Assert
+    orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(emptyList())
+    orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(listOf(authorsRow5, authorsRow4).toCellUpdates())
+    orderVerifier.verify(tableView).setRowOffset(0)
     orderVerifier.verify(tableView).updateRows(emptyList())
   }
 
@@ -567,6 +573,10 @@ class TableControllerTest : PlatformTestCase() {
     ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
+
+    orderVerifier.verify(tableView).setRowOffset(0)
+    orderVerifier.verify(tableView).setRowOffset(10)
+    orderVerifier.verify(tableView).setRowOffset(20)
   }
 
   fun `test Next ShowsLoadingUi`() {
@@ -630,6 +640,10 @@ class TableControllerTest : PlatformTestCase() {
     ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
+
+    orderVerifier.verify(tableView).setRowOffset(0)
+    orderVerifier.verify(tableView).setRowOffset(5)
+    orderVerifier.verify(tableView).setRowOffset(10)
   }
 
   fun `test Next Prev`() {
@@ -671,6 +685,12 @@ class TableControllerTest : PlatformTestCase() {
     ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
+
+    orderVerifier.verify(tableView).setRowOffset(0)
+    orderVerifier.verify(tableView).setRowOffset(10)
+    orderVerifier.verify(tableView).setRowOffset(20)
+    orderVerifier.verify(tableView).setRowOffset(10)
+    orderVerifier.verify(tableView).setRowOffset(0)
   }
 
   fun `test Prev ShowsLoadingUi`() {
