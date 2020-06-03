@@ -126,6 +126,8 @@ public class GradleProjectImporter {
           null,
           -1,
           -1,
+          true,
+          null,
           false,
           true));
     }

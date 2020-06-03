@@ -28,7 +28,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.projectImport.ProjectOpenProcessor
 import javax.swing.Icon
 
@@ -65,7 +64,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       val projectFolder = if (virtualFile.isDirectory) virtualFile else virtualFile.parent
       return gradleImporter.importAndOpenProjectCore(projectToClose, forceOpenInNewFrame, projectFolder)
     }
-    return PlatformProjectOpenProcessor.openExistingProject(adjustedOpenTarget.toNioPath(), OpenProjectTask(forceOpenInNewFrame = forceOpenInNewFrame, projectToClose = projectToClose))
+    return ProjectManagerEx.getInstanceEx().loadAndOpenProject(adjustedOpenTarget.toNioPath(), OpenProjectTask(forceOpenInNewFrame = forceOpenInNewFrame, projectToClose = projectToClose))
   }
 
   private fun promptToCloseIfNecessary(project: Project?): Boolean {
