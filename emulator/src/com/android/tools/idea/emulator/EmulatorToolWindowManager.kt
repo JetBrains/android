@@ -244,12 +244,14 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
     panel.zoomToolbarIsVisible = zoomToolbarIsVisible
     val contentFactory = ContentFactory.SERVICE.getInstance()
-    val content = contentFactory.createContent(panel.component, panel.title, false)
-    content.putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
-    content.tabName = panel.title
-    content.icon = panel.icon
-    content.popupIcon = panel.icon
-    content.putUserData(ID_KEY, panel.id)
+    val content = contentFactory.createContent(panel.component, panel.title, false).apply {
+      putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
+      tabName = panel.title
+      icon = panel.icon
+      popupIcon = panel.icon
+      putUserData(ID_KEY, panel.id)
+      setPreferredFocusedComponent { panel.getPreferredFocusableComponent() }
+    }
 
     val index = panels.binarySearch(panel, PANEL_COMPARATOR).inv()
     assert(index >= 0)
