@@ -41,7 +41,9 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.truth.Truth;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
@@ -790,7 +792,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
     assertThat(android, instanceOf(AndroidModelImpl.class));
     assertFalse(((AndroidModelImpl)android).hasValidPsiElement());
-    assertTrue(android.buildTypes().isEmpty());
+    assertSize(2, android.buildTypes());
   }
 
   @Test
@@ -1352,14 +1354,14 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
-    assertSize(2, android.buildTypes());
+    assertSize(3, android.buildTypes());
 
     BuildTypeModel xyzModel = android.buildTypes().stream().filter(type -> type.name().equals("xyz")).findFirst().orElse(null);
     assertThat(xyzModel, is(notNullValue()));
     verifyPropertyModel(xyzModel.debuggable(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0);
     BuildTypeModel releaseModel = android.buildTypes().stream().filter(type -> type.name().equals("release")).findFirst().orElse(null);
     assertThat(releaseModel, is(notNullValue()));
-    verifyPropertyModel(releaseModel.jniDebuggable(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1);
+    // TODO(b/158066552): verifyPropertyModel(releaseModel.jniDebuggable(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1);
 
     xyzModel.debuggable().delete();
 
@@ -1405,14 +1407,82 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyPropertyModel(debugBuildTypeModel.applicationIdSuffix(), STRING_TYPE, "debugSuffix", STRING, REGULAR, 0);
   }
 
+  @Test
+  public void renameImplicit() throws IOException {
+    writeToBuildFile(TestFile.RENAME_IMPLICIT);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+    List<BuildTypeModel> buildTypes = androidModel.buildTypes();
+    Truth.assertThat(buildTypes).hasSize(2);
+    assertEquals("release", buildTypes.get(0).name());
+    buildTypes.get(0).rename("newRelease");
+    assertEquals("debug", buildTypes.get(1).name());
+    buildTypes.get(1).rename("newDebug");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.RENAME_IMPLICIT_EXPECTED);
+  }
+
+  @Test
+  public void renameExplicit() throws IOException {
+    writeToBuildFile(TestFile.RENAME_EXPLICIT);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+    List<BuildTypeModel> buildTypes = androidModel.buildTypes();
+    Truth.assertThat(buildTypes).hasSize(2);
+    assertEquals("release", buildTypes.get(0).name());
+    buildTypes.get(0).rename("newRelease");
+    assertEquals("debug", buildTypes.get(1).name());
+    buildTypes.get(1).rename("newDebug");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.RENAME_EXPLICIT_EXPECTED);
+  }
+
+  @Test
+  public void renameToImplicit() throws IOException {
+    writeToBuildFile(TestFile.RENAME_TO_IMPLICIT);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+    List<BuildTypeModel> buildTypes = androidModel.buildTypes();
+    Truth.assertThat(buildTypes).hasSize(4);
+    assertEquals("notRelease", buildTypes.get(2).name());
+    buildTypes.get(2).rename("release");
+    assertEquals("notDebug", buildTypes.get(3).name());
+    buildTypes.get(3).rename("debug");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.RENAME_TO_IMPLICIT_EXPECTED);
+  }
+
+  @Test
+  public void renameExplicitToImplicit() throws IOException {
+    writeToBuildFile(TestFile.RENAME_EXPLICIT_TO_IMPLICIT);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+    List<BuildTypeModel> buildTypes = androidModel.buildTypes();
+    Truth.assertThat(buildTypes).hasSize(2);
+    assertEquals("release", buildTypes.get(0).name());
+    buildTypes.get(0).rename("debug");
+    assertEquals("debug", buildTypes.get(1).name());
+    buildTypes.get(1).rename("release");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.RENAME_EXPLICIT_TO_IMPLICIT_EXPECTED);
+  }
+
   @NotNull
   private static BuildTypeModel getXyzBuildType(GradleBuildModel buildModel) {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
     List<BuildTypeModel> buildTypeModels = android.buildTypes();
-    assertThat(buildTypeModels.size(), equalTo(1));
+    assertThat(buildTypeModels.size(), equalTo(3));
 
-    BuildTypeModel buildType = buildTypeModels.get(0);
+    BuildTypeModel buildType = buildTypeModels.get(2);
     assertEquals("name", "xyz", buildType.name());
     return buildType;
   }
@@ -1467,6 +1537,14 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     SET_SIGNING_CONFIG_FROM_EMPTY("setSigningConfigFromEmpty"),
     SET_SIGNING_CONFIG_FROM_EMPTY_EXPECTED("setSigningConfigFromEmptyExpected"),
     ALL_BUILD_TYPES("allBuildTypes"),
+    RENAME_IMPLICIT("renameImplicit"),
+    RENAME_IMPLICIT_EXPECTED("renameImplicitExpected"),
+    RENAME_EXPLICIT("renameExplicit"),
+    RENAME_EXPLICIT_EXPECTED("renameExplicitExpected"),
+    RENAME_TO_IMPLICIT("renameToImplicit"),
+    RENAME_TO_IMPLICIT_EXPECTED("renameToImplicitExpected"),
+    RENAME_EXPLICIT_TO_IMPLICIT("renameExplicitToImplicit"),
+    RENAME_EXPLICIT_TO_IMPLICIT_EXPECTED("renameExplicitToImplicitExpected"),
     ;
 
     @NotNull private @SystemDependent String path;

@@ -36,7 +36,8 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
     return BuildTypeDslElement.BUILD_TYPE;
   }
 
-  @NotNull private static final List<String> implicitBuildTypes = ContainerUtil.immutableList("debug", "release");
+  // the order is significant to the extent that it matches the order these build types are added by the Android Gradle Plugin
+  @NotNull private static final List<String> implicitBuildTypes = ContainerUtil.immutableList("release", "debug");
 
   @Override
   public boolean implicitlyExists(@NotNull String name) {
@@ -45,6 +46,7 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
 
   public BuildTypesDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+    implicitBuildTypes.stream().forEach((bt) -> addDefaultProperty(new BuildTypeDslElement(this, GradleNameElement.fake(bt))));
   }
 
   @NotNull

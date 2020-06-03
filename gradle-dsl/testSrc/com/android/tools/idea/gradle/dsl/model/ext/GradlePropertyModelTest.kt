@@ -2930,7 +2930,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     val topProperties = buildModel.declaredProperties
     val extProperties = buildModel.ext().declaredProperties
     val androidProperties = buildModel.android().declaredProperties
-    val debugProperties = buildModel.android().buildTypes()[0].declaredProperties
+    val debugBuildType = buildModel.android().buildTypes().first { it.name() == "debug" }
+    val debugProperties = debugBuildType.declaredProperties
 
     assertSize(1, extProperties)
     assertSize(3, androidProperties)

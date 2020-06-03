@@ -90,18 +90,16 @@ class PsAndroidModuleVariantsAnalyzerTest : DependencyTestCase() {
 
     val appModule = moduleWithSyncedModel(project, "app")
     assumeThat(appModule, notNullValue())
-    assumeThat(appModule.findBuildType("debug"), nullValue())
-    assumeThat(appModule.findBuildType("release"), nullValue())
+    assumeThat(appModule.findBuildType("debug"), notNullValue())
+    assumeThat(appModule.findBuildType("release"), notNullValue())
 
     val mainModule = moduleWithSyncedModel(project, "mainModule")
     assumeThat(mainModule, notNullValue())
-    assumeThat(mainModule.findBuildType("debug"), nullValue())
-    assumeThat(mainModule.findBuildType("release"), nullValue())
+    assumeThat(mainModule.findBuildType("debug"), notNullValue())
+    assumeThat(mainModule.findBuildType("release"), notNullValue())
 
-    val releaseBuildType = appModule.addNewBuildType("release")
-    releaseBuildType.debuggable = false.asParsed()  // Ensure declared.
-    val debugBuildType = appModule.addNewBuildType("debug")
-    debugBuildType.debuggable = true.asParsed()  // Ensure declared.
+    mainModule.findBuildType("release")!!.debuggable = false.asParsed()  // Ensure explicitly declared.
+    mainModule.findBuildType("debug")!!.debuggable = true.asParsed()  // Ensure explicitly declared.
 
     val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
     assertThat(result, equalTo(listOf()))
@@ -115,13 +113,13 @@ class PsAndroidModuleVariantsAnalyzerTest : DependencyTestCase() {
 
     val appModule = moduleWithSyncedModel(project, "app")
     assumeThat(appModule, notNullValue())
-    assumeThat(appModule.findBuildType("debug")?.isDeclared, equalTo(false))
-    assumeThat(appModule.findBuildType("release")?.isDeclared, equalTo(false))
+    assumeThat(appModule.findBuildType("debug")?.isDeclared, equalTo(true))
+    assumeThat(appModule.findBuildType("release")?.isDeclared, equalTo(true))
 
     val mainModule = moduleWithSyncedModel(project, "mainModule")
     assumeThat(mainModule, notNullValue())
-    assumeThat(mainModule.findBuildType("debug")?.isDeclared, equalTo(false))
-    assumeThat(mainModule.findBuildType("release")?.isDeclared, equalTo(false))
+    assumeThat(mainModule.findBuildType("debug")?.isDeclared, equalTo(true))
+    assumeThat(mainModule.findBuildType("release")?.isDeclared, equalTo(true))
 
     val releaseBuildType = appModule.findBuildType("release")!!
     releaseBuildType.debuggable = false.asParsed()  // Declare in config.
@@ -165,7 +163,7 @@ class PsAndroidModuleVariantsAnalyzerTest : DependencyTestCase() {
     val mainModule = moduleWithoutSyncedModel(project, "mainModule")
     assumeThat(mainModule, notNullValue())
 
-    appModule.addNewBuildType("debug")
+    assumeThat(appModule.findBuildType("debug"), notNullValue())
 
     val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
     assertThat(result, equalTo(emptyList()))
