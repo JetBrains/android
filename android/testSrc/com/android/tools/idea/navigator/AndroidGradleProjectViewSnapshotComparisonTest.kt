@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -110,6 +111,15 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
 
   fun testCompositeBuild() {
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testKotlinKapt() {
+    prepareProjectForImport(TestProjectToSnapshotPaths.KOTLIN_KAPT)
+    importProject()
+    invokeGradle(project, GradleBuildInvoker::rebuild)
+    AndroidTestBase.refreshProjectFiles()
+    val text = project.dumpAndroidProjectView(ProjectViewSettings(), Unit, { _, _ -> Unit })
     assertIsEqualToSnapshot(text)
   }
 
