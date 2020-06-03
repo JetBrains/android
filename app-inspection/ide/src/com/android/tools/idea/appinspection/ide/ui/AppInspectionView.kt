@@ -48,6 +48,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.util.concurrent.CancellationException
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
 
@@ -173,17 +174,7 @@ class AppInspectionView(
   private fun updateUi() {
     inspectorPanel.removeAll()
 
-    // TODO(b/157973967): Fix multiple inspectors properly
-    // Adding inspectorComponent to inspectorPanel triggers re-parenting and removes
-    // the inspectorTabs.getComponentAt(0) from inspectorTabs. In order to avoid the
-    // re-parenting, we uses the number of applicable providers instead of
-    // inspectorTabs.size as the indicator.
-    val inspectorComponent = when (inspectorTabs.tabCount) {
-      0 -> noInspectorsMessage
-      // TODO(b/152556591): Remove this case once we launch more than one inspector
-      1 -> inspectorTabs.getComponentAt(0)
-      else -> inspectorTabs
-    }
+    val inspectorComponent: JComponent = if (inspectorTabs.tabCount == 0) noInspectorsMessage else inspectorTabs
     inspectorPanel.add(inspectorComponent)
     inspectorPanel.repaint()
   }

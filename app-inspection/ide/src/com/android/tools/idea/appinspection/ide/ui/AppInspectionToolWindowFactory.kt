@@ -25,8 +25,7 @@ import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
 
 // This must match the toolwindow id in app-inspection.xml
-// TODO(b/152556591): Rename back to "App Inspection"
-internal const val APP_INSPECTION_ID = "Database Inspector"
+internal const val APP_INSPECTION_ID = "App Inspection"
 
 class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory {
 
