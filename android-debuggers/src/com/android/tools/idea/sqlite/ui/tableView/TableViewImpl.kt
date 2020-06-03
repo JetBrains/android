@@ -236,7 +236,7 @@ class TableViewImpl : TableView {
     table.model = MyTableModel(emptyList())
     table.emptyText.text = "Table is empty"
 
-    setEditable(false)
+    setEditable(true)
 
     setControlButtonsEnabled(false)
     setFetchNextRowsButtonState(false)
