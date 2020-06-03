@@ -647,6 +647,7 @@ fun setupTestProjectFromAndroidModel(
 ) {
   if (IdeSdks.getInstance().androidSdkPath === null) {
     AndroidGradleTests.setUpSdks(project, project, TestUtils.getSdk())
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 
   val moduleManager = ModuleManager.getInstance(project)
@@ -670,11 +671,15 @@ fun setupTestProjectFromAndroidModel(
           ModuleData(":", GRADLE_SYSTEM_ID, JAVA.id, project.name, basePath.systemIndependentPath, basePath.systemIndependentPath),
           ProjectData(GRADLE_SYSTEM_ID, project.name, project.basePath!!, basePath.systemIndependentPath))
     }
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
   else {
     error("There is already more than one module in the test project.")
   }
+
   ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
   val gradlePlugins = listOf(
     "com.android.java.model.builder.JavaLibraryPlugin", "org.gradle.buildinit.plugins.BuildInitPlugin",
     "org.gradle.buildinit.plugins.WrapperPlugin", "org.gradle.api.plugins.HelpTasksPlugin",
@@ -702,6 +707,7 @@ fun setupTestProjectFromAndroidModel(
       null
     )
   )
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   projectDataNode.addChild(
     DataNode<ExternalProject>(
@@ -728,6 +734,7 @@ fun setupTestProjectFromAndroidModel(
       null
     )
   )
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   val androidModels = mutableListOf<AndroidModuleModel>()
   moduleBuilders.forEach { moduleBuilder ->
@@ -766,10 +773,14 @@ fun setupTestProjectFromAndroidModel(
         )
     }
     projectDataNode.addChild(moduleDataNode)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 
   setupDataNodesForSelectedVariant(project, androidModels, projectDataNode)
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
   ProjectDataManager.getInstance().importData(projectDataNode, project, true)
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   // Effectively getTestRootDisposable(), which is not the project itself but its earlyDisposable.
   IdeSdks.removeJdksOn((project as? ProjectEx)?.earlyDisposable ?: project)
@@ -781,6 +792,7 @@ fun setupTestProjectFromAndroidModel(
     )
     if (GradleSyncState.getInstance(project).lastSyncFailed()) error("Test project setup failed.")
   }
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 }
 
 private fun createAndroidModuleDataNode(
