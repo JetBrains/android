@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.ui.ComponentContainer
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeGlassPane
 import com.intellij.ui.IdeBorderFactory
@@ -121,6 +122,10 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
       add(zoomControlsLayerPane, BorderLayout.CENTER)
       add(scrollPane, BorderLayout.CENTER)
     }
+  }
+
+  fun getPreferredFocusableComponent(): JComponent {
+    return emulatorView ?: this
   }
 
   private fun addToolbars() {
