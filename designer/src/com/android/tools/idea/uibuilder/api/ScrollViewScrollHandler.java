@@ -73,7 +73,7 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
    * part to scroll the content in the component.
    */
   private static void handleScrolling(@NotNull View view) {
-    RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+    RenderService.runAsyncRenderAction(() -> {
       int scrollPosX = view.getScrollX();
       int scrollPosY = view.getScrollY();
       if (scrollPosX != 0 || scrollPosY != 0) {

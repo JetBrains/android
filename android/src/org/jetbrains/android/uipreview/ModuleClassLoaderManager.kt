@@ -131,7 +131,7 @@ class ModuleClassLoaderManager {
         threadLocalFields.forEach { it.isAccessible = true }
 
         // Because we are clearing-up ThreadLocals, the code must run on the Layoutlib Thread
-        RenderService.getRenderAsyncActionExecutor().runAsyncAction {
+        RenderService.runAsyncRenderAction {
           threadLocalFields.forEach {
             try {
               (it[null] as ThreadLocal<*>).remove()

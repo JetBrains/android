@@ -97,6 +97,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
@@ -314,7 +315,7 @@ public class RenderTask {
       gapWorkerField.setAccessible(true);
 
       // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
-      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+      RenderService.runAsyncRenderAction(() -> {
         try {
           ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal<?>)gapWorkerField.get(null);
           gapWorkerFieldValue.set(null);
@@ -786,24 +787,17 @@ public class RenderTask {
   /**
    * Executes the passed {@link Callable} as an async render action and keeps track of it. If {@link #dispose()} is called, the call will
    * wait until all the async actions have finished running.
-   *
-   * @param callable the {@link Callable} to be executed in the Render thread.
-   * @param timeout maximum time to wait for the action to execute. If <= 0, the default timeout
-   *               (see {@link RenderAsyncActionExecutor#DEFAULT_RENDER_THREAD_TIMEOUT_MS}) will be used.
-   * @param unit the {@link TimeUnit} for the timeout.
-   * See {@link RenderService#getRenderAsyncActionExecutor()}.
+   * See {@link RenderService#runAsyncRenderAction(Supplier)}.
    */
   @VisibleForTesting
   @NotNull
-  private <V> CompletableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable, long timeout, @NotNull TimeUnit unit) {
+  <V> CompletableFuture<V> runAsyncRenderAction(@NotNull Supplier<V> callable) {
     if (isDisposed.get()) {
       return immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
     synchronized (myRunningFutures) {
-      CompletableFuture<V> newFuture = timeout < 1 ?
-                                       RenderService.getRenderAsyncActionExecutor().runAsyncAction(callable) :
-                                       RenderService.getRenderAsyncActionExecutor().runAsyncAction(timeout, unit, callable);
+      CompletableFuture<V> newFuture = RenderService.runAsyncRenderAction(callable);
       myRunningFutures.add(newFuture);
       newFuture
         .whenCompleteAsync((result, ex) -> {
@@ -814,18 +808,6 @@ public class RenderTask {
 
       return newFuture;
     }
-  }
-
-  /**
-   * Executes the passed {@link Callable} as an async render action and keeps track of it. If {@link #dispose()} is called, the call will
-   * wait until all the async actions have finished running. This will wait the default timeout
-   * (see {@link RenderAsyncActionExecutor#DEFAULT_RENDER_THREAD_TIMEOUT_MS}) for the invoked action to complete.
-   * See {@link RenderService#getRenderAsyncActionExecutor()}.
-   */
-  @VisibleForTesting
-  @NotNull
-  <V> CompletableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable) {
-    return runAsyncRenderAction(callable, 0, TimeUnit.SECONDS);
   }
 
   /**
@@ -845,24 +827,23 @@ public class RenderTask {
       return CompletableFuture.completedFuture(null);
     }
 
-    // Inflation can be way slower than a regular render since it will load classes and initiate most of the state.
-    // That's why, for inflating, we allow a more generous timeout than for rendering.
-    return runAsyncRenderAction(() -> createRenderSession((width, height) -> {
-      if (myImageFactoryDelegate != null) {
-        return myImageFactoryDelegate.getImage(width, height);
-      }
-
-      return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-    }), RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS * 10, TimeUnit.MILLISECONDS)
-      .whenComplete((result, ex) -> {
-        if (ex != null) {
-          String message = ex.getMessage();
-          if (message == null) {
-            message = ex.toString();
-          }
-          myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), ex));
+    try {
+      return runAsyncRenderAction(() -> createRenderSession((width, height) -> {
+        if (myImageFactoryDelegate != null) {
+          return myImageFactoryDelegate.getImage(width, height);
         }
-      });
+
+        return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+      }));
+    }
+    catch (Exception e) {
+      String message = e.getMessage();
+      if (message == null) {
+        message = e.toString();
+      }
+      myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
+      return CompletableFuture.completedFuture(RenderResult.createSessionInitializationError(this, xmlFile, myLogger, e));
+    }
   }
 
   /**
@@ -1177,7 +1158,7 @@ public class RenderTask {
   public CompletableFuture<Map<XmlTag, ViewInfo>> measureChildren(@NotNull XmlTag parent, @Nullable AttributeFilter filter) {
     ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter, parent, myLogger);
     Map<XmlTag, ViewInfo> map = new HashMap<>();
-    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> measure(modelParser))
+    return RenderService.runAsyncRenderAction(() -> measure(modelParser))
         .thenComposeAsync(session -> {
           if (session != null) {
             try {
@@ -1325,7 +1306,7 @@ public class RenderTask {
     }
     disposeMethod.ifPresent(m -> m.setAccessible(true));
     Optional<Method> finalDisposeMethod = disposeMethod;
-    RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+    RenderService.runAsyncRenderAction(() -> {
       finalDisposeMethod.ifPresent(m -> renderSession.getRootViews().forEach(v -> disposeIfCompose(v, m)));
       renderSession.dispose();
     });
