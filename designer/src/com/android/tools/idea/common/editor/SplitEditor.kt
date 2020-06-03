@@ -25,7 +25,6 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.pom.Navigatable
 import java.awt.event.ActionEvent
 import java.awt.event.InputEvent.ALT_DOWN_MASK
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
@@ -48,7 +47,7 @@ private const val NAV_RIGHT_INPUT_KEY = "navigate_split_editor_mode_right"
  * of the editor. Please use this class if you're adding a [TextEditorWithPreview] editor to Android Studio.
  */
 abstract class SplitEditor(textEditor: TextEditor, designEditor: FileEditor, editorName: String, defaultLayout: Layout) :
-  TextEditorWithPreview(textEditor, designEditor, editorName, defaultLayout), TextEditor {
+  TextEditorWithPreview(textEditor, designEditor, editorName, defaultLayout) {
 
   private val textViewAction = SplitEditorAction("Code", AllIcons.General.LayoutEditorOnly, super.getShowEditorAction())
 
@@ -61,14 +60,6 @@ abstract class SplitEditor(textEditor: TextEditor, designEditor: FileEditor, edi
   init {
     registerModeNavigationShortcuts()
   }
-
-  override fun getFile() = myEditor.file
-
-  override fun getEditor() = myEditor.editor
-
-  override fun canNavigateTo(navigatable: Navigatable) = myEditor.canNavigateTo(navigatable)
-
-  override fun navigateTo(navigatable: Navigatable) = myEditor.navigateTo(navigatable)
 
   override fun getShowEditorAction() = textViewAction
 
