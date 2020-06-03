@@ -72,6 +72,8 @@ interface TableView {
    */
   fun setEmptyText(text: String)
 
+  fun setRowOffset(rowOffset: Int)
+
   interface Listener {
     fun loadPreviousRowsInvoked()
     fun loadNextRowsInvoked()
