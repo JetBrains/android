@@ -44,15 +44,14 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTableImpl;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.rules.ProjectModelRule;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assume;
 import org.mockito.Mock;
 
 /**
@@ -185,7 +184,7 @@ public class AndroidModuleDependenciesSetupTest extends PlatformTestCase {
   }
 
   public void testSetupWithChangedPaths() throws IOException {
-    ignoreTestUnderWorkspaceModel();
+    ProjectModelRule.ignoreTestUnderWorkspaceModel();
 
     File cachedPath = createTempFile("fakeLibrary.jar", "");
     File sourcePath = createTempFile("fakeLibrary-sources.jar", "");
@@ -289,9 +288,5 @@ public class AndroidModuleDependenciesSetupTest extends PlatformTestCase {
     Library library = libraryOrderEntries.get(0).getLibrary();
     // Verify that the classpath is the same with the first library.
     assertThat(library.getUrls(CLASSES)).asList().containsExactly(pathToIdeaUrl(path1));
-  }
-
-  private static void ignoreTestUnderWorkspaceModel() {
-    Assume.assumeFalse("Not applicable to workspace model", Registry.is("ide.new.project.model"));
   }
 }
