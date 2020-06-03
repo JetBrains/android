@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestClassName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getTestCaseName
@@ -26,7 +27,9 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.ide.DataManager
+import com.intellij.ide.actions.EditSourceAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
@@ -41,6 +44,8 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import java.awt.Color
 import java.awt.Component
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.io.File
 import java.util.Comparator
 import javax.swing.Icon
@@ -217,7 +222,18 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     tableHeader.reorderingAllowed = false
     showHorizontalLines = false
 
-    PopupHandler.installPopupHandler(this, IdeActions.GROUP_TESTTREE_POPUP, ActionPlaces.TESTTREE_VIEW_POPUP)
+    PopupHandler.installPopupHandler(this, IdeActions.GROUP_TESTTREE_POPUP, ActionPlaces.ANDROID_TEST_SUITE_TABLE)
+    addMouseListener(object: MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent?) {
+        if (e?.clickCount != 2) {
+          return
+        }
+        EditSourceAction().actionPerformed(
+          AnActionEvent.createFromInputEvent(
+            e, ActionPlaces.ANDROID_TEST_SUITE_TABLE, null,
+            DataManager.getInstance().getDataContext(this@AndroidTestResultsTableViewComponent)))
+      }
+    })
   }
 
   override fun valueChanged(event: ListSelectionEvent) {
