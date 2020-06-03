@@ -57,5 +57,7 @@ open class MockTableView : TableView {
 
   override fun setEmptyText(text: String) { }
 
+  override fun setRowOffset(rowOffset: Int) { }
+
   override fun showPageSizeValue(maxRowCount: Int) { }
 }

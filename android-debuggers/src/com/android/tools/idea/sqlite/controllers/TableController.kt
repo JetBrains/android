@@ -70,7 +70,7 @@ class TableController(
   private lateinit var resultSet: SqliteResultSet
   private val listener = TableViewListenerImpl()
   private var orderBy: OrderBy? = null
-  private var start = 0
+  private var rowOffset = 0
 
   private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
@@ -167,8 +167,8 @@ class TableController(
       .transformAsync(taskExecutor) {
         resultSet.totalRowCount
       }.transform(edtExecutor) { rowCount ->
-        view.setFetchPreviousRowsButtonState(start > 0)
-        view.setFetchNextRowsButtonState(start+rowBatchSize < rowCount)
+        view.setFetchPreviousRowsButtonState(rowOffset > 0)
+        view.setFetchNextRowsButtonState(rowOffset + rowBatchSize < rowCount)
       }
   }
 
@@ -184,13 +184,13 @@ class TableController(
   }
 
   /**
-   * Fetches rows through the [resultSet] using [start] and [rowBatchSize].
+   * Fetches rows through the [resultSet] using [rowOffset] and [rowBatchSize].
    * The view is updated through a list of [RowDiffOperation]. Compared to just recreating the view
    * this approach has the advantage that the state is not lost. Eg. if the user is navigating the table
    * using the keyboard we don't want to lose the navigation each time the data has to be updated.
    */
   private fun fetchAndDisplayRows() : ListenableFuture<Unit> {
-    return resultSet.getRowBatch(start, rowBatchSize).transform(edtExecutor) { newRows ->
+    return resultSet.getRowBatch(rowOffset, rowBatchSize).transform(edtExecutor) { newRows ->
       val rowDiffOperations = mutableListOf<RowDiffOperation>()
 
       // Update the cells that already exist
@@ -208,6 +208,7 @@ class TableController(
         rowDiffOperations.add(RowDiffOperation.RemoveLastRows(newRows.size))
       }
 
+      view.setRowOffset(rowOffset)
       view.updateRows(rowDiffOperations)
       view.setEditable(isEditable())
 
@@ -269,7 +270,7 @@ class TableController(
         resultSet = newResultSet
         Disposer.register(this@TableController, newResultSet)
 
-        start = 0
+        rowOffset = 0
         fetchAndDisplayTableData()
       }
     }
@@ -294,25 +295,25 @@ class TableController(
     }
 
     override fun loadPreviousRowsInvoked() {
-      start = max(0, start-rowBatchSize)
+      rowOffset = max(0, rowOffset - rowBatchSize)
       updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadNextRowsInvoked() {
-      start += rowBatchSize
+      rowOffset += rowBatchSize
       updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadFirstRowsInvoked() {
-      start = 0
+      rowOffset = 0
       updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadLastRowsInvoked() {
       resultSet.totalRowCount.transformAsync(edtExecutor) { rowCount ->
-        start = (rowCount / rowBatchSize) * rowBatchSize
+        rowOffset = (rowCount / rowBatchSize) * rowBatchSize
 
-        if (start == rowCount) start -= rowBatchSize
+        if (rowOffset == rowCount) rowOffset -= rowBatchSize
         updateDataAndButtonsWithLoadingScreens()
       }
     }
