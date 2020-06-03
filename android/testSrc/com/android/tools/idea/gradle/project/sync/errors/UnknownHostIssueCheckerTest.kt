@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -39,5 +40,27 @@ class UnknownHostIssueCheckerTest: AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(ToggleOfflineModeQuickFix::class.java)
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
 
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      unknownHostIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Gradle DSL method not found",
+        "Caused by: java.net.UnknownHostException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      unknownHostIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "this doesn't matter as the stacktrace.",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(false)
   }
 }

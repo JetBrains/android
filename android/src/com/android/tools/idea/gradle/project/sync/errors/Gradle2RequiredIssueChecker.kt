@@ -20,16 +20,21 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.CreateGradleWrapperQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import java.util.function.Consumer
 
 class Gradle2RequiredIssueChecker : GradleIssueChecker {
+  private val MESSAGE_SUFFIX = "org/codehaus/groovy/runtime/typehandling/ShortTypeHandling"
+
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (message.isBlank() || !message.endsWith("org/codehaus/groovy/runtime/typehandling/ShortTypeHandling")) return null
+    if (message.isBlank() || !message.endsWith(MESSAGE_SUFFIX)) return null
 
     // Log metrics.
     invokeLater {
@@ -39,5 +44,14 @@ class Gradle2RequiredIssueChecker : GradleIssueChecker {
       addDescription(message)
       addQuickFix("Migrate to Gradle wrapper and sync project", CreateGradleWrapperQuickFix())
     }.composeBuildIssue()
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return failureCause.endsWith(MESSAGE_SUFFIX)
   }
 }

@@ -24,13 +24,19 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CACHED_DEPENDENCY_NOT_FOUND
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getRootCauseAndLocation
+import java.util.function.Consumer
 
 class CachedDependencyNotFoundIssueChecker: GradleIssueChecker {
+  private val NO_CACHED_VERSION = "No cached version of "
+  private val OFFLINE_MODE = "available for offline mode."
+
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: return null
-    if (!message.startsWith("No cached version of ") || !message.contains("available for offline mode.")) return null
+    if (!message.startsWith(NO_CACHED_VERSION) || !message.contains(OFFLINE_MODE)) return null
 
     // Log metrics.
     ApplicationManager.getApplication().invokeLater {
@@ -40,5 +46,14 @@ class CachedDependencyNotFoundIssueChecker: GradleIssueChecker {
     return BuildIssueComposer(message).apply {
       addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(true))
     }.composeBuildIssue()
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return (failureCause.startsWith(NO_CACHED_VERSION) && failureCause.contains(OFFLINE_MODE))
   }
 }

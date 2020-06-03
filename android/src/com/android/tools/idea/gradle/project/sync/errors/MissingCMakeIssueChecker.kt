@@ -29,12 +29,15 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.io.File
 import java.io.IOException
+import java.util.function.Consumer
 
 /**
  * Extended version of the "Revision" class with orAbove semantics.
@@ -108,6 +111,9 @@ fun versionSatisfies(candidateCmake: Revision, requestedCmake: RevisionOrHigher)
 }
 
 open class MissingCMakeIssueChecker : GradleIssueChecker {
+  private val FAILED_TO_FIND_CMAKE = "Failed to find CMake."
+  private val UNABLE_TO_GET_CMAKE_VERSION = "Unable to get the CMake version"
+
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
 
@@ -115,7 +121,7 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
        (matchesCannotFindCmake(message) || matchesTriedInstall(message) || matchesCmakeWithVersion(message)) -> {
          BuildIssueComposer(message)
       }
-      message.startsWith("Failed to find CMake.") || message.startsWith("Unable to get the CMake version") -> {
+      message.startsWith(FAILED_TO_FIND_CMAKE) || message.startsWith(UNABLE_TO_GET_CMAKE_VERSION) -> {
         updateUsageTracker(issueData.projectPath, GradleSyncFailure.MISSING_CMAKE)
         BuildIssueComposer("Failed to find CMake.")
       }
@@ -173,6 +179,16 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
     buildIssueComposer.addQuickFix("Install Cmake ${foundCmakeVersion}", InstallCmakeQuickFix(foundCmakeVersion))
 
     return buildIssueComposer.composeBuildIssue()
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return matchesCannotFindCmake(failureCause) || matchesTriedInstall(failureCause) || matchesCmakeWithVersion(failureCause) ||
+      failureCause.startsWith(FAILED_TO_FIND_CMAKE) || failureCause.startsWith(UNABLE_TO_GET_CMAKE_VERSION)
   }
 
   /**

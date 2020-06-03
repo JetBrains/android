@@ -24,10 +24,13 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import java.util.function.Consumer
 
 class NdkToolchainMissingABIIssueChecker: GradleIssueChecker {
   private val ERROR_MESSAGE = "No toolchains found in the NDK toolchains folder for ABI with prefix: "
@@ -89,5 +92,14 @@ class NdkToolchainMissingABIIssueChecker: GradleIssueChecker {
    */
   private fun isAndroidPlugin(artifactModel: ArtifactDependencyModel): Boolean {
     return artifactModel.group().toString() == "com.android.tools.build" && artifactModel.name().toString() == "gradle"
+  }
+
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return failureCause.startsWith(ERROR_MESSAGE)
   }
 }

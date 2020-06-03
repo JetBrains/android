@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallBuildToolsQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -36,5 +37,17 @@ class SdkBuildToolsTooLowIssueCheckerTest: AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes).hasSize(2)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(InstallBuildToolsQuickFix::class.java)
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      sdkBuildToolsTooLowIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "The SDK Build Tools revision (24.0.0) is too low for project 'test'. Minimum required is 29.2.0",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
   }
 }

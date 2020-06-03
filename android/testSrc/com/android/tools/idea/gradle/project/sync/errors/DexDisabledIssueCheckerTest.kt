@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.issue.BuildIssueQuickFix
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -93,6 +94,51 @@ class DexDisabledIssueCheckerTest {
         assertThat(it.id).endsWith(apiLevel)
       }
     }
+  }
+
+  @Test
+  fun `testCheckIssueHandled`() {
+    assertThat(
+      issueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Error: Invoke-customs are only supported starting with Android O",
+        "Caused by: java.lang.RuntimeException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      issueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Error: Default interface methods are only supported starting with Android N (--min-api 24)",
+        "Caused by: java.lang.RuntimeException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      issueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Error: Static interface methods are only supported starting with Android N (--min-api 24)",
+        "Caused by: java.lang.RuntimeException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    // Check that if the stacktrace is not corresponding to the expected type, the issueChecker doesn't handle the failure.
+    assertThat(
+      issueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Build failed with Exception: The newly created daemon process has a different context than expected. \n" +
+        "what went wrong: \nJava home is different.\n Please check your build files.",
+        "Caused by: java.net.SocketException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(false)
   }
 
   private fun verifyBuildIssueAndGetQuickfixes(rootPattern: String, taskPattern: String): List<BuildIssueQuickFix> {

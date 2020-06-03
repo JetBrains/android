@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase
@@ -33,7 +34,7 @@ class MissingPlatformIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue!!.description).contains("Failed to find target android-23")
     assertThat(buildIssue.description).contains("Install missing platform(s) and sync project")
     assertThat(buildIssue.quickFixes).hasSize(1)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(MissingPlatformIssueChecker.InstallPlatformQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(InstallPlatformQuickFix::class.java)
   }
 
   fun testGetMissingPlatform() {
@@ -51,5 +52,37 @@ class MissingPlatformIssueCheckerTest : AndroidGradleTestCase() {
     TestCase.assertEquals("android-21", getMissingPlatform("failed to find target android-21"))
     TestCase.assertEquals("android-21", getMissingPlatform("Cause: Failed to find target android-21"))
     TestCase.assertEquals("android-21", getMissingPlatform("Cause: failed to find target android-21"))
+  }
+
+  fun testCheckIssueHandled() {
+    assertThat(
+      missingPlatformIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Cause: Failed to find target with hash string 'A.B.C' in: :test",
+        "Caused by: java.lang.IllegalStateException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingPlatformIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Cause: Failed to find target 'A.B.C'",
+        "Caused by: com.intellij.openapi.externalSystem.model.ExternalSystemException",
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+
+    assertThat(
+      missingPlatformIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Cause: Failed to find target 'A.B.C'",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(false)
   }
 }
