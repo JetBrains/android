@@ -938,6 +938,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_ANIMATION_INSPECTOR = Flag.create(
+    COMPOSE, "preview.animation.inspector",
+    "Enable compose preview animation inspection",
+    "If enabled, users can inspect animations in compose previews, e.g. play/pause and jump to specific frame",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = Flag.create(
     COMPOSE, "preview.debug.bounds",
     "Enable the debug bounds switch controls",
@@ -961,6 +968,15 @@ public final class StudioFlags {
     APP_INSPECTION, "enable.tool.window", "Enable App Inspection Tool Window",
     "Enables the top-level App Inspection tool window, which will contain tabs to various feature inspectors",
     true
+  );
+  // endregion
+
+  // region WorkManager Inspector
+  private static final FlagGroup WORK_MANAGER_INSPECTOR = new FlagGroup(FLAGS, "work.inspector", "WorkManager Inspector");
+  public static final Flag<Boolean> ENABLE_WORK_MANAGER_INSPECTOR_TAB = Flag.create(
+    WORK_MANAGER_INSPECTOR, "enable.tab", "Enable WorkManager Inspector Tab",
+    "Enables a WorkManager Inspector Tab in the App Inspection tool window",
+    false
   );
   // endregion
 

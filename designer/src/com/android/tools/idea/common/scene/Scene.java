@@ -84,6 +84,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * A Scene contains a hierarchy of SceneComponent representing the bounds
@@ -1215,7 +1216,7 @@ public class Scene implements SelectionListener, Disposable {
         }
 
         XmlTag tag = neleComponent.getTagDeprecated();
-        return task.measureChild(tag, filter);
+        return task.measureChild(tag, filter).whenCompleteAsync((map, ex) -> task.dispose(), PooledThreadExecutor.INSTANCE);
       })
       .thenApply(viewInfo -> {
         if (viewInfo == null) {

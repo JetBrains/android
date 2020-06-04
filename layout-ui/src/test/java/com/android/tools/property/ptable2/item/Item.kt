@@ -51,12 +51,15 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
   override val items = mutableListOf(*items)
   override var editedItem: PTableItem? = null
   var readOnly = false
+  var countOfIsCellEditable = 0
 
-  override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean =
-    when (column) {
+  override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
+    countOfIsCellEditable++
+    return when (column) {
       PTableColumn.NAME -> item.name == "new" && !readOnly
       PTableColumn.VALUE -> item.name != "readonly" && item.name != "new" && !readOnly
     }
+  }
 
   fun updateTo(modelChanged: Boolean, vararg newItems: PTableItem) {
     items.clear()

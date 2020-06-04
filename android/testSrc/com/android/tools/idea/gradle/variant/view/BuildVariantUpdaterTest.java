@@ -27,10 +27,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.gradle.model.level2.IdeLibrary;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -78,7 +78,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
   @Mock private GradleFiles myGradleFiles;
 
   private BuildVariantUpdater myVariantUpdater;
-  private List<Library> myModuleDependencies = Lists.newArrayList();
+  private List<IdeLibrary> myModuleDependencies = Lists.newArrayList();
 
   @Override
   protected void setUp() throws Exception {
@@ -273,7 +273,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     IdeDependencies libraryIdeDependencies = mock(IdeDependencies.class);
     IdeAndroidProject libraryAndroidProject = mock(IdeAndroidProject.class);
     ModuleSetupContext libraryModuleSetupContext = mock(ModuleSetupContext.class);
-    Library library = mock(Library.class);
+    IdeLibrary library = mock(IdeLibrary.class);
 
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
@@ -292,7 +292,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(myModuleSetupContextFactory.create(libraryModule, myModifiableModelsProvider)).thenReturn(libraryModuleSetupContext);
 
     // Register "library" into gradle so that "app:release" depends on "library:release".
-    when(library.getType()).thenReturn(Library.LIBRARY_MODULE);
+    when(library.getType()).thenReturn(IdeLibrary.LIBRARY_MODULE);
     when(library.getVariant()).thenReturn("release");
     when(library.getProjectPath()).thenReturn(":library");
     myModuleDependencies.add(library);
@@ -351,7 +351,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     IdeDependencies libraryIdeDependencies = mock(IdeDependencies.class);
     IdeAndroidProject libraryAndroidProject = mock(IdeAndroidProject.class);
     ModuleSetupContext libraryModuleSetupContext = mock(ModuleSetupContext.class);
-    Library library = mock(Library.class);
+    IdeLibrary library = mock(IdeLibrary.class);
 
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
@@ -370,7 +370,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(myModuleSetupContextFactory.create(libraryModule, myModifiableModelsProvider)).thenReturn(libraryModuleSetupContext);
 
     // Register "library" into gradle so that "app:release" depends on "library:release".
-    when(library.getType()).thenReturn(Library.LIBRARY_MODULE);
+    when(library.getType()).thenReturn(IdeLibrary.LIBRARY_MODULE);
     when(library.getVariant()).thenReturn("release");
     when(library.getProjectPath()).thenReturn(":library");
     myModuleDependencies.add(library);
@@ -428,7 +428,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     IdeDependencies libraryIdeDependencies = mock(IdeDependencies.class);
     IdeAndroidProject libraryAndroidProject = mock(IdeAndroidProject.class);
     ModuleSetupContext libraryModuleSetupContext = mock(ModuleSetupContext.class);
-    Library library = mock(Library.class);
+    IdeLibrary library = mock(IdeLibrary.class);
     NdkModuleModel libraryNdkModel = mock(NdkModuleModel.class);
     NdkVariant libraryNdkDebugVariant = mock(NdkVariant.class);
 
@@ -458,7 +458,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     ndkFacet.setNdkModuleModel(libraryNdkModel);
 
     // Register "library" into gradle so that "app:release" depends on "library:release".
-    when(library.getType()).thenReturn(Library.LIBRARY_MODULE);
+    when(library.getType()).thenReturn(IdeLibrary.LIBRARY_MODULE);
     when(library.getVariant()).thenReturn("release");
     when(library.getProjectPath()).thenReturn(":library");
     myModuleDependencies.add(library);
@@ -536,7 +536,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     IdeDependencies libraryIdeDependencies = mock(IdeDependencies.class);
     IdeAndroidProject libraryAndroidProject = mock(IdeAndroidProject.class);
     ModuleSetupContext libraryModuleSetupContext = mock(ModuleSetupContext.class);
-    Library library = mock(Library.class);
+    IdeLibrary library = mock(IdeLibrary.class);
     NdkModuleModel libraryNdkModel = mock(NdkModuleModel.class);
     NdkVariant libraryNdkDebugVariant = mock(NdkVariant.class);
 
@@ -566,7 +566,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     libraryNdkFacet.setNdkModuleModel(libraryNdkModel);
 
     // Register "library" into gradle so that "app:release" depends on "library:release".
-    when(library.getType()).thenReturn(Library.LIBRARY_MODULE);
+    when(library.getType()).thenReturn(IdeLibrary.LIBRARY_MODULE);
     when(library.getVariant()).thenReturn("release");
     when(library.getProjectPath()).thenReturn(":library");
     myModuleDependencies.add(library);
@@ -649,7 +649,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     IdeDependencies libraryIdeDependencies = mock(IdeDependencies.class);
     IdeAndroidProject libraryAndroidProject = mock(IdeAndroidProject.class);
     ModuleSetupContext libraryModuleSetupContext = mock(ModuleSetupContext.class);
-    Library library = mock(Library.class);
+    IdeLibrary library = mock(IdeLibrary.class);
     NdkModuleModel libraryNdkModel = mock(NdkModuleModel.class);
     NdkVariant libraryNdkDebugVariant = mock(NdkVariant.class);
 
@@ -679,7 +679,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     libraryNdkFacet.setNdkModuleModel(libraryNdkModel);
 
     // Register "library" into gradle so that "app:debug" depends on "library:debug".
-    when(library.getType()).thenReturn(Library.LIBRARY_MODULE);
+    when(library.getType()).thenReturn(IdeLibrary.LIBRARY_MODULE);
     when(library.getVariant()).thenReturn("debug");
     when(library.getProjectPath()).thenReturn(":library");
     myModuleDependencies.add(library);

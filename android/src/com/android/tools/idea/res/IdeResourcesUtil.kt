@@ -352,7 +352,7 @@ fun ResourceItem.getSourceAsVirtualFile(): VirtualFile? = runReadAction {
 /**
  * Package prefixes used in [isViewPackageNeeded]
  */
-private val NO_PREFIX_PACKAGES = arrayOf(ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PKG, ANDROID_WEBKIT_PKG)
+val NO_PREFIX_PACKAGES_FOR_VIEW = arrayOf(ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PKG, ANDROID_WEBKIT_PKG)
 
 /**
  * Returns true if views with the given fully qualified class name need to include
@@ -369,7 +369,7 @@ private val NO_PREFIX_PACKAGES = arrayOf(ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PKG
  * tag
  */
 fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
-  for (noPrefixPackage in NO_PREFIX_PACKAGES) {
+  for (noPrefixPackage in NO_PREFIX_PACKAGES_FOR_VIEW) {
     // We need to check not only if prefix is a "whitelisted" package, but if the class
     // is stored in that package directly, as opposed to be stored in a subpackage.
     // For example, view with FQCN android.view.MyView can be abbreviated to "MyView",

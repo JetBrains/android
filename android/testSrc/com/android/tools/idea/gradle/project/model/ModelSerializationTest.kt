@@ -212,13 +212,14 @@ class ModelSerializationTest {
       "externalAnnotations",
       "publicResources",
       File("artifactFile"),
-      "symbolFile"
+      "symbolFile",
+      true
     )
   }
 
   @Test
   fun level2JavaLibrary() = assertSerializable {
-    com.android.ide.common.gradle.model.level2.IdeJavaLibrary("artifactAddress", File("artifactFile"))
+    com.android.ide.common.gradle.model.level2.IdeJavaLibrary("artifactAddress", File("artifactFile"), true)
   }
 
   @Test

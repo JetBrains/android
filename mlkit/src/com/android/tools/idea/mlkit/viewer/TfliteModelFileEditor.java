@@ -114,7 +114,7 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
 public class TfliteModelFileEditor extends UserDataHolderBase implements FileEditor {
   private static final String NAME = "TFLite Model File";
   private static final ImmutableList<String> TENSOR_TABLE_HEADER =
-    ImmutableList.of("Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max");
+    ImmutableList.of("Name", "Type", "Description", "Shape", "Min / Max");
   // Do not use this separator in sample code block as it would cause document creation failure on Windows, see b/156460170.
   private static final String LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().getSeparatorString();
   private static final String INDENT = "    ";
@@ -165,7 +165,10 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath())));
       }
 
-      if (modelInfo.isMetadataExisted()) {
+      if (modelInfo.isMetadataVersionTooHigh()) {
+        contentPanel.add(createMetadataVersionTooHighSection());
+      }
+      else if (modelInfo.isMetadataExisted()) {
         contentPanel.add(createModelSection(modelInfo));
         contentPanel.add(createTensorsSection(modelInfo));
       }
@@ -229,6 +232,21 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     addMetadataLinkLabel.setIcon(AllIcons.General.ContextHelp);
     addMetadataLinkLabel.setMaximumSize(addMetadataLinkLabel.getPreferredSize());
     sectionContentPanel.add(addMetadataLinkLabel);
+
+    return sectionPanel;
+  }
+
+  @NotNull
+  private static JComponent createMetadataVersionTooHighSection() {
+    JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
+    sectionPanel.add(createSectionHeader("Model"));
+
+    JBLabel infoLabel = new JBLabel(
+      "Model is not fully supported in current Android Studio or Android Gradle Plugin. " +
+      "Please update to latest version if possible to get best experience.");
+    infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    infoLabel.setBorder(Borders.empty(10, 20, 10, 0));
+    sectionPanel.add(infoLabel);
 
     return sectionPanel;
   }
@@ -409,15 +427,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     List<List<String>> tableData = new ArrayList<>();
     for (TensorInfo tensorInfo : tensorInfoList) {
       MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
-      String meanStdColumn = convertFloatArrayPairToString(params.getMean(), params.getStd());
-      String minMaxColumn = isValidMinMaxColumn(params) ? convertFloatArrayPairToString(params.getMin(), params.getMax()) : "";
+      String minMaxColumn = isValidMinMaxColumn(params) ? convertFloatArrayPairToString(params.getMin(), params.getMax()) : "[] / []";
       tableData.add(
         Lists.newArrayList(
           tensorInfo.getName(),
           getTypeStringForDisplay(tensorInfo),
           breakIntoMultipleLines(tensorInfo.getDescription(), 60),
           Arrays.toString(tensorInfo.getShape()),
-          meanStdColumn,
           minMaxColumn
         ));
     }
@@ -949,20 +965,22 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
     @Override
     @Nullable
-    public Component getComponentAfter(@NotNull Container aContainer,@NotNull Component aComponent) {
+    public Component getComponentAfter(@NotNull Container aContainer, @NotNull Component aComponent) {
       if (aComponent == myTabbedCodePaneForFocus) {
         return myTabbedCodePaneForFocus.getSelectedComponent();
-      } else {
+      }
+      else {
         return myTabbedCodePaneForFocus;
       }
     }
 
     @Override
     @Nullable
-    public Component getComponentBefore(@NotNull Container aContainer,@NotNull Component aComponent) {
+    public Component getComponentBefore(@NotNull Container aContainer, @NotNull Component aComponent) {
       if (aComponent == myTabbedCodePaneForFocus) {
         return myTabbedCodePaneForFocus.getSelectedComponent();
-      } else {
+      }
+      else {
         return myTabbedCodePaneForFocus;
       }
     }

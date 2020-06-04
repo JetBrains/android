@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.project
 
-import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker

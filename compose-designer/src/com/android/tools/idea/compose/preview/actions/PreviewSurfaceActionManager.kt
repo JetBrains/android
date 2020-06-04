@@ -66,6 +66,10 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
             EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }
           else
             null,
+          if (StudioFlags.COMPOSE_ANIMATION_INSPECTOR.get())
+            AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }
+          else
+            null,
           DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }
         )
       ),

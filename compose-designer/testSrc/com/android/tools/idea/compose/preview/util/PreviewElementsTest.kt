@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.compose.preview.util
 
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.fail
 import org.junit.Test
 import org.xml.sax.InputSource
@@ -112,5 +115,44 @@ $t
 
     // The more similar, the lower result of modelAffinity.
     assertArrayEquals(arrayOf(composable0b, composable1, composable2), result)
+  }
+
+  @Test
+  fun testEquals() {
+    class TestPreviewElementInstance(override val instanceId: String,
+                                     override val composableMethodFqn: String,
+                                     override val displaySettings: PreviewDisplaySettings,
+                                     override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
+                                     override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
+                                     override val configuration: PreviewConfiguration) : PreviewElementInstance()
+
+    val composable0 = SinglePreviewElementInstance("composableMethodName",
+                                                   PreviewDisplaySettings("A name", null, false, false, null), null, null,
+                                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null, null))
+
+    // The same as composable0, just a different instance
+    val composable0b = SinglePreviewElementInstance("composableMethodName",
+                                                    PreviewDisplaySettings("A name", null, false, false, null), null, null,
+                                                    PreviewConfiguration.cleanAndGet(null, null, null, null, null, null))
+
+    // The same as composable0, but with a different name
+    val composable1 = SinglePreviewElementInstance("composableMethodName2",
+                                                   PreviewDisplaySettings("A name", null, false, false, null), null, null,
+                                                   PreviewConfiguration.cleanAndGet(null, null, null, null, null, null))
+
+    // The same as composable0, but with a different type
+    val composable2 = TestPreviewElementInstance("composableMethodName", "composableMethodName",
+                                                 PreviewDisplaySettings("A name", null, false, false, null), null, null,
+                                                 PreviewConfiguration.cleanAndGet(null, null, null, null, null, null))
+
+    // The same as composable2, but with a different display settings
+    val composable3 = TestPreviewElementInstance("composableMethodName", "composableMethodName",
+                                                 PreviewDisplaySettings("B name", null, false, false, null), null, null,
+                                                 PreviewConfiguration.cleanAndGet(null, null, null, null, null, null))
+
+    assertEquals(composable0, composable0b)
+    assertNotEquals(composable0, composable1)
+    assertNotEquals(composable0, composable2)
+    assertNotEquals(composable2, composable3)
   }
 }

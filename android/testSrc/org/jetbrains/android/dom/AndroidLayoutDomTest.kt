@@ -648,6 +648,10 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     doTestHighlighting("missing_attrs.xml")
   }
 
+  fun testViewHighlighting() {
+    doTestHighlighting("view_highlighting.xml")
+  }
+
   fun testLayoutManagerAttributeForOldRecyclerView() {
     // RecyclerView has a "layoutManager" attribute that should give completions that extend
     // the RecyclerView.LayoutManager class.

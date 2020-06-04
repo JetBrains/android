@@ -28,7 +28,6 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import java.util.List;
@@ -83,9 +82,9 @@ public class AndroidRunConfigurations {
     if (targetSelectionMode != null) {
       configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
-    TransactionGuard.submitTransaction(module.getProject(), () -> {
+    if (!module.getProject().isDisposed()){
       runManager.addConfiguration(settings);
       runManager.setSelectedConfiguration(settings);
-    });
+    }
   }
 }

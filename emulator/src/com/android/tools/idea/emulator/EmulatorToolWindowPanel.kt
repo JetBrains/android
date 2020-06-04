@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
+import com.android.tools.editor.ActionToolbarUtil.makeToolbarNavigable
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
@@ -24,6 +25,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.ui.ComponentContainer
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeGlassPane
 import com.intellij.ui.IdeBorderFactory
@@ -91,30 +93,39 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
     background = primaryPanelBackground
 
     mainToolbar = createToolbar(EMULATOR_MAIN_TOOLBAR_ID, isToolbarHorizontal)
-    secondaryToolbar = createToolbar(EMULATOR_SECONDARY_TOOLBAR_ID, isToolbarHorizontal)
-    secondaryToolbar.setReservePlaceAutoPopupIcon(false)
-    secondaryToolbar.layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
 
-    zoomControlsLayerPane = JPanel()
-    zoomControlsLayerPane.layout = BorderLayout()
-    zoomControlsLayerPane.border = JBUI.Borders.empty(UIUtil.getScrollBarWidth())
-    zoomControlsLayerPane.isOpaque = false
-    zoomControlsLayerPane.isFocusable = true
+    secondaryToolbar = createToolbar(EMULATOR_SECONDARY_TOOLBAR_ID, isToolbarHorizontal).apply {
+      setReservePlaceAutoPopupIcon(false)
+      layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
+    }
 
-    scrollPane = MyScrollPane()
-    scrollPane.border = null
-    scrollPane.verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
-    scrollPane.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-    scrollPane.viewport.background = background
+    zoomControlsLayerPane = JPanel().apply {
+      layout = BorderLayout()
+      border = JBUI.Borders.empty(UIUtil.getScrollBarWidth())
+      isOpaque = false
+      isFocusable = true
+    }
 
-    layeredPane = JLayeredPane()
-    layeredPane.layout = LayeredPaneLayoutManager()
-    layeredPane.isFocusable = true
-    layeredPane.setLayer(zoomControlsLayerPane, JLayeredPane.PALETTE_LAYER)
-    layeredPane.setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
+    scrollPane = MyScrollPane().apply {
+      border = null
+      verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+      horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+      viewport.background = background
+    }
 
-    layeredPane.add(zoomControlsLayerPane, BorderLayout.CENTER)
-    layeredPane.add(scrollPane, BorderLayout.CENTER)
+    layeredPane = JLayeredPane().apply {
+      layout = LayeredPaneLayoutManager()
+      isFocusable = true
+      setLayer(zoomControlsLayerPane, JLayeredPane.PALETTE_LAYER)
+      setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
+
+      add(zoomControlsLayerPane, BorderLayout.CENTER)
+      add(scrollPane, BorderLayout.CENTER)
+    }
+  }
+
+  fun getPreferredFocusableComponent(): JComponent {
+    return emulatorView ?: this
   }
 
   private fun addToolbars() {
@@ -164,7 +175,7 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
 
       addToolbars()
 
-      val loadingPanel = JBLoadingPanel(BorderLayout(), disposable, 200)
+      val loadingPanel = EmulatorLoadingPanel(disposable)
       this.loadingPanel = loadingPanel
       loadingPanel.add(layeredPane, BorderLayout.CENTER)
       addToCenter(loadingPanel)
@@ -206,7 +217,9 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
 
   private fun createToolbar(toolbarId: String, @Suppress("SameParameterValue") horizontal: Boolean): ActionToolbar {
     val actions = listOf(CustomActionsSchema.getInstance().getCorrectedAction(toolbarId)!!)
-    return ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
+    val toolbar = ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
+    makeToolbarNavigable(toolbar)
+    return toolbar
   }
 
   private class LayeredPaneLayoutManager : LayoutManager {

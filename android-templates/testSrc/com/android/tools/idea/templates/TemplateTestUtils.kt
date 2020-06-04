@@ -76,6 +76,7 @@ internal fun isBroken(templateName: String): Boolean {
   // See http://b.android.com/253296
   if (SystemInfo.isWindows) {
     if ("AidlFile" == templateName) return true
+    if ("Native C++" == templateName) return true // b/158067606
   }
 
   return false
@@ -111,7 +112,12 @@ internal fun getLintIssueMessage(project: Project, maxSeverity: Severity, ignore
 
 private const val specialChars = "!@#$^&()_+=-.`~"
 private const val nonAsciiChars = "你所有的基地都属于我们"
-internal fun getModifiedModuleName(moduleName: String): String = "$moduleName$specialChars,$nonAsciiChars"
+internal fun getModifiedModuleName(moduleName: String): String {
+  if (SystemInfo.isWindows){
+    if (moduleName.startsWith("Native C++")) return moduleName // cmake can't handle especial path chars
+  }
+  return "$moduleName$specialChars,$nonAsciiChars"
+}
 
 /**
  * Checks that the most recent log in usageTracker is a [EventKind.TEMPLATE_RENDER] event with expected info.

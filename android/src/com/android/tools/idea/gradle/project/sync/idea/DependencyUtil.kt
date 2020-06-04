@@ -26,6 +26,7 @@ import com.android.builder.model.level2.Library.LIBRARY_ANDROID
 import com.android.builder.model.level2.Library.LIBRARY_JAVA
 import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.ide.common.gradle.model.IdeVariant
+import com.android.ide.common.gradle.model.level2.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -189,7 +190,7 @@ private fun adjustLocalLibraryName(artifactFile: File, projectBasePath: String) 
 /**
  * Converts the artifact address into a name that will be used by the IDE to represent the library.
  */
-private fun convertToLibraryName(library: Library, projectBasePath: String): String {
+private fun convertToLibraryName(library: IdeLibrary, projectBasePath: String): String {
   if (library.artifactAddress.startsWith("$LOCAL_LIBRARY_PREFIX:"))  {
     return adjustLocalLibraryName(library.artifact, projectBasePath)
   }
@@ -222,7 +223,7 @@ private fun stripExtensionAndClassifier(libraryName: String) : String {
   return "${parts[0]}:${parts[1]}:${parts[2]}"
 }
 
-private fun Library.isModuleLevel(modulePath: String) = try {
+private fun IdeLibrary.isModuleLevel(modulePath: String) = try {
   FileUtil.isAncestor(modulePath, artifactAddress, false)
 } catch (e: UnsupportedMethodException) {
   false
@@ -242,7 +243,7 @@ private fun Library.isModuleLevel(modulePath: String) = try {
  *
  */
 private fun computeModuleIdForLibraryTarget(
-  library: Library,
+  library: IdeLibrary,
   projectData: ProjectData?,
   compositeData: CompositeBuildData?
 ) : String? {

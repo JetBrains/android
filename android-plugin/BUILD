@@ -35,7 +35,7 @@ iml_module(
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/adt-branding:intellij.android.adt.branding",
     ],
     # do not sort: must match IML order
     deps = [
@@ -71,5 +71,6 @@ iml_module(
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module]",
         "//tools/adt/idea/android-test-retention:intellij.android.testRetention[module]",
+        "//tools/adt/idea/app-inspection/inspectors/workmanager/ide:intellij.android.app-inspection.inspectors.workmanager.ide[module]",
     ],
 )

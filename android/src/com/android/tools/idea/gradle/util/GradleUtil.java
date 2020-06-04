@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
 import static com.android.SdkConstants.EXT_GRADLE;
@@ -31,11 +36,6 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFileOrFolderFromListingFile;
@@ -65,12 +65,12 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.gradle.model.level2.IdeLibrary;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
@@ -665,7 +665,7 @@ public final class GradleUtil {
    * @return {@code true} if the dependencies include the given artifact (including transitively)
    */
   private static boolean dependsOnAndroidLibrary(@NonNull IdeDependencies dependencies, @NonNull String artifact) {
-    for (Library library : dependencies.getAndroidLibraries()) {
+    for (IdeLibrary library : dependencies.getAndroidLibraries()) {
       if (dependsOn(library, artifact)) {
         return true;
       }
@@ -681,11 +681,11 @@ public final class GradleUtil {
    * @param artifact the artifact
    * @return {@code true} if the project depends on the given artifact
    */
-  public static boolean dependsOn(@NonNull Library library, @NonNull String artifact) {
+  public static boolean dependsOn(@NonNull IdeLibrary library, @NonNull String artifact) {
     return getDependencyVersion(library, artifact) != null;
   }
 
-  private static String getDependencyVersion(@NonNull Library library, @NonNull String artifact) {
+  private static String getDependencyVersion(@NonNull IdeLibrary library, @NonNull String artifact) {
     GradleCoordinate resolvedCoordinates = GradleCoordinate.parseCoordinateString(library.getArtifactAddress());
     if (resolvedCoordinates != null) {
       if (artifact.equals(resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId())) {
@@ -723,10 +723,10 @@ public final class GradleUtil {
    * @return the Library matches contains given bundleDir
    */
   @Nullable
-  public static Library findLibrary(@NotNull File bundleDir, @NotNull IdeVariant variant) {
+  public static IdeLibrary findLibrary(@NotNull File bundleDir, @NotNull IdeVariant variant) {
     IdeAndroidArtifact artifact = variant.getMainArtifact();
     IdeDependencies dependencies = artifact.getLevel2Dependencies();
-    for (Library library : dependencies.getAndroidLibraries()) {
+    for (IdeLibrary library : dependencies.getAndroidLibraries()) {
       if (filesEqual(bundleDir, library.getFolder())) {
         return library;
       }

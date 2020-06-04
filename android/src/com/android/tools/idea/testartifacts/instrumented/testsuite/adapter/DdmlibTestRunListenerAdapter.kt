@@ -90,7 +90,7 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
             val (ramSize, unit) = value.trim().split(' ', ignoreCase=true, limit=2)
             val ramSizeFloat = ramSize.toFloatOrNull() ?: return@map null
             when (unit) {
-              "kB" -> String.format("%.1f GB", ramSizeFloat / 1024 / 1024)
+              "kB" -> String.format("%.1f GB", ramSizeFloat / 1000 / 1000)
               else -> null
             }
           } else {

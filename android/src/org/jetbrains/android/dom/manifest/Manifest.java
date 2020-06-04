@@ -78,6 +78,10 @@ public interface Manifest extends ManifestElement {
 
   List<UsesSplit> getUsesSplits();
 
+  Queries addQueries();
+  @SubTagList("queries")
+  List<Queries> getQueries();
+
   @SubTagList("supports-gl-texture")
   List<SupportsGlTexture> getSupportsGlTextures();
 
@@ -89,4 +93,6 @@ public interface Manifest extends ManifestElement {
 
   @Attribute("versionCode")
   AndroidAttributeValue<Integer> getVersionCode();
+
+  List<Overlay> getOverlays();
 }

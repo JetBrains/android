@@ -28,22 +28,26 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.ByteString
+import com.android.utils.TraceUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.ui.components.JBLoadingPanel
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Image
+import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
 import java.awt.Point
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
+import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
@@ -59,7 +63,6 @@ import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_TAB
-import java.awt.event.KeyEvent.VK_UNDEFINED
 import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -104,6 +107,8 @@ class EmulatorView(
   @VisibleForTesting
   var frameNumber = 0
     private set
+  // TODO Remove once b/155818956 is fixed.
+  val screenshotFeedRequestStacks = mutableListOf<String>()
 
   init {
     Disposer.register(parentDisposable, this)
@@ -142,37 +147,42 @@ class EmulatorView(
     addKeyListener(object : KeyAdapter() {
       override fun keyTyped(event: KeyEvent) {
         val c = event.keyChar
-        val keyboardEvent =
-          when {
-            c == VK_UNDEFINED.toChar() -> return
-            !Character.isISOControl(c) -> KeyboardEvent.newBuilder().setText(c.toString()).build()
-            event.modifiers != 0 -> return
-            c == VK_BACK_SPACE.toChar() -> createHardwareKeyEvent("Backspace")
-            c == VK_DELETE.toChar() -> createHardwareKeyEvent(if (SystemInfo.isMac) "Backspace" else "Delete")
-            c == VK_ESCAPE.toChar() -> createHardwareKeyEvent("Escape")
-            c == VK_TAB.toChar() -> createHardwareKeyEvent("Tab")
-            else -> return
-          }
+        if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
+          return
+        }
+
+        val keyboardEvent = KeyboardEvent.newBuilder().setText(c.toString()).build()
         emulator.sendKey(keyboardEvent)
       }
 
-      override fun keyReleased(event: KeyEvent) {
+      override fun keyPressed(event: KeyEvent) {
+        // The Tab character is passed to the emulator, but Shift+Tab is converted to Tab and processed locally.
+        if (event.keyCode == VK_TAB && event.modifiersEx == SHIFT_DOWN_MASK) {
+          val tabEvent = KeyEvent(event.source as Component, event.id, event.getWhen(), 0, event.keyCode, event.keyChar, event.keyLocation)
+          traverseFocusLocally(tabEvent)
+          return
+        }
+
         if (event.modifiers != 0) {
           return
         }
-        val keyboardEvent =
+        val keyName =
           when (event.keyCode) {
-            VK_LEFT, VK_KP_LEFT -> createHardwareKeyEvent("ArrowLeft")
-            VK_RIGHT, VK_KP_RIGHT -> createHardwareKeyEvent("ArrowRight")
-            VK_UP, VK_KP_UP -> createHardwareKeyEvent("ArrowUp")
-            VK_DOWN, VK_KP_DOWN -> createHardwareKeyEvent("ArrowDown")
-            VK_HOME -> createHardwareKeyEvent("Home")
-            VK_END -> createHardwareKeyEvent("End")
-            VK_PAGE_UP -> createHardwareKeyEvent("PageUp")
-            VK_PAGE_DOWN -> createHardwareKeyEvent("PageDown")
+            VK_BACK_SPACE -> "Backspace"
+            VK_DELETE -> if (SystemInfo.isMac) "Backspace" else "Delete"
+            VK_ESCAPE -> "Escape"
+            VK_TAB -> "Tab"
+            VK_LEFT, VK_KP_LEFT -> "ArrowLeft"
+            VK_RIGHT, VK_KP_RIGHT -> "ArrowRight"
+            VK_UP, VK_KP_UP -> "ArrowUp"
+            VK_DOWN, VK_KP_DOWN -> "ArrowDown"
+            VK_HOME -> "Home"
+            VK_END -> "End"
+            VK_PAGE_UP -> "PageUp"
+            VK_PAGE_DOWN -> "PageDown"
             else -> return
           }
-        emulator.sendKey(keyboardEvent)
+        emulator.sendKey(createHardwareKeyEvent(keyName))
       }
     })
 
@@ -325,6 +335,21 @@ class EmulatorView(
     }
   }
 
+  /**
+   * Processes a focus traversal key event by passing it to the keyboard focus manager.
+   */
+  private fun traverseFocusLocally(event: KeyEvent) {
+    if (!focusTraversalKeysEnabled) {
+      focusTraversalKeysEnabled = true
+      try {
+        getCurrentKeyboardFocusManager().processKeyEvent(this, event)
+      }
+      finally {
+        focusTraversalKeysEnabled = false
+      }
+    }
+  }
+
   private fun sendMouseEvent(x: Int, y: Int, button: Int) {
     val skin = skinLayout ?: return // Null skinLayout means that Emulator screen is not displayed.
     val displayPosition = computeDisplayPosition(skin)
@@ -372,8 +397,7 @@ class EmulatorView(
   private fun updateConnectionState(connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
       remove(disconnectedStateLabel)
-      invokeLaterInAnyModalityState(this::hideLongRunningOperationIndicator)
-      if (isVisible) {
+      if (isVisible && screenshotFeed == null) {
         requestScreenshotFeed()
       }
     }
@@ -387,10 +411,10 @@ class EmulatorView(
     repaint()
   }
 
-  private fun findLoadingPanel(): JBLoadingPanel? {
+  private fun findLoadingPanel(): EmulatorLoadingPanel? {
     var component = parent
     while (component != null) {
-      if (component is JBLoadingPanel) {
+      if (component is EmulatorLoadingPanel) {
         return component
       }
       component = component.parent
@@ -437,6 +461,9 @@ class EmulatorView(
   }
 
   private fun requestScreenshotFeed(rotation: SkinRotation) {
+    if (traceScreenshotFeedRequests) {
+      screenshotFeedRequestStacks.add(TraceUtils.getCurrentStack())
+    }
     screenshotFeed?.cancel()
     screenshotReceiver = null
     if (width != 0 && height != 0 && connected) {
@@ -485,6 +512,10 @@ class EmulatorView(
 
   fun hideLongRunningOperationIndicator() {
     findLoadingPanel()?.stopLoading()
+  }
+
+  fun hideLongRunningOperationIndicatorInstantly() {
+    findLoadingPanel()?.stopLoadingInstantly()
   }
 
   private inner class ScreenshotReceiver(val displayShape: DisplayShape) : DummyStreamObserver<ImageMessage>() {
@@ -557,6 +588,8 @@ class EmulatorView(
 
     @UiThread
     private fun updateDisplayImage() {
+      hideLongRunningOperationIndicatorInstantly()
+
       val screenshot = screenshotForDisplay.getAndSet(null) ?: return
       val w = screenshot.width
       val h = screenshot.height
@@ -631,3 +664,6 @@ private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
 private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)
+
+// TODO Remove this flag and the associated code once b/155818956 is fixed.
+var traceScreenshotFeedRequests = false

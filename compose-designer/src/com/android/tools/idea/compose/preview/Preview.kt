@@ -36,6 +36,7 @@ import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
+import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
@@ -78,6 +79,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.UserDataHolderBase
@@ -117,7 +119,7 @@ private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = 
  * Background color for the surface while "Interactive" is enabled.
  */
 private val INTERACTIVE_BACKGROUND_COLOR = JBColor(Color(203, 210, 217),
-                                                   Color(109, 116, 124))
+                                                   Color(70, 69, 77))
 
 /**
  * [NlModel] associated preview data
@@ -254,15 +256,34 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
   }
 
+  private val animationInspection = AtomicBoolean(false)
+
+  override var animationInspectionPreviewElementInstanceId: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
+    if (oldValue != newValue) {
+      LOG.debug("Animation Inspector open for preview: $newValue")
+      animationInspection.set(newValue != null)
+      if (animationInspection.get()) {
+        previewElementProvider.instanceIdFilter = newValue
+        sceneComponentProvider.enabled = false
+        // Open the animation inspection panel
+        mainPanelSplitter.secondComponent = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface)
+      }
+      else {
+        // Close the animation inspection panel
+        mainPanelSplitter.secondComponent = null
+        sceneComponentProvider.enabled = true
+        previewElementProvider.instanceIdFilter = null
+      }
+      forceRefresh()
+    }
+  }
+
   override var showDebugBoundaries: Boolean = false
     set(value) {
       field = value
       forceRefresh()
     }
 
-  /**
-   *
-   */
   private val sceneComponentProvider = ComposeSceneComponentProvider()
 
   private val surface = NlDesignSurface.builder(project, this)
@@ -326,6 +347,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     ExtensionPointName.create("com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
 
   private val actionsToolbar = ActionsToolbar(this@ComposePreviewRepresentation, surface)
+
+  /**
+   * Vertical splitter where the top component is the main Compose Preview panel and the bottom component, when visible, is an auxiliary
+   * panel associated with the preview. For example, it can be an animation inspector that lists all the animations the preview has.
+   */
+  private val mainPanelSplitter = Splitter(true, 0.7f)
+
   /**
    * [WorkBench] used to contain all the preview elements.
    */
@@ -345,7 +373,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         add(surface)
       }
 
-      add(overlayPanel, BorderLayout.CENTER)
+      mainPanelSplitter.firstComponent = overlayPanel
+      add(mainPanelSplitter, BorderLayout.CENTER)
     }
 
     val issueErrorSplitter = IssuePanelSplitter(surface, contentPanel)
@@ -356,8 +385,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val ticker = ControllableTicker({
                                             surface.layoutlibSceneManagers.forEach {
-                                              it.executeCallbacks().thenRun(
-                                                Runnable { it.requestRender() })
+                                              it.executeCallbacksAndRequestRender(null)
                                             }
                                           }, Duration.ofMillis(30))
 
@@ -525,7 +553,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         val xmlOutput = it.toPreviewXml()
           // Whether to paint the debug boundaries or not
           .toolsAttribute("paintBounds", showDebugBoundaries.toString())
+          .apply {
+            if (animationInspection.get()) {
+              // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.
+              toolsAttribute("animationClockStartTime", System.currentTimeMillis().toString())
+            }
+          }
           .buildString()
+
         Pair(it, xmlOutput)
       }
       .map {
@@ -713,15 +748,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
  * @param representation a compose PreviewRepresentation of the [psiFile].
  */
-internal class PreviewEditor(psiFile: PsiFile, val representation: ComposePreviewRepresentation) :
+internal class PreviewEditor(psiFile: PsiFile, private val representation: ComposePreviewRepresentation) :
   ComposePreviewManager by representation, DesignFileEditor(
   psiFile.virtualFile!!) {
-
-  var onRefresh: (() -> Unit)? = null
-    set(value) {
-      field = value
-      representation.onRefresh = value
-    }
 
   init {
     Disposer.register(this, representation)

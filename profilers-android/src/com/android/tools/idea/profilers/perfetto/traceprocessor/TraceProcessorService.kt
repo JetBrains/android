@@ -23,23 +23,25 @@ import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.android.tools.profilers.systemtrace.ProcessModel
 import com.android.tools.profilers.systemtrace.SystemTraceModelAdapter
+import com.android.tools.profilers.systemtrace.ThreadModel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import java.io.File
+import java.lang.RuntimeException
 
 /**
  * See {@link TraceProcessorService} for API details.
  */
 @Service
 class TraceProcessorServiceImpl : TraceProcessorService, Disposable {
-  private val daemonManager = TraceProcessorDaemonManager()
   private val client = TraceProcessorDaemonClient()
+  private val loadedTraces = mutableMapOf<Long, File>()
 
   init {
-    Disposer.register(this, daemonManager)
+    Disposer.register(this, client)
   }
 
   companion object {
@@ -52,8 +54,30 @@ class TraceProcessorServiceImpl : TraceProcessorService, Disposable {
   }
 
   override fun loadTrace(traceId: Long, traceFile: File): List<ProcessModel> {
-    daemonManager.makeSureDaemonIsRunning()
-    return client.loadTrace(traceId, traceFile)
+    LOGGER.info("TPD Service: Loading trace $traceId: ${traceFile.absolutePath}")
+    val requestProto = TraceProcessor.LoadTraceRequest.newBuilder()
+      .setTraceId(traceId)
+      .setTracePath(traceFile.absolutePath)
+      .build()
+    val response = client.loadTrace(requestProto)
+
+    if (!response.ok) {
+      LOGGER.info("TPD Service: Fail to load trace $traceId: ${response.error}")
+      throw RuntimeException("Error loading trace with TPD: ${response.error}")
+    }
+    LOGGER.info("TPD Service: Trace $traceId loaded.")
+
+    loadedTraces[traceId] = traceFile
+    val processList = mutableListOf<ProcessModel>()
+
+    for (process in response.processMetadata.processList) {
+      val threadMap = process.threadList.asSequence()
+        .map { thread -> thread.id.toInt() to ThreadModel(thread.id.toInt(), process.id.toInt(), thread.name, listOf(), listOf()) }
+        .toMap()
+        .toSortedMap()
+      processList.add(ProcessModel(process.id.toInt(), process.name, threadMap, mapOf()))
+    }
+    return processList.toList()
   }
 
   override fun loadCpuData(traceId: Long, processIds: List<Int>): SystemTraceModelAdapter {
@@ -73,8 +97,19 @@ class TraceProcessorServiceImpl : TraceProcessorService, Disposable {
           TraceProcessor.QueryParameters.CountersParameters.newBuilder().setProcessId(id.toLong())))
     }
 
-    daemonManager.makeSureDaemonIsRunning()
-    val response = client.queryBatchRequest(queryBuilder.build())
+    LOGGER.info("TPD Service: Querying cpu data for trace $traceId.")
+    var response = client.queryBatchRequest(queryBuilder.build())
+    if (response.resultList.any { it.failureReason == TraceProcessor.QueryResult.QueryFailureReason.TRACE_NOT_FOUND}) {
+      // Something happened and the trace is not there anymore, let's try to reload it:
+      loadTrace(traceId, loadedTraces[traceId] ?: throw RuntimeException("Trace $traceId needs to be loaded before querying."))
+      response = client.queryBatchRequest(queryBuilder.build())
+    }
+
+    response.resultList.forEach {
+      if (!it.ok) {
+        LOGGER.warn("TPD Service: Query failed - ${it.failureReason} - ${it.error}")
+      }
+    }
 
     val modelBuilder = TraceProcessorModel.Builder()
     response.resultList.filter { it.hasProcessMetadataResult() }.forEach { modelBuilder.addProcessMetadata(it.processMetadataResult) }
@@ -85,6 +120,7 @@ class TraceProcessorServiceImpl : TraceProcessorService, Disposable {
     return modelBuilder.build()
   }
 
+  // TODO(b/157743759): Update this to pass the traceId and check if the response is ok like the other methods above.
   override fun loadMemoryData(abi: String, symbolizer: NativeFrameSymbolizer, memorySet: NativeMemoryHeapSet) {
     val converter = HeapProfdConverter(abi, symbolizer, memorySet, WindowsNameDemangler())
     val request = TraceProcessor.QueryBatchRequest.newBuilder()

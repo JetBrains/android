@@ -1137,6 +1137,9 @@ public class AndroidJavaDocRenderer {
             renderError(builder, e.toString());
             return;
           }
+          finally {
+            renderTask.dispose();
+          }
           if (image != null) {
             // Need to write it somewhere.
             try {

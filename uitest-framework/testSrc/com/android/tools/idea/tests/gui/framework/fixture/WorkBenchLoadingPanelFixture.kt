@@ -23,7 +23,6 @@ class WorkBenchLoadingPanelFixture(robot: Robot, loadingPanel: WorkBenchLoadingP
   ComponentFixture<WorkBenchLoadingPanelFixture, WorkBenchLoadingPanel>(WorkBenchLoadingPanelFixture::class.java, robot, loadingPanel) {
 
   fun isLoading() = target().isLoading
-
   fun hasError() = target().hasError()
 
   companion object {

@@ -16,10 +16,10 @@
 package com.android.tools.idea.nav.safeargs.finder
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
-import com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
-import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
+import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
@@ -47,18 +47,55 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
     return getAdditionalResolveScope(facet)
   }
 
-  internal fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
+  private fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
     if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return null
 
     val module = facet.module
     val project = module.project
     return CachedValuesManager.getManager(project).getCachedValue(module) {
-      val localScope = facet.getLocalScope()
-      val scopeIncludingDeps = ModuleRootManager.getInstance(module)
+      val allFacets = listOf(facet) + ModuleRootManager.getInstance(module)
         .getDependencies(false)
         .mapNotNull { module -> module.androidFacet }
-        .map(AndroidFacet::getLocalScope)
-        .fold(localScope) { scopeAccum, depScope -> scopeAccum.union(depScope) }
+
+      val scopeIncludingDeps = allFacets
+        .filter { it.isSafeArgsEnabled() }
+        .map { it.getLocalScope() }
+        .fold(GlobalSearchScope.EMPTY_SCOPE) { scopeAccum, depScope -> scopeAccum.union(depScope) }
+
+      CachedValueProvider.Result.create(scopeIncludingDeps, PsiModificationTracker.MODIFICATION_COUNT)
+    }
+  }
+}
+
+/**
+ * Additional scope enlarger for Kotlin
+ *
+ * Kotlin needs its own scope enlarger - it can't simply use the [SafeArgsScopeEnlarger] above.
+ * Therefore, we provide one here that simply delegates to it.
+ */
+class SafeArgsKotlinScopeEnlarger : KotlinResolveScopeEnlarger() {
+
+  override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {
+    val facet = module.androidFacet ?: return null
+    return getAdditionalResolveScope(facet)
+  }
+
+  private fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
+    if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return null
+
+    val module = facet.module
+    val project = module.project
+    return CachedValuesManager.getManager(project).getCachedValue(module) {
+      val allFacets = listOf(facet) + ModuleRootManager.getInstance(module)
+        .getDependencies(false)
+        .mapNotNull { module -> module.androidFacet }
+
+      val scopeIncludingDeps = allFacets
+        // If it's SafeArgsMode.KOTLIN mode, since we've already provided kt descriptors for resolving, no need for
+        // additional scope computation. Same for disabled mode cases.
+        .filter { it.safeArgsMode == SafeArgsMode.JAVA }
+        .map { it.getLocalScope() }
+        .fold(GlobalSearchScope.EMPTY_SCOPE) { scopeAccum, depScope -> scopeAccum.union(depScope) }
 
       CachedValueProvider.Result.create(scopeIncludingDeps, PsiModificationTracker.MODIFICATION_COUNT)
     }
@@ -66,8 +103,6 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
 }
 
 private fun AndroidFacet.getLocalScope(): GlobalSearchScope {
-  if (!this.isSafeArgsEnabled()) return GlobalSearchScope.EMPTY_SCOPE
-
   val lightClasses = mutableListOf<PsiClass>()
   val moduleCache = SafeArgsCacheModuleService.getInstance(this)
   lightClasses.addAll(moduleCache.directions)
@@ -79,19 +114,4 @@ private fun AndroidFacet.getLocalScope(): GlobalSearchScope {
   // that classes they are returning belong to the current scope.
   val virtualFiles = lightClasses.map { it.containingFile!!.viewProvider.virtualFile }
   return GlobalSearchScope.filesWithoutLibrariesScope(module.project, virtualFiles)
-}
-
-/**
- * Additional scope enlarger for Kotlin
- *
- * Kotlin needs its own scope enlarger - it can't simply use the [SafeArgsScopeEnlarger] above.
- * Therefore, we provide one here that simply delegates to it.
- */
-class SafeArgsKotlinScopeEnlarger : KotlinResolveScopeEnlarger() {
-  private val delegateEnlarger = ResolveScopeEnlarger.EP_NAME.findExtensionOrFail(SafeArgsScopeEnlarger::class.java)
-
-  override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {
-    val facet = module.androidFacet ?: return null
-    return delegateEnlarger.getAdditionalResolveScope(facet)
-  }
 }

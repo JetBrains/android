@@ -17,12 +17,14 @@ package com.android.tools.idea.sqlite.ui.tableView
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.google.common.base.Stopwatch
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
+import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -51,6 +53,8 @@ import java.awt.Component
 import java.awt.FlowLayout
 import java.awt.GridBagLayout
 import java.awt.Point
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.InputEvent
@@ -78,7 +82,7 @@ class TableViewImpl : TableView {
   private val listeners = mutableListOf<TableView.Listener>()
   private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
 
-  private var columns: List<ResultSetSqliteColumn>? = null
+  private var columns: List<ViewColumn>? = null
 
   private val rootPanel = JPanel(BorderLayout())
   override val component: JComponent = rootPanel
@@ -173,6 +177,13 @@ class TableViewImpl : TableView {
     liveUpdatesCheckBox.addActionListener { listeners.forEach { it.toggleLiveUpdatesInvoked() } }
     tableActionsPanel.add(liveUpdatesCheckBox)
 
+    HelpTooltip()
+      .setDescription(DatabaseInspectorBundle.message("action.live.updates.desc"))
+      .setLink(DatabaseInspectorBundle.message("learn.more")) {
+        BrowserUtil.browse("d.android.com/r/studio-ui/db-inspector-help/live-updates")
+      }
+      .installOn(liveUpdatesCheckBox)
+
     table.resetDefaultFocusTraversalKeys()
     table.isStriped = true
     table.emptyText.text = "Table is empty"
@@ -264,7 +275,7 @@ class TableViewImpl : TableView {
     centerPanel.repaint()
   }
 
-  override fun showTableColumns(columns: List<ResultSetSqliteColumn>) {
+  override fun showTableColumns(columns: List<ViewColumn>) {
     if (this.columns == columns) {
       return
     }
@@ -360,7 +371,7 @@ class TableViewImpl : TableView {
   }
 
   private fun setUpPopUp() {
-    val setNullAction = object : AnAction("Set to NULL") {
+    val setNullAction = object : AnAction(DatabaseInspectorBundle.message("action.set.to.null")) {
       override fun actionPerformed(e: AnActionEvent) {
         val row = table.selectedRow
         val column = table.selectedColumn
@@ -376,6 +387,17 @@ class TableViewImpl : TableView {
       }
     }
 
+    val copyToClipboardAction = object : AnAction(DatabaseInspectorBundle.message("action.copy.to.clipboard")) {
+      override fun actionPerformed(e: AnActionEvent) {
+        val row = table.selectedRow
+        val column = table.selectedColumn
+
+        val value = (table.model as MyTableModel).getValueAt(row, column)
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        clipboard.setContents(StringSelection(value), null)
+      }
+    }
+
     setNullAction.registerCustomShortcutSet(
       CustomShortcutSet(
         KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.ALT_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null)
@@ -383,24 +405,10 @@ class TableViewImpl : TableView {
       table
     )
 
-    PopupHandler.installUnknownPopupHandler(table, DefaultActionGroup(setNullAction), ActionManager.getInstance())
+    PopupHandler.installUnknownPopupHandler(table, DefaultActionGroup(copyToClipboardAction, setNullAction), ActionManager.getInstance())
   }
 
   private class MyTableHeaderRenderer : TableCellRenderer {
-    private val columnNameLabel = DefaultTableCellRenderer()
-    private val panel = JPanel(BorderLayout())
-
-    init {
-      val sortIcon = DefaultTableCellRenderer()
-      sortIcon.icon = AllIcons.General.ArrowSplitCenterV
-      columnNameLabel.icon = StudioIcons.DatabaseInspector.COLUMN
-      columnNameLabel.iconTextGap = 8
-
-      panel.background = Color(0, 0, 0, 0)
-      panel.add(columnNameLabel, BorderLayout.CENTER)
-      panel.add(sortIcon, BorderLayout.EAST)
-    }
-
     override fun getTableCellRendererComponent(
       table: JTable,
       value: Any,
@@ -409,16 +417,32 @@ class TableViewImpl : TableView {
       viewRowIndex: Int,
       viewColumnIndex: Int
     ): Component {
+      val columnNameLabel = DefaultTableCellRenderer()
+      val sortIcon = DefaultTableCellRenderer()
+
       if (viewColumnIndex == 0) {
         columnNameLabel.icon = null
-        (panel.getComponent(panel.componentCount - 1) as DefaultTableCellRenderer).icon = null
+        columnNameLabel.iconTextGap = 0
+        columnNameLabel.text = ""
       }
       else {
-        columnNameLabel.icon = StudioIcons.DatabaseInspector.COLUMN
-        (panel.getComponent(panel.componentCount - 1) as DefaultTableCellRenderer).icon = AllIcons.General.ArrowSplitCenterV
+        val columns = (table.model as MyTableModel).columns
+        val inPk = columns[viewColumnIndex-1].inPrimaryKey
+        if (inPk != null && inPk) {
+          columnNameLabel.icon = StudioIcons.DatabaseInspector.PRIMARY_KEY
+          columnNameLabel.iconTextGap = 8
+        }
+        else {
+          columnNameLabel.border = BorderFactory.createEmptyBorder(0, 4, 0, 0)
+        }
+        sortIcon.icon = AllIcons.General.ArrowSplitCenterV
+        columnNameLabel.text = value as String
       }
 
-      columnNameLabel.text = value as String
+      val panel = JPanel(BorderLayout())
+      panel.background = Color(0, 0, 0, 0)
+      panel.add(columnNameLabel, BorderLayout.CENTER)
+      panel.add(sortIcon, BorderLayout.EAST)
       return panel
     }
   }
@@ -441,7 +465,7 @@ class TableViewImpl : TableView {
     }
   }
 
-  private inner class MyTableModel(val columns: List<ResultSetSqliteColumn>) : AbstractTableModel() {
+  private inner class MyTableModel(val columns: List<ViewColumn>) : AbstractTableModel() {
 
     private val rows = mutableListOf<MyRow>()
     var isEditable = false
@@ -475,6 +499,11 @@ class TableViewImpl : TableView {
 
     override fun setValueAt(newValue: Any?, modelRowIndex: Int, modelColumnIndex: Int) {
       assert(modelColumnIndex > 0) { "Setting value of column at index 0 is not allowed" }
+
+      val oldValue = getValueAt(modelRowIndex, modelColumnIndex)
+      if (oldValue == newValue) {
+        return
+      }
 
       val newSqliteValue = if (newValue == null) SqliteValue.NullValue else SqliteValue.StringValue(newValue.toString())
 

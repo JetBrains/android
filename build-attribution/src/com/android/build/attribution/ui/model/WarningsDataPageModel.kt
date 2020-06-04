@@ -170,6 +170,7 @@ sealed class WarningsTreePresentableNodeDescriptor {
   abstract val pageId: WarningsPageId
   abstract val analyticsPageType: PageType
   abstract val presentation: BuildAnalyzerTreeNodePresentation
+  override fun toString(): String = presentation.mainText
 }
 
 /** Descriptor for the task warning type group node. */

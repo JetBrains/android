@@ -51,7 +51,7 @@ class NlLayoutValidator(issueModel: IssueModel, parent: Disposable): Disposable 
    */
   private val originMap: BiMap<View, NlComponent> = HashBiMap.create()
 
-  private val listeners: ArrayList<Listener> = ArrayList()
+  private val listeners = HashSet<Listener>()
 
   init {
     Disposer.register(parent, this)
@@ -63,6 +63,7 @@ class NlLayoutValidator(issueModel: IssueModel, parent: Disposable): Disposable 
   fun validateAndUpdateLint(renderResult: RenderResult, model: NlModel) {
     val validatorResult = renderResult.validatorResult
 
+    val listeners = HashSet(listeners)
     if (validatorResult == null || validatorResult !is ValidatorResult) {
       // Result not available.
       listeners.forEach { it.lintUpdated(null) }
@@ -87,6 +88,10 @@ class NlLayoutValidator(issueModel: IssueModel, parent: Disposable): Disposable 
 
   fun addListener(listener: Listener) {
     listeners.add(listener)
+  }
+
+  fun removeListener(listener: Listener) {
+    listeners.remove(listener)
   }
 
   /**

@@ -450,6 +450,21 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   /**
+   * Sets Cpp Options field values
+   */
+  override fun setCppOptions(cppFlags: String, cppPath: String, cppVersion: String) {
+    val buildModel = moduleGradleBuildModel ?: return
+    buildModel.android().apply {
+      defaultConfig().externalNativeBuild().cmake().cppFlags().setValue(cppFlags)
+
+      externalNativeBuild().cmake().apply {
+        path().setValue(cppPath)
+        version().setValue(cppVersion)
+      }
+    }
+  }
+
+  /**
    * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in kotlinOptions.
    */
   override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {

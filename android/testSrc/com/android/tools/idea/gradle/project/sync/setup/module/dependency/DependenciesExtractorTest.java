@@ -15,21 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import static com.android.builder.model.level2.Library.LIBRARY_ANDROID;
-import static com.android.builder.model.level2.Library.LIBRARY_JAVA;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
-import com.android.builder.model.level2.Library;
-import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub;
-import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder;
+import com.android.ide.common.gradle.model.level2.IdeAndroidLibrary;
+import com.android.ide.common.gradle.model.level2.IdeJavaLibrary;
+import com.android.ide.common.gradle.model.level2.IdeLibrary;
+import com.android.ide.common.gradle.model.level2.IdeModuleLibrary;
+import com.android.ide.common.gradle.model.stubs.AndroidLibraryStubBuilder;
+import com.android.ide.common.gradle.model.stubs.ModuleLibraryStubBuilder;
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder;
-import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub;
-import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub;
-import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStubBuilder;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.testing.Facets;
@@ -61,7 +59,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
   public void testExtractFromJavaLibrary() {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
-    Library javaLibrary = new JavaLibraryStub(LIBRARY_JAVA, "guava", jarFile);
+    IdeLibrary javaLibrary = new IdeJavaLibrary("guava", jarFile, false);
 
     IdeDependenciesStubBuilder builder = new IdeDependenciesStubBuilder();
     builder.setJavaLibraries(ImmutableList.of(javaLibrary));
@@ -95,7 +93,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     builder.setCompileJarFile(libCompileJar.getPath());
     builder.setResFolder(resFolder.getPath());
     builder.setLocalJars(Collections.singletonList(localJar.getPath()));
-    AndroidLibraryStub library = builder.build();
+    IdeAndroidLibrary library = builder.build();
 
     IdeDependenciesStubBuilder dependenciesStubBuilder = new IdeDependenciesStubBuilder();
     dependenciesStubBuilder.setAndroidLibraries(ImmutableList.of(library));
@@ -123,9 +121,8 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     String gradlePath = ":lib";
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
 
-    ModuleLibraryStubBuilder builder = new ModuleLibraryStubBuilder();
-    builder.setProjectPath(gradlePath);
-    ModuleLibraryStub library = builder.build();
+    ModuleLibraryStubBuilder builder = new ModuleLibraryStubBuilder(gradlePath);
+    IdeModuleLibrary library = builder.build();
 
     myModuleFinder = new ModuleFinder(myProject);
     myModuleFinder.addModule(libModule, ":lib");
@@ -145,16 +142,16 @@ public class DependenciesExtractorTest extends PlatformTestCase {
   }
 
   public void testGetDependencyDisplayName() {
-    Library library1 = new JavaLibraryStub(LIBRARY_JAVA, "com.google.guava:guava:11.0.2@jar", new File(""));
+    IdeJavaLibrary library1 = new IdeJavaLibrary("com.google.guava:guava:11.0.2@jar", new File(""), false);
     assertThat(getDependencyDisplayName(library1)).isEqualTo("guava:11.0.2");
 
-    Library library2 = new JavaLibraryStub(LIBRARY_ANDROID, "android.arch.lifecycle:extensions:1.0.0-beta1@aar", new File(""));
+    IdeJavaLibrary library2 = new IdeJavaLibrary("android.arch.lifecycle:extensions:1.0.0-beta1@aar", new File(""), false);
     assertThat(getDependencyDisplayName(library2)).isEqualTo("lifecycle:extensions:1.0.0-beta1");
 
-    Library library3 = new JavaLibraryStub(LIBRARY_ANDROID, "com.android.support.test.espresso:espresso-core:3.0.1@aar", new File(""));
+    IdeJavaLibrary library3 = new IdeJavaLibrary("com.android.support.test.espresso:espresso-core:3.0.1@aar", new File(""), false);
     assertThat(getDependencyDisplayName(library3)).isEqualTo("espresso-core:3.0.1");
 
-    Library library4 = new JavaLibraryStub(LIBRARY_JAVA, "foo:bar:1.0", new File(""));
+    IdeJavaLibrary library4 = new IdeJavaLibrary("foo:bar:1.0", new File(""), false);
     assertThat(getDependencyDisplayName(library4)).isEqualTo("foo:bar:1.0");
   }
 

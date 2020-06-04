@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.finder
 
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
-import com.android.tools.idea.nav.safeargs.psi.LightArgsBuilderClass
+import com.android.tools.idea.nav.safeargs.psi.java.LightArgsBuilderClass
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 

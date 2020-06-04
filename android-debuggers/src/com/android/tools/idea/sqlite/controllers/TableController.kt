@@ -36,6 +36,7 @@ import com.android.tools.idea.sqlite.model.transform
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
 import com.google.common.base.Functions
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
@@ -55,7 +56,7 @@ import kotlin.math.min
  */
 @UiThread
 class TableController(
-  private val project: Project,
+  project: Project,
   private var rowBatchSize: Int = 50,
   private val view: TableView,
   private val databaseId: SqliteDatabaseId,
@@ -138,7 +139,7 @@ class TableController(
       currentCols = columns
 
       val table = tableSupplier()
-      view.showTableColumns(columns.filter { it.name != table?.rowIdName?.stringName })
+      view.showTableColumns(columns.filter { it.name != table?.rowIdName?.stringName }.toViewColumns(table))
       view.setEditable(isEditable())
 
       updateDataAndButtons()
@@ -244,11 +245,11 @@ class TableController(
   private fun isEditable() = tableSupplier() != null && !liveUpdatesEnabled && !(tableSupplier()?.isView ?: false)
 
   private inner class TableViewListenerImpl : TableView.Listener {
-    override fun toggleOrderByColumnInvoked(sqliteColumn: ResultSetSqliteColumn) {
-      if (orderBy != null && orderBy!!.column == sqliteColumn) {
-        orderBy = OrderBy(sqliteColumn, !orderBy!!.asc)
+    override fun toggleOrderByColumnInvoked(viewColumn: ViewColumn) {
+      if (orderBy != null && orderBy!!.column == viewColumn) {
+        orderBy = OrderBy(viewColumn, !orderBy!!.asc)
       } else {
-        orderBy = OrderBy(sqliteColumn, true)
+        orderBy = OrderBy(viewColumn, true)
       }
 
       val order = if (orderBy!!.asc) "ASC" else "DESC"
@@ -332,7 +333,7 @@ class TableController(
       databaseInspectorAnalyticsTracker.trackLiveUpdatedToggled(liveUpdatesEnabled)
     }
 
-    override fun updateCellInvoked(targetRowIndex: Int, targetColumn: ResultSetSqliteColumn, newValue: SqliteValue) {
+    override fun updateCellInvoked(targetRowIndex: Int, targetColumn: ViewColumn, newValue: SqliteValue) {
       val targetTable = tableSupplier()
       if (targetTable == null) {
         view.reportError("Can't update. Table not found.", null)
@@ -354,5 +355,16 @@ class TableController(
     }
   }
 
-  private data class OrderBy(val column: ResultSetSqliteColumn, val asc: Boolean)
+  private data class OrderBy(val column: ViewColumn, val asc: Boolean)
+
+  private fun List<ResultSetSqliteColumn>.toViewColumns(table: SqliteTable? = null) = map { it.toViewColumn(table) }
+
+  /**
+   * Column information in [ResultSetSqliteColumn] can be incomplete.
+   * This method tries to overlap the information from the column with the information from the schema.
+   */
+  private fun ResultSetSqliteColumn.toViewColumn(table: SqliteTable? = null): ViewColumn {
+    val schemaColumn = table?.columns?.firstOrNull { it.name == name }
+    return ViewColumn(name, schemaColumn?.inPrimaryKey ?: inPrimaryKey ?: false)
+  }
 }

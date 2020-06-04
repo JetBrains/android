@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -41,6 +42,8 @@ import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.ui.DeferredIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RowIcon
+import com.intellij.util.PathUtil
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemIndependent
 import sun.swing.ImageIconUIResource
 import java.io.File
@@ -49,6 +52,8 @@ import javax.swing.Icon
 class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/projectViews"
   override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
+  override fun getAdditionalRepos() =
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 
   data class ProjectViewSettings(
     val hideEmptyPackages: Boolean = true,
@@ -106,6 +111,15 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
 
   fun testCompositeBuild() {
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testKotlinKapt() {
+    prepareProjectForImport(TestProjectToSnapshotPaths.KOTLIN_KAPT)
+    importProject()
+    invokeGradle(project, GradleBuildInvoker::rebuild)
+    AndroidTestBase.refreshProjectFiles()
+    val text = project.dumpAndroidProjectView(ProjectViewSettings(), Unit, { _, _ -> Unit })
     assertIsEqualToSnapshot(text)
   }
 

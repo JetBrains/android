@@ -82,6 +82,11 @@ interface ComposePreviewManager {
    * Name of a [PreviewElement] to run in interactive mode or null if not in interactive mode.
    */
   var interactivePreviewElementInstanceId: String?
+
+  /**
+   * Represents the `instanceId` of the `PreviewElementInstance` open in the Animation Inspector. Null if no preview is being inspected.
+   */
+  var animationInspectionPreviewElementInstanceId: String?
 }
 
 /**

@@ -124,7 +124,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     SettableFuture<DownloadedFileData> futureResult = SettableFuture.create();
     FileUtils.mkdirs(localPath.getParent().toFile());
 
-    TransactionGuard.submitTransaction(myProject, () -> {
+    ApplicationManager.getApplication().invokeLater(() -> {
       ApplicationManager.getApplication().runWriteAction(() -> {
         // this must be done inside a transaction, see DeviceExplorerFilesUtils.findFile
         VirtualFile virtualFile = VfsUtil.findFileByIoFile(localPath.toFile(), true);
@@ -139,7 +139,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
 
         downloadFileAndAdditionalFiles(futureResult, entry, localPath, progress);
       });
-    });
+    }, myProject.getDisposed());
 
     return futureResult;
   }

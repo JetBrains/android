@@ -36,6 +36,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestApplicationManager
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -49,6 +50,7 @@ import org.mockito.Mockito.isNull
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
+import java.awt.event.MouseEvent
 import java.io.File
 import javax.swing.DefaultRowSorter
 import javax.swing.RowSorter
@@ -362,6 +364,26 @@ class AndroidTestResultsTableViewTest {
     // Clear the selection.
     table.clearSelection()
     assertThat((table.getTableViewForTesting() as DataProvider).getData(CommonDataKeys.PSI_ELEMENT.name)).isNull()
+  }
+
+  @Test
+  fun doubleClickOnTableShouldOpenTestSourceCode() {
+    val mockDataProvider = mock<DataProvider>()
+    TestApplicationManager.getInstance().setDataProvider(mockDataProvider, disposableRule.disposable)
+
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes)
+    val tableView = table.getTableViewForTesting()
+
+    table.addTestCase(device("deviceId1", "deviceName1"),
+                      AndroidTestCase("testid1", "myTestMethodName", "mytestclass", "mytestpackage"))
+
+    // Double click on the table.
+    val doubleClickEvent = MouseEvent(tableView, 0, 0, 0, 0, 0, /*clickCount=*/2, false)
+    tableView.mouseListeners.forEach { it.mouseClicked(doubleClickEvent) }
+
+    // We cannot directly check whether or not the source code is opened, so we test it indirectly
+    // by verifying that the navigatable array lookup is made.
+    verify(mockDataProvider).getData(eq(CommonDataKeys.NAVIGATABLE_ARRAY.name))
   }
 
   // Workaround for Kotlin nullability check.

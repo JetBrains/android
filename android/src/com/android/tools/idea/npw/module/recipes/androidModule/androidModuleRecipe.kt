@@ -30,8 +30,6 @@ fun RecipeExecutor.generateAndroidModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
   useKts: Boolean,
-  includeCppSupport: Boolean = false,
-  cppFlags: String,
   bytecodeLevel: BytecodeLevel
 ) {
   val useAndroidX = data.projectTemplateData.androidXSupport
@@ -45,10 +43,8 @@ fun RecipeExecutor.generateAndroidModule(
       theme = "@style/${data.themesData.main.name}"
     ),
     generateTests= true,
-    includeCppSupport = includeCppSupport,
     themesXml = androidModuleThemes(useAndroidX, data.themesData.main.name),
-    themesXmlNight = androidModuleThemesNight(useAndroidX, data.themesData.main.name),
-    cppFlags = cppFlags
+    themesXmlNight = androidModuleThemesNight(useAndroidX, data.themesData.main.name)
   )
   val projectData = data.projectTemplateData
   val formFactorNames = projectData.includedFormFactorNames

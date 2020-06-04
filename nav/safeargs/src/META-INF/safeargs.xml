@@ -18,6 +18,7 @@
     <fileBasedIndex implementation="com.android.tools.idea.nav.safeargs.index.NavXmlIndex"/>
     <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService" />
     <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker" />
+    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsResourceForKtDescriptors" />
     <projectService serviceImplementation="com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker" />
     <projectService
         serviceInterface="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTracker"
@@ -33,6 +34,7 @@
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <resolveScopeEnlarger implementation="com.android.tools.idea.nav.safeargs.finder.SafeArgsKotlinScopeEnlarger" />
+    <packageFragmentProviderExtension implementation="com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension"/>
   </extensions>
 
   <project-components>

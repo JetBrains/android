@@ -108,9 +108,8 @@ class LightBindingClassTest {
     UIUtil.dispatchAllInvocationEvents()
   }
 
-  // TODO: Convert this legacy method to the inline version
-  private fun findChild(psiFile: PsiFile, clazz: Class<out XmlElement>, predicate: (XmlTag) -> Boolean): Array<XmlTag> {
-    return PsiTreeUtil.findChildrenOfType(psiFile, clazz).filterIsInstance<XmlTag>().filter(predicate).toTypedArray()
+  private inline fun <reified X : XmlElement> findChild(psiFile: PsiFile, predicate: (X) -> Boolean): X {
+    return findChildren(psiFile, predicate).first()
   }
 
   private inline fun <reified X : XmlElement> findChildren(psiFile: PsiFile, predicate: (X) -> Boolean): Array<X> {
@@ -199,7 +198,7 @@ class LightBindingClassTest {
 
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
-    val tags = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }
+    val tags = findChildren<XmlTag>(file) { it.localName == "LinearLayout" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
   }
 
@@ -298,7 +297,7 @@ class LightBindingClassTest {
 
     // Modify inner layout and sanity check that outer layout is affected
 
-    val attr = findChildren<XmlAttribute>(includedLayoutFile) { it.localName == "id" }.first()
+    val attr = findChild<XmlAttribute>(includedLayoutFile) { it.localName == "id" }
     updateXml(includedLayoutFile, attr.valueElement!!.valueTextRange, "@+id/inner_value_modified")
 
     val includedLayoutV2 = fixture.findClass("test.db.databinding.IncludedLayoutBinding", context) as LightBindingClass
@@ -329,7 +328,7 @@ class LightBindingClassTest {
     (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
       assertThat(binding.fields).hasLength(1)
 
-      val tag = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }[0]
+      val tag = findChild<XmlTag>(file) { it.localName == "LinearLayout" }
       insertXml(file, tag.textRange.endOffset, """
         <LinearLayout
               android:id="@+id/test_id2"
@@ -341,7 +340,7 @@ class LightBindingClassTest {
     }
 
     (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-      val tags = findChild(file, XmlTag::class.java) { it.name == "LinearLayout" }
+      val tags = findChildren<XmlTag>(file) { it.name == "LinearLayout" }
       verifyLightFieldsMatchXml(binding.fields.toList(), *tags)
     }
   }
@@ -364,7 +363,7 @@ class LightBindingClassTest {
     (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
       assertThat(binding.fields).hasLength(1)
 
-      val tag = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }[0]
+      val tag = findChild<XmlTag>(file) { it.localName == "LinearLayout" }
       deleteXml(file, tag.textRange)
     }
 
@@ -391,13 +390,12 @@ class LightBindingClassTest {
     (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
       assertThat(binding.fields).hasLength(1)
 
-      val attribute = PsiTreeUtil.findChildrenOfType(file, XmlAttribute::class.java)
-        .filter { it is XmlAttribute && it.localName == "id" }[0] as XmlAttribute
+      val attribute = findChild<XmlAttribute>(file) { it.localName == "id" }
       updateXml(file, attribute.valueElement!!.valueTextRange, "@+id/updated_id")
     }
 
     (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-      val tags = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }
+      val tags = findChildren<XmlTag>(file) { it.localName == "LinearLayout" }
       verifyLightFieldsMatchXml(binding.fields.toList(), *tags)
     }
   }
@@ -419,7 +417,7 @@ class LightBindingClassTest {
     (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
       assertThat(binding.methods.map { it.name }).containsAllOf("getObsolete", "setObsolete")
     }
-    val tag = PsiTreeUtil.findChildrenOfType(file, XmlTag::class.java).first { (it as XmlTag).localName == "variable" }
+    val tag = findChild<XmlTag>(file) { it.localName == "variable" }
     updateXml(file, tag.textRange,
       // language=XML
               "<variable name='first' type='Integer'/> <variable name='second' type='String'/>")
@@ -467,7 +465,7 @@ class LightBindingClassTest {
     }
     // Update first XML file
     run {
-      val tag = PsiTreeUtil.findChildrenOfType(mainLayout, XmlTag::class.java).first { (it as XmlTag).localName == "variable" }
+      val tag = findChild<XmlTag>(mainLayout) { it.localName == "variable" }
       updateXml(mainLayout, tag.textRange, "<variable name='third' type='String'/>")
       (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
         binding.methods.map { it.name }.let { methodNames ->
@@ -478,7 +476,7 @@ class LightBindingClassTest {
     }
     // Update the second XML file
     run {
-      val tag = PsiTreeUtil.findChildrenOfType(landscapeLayout, XmlTag::class.java).first { (it as XmlTag).localName == "variable" }
+      val tag = findChild<XmlTag>(landscapeLayout) { it.localName == "variable" }
       updateXml(landscapeLayout, tag.textRange, "<variable name='fourth' type='String'/>")
       (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
         binding.methods.map { it.name }.let { methodNames ->
@@ -489,9 +487,9 @@ class LightBindingClassTest {
     }
     // Update both files at the same time
     run {
-      val tagMain = PsiTreeUtil.findChildrenOfType(mainLayout, XmlTag::class.java).first { (it as XmlTag).localName == "variable" }
+      val tagMain = findChild<XmlTag>(mainLayout) { it.localName == "variable" }
       updateXml(mainLayout, tagMain.textRange, "<variable name='fifth' type='String'/>")
-      val tagLand = PsiTreeUtil.findChildrenOfType(landscapeLayout, XmlTag::class.java).first { (it as XmlTag).localName == "variable" }
+      val tagLand = findChild<XmlTag>(landscapeLayout) { it.localName == "variable" }
       updateXml(landscapeLayout, tagLand.textRange, "<variable name='sixth' type='String'/>")
       (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
         binding.methods.map { it.name }.let { methodNames ->
@@ -528,7 +526,7 @@ class LightBindingClassTest {
       assertThat(modifierList.hasExplicitModifier(PsiModifier.PUBLIC)).isTrue()
       assertThat(modifierList.hasExplicitModifier(PsiModifier.FINAL)).isTrue()
     }
-    val tags = findChild(file, XmlTag::class.java) { it.localName == "view" }
+    val tags = findChildren<XmlTag>(file) { it.localName == "view" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
     assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("com.example.Test", context))
@@ -557,7 +555,7 @@ class LightBindingClassTest {
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
     assertThat(fields).hasLength(1)
-    val tags = findChild(file, XmlTag::class.java) { it.localName == "merge" }
+    val tags = findChildren<XmlTag>(file) { it.localName == "merge" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
     assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("test.db.databinding.OtherActivityBinding", context))
@@ -586,7 +584,7 @@ class LightBindingClassTest {
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
     assertThat(fields).hasLength(1)
-    val tags = findChild(file, XmlTag::class.java) { it.localName == "include" }
+    val tags = findChildren<XmlTag>(file) { it.localName == "include" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
     assertThat(fields[0].name).isEqualTo("testId")

@@ -113,6 +113,7 @@ import javax.swing.Timer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
@@ -1166,6 +1167,16 @@ public class LayoutlibSceneManager extends SceneManager {
     myIsCurrentlyRendering.set(false);
   }
 
+  /**
+   * Returns if there are any pending render requests.
+   */
+  @TestOnly
+  public boolean isRendering() {
+    synchronized (myRenderFutures) {
+      return myIsCurrentlyRendering.get() || !myRenderFutures.isEmpty();
+    }
+  }
+
   @NotNull
   private CompletableFuture<RenderResult> renderImpl(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     return inflate(myForceInflate.getAndSet(false))
@@ -1453,6 +1464,21 @@ public class LayoutlibSceneManager extends SceneManager {
         return CompletableFuture.completedFuture(null);
       }
       return myRenderTask.triggerTouchEvent(type, x, y);
+    }
+  }
+
+  /**
+   * Executes the given {@link Runnable} callback synchronously. Then calls {@link #executeCallbacks()} and requests render afterwards.
+   */
+  public void executeCallbacksAndRequestRender(@Nullable Runnable callback) {
+    try {
+      if (callback != null) {
+        RenderService.runRenderAction(callback);
+      }
+      executeCallbacks().thenRun(() -> requestRender());
+    }
+    catch (Exception e) {
+      Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacksAndRequestRender did not complete successfully", e);
     }
   }
 

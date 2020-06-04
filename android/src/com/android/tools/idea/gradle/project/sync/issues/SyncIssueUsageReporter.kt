@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.DeleteFileAndSyncHyp
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadAndroidStudioHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.FileBugHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink
@@ -150,6 +151,7 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is DeleteFileAndSyncHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DELETE_FILE_HYPERLINK
       is RemoveSHA256FromGradleWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.REMOVE_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK
       is ConfirmSHA256FromGradleWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.CONFIRM_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK
+      is EnableAndroidXHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.ENABLE_ANDROIDX_HYPERLINK
       else -> null.also { LOG.warn("Unknown quick fix class: ${javaClass.canonicalName}") }
     }
 
