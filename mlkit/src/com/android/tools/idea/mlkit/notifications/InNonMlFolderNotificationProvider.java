@@ -53,7 +53,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Notifies users that a model file is not in the correct ml folder in order to use ML model binding feature.
+ * Notifies users that a model file is not in the correct ml folder in order to use ML Model Binding feature.
  */
 public class InNonMlFolderNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("ml.incorrect.folder.notification.panel");
@@ -89,7 +89,8 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
     }
 
     EditorNotificationPanel panel = new EditorNotificationPanel();
-    panel.setText("This TensorFlow Lite model is not in a configured ml-model directory, model binding is disabled.");
+    panel.setText("This TensorFlow Lite model is not in a configured ml-model directory, so ML Model Binding is disabled. To use " +
+                  "ML Model Binding consider moving the file.");
     panel.createActionLabel("Move File", () -> {
       MoveModelFileDialog moveModelFileDialog = new MoveModelFileDialog(moduleTemplateList);
       if (moveModelFileDialog.showAndGet()) {
@@ -139,7 +140,7 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
       dialogPanel.setLayout(new BoxLayout(dialogPanel, BoxLayout.X_AXIS));
       dialogPanel.setAlignmentY(Component.CENTER_ALIGNMENT);
       dialogPanel.setBorder(JBUI.Borders.empty(10));
-      dialogPanel.add(new JBLabel("Move the model file to ml/ repository in "));
+      dialogPanel.add(new JBLabel("Move the model file to the ml directory in "));
 
       myComboBox = new ModuleTemplateComboProvider(myNamedModuleTemplateList).createComponent();
       dialogPanel.add(myComboBox);
