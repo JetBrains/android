@@ -58,7 +58,6 @@ import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.ui.LayoutEditorSettingsKt;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -67,6 +66,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDr
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
+import com.android.tools.idea.uibuilder.surface.LayoutValidationConfiguration;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -201,12 +201,6 @@ public class LayoutlibSceneManager extends SceneManager {
   private float quality = 1f;
 
   /**
-   * When true, it render from layoutlib will contain validation results. When false it'll bypass
-   * the validation. In order to allow validation, the layoutlib needs to re-inflate.
-   */
-  public boolean isLayoutValidationEnabled = false;
-
-  /**
    * {@link Consumer} called when setting up the Rendering {@link MergingUpdateQueue} to do additional setup. This can be used for
    * additional setup required for testing.
    */
@@ -249,6 +243,13 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
+   * Configuration for layout validation from Accessibility Testing Framework through Layoutlib.
+   * Based on the configuration layout validation will be turned on or off while rendering.
+   */
+  @NotNull
+  public final LayoutValidationConfiguration layoutValidationConfig;
+
+  /**
    * Creates a new LayoutlibSceneManager.
    *
    * @param model                      the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
@@ -263,7 +264,8 @@ public class LayoutlibSceneManager extends SceneManager {
                                   @NotNull DesignSurface designSurface,
                                   @NotNull Executor renderTaskDisposerExecutor,
                                   @NotNull Consumer<MergingUpdateQueue> renderingQueueSetup,
-                                  @NotNull SceneComponentHierarchyProvider sceneComponentProvider) {
+                                  @NotNull SceneComponentHierarchyProvider sceneComponentProvider,
+                                  @NotNull LayoutValidationConfiguration layoutValidationConfig) {
     super(model, designSurface, false, sceneComponentProvider);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueueSetup = renderingQueueSetup;
@@ -293,6 +295,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     model.addListener(myModelChangeListener);
     myAreListenersRegistered = true;
+    this.layoutValidationConfig = layoutValidationConfig;
 
     // let's make sure the selection is correct
     scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
@@ -310,7 +313,13 @@ public class LayoutlibSceneManager extends SceneManager {
   public LayoutlibSceneManager(@NotNull NlModel model,
                                @NotNull DesignSurface designSurface,
                                @NotNull SceneComponentHierarchyProvider sceneComponentProvider) {
-    this(model, designSurface, PooledThreadExecutor.INSTANCE, queue -> {}, sceneComponentProvider);
+    this(
+      model,
+      designSurface,
+      PooledThreadExecutor.INSTANCE,
+      queue -> {},
+      sceneComponentProvider,
+      LayoutValidationConfiguration.getDISABLED());
   }
 
   /**
@@ -321,7 +330,29 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param designSurface the {@link DesignSurface} user to present the result of the renders.
    */
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
-    this(model, designSurface, PooledThreadExecutor.INSTANCE, queue -> {}, new LayoutlibSceneManagerHierarchyProvider());
+    this(
+      model,
+      designSurface,
+      PooledThreadExecutor.INSTANCE,
+      queue -> {},
+      new LayoutlibSceneManagerHierarchyProvider(),
+      LayoutValidationConfiguration.getDISABLED());
+  }
+
+  /**
+   * Creates a new LayoutlibSceneManager with the default settings for running render requests.
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface)}
+   *
+   * @param config configuration for layout validation when rendering.
+   */
+  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface, LayoutValidationConfiguration config) {
+    this(
+      model,
+      designSurface,
+      PooledThreadExecutor.INSTANCE,
+      queue -> {},
+      new LayoutlibSceneManagerHierarchyProvider(),
+      config);
   }
 
   @NotNull
@@ -910,7 +941,7 @@ public class LayoutlibSceneManager extends SceneManager {
     RenderLogger logger = renderService.createLogger(facet);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
       .withPsiFile(getModel().getFile())
-      .withLayoutValidation(isLayoutValidationEnabled || LayoutEditorSettingsKt.getAlwaysEnableLayoutValidation())
+      .withLayoutValidation(layoutValidationConfig.isLayoutValidationEnabled())
       .withLogger(logger);
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {

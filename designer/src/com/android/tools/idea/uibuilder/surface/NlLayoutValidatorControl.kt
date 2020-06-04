@@ -29,15 +29,17 @@ class NlLayoutValidatorControl(
 
   /** Listener for issue panel open/close */
   private val issuePanelListener = IssuePanel.MinimizeListener {
+    val check = surface.sceneManager?.layoutValidationConfig ?: return@MinimizeListener
+
     if (it) {
       // Minimized
       if (!alwaysEnableLayoutValidation) {
         validator.disable()
-        surface.sceneManager?.isLayoutValidationEnabled = false
+        check.isLayoutValidationEnabled = false
       }
     }
-    else if (surface.sceneManager?.isLayoutValidationEnabled == false) {
-      surface.sceneManager?.isLayoutValidationEnabled = true
+    else if (!check.isLayoutValidationEnabled) {
+      check.isLayoutValidationEnabled = true
       surface.forceUserRequestedRefresh()
     }
   }
@@ -59,7 +61,7 @@ class NlLayoutValidatorControl(
   override fun runLayoutValidation() {
     validator.addListener(validatorListener)
     val manager = surface.sceneManager ?: return
-    manager.isLayoutValidationEnabled = true
+    manager.layoutValidationConfig?.isLayoutValidationEnabled = true
     manager.forceReinflate()
     surface.requestRender()
   }
