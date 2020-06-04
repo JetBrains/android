@@ -256,9 +256,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
     sectionPanel.add(createSectionHeader("Model"));
 
-    JBTable modelTable = createTable(getModelTableData(modelInfo), Collections.emptyList());
     JPanel modelTablePanel = createPanelWithFlowLayout(Borders.emptyLeft(20));
-    modelTablePanel.add(modelTable);
+    addTable(modelTablePanel, getModelTableData(modelInfo), Collections.emptyList());
     sectionPanel.add(modelTablePanel);
     sectionPanel.setMaximumSize(sectionPanel.getPreferredSize());
 
@@ -273,19 +272,15 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     inputsLabel.setBorder(Borders.empty(6, 0));
     sectionContentPanel.add(inputsLabel);
 
-    JBTable inputTensorTable = createTable(getTensorTableData(modelInfo.getInputs()), TENSOR_TABLE_HEADER);
-    addTableHeader(sectionContentPanel, inputTensorTable);
+    JBTable inputTensorTable = addTable(sectionContentPanel, getTensorTableData(modelInfo.getInputs()), TENSOR_TABLE_HEADER);
     inputTensorTable.setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY));
-    sectionContentPanel.add(inputTensorTable);
 
     JBLabel outputsLabel = new JBLabel("Outputs");
     outputsLabel.setBorder(Borders.empty(10, 0, 6, 0));
     sectionContentPanel.add(outputsLabel);
 
-    JBTable outputTensorTable = createTable(getTensorTableData(modelInfo.getOutputs()), TENSOR_TABLE_HEADER);
-    addTableHeader(sectionContentPanel, outputTensorTable);
+    JBTable outputTensorTable = addTable(sectionContentPanel, getTensorTableData(modelInfo.getOutputs()), TENSOR_TABLE_HEADER);
     outputTensorTable.setBorder(BorderFactory.createLineBorder(JBColor.LIGHT_GRAY));
-    sectionContentPanel.add(outputTensorTable);
 
     // Align column width between tensor tables.
     for (int c = 0; c < TENSOR_TABLE_HEADER.size(); c++) {
@@ -305,14 +300,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     sectionPanel.add(sectionContentPanelContainer);
 
     return sectionPanel;
-  }
-
-  private static void addTableHeader(@NotNull JComponent container, @NotNull JBTable table) {
-    JTableHeader tableHeader = table.getTableHeader();
-    tableHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
-    tableHeader.setBorder(BorderFactory.createMatteBorder(1, 1, 0, 1, JBColor.LIGHT_GRAY));
-    tableHeader.setDefaultRenderer(new TableHeaderCellRenderer());
-    container.add(tableHeader);
   }
 
   @NotNull
@@ -360,8 +347,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return messageLabel;
   }
 
+  /**
+   * Returns the table just added.
+   */
   @NotNull
-  private static JBTable createTable(@NotNull List<List<String>> rowDataList, @NotNull List<String> headerData) {
+  private static JBTable addTable(@NotNull JPanel tableContainer,
+                                  @NotNull List<List<String>> rowDataList,
+                                  @NotNull List<String> headerData) {
     MetadataTableModel tableModel = new MetadataTableModel(rowDataList, headerData);
     JBTable table = new JBTable(tableModel);
     table.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -388,6 +380,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         }
       }
     });
+    if (!headerData.isEmpty()) {
+      JTableHeader tableHeader = table.getTableHeader();
+      tableHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+      tableHeader.setBorder(BorderFactory.createMatteBorder(1, 1, 0, 1, JBColor.LIGHT_GRAY));
+      tableHeader.setDefaultRenderer(new TableHeaderCellRenderer());
+      tableContainer.add(tableHeader);
+    }
 
     // Sets up column width and row height to fit into content.
     TableCellRenderer headerCellRenderer = table.getTableHeader().getDefaultRenderer();
@@ -402,12 +401,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         cellWidth = Math.max(cellWidth, preferredSize.width);
         rowHeights[r] = Math.max(rowHeights[r], preferredSize.height);
       }
-      column.setPreferredWidth(cellWidth + JBUIScale.scale(10));
+      column.setPreferredWidth(cellWidth + JBUIScale.scale(4));
     }
     for (int r = 0; r < table.getRowCount(); r++) {
       table.setRowHeight(r, rowHeights[r]);
     }
 
+    tableContainer.add(table);
     return table;
   }
 
