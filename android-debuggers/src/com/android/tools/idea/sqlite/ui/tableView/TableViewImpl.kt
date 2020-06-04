@@ -108,6 +108,9 @@ class TableViewImpl : TableView {
 
   private var isLoading = false
 
+  // variable used to restore focus to the table after the loading screen is shown
+  private var tableHadFocus: Boolean = false
+
   init {
     val southPanel = JPanel(BorderLayout())
     val tableActionsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
@@ -258,6 +261,8 @@ class TableViewImpl : TableView {
     progressBar.isVisible = true
     table.isEnabled = false
 
+    tableHadFocus = table.hasFocus()
+    progressBar.requestFocusInWindow()
     layeredPane.revalidate()
     layeredPane.repaint()
 
@@ -271,6 +276,9 @@ class TableViewImpl : TableView {
 
     progressBar.isVisible = false
     table.isEnabled = true
+    if (progressBar.hasFocus() && tableHadFocus) {
+      table.requestFocusInWindow()
+    }
 
     layeredPane.revalidate()
     layeredPane.repaint()
