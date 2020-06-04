@@ -49,6 +49,7 @@ iml_module(
     name = "intellij.android.newProjectWizard",
     srcs = ["src"],
     iml_files = ["intellij.android.newProjectWizard.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
