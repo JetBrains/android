@@ -16,26 +16,64 @@
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.testutils.TestUtils
-import com.google.common.truth.Truth
-import com.intellij.openapi.util.SystemInfo
+import com.google.common.truth.Truth.assertThat
 import org.junit.Assume
 import org.junit.Test
+import java.io.BufferedReader
+import java.io.StringReader
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
 
 class TraceProcessorDaemonManagerTest {
 
   @Test
-  fun testSpawnAndShutdownProcess() {
+  fun `spawn and shutdown daemon`() {
     // TODO: Find proper tpd binary path when running sandboxes in Bazel.
     Assume.assumeFalse(TestUtils.runningFromBazel())
 
     val manager = TraceProcessorDaemonManager()
-    Truth.assertThat(manager.processIsRunning()).isFalse()
+    assertThat(manager.processIsRunning()).isFalse()
 
     manager.makeSureDaemonIsRunning()
-    Truth.assertThat(manager.processIsRunning()).isTrue()
+    assertThat(manager.processIsRunning()).isTrue()
 
     manager.dispose()
-    Truth.assertThat(manager.processIsRunning()).isFalse()
+    assertThat(manager.processIsRunning()).isFalse()
+  }
+
+  @Test
+  fun `output listener - detects running`() {
+    val source = BufferedReader(StringReader("Server listening on 127.0.0.1:40000\n"))
+    val listener = TraceProcessorDaemonManager.TPDStdoutListener(source)
+
+    val executor = Executors.newSingleThreadExecutor()
+    val result = executor.submit(GetStatusCallable(listener))
+
+    listener.run()
+    assertThat(listener.selectedPort).isEqualTo(40000)
+    assertThat(result.get()).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.RUNNING)
+  }
+
+  @Test
+  fun `output listener - detects failed`() {
+    val source = BufferedReader(StringReader("Server failed to start. A port number wasn't bound.\n"))
+    val listener = TraceProcessorDaemonManager.TPDStdoutListener(source)
+
+    val executor = Executors.newSingleThreadExecutor()
+    val result = executor.submit(GetStatusCallable(listener))
+
+    listener.run()
+    assertThat(listener.selectedPort).isEqualTo(0)
+    assertThat(result.get()).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.FAILED)
+  }
+
+  private class GetStatusCallable(private val listener: TraceProcessorDaemonManager.TPDStdoutListener)
+    : Callable<TraceProcessorDaemonManager.DaemonStatus> {
+
+    override fun call(): TraceProcessorDaemonManager.DaemonStatus {
+      listener.waitForRunningOrFailed()
+      return listener.status
+    }
   }
 
 }
