@@ -24,6 +24,8 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 import java.lang.RuntimeException
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.regex.Pattern
 
 
@@ -31,7 +33,7 @@ import java.util.regex.Pattern
  * This is responsible to manage the lifetime of an instance of the TraceProcessorDaemon,
  * spawning a new one if necessary and properly shutting it down at the end of Studio execution.
  */
-class TraceProcessorDaemonManager: Disposable {
+class TraceProcessorDaemonManager(private val executorService: ExecutorService = Executors.newSingleThreadExecutor()): Disposable {
   // All access paths to process should be synchronized.
   private var process: Process? = null
   // Controls if we started the dispose process for this manager, to prevent new instances of daemon to be spawned.
@@ -46,7 +48,7 @@ class TraceProcessorDaemonManager: Disposable {
     // TPD is hardcoded to output these strings on stdout:
     private val SERVER_STARTED = Pattern.compile("^Server listening on (?:127.0.0.1|localhost):(?<port>\\d+)\n*$")
     // TPD write the following message to stdout when it cannot find a port to bind.
-    private val SERVER_PORT_BIND_FAILED = "Server failed to start. A port number wasn't bound."
+    private const val SERVER_PORT_BIND_FAILED = "Server failed to start. A port number wasn't bound."
 
     private val TPD_DEV_PATH: String by lazy {
       when {
@@ -101,26 +103,73 @@ class TraceProcessorDaemonManager: Disposable {
       val newProcess = ProcessBuilder(getExecutablePath())
         .redirectErrorStream(true)
         .start()
-      val processInputReader = BufferedReader(InputStreamReader(newProcess.inputStream))
+
+      val stdoutListener = TPDStdoutListener(BufferedReader(InputStreamReader(newProcess.inputStream)))
+      executorService.execute(stdoutListener)
 
       // wait until we receive the message that the daemon is listening and get the port
-      var newProcessPort = 0
+      stdoutListener.waitForRunningOrFailed()
+
+      if (stdoutListener.status == DaemonStatus.RUNNING) {
+        daemonPort = stdoutListener.selectedPort
+        process = newProcess
+        LOGGER.info("TPD Manager: TPD instance ready on port $daemonPort.")
+      } else if(stdoutListener.status == DaemonStatus.FAILED) {
+        LOGGER.info("TPD Manager: Unable to start TPD instance.")
+        // Make sure we clean up our instance to not leave a zombie process
+        newProcess?.destroyForcibly()?.waitFor()
+        throw RuntimeException("Unable to start TPD instance.")
+      }
+    }
+  }
+
+  /**
+   * Represents the status of the daemon, that we can extract from its output/logging.
+   */
+  @VisibleForTesting
+  enum class DaemonStatus { STARTING, RUNNING, FAILED }
+
+  /**
+   * This runnable will keep consuming the output (stdout and stderr) from the daemon and will pipe it to our own logs.
+   * Besides the obvious utility of being able to track down what the daemon is doing duing debugging, it seems this
+   * is also important to not lock the daemon if it produces too much output (see b/158124339 for full context).
+   */
+  @VisibleForTesting
+  class TPDStdoutListener(private val outputReader: BufferedReader) : Runnable {
+    private val statusLock = Object()
+    var status = DaemonStatus.STARTING
+      private set(newStatus) {
+        synchronized(statusLock) {
+          LOGGER.debug("TPD Manager: Daemon status: $newStatus")
+          field = newStatus
+          statusLock.notifyAll()
+        }
+      }
+    var selectedPort = 0
+      private set
+
+    override fun run() {
       while (true) {
-        val line = processInputReader.readLine() ?: break
-        LOGGER.info("TPD Manager: TPD - $line")
+        val line = outputReader.readLine() ?: break
+        LOGGER.debug("TPD Manager: [TPD Log] $line")
 
         val serverOkMatcher = SERVER_STARTED.matcher(line)
         if (serverOkMatcher.matches()) {
-          newProcessPort = serverOkMatcher.group("port").toInt()
-          break
+          selectedPort = serverOkMatcher.group("port").toInt()
+          status = DaemonStatus.RUNNING
         } else if (line.startsWith(SERVER_PORT_BIND_FAILED)) {
-          throw RuntimeException("Unable to start TPD.")
+          status = DaemonStatus.FAILED
         }
       }
-      LOGGER.info("TPD Manager: TPD instance ready on port $newProcessPort.")
-      daemonPort = newProcessPort
-      process = newProcess
+      LOGGER.debug("TPD Manager: [TPD Log] EOF")
     }
+
+    fun waitForRunningOrFailed() {
+      synchronized(statusLock) {
+        while (status == DaemonStatus.STARTING) statusLock.wait()
+      }
+    }
+
   }
 
   @Synchronized
