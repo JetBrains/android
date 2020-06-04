@@ -257,7 +257,6 @@ iml_module(
             "test_filter": "com.android.tools.idea.navigator",
         },
         "navigator.AndroidGradleProjectViewSnapshotComparisonTest": {
-            "data": ["//prebuilts/studio/sdk:ndk"],
             # testDependentNativeModules (ag/9872410)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.navigator.AndroidGradleProjectViewSnapshotComparisonTest",
