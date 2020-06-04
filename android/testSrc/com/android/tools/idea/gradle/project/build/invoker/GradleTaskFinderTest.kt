@@ -274,6 +274,12 @@ class GradleTaskFinderTest : PlatformTestCase() {
       ":lib:testClasses"
     ))
   }
+
+  fun testFindTasksToExecuteForBuildSrcModule() {
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), javaModule(":lib"), javaModule(":buildSrc"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.ALL)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":lib:assemble", ":lib:testClasses"))
+  }
 }
 
 private fun javaModule(gradlePath: String) = JavaModuleModelBuilder(gradlePath)
