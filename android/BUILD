@@ -276,10 +276,6 @@ iml_module(
             "shard_count": 5,
             "test_filter": "com.android.tools.idea.run",
         },
-        "run.editor.binaryxml": {
-            "shard_count": 10,
-            "test_filter": "com.android.tools.idea.run.editor.binaryxml",
-        },
         "npw.assetstudio": {
             "test_filter": "com.android.tools.idea.npw.assetstudio.ui",
         },
