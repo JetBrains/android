@@ -47,6 +47,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiWhiteSpace
+import com.intellij.psi.util.parentOfType
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
 import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
@@ -834,6 +835,24 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
   }
 
   element.nameElement.commitNameChange(newElement, writer, element.parent)
+
+  if (element is GradleDslNamedDomainElement) {
+    val project = element.psiElement?.project ?: return
+    val factory = KtPsiFactory(project)
+    val callExpression = newElement.parentOfType<KtCallExpression>() ?: return
+    val calleeExpression = callExpression.calleeExpression ?: return
+    val newMethodName = when (val parent = element.parent) {
+      // TODO(xof): to go even further beyond the call of duty, we should in fact check the contents of parent for colliding names
+      //  before the current element.
+      is GradleDslNamedDomainContainer -> if (parent.implicitlyExists(newName)) "getByName" else "create"
+      else -> element.methodName
+    }
+    if (element.methodName != newMethodName) {
+      val newCalleeExpression = (factory.createExpressionIfPossible("$newMethodName()") as? KtCallExpression)?.calleeExpression ?: return
+      (calleeExpression as PsiElement).replace(newCalleeExpression)
+      element.methodName = newMethodName
+    }
+  }
 }
 
 internal fun createAndAddClosure(closure : GradleDslClosure, element : GradleDslElement) {
