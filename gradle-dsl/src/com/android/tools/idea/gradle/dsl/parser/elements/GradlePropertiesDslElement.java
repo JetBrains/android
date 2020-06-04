@@ -840,8 +840,11 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         myExistsOnFile = existsOnFile;
       }
       private boolean isDefaultElement() {
-        return myElementState == DEFAULT && myElement instanceof GradlePropertiesDslElement &&
-                  (((GradlePropertiesDslElement)myElement).getCurrentElements().isEmpty());
+        return myElementState == DEFAULT &&
+               myElement.isInsignificantIfEmpty() &&
+               myElement instanceof GradlePropertiesDslElement &&
+               (((GradlePropertiesDslElement)myElement).getCurrentElements().isEmpty());
+
       }
     }
 
@@ -1032,8 +1035,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     private void createElements(@NotNull Predicate<GradleDslElement> addFunc) {
       for (Iterator<ElementItem> i = myElements.iterator(); i.hasNext(); ) {
         ElementItem item = i.next();
-        if (item.myElementState == DEFAULT && item.myElement instanceof GradlePropertiesDslElement &&
-            !(((GradlePropertiesDslElement)item.myElement).getCurrentElements().isEmpty())) {
+        if (item.myElementState == DEFAULT && !item.isDefaultElement()) {
           item.myElementState = TO_BE_ADDED;
         }
         if (item.myElementState == TO_BE_ADDED) {
