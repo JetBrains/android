@@ -333,6 +333,7 @@ public class GradleNameElement {
    */
   private void setUpFrom(@Nullable PsiElement element, GradleDslNameConverter converter) {
     myNameElement = element;
+    myFakeName = null;
     if (myNameElement instanceof PsiNamedElement) {
       myLocalName = escape(((PsiNamedElement)myNameElement).getName());
     }
