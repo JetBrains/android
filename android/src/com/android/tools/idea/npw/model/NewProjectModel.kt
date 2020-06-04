@@ -114,11 +114,10 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
     val openProjectTask = OpenProjectTask(
       project = project,
-      contentRoot = projectBaseDirectory.toPath(),
       isNewProject = false,  // We have already created a new project.
       forceOpenInNewFrame = true
     )
-    ProjectManagerEx.getInstanceEx().loadAndOpenProject(projectBaseDirectory.toPath(), openProjectTask)
+    ProjectManagerEx.getInstanceEx().openProject(projectBaseDirectory.toPath(), openProjectTask)
   }
   override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(true)
 
