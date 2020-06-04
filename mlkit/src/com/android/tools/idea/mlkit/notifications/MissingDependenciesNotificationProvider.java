@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Notifies users that some required dependencies are missing for ML model binding feature.
+ * Notifies users that some required dependencies are missing for ML Model Binding feature.
  */
 public class MissingDependenciesNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("ml.missing.deps.notification.panel");
@@ -65,7 +65,7 @@ public class MissingDependenciesNotificationProvider extends EditorNotifications
     if (MlUtils.isModelFileInMlModelsFolder(module, file)
         && !MlUtils.getMissingRequiredDependencies(module).isEmpty()) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
-      panel.setText("TensorFlow Lite model binding dependencies not found.");
+      panel.setText("ML Model Binding dependencies not found.");
       panel.createActionLabel("Add Now", () -> {
         List<GradleCoordinate> depsToAdd = MlUtils.getMissingRequiredDependencies(module);
         // TODO(b/149224613): switch to use DependencyManagementUtil#addDependencies.
