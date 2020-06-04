@@ -186,7 +186,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
     catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
-      return createWarningMessagePanel("Something goes wrong while reading model file.");
+      return createWarningMessagePanel("Error reading model file.");
     }
   }
 
@@ -242,7 +242,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
     JBLabel infoLabel = new JBLabel(
       "Model is not fully supported in current Android Studio or Android Gradle Plugin. " +
-      "Please update to latest version if possible to get best experience.");
+      "Please update to the latest version to get the best experience.");
     infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
     infoLabel.setBorder(Borders.empty(10, 20, 10, 0));
     sectionPanel.add(infoLabel);
