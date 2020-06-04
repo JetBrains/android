@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.compose-designer",
     srcs = ["src"],
     iml_files = ["intellij.android.compose-designer.iml"],
+    lint_baseline = "lint_baseline.xml",
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
