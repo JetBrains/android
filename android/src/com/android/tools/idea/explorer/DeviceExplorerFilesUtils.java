@@ -32,8 +32,9 @@ public class DeviceExplorerFilesUtils {
   @AnyThread
   @NotNull
   public static ListenableFuture<VirtualFile> findFile(@NotNull Path localPath) {
-    // Note: We run this operation inside a transaction because we need to refresh a VirtualFile instance.
-    //       See https://github.com/JetBrains/intellij-community/commit/10c0c11281b875e64c31186eac20fc28ba3fc37a
+    // We run this operation using invokeLater because we need to refresh a VirtualFile instance
+    // this has to be done in a write-safe context.
+    // See https://github.com/JetBrains/intellij-community/commit/10c0c11281b875e64c31186eac20fc28ba3fc37a
     SettableFuture<VirtualFile> futureFile = SettableFuture.create();
     ApplicationManager.getApplication().invokeLater(() -> {
       VirtualFile localFile = VfsUtil.findFileByIoFile(localPath.toFile(), true);
