@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.ui.mainView
 
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -356,6 +357,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
             append(userObject)
           }
         }
+      }
+
+      if (hasFocus) {
+        icon = ColoredIconGenerator.generateWhiteIcon(icon)
       }
     }
   }
