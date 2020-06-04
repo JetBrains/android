@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.java
 
+import com.android.SdkConstants
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
-import com.android.tools.idea.nav.safeargs.psi.xml.getXmlTagById
+import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementById
+import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -60,7 +63,7 @@ class LightDirectionsClass(facet: AndroidFacet,
   }
 
   private val _methods by lazy { computeMethods() }
-  private val _navigationElement by lazy { backingResourceFile?.getXmlTagById(destination.id) }
+  private val _navigationElement by lazy { backingResourceFile?.findXmlTagById(destination.id) }
 
   override fun getMethods() = _methods
   override fun getAllMethods() = methods
@@ -82,8 +85,9 @@ class LightDirectionsClass(facet: AndroidFacet,
         }
 
         val methodName = action.id.toCamelCase()
+        val resolvedNavigationElement = (_navigationElement as? XmlTag)?.findChildTagElementById(SdkConstants.TAG_ACTION, action.id)
         createMethod(name = methodName,
-                     navigationElement = backingResourceFile?.getXmlTagById(action.destination),
+                     navigationElement = resolvedNavigationElement,
                      modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
                      returnType = annotateNullability(navDirectionsType))
           .apply {

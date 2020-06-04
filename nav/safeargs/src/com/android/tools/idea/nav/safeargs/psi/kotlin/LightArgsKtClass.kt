@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
+import com.android.SdkConstants
 import com.android.tools.idea.nav.safeargs.index.NavFragmentData
+import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
+import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
+import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -35,6 +39,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.MemberScopeImpl
+import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.Printer
@@ -172,10 +177,16 @@ class LightArgsKtClass(
       val componentFunctions = argsClassDescriptor.unsubstitutedPrimaryConstructor.valueParameters
         .asSequence()
         .map { parameter ->
+          val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
+          val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, parameter.name.asString())?.let {
+            XmlSourceElement(it)
+          } ?: argsClassDescriptor.source
+
           argsClassDescriptor.createMethod(
             name = "component" + index++,
             returnType = parameter.type,
-            dispatchReceiver = argsClassDescriptor
+            dispatchReceiver = argsClassDescriptor,
+            sourceElement = resolvedSourceElement
           )
         }
         .toList()
@@ -192,7 +203,11 @@ class LightArgsKtClass(
           val fallbackType = argsClassDescriptor.builtIns.stringType
           val pType = argsClassDescriptor.builtIns
             .getKotlinType(arg.type, arg.defaultValue, argsClassDescriptor.module, isNonNull, fallbackType)
-          argsClassDescriptor.createProperty(pName, pType, argsClassDescriptor.source)
+          val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
+          val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)?.let {
+            XmlSourceElement(it)
+          } ?: argsClassDescriptor.source
+          argsClassDescriptor.createProperty(pName, pType, resolvedSourceElement)
         }
         .toList()
     }

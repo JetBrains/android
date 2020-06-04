@@ -210,7 +210,7 @@ class SafeArgNavigationTest {
 
           <action
             android:id="@+id/action_to_nested"
-            app:destination="@id/nested"/>
+            app:destination="@id/nested" />
 
           <fragment
               android:id="@+id/fragment1"
@@ -275,7 +275,12 @@ class SafeArgNavigationTest {
       it.navigate(true)
       assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
       assertThat(it.navigationElement).isInstanceOf(XmlTag::class.java)
-      assertThat(it.navigationElement.text).contains("id=\"@+id/nested\"")
+      assertThat(it.navigationElement.text).isEqualTo(
+        """
+        <action
+            android:id="@+id/action_to_nested"
+            app:destination="@id/nested" />
+        """.trimIndent())
     }
 
     // check methods navigation of fragment1directions
@@ -284,8 +289,22 @@ class SafeArgNavigationTest {
       assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
       assertThat(it.navigationElement).isInstanceOf(XmlTag::class.java)
       when (it.name) {
-        "actionFragment1ToFragment2" -> assertThat(it.navigationElement.text).contains("id=\"@+id/fragment2\"")
-        "actionFragment1ToFragment3" -> assertThat(it.navigationElement.text).contains("id=\"@+id/fragment3\"")
+        "actionFragment1ToFragment2" -> {
+          assertThat(it.navigationElement.text).isEqualTo(
+            """
+            <action
+                  android:id="@+id/action_fragment1_to_fragment2"
+                  app:destination="@id/fragment2" />
+            """.trimIndent())
+        }
+        "actionFragment1ToFragment3" -> {
+          assertThat(it.navigationElement.text).isEqualTo(
+            """
+            <action
+                  android:id="@+id/action_fragment1_to_fragment3"
+                  app:destination="@id/fragment3" />
+            """.trimIndent())
+        }
       }
     }
   }

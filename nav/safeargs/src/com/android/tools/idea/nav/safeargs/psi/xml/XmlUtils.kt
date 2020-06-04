@@ -21,8 +21,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.XmlRecursiveElementWalkingVisitor
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import org.jetbrains.kotlin.resolve.source.PsiSourceElement
 
-internal fun XmlFile.getXmlTagById(attrId: String): PsiElement? {
+internal fun XmlFile.findXmlTagById(attrId: String): PsiElement? {
   var resultTag: XmlTag? = null
   val visitor = object : XmlRecursiveElementWalkingVisitor() {
     override fun visitXmlTag(tag: XmlTag) {
@@ -43,9 +44,15 @@ internal fun XmlTag.isTagIdEqualTo(id: String): Boolean {
   return ResourceUrl.parse(tagId)?.name == id
 }
 
-internal fun XmlTag.getChildTagElementByNameAttr(tagName: String, nameAttr: String): PsiElement? {
+internal fun XmlTag.findChildTagElementByNameAttr(tagName: String, nameAttr: String): PsiElement? {
   return this.subTags.firstOrNull {
     it != null && it.localName == tagName && it.hasMatchedNameAttr(nameAttr)
+  }
+}
+
+internal fun XmlTag.findChildTagElementById(tagName: String, idAttr: String): PsiElement? {
+  return this.subTags.firstOrNull {
+    it != null && it.localName == tagName && it.hasMatchedIdAttr(idAttr)
   }
 }
 
@@ -54,3 +61,11 @@ internal fun XmlTag.hasMatchedNameAttr(name: String): Boolean {
     it != null && it.localName == SdkConstants.ATTR_NAME && it.value == name
   } != null
 }
+
+internal fun XmlTag.hasMatchedIdAttr(id: String): Boolean {
+  return this.attributes.firstOrNull {
+    it != null && it.localName == SdkConstants.ATTR_ID && it.value?.substringAfter("@+id/") == id
+  } != null
+}
+
+class XmlSourceElement(override val psi: PsiElement) : PsiSourceElement

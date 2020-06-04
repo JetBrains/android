@@ -16,8 +16,11 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.tools.idea.nav.safeargs.module.SafeArgsResourceForKtDescriptors
+import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
+import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
+import com.intellij.psi.xml.XmlFile
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -32,13 +35,12 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.MemberScopeImpl
-import org.jetbrains.kotlin.resolve.source.PsiSourceElement
+import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.utils.Printer
 import org.jetbrains.kotlin.utils.alwaysTrue
 
 class SafeArgSyntheticPackageResourceData(val moduleNavResource: Collection<SafeArgsResourceForKtDescriptors.NavEntryKt>)
-private class XmlSourceElement(override val psi: PsiElement) : PsiSourceElement
 
 /**
  * Kt module-wise descriptors
@@ -68,11 +70,9 @@ class SafeArgKotlinPackageDescriptor(
       packageDescriptor: SafeArgKotlinPackageDescriptor,
       storageManager: StorageManager
     ): Collection<ClassDescriptor> {
-      val backingXmlSource = PsiManager.getInstance(navEntry.project).findFile(navEntry.file)
+      val backingXmlFile = PsiManager.getInstance(navEntry.project).findFile(navEntry.file)
       // xml-wise
-      val sourceElement = backingXmlSource?.let {
-        XmlSourceElement(backingXmlSource as PsiElement)
-      } ?: SourceElement.NO_SOURCE
+      val sourceElement = backingXmlFile?.let { XmlSourceElement(it as PsiElement) } ?: SourceElement.NO_SOURCE
 
       return createLightArgsClasses(navEntry, sourceElement, packageDescriptor, storageManager) +
              createLightDirectionsClasses(navEntry, sourceElement, packageDescriptor, storageManager)
@@ -91,7 +91,11 @@ class SafeArgKotlinPackageDescriptor(
           val className = destination.name.substringAfterLast('.').let {
             Name.identifier(it + "Directions")
           }
-          LightDirectionsKtClass(className, destination, entry.data, sourceElement, packageDescriptor, storageManager)
+          val resolvedSourceElement = (sourceElement.getPsi() as? XmlFile)
+                                        ?.findXmlTagById(destination.id)
+                                        ?.let { XmlSourceElement(it) }
+                                      ?: sourceElement
+          LightDirectionsKtClass(className, destination, entry.data, resolvedSourceElement, packageDescriptor, storageManager)
         }
         .toList()
     }
@@ -110,7 +114,11 @@ class SafeArgKotlinPackageDescriptor(
             Name.identifier(it + "Args")
           }
           val navArgType = packageDescriptor.builtIns.getKotlinType("androidx.navigation.NavArgs", null, packageDescriptor.module)
-          LightArgsKtClass(className, fragment, listOf(navArgType), sourceElement, packageDescriptor, storageManager)
+          val resolvedSourceElement = (sourceElement.getPsi() as? XmlFile)
+                                        ?.findXmlTagById(fragment.id)
+                                        ?.let { XmlSourceElement(it) }
+                                      ?: sourceElement
+          LightArgsKtClass(className, fragment, listOf(navArgType), resolvedSourceElement, packageDescriptor, storageManager)
         }
         .toList()
     }
