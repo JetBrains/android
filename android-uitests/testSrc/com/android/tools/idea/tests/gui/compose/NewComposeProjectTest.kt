@@ -47,7 +47,7 @@ class NewComposeProjectTest {
   /**
    * Verifies that user is able to create a new Compose Activity Project through the
    * new project wizard.
-   * <p>TODO: TT ID:
+   * <p>TT ID: f1c58981-0704-40be-9794-7f61e425a8d5
    * Test steps:
    * 1. Create new default "Empty Compose Activity" Project
    * Verify:
