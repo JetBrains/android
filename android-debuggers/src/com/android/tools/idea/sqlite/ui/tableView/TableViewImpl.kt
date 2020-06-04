@@ -180,7 +180,7 @@ class TableViewImpl : TableView {
     HelpTooltip()
       .setDescription(DatabaseInspectorBundle.message("action.live.updates.desc"))
       .setLink(DatabaseInspectorBundle.message("learn.more")) {
-        BrowserUtil.browse("d.android.com/r/studio-ui/db-inspector-help/live-updates")
+        BrowserUtil.browse("https://d.android.com/r/studio-ui/db-inspector-help/live-updates")
       }
       .installOn(liveUpdatesCheckBox)
 

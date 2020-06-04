@@ -186,7 +186,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       .setTitle(DatabaseInspectorBundle.message("action.keep.open.tooltip.title"))
       .setDescription(DatabaseInspectorBundle.message("action.keep.open.tooltip.desc"))
       .setLink(DatabaseInspectorBundle.message("learn.more")) {
-        BrowserUtil.browse("d.android.com/r/studio-ui/db-inspector-help/lock-connections")
+        BrowserUtil.browse("https://d.android.com/r/studio-ui/db-inspector-help/lock-connections")
       }
       .installOn(keepConnectionsOpenButton)
     northPanel.add(keepConnectionsOpenButton)
