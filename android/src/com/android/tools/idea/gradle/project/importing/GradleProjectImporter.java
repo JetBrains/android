@@ -135,18 +135,15 @@ public final class GradleProjectImporter {
     myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel);
   }
 
-  @NotNull
-  public Project createProject(@NotNull String projectName, @NotNull File projectFolderPath) {
-    Project newProject;
-    newProject = myNewProjectSetup.createProject(projectName, projectFolderPath.getPath());
+  public @NotNull Project createProject(@NotNull String projectName, @NotNull File projectFolderPath) {
+    Project newProject = myNewProjectSetup.createProject(projectName, projectFolderPath.toPath());
     GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
     gradleSettings.setGradleVmOptions("");
 
     String externalProjectPath = toCanonicalPath(projectFolderPath.getPath());
     GradleProjectSettings projectSettings = gradleSettings.getLinkedProjectSettings(externalProjectPath);
     if (projectSettings == null) {
-      Set<GradleProjectSettings> projects =
-          new HashSet<>(gradleSettings.getLinkedProjectsSettings());
+      Set<GradleProjectSettings> projects = new HashSet<>(gradleSettings.getLinkedProjectsSettings());
       projectSettings = new GradleProjectSettings();
       projectSettings.setExternalProjectPath(externalProjectPath);
       projects.add(projectSettings);

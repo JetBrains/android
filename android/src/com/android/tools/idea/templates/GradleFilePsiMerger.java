@@ -26,6 +26,7 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.intellij.ide.impl.OpenProjectTask;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -38,6 +39,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -85,7 +87,8 @@ public final class GradleFilePsiMerger {
       project2 = project;
     }
     else {
-      project2 = ProjectManagerEx.getInstanceEx().newProject("MergingOnly", "", false, true);
+      // todo platform doesn't support dummy projects, how does it supposed to work?
+      project2 = ProjectManagerEx.getInstanceEx().openProject(Paths.get(""), OpenProjectTask.newProject());
       assert project2 != null;
       projectNeedsCleanup = true;
     }

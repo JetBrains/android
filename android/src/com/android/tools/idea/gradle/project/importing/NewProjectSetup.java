@@ -15,26 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.importing;
 
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectType;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.CompilerProjectExtension;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.pom.java.LanguageLevel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleProjects.open;
 import static com.android.tools.idea.gradle.util.GradleUtil.BUILD_DIR_DEFAULT_NAME;
@@ -44,7 +24,26 @@ import static com.intellij.openapi.application.TransactionGuard.submitTransactio
 import static com.intellij.openapi.project.ProjectTypeService.setProjectType;
 import static com.intellij.openapi.util.io.FileUtil.join;
 
-public class NewProjectSetup {
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.impl.OpenProjectTask;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectType;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.CompilerProjectExtension;
+import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.pom.java.LanguageLevel;
+import java.io.File;
+import java.nio.file.Path;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public final class NewProjectSetup {
   public static final ProjectType ANDROID_PROJECT_TYPE = new ProjectType("Android");
 
   @NotNull private final TopLevelModuleFactory myTopLevelModuleFactory;
@@ -58,10 +57,8 @@ public class NewProjectSetup {
     myTopLevelModuleFactory = topLevelModuleFactory;
   }
 
-  @NotNull
-  public Project createProject(@NotNull String projectName, @NotNull String projectPath) {
-    ProjectManager projectManager = ProjectManager.getInstance();
-    Project newProject = projectManager.createProject(projectName, projectPath);
+  public @NotNull Project createProject(@NotNull String projectName, @NotNull Path projectPath) {
+    Project newProject = ProjectManagerEx.getInstanceEx().newProject(projectPath, OpenProjectTask.newProject().withProjectName(projectName));
     if (newProject == null) {
       throw new NullPointerException("Failed to create a new project");
     }

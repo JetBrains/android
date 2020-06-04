@@ -55,7 +55,6 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.android.util.AndroidUtils
@@ -109,7 +108,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       }
 
       val path = Paths.get(projectLocation)
-      ProjectManagerEx.getInstanceEx().loadAndOpenProject(path, OpenProjectTask(forceOpenInNewFrame = true, project = newProject))
+      ProjectManagerEx.getInstanceEx().openProject(path, OpenProjectTask(forceOpenInNewFrame = true, project = newProject))
     }
   }
 
