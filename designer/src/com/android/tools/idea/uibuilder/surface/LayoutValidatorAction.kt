@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.tools.idea.actions.DesignerActions
 import com.android.tools.idea.actions.LAYOUT_VALIDATOR_KEY
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.ui.alwaysEnableLayoutValidation
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -54,4 +55,42 @@ class LayoutValidatorAction: DumbAwareAction(
  */
 interface LayoutValidatorControl {
   fun runLayoutValidation()
+}
+
+/**
+ * Configuration for layout validator
+ */
+interface LayoutValidationConfiguration {
+
+  /**
+   * Returns true if it layout validation should be enabled. False otherwise.
+   */
+  var isLayoutValidationEnabled: Boolean
+
+  companion object {
+
+    /**
+     * Configuration for when layout validation is not applicable.
+     */
+    @JvmStatic
+    val DISABLED = object: LayoutValidationConfiguration {
+      override var isLayoutValidationEnabled: Boolean
+        get() = false
+        set(value) { }
+    }
+  }
+}
+
+/**
+ * Configuration for when layout validation is available.
+ */
+class LayoutValidationEnabled : LayoutValidationConfiguration {
+
+  private var isEnabled = false
+
+  override var isLayoutValidationEnabled: Boolean
+    get() = alwaysEnableLayoutValidation || isEnabled
+    set(value) {
+      isEnabled = value
+    }
 }

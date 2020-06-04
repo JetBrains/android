@@ -445,7 +445,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    */
   @NotNull
   public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
-    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface);
+    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface, new LayoutValidationEnabled());
     RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
     sceneManager.setShowDecorations(settings.getShowDecorations());
     sceneManager.setUseImagePool(settings.getUseLiveRendering());
