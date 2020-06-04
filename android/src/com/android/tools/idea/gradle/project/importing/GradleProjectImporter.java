@@ -124,10 +124,10 @@ public class GradleProjectImporter {
           null,
           null,
           null,
+          null,
           -1,
           -1,
           true,
-          null,
           false,
           true));
     }
