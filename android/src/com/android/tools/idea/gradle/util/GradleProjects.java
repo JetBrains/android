@@ -72,7 +72,7 @@ public final class GradleProjects {
   public static void open(@NotNull Project project) {
     Path projectDir = Paths.get(Objects.requireNonNull(project.getBasePath()));
     updateLastProjectLocation(projectDir);
-    ProjectManagerEx.getInstanceEx().loadAndOpenProject(projectDir, OpenProjectTask.withCreatedProject(project, null));
+    ProjectManagerEx.getInstanceEx().openProject(projectDir, OpenProjectTask.withCreatedProject(project));
   }
 
   public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {

@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.PlatformTestCase;
-import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
@@ -106,7 +105,7 @@ public class GradleProjectImporterTest extends PlatformTestCase {
   }
 
   private void verifyProjectCreation(@NotNull VerificationMode verificationMode) {
-    verify(myProjectSetup, verificationMode).createProject(myProjectName, myProjectFolderPath.getPath());
+    verify(myProjectSetup, verificationMode).createProject(myProjectName, myProjectFolderPath.toPath());
   }
 
   private void verifyProjectPreparation(@Nullable LanguageLevel languageLevel) {
