@@ -43,7 +43,7 @@ data class UniqueModuleGradlePathWithParentExpression(
     fun isUnique(name: String): Boolean = moduleValidator.validate(name).severity in setOf(Validator.Severity.OK, Validator.Severity.INFO)
     fun String.toGradleProjectName() = toLowerCase(Locale.US).replace("\\s".toRegex(), "")
 
-    val parentModulePrefix = moduleParent.orEmpty() + ":"
+    val parentModulePrefix = if (moduleParent != null && moduleParent.endsWith(":")) moduleParent else moduleParent.orEmpty() + ":"
     val convertedName = applicationName.get().toGradleProjectName()
     val moduleGradlePath = if (convertedName.startsWith(":")) convertedName else parentModulePrefix + convertedName
     val uniqueModuleGradlePath =
