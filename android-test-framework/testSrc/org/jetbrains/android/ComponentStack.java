@@ -17,12 +17,11 @@ package org.jetbrains.android;
 
 import com.intellij.openapi.components.ComponentManager;
 import com.intellij.testFramework.ServiceContainerUtil;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.picocontainer.MutablePicoContainer;
-
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 public final class ComponentStack {
   private final ComponentManager myComponentManager;
@@ -65,7 +64,7 @@ public final class ComponentStack {
     }
   }
 
-  private static class ComponentItem {
+  private static final class ComponentItem {
     private final Object key;
     private final Object instance;
 
