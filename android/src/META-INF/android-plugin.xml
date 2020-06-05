@@ -469,6 +469,9 @@
     <completion.contributor language="kotlin"
                             implementationClass="org.jetbrains.android.compose.AndroidComposeCompletionContributor"
                             order="first, before KotlinCompletionContributor"/>
+    <completion.contributor language="kotlin"
+                            implementationClass="org.jetbrains.android.AndroidNonTransitiveRClassKotlinCompletionContributor"
+                            order="first, after KotlinCompletionContributor"/>
     <weigher key="completion"
              implementationClass="org.jetbrains.android.compose.AndroidComposeCompletionWeigher"
              id="android.compose"

@@ -26,7 +26,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import org.jetbrains.android.augment.AndroidLightField;
 import org.jetbrains.android.augment.ResourceRepositoryInnerRClass;
 import org.jetbrains.annotations.NotNull;
@@ -41,10 +40,16 @@ public abstract class ResourceRepositoryRClass extends AndroidRClassBase {
    */
   public interface ResourcesSource {
     @Nullable String getPackageName();
+    @NotNull Transitivity getTransitivity();
     @NotNull LocalResourceRepository getResourceRepository();
     @NotNull ResourceNamespace getResourceNamespace();
     @NotNull AndroidLightField.FieldModifier getFieldModifier();
     boolean isPublic(@NotNull ResourceType resourceType, @NotNull String resourceName);
+  }
+
+  public enum Transitivity {
+    TRANSITIVE,
+    NON_TRANSITIVE
   }
 
   @NotNull private final ResourcesSource mySource;
@@ -62,8 +67,14 @@ public abstract class ResourceRepositoryRClass extends AndroidRClassBase {
       LOG.debug("R_CLASS_AUGMENT: empty because of dumb mode");
       return PsiClass.EMPTY_ARRAY;
     }
-
-    Set<ResourceType> types = mySource.getResourceRepository().getResourceTypes(mySource.getResourceNamespace());
+    ResourceType[] types;
+    if (mySource.getTransitivity() == Transitivity.TRANSITIVE) {
+      types = mySource.getResourceRepository().getResourceTypes(mySource.getResourceNamespace()).toArray(new ResourceType[0]);
+    } else {
+      // For Non-Transitive Classes we want to show every resource type for ModuleRClasses, so that we can recommend resource fields from
+      // other R classes.
+      types = ResourceType.values();
+    }
     List<PsiClass> result = new ArrayList<>();
 
     for (ResourceType type : types) {

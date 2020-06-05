@@ -27,7 +27,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.ModuleRClass.SourceSet
-import com.android.tools.idea.res.ModuleRClass.Transitivity
+import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.concurrency.getAndUnwrap
 import com.android.utils.concurrency.retainAll
