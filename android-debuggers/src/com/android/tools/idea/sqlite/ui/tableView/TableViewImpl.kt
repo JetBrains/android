@@ -286,6 +286,10 @@ class TableViewImpl : TableView {
     table.columnModel.getColumn(0).maxWidth = JBUI.scale(60)
     table.columnModel.getColumn(0).resizable = false
 
+    for (i in 1 until table.columnModel.columnCount) {
+      table.columnModel.getColumn(i).minWidth = JBUI.scale(65)
+    }
+
     setAutoResizeMode()
   }
 
@@ -367,6 +371,10 @@ class TableViewImpl : TableView {
     }
     else {
       table.autoResizeMode = JTable.AUTO_RESIZE_OFF
+
+      for (i in 1 until table.columnModel.columnCount) {
+        table.columnModel.getColumn(i).preferredWidth = JBUI.scale(85)
+      }
     }
   }
 
