@@ -131,6 +131,8 @@ data class ProjectViewSettings(
 
 fun Project.dumpAndroidProjectView(): String = dumpAndroidProjectView(initialState = Unit) { _, _ -> Unit }
 
+private val x64platformPattern = Regex("darwin-x86_64|linux-x86_64")
+
 fun <T : Any> Project.dumpAndroidProjectView(
   projectViewSettings: ProjectViewSettings = ProjectViewSettings(),
   initialState: T,
@@ -146,6 +148,7 @@ fun <T : Any> Project.dumpAndroidProjectView(
     return replace(androidSdkAbsolutePath, "<ANDROID_SDK>", ignoreCase = false)
       .replace(androidSdkUserRootedPath, "<ANDROID_SDK>", ignoreCase = false)
       .replace(userHomePath, "<HOME>", ignoreCase = false)
+      .replace(x64platformPattern, "<x64_PLATFORM>")
   }
 
   fun Icon.getIconText(): Icon? {
