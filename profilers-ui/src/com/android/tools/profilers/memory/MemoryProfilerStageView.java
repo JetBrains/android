@@ -73,6 +73,7 @@ import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import com.android.tools.profilers.memory.adapters.ValueObject;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
@@ -141,6 +142,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
   @NotNull private ProfilerAction myStopNativeAllocationAction;
   @NotNull private final JLabel myCaptureElapsedTime;
   @NotNull private final JLabel myAllocationSamplingRateLabel;
+  @NotNull private final LoadingPanel myHeapDumpLoadingPanel;
 
   @NotNull private DurationDataRenderer<GcDurationData> myGcDurationDataRenderer;
   @NotNull private DurationDataRenderer<AllocationSamplingRateDurationData> myAllocationSamplingRateRenderer;
@@ -169,6 +171,9 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
 
     myLayout = new LegacyMemoryProfilerStageLayout(monitorUi, capturePanel, this::makeLoadingPanel);
     getComponent().add(myLayout.getComponent(), BorderLayout.CENTER);
+
+    myHeapDumpLoadingPanel = getIdeComponents().createLoadingPanel(-1);
+    myHeapDumpLoadingPanel.setLoadingText("Capturing heap dump");
 
     myForceGarbageCollectionButton = new CommonButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
     myForceGarbageCollectionButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION));
@@ -261,7 +266,9 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     myAllocationSamplingRateDropDown = new ProfilerCombobox();
 
     getStage().getAspect().addDependency(this)
-      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged);
+      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged)
+      .onChange(MemoryProfilerAspect.HEAP_DUMP_STARTED, this::showHeapDumpInProgress)
+      .onChange(MemoryProfilerAspect.HEAP_DUMP_FINISHED, this::hideHeapDumpInProgress);
     getStage().getCaptureSelection().getAspect().addDependency(this)
       .onChange(CaptureSelectionAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
       .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
@@ -902,6 +909,20 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     if (myCaptureObject != null && myLayout.isLoadingUiVisible()) {
       myLayout.setLoadingUiVisible(false);
     }
+  }
+
+  private void showHeapDumpInProgress() {
+    getComponent().removeAll();
+    myHeapDumpLoadingPanel.setChildComponent(myLayout.getComponent());
+    getComponent().add(myHeapDumpLoadingPanel.getComponent(), BorderLayout.CENTER);
+    myHeapDumpLoadingPanel.startLoading();
+  }
+
+  private void hideHeapDumpInProgress() {
+    myHeapDumpLoadingPanel.stopLoading();
+    getComponent().removeAll();
+    myHeapDumpLoadingPanel.setChildComponent(null);
+    getComponent().add(myLayout.getComponent());
   }
 
   private static void configureStackedFilledLine(LineChart chart, Color color, RangedContinuousSeries series) {
