@@ -161,7 +161,7 @@ class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix {
           }
           else {
             sdkHandler.getLatestRemotePackageForPrefix(
-              SdkConstants.FD_CMAKE, false /* do not allow preview */, progressIndicator)
+              SdkConstants.FD_CMAKE, null, false /* do not allow preview */, progressIndicator)
           }
         }
         else {
