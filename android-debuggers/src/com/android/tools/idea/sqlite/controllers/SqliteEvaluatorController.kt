@@ -234,4 +234,6 @@ class SqliteEvaluatorController(
 }
 
 private val SqliteStatement.isQueryStatement
-  get() = statementType == SqliteStatementType.SELECT || statementType == SqliteStatementType.EXPLAIN
+  get() = statementType == SqliteStatementType.SELECT ||
+          statementType == SqliteStatementType.EXPLAIN ||
+          statementType == SqliteStatementType.PRAGMA_QUERY
