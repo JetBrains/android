@@ -114,6 +114,8 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
 
   private static final String RECORD_TEXT = "Record";
   private static final String STOP_TEXT = "Stop";
+  private static final String LIVE_ALLOCATION_TRACKING_NOT_READY_TOOLTIP =
+    "Allocation tracking isn't ready. Please wait.";
   @VisibleForTesting
   static final String RECORD_NATIVE_TEXT = "Record native allocations";
   @VisibleForTesting
@@ -215,7 +217,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
         }
         getStage().trackAllocations(!getStage().isTrackingAllocations());
       });
-    myAllocationButton.setVisible(!getStage().useLiveAllocationTracking());
+    myAllocationButton.setVisible(!getStage().isLiveAllocationTrackingSupported());
     myAllocationAction =
       new ProfilerAction.Builder("Record allocations")
         .setIcon(StudioIcons.Profiler.Toolbar.RECORD)
@@ -341,7 +343,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     toolbar.removeAll();
     toolbar.add(myForceGarbageCollectionButton);
     toolbar.add(myHeapDumpButton);
-    if (getStage().useLiveAllocationTracking() &&
+    if (getStage().isLiveAllocationTrackingSupported() &&
         getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
       toolbar.add(myAllocationSamplingRateLabel);
       toolbar.add(myAllocationSamplingRateDropDown);
@@ -383,9 +385,11 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
       myHeapDumpButton.setEnabled(isAlive);
       myAllocationButton.setEnabled(isAlive);
       myNativeAllocationButton.setEnabled(isAlive && !isSelectedSessionDeviceX86OrX64());
-      myAllocationSamplingRateDropDown.setEnabled(isAlive);
+      liveAllocationStatusChanged();  // update myAllocationSamplingRateLabel and myAllocationSamplingRateDropDown
     };
     profilers.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, toggleButtons);
+    getStage().getAspect().addDependency(this).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS,
+                                                        this::liveAllocationStatusChanged);
     toggleButtons.run();
     return panel;
   }
@@ -462,6 +466,29 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     return myLayout.getCapturePanel().getCaptureInfoMessage();
   }
 
+  private void liveAllocationStatusChanged() {
+    boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
+    boolean isReady = getStage().isLiveAllocationTrackingReady();
+    if (isAlive) {
+      if (isReady) {
+        myAllocationSamplingRateLabel.setEnabled(true);
+        myAllocationSamplingRateDropDown.setEnabled(true);
+        myAllocationSamplingRateLabel.setToolTipText(null);
+        myAllocationSamplingRateDropDown.setToolTipText(null);
+      }
+      else {
+        myAllocationSamplingRateLabel.setEnabled(false);
+        myAllocationSamplingRateDropDown.setEnabled(false);
+        myAllocationSamplingRateLabel.setToolTipText(LIVE_ALLOCATION_TRACKING_NOT_READY_TOOLTIP);
+        myAllocationSamplingRateDropDown.setToolTipText(LIVE_ALLOCATION_TRACKING_NOT_READY_TOOLTIP);
+      }
+    }
+    else {
+      myAllocationSamplingRateLabel.setEnabled(false);
+      myAllocationSamplingRateDropDown.setEnabled(false);
+    }
+  }
+
   private boolean isSelectedSessionDeviceX86OrX64() {
     String abi = getStage().getStudioProfilers().getSessionsManager().getSelectedSessionMetaData().getProcessAbi();
     return abi.equalsIgnoreCase("x86") || abi.equalsIgnoreCase("x86_64");
@@ -494,7 +521,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
 
   private void updateCaptureElapsedTime() {
     if (getStage().isTrackingAllocations() &&
-        (!getStage().useLiveAllocationTracking() || getStage().isNativeAllocationSamplingEnabled())) {
+        (!getStage().isLiveAllocationTrackingReady() || getStage().isNativeAllocationSamplingEnabled())) {
       long elapsedTimeUs = TimeUnit.NANOSECONDS.toMicros(getStage().getAllocationTrackingElapsedTimeNs());
       myCaptureElapsedTime.setText(TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
     }
@@ -545,7 +572,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
 
     DetailedMemoryUsage memoryUsage = getStage().getDetailedMemoryUsage();
     final LineChart lineChart = new LineChart(memoryUsage);
-    if (getStage().useLiveAllocationTracking()) {
+    if (getStage().isLiveAllocationTrackingReady()) {
       // Always show series in their captured state in live allocation mode.
       configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_JAVA_CAPTURED, memoryUsage.getJavaSeries());
       configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_NATIVE_CAPTURED, memoryUsage.getNativeSeries());
@@ -592,7 +619,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
     overlay.addDurationDataRenderer(myGcDurationDataRenderer);
     overlayPanel.add(overlay, BorderLayout.CENTER);
     // Only shows allocation tracking visuals in pre-O, since we are always tracking in O+.
-    if (!getStage().useLiveAllocationTracking()) {
+    if (!getStage().isLiveAllocationTrackingReady()) {
       DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
         new DurationDataRenderer.Builder<>(getStage().getAllocationInfosDurations(), JBColor.LIGHT_GRAY)
           .setDurationBg(ProfilerColors.MEMORY_ALLOC_BG)
@@ -766,7 +793,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
           }, null)));
     contextMenuInstaller.installGenericContextMenu(myRangeSelectionComponent, ContextMenuItem.SEPARATOR);
 
-    if (!getStage().useLiveAllocationTracking()) {
+    if (!getStage().isLiveAllocationTrackingReady()) {
       contextMenuInstaller.installGenericContextMenu(myRangeSelectionComponent, myAllocationAction);
       contextMenuInstaller.installGenericContextMenu(myRangeSelectionComponent, myStopAllocationAction);
     }
@@ -802,7 +829,7 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
                         : IconUtil.brighter(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6);
     RenderInstruction[] instructions;
     FontMetrics metrics = UIUtilities.getFontMetrics(parent, ProfilerFonts.H2_FONT);
-    if (getStage().useLiveAllocationTracking()) {
+    if (getStage().isLiveAllocationTrackingReady()) {
       instructions = new RenderInstruction[]{
         new TextInstruction(metrics, "Select a range to inspect allocations"),
         new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
