@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
+import com.android.tools.idea.compose.preview.PreviewGroup.Companion.namedGroup
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.PreviewElementTemplate
@@ -31,10 +32,16 @@ private fun PreviewElementProvider.previewNamesArray(): Array<String> =
   previewElements.map { it.composableMethodFqn }.toList().toTypedArray()
 
 /**
- * Utility method to get the array of names of the available groups. See [availableGroups].
+ * Utility method to get the array of names of the available groups. See [GroupNameFilteredPreviewProvider#allAvailableGroups].
  */
-private fun PreviewFilters.groupNamesArray(): Array<String> =
-  availableGroups.mapNotNull { it.name }.toTypedArray()
+private fun PreviewFilters.allAvailableGroupNamesArray(): Array<String> =
+  allAvailableGroups.mapNotNull { it.name }.toTypedArray()
+
+/**
+ * Utility method to get the array of names of the available groups after filtering.
+ */
+private fun PreviewFilters.filteredGroupNamesArray(): Array<String> =
+  previewElements.groupNames.toTypedArray()
 
 class PreviewFiltersTest {
   @Test
@@ -59,14 +66,14 @@ class PreviewFiltersTest {
     ))
 
     val previewFilters = PreviewFilters(staticPreviewProvider)
-    assertArrayEquals(arrayOf("GroupA", "GroupB", "TemplateGroup"), previewFilters.groupNamesArray())
+    assertArrayEquals(arrayOf("GroupA", "GroupB", "TemplateGroup"), previewFilters.filteredGroupNamesArray())
 
     // Set an instance filter
     assertArrayEquals(arrayOf("PreviewMethod1", "SeparatePreview", "PreviewMethod2", "AMethod", "Instance1", "Instance2"),
                       previewFilters.previewNamesArray())
     previewFilters.instanceIdFilter = "PreviewMethod1"
     assertEquals("PreviewMethod1", previewFilters.previewElements.single().instanceId)
-    assertArrayEquals(arrayOf("GroupA"), previewFilters.groupNamesArray())
+    assertArrayEquals(arrayOf("GroupA"), previewFilters.filteredGroupNamesArray())
 
     // Set the group filter
     previewFilters.groupNameFilter = PreviewGroup.namedGroup("GroupA")
@@ -90,5 +97,23 @@ class PreviewFiltersTest {
     previewFilters.instanceIdFilter = null
     assertEquals("GroupA", previewFilters.groupNameFilter.name)
     assertArrayEquals(arrayOf("PreviewMethod1", "SeparatePreview"), previewFilters.previewNamesArray())
+  }
+
+  /**
+   * Regression test for b/158038420.
+   */
+  @Test
+  fun `when a group filter is applied, availableGroups still contains all the options`() {
+    val previewFilters = PreviewFilters(StaticPreviewProvider(listOf(
+      SinglePreviewElementInstance.forTesting("A1", groupName = "GroupA"),
+      SinglePreviewElementInstance.forTesting("A2", groupName = "GroupA"),
+      SinglePreviewElementInstance.forTesting("B1", groupName = "GroupB"),
+      SinglePreviewElementInstance.forTesting("C1", groupName = "GroupC")
+    )))
+
+    assertArrayEquals(arrayOf("GroupA", "GroupB", "GroupC"), previewFilters.allAvailableGroupNamesArray())
+    previewFilters.groupNameFilter = namedGroup("GroupA")
+    assertArrayEquals(arrayOf("GroupA", "GroupB", "GroupC"), previewFilters.allAvailableGroupNamesArray())
+    assertArrayEquals(arrayOf("GroupA"), previewFilters.filteredGroupNamesArray())
   }
 }

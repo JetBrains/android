@@ -54,8 +54,8 @@ class PreviewFilters(previewProvider: PreviewElementProvider) : PreviewElementPr
   /**
    * [Set] of all the available [PreviewGroup]s in this preview.
    */
-  val availableGroups: Set<PreviewGroup>
-    get() = singleElementFilteredProvider.availableGroups.map {
+  val allAvailableGroups: Set<PreviewGroup>
+    get() = groupNameFilteredProvider.allAvailableGroups.map {
       PreviewGroup.namedGroup(it)
     }.toSet()
 

@@ -31,6 +31,15 @@ interface PreviewElementProvider {
 }
 
 /**
+ * Returns the list of available group names in this [PreviewElementProvider]. If this provider does any filtering, the groups
+ * returned here will be the ones after the filtering is applied.
+ */
+val Sequence<PreviewElement>.groupNames: Set<String>
+  get() = mapNotNull { it.displaySettings.group }
+    .filter { it.isNotBlank() }
+    .toSet()
+
+/**
  * A [PreviewElementProvider] that applies a filter to the result.
  */
 class FilteredPreviewElementProvider(private val delegate: PreviewElementProvider,

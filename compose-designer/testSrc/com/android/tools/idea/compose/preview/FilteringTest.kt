@@ -37,7 +37,7 @@ class FilteringTest {
 
     // No filtering at all
     assertEquals(4, groupPreviewProvider.previewElements.count())
-    assertThat(groupPreviewProvider.availableGroups, `is`(setOf("GroupA", "GroupB")))
+    assertThat(groupPreviewProvider.allAvailableGroups, `is`(setOf("GroupA", "GroupB")))
 
     // An invalid group should return all the items
     groupPreviewProvider.groupName = "InvalidGroup"
