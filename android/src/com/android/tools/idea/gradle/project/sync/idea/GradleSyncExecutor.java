@@ -69,6 +69,7 @@ import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleJvmResolutionUtil;
 
 public class GradleSyncExecutor {
   @NotNull private final Project myProject;
@@ -157,7 +158,9 @@ public class GradleSyncExecutor {
     }
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
-    GradleProjectImportUtil.setupGradleSettings(project, projectSettings, externalProjectPath, projectSettings.resolveGradleVersion());
+    GradleProjectImportUtil.setupGradleSettings(GradleSettings.getInstance(project));
+    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, externalProjectPath);
+    GradleJvmResolutionUtil.setupGradleJvm(project, projectSettings, projectSettings.resolveGradleVersion());
     GradleSettings.getInstance(project).setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(project, SYSTEM_ID).linkProject(projectSettings);

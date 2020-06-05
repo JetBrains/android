@@ -62,6 +62,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleJvmResolutionUtil;
 
 /**
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
@@ -233,7 +234,9 @@ public class GradleProjectImporter {
     }
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
-    GradleProjectImportUtil.setupGradleSettings(newProject, projectSettings, externalProjectPath, projectSettings.resolveGradleVersion());
+    GradleProjectImportUtil.setupGradleSettings(gradleSettings);
+    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, externalProjectPath);
+    GradleJvmResolutionUtil.setupGradleJvm(newProject, projectSettings, projectSettings.resolveGradleVersion());
     gradleSettings.setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(newProject, SYSTEM_ID).linkProject(projectSettings);
