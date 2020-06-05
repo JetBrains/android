@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite.model
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.intellij.openapi.application.ApplicationManager
 
 /**

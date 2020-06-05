@@ -64,6 +64,7 @@ import javax.swing.JPopupMenu
 import javax.swing.JTable
 
 private const val COLUMN_DEFAULT_WIDTH = 75
+private const val AUTORESIZE_OFF_COLUMN_PREFERRED_WIDTH = 85
 
 class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var view: TableViewImpl
@@ -147,7 +148,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals(JTable.AUTO_RESIZE_OFF, table.autoResizeMode)
 
     assertTrue(table.size.width > 598)
-    assertEquals(COLUMN_DEFAULT_WIDTH, table.columnModel.getColumn(1).width)
+    assertEquals(AUTORESIZE_OFF_COLUMN_PREFERRED_WIDTH, table.columnModel.getColumn(1).width)
 
     assertEquals(0, jbScrollPane.horizontalScrollBar.model.minimum)
     assertTrue(jbScrollPane.horizontalScrollBar.model.maximum > 598)
