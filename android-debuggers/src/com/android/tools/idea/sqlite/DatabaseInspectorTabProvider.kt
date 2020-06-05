@@ -67,6 +67,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       override val client = DatabaseInspectorClient(
         messenger,
+        project,
         handleError,
         openDatabase,
         onDatabasePossiblyChanged,
