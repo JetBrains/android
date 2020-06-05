@@ -37,7 +37,9 @@ class AndroidSdk(installUpdates: Boolean) : InstallableComponent(
    * @return The Revision of the latest build tools package, or null if no remote build tools packages are available.
    */
   private val latestCompatibleBuildToolsPath: String?
-    get() = sdkHandler!!.getLatestRemotePackageForPrefix(SdkConstants.FD_BUILD_TOOLS, false, object : ProgressIndicatorAdapter() {})?.path
+    get() = sdkHandler!!
+      .getLatestRemotePackageForPrefix(SdkConstants.FD_BUILD_TOOLS, null, false, object : ProgressIndicatorAdapter() {})
+      ?.path
 
   override val requiredSdkPackages: Collection<String>
     get() = getRequiredSdkPackages(isChromeOSAndIsNotHWAccelerated())
