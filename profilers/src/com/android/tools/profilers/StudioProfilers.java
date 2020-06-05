@@ -131,7 +131,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   /**
    * A map of device to stream ids. This is needed to map devices to their transport-database streams.
    */
-  private Map<Common.Device, Long> myStreamIds;
+  private Map<Common.Device, Long> myDeviceToStreamIds;
+
+  private Map<Long, Common.Stream> myStreamIdToStreams;
 
   @NotNull private final SessionsManager mySessionsManager;
 
@@ -201,7 +203,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myStage = new NullMonitorStage(this);
     mySessionsManager = new SessionsManager(this);
     mySessionChangeListener = new HashMap<>();
-    myStreamIds = new HashMap<>();
+    myDeviceToStreamIds = new HashMap<>();
+    myStreamIdToStreams = new HashMap<>();
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -367,7 +370,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   private List<Common.Device> getUpToDateDevices() {
-    return getUpToDateDevices(myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled(), myClient, myStreamIds);
+    return getUpToDateDevices(myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled(), myClient, myDeviceToStreamIds,
+                              myStreamIdToStreams);
   }
 
   /**
@@ -376,12 +380,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    *
    * @param isUnifiedPipelineEnabled The flag to control whether unified pipeline is enabled.
    * @param client                   The ProfilerClient that can call into ProfilerService.
-   * @param streamIds                A updatable cache that maps a device to its stream ID.
+   * @param deviceToStreamIds        An updatable cache that maps a device to its stream ID.
+   * @param streamIdToStreams        An updatable cache that maps a stream ID to the stream.
    */
   @NotNull
   public static List<Common.Device> getUpToDateDevices(boolean isUnifiedPipelineEnabled,
                                                        @NotNull ProfilerClient client,
-                                                       @Nullable Map<Common.Device, Long> streamIds) {
+                                                       @Nullable Map<Common.Device, Long> deviceToStreamIds,
+                                                       @Nullable Map<Long, Common.Stream> streamIdToStreams) {
     List<Common.Device> devices = new LinkedList<>();
     if (isUnifiedPipelineEnabled) {
       // Get all streams of all types.
@@ -405,8 +411,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
             // remove this once we move complete away from the legacy pipeline.
             stream = stream.toBuilder().setDevice(stream.getDevice().toBuilder().setState(Device.State.DISCONNECTED)).build();
           }
-          if (streamIds != null) {
-            streamIds.putIfAbsent(stream.getDevice(), stream.getStreamId());
+          if (deviceToStreamIds != null) {
+            deviceToStreamIds.putIfAbsent(stream.getDevice(), stream.getStreamId());
+          }
+          if (streamIdToStreams != null) {
+            streamIdToStreams.putIfAbsent(stream.getStreamId(), stream);
           }
           devices.add(stream.getDevice());
         }
@@ -417,6 +426,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       devices = response.getDeviceList();
     }
     return devices;
+  }
+
+  @NotNull
+  public Common.Stream getStream(long streamId) {
+    return myStreamIdToStreams.getOrDefault(streamId, Common.Stream.getDefaultInstance());
   }
 
   @Override
@@ -439,7 +453,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
         for (Common.Device device : devices) {
           GetEventGroupsRequest processRequest = GetEventGroupsRequest.newBuilder()
-            .setStreamId(myStreamIds.get(device))
+            .setStreamId(myDeviceToStreamIds.get(device))
             .setKind(Event.Kind.PROCESS)
             .build();
           GetEventGroupsResponse processResponse = myClient.getTransportClient().getEventGroups(processRequest);
@@ -608,7 +622,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // Only start a new session if the process is valid.
       if (myProcess != null && myProcess.getState() == Common.Process.State.ALIVE) {
         if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-          mySessionsManager.beginSession(myStreamIds.get(myDevice), myDevice, myProcess);
+          mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess);
         }
         else {
           mySessionsManager.beginSession(myDevice, myProcess);
