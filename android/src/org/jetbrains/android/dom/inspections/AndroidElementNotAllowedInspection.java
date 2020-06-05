@@ -18,7 +18,6 @@ import com.intellij.xml.util.XmlTagUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.dom.AndroidAnyTagDescriptor;
-import org.jetbrains.android.dom.AndroidXmlLayoutViewDescriptor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
@@ -80,8 +79,7 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
       if (tag.getNamespace().isEmpty()) {
         final XmlElementDescriptor descriptor = tag.getDescriptor();
 
-        if (descriptor instanceof AndroidAnyTagDescriptor ||
-            (descriptor instanceof AndroidXmlLayoutViewDescriptor && ((AndroidXmlLayoutViewDescriptor)descriptor).getViewClass() == null)) {
+        if (descriptor instanceof AndroidAnyTagDescriptor) {
           final XmlToken startTagNameElement = XmlTagUtil.getStartTagNameElement(tag);
           if (startTagNameElement != null && !isUnknownCustomView(tag)) {
             myResult.add(myInspectionManager.createProblemDescriptor(startTagNameElement, XmlAnalysisBundle.message(

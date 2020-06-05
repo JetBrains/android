@@ -41,7 +41,6 @@ import java.util.Map;
 import javax.swing.Icon;
 import org.jetbrains.android.dom.layout.DataBindingElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
-import org.jetbrains.android.dom.layout.View;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -64,9 +63,6 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
 
     final DefinesXml definesXml = domElement.getAnnotation(DefinesXml.class);
     if (definesXml != null) {
-      if (domElement instanceof LayoutViewElement) {
-        return createAndroidXmlLayoutViewDescriptor(domElement, new DomElementXmlDescriptor(domElement), aClass, icon);
-      }
       return new AndroidXmlTagDescriptor(aClass, new DomElementXmlDescriptor(domElement), baseClassName, icon);
     }
     final PsiElement parent = tag.getParent();
@@ -76,27 +72,11 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
       if (parentDescriptor != null && parentDescriptor instanceof AndroidXmlTagDescriptor) {
         XmlElementDescriptor domDescriptor = parentDescriptor.getElementDescriptor(tag, (XmlTag)parent);
         if (domDescriptor != null) {
-          if (domElement instanceof LayoutViewElement) {
-            return createAndroidXmlLayoutViewDescriptor(domElement, domDescriptor, aClass, icon);
-          }
           return new AndroidXmlTagDescriptor(aClass, domDescriptor, baseClassName, icon);
         }
       }
     }
     return null;
-  }
-
-  private static AndroidXmlLayoutViewDescriptor createAndroidXmlLayoutViewDescriptor(
-    @NotNull DomElement element,
-    @NotNull XmlElementDescriptor baseDescriptor,
-    @Nullable PsiClass viewClassFromTag,
-    @Nullable Icon icon
-  ) {
-    PsiClass viewClass = viewClassFromTag;
-    if (element instanceof View) {
-      viewClass = ((View)element).getViewClass().getValue();
-    }
-    return new AndroidXmlLayoutViewDescriptor(viewClass, baseDescriptor, icon);
   }
 
   @Override
