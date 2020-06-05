@@ -57,8 +57,10 @@ class LiveDatabaseConnection(
   override fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
     val resultSet = when (sqliteStatement.statementType) {
       SqliteStatementType.SELECT -> PagedLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
-      SqliteStatementType.EXPLAIN -> LazyLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
-      else -> throw IllegalArgumentException("SqliteStatement must be of type SELECT or EXPLAIN, but is ${sqliteStatement.statementType}")
+      SqliteStatementType.EXPLAIN, SqliteStatementType.PRAGMA_QUERY -> LazyLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
+      else -> throw IllegalArgumentException(
+        "SqliteStatement must be of type SELECT, EXPLAIN or PRAGMA, but is ${sqliteStatement.statementType}"
+      )
     }
     Disposer.register(this, resultSet)
     return Futures.immediateFuture(resultSet)
