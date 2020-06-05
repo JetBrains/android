@@ -15,7 +15,12 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFileInResourceFolderType;
+
 import com.android.SdkConstants;
+import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.client.api.DefaultConfiguration;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,16 +33,30 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.DefaultXmlExtension;
+import com.intellij.xml.XmlNSDescriptor;
+import org.jetbrains.android.dom.layout.AndroidLayoutNSDescriptor;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
+import org.jetbrains.android.dom.xml.XmlResourceNSDescriptor;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
-
 public class AndroidXmlExtension extends DefaultXmlExtension {
   private static final SchemaPrefix EMPTY_SCHEMA = new SchemaPrefix(null, new TextRange(0, 0), SdkConstants.ANDROID_NS_NAME);
+
+  @Nullable
+  @Override
+  public XmlNSDescriptor getNSDescriptor(XmlTag element, String namespace, boolean strict) {
+    XmlFile file = (XmlFile)element.getContainingFile();
+    boolean isRoot = file.getRootTag() == element;
+    if (isRoot && isFileInResourceFolderType(file, ResourceFolderType.LAYOUT)) {
+      return AndroidLayoutNSDescriptor.INSTANCE;
+    }
+    if (isRoot && isFileInResourceFolderType(file, ResourceFolderType.XML)) {
+      return XmlResourceNSDescriptor.INSTANCE;
+    }
+    return super.getNSDescriptor(element, namespace, strict);
+  }
 
   @Nullable
   @Override

@@ -104,6 +104,7 @@ import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.reflect.DomExtension;
+import com.intellij.xml.XmlElementDescriptor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -137,6 +138,7 @@ import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.Intent;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.TagFromClassDescriptor;
 import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
@@ -683,6 +685,12 @@ public class AttributeProcessingUtil {
 
     Set<XmlName> skippedAttributes =
       processAllExistingAttrsFirst ? registerExistingAttributes(facet, tag, element, callback) : new HashSet<>();
+
+    XmlElementDescriptor descriptor = tag.getDescriptor();
+    if (descriptor instanceof TagFromClassDescriptor && ((TagFromClassDescriptor)descriptor).getClazz() == null) {
+      // Don't register attributes for unresolved classes.
+      return;
+    }
 
     if (element instanceof ManifestElement) {
       processManifestAttributes(tag, element, callback);
