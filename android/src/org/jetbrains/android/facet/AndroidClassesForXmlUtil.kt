@@ -100,3 +100,8 @@ fun PsiClass.isVisibleInXml(): Boolean {
                      modifierList.hasAnnotation(AnnotationDetector.RESTRICT_TO_ANNOTATION.newName())
   return isPublic && !isRestricted && !AndroidUtils.isAbstract(this)
 }
+
+interface TagFromClassDescriptor {
+  val clazz: PsiClass?
+  val isContainer: Boolean
+}

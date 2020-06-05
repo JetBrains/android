@@ -66,9 +66,9 @@ public class AndroidXmlResourcesUtil {
     .put("header", "PreferenceHeader")
     .build();
 
-  static final ImmutableSet<String> ROOT_TAGS = ImmutableSet.of(
-    SdkConstants.TAG_APPWIDGET_PROVIDER, SEARCHABLE_TAG_NAME, KEYBOARD_TAG_NAME, DEVICE_ADMIN_TAG_NAME, ACCOUNT_AUTHENTICATOR_TAG_NAME,
-    PREFERENCE_HEADERS_TAG_NAME, PathsDomFileDescription.TAG_NAME);
+   static final ImmutableSet<String> ROOT_TAGS = ImmutableSet.of(
+     SdkConstants.TAG_APPWIDGET_PROVIDER, SEARCHABLE_TAG_NAME, KEYBOARD_TAG_NAME, DEVICE_ADMIN_TAG_NAME, ACCOUNT_AUTHENTICATOR_TAG_NAME,
+     PREFERENCE_HEADERS_TAG_NAME, PathsDomFileDescription.TAG_NAME);
 
   private AndroidXmlResourcesUtil() {
   }

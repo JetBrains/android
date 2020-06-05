@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
@@ -40,8 +39,14 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
 import org.jetbrains.android.dom.layout.DataBindingElement;
+import org.jetbrains.android.dom.layout.LayoutElement;
+import org.jetbrains.android.dom.layout.LayoutElementDescriptor;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
+import org.jetbrains.android.dom.layout.LayoutViewElementDescriptor;
+import org.jetbrains.android.dom.layout.View;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
+import org.jetbrains.android.dom.xml.PreferenceElement;
+import org.jetbrains.android.dom.xml.PreferenceElementDescriptor;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidClassesForXmlUtilKt;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -81,11 +86,43 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
 
   @Override
   public XmlElementDescriptor getDescriptor(XmlTag tag) {
+    DomElement element = DomManager.getDomManager(tag.getProject()).getDomElement(tag);
+    if (element instanceof LayoutElement) {
+      return createLayoutElementDescriptor((LayoutElement)element, tag);
+    }
+    if (element instanceof PreferenceElement) {
+      return createPreferenceElementDescriptor((PreferenceElement)element, tag);
+    }
     final Pair<AndroidDomElement, String> pair = getDomElementAndBaseClassQName(tag);
     if (pair == null) {
       return null;
     }
     return getDescriptor(pair.getFirst(), tag, pair.getSecond());
+  }
+
+  @Nullable
+  public static PreferenceElementDescriptor createPreferenceElementDescriptor(@NotNull PreferenceElement element, @NotNull XmlTag tag) {
+    AndroidFacet facet = AndroidFacet.getInstance(element);
+    if (facet == null) return null;
+    String baseClass = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet).getQualifiedBaseClass();
+    String baseGroupClass = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet).getQualifiedGroupClass();
+    final PsiClass preferenceClass = AndroidClassesForXmlUtilKt.findClassValidInXMLByName(facet, tag.getName(), baseClass);
+    return new PreferenceElementDescriptor(preferenceClass, new DomElementXmlDescriptor(element), baseGroupClass);
+  }
+
+  @Nullable
+  public static LayoutElementDescriptor createLayoutElementDescriptor(@NotNull LayoutElement element, @NotNull XmlTag tag) {
+    if (element instanceof View) {
+      PsiClass viewClass = ((View)element).getViewClass().getValue();
+      return new LayoutViewElementDescriptor(viewClass, (View)element);
+    }
+    if (element instanceof LayoutViewElement) {
+      AndroidFacet facet = AndroidFacet.getInstance(element);
+      if (facet == null) return null;
+      final PsiClass viewClass = AndroidClassesForXmlUtilKt.findViewValidInXMLByName(facet, tag.getName());
+      return new LayoutViewElementDescriptor(viewClass, (LayoutViewElement)element);
+    }
+    return new LayoutElementDescriptor(new DomElementXmlDescriptor(element));
   }
 
   @Nullable
