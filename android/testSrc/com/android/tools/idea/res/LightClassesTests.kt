@@ -55,6 +55,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.android.AndroidNonTransitiveRClassKotlinCompletionContributor
 import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
@@ -616,6 +617,160 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         </resources>
         """.trimIndent()
       )
+    }
+
+    /**
+     * Testing completion elements provided via [AndroidNonTransitiveRClassKotlinCompletionContributor]
+     */
+    fun testNonTransitiveKotlinCompletion() {
+      (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
+
+      val androidTest = createFile(
+        project.guessProjectDir()!!,
+        "/src/p1/p2/RClassAndroidTest.kt",
+        // language=kotlin
+        """
+        package p1.p2
+
+        class RClassAndroidTest {
+            fun useResources() {
+                listOf(
+                    // Both main R class references will contain all innner R class types, and all fields in completion
+                    com.example.mylib.R.string.,
+                    p1.p2.R.string.,
+                    R.string.anotherLib,
+                    Nothing.Inner.number
+                )
+            }
+        }
+        class Nothing() {
+            class Inner() {
+                companion object {
+                    val number = 0
+                }
+            }
+        }""".trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(androidTest)
+
+      // Check that the lib class reference only contains library resources
+      myFixture.moveCaret("com.example.mylib.R.string.|,")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString"))
+
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings)
+        .containsAllIn(arrayOf("anotherLibString", "libString"))
+
+      // R class references with package prefix only get resources in original R class
+      myFixture.moveCaret("p1.p2.R.string.|,")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherAppString", "appString"))
+
+      myFixture.moveCaret("p1.p2.R.|string.,")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsAllIn(ResourceType.values().filter { it.hasInnerClass }.map { it.getName() })
+
+      myFixture.moveCaret("R.string.|anotherLib,")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString", "anotherAppString", "appString"))
+
+      // Check insert handler works correctly
+      myFixture.moveCaret("R.string.anotherLib|,")
+      myFixture.completeBasic()
+
+      myFixture.moveCaret("p1.p2.R.string.|,")
+      myFixture.type("anotherApp")
+      myFixture.completeBasic()
+
+      myFixture.checkResult(
+        "/src/p1/p2/RClassAndroidTest.kt",
+        // language=kotlin
+        """
+          package p1.p2
+
+          class RClassAndroidTest {
+              fun useResources() {
+                  listOf(
+                      // Both main R class references will contain all innner R class types, and all fields in completion
+                      com.example.mylib.R.string.,
+                      p1.p2.R.string.anotherAppString,
+                      com.example.mylib.R.string.anotherLibString,
+                      Nothing.Inner.number
+                  )
+              }
+          }
+          class Nothing() {
+              class Inner() {
+                  companion object {
+                      val number = 0
+                  }
+              }
+          }
+        """.trimIndent(), true)
+
+      // Test for same module, different package
+      val otherPackage = createFile(
+        project.guessProjectDir()!!,
+        "/src/p3/p4/RClassAndroidTest.kt",
+        // language=kotlin
+        """
+        package p3.p4
+
+        import com.example.mylib.R
+
+        class RClassAndroidTest {
+            fun useResources() {
+                listOf(
+                    // Both main R class references will contain all innner R class types, and all fields in completion
+                    R.string.,
+                    p1.p2.R.string.,
+                    R.string.anotherApp,
+                    0
+                )
+            }
+        }""".trimIndent())
+      myFixture.configureFromExistingVirtualFile(otherPackage)
+
+      // R class references with package prefix only get resources in original R class
+      myFixture.moveCaret("R.string.|,")
+      myFixture.completeBasic()
+      myFixture.type("anotherLib")
+      myFixture.completeBasic()
+
+      myFixture.moveCaret("p1.p2.R.string.|,")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherAppString", "appString"))
+      myFixture.type("anotherApp")
+      myFixture.completeBasic()
+
+      myFixture.moveCaret("R.string.|anotherApp,")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString", "anotherAppString", "appString"))
+
+      myFixture.moveCaret("R.string.anotherApp|,")
+      myFixture.completeBasic()
+
+      myFixture.checkResult(
+        "/src/p3/p4/RClassAndroidTest.kt",
+        // language=kotlin
+        """
+        package p3.p4
+
+        import com.example.mylib.R
+
+        class RClassAndroidTest {
+            fun useResources() {
+                listOf(
+                    // Both main R class references will contain all innner R class types, and all fields in completion
+                    R.string.anotherLibString,
+                    p1.p2.R.string.anotherAppString,
+                    p1.p2.R.string.anotherAppString,
+                    0
+                )
+            }
+        }""".trimIndent(), true)
     }
 
     fun testNonTransitive() {
