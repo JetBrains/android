@@ -196,8 +196,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Prepare
     val sqliteFile = createAdHocSqliteDatabase()
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
     val database = SqliteDatabaseId.fromFileDatabase(sqliteFile)
@@ -286,8 +285,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Prepare
     val sqliteFile = createAdHocSqliteDatabase()
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
     val database = SqliteDatabaseId.fromFileDatabase(sqliteFile)

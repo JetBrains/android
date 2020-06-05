@@ -57,7 +57,7 @@ import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
@@ -70,7 +70,7 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
-class TableControllerTest : PlatformTestCase() {
+class TableControllerTest : LightPlatformTestCase() {
   private lateinit var tableView: MockTableView
   private lateinit var mockResultSet: MockSqliteResultSet
   private lateinit var edtExecutor: FutureCallbackExecutor
@@ -109,8 +109,7 @@ class TableControllerTest : PlatformTestCase() {
 
     val sqliteFile = sqliteUtil.createTestSqliteDatabase()
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
     authorIdColumn = ResultSetSqliteColumn("author_id", SqliteAffinity.INTEGER, false, true)
@@ -1559,8 +1558,7 @@ class TableControllerTest : PlatformTestCase() {
     // Prepare
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1", "_rowid_", "rowid", "oid"))
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
     runDispatching {
@@ -1616,8 +1614,7 @@ class TableControllerTest : PlatformTestCase() {
       insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
     )
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
     runDispatching {
@@ -1804,8 +1801,7 @@ class TableControllerTest : PlatformTestCase() {
       insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
     )
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
     runDispatching {
@@ -1857,8 +1853,7 @@ class TableControllerTest : PlatformTestCase() {
       insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
     )
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
     runDispatching {
@@ -1917,8 +1912,7 @@ class TableControllerTest : PlatformTestCase() {
       insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
     )
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
     runDispatching {
@@ -2190,8 +2184,7 @@ class TableControllerTest : PlatformTestCase() {
       insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
     )
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val customDatabaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
     runDispatching {
@@ -2290,8 +2283,7 @@ class TableControllerTest : PlatformTestCase() {
   private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
     // Prepare
     customDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(databaseFile, FutureCallbackExecutor.wrap(
-        EdtExecutorService.getInstance()))
+      getJdbcDatabaseConnection(testRootDisposable, databaseFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseConnectionWrapper = DatabaseConnectionWrapper(customDatabaseConnection!!)
 

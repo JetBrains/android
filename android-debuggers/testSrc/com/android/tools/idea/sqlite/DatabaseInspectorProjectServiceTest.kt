@@ -88,11 +88,13 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
     val connection1 = LiveDatabaseConnection(
+      testRootDisposable,
       DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), EdtExecutorService.getInstance()),
       1,
       EdtExecutorService.getInstance()
     )
     val connection2 = LiveDatabaseConnection(
+      testRootDisposable,
       DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), EdtExecutorService.getInstance()),
       2,
       EdtExecutorService.getInstance()
@@ -150,6 +152,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase("db2", 2)
 
     val connection = LiveDatabaseConnection(
+      testRootDisposable,
       DatabaseInspectorMessenger(mock(AppInspectorClient.CommandMessenger::class.java), EdtExecutorService.getInstance()),
       0,
       EdtExecutorService.getInstance()

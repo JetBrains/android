@@ -28,7 +28,9 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.getRowIdName
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.sql.Connection
@@ -41,12 +43,17 @@ import java.util.concurrent.Executor
  * operations are executed sequentially, to avoid concurrency issues with the JDBC objects.
  */
 class JdbcDatabaseConnection(
+  parentDisposable: Disposable,
   private val connection: Connection,
   private val sqliteFile: VirtualFile,
   pooledExecutor: Executor
 ) : DatabaseConnection {
   companion object {
     private val logger: Logger = Logger.getInstance(JdbcDatabaseConnection::class.java)
+  }
+
+  init {
+    Disposer.register(parentDisposable, this)
   }
 
   val sequentialTaskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
@@ -84,6 +91,7 @@ class JdbcDatabaseConnection(
         "SqliteStatement must be of type SELECT, EXPLAIN or PRAGMA, but is ${sqliteStatement.statementType}"
       )
     }
+    Disposer.register(this, resultSet)
     return Futures.immediateFuture(resultSet)
   }
 

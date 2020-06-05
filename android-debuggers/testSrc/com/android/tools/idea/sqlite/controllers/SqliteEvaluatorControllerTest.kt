@@ -473,8 +473,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
-        PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching {
@@ -503,8 +502,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
-        PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching {
@@ -531,8 +529,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
-        PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching {
@@ -557,8 +554,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
-        PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching {
@@ -584,8 +580,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
-        PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     runDispatching {
@@ -614,8 +609,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       "insert into t1 values (42)"
     )
     realDatabaseConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
-        PooledThreadExecutor.INSTANCE))
+      getJdbcDatabaseConnection(testRootDisposable, sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )
     val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
     val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
