@@ -7,10 +7,6 @@ MODULE              : project.app
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/app/build [-]
     - LintRuleJars      : <ROOT>/lint/build/libs/lint.jar [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -22,6 +18,10 @@ MODULE              : project.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.app
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]
@@ -97,10 +97,6 @@ MODULE              : project.library
     MavenName           : project:library:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/library/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -112,6 +108,10 @@ MODULE              : project.library
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.library
             - GeneratedResourceFolders    : <ROOT>/library/build/generated/res/rs/debug [-]
@@ -186,10 +186,6 @@ MODULE              : project.library-remote
     MavenName           : com.example.google:library-remote:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/library-remote/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -201,6 +197,10 @@ MODULE              : project.library-remote
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.library
             - GeneratedResourceFolders    : <ROOT>/library-remote/build/generated/res/rs/debug [-]

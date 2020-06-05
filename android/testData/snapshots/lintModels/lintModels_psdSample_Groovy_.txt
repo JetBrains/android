@@ -6,10 +6,6 @@ MODULE              : project.app
     MavenName           : project:app:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/app/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - DynamicFeatures   : :dyn_feature
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
@@ -22,6 +18,10 @@ MODULE              : project.app
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : basicBarDebug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.psd.sample.app.defaultSuffix.barSuffix
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/basicBar/debug [-]
@@ -818,10 +818,6 @@ MODULE              : project.dyn_feature
     MavenName           : project:dyn_feature:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/dyn_feature/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -833,6 +829,10 @@ MODULE              : project.dyn_feature
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.dyn_feature
             - GeneratedResourceFolders    : <ROOT>/dyn_feature/build/generated/res/rs/debug [-]
@@ -898,10 +898,6 @@ MODULE              : project.lib
     MavenName           : project:lib:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/lib/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -913,6 +909,10 @@ MODULE              : project.lib
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.projectwithappandlib.lib
             - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/rs/debug [-]
@@ -1521,10 +1521,6 @@ MODULE              : project.nested1
     MavenName           : project:nested1:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested1/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -1536,6 +1532,10 @@ MODULE              : project.nested1
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.nested1
             - GeneratedResourceFolders    : <ROOT>/nested1/build/generated/res/rs/debug [-]
@@ -1608,10 +1608,6 @@ MODULE              : project.nested1.deep
     MavenName           : project.nested1:deep:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested1/deep/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -1623,6 +1619,10 @@ MODULE              : project.nested1.deep
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.nested1.deep
             - GeneratedResourceFolders    : <ROOT>/nested1/deep/build/generated/res/rs/debug [-]
@@ -1697,10 +1697,6 @@ MODULE              : project.nested2
     MavenName           : project:nested2:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested2/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -1712,6 +1708,10 @@ MODULE              : project.nested2
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : basicDebug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.nested2
             - GeneratedResourceFolders    : <ROOT>/nested2/build/generated/res/rs/basic/debug [-]
@@ -1800,10 +1800,6 @@ MODULE              : project.nested2.deep
     MavenName           : project.nested2:deep:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested2/deep/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -1815,6 +1811,10 @@ MODULE              : project.nested2.deep
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.nested2.deep
             - GeneratedResourceFolders    : <ROOT>/nested2/deep/build/generated/res/rs/debug [-]
@@ -1888,10 +1888,6 @@ MODULE              : project.nested2.trans.deep2
     MavenName           : project.nested2.trans:deep2:
     GradleVersion       : <AGP_VERSION>
     BuildFolder         : <ROOT>/nested2/trans/deep2/build [-]
-    BuildFeatures
-        ViewBinding         : false
-        CoreLibraryDesugaringEnabled  : false
-        NamespacingMode     : DISABLED
     - BootClassPath     : <ANDROID_SDK>/platforms/android-29/android.jar
     JavaSourceLevel     : 1.7
     CompileTarget       : android-29
@@ -1903,6 +1899,10 @@ MODULE              : project.nested2.trans.deep2
         XmlReport           : true
         CheckReleaseBuilds  : true
     LintModelVariant    : debug
+        BuildFeatures
+            ViewBinding         : false
+            CoreLibraryDesugaringEnabled  : false
+            NamespacingMode     : DISABLED
         MainArtifact
             ApplicationId       : com.example.nested2.trans.deep2
             - GeneratedResourceFolders    : <ROOT>/nested2/trans/deep2/build/generated/res/rs/debug [-]

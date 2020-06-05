@@ -58,12 +58,6 @@ private fun ProjectDumper.dump(lintModelModule: LintModelModule) {
   prop("GradleVersion") { lintModelModule.gradleVersion?.toString()?.replaceKnownPaths() }
   prop("BuildFolder") { lintModelModule.buildFolder.path.toPrintablePath() }
   lintModelModule.lintRuleJars.forEach { prop("- LintRuleJars") { it.path.toPrintablePath() } }
-  head("BuildFeatures")
-  nest {
-    prop("ViewBinding") { lintModelModule.buildFeatures.viewBinding.toString() }
-    prop("CoreLibraryDesugaringEnabled") { lintModelModule.buildFeatures.coreLibraryDesugaringEnabled.toString() }
-    prop("NamespacingMode") { lintModelModule.buildFeatures.namespacingMode.toString() }
-  }
   prop("ResourcePrefix") { lintModelModule.resourcePrefix }
   lintModelModule.dynamicFeatures.forEach { prop("- DynamicFeatures") { it } }
   lintModelModule.bootClassPath.forEach { prop("- BootClassPath") { it.path.toPrintablePath() } }
@@ -115,6 +109,14 @@ private fun ProjectDumper.dump(lintOptions: LintModelLintOptions) {
 private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
   with(lintModelVariant) {
     head("LintModelVariant") { name }
+    nest {
+      head("BuildFeatures")
+      nest {
+        prop("ViewBinding") { lintModelVariant.buildFeatures.viewBinding.toString() }
+        prop("CoreLibraryDesugaringEnabled") { lintModelVariant.buildFeatures.coreLibraryDesugaringEnabled.toString() }
+        prop("NamespacingMode") { lintModelVariant.buildFeatures.namespacingMode.toString() }
+      }
+    }
     nest {
       prop("UseSupportLibraryVectorDrawables") { useSupportLibraryVectorDrawables.takeIf { it }?.toString() }
       head("MainArtifact")
