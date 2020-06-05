@@ -360,7 +360,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
    */
   @NotNull
   private static Common.Device getProfilerDevice(@NotNull IDevice device, @NotNull ProfilerClient client) {
-    List<Common.Device> devices = StudioProfilers.getUpToDateDevices(StudioFlags.PROFILER_UNIFIED_PIPELINE.get(), client, null);
+    List<Common.Device> devices = StudioProfilers.getUpToDateDevices(
+      StudioFlags.PROFILER_UNIFIED_PIPELINE.get(), client, null, null);
     for (Common.Device profilerDevice : devices) {
       if (profilerDevice.getSerial().equals(device.getSerialNumber()) && profilerDevice.getState() == Common.Device.State.ONLINE) {
         return profilerDevice;

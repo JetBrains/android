@@ -17,5 +17,6 @@ package com.android.tools.profilers.memory;
 
 public enum MemoryProfilerAspect {
   TRACKING_ENABLED,
+  LIVE_ALLOCATION_STATUS,  // the status of live allocation being ready or not
   LIVE_ALLOCATION_SAMPLING_MODE,
 }
