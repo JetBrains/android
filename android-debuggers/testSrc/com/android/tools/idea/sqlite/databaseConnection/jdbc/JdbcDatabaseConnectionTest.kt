@@ -22,12 +22,12 @@ import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
-import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -674,6 +674,28 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Act
     val resultSet = pumpEventsAndWaitForFuture(customConnection!!.query(
       SqliteStatement(SqliteStatementType.EXPLAIN, "explain select * from t1"))
+    )
+
+    // Assert
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    assertTrue(rows.isNotEmpty())
+  }
+
+  fun testPragmaStatement() {
+    // Prepare
+    customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      "db",
+      "create table t1 (c1 int)",
+      "insert into t1 values (42)"
+    )
+    customConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(customSqliteFile!!, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
+    )
+
+    // Act
+    val resultSet = pumpEventsAndWaitForFuture(customConnection!!.query(
+      SqliteStatement(SqliteStatementType.PRAGMA_QUERY, "PRAGMA cache_size"))
     )
 
     // Assert

@@ -78,8 +78,11 @@ class JdbcDatabaseConnection(
   override fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
     val resultSet = when (sqliteStatement.statementType) {
       SqliteStatementType.SELECT -> PagedJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
-      SqliteStatementType.EXPLAIN -> LazyJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
-      else -> throw IllegalArgumentException("SqliteStatement must be of type SELECT or EXPLAIN, but is ${sqliteStatement.statementType}")
+      SqliteStatementType.EXPLAIN,
+      SqliteStatementType.PRAGMA_QUERY -> LazyJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
+      else -> throw IllegalArgumentException(
+        "SqliteStatement must be of type SELECT, EXPLAIN or PRAGMA, but is ${sqliteStatement.statementType}"
+      )
     }
     return Futures.immediateFuture(resultSet)
   }

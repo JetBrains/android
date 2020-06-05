@@ -496,6 +496,60 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     verify(sqliteEvaluatorView.tableView).updateRows(listOf(RowDiffOperation.AddRow(sqliteRow)))
   }
 
+  fun testRunPragmaStatement() {
+    val sqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      "db",
+      "create table t1 (c1 int)",
+      "insert into t1 values (42)"
+    )
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
+    )
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
+    }
+    val sqliteRow = SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny(42))))
+    databaseInspectorModel.addDatabaseSchema(databaseId, SqliteSchema(emptyList()))
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "pragma table_info('sqlite_master')")))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(sqliteEvaluatorView).showSqliteStatement("pragma table_info('sqlite_master')")
+    verify(sqliteEvaluatorView.tableView).showTableColumns(any())
+    verify(sqliteEvaluatorView.tableView).updateRows(any())
+  }
+
+  fun testRunPragmaStatementSetVariable() {
+    val sqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      "db",
+      "create table t1 (c1 int)",
+      "insert into t1 values (42)"
+    )
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(
+        PooledThreadExecutor.INSTANCE))
+    )
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("db", 1)
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
+    }
+    databaseInspectorModel.addDatabaseSchema(databaseId, SqliteSchema(emptyList()))
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.showAndExecuteSqlStatement(databaseId, createSqliteStatement(project, "PRAGMA cache_size = 2")))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(sqliteEvaluatorView).showSqliteStatement("PRAGMA cache_size = 2")
+    assertEquals(listOf("The statement was run successfully"), successfulInvocationNotificationInvocations)
+  }
+
   fun testRunInsertStatementWithSemicolon() {
     val sqliteFile = sqliteUtil.createAdHocSqliteDatabase(
       "db",
