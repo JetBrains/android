@@ -30,6 +30,6 @@ public class MemoryUsageTooltip implements TooltipModel {
   }
 
   public boolean useLiveAllocationTracking() {
-    return myStage.useLiveAllocationTracking();
+    return myStage.isLiveAllocationTrackingReady();
   }
 }
