@@ -57,6 +57,7 @@ import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -632,22 +633,6 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
   }
 
   public boolean useLiveAllocationTracking() {
-    return isLiveAllocationTrackingReady() || isLiveAllocationTrackingSupported();
-  }
-
-  /**
-   * @return `true` if live allocation is definitely available based on device info
-   *         `false` if live allocation is potentially unavailable
-   *         (potential false negative from lack of device info)
-   */
-  private boolean isLiveAllocationTrackingSupported() {
-    Common.Device device = getStudioProfilers().getDevice();
-    return device != null &&
-           getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() &&
-           device.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
-  }
-
-  public boolean isLiveAllocationTrackingReady() {
     return MemoryProfiler.isUsingLiveAllocation(getStudioProfilers(), mySessionData);
   }
 
