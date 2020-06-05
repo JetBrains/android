@@ -26,6 +26,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.Executor
 
@@ -33,10 +34,15 @@ import java.util.concurrent.Executor
  * Implementation of [DatabaseConnection] based on the AppInspection pipeline.
  */
 class LiveDatabaseConnection(
+  parentDisposable: Disposable,
   private val messenger: DatabaseInspectorMessenger,
   private val id: Int,
   private val taskExecutor: Executor
 ) : DatabaseConnection {
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
 
   override fun close(): ListenableFuture<Unit> {
     // TODO(blocked) not yet implemented in on-device inspector
