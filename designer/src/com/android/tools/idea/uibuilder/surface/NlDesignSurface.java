@@ -59,8 +59,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.utils.ImmutableCollectors;
@@ -104,40 +102,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * See {@link Builder#setDelegateDataProvider(DataProvider)}
    */
   @Nullable private final DataProvider myDelegateDataProvider;
-
-  private static class NlDesignSurfacePositionableContentLayoutManager extends PositionableContentLayoutManager {
-    private final NlDesignSurface myDesignSurface;
-    private final SurfaceLayoutManager myLayoutManager;
-
-    NlDesignSurfacePositionableContentLayoutManager(@NotNull NlDesignSurface surface, @NotNull SurfaceLayoutManager surfaceLayoutManager) {
-      myDesignSurface = surface;
-      myLayoutManager = surfaceLayoutManager;
-    }
-
-    @Override
-    public void layoutContainer(@NotNull Collection<? extends PositionableContent> content, @NotNull Dimension availableSize) {
-      availableSize = myDesignSurface.getExtentSize();
-      myLayoutManager.layout(content, availableSize.width, availableSize.height, myDesignSurface.isCanvasResizing());
-    }
-
-    @NotNull
-    @Override
-    public Dimension preferredLayoutSize(@NotNull Collection<? extends PositionableContent> content, @NotNull Dimension availableSize) {
-      availableSize = myDesignSurface.getExtentSize();
-      Dimension dimension = myLayoutManager.getRequiredSize(content, availableSize.width, availableSize.height, null);
-
-      if (dimension.width >= 0 && dimension.height >= 0) {
-        dimension.setSize(dimension.width + 2 * DEFAULT_SCREEN_OFFSET_X, dimension.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
-      }
-
-      dimension.setSize(
-        Math.max(myDesignSurface.myScrollableViewMinSize.width, dimension.width),
-        Math.max(myDesignSurface.myScrollableViewMinSize.height, dimension.height)
-      );
-
-      return dimension;
-    }
-  }
 
   public static class Builder {
     private final Project myProject;
@@ -385,7 +349,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    */
   private final BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider;
 
-  @NotNull private final SurfaceLayoutManager myLayoutManager;
+  @NotNull private SurfaceLayoutManager myLayoutManager;
 
   @Nullable private final NavigationHandler myNavigationHandler;
 
@@ -405,7 +369,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           boolean isEditable,
                           boolean showModelNames,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
-                          @NotNull SurfaceLayoutManager layoutManager,
+                          @NotNull SurfaceLayoutManager defaultLayoutManager,
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
                           @NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider,
                           @Nullable NavigationHandler navigationHandler,
@@ -415,13 +379,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
                           @Nullable DataProvider delegateDataProvider) {
     super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable, onChangeZoom,
-          (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, layoutManager),
+          (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
           actionHandlerProvider);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
     myShowModelNames = showModelNames;
-    myLayoutManager = layoutManager;
+    myLayoutManager = defaultLayoutManager;
     mySceneManagerProvider = sceneManagerProvider;
     myNavigationHandler = navigationHandler;
 
@@ -707,7 +671,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   protected Dimension getPreferredContentSize(@SwingCoordinate int availableWidth, @SwingCoordinate int availableHeight) {
     Dimension extent = getExtentSize();
-    return myLayoutManager.getPreferredSize(getPositionableContent(), extent.width, extent.height, null);
+    return ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
+      .getLayoutManager()
+      .getPreferredSize(getPositionableContent(), extent.width, extent.height, null);
   }
 
   @Override
@@ -975,5 +941,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       myPreviewWithToolsVisibilityAndPosition = isPreviewWithToolsVisibilityAndPosition;
       forceUserRequestedRefresh();
     }
+  }
+
+  @NotNull
+  Dimension getScrollableViewMinSize() {
+    return myScrollableViewMinSize;
   }
 }

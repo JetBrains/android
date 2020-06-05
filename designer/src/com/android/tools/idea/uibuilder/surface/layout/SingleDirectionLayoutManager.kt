@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.surface.SceneView
 import java.awt.Dimension
 import kotlin.math.max
 
@@ -27,12 +26,11 @@ import kotlin.math.max
  * The [horizontalViewDelta] and [verticalViewDelta] are the fixed gap between different [PositionableContent]s.
  * Padding and view delta are always the same physical sizes on screen regardless the zoom level.
  */
-class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPadding: Int,
-                                   @SwingCoordinate private val verticalPadding: Int,
-                                   @SwingCoordinate private val horizontalViewDelta: Int,
-                                   @SwingCoordinate private val verticalViewDelta: Int)
+open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPadding: Int,
+                                        @SwingCoordinate private val verticalPadding: Int,
+                                        @SwingCoordinate private val horizontalViewDelta: Int,
+                                        @SwingCoordinate private val verticalViewDelta: Int)
   : SurfaceLayoutManager {
-
   private var previousHorizontalPadding = 0
   private var previousVerticalPadding = 0
 
@@ -82,7 +80,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
     return dim
   }
 
-  private fun isVertical(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int): Boolean {
+  protected open fun isVertical(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int): Boolean {
     if (content.isEmpty()) {
       return false
     }
@@ -117,18 +115,32 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
       var nextY = startY
       for (sceneView in content) {
         nextY += sceneView.margin.top
-        sceneView.setLocation(startX, nextY)
+        // Centered in the vertical centerline
+        val xPosition = max(startX, availableWidth / 2 - (sceneView.scaledContentSize.width + sceneView.margin.horizontal) / 2)
+        sceneView.setLocation(xPosition, nextY)
         nextY += sceneView.scaledContentSize.height + sceneView.margin.bottom + verticalViewDelta
       }
     }
     else {
       var nextX = startX
       for (sceneView in content) {
-        sceneView.setLocation(nextX, startY)
+        // Centered in the horizontal centerline
+        val yPosition = max(startY, availableHeight / 2 - (sceneView.scaledContentSize.height + sceneView.margin.vertical) / 2)
+        sceneView.setLocation(nextX, yPosition)
         nextX += sceneView.scaledContentSize.width + horizontalViewDelta
       }
     }
   }
+}
+
+/**
+ * [SingleDirectionLayoutManager] that forces the content to always be vertical.
+ */
+class VerticalOnlyLayoutManager(@SwingCoordinate private val horizontalPadding: Int,
+                                @SwingCoordinate private val verticalPadding: Int,
+                                @SwingCoordinate private val horizontalViewDelta: Int,
+                                @SwingCoordinate private val verticalViewDelta: Int): SingleDirectionLayoutManager(horizontalPadding, verticalPadding, horizontalViewDelta, verticalViewDelta) {
+  override fun isVertical(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int): Boolean = true
 }
 
 // Helper functions to improve readability

@@ -252,7 +252,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
  * @param layoutManager the [PositionableContentLayoutManager] responsible for positioning and measuring the [SceneView]s
  */
 internal class SceneViewPanel(private val interactionLayersProvider: () -> List<Layer>,
-                              val layoutManager: PositionableContentLayoutManager) :
+                              layoutManager: PositionableContentLayoutManager) :
   JPanel(layoutManager) {
 
   /**
