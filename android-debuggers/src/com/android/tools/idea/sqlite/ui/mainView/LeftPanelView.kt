@@ -359,7 +359,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
         }
       }
 
-      if (hasFocus) {
+      if (hasFocus && icon != null) {
         icon = ColoredIconGenerator.generateWhiteIcon(icon)
       }
     }
