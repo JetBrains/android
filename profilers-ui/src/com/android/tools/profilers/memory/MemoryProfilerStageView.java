@@ -345,23 +345,6 @@ public class MemoryProfilerStageView extends BaseMemoryProfilerStageView<MemoryP
         getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
       toolbar.add(myAllocationSamplingRateLabel);
       toolbar.add(myAllocationSamplingRateDropDown);
-      if (getStage().isLiveAllocationTrackingReady()) {
-        myAllocationSamplingRateLabel.setVisible(true);
-        myAllocationSamplingRateDropDown.setVisible(true);
-      }
-      // If live-alloc is available but not ready yet, wait until it's ready before enabling it
-      else {
-        myAllocationSamplingRateLabel.setVisible(false);
-        myAllocationSamplingRateDropDown.setVisible(false);
-        getStage().getTimeline().getDataRange().addDependency(this)
-          .onChange(Range.Aspect.RANGE, () -> {
-            if (getStage().isLiveAllocationTrackingReady()) {
-              myAllocationSamplingRateLabel.setVisible(true);
-              myAllocationSamplingRateDropDown.setVisible(true);
-              getStage().getTimeline().getDataRange().removeDependencies(this);
-            }
-          });
-      }
       if (getStage().isNativeAllocationSamplingEnabled()) {
         toolbar.add(new FlatSeparator());
         toolbar.add(myNativeAllocationButton);
