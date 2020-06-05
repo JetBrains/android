@@ -19,6 +19,7 @@ import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -69,12 +70,17 @@ fun selectAllAndRowIdFromTable(table: SqliteTable): String {
   return "SELECT $columnsToSelect FROM ${AndroidSqlLexer.getValidName(table.name)}"
 }
 
-suspend fun openJdbcDatabaseConnection(virtualFile: VirtualFile, workerExecutor: Executor, workerDispatcher: CoroutineDispatcher): JdbcDatabaseConnection {
+suspend fun openJdbcDatabaseConnection(
+  parentDisposable: Disposable,
+  virtualFile: VirtualFile,
+  workerExecutor: Executor,
+  workerDispatcher: CoroutineDispatcher
+): JdbcDatabaseConnection {
   return withContext(workerDispatcher) {
     try {
       val url = "jdbc:sqlite:${virtualFile.path}"
       val connection = DriverManager.getConnection(url)
-      JdbcDatabaseConnection(connection, virtualFile, workerExecutor)
+      JdbcDatabaseConnection(parentDisposable, connection, virtualFile, workerExecutor)
     }
     catch (e: Exception) {
       throw RuntimeException("Error while opening Sqlite database file '${virtualFile.path}'", e)

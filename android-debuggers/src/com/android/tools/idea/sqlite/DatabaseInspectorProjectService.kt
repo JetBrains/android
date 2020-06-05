@@ -215,7 +215,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   @AnyThread
   override fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabaseId> = projectScope.future {
     val databaseId = async {
-      val databaseConnection = openJdbcDatabaseConnection(file, taskExecutor, workerThread)
+      val databaseConnection = openJdbcDatabaseConnection(project, file, taskExecutor, workerThread)
       val databaseId = SqliteDatabaseId.fromFileDatabase(file)
 
       databaseRepository.addDatabaseConnection(databaseId, databaseConnection)
