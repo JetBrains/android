@@ -629,20 +629,10 @@ MODULE              : TestCompositeLib1.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.0.2/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.0.2/proguard.txt [-]
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout:1.0.2
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/TestCompositeLib1/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified
             LintModelLibrary    : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
                 - JarFiles          : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 ArtifactAddress     : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -987,20 +977,10 @@ MODULE              : TestCompositeLib1.lib
             - AssetsDirectories : <ROOT>/TestCompositeLib1/lib/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified
             LintModelLibrary    : AndroidLibrary(com.android.support:appcompat-v7:28.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/jars/classes.jar
                 ArtifactAddress     : com.android.support:appcompat-v7:28.0.0
@@ -2001,20 +1981,10 @@ MODULE              : TestCompositeLib3.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.0.2/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.0.2/proguard.txt [-]
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout:1.0.2
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified
             LintModelLibrary    : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
                 - JarFiles          : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 ArtifactAddress     : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -2674,20 +2644,10 @@ MODULE              : TestCompositeLib3.lib
                 - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/TestCompositeLib3/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified
 MODULE              : composite2
 MODULE              : composite4
 MODULE              : project
@@ -3326,20 +3286,10 @@ MODULE              : project.app
                 ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.0.2/annotations.zip [-]
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.0.2/proguard.txt [-]
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout:1.0.2
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified
             LintModelLibrary    : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
                 - JarFiles          : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 ArtifactAddress     : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -4052,17 +4002,7 @@ MODULE              : project.lib
                 - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
-            LintModelLibrary    : AndroidLibrary(:lib)
-                - JarFiles          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:lib)
                 ArtifactAddress     : artifacts::lib:unspecified
-                Manifest            : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :lib
-                ResolvedCoordinates : artifacts::lib:unspecified
