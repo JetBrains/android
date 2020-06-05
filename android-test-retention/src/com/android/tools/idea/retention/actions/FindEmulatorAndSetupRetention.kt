@@ -24,14 +24,12 @@ import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.run.editor.AndroidDebugger
-import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
-import com.intellij.execution.ExecutionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -42,19 +40,22 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.project.Project
-import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.xdebugger.XDebugSession
+import com.intellij.xdebugger.XDebugSessionListener
+import com.intellij.xdebugger.XDebuggerManager
+import com.intellij.xdebugger.XDebuggerManagerListener
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
 import org.jetbrains.android.actions.AndroidConnectDebuggerAction
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 // Const values for the progress bar
-private const val PUSH_SNAPSHOT_FRACTION = 0.7
-private const val LOAD_SNAPSHOT_FRACTION = 0.8
-private const val CLIENTS_READY_FRACTION = 0.9
+private const val PUSH_SNAPSHOT_FRACTION = 0.6
+private const val LOAD_SNAPSHOT_FRACTION = 0.7
+private const val CLIENTS_READY_FRACTION = 0.8
+private const val DEBUGGER_CONNECTED_FRACTION = 0.9
 
 /**
  * An action to load an Android Test Retention snapshot.
@@ -119,6 +120,7 @@ class FindEmulatorAndSetupRetention : AnAction() {
                 return
               }
               indicator.fraction = LOAD_SNAPSHOT_FRACTION
+              // TODO(b/158602668): occasionally it doesn't get the clients ready signal.
               ProgressIndicatorUtils.awaitWithCheckCanceled(deviceClientsReadySignal)
               indicator.fraction = CLIENTS_READY_FRACTION
             }
@@ -131,7 +133,41 @@ class FindEmulatorAndSetupRetention : AnAction() {
               LOG.warn("Failed to connect to device.")
               return
             }
-            connectDebugger(adbDevice!!, dataContext)
+
+            val debugSessionReadySignal = CountDownLatch(1)
+            val messageBusConnection = project.messageBus.connect()
+            try {
+              messageBusConnection.subscribe(XDebuggerManager.TOPIC, object : XDebuggerManagerListener {
+                override fun currentSessionChanged(previousSession: XDebugSession?, currentSession: XDebugSession?) {
+                  if (currentSession != null) {
+                    messageBusConnection.disconnect()
+                    debugSessionReadySignal.countDown()
+                  }
+                }
+              })
+              connectDebugger(adbDevice!!, dataContext)
+              // Wait for debug session ready.
+              ProgressIndicatorUtils.awaitWithCheckCanceled(debugSessionReadySignal)
+              indicator.fraction = DEBUGGER_CONNECTED_FRACTION
+            } catch (exception: Exception) {
+              messageBusConnection.disconnect()
+              throw exception
+            }
+            val currentSession = XDebuggerManager.getInstance(getProject()).currentSession!!
+            val pauseSignal = CountDownLatch(1)
+            // Pause the current session. It turns out that the session can only be paused after some setting updates. So we need to send
+            // pause commands in settingsChanged() as well as in the current thread, in case it is updated before we set up the callbacks.
+            currentSession.addSessionListener(object: XDebugSessionListener {
+              override fun sessionPaused() {
+                currentSession.removeSessionListener(this)
+                pauseSignal.countDown()
+              }
+              override fun settingsChanged() {
+                currentSession.pause()
+              }
+            })
+            currentSession.pause()
+            ProgressIndicatorUtils.awaitWithCheckCanceled(pauseSignal)
           }
         }
       })
