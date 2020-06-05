@@ -431,32 +431,27 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
         "Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
-    val classLoader = ModuleClassLoaderManager.get().getShared(null, module, this)
-    try {
-      return parameterProviders.map {
-        try {
-          val parameterProviderClass = classLoader.loadClass(it.providerClassFqn).kotlin
-          val parameterProviderSizeMethod = parameterProviderClass.memberProperties.single { "count" == it.name }
-          val parameterProvider = parameterProviderClass.createInstance()
-          val providerCount = min((parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0), it.limit)
+    return parameterProviders.map {
+      try {
+        val parameterProviderClass = ModuleClassLoaderManager.get().getShared(null, module).loadClass(it.providerClassFqn).kotlin
+        val parameterProviderSizeMethod = parameterProviderClass.memberProperties.single { "count" == it.name }
+        val parameterProvider = parameterProviderClass.createInstance()
+        val providerCount = min((parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0), it.limit)
 
-          return (0 until providerCount).map { index ->
-            ParametrizedPreviewElementInstance(basePreviewElement = basePreviewElement,
-                                               parameterName = it.name,
-                                               index = index,
-                                               providerClassFqn = it.providerClassFqn)
-          }.asSequence()
-        }
-        catch (e: Throwable) {
-          Logger.getInstance(
-            ParametrizedPreviewElementTemplate::class.java).debug { "Failed to instantiate ${it.providerClassFqn} parameter provider" }
-        }
+        return (0 until providerCount).map { index ->
+          ParametrizedPreviewElementInstance(basePreviewElement = basePreviewElement,
+                                             parameterName = it.name,
+                                             index = index,
+                                             providerClassFqn = it.providerClassFqn)
+        }.asSequence()
+      }
+      catch (e: Throwable) {
+        Logger.getInstance(
+          ParametrizedPreviewElementTemplate::class.java).debug { "Failed to instantiate ${it.providerClassFqn} parameter provider" }
+      }
 
-        return sequenceOf()
-      }.first()
-    } finally {
-      ModuleClassLoaderManager.get().release(classLoader, this)
-    }
+      return sequenceOf()
+    }.first()
   }
 
   override fun equals(other: Any?): Boolean {
