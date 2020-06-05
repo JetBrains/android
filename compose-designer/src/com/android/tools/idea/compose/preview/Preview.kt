@@ -18,7 +18,6 @@ package com.android.tools.idea.compose.preview
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.ActionsToolbar
-import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
@@ -219,7 +218,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       forceRefresh()
     }
   }
-  override val availableGroups: Set<PreviewGroup> get() = previewElementProvider.availableGroups
+  override val availableGroups: Set<PreviewGroup> get() = previewElementProvider.allAvailableGroups
 
   private enum class InteractionMode {
     DEFAULT,
