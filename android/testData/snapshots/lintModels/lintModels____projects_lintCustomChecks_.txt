@@ -86,20 +86,10 @@ MODULE              : project.app
             - AssetsDirectories : <ROOT>/app/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : AndroidLibrary(:library)
-                - JarFiles          : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:library)
                 ArtifactAddress     : artifacts::library:unspecified
-                Manifest            : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :library
-                ResolvedCoordinates : artifacts::library:unspecified
 MODULE              : project.library
     Dir                 : <ROOT>/library
     ModulePath          : library
@@ -185,20 +175,10 @@ MODULE              : project.library
             - AssetsDirectories : <ROOT>/library/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : AndroidLibrary(:library)
-                - JarFiles          : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:library)
                 ArtifactAddress     : artifacts::library:unspecified
-                Manifest            : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/library/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :library
-                ResolvedCoordinates : artifacts::library:unspecified
 MODULE              : project.library-remote
     Dir                 : <ROOT>/library-remote
     ModulePath          : library-remote
@@ -284,20 +264,10 @@ MODULE              : project.library-remote
             - AssetsDirectories : <ROOT>/library-remote/src/testDebug/assets [-]
         Debuggable          : true
         LibraryResolver
-            LintModelLibrary    : AndroidLibrary(:library-remote)
-                - JarFiles          : <ROOT>/library-remote/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/classes.jar [-]
+            LintModelLibrary    : LocalLibrary(:library-remote)
                 ArtifactAddress     : artifacts::library-remote:unspecified
-                Manifest            : <ROOT>/library-remote/build/intermediates/library_manifest/debug/AndroidManifest.xml/AndroidManifest.xml [-]
-                Folder              : <ROOT>/library-remote/build/intermediates/library_manifest/debug/AndroidManifest.xml [-]
-                ResFolder           : <ROOT>/library-remote/build/intermediates/library_manifest/debug/AndroidManifest.xml/res [-]
-                AssetsFolder        : <ROOT>/library-remote/build/intermediates/library_manifest/debug/AndroidManifest.xml/assets [-]
                 LintJar             : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                PublicResources     : <ROOT>/library-remote/build/intermediates/library_manifest/debug/AndroidManifest.xml/public.txt [-]
-                SymbolFile          : <ROOT>/library-remote/build/intermediates/library_manifest/debug/AndroidManifest.xml/R.txt [-]
-                ExternalAnnotations : <ROOT>/library-remote/build/intermediates/library_manifest/debug/AndroidManifest.xml/annotations.zip [-]
-                ProguardRules       : <ROOT>/library-remote/build/intermediates/library_manifest/debug/AndroidManifest.xml/proguard.txt [-]
                 ProjectPath         : :library-remote
-                ResolvedCoordinates : artifacts::library-remote:unspecified
 MODULE              : project.lint
 MODULE              : project.lintpublish
 MODULE              : project.lintpublish-remote
