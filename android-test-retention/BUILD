@@ -44,6 +44,7 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/adt/idea/emulator:intellij.android.emulator[module]",
         "//tools/idea/java/execution/impl:intellij.java.execution.impl[module]",
+        "//tools/idea/platform/xdebugger-api:intellij.platform.debugger[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
